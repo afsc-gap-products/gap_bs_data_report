@@ -1,21 +1,112 @@
 ---
-title: ""
-author: ""
-date: ""
-output: 
-   word_document:
-     df_print: kable
-     reference_docx: word-styles-reference.docx
+output:
+  word_document:
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: word-styles-reference.docx
+csl: "../citationStyles/citationstyle.csl"
+bibliography: "../data/bibliography.bib"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE)
 ```
 
 ### `r spp.common` (*`r spp.sci`*)
 
 Walleye pollock were captured at 98% of the stations sampled in the EBS and NBS. Catch rates were lowest in the inner shelf, and highest north of 56°N and west of 173°W where bottom depths were greater than 70 m and bottom water temperatures were above -1°C (Figure 7). The total estimated biomass of walleye pollock in the EBS was 4.81 million t (Table 7a), which was a 2% decrease from the 2016 estimate of 4.91 million t. The lower biomass corresponded to a 1% decrease in population size from 8.53 billion to 8.48 billion fish (Table 7b). The biomass and population size in the NBS were smaller than that of the EBS with 1.32 t and 1.83 billion fish. 
 One-year-old pollock, represented by lengths ranging from 10 to 20 cm, had a modal peak of 127 million in the EBS and 47 million in the NBS (Figure 8). These 10-20 cm juveniles were mostly found at stations where catch rates were less than 75 kg/ha (Figure 9) and they were generally segregated from larger adults (> 40 cm) in the middle and outer shelf. The abundance-at-size plot of pollock in both the NBS and EBS inner shelf shows a large mode of age-1 pollock followed by a large gap and then a small mode of much larger pollock having lengths greater than 60 cm (Figure 10). Age-2 and age-3 pollock (length range of 20-40 cm) are generally underrepresented in survey trawl catches; however, relatively small modes for both year classes are present in the plot of abundance-at-size (Figure 10). 
+
+
+```{r fig.width=8, fig.height = 6, fig.cap=paste0("Figure 1. -- Sampling grid and station identifiers for the ", maxyr, " eastern and northern Bering Sea continental shelf bottom trawl surveys.")}
+
+SEBS <- get_base_layers(select.region = "bs.south", set.crs = "auto")
+# class(SEBS)
+# names(SEBS)
+
+temp<-dat[dat$YEAR %in% maxyr, ]
+temp<-unique(temp[,c("VESSEL", "STATION", "LATITUDE", "LONGITUDE", "STRATUM")])
+
+
+(SEBS_plot <- ggplot() +
+  geom_sf(data = SEBS$akland) +
+  geom_sf(data = SEBS$bathymetry) +
+  geom_sf(data = SEBS$survey.area, fill = NA) +
+  geom_sf(data = SEBS$graticule, color = "grey70", alpha = 0.5) +
+  coord_sf(xlim = SEBS$plot.boundary$x, 
+           ylim = SEBS$plot.boundary$y) +
+  scale_x_continuous(name = "Longitude", 
+                     breaks = SEBS$lon.breaks) + 
+  scale_y_continuous(name = "Latitude", 
+                     breaks = SEBS$lat.breaks) + 
+  geom_point(data = temp, mapping = aes(x = temp$LONGITUDE, y = temp$LATITUDE, 
+                                        colour = factor(temp$VESSEL), shape = factor(temp$VESSEL))) +
+  theme_bw())
+
+# my_label <- data.frame(x = -165, y = 58, label = "Thar be\ndragons")
+# SEBS_plot + geom_text(data = my_label, 
+#                       mapping = aes(x = x, 
+#                                     y = y, 
+#                                     label = label), 
+#                       color = "red")
+# 
+# my_label <- data.frame(x = -165, y = 58, label = "Thar be\ndragons") %>% 
+#   akgfmaps::transform_data_frame_crs(in.crs = "+proj=longlat", out.crs = SEBS$crs)
+# SEBS_plot + geom_text(data = my_label, 
+#                       mapping = aes(x = x, 
+#                                     y = y, 
+#                                     label = label), 
+#                       color = "red")
+
+
+akgfmaps::YFS2017 %>% 
+  make_idw_map(region = "bs.all",
+               set.breaks = "jenks",
+               grid.cell = c(0.02, 0.02)) %>%
+  add_map_labels() %>% 
+  change_fill_color(new.scheme = "purple2", show.plot = TRUE) %>%
+  create_map_file(file.prefix = NA, 
+                            file.path = NA, 
+                            try.change_text_size = TRUE, # 12x9 is a pre-defined size
+                            width = 12, 
+                            height = 9, 
+                            units = "in", 
+                            res = 300, 
+                            bg = "transparent")
+
+yfs2017 <- akgfmaps::YFS2017
+
+opt1 <- make_idw_map(x = yfs2017, # Pass data as a data frame
+             region = "bs.all", # Predefined bs.all area
+             set.breaks = "jenks", # Gets Jenks breaks from classint::classIntervals()
+             grid.cell = c(0.02, 0.02), # 0.2x0.2 degree grid cells
+             key.title = "yellowfin sole") # Include yellowfin sole in the legend title
+
+
+
+
+eval_plot_breaks(CPUE = yfs2017$CPUE_KGHA, n.breaks = 5)
+
+yfs.opt1 <- make_idw_map(x = yfs2017,
+             region = "bs.all",
+             set.breaks = "jenks",
+             grid.cell = c(0.05, 0.05), # Coarse grid
+             key.title = "yellowfin sole")
+
+yfs.opt2 <- make_idw_map(x = yfs2017,
+             region = "bs.all",
+             set.breaks = "kmeans", 
+             grid.cell = c(0.05, 0.05), # Coarse grid
+             key.title = "yellowfin sole")
+
+yfs.opt3 <- make_idw_map(x = yfs2017,
+             region = "bs.all",
+             set.breaks = c(0, 25, 100, 250, 500, 1000),
+             grid.cell = c(0.05, 0.05), # Coarse grid
+             key.title = "yellowfin sole")
+yfs.opt3$plot
+
+```
+
 
  
 Pacific Cod (Gadus macrocephalus)

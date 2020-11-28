@@ -1,0 +1,49 @@
+---
+output:
+  word_document:
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: word-styles-reference.docx
+csl: "../citationStyles/citationstyle.csl"
+bibliography: "../data/bibliography.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE)
+counter.inside<-0
+```
+
+## Abstract
+
+From June to July `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center Resource Assessment and Conservation Engineering Division conducted its `r yrofsurvey ``r stndth` annual `r SURVEY` (`r survey`) continental shelf bottom trawl survey of groundfish and invertebrate fauna. The standard study area encompasses a major portion of the `r SURVEY` shelf (depths between `r min(dat$BOT_DEPTH[dat$YEAR %in% maxyr])` and `r max(dat$BOT_DEPTH[dat$YEAR %in% maxyr])` m) from the Alaska Peninsula north to approximately the latitude of St. Matthew Island (60º 50' N). In addition, a rapid response survey of a portion of the Northern Bering Sea (NBS) was conducted in response to warmer than average seafloor water temperatures and changes in historical fish and invertebrate distribution patterns observed during the EBS survey. Two stern trawlers, the `r text_list(paste0(unique(dat$VESSEL_M[dat$YEAR %in% maxyr]), "-m ", unique(dat$VESSEL_NAME[dat$YEAR %in% maxyr])))`, were chartered for sampling during the `r survey` surveys. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at 37.04 × 37.04 km (20 × 20 nmi) stations centered within a stratified systematic grid consisting of a total of `r length(unique(dat$STATION))` stations in the `r survey` survey. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. All survey stations were sampled successfully in the `r survey`. 
+
+> How do I know if all stations were sampled successfully? Data-wise?
+
+```{r}
+
+# Find mean of sst and bt by year
+sst<-aggregate(x = dat$SURF_TEMP, by = list("Year" = dat$YEAR), FUN = mean, na.rm=T)
+bt<-aggregate(x = dat$BOT_TEMP, by = list("Year" = dat$YEAR), FUN = mean, na.rm=T)
+
+# Find mean of sst and bt for whole time series (using mean by year)
+sst.mean<-mean(sst$x, na.rm = T)
+bt.mean<-mean(bt$x, na.rm = T)
+
+# Is SST or BT now warmer than the mean SST or BT of the whole timeseries?
+sst.TF<- (sst$x > sst.mean)
+bt.TF<- (bt$x > bt.mean)
+
+waswarmer.TF<-data.frame("SST" = sst.TF, "BT" = bt.TF)
+waswarmer.TF$TF<-((waswarmer.TF$SST+waswarmer.TF$BT)==2)
+
+temp<-ifelse(sum(waswarmer.TF$TF[1:2])>2, 
+             paste0("For the ", numbers2words_th(x = length(1:(which(waswarmer.TF$TF %in% FALSE)[1]-1)), type = "word"), " consecutive year,"), 
+             "The")
+
+
+```
+
+
+`r temp` average surface (`r round(x = mean(dat$SURF_TEMP[dat$YEAR %in% maxyr], na.rm = T), digits = 1) `°C) and bottom (`r round(x = mean(dat$BOT_TEMP[dat$YEAR %in% maxyr], na.rm = T), digits = 1) `°C) water temperatures for the `r survey` shelf were well above the long-term means from `r min(dat$YEAR)` to `r maxyr` for the surface (`r round(x = mean(dat$SURF_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C) and for the bottom (`r round(x = mean(dat$BOT_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C). In the `r survey`, there were a total of `r length(unique(dat$SID[dat$YEAR %in% maxyr]))` species representing `r paste0("___")` families and `r paste0("___")` genera, as well as `r paste0("___")` invertebrate taxa representing `r paste0("___")` phyla, identified in the catches.
+
+
+Survey results presented herein include abundance estimates for fishes and invertebrates, geographic distributions and abundance-at-length of the more common fish species, and summary surface and bottom temperature data during the summer survey period. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data of the sampled populations.
