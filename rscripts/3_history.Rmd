@@ -14,79 +14,78 @@ counter.inside<-0
 
 ### History of Bering Sea Bottom Trawl Surveys
 
-The involvement of the U.S. government in Bering Sea BT surveys dates back to the 1940’s when effort was engaged primarily in exploratory work for commercial fisheries resources (Zimmermann et al. 2009). Early efforts led to the development of a valuable single-species fishery in Alaska for red king crab (Paralithodes camtschaticus), and continued U.S. BT surveys into the 1970’s focused on cooperative arrangements with private industry to study the biology, distribution, abundance, and best fishing practices for red king crab (Zimmermann 
-et al. 2009). 
+The involvement of the U.S. government in Bering Sea BT surveys dates back to the 1940’s when effort was engaged primarily in exploratory work for commercial fisheries resources [@RN945]. Early efforts led to the development of a valuable single-species fishery in Alaska for red king crab (*Paralithodes camtschaticus*), and continued U.S. BT surveys into the 1970’s focused on cooperative arrangements with private industry to study the biology, distribution, abundance, and best fishing practices for red king crab [@RN945]. 
 
-The first large-scale systematic survey of the EBS shelf was conducted in 1975 under contract from the U.S. Bureau of Land Management to collect baseline data for assessing the potential impact of the growth in the offshore oil industry on the development of Bering Sea groundfish and crab fishery resources (Pereyra et al. 1976). During the 1975 baseline survey, sampling was conducted over the EBS shelf between the 20-m and 200-m isobaths from the Alaska Peninsula north to approximately 62N. In 1979, a more comprehensive survey of the Bering Sea shelf was undertaken in cooperation with the Japan Fisheries Agency (Bakkala and Wakabayashi 1985). That survey encompassed the entire region sampled in the 1975 baseline study plus the upper continental slope waters and part of the NBS shelf. A hydroacoustic survey was also initiated in 1979 to assess the midwater component of the walleye pollock population. 
+The first large-scale systematic survey of the `r SRVY ` shelf was conducted in 1975 under contract from the U.S. Bureau of Land Management to collect baseline data for assessing the potential impact of the growth in the offshore oil industry on the development of Bering Sea groundfish and crab fishery resources [@RN920]. During the 1975 baseline survey, sampling was conducted over the `r SRVY ` shelf between the 20-m and 200-m isobaths from the Alaska Peninsula north to approximately 62N. In 1979, a more comprehensive survey of the Bering Sea shelf was undertaken in cooperation with the Japan Fisheries Agency [@RN978]. That survey encompassed the entire region sampled in the 1975 baseline study plus the upper continental slope waters and part of the NBS shelf. A hydroacoustic survey was also initiated in 1979 to assess the midwater component of the walleye pollock population. 
 
-Following the expansive 1979 effort, annual BT surveys continued in the EBS shelf, and a triennial survey was initiated combining the upper continental slope and different parts of the NBS shelf. The spatio-temporal scale, trawl gear and sampling methods of the EBS shelf survey lacked consistency until 1982 when they were all standardized to include 356 stations (Bakkala 1993). Beginning in 1987, survey coverage of the EBS shelf was expanded northwest to include 20 more stations along the U.S.-Russian Maritime Boundary (Strata 82 and 90; Figure 2). 
+Following the expansive 1979 effort, annual BT surveys continued in the `r SRVY ` shelf, and a triennial survey was initiated combining the upper continental slope and different parts of the NBS shelf. The spatio-temporal scale, trawl gear and sampling methods of the `r SRVY ` shelf survey lacked consistency until 1982 when they were all standardized to include 356 stations [@RN891]. Beginning in 1987, survey coverage of the `r SRVY ` shelf was expanded northwest to include 20 more stations along the U.S.-Russian Maritime Boundary (Strata 82 and 90; Figure 2). 
 
 ```{r fig.width=8, fig.height = 6, fig.cap=paste0("Figure 2. -- Sampled survey stations by vessel and the stratification scheme used for data analysis of 2017 southeasternnd northern Bering Sea continental shelfbottom trawl surveys. ")}
 
 temp<-dat[dat$YEAR %in% maxyr, ]
 # temp<-data.frame(unique(temp[,c("VESSEL_NAME", "STATION", "LATITUDE", "LONGITUDE", "STRATUM")]))
 sites <- st_as_sf(temp, coords = c("LONGITUDE", "LATITUDE"), 
-    crs = crs(reg_dat$crs$input))
+ crs = crs(reg_dat$crs$input))
 
 sites <- fortify(sites) # Next the shapefile has to be converted to a dataframe for use in ggplot2
 
 
 placenames <- read.csv(file = system.file("data", 
-            file = "placenames.csv", package = "akgfmaps", 
-            mustWork = TRUE), stringsAsFactors = FALSE) %>% transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
+ file = "placenames.csv", package = "akgfmaps", 
+ mustWork = TRUE), stringsAsFactors = FALSE) %>% transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
 
 
 
 (fig2 <- ggplot() +
-    geom_sf(data = reg_dat$bathymetry) +
-    geom_sf(data = reg_dat$survey.strata, fill = "white") +
-    geom_sf(data = reg_dat$survey.area, col = "black", fill = NA, size = 1, show.legend = TRUE) +
-    # geom_path(data = surveygrid_shp,
-    #           aes(x = long, y = lat, group = group),
-    #           color = 'grey10', size = .2) +
-    geom_sf(data = reg_dat$graticule, color = "grey90", alpha = 0.5) +
-    geom_sf(data = reg_dat$akland) +
-    geom_sf(data = sites) + #, mapping = aes(shape = sites$VESSEL_shp)) +
-    # geom_text(data = sites, mapping = aes(shape = sites$VESSEL_shp), size = 2, show.legend = T) +
-    # geom_point(data = temp, mapping = aes(x = LONGITUDE, y = LATITUDE, shape = factor(VESSEL_shp)),
-    #            size = 5, show.legend = T) +
-    coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y) +
-    scale_x_continuous(name = "Longitude", 
-                       breaks = reg_dat$lon.breaks) + 
-    scale_y_continuous(name = "Latitude", 
-                       breaks = reg_dat$lat.breaks) +
-    geom_text(data = subset(placenames, type == "mainland"), 
-              aes(x = x, y = y, label = lab), size = 14, group = 99) + 
-    geom_shadowtext(data = subset(placenames, type == "peninsula"), 
-                    aes(x = x, y = y, label = lab), size = 8, angle = 40, bg.color = "white", color = "black", group = 99) + 
-    geom_shadowtext(data = subset(placenames, type %in% c(#"bathymetry", 
-                                                          "islands")),
-                    aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 3.88, group = 99) +
+ geom_sf(data = reg_dat$bathymetry) +
+ geom_sf(data = reg_dat$survey.strata, fill = "white") +
+ geom_sf(data = reg_dat$survey.area, col = "black", fill = NA, size = 1, show.legend = TRUE) +
+ # geom_path(data = surveygrid_shp,
+ # aes(x = long, y = lat, group = group),
+ # color = 'grey10', size = .2) +
+ geom_sf(data = reg_dat$graticule, color = "grey90", alpha = 0.5) +
+ geom_sf(data = reg_dat$akland) +
+ geom_sf(data = sites) + #, mapping = aes(shape = sites$VESSEL_shp)) +
+ # geom_text(data = sites, mapping = aes(shape = sites$VESSEL_shp), size = 2, show.legend = T) +
+ # geom_point(data = temp, mapping = aes(x = LONGITUDE, y = LATITUDE, shape = factor(VESSEL_shp)),
+ # size = 5, show.legend = T) +
+ coord_sf(xlim = reg_dat$plot.boundary$x, 
+ ylim = reg_dat$plot.boundary$y) +
+ scale_x_continuous(name = "Longitude", 
+ breaks = reg_dat$lon.breaks) + 
+ scale_y_continuous(name = "Latitude", 
+ breaks = reg_dat$lat.breaks) +
+ geom_text(data = subset(placenames, type == "mainland"), 
+ aes(x = x, y = y, label = lab), size = 14, group = 99) + 
+ geom_shadowtext(data = subset(placenames, type == "peninsula"), 
+ aes(x = x, y = y, label = lab), size = 8, angle = 40, bg.color = "white", color = "black", group = 99) + 
+ geom_shadowtext(data = subset(placenames, type %in% c(#"bathymetry", 
+ "islands")),
+ aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 3.88, group = 99) +
 
-    # geom_shadowtext(data = subset(placenames, type == "convention line"), aes(x = x, y = y, label = lab),
-    #                 angle = 42, size = 3, bg.color = "white", color = "black", group = 99) +
-    # ggspatial::annotation_scale(location = "br", text_cex = 1) + 
-    ggsn::scalebar(data = surveygrid_shp, location = "bottomleft",
-                   dist = 250, dist_unit = "km", transform = FALSE, st.dist = .04, 
-                   height=0.03, st.bottom = FALSE, st.size = 4) + 
-    
-  #   scale_fill_manual(name = NULL,
-  #                   breaks = c(CapStr(SURVEY)),
-  #                    values = c("Eastern Bering Sea" = "green"),
-  #                   labels = c(CapStr(SURVEY))) +
-  # #set color for cities and labels for cities legend
-  # scale_color_manual(name = NULL, 
-  #                    breaks = c(CapStr(SURVEY)),
-  #                    values = c("Eastern Bering Sea" = "green"),
-  #                    labels = c(CapStr(SURVEY))) +
-  #set order of legend items (fill first)
-  # guides(fill = guide_legend(order = 1),  color = guide_legend(order = 2)) +
-  #set legend position and vertical arrangement
-  theme(legend.text = element_text(size = 9), legend.position = "bottom", legend.box = "vertical") + 
-    
-    # geom_text(data = placenames, mapping = aes(x = x, y = y, label = lab)) +
-    theme_bw() )
+ # geom_shadowtext(data = subset(placenames, type == "convention line"), aes(x = x, y = y, label = lab),
+ # angle = 42, size = 3, bg.color = "white", color = "black", group = 99) +
+ # ggspatial::annotation_scale(location = "br", text_cex = 1) + 
+ ggsn::scalebar(data = surveygrid_shp, location = "bottomleft",
+ dist = 250, dist_unit = "km", transform = FALSE, st.dist = .04, 
+ height=0.03, st.bottom = FALSE, st.size = 4) + 
+ 
+ # scale_fill_manual(name = NULL,
+ # breaks = c(CapStr(SURVEY)),
+ # values = c("Eastern Bering Sea" = "green"),
+ # labels = c(CapStr(SURVEY))) +
+ # #set color for cities and labels for cities legend
+ # scale_color_manual(name = NULL, 
+ # breaks = c(CapStr(SURVEY)),
+ # values = c("Eastern Bering Sea" = "green"),
+ # labels = c(CapStr(SURVEY))) +
+ #set order of legend items (fill first)
+ # guides(fill = guide_legend(order = 1), color = guide_legend(order = 2)) +
+ #set legend position and vertical arrangement
+ theme(legend.text = element_text(size = 9), legend.position = "bottom", legend.box = "vertical") + 
+ 
+ # geom_text(data = placenames, mapping = aes(x = x, y = y, label = lab)) +
+ theme_bw() )
 
 
 
@@ -101,51 +100,51 @@ placenames <- read.csv(file = system.file("data",
 
 
 # (reg_dat_plot <- ggplot() +
-#     geom_sf(data = reg_dat$bathymetry) +
-#     geom_sf(data = reg_dat$survey.strata, fill = "white") +
-#     geom_sf(data = reg_dat$survey.area, col = "black", fill = "NA", size = 1, show.legend = TRUE) +
-#     # geom_path(data = surveygrid_shp,
-#     #           aes(x = long, y = lat, group = group),
-#     #           color = 'grey10', size = .2) +
-#     geom_sf(data = reg_dat$graticule, color = "grey90", alpha = 0.5) +
-#     geom_sf(data = reg_dat$akland) +
-#     # geom_text(mapping = aes(x = coordinates(surveygrid_shp0)[,1], y = coordinates(surveygrid_shp0)[,2], 
-#     #                         label=surveygrid_shp0$STATION_ID), size = 2, show.legend = F) +
-#     coord_sf(xlim = reg_dat$plot.boundary$x, 
-#              ylim = reg_dat$plot.boundary$y) +
-#     scale_x_continuous(name = "Longitude", 
-#                        breaks = reg_dat$lon.breaks) + 
-#     scale_y_continuous(name = "Latitude", 
-#                        breaks = reg_dat$lat.breaks) +
-#     geom_text(data = subset(placenames, type == "mainland"), 
-#               aes(x = x, y = y, label = lab), size = 14, group = 99) + 
-#     geom_shadowtext(data = subset(placenames, type == "peninsula"), 
-#                     aes(x = x, y = y, label = lab), size = 8, angle = 40, bg.color = "white", color = "black", group = 99) + 
-#     geom_shadowtext(data = subset(placenames, type %in% c("bathymetry", "islands")),
-#                     aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 3.88, group = 99) +
-#     geom_shadowtext(data = subset(placenames, type == "convention line"), aes(x = x, y = y, label = lab),
-#                     angle = 42, size = 3, bg.color = "white", color = "black", group = 99) +
-#     ggspatial::annotation_scale(location = "br") + 
-#     geom_sf(data = sites, #mapping = aes(shape = VESSEL_shp),
-#                size = 5, show.legend = T) +
+# geom_sf(data = reg_dat$bathymetry) +
+# geom_sf(data = reg_dat$survey.strata, fill = "white") +
+# geom_sf(data = reg_dat$survey.area, col = "black", fill = "NA", size = 1, show.legend = TRUE) +
+# # geom_path(data = surveygrid_shp,
+# # aes(x = long, y = lat, group = group),
+# # color = 'grey10', size = .2) +
+# geom_sf(data = reg_dat$graticule, color = "grey90", alpha = 0.5) +
+# geom_sf(data = reg_dat$akland) +
+# # geom_text(mapping = aes(x = coordinates(surveygrid_shp0)[,1], y = coordinates(surveygrid_shp0)[,2], 
+# # label=surveygrid_shp0$STATION_ID), size = 2, show.legend = F) +
+# coord_sf(xlim = reg_dat$plot.boundary$x, 
+# ylim = reg_dat$plot.boundary$y) +
+# scale_x_continuous(name = "Longitude", 
+# breaks = reg_dat$lon.breaks) + 
+# scale_y_continuous(name = "Latitude", 
+# breaks = reg_dat$lat.breaks) +
+# geom_text(data = subset(placenames, type == "mainland"), 
+# aes(x = x, y = y, label = lab), size = 14, group = 99) + 
+# geom_shadowtext(data = subset(placenames, type == "peninsula"), 
+# aes(x = x, y = y, label = lab), size = 8, angle = 40, bg.color = "white", color = "black", group = 99) + 
+# geom_shadowtext(data = subset(placenames, type %in% c("bathymetry", "islands")),
+# aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 3.88, group = 99) +
+# geom_shadowtext(data = subset(placenames, type == "convention line"), aes(x = x, y = y, label = lab),
+# angle = 42, size = 3, bg.color = "white", color = "black", group = 99) +
+# ggspatial::annotation_scale(location = "br") + 
+# geom_sf(data = sites, #mapping = aes(shape = VESSEL_shp),
+# size = 5, show.legend = T) +
 # 
-#     
-#   #   scale_fill_manual(name = NULL,
-#   #                   breaks = c(CapStr(SURVEY)),
-#   #                    values = c("Eastern Bering Sea" = "green"),
-#   #                   labels = c(CapStr(SURVEY))) +
-#   # #set color for cities and labels for cities legend
-#   # scale_color_manual(name = NULL, 
-#   #                    breaks = c(CapStr(SURVEY)),
-#   #                    values = c("Eastern Bering Sea" = "green"),
-#   #                    labels = c(CapStr(SURVEY))) +
-#   #set order of legend items (fill first)
-#   # guides(fill = guide_legend(order = 1),  color = guide_legend(order = 2)) +
-#   #set legend position and vertical arrangement
-#   theme(legend.text = element_text(size = 9), legend.position = "bottom", legend.box = "vertical") + 
-#     
-#     # geom_text(data = placenames, mapping = aes(x = x, y = y, label = lab)) +
-#     theme_bw() )
+# 
+# # scale_fill_manual(name = NULL,
+# # breaks = c(CapStr(SURVEY)),
+# # values = c("Eastern Bering Sea" = "green"),
+# # labels = c(CapStr(SURVEY))) +
+# # #set color for cities and labels for cities legend
+# # scale_color_manual(name = NULL, 
+# # breaks = c(CapStr(SURVEY)),
+# # values = c("Eastern Bering Sea" = "green"),
+# # labels = c(CapStr(SURVEY))) +
+# #set order of legend items (fill first)
+# # guides(fill = guide_legend(order = 1), color = guide_legend(order = 2)) +
+# #set legend position and vertical arrangement
+# theme(legend.text = element_text(size = 9), legend.position = "bottom", legend.box = "vertical") + 
+# 
+# # geom_text(data = placenames, mapping = aes(x = x, y = y, label = lab)) +
+# theme_bw() )
 
 
 
@@ -167,100 +166,100 @@ placenames <- read.csv(file = system.file("data",
 temp<-dat[dat$YEAR %in% maxyr, ]
 temp<-data.frame(unique(temp[,c("VESSEL_NAME", "STATION", "LATITUDE", "LONGITUDE", "STRATUM")]))
 sites <- st_as_sf(temp, coords = c("LONGITUDE", "LATITUDE"), 
-    crs = crs(reg_dat$crs$input))
+ crs = crs(reg_dat$crs$input))
 
 (reg_dat_plot <- ggplot() +
-    # geom_sf(data = sites, mapping = aes(col = factor(sites$VESSEL_NAME), 
-    #                        shape = factor(sites$VESSEL_NAME)), size = 5) +
-  geom_point(data = temp, mapping = aes(x = temp$LATITUDE, y = temp$LONGITUDE,
-                                        col = factor(sites$VESSEL_NAME),
-                           shape = factor(sites$VESSEL_NAME)), size = 5) +
-  geom_sf(data = reg_dat$akland) +
-  # geom_sf(data = reg_dat$bathymetry) +
-  # geom_sf(data = reg_dat$survey.area, fill = NA) +
-  # geom_sf(data = reg_dat$graticule, color = "grey70", alpha = 0.5) +
-  coord_sf(xlim = reg_dat$plot.boundary$x, 
-           ylim = reg_dat$plot.boundary$y) +
-  scale_x_continuous(name = "Longitude", 
-                     breaks = reg_dat$lon.breaks) + 
-  scale_y_continuous(name = "Latitude", 
-                     breaks = reg_dat$lat.breaks) + 
-  theme_bw())
+ # geom_sf(data = sites, mapping = aes(col = factor(sites$VESSEL_NAME), 
+ # shape = factor(sites$VESSEL_NAME)), size = 5) +
+ geom_point(data = temp, mapping = aes(x = temp$LATITUDE, y = temp$LONGITUDE,
+ col = factor(sites$VESSEL_NAME),
+ shape = factor(sites$VESSEL_NAME)), size = 5) +
+ geom_sf(data = reg_dat$akland) +
+ # geom_sf(data = reg_dat$bathymetry) +
+ # geom_sf(data = reg_dat$survey.area, fill = NA) +
+ # geom_sf(data = reg_dat$graticule, color = "grey70", alpha = 0.5) +
+ coord_sf(xlim = reg_dat$plot.boundary$x, 
+ ylim = reg_dat$plot.boundary$y) +
+ scale_x_continuous(name = "Longitude", 
+ breaks = reg_dat$lon.breaks) + 
+ scale_y_continuous(name = "Latitude", 
+ breaks = reg_dat$lat.breaks) + 
+ theme_bw())
 
 # ggplot(temp) + 
-#   geom_point(data = temp, mapping = aes(x = LONGITUDE, y = LATITUDE, 
-#                                         col = factor(VESSEL_NAME), shape = factor(VESSEL_NAME)))
+# geom_point(data = temp, mapping = aes(x = LONGITUDE, y = LATITUDE, 
+# col = factor(VESSEL_NAME), shape = factor(VESSEL_NAME)))
 # plot(temp$LONGITUDE, temp$LATITUDE)
 # 
 # 
-# SEBS <- get_base_layers(select.region = "bs.south", set.crs = "auto")
-# # class(SEBS)
-# # names(SEBS)
+# S`r SRVY ` <- get_base_layers(select.region = "bs.south", set.crs = "auto")
+# # class(S`r SRVY `)
+# # names(S`r SRVY `)
 # 
-# SEBS_plot <- ggplot() +
-#   # geom_sf(data = SEBS$bathymetry) +
-#   geom_sf(data = SEBS$survey.strata) +
-#   geom_path(data = surveygrid_shp,
-#             aes(x = long, y = lat, group = group#, 
-#                 #label = surveygrid_shp00$STATION_ID
-#                 ),
-#           color = 'grey10', size = .2) +
-#   # geom_label(data = surveygrid_shp, 
-#   #            aes(x = long, y = lat, group = group, label = id), 
-#   #            size = 0) +
-#   geom_sf(data = SEBS$graticule, color = "grey90", alpha = 0.5) +
-#   geom_sf(data = SEBS$akland) +
-#   geom_sf(data = SEBS$survey.area, col = "green", fill = NA, size = 1) +
-#   coord_sf(xlim = SEBS$plot.boundary$x, 
-#            ylim = SEBS$plot.boundary$y) +
-#   scale_x_continuous(name = "Longitude", 
-#                      breaks = SEBS$lon.breaks) + 
-#   scale_y_continuous(name = "Latitude", 
-#                      breaks = SEBS$lat.breaks) +
-#   theme_bw()
+# S`r SRVY `_plot <- ggplot() +
+# # geom_sf(data = S`r SRVY `$bathymetry) +
+# geom_sf(data = S`r SRVY `$survey.strata) +
+# geom_path(data = surveygrid_shp,
+# aes(x = long, y = lat, group = group#, 
+# #label = surveygrid_shp00$STATION_ID
+# ),
+# color = 'grey10', size = .2) +
+# # geom_label(data = surveygrid_shp, 
+# # aes(x = long, y = lat, group = group, label = id), 
+# # size = 0) +
+# geom_sf(data = S`r SRVY `$graticule, color = "grey90", alpha = 0.5) +
+# geom_sf(data = S`r SRVY `$akland) +
+# geom_sf(data = S`r SRVY `$survey.area, col = "green", fill = NA, size = 1) +
+# coord_sf(xlim = S`r SRVY `$plot.boundary$x, 
+# ylim = S`r SRVY `$plot.boundary$y) +
+# scale_x_continuous(name = "Longitude", 
+# breaks = S`r SRVY `$lon.breaks) + 
+# scale_y_continuous(name = "Latitude", 
+# breaks = S`r SRVY `$lat.breaks) +
+# theme_bw()
 # 
 # 
-#  SEBS_plot # %>% add_map_labels(add.scale.bar = "br")
+# S`r SRVY `_plot # %>% add_map_labels(add.scale.bar = "br")
 # 
 # 
 # my_label <- data.frame(x = -165, y = 58, label = "Thar be\ndragons")
-# SEBS_plot + geom_text(data = my_label, 
-#                       mapping = aes(x = x, 
-#                                     y = y, 
-#                                     label = label), 
-#                       color = "red")
+# S`r SRVY `_plot + geom_text(data = my_label, 
+# mapping = aes(x = x, 
+# y = y, 
+# label = label), 
+# color = "red")
 # 
 # my_label <- data.frame(x = -165, y = 58, label = "Thar be\ndragons") %>% 
-#   akgfmaps::transform_data_frame_crs(in.crs = "+proj=longlat", out.crs = SEBS$crs)
-# SEBS_plot + geom_text(data = my_label, 
-#                       mapping = aes(x = x, 
-#                                     y = y, 
-#                                     label = label), 
-#                       color = "red")
+# akgfmaps::transform_data_frame_crs(in.crs = "+proj=longlat", out.crs = S`r SRVY `$crs)
+# S`r SRVY `_plot + geom_text(data = my_label, 
+# mapping = aes(x = x, 
+# y = y, 
+# label = label), 
+# color = "red")
 
 
 # akgfmaps::YFS2017 %>%
-#   make_idw_map(region = "bs.south",
-#                set.breaks = "jenks",
-#                grid.cell = c(0.02, 0.02)) %>%
-#   add_map_labels() %>%
-#   change_fill_color(new.scheme = "purple2", show.plot = TRUE) %>%
-#   create_map_file(file.prefix = NA,
-#                             file.path = NA,
-#                             try.change_text_size = TRUE, # 12x9 is a pre-defined size
-#                             width = 12,
-#                             height = 9,
-#                             units = "in",
-#                             res = 300,
-#                             bg = "transparent")
+# make_idw_map(region = "bs.south",
+# set.breaks = "jenks",
+# grid.cell = c(0.02, 0.02)) %>%
+# add_map_labels() %>%
+# change_fill_color(new.scheme = "purple2", show.plot = TRUE) %>%
+# create_map_file(file.prefix = NA,
+# file.path = NA,
+# try.change_text_size = TRUE, # 12x9 is a pre-defined size
+# width = 12,
+# height = 9,
+# units = "in",
+# res = 300,
+# bg = "transparent")
 # 
 # yfs2017 <- akgfmaps::YFS2017
 # 
 # opt1 <- make_idw_map(x = yfs2017, # Pass data as a data frame
-#              region = "bs.all", # Predefined bs.all area
-#              set.breaks = "jenks", # Gets Jenks breaks from classint::classIntervals()
-#              grid.cell = c(0.02, 0.02), # 0.2x0.2 degree grid cells
-#              key.title = "yellowfin sole") # Include yellowfin sole in the legend title
+# region = "bs.all", # Predefined bs.all area
+# set.breaks = "jenks", # Gets Jenks breaks from classint::classIntervals()
+# grid.cell = c(0.02, 0.02), # 0.2x0.2 degree grid cells
+# key.title = "yellowfin sole") # Include yellowfin sole in the legend title
 # 
 # 
 # 
@@ -268,25 +267,25 @@ sites <- st_as_sf(temp, coords = c("LONGITUDE", "LATITUDE"),
 # eval_plot_breaks(CPUE = yfs2017$CPUE_KGHA, n.breaks = 5)
 # 
 # yfs.opt1 <- make_idw_map(x = yfs2017,
-#              region = "bs.all",
-#              set.breaks = "jenks",
-#              grid.cell = c(0.05, 0.05), # Coarse grid
-#              key.title = "yellowfin sole")
+# region = "bs.all",
+# set.breaks = "jenks",
+# grid.cell = c(0.05, 0.05), # Coarse grid
+# key.title = "yellowfin sole")
 # 
 # yfs.opt2 <- make_idw_map(x = yfs2017,
-#              region = "bs.all",
-#              set.breaks = "kmeans", 
-#              grid.cell = c(0.05, 0.05), # Coarse grid
-#              key.title = "yellowfin sole")
+# region = "bs.all",
+# set.breaks = "kmeans", 
+# grid.cell = c(0.05, 0.05), # Coarse grid
+# key.title = "yellowfin sole")
 # 
 # yfs.opt3 <- make_idw_map(x = yfs2017,
-#              region = "bs.all",
-#              set.breaks = c(0, 25, 100, 250, 500, 1000),
-#              grid.cell = c(0.05, 0.05), # Coarse grid
-#              key.title = "yellowfin sole")
+# region = "bs.all",
+# set.breaks = c(0, 25, 100, 250, 500, 1000),
+# grid.cell = c(0.05, 0.05), # Coarse grid
+# key.title = "yellowfin sole")
 # yfs.opt3$plot
 
 
 ```
 
-The triennial surveys of the NBS and EBS slope were discontinued after 1991 due to lack of funding; however, starting in 2000, the slope BT survey resumed on a biennial basis as a new time series using standard AFSC gear and methods (Stauffer 2004, Hoff and Britt 2011). In 2010 and 2017, the EBS shelf survey grid was extended into the NBS (Lauth 2011). The 2018 survey extension into the NBS did not employ the same sampling design as 2010 and 2017, and therefore the survey results from the 2018 rapid response NBS survey cannot be compared to the results from the 2010 and 2017 NBS surveys.
+> The triennial surveys of the NBS and `r SRVY ` slope were discontinued after 1991 due to lack of funding; however, starting in 2000, the slope BT survey resumed on a biennial basis as a new time series using standard AFSC gear and methods [@RN933; @RN898]. In 2010 and 2017, the `r SRVY ` shelf survey grid was extended into the NBS [@RN909]. The 2018 survey extension into the NBS did not employ the same sampling design as 2010 and 2017, and therefore the survey results from the 2018 rapid response NBS survey cannot be compared to the results from the 2010 and 2017 NBS surveys.

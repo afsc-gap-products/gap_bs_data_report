@@ -34,6 +34,9 @@ PKG <- c(
   # devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
   "akgfmaps",
   
+  # Time
+  # "lubridate",
+  
   # Species
   "taxize", 
   
@@ -62,7 +65,9 @@ PKG <- c(
   "knitcitations", # devtools::install_github("cboettig/knitcitations")
   
   # tidyverse
-  "tidyverse"
+  "tidyverse", 
+  "googledrive",
+  "XML"
 )
 
 for (p in PKG) {
@@ -121,6 +126,7 @@ a<-write.bibtex(entry = c(citation("knitr"),
                           citation("knitcitations"), 
                           citation("sf"),  
                           citation("rlist"),  
+                          # citation("lubridate"),
                           citation("jsonlite"),  
                           citation("prettymapr"),  
                           citation("rgdal"),  
@@ -140,7 +146,10 @@ a<-write.bibtex(entry = c(citation("knitr"),
                           citation("RColorBrewer"),  
                           citation("reshape"), 
                           citation("stars"),  
-                          citation("akgfmaps"),  
+                          citation("mgcv"),  
+                          citation("akgfmaps"), 
+                          citation("googledrive"),
+                          citation("XML"),
                           citation("taxize") ),
                 file = tmp)
 
@@ -176,6 +185,31 @@ for (i in 1:length(listfiles0)){
 #########FUNCTIONS##########
 
 # General stuff
+
+
+
+findhowmanyspp<-function(spp.tsn.list, ranklvl) {
+  
+  a<-rlist::list.search(.data = lapply(X = spp.tsn.list, '[', 2), 
+                        ranklvl == .)
+  names(a)<-gsub(pattern = ".rank", replacement = "", x = names(a))
+  
+  b<-lapply(X = spp.tsn.list[names(spp.tsn.list) %in% names(a)], '[', 3)
+  # b<-rlist::list.search(.data = lapply(X = spp.tsn.list, '[', 3), 
+  #                    . == ranklvl)
+  
+  unq<-c()
+  for (i in 1:length(a)) {
+    if (!(is.na(b[[i]]))) {
+      idx<-ifelse(a[[i]] %in% "species", 1, which(a[[i]])) # for invalid species
+      cc<-as.numeric(b[[i]]$id)[idx]
+      unq<-c(unq, cc)
+    }
+  }
+  unq<-unique(unq)
+  
+  return(unq)
+}
 
 
 CapStr <- function(y) {

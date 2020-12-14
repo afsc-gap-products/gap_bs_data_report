@@ -7,6 +7,10 @@
 
 rm(list=ls())
 
+########Sign in##########
+drive_deauth()
+drive_auth()
+1
 
 ######WHAT TYPE OF OUTPUTS?#########
 # Which Survey? Options: EBS, GOA, AI
@@ -18,10 +22,10 @@ rm(list=ls())
 
 
 ######***KNOWNS#########
-maxyr <- 2021 # or the year of the report, for example
+maxyr <- 2018 # or the year of the report, for example
 
 # For the 0frontmatter.Rmd file
-survey<-"EBS" 
+SRVY<-"EBS" 
 authors0<-"R. R. Lauth, L. Britt, E. J. Dawson, R. Haehn, J. Conner, and E. H. Markowitz"
 title0<-paste0("Data Report: ", maxyr, " Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna")
 office0<-"F/SPO, OHC, OPR or OSF"
@@ -89,7 +93,6 @@ rmarkdown::render(paste0(dir.scripts, "/0_frontmatter.Rmd"),
                   output_dir = dir.chapters, 
                   output_file = paste0(filename0, cnt.chapt.content, "_Text.docx"))
 
-
 ######***ABSTRACT############
 cnt.chapt<-auto_counter(cnt.chapt) 
 cnt.chapt.content<-"001" 
@@ -122,7 +125,6 @@ rmarkdown::render(paste0(dir.scripts, "/4_methods.rmd"),
                   output_dir = dir.chapters, 
                   output_file = paste0(filename0, cnt.chapt.content, "_Text.docx"))
 
-
 ######***RESULTS############
 cnt.chapt<-auto_counter(cnt.chapt) 
 cnt.chapt.content<-"001" 
@@ -131,14 +133,23 @@ rmarkdown::render(paste0(dir.scripts, "/5_results.rmd"),
                   output_dir = dir.chapters, 
                   output_file = paste0(filename0, cnt.chapt.content, "_Text.docx"))
 
-# spplist<-c()
-# for (i in 1:length(spplist)) {
-#   counter0<-counter0+1
-#   filename0<-paste0(counter0, "_ResultsDiscussion_1Text", spplist[i])
-#   rmarkdown::render(paste0(dir.scripts, "/5resultsDiscussion2-spp.rmd"), 
-#                     output_dir = dir.chapters, 
-#                     output_file = paste0(filename0, "_",counter0,".docx"))
-# }
+
+spplist<-(SpeciesList[SRVY][[1]])
+
+for (spp0 in 1:length(spplist)) {
+  
+  spp.common<-names(spplist)[spp0]
+  spp.tsn<-spplist[spp0][[1]]
+  spp.sci0<-classification(spp.tsn, "itis")[[1]]
+  spp.sci<-spp.sci0$name[spp.sci0$rank %in% "species"]
+  
+  filename0<-paste0(cnt.chapt, "_Results_")
+  rmarkdown::render(paste0(dir.scripts, "/5_results_2_spp.rmd"), 
+                    output_dir = dir.chapters, 
+                    output_file = paste0(filename0, cnt.chapt.content, "_Text_",
+                                         gsub(x = spp.common, pattern = " ", replacement = ""),".docx"))
+  
+}
 # 
 # counter0<-counter0+1
 # filename0<-paste0(counter0, "_ResultsDiscussion_1Text")
