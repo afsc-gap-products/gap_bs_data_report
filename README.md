@@ -22,7 +22,7 @@ install.packages("usethis")
 
 library(usethis) # Automate package and project setup tasks that are otherwise performed manually.
 
-usethis::use_course(url = 'https://github.com/emilyhmarkowitz/AFSCDataReport/archive/master.zip', 
+usethis::use_course(url = 'https://github.com/EmilyMarkowitz-NOAA/AFSCDataReport/archive/master.zip', 
                     destdir = "your/local/directory/")
 ```
 
@@ -31,7 +31,7 @@ usethis::use_course(url = 'https://github.com/emilyhmarkowitz/AFSCDataReport/arc
 ```r
 library(devtools)
 
-devtools::install_github("emilyhmarkowitz/RMarkReports")
+devtools::install_github("EmilyMarkowitz-NOAA/RMarkReports")
 
 devtools::install_github("nmfs-general-modeling-tools/nmfspalette")
 
@@ -44,7 +44,7 @@ install.packages("usethis")
 
 library(usethis) # Automate package and project setup tasks that are otherwise performed manually.
 
-usethis::use_course(url = 'https://github.com/emilyhmarkowitz/NOAATechMemoStarterKit/archive/master.zip', 
+usethis::use_course(url = 'https://github.com/EmilyMarkowitz-NOAA/NOAATechMemoStarterKit/archive/master.zip', 
                     destdir = "your/local/directory/")
 
 ```
@@ -74,6 +74,7 @@ Main file
  - **/output** Where all of your content from your run is saved. It's organized like this:
     - **/YYY-MM-DD** 
        - **/chapters**, where all content going directly into your report will be saved (e.g., .docx, .pdf).
+       - **/presentations**, where presentation slides are saved (.pptx). 
        - **/metadata**, where information about your run and the packages you used is saved. 
        - **/plots**, where .rdata and other versions of your plots will be saved (additonal to those saved for the report in the '/chapters' folder).
        - **/rawdata**, where all raw data you used in your report will be saved. Just good house keeping.
@@ -98,7 +99,7 @@ Main file
 
 Here (in the "reference"" folder) is an EndNote Style Guides that follow the rules and guidelines listed in the "Tech Memo Guidelines.PDF" document from the NOAA scientific publications office. Add these to your EndNote library so you can export your citations in the correct format. 
 
-NOAA Tech Memo Style Guide.ens (https://github.com/emilyhmarkowitz/NOAATechMemoStarterKit/blob/main/reference/NOAA%20Tech%20Memo%20Style%20Guide.ens)
+NOAA Tech Memo Style Guide.ens (https://github.com/EmilyMarkowitz-NOAA/NOAATechMemoStarterKit/blob/main/reference/NOAA%20Tech%20Memo%20Style%20Guide.ens)
 
 Learn more about how to add these style guides to your EndNote database here: Video: https://www.youtube.com/watch?v=lQJzPjpgAcE; Article: https://utas.libguides.com/EndNote/Styles
 
