@@ -2,17 +2,18 @@
 output:
   word_document:
     pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: word-styles-reference.docx
-csl: "../citationStyles/citationstyle.csl"
-bibliography: "../data/bibliography.bib"
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "../cite/bibliography.bib"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE)
-counter.inside<-0
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
-## Abstract
+# Abstract
+
 
 ```{r}
 
@@ -35,16 +36,19 @@ placenames <- read.csv(file = system.file("data",
 
 
 # Time
-dates.mo<-as.numeric(unique(substr(x = as.character(dat.maxyr$dates), 
+dates.mo<-as.numeric(unique(substr(x = as.character(dat_maxyr$dates), 
                  start = 1, stop = 2)))
 
-months.words<-c("January", "February",	"March", "April", 
-                "May", "June", "July", "August", 
-                "September", "October", "November", "December")
+cruises_maxyr <- cruises %>% 
+  dplyr::filter(year == maxyr, 
+         region == SRVY0) %>%
+  dplyr::mutate(month_start = lubridate::month(start_date)) %>% 
+  dplyr::mutate(month_end = lubridate::month(end_date))
+
 
 ```
 
-From `r months.words[min(dates.mo)]` to `r months.words[max(dates.mo)]` `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center Resource Assessment and Conservation Engineering Division conducted its `r yrofsurvey ``r stndth` annual `r SURVEY ` (`r SRVY `) continental shelf bottom trawl survey of groundfish and invertebrate fauna. The standard study area encompasses a major portion of the `r SRVY ` shelf (depths between `r min(dat.maxyr$BOT_DEPTH)` and `r max(dat.maxyr$BOT_DEPTH)` m) from the Alaska Peninsula north to approximately the latitude of St. Matthew Island (60º 50' N). Two stern trawlers, the `r text_list(paste0(unique(dat.maxyr$VESSEL_M), "-m ", unique(dat.maxyr$VESSEL_NAME)))`, were chartered for sampling during the `r SRVY ` survey. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at 37.04 × 37.04 km (20 × 20 nmi) stations centered within a stratified systematic grid consisting of a total of `r length(unique(dat.maxyr$STATION))` stations in the `r SRVY ` survey. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. All survey stations were sampled successfully in the `r SRVY `. 
+From `r months.words[min(cruises_maxyr$month_start)]` to `r months.words[max(cruises_maxyr$month_end)]` `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center Resource Assessment and Conservation Engineering Division conducted its `r yrofsurvey ``r stndth` annual `r SURVEY ` (`r SRVY `) continental shelf bottom trawl survey of groundfish and invertebrate fauna. The standard study area encompasses a major portion of the `r SRVY ` shelf (depths between `r min(dat_maxyr$BOT_DEPTH)` and `r max(dat_maxyr$BOT_DEPTH)` m) from the Alaska Peninsula north to approximately the latitude of St. Matthew Island (60º 50' N). Two stern trawlers, the `r text_list(paste0(unique(dat_maxyr$VESSEL_M), "-m ", unique(dat_maxyr$VESSEL_NAME)))`, were chartered for sampling during the `r SRVY ` survey. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at 37.04 × 37.04 km (20 × 20 nmi) stations centered within a stratified systematic grid consisting of a total of `r length(unique(dat_maxyr$STATION))` stations in the `r SRVY ` survey. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. All survey stations were sampled successfully in the `r SRVY `. 
 
 > How do I know if all stations were sampled successfully? Data-wise?
 > need to code "from the Alaska Peninsula north to approximately the latitude of St. Matthew Island (60º 50' N)"
@@ -90,7 +94,7 @@ unq.fam<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "family") ))
 
 # unq.phyl<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "phyla") )) 
 
-spp.tsn.list00<-spp.tsn.list0[names(spp.tsn.list0) %in% unique(dat.maxyr$SCIENTIFIC.y[dat.maxyr$category %in% invert])]
+spp.tsn.list00<-spp.tsn.list0[names(spp.tsn.list0) %in% unique(dat_maxyr$SCIENTIFIC.y[dat_maxyr$category %in% invert])]
 
 unq.spp.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "species") ))  
     
@@ -98,7 +102,7 @@ unq.phyl.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "phylum") )
 
 ```
 
-`r temp` average surface (`r round(x = mean(dat.maxyr$SURF_TEMP, na.rm = T), digits = 1) `°C) and bottom (`r round(x = mean(dat.maxyr$BOT_TEMP, na.rm = T), digits = 1) `°C) water temperatures for the `r SRVY ` shelf were well above the long-term means from `r minyr` to `r maxyr` for the surface (`r round(x = mean(dat$SURF_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C) and for the bottom (`r round(x = mean(dat$BOT_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C). In the `r SRVY `, there were a total of `r unq.spp` species representing `r unq.fam` families and `r unq.gen` genera, as well as `r unq.spp.inv ` invertebrate taxa representing `r unq.phyl.inv` phyla, identified in the catches.
+`r temp` average surface (`r round(x = mean(dat_maxyr$SURF_TEMP, na.rm = T), digits = 1) `°C) and bottom (`r round(x = mean(dat_maxyr$BOT_TEMP, na.rm = T), digits = 1) `°C) water temperatures for the `r SRVY ` shelf were well above the long-term means from `r minyr` to `r maxyr` for the surface (`r round(x = mean(dat$SURF_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C) and for the bottom (`r round(x = mean(dat$BOT_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C). In the `r SRVY `, there were a total of `r unq.spp` species representing `r unq.fam` families and `r unq.gen` genera, as well as `r unq.spp.inv ` invertebrate taxa representing `r unq.phyl.inv` phyla, identified in the catches.
 
 > how do we define invert phyla? also, should we add vert?
 

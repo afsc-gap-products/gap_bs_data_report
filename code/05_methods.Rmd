@@ -2,14 +2,14 @@
 output:
   word_document:
     pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: word-styles-reference.docx
-csl: "../citationStyles/citationstyle.csl"
-bibliography: "../data/bibliography.bib"
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "../cite/bibliography.bib"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE)
-counter.inside<-0
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
 ### Methods
@@ -75,6 +75,168 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 Both the `r text_list(vess$VESSEL_NAME)` conducted the standard `r SRVY ` shelf survey charters beginning in Dutch Harbor, Alaska, on 3 June 2018. Survey trawl sampling of the `r SRVY ` shelf began in eastern Bristol Bay and proceeded westward to the shelf edge (Figure 2). The progression from east to west was established in response to movements of yellowfin sole and perhaps other species, which may be migrating eastward during the course of the survey (Smith and Bakkala 1982). The Vesteraalen and Alaska Knight completed the standard `r SRVY ` survey on 31 July 2018 (Figure 2).
 
 For catch analysis, the `r SRVY ` shelf was divided into 12 strata bounded by the 50-m, 100-m, and 200-m isobaths, a geographic stratum line separating the northwest and southeast shelf, and localized high-density strata in the regions around St. Matthew and Pribilof Islands (Figure 1). This stratification scheme reflects the differences observed in Bering Sea groundfish distribution across the oceanographic domains, and the intention of the design was to reduce the variances of population and biomass estimates (Bakkala 1993). The purpose of high-density sampling in Strata 32, 42, 43, and 62 was to reduce variance estimates for blue king crab. Sampling density ranged from one station per 775 km2 (Stratum 42) to one per 1,496 km2 (Stratum 82) and the sampling density for the entire `r SRVY ` shelf was one station per 1,311 km2 (Table 1). For purposes of some analyses (i.e., abundance at length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30(31+32), 40 (41+42+43), 50, 60(61+62), 82, and 90 (Fig 1; Table 1).
+ 
+ 
+```{r}
+## cruise_ids are set every year
+strata_haul_count <- 
+  haul_info %>%
+  na.omit() %>%
+  dplyr::filter(CRUISE_ID %in% c(726, 727) & 
+         HAUL_TYPE %in% c(3, 15) &
+         GEAR == 44 &
+         PERFORMANCE >= 0 ) %>%
+  dplyr::count(STRATUM) %>%
+  dplyr::left_join(x = ., y = stratum, by = "STRATUM") %>%
+  dplyr::mutate(density = round(AREA/n, 0))
+
+strata_domain <- strata_haul_count %>%
+  left_join(domain)
+
+strata_domain<-strata_domain[,match(x = c("domain", "STRATUM", "AREA", "n", "density"), table = names(strata_domain))]
+
+strata_domain$ord<-strata_domain$domain
+
+library(wrapr)
+map <- wrapr::qc("EBS inner shelf" = 1, "EBS middle shelf" = 2, "EBS outer shelf" = 3)
+strata_domain$ord <- as.numeric(map[strata_domain$ord])  
+
+strata_domain<-strata_domain[order(strata_domain$ord, 
+                                   strata_domain$STRATUM), ]
+
+strata_domain$ord<-NULL
+
+totals<-data.frame("Total", "", 
+                                           sum(strata_domain$AREA), 
+                                           sum(strata_domain$n), 
+                                           sum(strata_domain$density))
+
+names(totals)<-names(strata_domain)
+
+
+strata_domain<-rbind.data.frame(strata_domain, 
+                                totals)
+
+table.raw<-strata_domain
+
+strata_haul_count <- strata_haul_count %>%
+  mutate(density = prettyNum(strata_haul_count$density, big.mark = ",")) %>%
+  mutate(AREA = round(AREA, 0)) %>%
+  mutate(AREA = prettyNum(strata_haul_count$AREA, big.mark = ","))%>%
+  select(STRATUM, AREA, n, density) #%>%
+#rename(Stratum = STRATUM, "Stations successfully sampled" = n,
+#"Representative area" = AREA, "Sampling density" = density)
+
+table.print<-strata_domain
+
+```
+ 
+```{r}
+
+Title = paste0("Stratum areas and sampling densities for the ",maxyr," bottom trawl survey of the eastern Bering Sea (EBS) shelf and the northern Bering Sea (NBS) shelf.")
+
+table.print<-strata_domain
+# Systematically save your plot with this simple function
+tab<-SaveTables(table.raw = table.raw, 
+                table.print = table.print, 
+                Title = Title, 
+                Footnotes = Footnotes, 
+                filename0 = filename0, 
+                dir.chapters = dir.chapters, 
+                dir.tables = dir.tables, 
+                cnt.tables = cnt.tables, 
+                cnt.chapt.content = cnt.chapt.content)
+
+
+tab$Caption
+table.print<-tab$table.print
+
+# Print or Don't Print Table in Text
+# You don't want to print this in the document if this text will be flowed into InDesign. 
+# However, sometimes its nice to see everything all together, so this variable is something you might like to toggle on and off. Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
+if (designflowin %in% F) {
+  
+  # names(b)<-paste0("**", names(b), "**") #Bold your table column names
+  # names(b)[names(b) %in% "****"]<-"" #But don't bold where there is no column name
+  
+  table.print %>%
+    format_cells(rows = 0, # make column names
+                 cols = 1:ncol(table.print), # for all columns
+                 fonttype = "bold") %>% # bold
+    knitr::kable(row.names = F, booktabs = T) #print table in text
+}
+```
+ 
+ 
+```{r T1a}
+# Don't Edit This:
+cnt.chapt.content<-auto_counter(cnt.chapt.content)
+cnt.tables<-cnt.tables+1
+```
+
+```{r T1b, echo=FALSE, warning=FALSE, message=FALSE}
+# Edit This:
+
+Footnotes<-"Here is a Footnote for this table"# Footnote
+Header = str_to_sentence(paste0("Table ",cnt.tables,". Here's a table"))
+
+# Select data for table
+# Make a table of content, but don't edit your content. This is just good record keeping so peolpe can check your work. 
+table.raw<-head(dat[dat$YEAR %in% 2017,
+          c("LATITUDE", "LONGITUDE", "VESSEL")])
+
+names(table.raw)<-firstup(tolower(names(table.raw)))
+
+table.raw<-dplyr::rename(table.raw, 
+                         "Vessel ID Number" = "Vessel")
+
+# Make the table pretty, like as you would have it show in the report. 
+table.print<- table.raw %>% 
+  mutate_at(vars(Latitude, Longitude), 
+            funs(round(., 1)))
+```
+
+
+```{r T1c}
+# Don't Edit This:
+Header<-str_to_sentence(Header)
+Title0<-paste0(Header, "^[", Footnotes, "]")
+filename00<-paste0(filename0, cnt.chapt.content, "_Table_",cnt.figures)
+
+if (designflowin %in% T){
+  cnt.chapt.content<-funct_counter(cnt.chapt.content)
+  rmarkdown::render(TableFigureHeader, 
+                    quiet = T,
+                  output_dir = dir.chapters, 
+                  output_file = paste0(filename00,cnt.chapt.content,"_Title.docx"))
+}
+```
+
+
+### `r ifelse(designflowin %in% T, "", Title0)`
+
+```{r T1d}
+# Don't Edit This:
+
+# Systematically save your plot with this simple function
+SaveTables(table.raw, table.print, Header, Footnotes, 
+                     filename00, dir.chapters, dir.tables)
+
+# Print or Don't Print Table in Text
+# You don't want to print this in the document if this text will be flowed into InDesign. 
+# However, sometimes its nice to see everything all together, so this variable is something you might like to toggle on and off. Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
+if (designflowin %in% F) {
+  
+  # names(b)<-paste0("**", names(b), "**") #Bold your table column names
+  # names(b)[names(b) %in% "****"]<-"" #But don't bold where there is no column name
+  
+  table.print %>%
+          format_cells(rows = 0, # make column names
+                       cols = 1:ncol(table.print), # for all columns
+                       fonttype = "bold") %>% # bold
+          knitr::kable(row.names = F, booktabs = T) #print table in text
+}
+```
  
 #### NBS Sampling Logistics and Stratification Scheme
 

@@ -2,14 +2,14 @@
 output:
   word_document:
     pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: word-styles-reference.docx
-csl: "../citationStyles/citationstyle.csl"
-bibliography: "../data/bibliography.bib"
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "../cite/bibliography.bib"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE)
-counter.inside<-0
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
 
@@ -33,6 +33,36 @@ From the combined `r SRVY ` (Tables 2a) and NBS Rapid Response (Table 2b) trawl 
 #### Species Composition
 
 A total of 114 fish species representing 20 families and 65 genera were identified in the survey catches from both the `r SRVY ` and NBS (Appendix B, Table 6). The `r SRVY ` had a total of 93 fish species, 49 of which did not occur in the NBS. In comparison, the NBS had 70 total fish species (in 15 families), 12 of which did not occur in the `r SRVY ` (Table 4). Seven of the 12 species only occurring in the NBS (Table 4) have only been documented north of 60°N (Mecklenburg et al. 2002). Six flatfish species that were present in the `r SRVY ` were absent from the NBS including English sole (Parophrys vetulus), dover sole (Microstomus pacificus), butter sole (Isopsetta isolepis), rex sole (Glyptocephalus zachirus), hybrid starry flounder X Alaska plaice (Platichthys stellatus X Pleuronectes quadrituberculatus) and southern rock sole (Table 4).
+
+> For the purposes of counting the number of each taxonomic hierarchy, we employed ITIS [CITATION] which is ___. All species are idenfitied using and logged in AFSC's databases as *Eschmeyer's Ctaglog of Fishes* (CITATION Eschmeyer) and *An Annotated Checklist of the Marine Macroinvertebrates of Alaska* (CITATION: Drumm). 
+
+
+
+```{r}
+
+# find number of ___ for species
+
+spp.tsn.list0<-spp.tsn.list[names(spp.tsn.list) %in% 
+                              unique(dat$SCIENTIFIC.y[dat$YEAR %in% maxyr])]
+
+unq.spp<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "species") ))
+
+unq.gen<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "genus") ))
+
+unq.fam<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "family") ))
+
+# unq.phyl<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "phyla") )) 
+
+spp.tsn.list00<-spp.tsn.list0[names(spp.tsn.list0) %in% unique(dat.maxyr$SCIENTIFIC.y[dat.maxyr$category %in% invert])]
+
+unq.spp.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "species") ))  
+    
+unq.phyl.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "phylum") ))  
+
+```
+
+> FROM ABSTRACT: `r temp` average surface (`r round(x = mean(dat.maxyr$SURF_TEMP, na.rm = T), digits = 1) `°C) and bottom (`r round(x = mean(dat.maxyr$BOT_TEMP, na.rm = T), digits = 1) `°C) water temperatures for the `r SRVY ` shelf were well above the long-term means from `r minyr` to `r maxyr` for the surface (`r round(x = mean(dat$SURF_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C) and for the bottom (`r round(x = mean(dat$BOT_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C). In the `r SRVY `, there were a total of `r unq.spp` species representing `r unq.fam` families and `r unq.gen` genera, as well as `r unq.spp.inv ` invertebrate taxa representing `r unq.phyl.inv` phyla, identified in the catches.
+
 
 #### Relative Abundance
 

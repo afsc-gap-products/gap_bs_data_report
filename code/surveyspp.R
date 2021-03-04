@@ -6,34 +6,7 @@
 #' ---
 
 
-# SpCodeName.General<-list("Walleye Pollock" = 934083, # Species	Gadus chalcogrammus Pallas, 1814 – Walleye ), 
-#                      'Pacific cod' = 164711, #Species	Gadus macrocephalus Tilesius, 1810 – morue du Pacifique, bacalao del Pacifico, Pacific cod
-#                      "Yellowfin Sole" = 172907, # Species	Limanda aspera (Pallas, 1814) – yellowfin sole, limande à nageoires jaunes, Yellowfin Sole 
-#                      "Northern Rock Sole" = 616392, # Species	Lepidopsetta polyxystra Orr & Matarese, 2000 – northern rock sole, limande du nord, Northern Rock Sole
-#                      "Southern Rock Sole" = 172917, # Species	Lepidopsetta bilineata (Ayres, 1855) – rock sole, fausse limande du Pacifique, Rock Sole
-#                      "Flathead Sole" = 172875, # Species	Hippoglossoides elassodon Jordan & Gilbert, 1880 – flathead sole, Flathead Sole, plie à tête plate
-#                      "Bering Flounder" = 172876, # Species	Hippoglossoides robustus Gill & Townsend, 1897 – Bering flounder, Bering Flounder, plie de Béring
-#                      "Alaska Plaice" = 172901, # Species	Pleuronectes quadrituberculatus Pallas, 1814 – Alaska plaice, Alaska Plaice
-#                      "Greenland Turbot" = 172930, #  Species	Reinhardtius hippoglossoides (Walbaum, 1792) – Greenland halibut, platija negra, Greenland turbot, Newfoundland turbot, turbot, greeenland halibut, flétan du Groenland, Greenland Halibut
-#                      "Arrowtooth Flounder" = 172862, # Species	Atheresthes stomias (Jordan & Gilbert, 1880) – arrowtooth flounder, Arrowtooth Flounder, plie à grande bouche 
-#                      "Kamchatka Flounder" = 172861, #  Species	Atheresthes evermanni Jordan & Starks, 1904 – Kamchatka flounder, Kamchatka Flounder
-#                      "Pacific Halibut" = 172932) #Species: Hippoglossus stenolepis Schmidt, 1904 – valid)
-# 
-# 
-# SpeciesList<-list("EBS" = list("Walleye Pollock" = SpCodeName.General$`Walleye Pollock`, 
-#                                'Pacific cod' = SpCodeName.General$`Pacific cod`,
-#                                "Yellowfin Sole" = SpCodeName.General$`Yellowfin Sole`, 
-#                                "Northern and Southern Rock Sole (grouped)" = c(SpCodeName.General$`Northern Rock Sole`, 
-#                                                                                SpCodeName.General$`Southern Rock Sole`), 
-#                                "Flathead Sole" = SpCodeName.General$`Flathead Sole`, 
-#                                "Bering Flounder" = SpCodeName.General$`Bering Flounder`, 
-#                                "Alaska Plaice" = SpCodeName.General$`Alaska Plaice`, 
-#                                "Greenland Turbot" = SpCodeName.General$`Greenland Turbot`, 
-#                                "Arrowtooth Flounder" = SpCodeName.General$`Arrowtooth Flounder`, 
-#                                "Kamchatka Flounder" = SpCodeName.General$`Kamchatka Flounder`, 
-#                                "Pacific Halibut" = SpCodeName.General$`Pacific Halibut`)
-#                   )
-# spplist<-SpeciesList[survey]
+
 
 #############Taxize
 
@@ -53,7 +26,7 @@ itis_reclassify<-function(tsn, categories, missing.name){
   for (i in 1:length(categories)) {
     
     a<-rlist::list.search(.data = lapply(X = tsn.indata, '[', 3), 
-                   categories[i][[1]] %in% . )
+                          categories[i][[1]] %in% . )
     
     # a<-rlist::list.search(.data = lapply(X = tsn.indata, '[', 3), 
     #                       . %in% categories[i][[1]])# == . )
@@ -63,8 +36,8 @@ itis_reclassify<-function(tsn, categories, missing.name){
     sppcode<-names(a)
     
     if (length(sppcode)!=0) {
-        
-        for (ii in 1:length(sppcode)) {
+      
+      for (ii in 1:length(sppcode)) {
         #   
         #   if ((is.na(tsn.indata[ii][[1]]$id))) {
         #     
@@ -82,29 +55,29 @@ itis_reclassify<-function(tsn, categories, missing.name){
         #     
         #     
         #   } else {
-            
-            cat_TSN<-c(cat_TSN, names(categories)[i])
-            
-            bottomrank<-c(bottomrank, 
-                          tsn.indata[names(tsn.indata) %in% sppcode[ii]][[1]]$rank[
-                            nrow(tsn.indata[names(tsn.indata) %in% 
-                                              sppcode[ii]][[1]])])
-            
-            TSN<-c(TSN, 
-                   as.numeric(tsn.indata[names(tsn.indata) %in% sppcode[ii]][[1]]$id[
+        
+        cat_TSN<-c(cat_TSN, names(categories)[i])
+        
+        bottomrank<-c(bottomrank, 
+                      tsn.indata[names(tsn.indata) %in% sppcode[ii]][[1]]$rank[
+                        nrow(tsn.indata[names(tsn.indata) %in% 
+                                          sppcode[ii]][[1]])])
+        
+        TSN<-c(TSN, 
+               as.numeric(tsn.indata[names(tsn.indata) %in% sppcode[ii]][[1]]$id[
+                 nrow(tsn.indata[names(tsn.indata) %in% 
+                                   sppcode[ii]][[1]])]))
+        
+        category0<-c(category0, names(categories)[i])
+        
+        sciname<-c(sciname, 
+                   tsn.indata[names(tsn.indata) %in% sppcode[ii]][[1]]$name[
                      nrow(tsn.indata[names(tsn.indata) %in% 
-                                sppcode[ii]][[1]])]))
-            
-            category0<-c(category0, names(categories)[i])
-            
-            sciname<-c(sciname, 
-                       tsn.indata[names(tsn.indata) %in% sppcode[ii]][[1]]$name[
-                         nrow(tsn.indata[names(tsn.indata) %in% 
-                                           sppcode[ii]][[1]])])
-            
-            valid0<-c(valid0,
-                      ifelse(nrow(tsn.indata[names(tsn.indata) %in% sppcode[ii]][[1]])>1,
-                             "valid", "invalid"))
+                                       sppcode[ii]][[1]])])
+        
+        valid0<-c(valid0,
+                  ifelse(nrow(tsn.indata[names(tsn.indata) %in% sppcode[ii]][[1]])>1,
+                         "valid", "invalid"))
         # }
       }
     }
@@ -168,7 +141,7 @@ dat.tsn<-unique(dat[,c("COMMON", "SCIENTIFIC", "SID")])
 names(dat.tsn)<-paste0(names(dat.tsn), "_orig")
 
 dat.tsn$SCIENTIFIC<-dat.tsn$SCIENTIFIC_orig
-dat.tsn$SCIENTIFIC<-gsub(pattern = " sp.", replacement = "", x = dat.tsn$SCIENTIFIC)
+dat.tsn$SCIENTIFIC<-gsub(pattern = " sp\\.", replacement = "", x = dat.tsn$SCIENTIFIC) # Toledo
 dat.tsn$SCIENTIFIC<-gsub(pattern = " spp.", replacement = "", x = dat.tsn$SCIENTIFIC)
 dat.tsn$SCIENTIFIC<-gsub(pattern = " egg case", replacement = "", x = dat.tsn$SCIENTIFIC)
 dat.tsn$SCIENTIFIC<-gsub(pattern = " egg", replacement = "", x = dat.tsn$SCIENTIFIC)
@@ -184,8 +157,8 @@ dat.tsn$SCIENTIFIC<-gsub( " *\\(.*?\\) *", "", dat.tsn$SCIENTIFIC)
 
 for (i in 1:nrow(dat.tsn)){
   dat.tsn$SCIENTIFIC[i]<-ifelse((nchar(strsplit(x = dat.tsn$SCIENTIFIC[i], split = " ")[[1]][2]) %in% 1), 
-                             strsplit(x = dat.tsn$SCIENTIFIC[i], split = " ")[[1]][1], 
-                             dat.tsn$SCIENTIFIC[i])
+                                strsplit(x = dat.tsn$SCIENTIFIC[i], split = " ")[[1]][1], 
+                                dat.tsn$SCIENTIFIC[i])
   if (grepl(pattern = " X ", x = dat.tsn$SCIENTIFIC[i], ignore.case = T)){
     dat.tsn$SCIENTIFIC[i]<-NA
   }
@@ -199,7 +172,7 @@ spp.cat1<-itis_reclassify(tsn = unique(dat.tsn$SCIENTIFIC),
 reftable<-spp.cat1$df.out
 
 reftable<-dplyr::rename(reftable, 
-       "SCIENTIFIC" = "sciname")
+                        "SCIENTIFIC" = "sciname")
 
 reftable<-left_join(x = dat.tsn, y = reftable, by ="SCIENTIFIC")
 
