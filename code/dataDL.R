@@ -10,22 +10,34 @@
 # Example Data
 
 
-PKG <- c("dplyr", "tidyverse", "knitr", "kableExtra", "reshape", "RODBC")
+PKG <- c(#"dplyr", "tidyverse", "knitr", "kableExtra", "reshape",
+         "RODBC")
 for (p in PKG) {
   if(!require(p,character.only = TRUE)) {  
     install.packages(p)
     require(p,character.only = TRUE)}
 }
 
-# This has a specific link because I DONT want people to have access to this!
+# This has a specific username and password because I DONT want people to have access to this!
 source("C:/Users/emily.markowitz/Documents/Projects/ConnectToOracle.R")
+
+
+
+channel<-odbcConnect(dsn = "AFSC",
+                     uid = "USERNAME", # change
+                     pwd = "PASSWORD", #change
+                     believeNRows = FALSE)
+
+odbcGetInfo(channel)
+
+
 
 ##################DOWNLOAD TABLES##################################
 
 a<-RODBC::sqlQuery(channel, "SELECT * FROM RACEBASE.CATCH")
 write.csv(x=a, "./data/catch.csv")
 
-a<-RODBC::sqlQuery(channel, "SELECT * FROM RACE_DATA.HAULS")
+a<-RODBC::sqlQuery(channel, "SELECT * FROM RACEBASE.HAULS")
 write.csv(x=a, "./data/hauls.csv")
 
 a<-RODBC::sqlQuery(channel, "SELECT * FROM RACEBASE.HAUL")

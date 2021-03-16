@@ -10,15 +10,19 @@
 ######START#######
 
 
-
-########Sign into google drive##########
-drive_deauth()
-drive_auth()
-1
-
 ######***KNOWNS#########
-maxyr <- 2018 # or the year of the report, for example
-SRVY<-"EBS" # For the 0frontmatter.Rmd file
+# maxyr <- 2017 # or the year of the report, for example
+# SRVY<-"NEBS" # For the 0frontmatter.Rmd file
+
+# maxyr <- 2018 # or the year of the report, for example
+# SRVY<-"EBS" # For the 0frontmatter.Rmd file
+
+maxyr <- 2019 # or the year of the report, for example
+SRVY<-"NEBS" # For the 0frontmatter.Rmd file
+
+# maxyr <- 2019 # or the year of the report, for example
+# SRVY<-"NBS" # For the 0frontmatter.Rmd file
+
 SRVY0 <- "BS" # in Oracle
 
 
@@ -63,6 +67,14 @@ source(here::here('code', 'functions.R' ))
 source(here::here('code', 'data.R' ))
 
 # source(here::here('code', 'surveyspp.R' ))
+
+
+
+
+########Sign into google drive##########
+drive_deauth()
+drive_auth()
+1
 
 
 #######SAVE PACKAGES USED TO CREATE THIS REPORT#############
@@ -179,7 +191,6 @@ cnt_equ <- 0
   
   ############# 07 - Results_spp ####################
   for (spp0 in 1:length(report_species)) {
-    
     
       spp_common<-names(report_species)[spp0]
       spp_code<-report_species[spp0][[1]]

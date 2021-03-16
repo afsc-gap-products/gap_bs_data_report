@@ -18,117 +18,138 @@ months.words<-c("January", "February",	"March", "April",
 
 shps<-c(21:25)
 
+########*** Any BS ##########
+if (SRVY %in% c("EBS", "NEBS", "NBS")) {
+  
+    sectname<-"EBS-BTS-Report"
+    
+    # STRAT <- c(10,20,31,32,41,42,43,50,61,62,82,90)
+    
+    report_species<-list("Walleye Pollock" = c(21740, 21741, 21742, 21744),
+                         'Pacific cod' = c(21720, 21721, 21722),
+                         "Yellowfin Sole" = c(10210, 10209),
+                         "Northern and Southern Rock Sole (grouped)" = c(10262, 10261, 10263),
+                         "Flathead Sole" = c(10130),
+                         "Bering Flounder" = c(10140, 10141),
+                         "Alaska Plaice" = c(10285), # TOLEDO - include 10221 (Platichthys stellatus X Pleuronectes quadrituberculatus hybrid hybrid starry flounder X Alaska plaice)
+                         "Greenland Turbot" = c(10115, 10116),
+                         "Arrowtooth Flounder" = c(10110),
+                         "Kamchatka Flounder" = c(10112),
+                         "Pacific Halibut" = c(10120, 10121))
+    
+  ########*** *** EBS ##############
+  if (SRVY %in% "EBS") {
+    
+    SURVEY<-"eastern Bering Sea"
+    map.area<-"bs.south"
+    SRVY1<-"EBS"
+    
+    reg_dat <- get_base_layers(select.region = map.area, set.crs = "auto")
+    
+    extrap.box = c(xmn = -179.5, xmx = -157, 
+                   ymn = 54, ymx = 63)
+    
+    STRAT <- c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)
 
-if (SRVY %in% "EBS") {
+  ######*** *** NEBS###########
+  } else if (SRVY %in% "NEBS") {
+    
+    SURVEY<-"northern and eastern Bering Sea"
+    map.area<-"bs.all"
+    SRVY1 <- c("EBS", "NBS")
+    
+    reg_dat <- get_base_layers(select.region = map.area, set.crs = "auto")
+    
+    extrap.box = c(xmn = -179.5, xmx = -157, 
+                   ymn = 54, ymx = 68)
+    
+    STRAT <- c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10, #EBS
+              81, 70, 71) # NBS
+    
   
-  SURVEY<-"eastern Bering Sea"
-  sectname<-"EBS-BTS-Report"
-  map.area<-"bs.south"
-  
-  # ageofdownload<-ageoffile(path = "./data/ebs2017_2018.csv")
-  # dat<-read.csv(file = "./data/ebs2017_2018.csv")
-  # dat<-merge.data.frame(x = dat, y = vesdat, by = "VESSEL")
-  
-  reg_dat <- get_base_layers(select.region = map.area, set.crs = "auto")
-  
-  # First read in the shapefile, using the path to the shapefile and the shapefile name minus the
-  # extension as arguments
-  surveygrid_shp00 <- readOGR(dsn = here::here("shapefiles","STRATA", "EBS_NBS_2019.shp"))
-  
-  proj4string(surveygrid_shp00) <- crs(reg_dat$akland)
-  
-  # surveygrid_shp0 <- sp::spTransform(x = surveygrid_shp00, 
-  #                                    CRSobj = crs(reg_dat$akland), )
-  
-  surveygrid_shp <- fortify(surveygrid_shp00) # Next the shapefile has to be converted to a dataframe for use in ggplot2
-  
-  # SpeciesList<-list("Walleye Pollock" = SpCodeName.General$`Walleye Pollock`, 
-  #                   'Pacific cod' = SpCodeName.General$`Pacific cod`,
-  #                   "Yellowfin Sole" = SpCodeName.General$`Yellowfin Sole`, 
-  #                   "Northern and Southern Rock Sole (grouped)" = c(SpCodeName.General$`Northern Rock Sole`, 
-  #                                                                   SpCodeName.General$`Southern Rock Sole`), 
-  #                   "Flathead Sole" = SpCodeName.General$`Flathead Sole`, 
-  #                   "Bering Flounder" = SpCodeName.General$`Bering Flounder`, 
-  #                   "Alaska Plaice" = SpCodeName.General$`Alaska Plaice`, 
-  #                   "Greenland Turbot" = SpCodeName.General$`Greenland Turbot`, 
-  #                   "Arrowtooth Flounder" = SpCodeName.General$`Arrowtooth Flounder`, 
-  #                   "Kamchatka Flounder" = SpCodeName.General$`Kamchatka Flounder`, 
-  #                   "Pacific Halibut" = SpCodeName.General$`Pacific Halibut`)
-  
-  # report_species<-data.frame(species = c("Walleye Pollock", 
-  #                                        'Pacific cod', 
-  #                                        "Yellowfin Sole", 
-  #                                        "Northern and Southern Rock Sole (grouped)", 
-  #                                        "Flathead Sole", 
-  #                                        "Bering Flounder", 
-  #                                        "Alaska Plaice", 
-  #                                        "Greenland Turbot", 
-  #                                        "Arrowtooth Flounder", 
-  #                                        "Kamchatka Flounder", 
-  #                                        "Pacific Halibut"), 
-  #                            sci = c("Walleye Pollock", 
-  #                                    'Pacific cod', 
-  #                                    "Yellowfin Sole", 
-  #                                    "Northern and Southern Rock Sole (grouped)", 
-  #                                    "Flathead Sole", 
-  #                                    "Bering Flounder", 
-  #                                    "Alaska Plaice", 
-  #                                    "Greenland Turbot", 
-  #                                    "Arrowtooth Flounder", 
-  #                                    "Kamchatka Flounder", 
-  #                                    "Pacific Halibut"))
-  
-  report_species<-list("Walleye Pollock" = c(21740, 21741, 21742, 21744),
-                    'Pacific cod' = c(21720, 21721, 21722),
-                    "Yellowfin Sole" = c(10210, 10209),
-                    "Northern and Southern Rock Sole (grouped)" = c(10262, 10261, 10263),
-                    "Flathead Sole" = c(10130),
-                    "Bering Flounder" = c(10140, 10141),
-                    "Alaska Plaice" = c(10285), # TOLEDO - include 10221 (Platichthys stellatus X Pleuronectes quadrituberculatus hybrid hybrid starry flounder X Alaska plaice)
-                    "Greenland Turbot" = c(10115, 10116),
-                    "Arrowtooth Flounder" = c(10110),
-                    "Kamchatka Flounder" = c(10112),
-                    "Pacific Halibut" = c(10120, 10121))
-  
+  ######*** *** NBS###########
+  } else if (SRVY %in% "NBS") {
+    
+    SURVEY<-"northern Bering Sea"
+    map.area <- "bs.north" # "bs.north"
+    SRVY1 <- "NBS"
+    
+    reg_dat_s <- akgfmaps::get_base_layers(select.region = "bs.south", set.crs = "auto")
+    reg_dat_a <- akgfmaps::get_base_layers(select.region = "bs.all", set.crs = "auto")
+    
+    library(raster)
+    reg_dat <- reg_dat_a
+    reg_dat$survey.area <- intersect(reg_dat_s$survey.area, 
+                                       reg_dat_a$survey.area)$geometry[2]
+    reg_dat$place.labels$region <- "bs.north"
+    reg_dat$plot.boundary[2,] <- reg_dat_s$plot.boundary[2,]
+    reg_dat$lat.breaks <- c(56, 58, 60, 62, 64, 66)
+    
+    extrap.box <- c(xmn = -179.5, xmx = -157, 
+                    ymn = 63, ymx = 68)
+    
+    STRAT <- c(81, 70, 71) # NBS
+    
+  }
+
+    
+    # First read in the shapefile, using the path to the shapefile and the shapefile name minus the
+    # extension as arguments
+    surveygrid_shp00 <- readOGR(dsn = here::here("shapefiles","STRATA", "EBS_NBS_2019.shp"))
+    
+    proj4string(surveygrid_shp00) <- crs(reg_dat$akland)
+    
+    # surveygrid_shp0 <- sp::spTransform(x = surveygrid_shp00, 
+    #                                    CRSobj = crs(reg_dat$akland), )
+    
+    surveygrid_shp <- fortify(surveygrid_shp00) # Next the shapefile has to be converted to a dataframe for use in ggplot2    
+    
+    
+    placenames <- read.csv(file = system.file("data", 
+                                              file = "placenames.csv", package = "akgfmaps", 
+                                              mustWork = TRUE), stringsAsFactors = FALSE) %>% 
+      transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata)) 
+    
+    placenames_n <- placenames %>% 
+      dplyr::filter(region == "bs.all") %>% 
+      dplyr::mutate(region = "bs.north") 
+
+    # placenames_n[placenames_n$lab %in% "Alaska", c("x", "y")] <- 
+        
+    placenames <- rbind.data.frame(placenames, placenames_n)
+    
+    placenames <- placenames %>%
+      dplyr::filter(region == map.area)
+    
+    # placenames <- placenames[!(placenames$lab %in% c("Pribilof Isl.", "St. Matthew")), ]
 }
 
+################## Load Design Based Estimates #################
 
-if (SRVY %in% "NEBS") {
+##### *** Weight ######
+df.ls<-list()
+
+for (ii in 1:length(SRVY1)) {
   
-  SURVEY<-"northern and eastern Bering Sea"
-  sectname<-"EBS-BTS-Report"
-  map.area<-"bs.south"
+  a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
+  if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
+    a <- a[grep(pattern = "_plusnw", x = a)]
+  }
   
-  ageofdownload<-ageoffile(path = "./data/ebs2017_2018.csv")
-  # dat<-read.csv(file = "./data/ebs2017_2018.csv")
-  # dat<-merge.data.frame(x = dat, y = vesdat, by = "VESSEL")
-  
-  reg_dat <- get_base_layers(select.region = map.area, set.crs = "auto")
-  
-  # First read in the shapefile, using the path to the shapefile and the shapefile name minus the
-  # extension as arguments
-  surveygrid_shp00 <- readOGR(here::here("shapefiles", "southern_survey_grid_trimmed", "southern_survey_grid_trimmed"), 
-                              "southern_survey_grid_trimmed")
-  
-  # surveygrid_shp0 <- sp::spTransform(x = surveygrid_shp00, #[,c("FID_1", "AREA", "PERIMETER", "STATION_ID")], 
-  #                                    CRSobj = crs(reg_dat$akland))
-  proj4string(surveygrid_shp00) <- crs(reg_dat$akland)
-  
-  surveygrid_shp <- fortify(surveygrid_shp00) # Next the shapefile has to be converted to a dataframe for use in ggplot2
-  
-  report_species<-list("Walleye Pollock" = c(21740, 21741, 21742, 21744),
-                       'Pacific cod' = c(21720, 21721, 21722),
-                       "Yellowfin Sole" = c(10210, 10209),
-                       "Northern and Southern Rock Sole (grouped)" = c(10262, 10261, 10263),
-                       "Flathead Sole" = c(10130),
-                       "Bering Flounder" = c(10140, 10141),
-                       "Alaska Plaice" = c(10285), # TOLEDO - include 10221 (Platichthys stellatus X Pleuronectes quadrituberculatus hybrid hybrid starry flounder X Alaska plaice)
-                       "Greenland Turbot" = c(10115, 10116),
-                       "Arrowtooth Flounder" = c(10110),
-                       "Kamchatka Flounder" = c(10112),
-                       "Pacific Halibut" = c(10120, 10121))
-  
+  for (i in 1:length(a)){
+    b <- read_csv(file = a[i])
+    b <- janitor::clean_names(b)
+    if (names(b)[1] %in% "x1"){
+      b$x1<-NULL
+    }
+    b$file <- a[i]
+    b$survey <- SRVY1[ii]
+    df.ls[[i]]<-b
+    names(df.ls)[i]<-a[i]
+  }
 }
+
+dat_cpue<-SameColNames(df.ls)
 
 ################## Load Oracle Data #################
 a<-list.files(path = here::here("data", "oracle"))
@@ -142,15 +163,15 @@ for (i in 1:length(a)){
 }
 
 
-######*** domain (survey area IDs)#########
-domain<-data.frame(stratum = unique(stratum$stratum))
-domain$region <- NA
-domain$region[domain$stratum %in% c(81, 70, 71)]<-"NBS"
-domain$region[domain$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)]<-"EBS"
-domain$domain <- NA
-domain$domain[domain$stratum %in% c(10, 20)]<-"EBS Inner Shelf"
-domain$domain[domain$stratum %in% c(31, 32, 41, 42, 43, 82)]<-"EBS Middle Shelf"
-domain$domain[domain$stratum %in% c(50, 61, 62, 90)]<-"EBS Outer Shelf"
+# ######*** domain (survey area IDs)#########
+# domain<-data.frame(stratum = unique(stratum$stratum))
+# domain$region <- NA
+# domain$region[domain$stratum %in% c(81, 70, 71)]<-"NBS"
+# domain$region[domain$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)]<-"EBS"
+# domain$domain <- NA
+# domain$domain[domain$stratum %in% c(10, 20)]<-"EBS Inner Shelf"
+# domain$domain[domain$stratum %in% c(31, 32, 41, 42, 43, 82)]<-"EBS Middle Shelf"
+# domain$domain[domain$stratum %in% c(50, 61, 62, 90)]<-"EBS Outer Shelf"
 
 ######*** stratum_area (survey area)#########
 stratum_area <- stratum %>% 
@@ -159,7 +180,7 @@ stratum_area <- stratum %>%
            year <= maxyr & 
            stratum < 100 &
            # !(stratum %in%  c(70, 71, 81)) &
-           stratum %in% domain$stratum[domain$region %in% SRVY]) %>%
+           stratum %in% STRAT) %>% # TOLEDO
   filter(year == max(year))
 
 #G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
@@ -181,11 +202,20 @@ haul_cruises<-left_join(x = haul, y = cruises, by = "cruisejoin")
 haul_cruises<-haul_cruises %>%
   dplyr::filter(performance >= 0 & 
                   haul_type == 3 & 
+                  region.x == SRVY0 &
                   !(is.null(stationid)) &
-                  stratum %in% c(10,20,31,32,41,42,43,50,61,62,82,90)) 
+                  stratum %in% STRAT) 
+haul_cruises$SRVY <- NA
+haul_cruises$SRVY[haul_cruises$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)] <- "EBS" 
+haul_cruises$SRVY[haul_cruises$stratum %in% c(81, 70, 71)] <- "NBS"
 
 ######*** catch_haul_cruises, dat, catch_haul_cruises_maxyr, dat_maxyr#########
-dat <- catch_haul_cruises<-dplyr::left_join(x = catch, y = haul_cruises, by = c("hauljoin", "cruisejoin")) 
+catch_haul_cruises<-dplyr::left_join(x = catch, 
+                                            y = haul_cruises, 
+                                            by = c("hauljoin", "cruisejoin")) 
+
+dat <- catch_haul_cruises
+
 dat_maxyr <- catch_haul_cruises_maxyr <- catch_haul_cruises[catch_haul_cruises$year %in% maxyr,]
 dat_maxyr_1 <- catch_haul_cruises_maxyr_1 <- catch_haul_cruises[catch_haul_cruises$year %in% (maxyr-1),]
 
@@ -222,6 +252,18 @@ vessel_info$VESSEL_SHP <- mapvalues(vessel_info$vessel_id,
 spp_info <- dplyr::left_join(x = catch_haul_cruises_maxyr[, "species_code"], 
                              y = species_classification)
 
+########*** length##############
+dat_length <- length %>% 
+  dplyr::filter(#species_code %in% spp_code, 
+                hauljoin %in% unique(haul_cruises$hauljoin)) 
+
+dat_length <- dplyr::left_join(x = dat_length, 
+                               y = haul_cruises %>% 
+                                 dplyr::select(stratum, hauljoin, SRVY, year))
+
+dat_length_maxyr <- dat_length %>% 
+  dplyr::filter(year == maxyr)
+
 ########*** length_type #########
 length_type <- data.frame(matrix(data = c("1", "Fork length measurement,from tip of snout to fork of tail.",
                                           "2", "Mideye to fork of tail.",
@@ -238,26 +280,26 @@ length_type <- data.frame(matrix(data = c("1", "Fork length measurement,from tip
                                           "14", "Wingtip to wingtip (e.g. skates and rays)",
                                           "15", "Outer tip of rostrum to end of telson (e.g. shrimp)",
                                           "16", "Modal, created in merge juveniles script",
-                                          "17", "Length frequency estimited using size composition proportions from adjacent hauls with similar catch composition"), 
+                                          "17", "Length frequency estimated using size composition proportions from adjacent hauls with similar catch composition"), 
                                  ncol = 2, byrow = TRUE))
 
 names(length_type) <- c("code", "description")
-length_type$sentancefrag <- c("fork length",
-                      "mideye to fork length",
-                      "tip of snout to hypural plate length",
-                      "mideye to hypural plate length",
-                      "total length",
-                      "snout to second dorsal length",
-                      "carapace from back of right eye socket to end of carapace length",
-                      "carapace width",
-                      "head length",
-                      "snout to anal fin origin length",
-                      "mantle length",
-                      "posterior of orbital to end of telson length",
-                      "wingtip to wingtip length",
-                      "outer tip of rostrum to end of telson length",
-                      "modal length (created in merge juveniles script)",
-                      "length frequency estimited using size composition proportions from adjacent hauls with similar catch composition")
+length_type$sentancefrag <- c("fork lengths",
+                      "lengths from mideye to fork of the tail",
+                      "lengths from the tip of snout to hypural plate",
+                      "lengths from mideye to hypural plate",
+                      "total lengths",
+                      "snout to second dorsal lengths",
+                      "lengths of carapace from back of right eye socket to the end of the carapace",
+                      "carapace widths",
+                      "head lengths",
+                      "snout to anal fin origin lengths",
+                      "mantle lengths",
+                      "posterior of orbital to end of telson lengths",
+                      "wingtip to wingtip lengths",
+                      "outer tip of rostrum to end of telson lengths",
+                      "modal lengths",
+                      "frequency of lengths estimated using size composition proportions from adjacent hauls with similar catch composition")
 
 
 #### Species ######
