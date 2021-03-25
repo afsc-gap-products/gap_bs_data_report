@@ -544,3 +544,153 @@ get_survey_bathymetry0 <- function (select.region, set.crs)
   return(bathymetry)
 }
 
+
+
+species_table <- function(table_list, dat_maxyr_spp, spp_common, SURVEY, SRVY = NA) {
+  
+  # Edit This:
+  header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY, ifelse(SRVY %in% NA, paste0(" (", SRVY, ")"), ""))
+  footnote<-""
+  
+  # Select data and make plot
+  cols<-c("start_latitude", "start_longitude",  "weight", "number_fish", "bottom_depth", "gear_temperature", "surface_temperature")
+  COLS<-c("Latitude", "Longitude", 
+          "Weight", "Abundance", 
+          "Bottom Depth", "Bottom Temperature", "Surface Temperature")
+  
+  # basiccontent0<-c()
+  basiccontenttable<-c()
+  
+  for (ii in 1:length(cols)) {
+    basiccontenttable<-rbind.data.frame(basiccontenttable, 
+                                        data.frame(metric0 = cols[ii], 
+                                                   Metric = COLS[ii], 
+                                                   Min = min(dat_maxyr_spp[cols[ii]], na.rm = T), 
+                                                   Max = max(dat_maxyr_spp[cols[ii]], na.rm = T), 
+                                                   Mean = sum(dat_maxyr_spp[cols[ii]], na.rm = T)/nrow(dat_maxyr_spp)
+                                        ))
+  }
+  
+  basiccontenttable_print <- basiccontenttable
+  basiccontenttable_print[, c("Min", "Max", "Mean")] <- 
+    NMFSReports::mod_number(x = basiccontenttable_print[, c("Min", "Max", "Mean")], 
+                            comma_seperator = TRUE, 
+                            divideby = 1, 
+                            digits = 2)
+  basiccontenttable_print$metric0<-NULL
+  
+  table_raw = basiccontenttable
+  table_print = basiccontenttable_print
+  
+  table_list<-save_tables(table_raw = table_raw, 
+                          table_print = table_print, 
+                          table_list = table_list, 
+                          header = header,
+                          footnote = footnote,
+                          filename0 = filename0, 
+                          cnt_chapt_content = "NA", 
+                          cnt = "NA", 
+                          path = dir_out_tables, 
+                          filename_desc = ifelse(SRVY %in% NA, paste0("_", SRVY), ""))
+  
+  return(table_list)
+  
+}
+
+
+
+
+
+species_text <- function(dat_maxyr, dat_maxyr_1, basiccontenttable_print, 
+                         dat_maxyr_spp, dat_maxyr_spp_length, 
+                         length_type, 
+                         spp_common, spp_code, SRVY, cnt_figures) {
+  
+  str <- c()
+  
+  # <!-- how many stations -->
+  str <- paste0(str, 
+                "Out of the total number of successful hauls (", 
+                length(unique(dat_maxyr$hauljoin)), ") ",  
+                NMFSReports::tolower2(spp_common), 
+                " was found during ", 
+                length(unique(dat_maxyr_spp$hauljoin)), 
+                " hauls (", 
+                formatC(x = (length(unique(dat_maxyr_spp$hauljoin))/length(unique(dat_maxyr$hauljoin)))*100, digits = 1, format = "f"), 
+                "% of stations). ")
+  
+  str <- paste0(str, "
+
+During the ", maxyr, 
+                " survey, ", 
+                NMFSReports::tolower2(spp_common), 
+                " were present at ", 
+                formatC(x = (length(unique(dat_maxyr_spp$hauljoin))/length(unique(dat_maxyr$hauljoin)))*100, digits = 1, format = "f") , 
+                "% of stations in the ", SRVY, " (", 
+                length(unique(dat_maxyr_spp$hauljoin)), " of ", 
+                length(unique(dat_maxyr$hauljoin)), 
+                " stations). ")
+  
+  # <!-- bottom tempature -->
+  str <- paste0(str, "
+
+", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+" were found in bottom temperatures as warm as ", 
+as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
+"°C and as cold as ", 
+as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
+"°C (Figure ", cnt_figures,"). ")
+  
+  # <!-- surface temperature -->
+  str <- paste0(str, "
+
+", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+" were found in areas where surface temperatures were as warm as ", 
+as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
+"°C and as cold as ", 
+as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
+"°C (Figure ", cnt_figures,"). ")
+  
+  # <!-- Depth -->
+  str <- paste0(str, "
+
+They were found in waters with depths between ", 
+                as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
+                " m and ", as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
+  
+  # <!-- Sizes caught  -->
+  str <- paste0(str, "
+
+The ", NMFSReports::text_list(length_type$sentancefrag[length_type$code %in% unique(dat_maxyr_spp_length$length_type)]), 
+                " of ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+                " measured during the survey were between ", min(dat_maxyr_spp_length$length, na.rm = TRUE), 
+                " and ", max(dat_maxyr_spp_length$length, na.rm = TRUE), " ", 
+                unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
+                                        spp_code %in% 68000:69930 ~ 'mm'), 
+                       TRUE ~ 'NO MEASUREMENT'), ". ")
+  
+  # <!-- weight -->
+  str <- paste0(str, "
+
+The total number of ", 
+                NMFSReports::tolower2(spp_common), 
+                " estimated to have been caught by the survey is ", 
+                NMFSReports::xunits(value = sum(dat_maxyr_spp$number_fish, na.rm = TRUE)), 
+                " individuals, which equates to ", 
+                NMFSReports::xunits(value = sum(dat_maxyr_spp$weight, na.rm = TRUE)), 
+                " kg of biomass. ")
+  
+  str <- paste0(str, "
+
+Compared with ", maxyr-1, ", 
+abundance experienced ", 
+                NMFSReports::pchange(start = sum(dat_maxyr_1_spp$number_fish, na.rm = TRUE), end = sum(dat_maxyr_spp$number_fish, na.rm = TRUE)) ,
+                " and there was ", 
+                NMFSReports::pchange(start = sum(dat_maxyr_1_spp$weight, na.rm = TRUE), end = sum(dat_maxyr_spp$weight, na.rm = TRUE)) , 
+                " in biomass. ")
+  
+  return(str)
+  
+}
+
+
