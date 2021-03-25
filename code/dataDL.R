@@ -20,15 +20,12 @@ for (p in PKG) {
 
 # This has a specific username and password because I DONT want people to have access to this!
 source("C:/Users/emily.markowitz/Documents/Projects/ConnectToOracle.R")
-
-
-
-channel<-odbcConnect(dsn = "AFSC",
-                     uid = "USERNAME", # change
-                     pwd = "PASSWORD", #change
-                     believeNRows = FALSE)
-
-odbcGetInfo(channel)
+# channel<-odbcConnect(dsn = "AFSC",
+#                      uid = "USERNAME", # change
+#                      pwd = "PASSWORD", #change
+#                      believeNRows = FALSE)
+# 
+# odbcGetInfo(channel)
 
 
 
