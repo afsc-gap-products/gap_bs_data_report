@@ -200,14 +200,19 @@ stratum_area <- stratum %>%
 ######*** haul_cruises#########
 haul_cruises<-left_join(x = haul, y = cruises, by = "cruisejoin")
 haul_cruises<-haul_cruises %>%
-  dplyr::filter(performance >= 0 & 
-                  haul_type == 3 & 
-                  region.x == SRVY0 &
+  dplyr::filter(abundance_haul == "Y" & 
+                  performance >= 0 & 
+                 haul_type == 3 &
+                  survey_name == "Eastern Bering Sea Crab/Groundfish Bottom Trawl Survey" &
+                  # region.x == SRVY0 &
                   !(is.null(stationid)) &
-                  stratum %in% STRAT) 
+                  stratum %in% STRAT
+                  ) 
 haul_cruises$SRVY <- NA
-haul_cruises$SRVY[haul_cruises$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)] <- "EBS" 
-haul_cruises$SRVY[haul_cruises$stratum %in% c(81, 70, 71)] <- "NBS"
+# haul_cruises$SRVY[haul_cruises$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)] <- "EBS" 
+haul_cruises$SRVY[haul_cruises$survey_definition_id == 112] <- "EBS" 
+# haul_cruises$SRVY[haul_cruises$stratum %in% c(81, 70, 71)] <- "NBS"
+haul_cruises$SRVY[haul_cruises$survey_definition_id == 146] <- "NBS" 
 
 ######*** catch_haul_cruises, dat, catch_haul_cruises_maxyr, dat_maxyr#########
 catch_haul_cruises<-dplyr::left_join(x = catch, 
