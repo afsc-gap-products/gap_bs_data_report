@@ -9,45 +9,107 @@ bibliography: "../cite/bibliography.bib"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  include = TRUE,
+  warning = FALSE, 
+  error = FALSE, 
+  message = FALSE)
+```
+
+```{r libraries}
+# # In case you want to run this outside of the run.R structure
+# library(NMFSReports)
+# library(magrittr)
+# library(ggplot2)
+# library(png)
+# library(cowplot)
+# library(magick)
+```
+
+This file is essentially the example file included in the `buildReport()` function. The [raw vignette script for this can be found here](https://github.com/EmilyMarkowitz-NOAA/NMFSReports/blob/main/vignettes/C_functions-to-help-write-report.Rmd) and the [example script can be found here](https://github.com/EmilyMarkowitz-NOAA/NMFSReports/blob/main/inst/rmd/0_example.Rmd). 
+
+## From run file:
+
+```{r housekeeping}
+# # In case you want to run this outside of the run.R structure
+# cnt_chapt <- "000" # Keep everything in a proper order
+# cnt_chapt_content <- 0
+# cnt_equations <- 0
+# cnt_tables <- 0
+# cnt_figures <- 0
+# list_equations <- list()
+# list_tables <- list()
+# list_figures <- list()
+# dir_out_figures <- dir_out_tables <- NULL # I dont actually want to save them in this example
+# filename0<-"example"
+# indesign_flowin<-FALSE # not going into a final publication that requires indesign for final touches
 ```
 
 # Example of how to use this R Markdown document
 
-```{r ChunkName_NameMeAnythingAsLongAsItIsUnique}
-# Chunks are were we can write code for something later in the code. 
-
+```{r ex_data}
 # example data
 dat <- data.frame(x = rnorm(n = 100), 
-                y = rnorm(n = 100), 
-                col = rep_len(x = c("a", "b"), length.out = 5))
+                  y = rnorm(n = 100), 
+                  col = rep_len(x = c("a", "b"), length.out = 5))
 
 Footnotes.list<-list("ExOfStandardFt" = "Wow, this project is so cool!")
 
-types_of_vessels <- c("NOAAS Vessel", "F/V Fishing Boat", "R/V University Vessel", "Private Charter")
+types_of_vessels <- c("NOAA Vessel", "F/V Fishing Boat", "R/V University Vessel", "Private Charter")
 ```
 
 Here is the report content:
-
+  
 ## Systematic writing of content
-
+  
 My example dataset has `r xunits(nrow(dat))` rows in it and `r xunits(ncol(dat))` columns in it.`r paste0("^[", Footnotes.list$ExOfStandardFt,"]") ` 
 
-This sentance examplifies how to systematically calculate a percent change: `r pchange(start = nrow(dat), end = ncol(dat))`^[Here's another, free-written footnote!]. 
+This sentence exemplifies how to systematically calculate a percent change: `r pchange(start = nrow(dat), end = ncol(dat))`^[Here's another, free-written footnote!]. 
 
 Here are several types of vessels: `r NMFSReports::text_list(types_of_vessels)`. 
 
 ## Equations
 
-Here is some equation you'll need to have in this report, of which produces the variable $X$. 
+Here is some equations you'll need to have in this report: 
 
-```{r Eq1}
-cnt_equ<-auto_counter(cnt_equ)
+```{r eq_pythag0}
+equation = "c^2 = b^2 + a^2"
+nickname = "pythagorean"
+header = "Pythagorean theorem"
+footnote = "footnote about how cool the pythagorean theorem is."
+alttext = "The Pythagoras theorem is a mathematical law that states that the sum of squares of the lengths of the two short sides of the right triangle is equal to the square of the length of the hypotenuse."
+  
+# save yo' stuff and do a lot of behind the scenes work
+# alt: check out the "child = " in this next chunk header (which must stay empty)
+# ```{r, child = system.file("rmd/_child_save_eq.Rmd", package = "NMFSReports")}
+
+# ```
 ```
 
-Eq. `r cnt_equ`
+```{r eq_pythag, child = system.file("rmd/_child_save_eq.Rmd", package = "NMFSReports")}
+```
+  
+[Text blah blah]
+  
+```{r eq_newton}
+equation = "F = G \\frac {m_1 m_2}{d^2}"
+nickname = "Newton"
+header = "Newton's Universal Law of Gravitation"
 
-$$X = Y + Z$$
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_eq.Rmd", package = "NMFSReports") ), 
+  quiet = TRUE
+)
+# `r res `
+```
+
+`r res `
+
+Remember the pythagorean theorem from before? That was Equation #`r crossref(list_obj = list_equations, nickname = "pythagorean", sublist = "number")` and it had a footnote that said "`r crossref(list_obj = list_equations, nickname = "pythagorean", sublist = "footnote")`".
 
 
 ## Citations
@@ -58,175 +120,123 @@ Note that references will appear at the bottom of this document (and any documen
 
 ## Example Figure (Plot)
 
-```{r G1a}
-# Edit This:
+```{r ex_plot0}
 header <- "Here is a figure!"
 footnote<-c("A footnote for this figure!", "A second footnote for this figure!")
-
+nickname <- "ex_plot"
+alttext <- "This is a scatter plot of random data."
+  
 # Select data and make plot
-plot0<- dat %>%
+figure <- dat %>%
   ggplot(aes(x = x, y = y, colour = as.factor(col))) + # create plot
-  geom_point() +
-  theme_classic() +
-  theme(text=element_text(family="Times New Roman")) + 
-  nmfspalette::scale_color_nmfs(palette = "coral") # Use NMFS Color Pallet
+  geom_point() 
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: check out the "child = " in this next chunk header (which must stay empty)
+# ```{r, child = system.file("rmd/_child_save_fig.Rmd", package = "NMFSReports")}
+# ```
 ```
 
-
-```{r G1b}
-# Don't Edit This:
-cnt_chapt_content<-auto_counter(cnt_chapt_content)
-cnt_figures<-cnt_figures+1
-
-# Systematically save your plot with this simple function
-plot_list<-save_graphs(plot0 = plot0, 
-                      plot_list = plot_list, 
-                      header = header,
-                      footnote = footnote,
-                      filename0 = filename0, 
-                      cnt_chapt_content = cnt_chapt_content, 
-                      cnt = cnt_figures, 
-                      path = dir_out_figures, 
-                      width = 6, # you can change this if you need to...
-                      height = 6) # you can change this if you need to...
-
+```{r ex_plot, child = system.file("rmd/_child_save_fig.Rmd", package = "NMFSReports")}
 ```
 
+Here in plot `r crossref(list_obj = list_figures, nickname = "ex_plot", sublist = "number")`, we see that...
 
-```{r G1c, fig.cap=ifelse(indesign_flowin %in% TRUE, "", plot_list[[length(plot_list)]]$caption)}
-# Print or Don't Print Plot in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is 
-# something you might like to toggle on and off. 
-# Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (indesign_flowin %in% FALSE) { 
-  plot0 # print plot in text
-} else if (indesign_flowin %in% TRUE){ # for reports that need to be flowed into InDesign 
-  rmarkdown::render(TableFigureHeader, 
-                    quiet = TRUE,
-                  output_dir = dir_chapters, 
-                  output_file = paste0(filename00,cnt_chapt_content,"_Title.docx"))
-}
-```
 
-## Example Figure (Refernce Image)
+## Example Figure (Reference Image)
 
-```{r G2a}
-# Edit This:
+```{r noaalogo}
+
 header <- "Here is a figure!"
 footnote<-c("A footnote for this figure!")
+nickname <- "noaalogo"
+filename_desc <- "noaalogo"
+alttext <- "The NOAA Meatball and text. "
 
 # Select data and make plot
-plot0 <- 
+figure <- 
   cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(here::here("img", "noaa-gray.png"))) 
-```
+  cowplot::draw_image(readPNG(system.file("img/NOAA_Fisheries_logo_vertical.png", package = "NMFSReports")) )
 
-
-```{r G2b}
-# Don't Edit This:
-cnt_chapt_content<-auto_counter(cnt_chapt_content)
-cnt_figures<-cnt_figures+1
-
-# Systematically save your plot with this simple function
-plot_list<-save_graphs(plot0 = plot0, 
-                      plot_list = plot_list, 
-                      header = header,
-                      footnote = footnote,
-                      filename0 = filename0, 
-                      cnt_chapt_content = cnt_chapt_content, 
-                      cnt = cnt_figures, 
-                      path = dir_out_figures, 
-                      width = 1, # you can change this if you need to...
-                      height = 1,  # you can change this if you need to...
-                      filename_desc = "noaalogo")
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+# `r res `
 
 ```
 
+`r res `
 
-```{r G2c, fig.cap=ifelse(indesign_flowin %in% TRUE, "", plot_list[[length(plot_list)]]$caption)}
-# Print or Don't Print Plot in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is 
-# something you might like to toggle on and off. 
-# Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (indesign_flowin %in% FALSE) { 
-  plot0 # print plot in text
-} else if (indesign_flowin %in% TRUE){ # for reports that need to be flowed into InDesign 
-  rmarkdown::render(TableFigureHeader, 
-                    quiet = TRUE,
-                  output_dir = dir_chapters, 
-                  output_file = paste0(filename00,cnt_chapt_content,"_Title.docx"))
-}
-```
+Here in figure `r crossref(list_obj = list_figures, nickname = "noaalogo", sublist = "number")`, we see the NOAA logo. 
+
 
 ## Example Table (Basic)
 
-```{r T1a}
-# Edit This:
+```{r ex_table0}
+
 header <- "Here is a table!"
 footnote<-"A footnote for this table!"
+nickname <- "ex_table" # this is so you can refer to it later systematically
+alttext <- "This is a 3-column table of random letters (in the first column) and numbers (in the second and third columns). "
 
 # Select data and make plot
+
+# Create data-saver version of table that will be used to reference things later saved as backup
 table_raw<-data.frame(col = LETTERS[1:10], 
                       x = rnorm(n = 10), 
-                y = rnorm(n = 10)) 
+                      y = rnorm(n = 10)) 
+
+# Create pretty version of table that will go into report
 table_print <- table_raw
-table_print[,c("x", "y")] <- NMFSReports::mod_number(table_print[,c("x", "y")], 
-                                                     divideby = 1, 
-                                                     comma_seperator = TRUE, 
-                                                     digits = 2)
+table_print[,c("x", "y")] <- 
+  NMFSReports::mod_number(table_print[,c("x", "y")], 
+                          divideby = 1, 
+                          comma_seperator = TRUE, 
+                          digits = 2)
 
+# save yo' stuff and do a lot of behind the scenes work
+# alt: check out the "child = " in this chunk header (which must stay empty)
+# ```{r, child = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")}
+# ```
 ```
 
 
-```{r T1b}
-# Don't Edit This:
-cnt_chapt_content<-auto_counter(cnt_chapt_content)
-cnt_tables<-cnt_tables+1
-
-# Systematically save your plot with this simple function
-table_list<-save_tables(table_raw = table_raw, 
-                        table_print = table_print, 
-                        table_list = table_list, 
-                        header = header,
-                        footnote = footnote,
-                        filename0 = filename0, 
-                        cnt_chapt_content = cnt_chapt_content, 
-                        cnt = cnt_tables, 
-                        path = dir_out_tables)
+```{r ex_table, child = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")}
 ```
 
-
-```{r T1c, fig.cap=ifelse(indesign_flowin %in% TRUE, "", table_list[[length(table_list)]]$caption)}
-
-# Print or Don't Print Table in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is something you might like to toggle on and off. Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (indesign_flowin %in% FALSE) {
-  table_print %>%
-          format_cells(rows = 0, # make column names
-                       cols = 1:ncol(table_print), # for all columns
-                       fonttype = "bold") %>% # bold
-          knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
-}
-```
+Here in table `r crossref(list_obj = list_tables, nickname = "ex_table", sublist = "number")`, we see that...
 
 ## Example Table (With Footnotes)
 
-```{r T2a}
-# Edit This:
-header <- "Here is a table!"
-footnote<-"A footnote for this table!"
+```{r ex_table_foot}
 
-# Select data
+header <- "Here is a table!"
+nickname <- "ex_table_foot" # this is so you can refer to it later systematically
+
+# Select data and make plot
+
+# Create data-saver version of table that will be used to reference things later saved as backup
 table_raw<-data.frame(col = LETTERS[1:10], 
                       x = rnorm(n = 10), 
-                y = rnorm(n = 10), 
-                footnotes = NA) 
+                      y = rnorm(n = 10), 
+                      footnotes = NA) 
 
 table_raw$footnotes[3]<-"Example footnote in a table 1."
-table_raw$footnotes[4]<-"Example footnote in a table 2.&&&Example footnote in a table 3."
+table_raw$footnotes[4]<-"Example footnote in a table 2.,,,Example footnote in a table 3."
+
+footnote<-"A table with footnotes!"
+footnote<-c(footnote, 
+            ifelse(NMFSReports::is_something_in_this_matrix(
+  x = table_raw, 
+  search_for = "J"), 
+  "There is a 'J' in this matrix!", 
+  ""))
+
+# Create pretty version of table that will go into report
 table_print <- table_raw
 table_print[,c("x", "y")] <- NMFSReports::mod_number(table_print[,c("x", "y")], 
                                                      divideby = 1, 
@@ -235,57 +245,45 @@ table_print[,c("x", "y")] <- NMFSReports::mod_number(table_print[,c("x", "y")],
 
 # example of how to add footnotes from a column of footnotes
 # here, we'll add footnotes from the "footnotes" column to the content in the first column, where necessary
-table_print <- add_table_footnotes(tab = table_print, 
-                             from_col = "footnotes", # either use the name of the column
-                             to_col = 1) # or the number of that column in that table
-
-# here, I'll add a specific footnote to a specific place in the table
-table_print <- add_table_footnotes(tab = table_print, 
-                                   footnote = "Example footnote in a table 4.", 
-                             to_row = 2, 
-                             to_col = 2)
-
-table_print <- add_table_footnotes(tab = table_print, 
-                                   footnote = c("Example footnote in a table 5.", 
-                                                "Example footnote in a table 6."), 
-                             to_row = 4, 
-                             to_col = 2)
-
+table_print <- NMFSReports::add_table_footnotes(table = table_print, 
+                                   from_col = "footnotes", # either use the name of the column or number
+                                   to_col = 1, # or the number of that column in that table
+                                   delim = ",,,") 
 table_print$footnotes<-NULL # remove column from final table
 
+# here, I'll add a specific footnote to a specific place in the table
+table_print <- NMFSReports::add_table_footnotes(table = table_print, 
+                                   footnote = "Example footnote in a table 4.", 
+                                   to_row = 2, 
+                                   to_col = 2)
+
+# apply multiple footnotes to multiple (same number) spots
+table_print <- NMFSReports::add_table_footnotes(table = table_print, 
+                                   footnote = c("Example footnote in a table 5.", 
+                                                "Example footnote in a table 6."), 
+                                   to_row = 2:3,
+                                   to_col = 2)
+
+
+# Format table 
+table_print <- table_print %>%
+  NMFSReports::format_cells(rows = 0, # make column names
+               cols = 1:ncol(table_print), # for all columns
+               fonttype = "bold") #%>% # bold
+  # knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+# `r res `
+
 ```
 
+`r res `
 
-```{r T2b}
-# Don't Edit This:
-cnt_chapt_content<-auto_counter(cnt_chapt_content)
-cnt_tables<-cnt_tables+1
-
-# Systematically save your plot with this simple function
-table_list<-save_tables(table_raw = table_raw, 
-                        table_print = table_print, 
-                        table_list = table_list, 
-                        header = header,
-                        footnote = footnote,
-                        filename0 = filename0, 
-                        cnt_chapt_content = cnt_chapt_content, 
-                        cnt = cnt_tables, 
-                        path = dir_out_tables)
-```
-
-
-```{r T2c, fig.cap=ifelse(indesign_flowin %in% TRUE, "", table_list[[length(table_list)]]$caption)}
-
-# Print or Don't Print Table in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is something you might like to toggle on and off. Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (indesign_flowin %in% FALSE) {
-  table_print %>%
-          format_cells(rows = 0, # make column names
-                       cols = 1:ncol(table_print), # for all columns
-                       fonttype = "bold") %>% # bold
-          knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
-}
-```
-
+Here in table `r crossref(list_obj = list_tables, nickname = "ex_table_foot", sublist = "number")`, we see that...
 

@@ -1,49 +1,101 @@
 #' ---
 #' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-#' author: 'L. Britt, E. J. Dawson, R. Haehn and E. H. Markowitz'
+#' author: 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
 #' purpose: Wrangle data
 #' start date: 2021-03-03
-#' date modified: 2021-03-03        # CHANGE
+#' date modified: 2021-09-01        # CHANGE
 #' Notes:                             # CHANGE
 #' ---
 
 
-######## Knowns ########
+# Knowns -----------------------------------------------------------------------
 
-months.words<-c("January", "February",	"March", "April", 
-                "May", "June", "July", "August", 
-                "September", "October", "November", "December")
+# months.words<-c("January", "February",	"March", "April", 
+#                 "May", "June", "July", "August", 
+#                 "September", "October", "November", "December")
 
-#### Report Specific#######
+# Report Specific --------------------------------------------------------------
 
 shps<-c(21:25)
 
-########*** Any BS ##########
+surv_info <- data.frame(survey_definition_id = c(143, 98, 47), 
+                        SRVY = c("NBS", "EBS", "GOA"), 
+                        SRVY_long = c("northern Bering Sea", "eastern Bering Sea", "Gulf of Alaska"), 
+                        SRVY_start = c(2010, 1982, NA))
+
+# *** Bering Sea ---------------------------------------------------------------
+
 if (SRVY %in% c("EBS", "NEBS", "NBS")) {
   
     sectname<-"EBS-BTS-Report"
     
     # STRAT <- c(10,20,31,32,41,42,43,50,61,62,82,90)
+    # Northern and Southern rock sole (grouped) = c(10262, 10261, 10263)
+    report_species<-list("fish1" = # all plots and tables
+                           list("Walleye pollock" = c(21740, 21741, 21742, 21744),
+                                'Pacific cod' = c(21720, 21721, 21722),
+                                "Yellowfin sole" = c(10210, 10209),
+                                "Northern rock sole" = c(10261, 10263), 
+                                "Flathead sole" = c(10130),
+                                "Bering flounder" = c(10140, 10141),
+                                "Alaska plaice" = c(10285),
+                                "Greenland turbot" = c(10115, 10116), 
+                                "Arrowtooth flounder" = c(10110),
+                                "Kamchatka flounder" = c(10112),
+                                "Pacific halibut" = c(10120, 10121)), 
+                         "fish2" = # get some plots and go in # specimine collected table
+                           list("Bering skate" = c(435), 
+                                "Alaska skate" = c(471), 
+                                "Longhead dab" = c(10211), 
+                                "Starry flounder" = c(10220), 
+                                "Yellow Irish lord" = c(21347), 
+                                "Plain sculpin" = c(21371), 
+                                "Great sculpin" = c(21370), 
+                                "Shorthorn sculpin" = c(21368), 
+                                "Pacific ocean perch" = c(30060)), 
+                         "fish3" = list (
+                                "Rex sole" = c(10200),
+                                "Sahkalin sole" = c(10212), 
+                                "Sturgeon poacher" = c(20040),
+                                "Antlered sculpin" = c(21388),
+                                "Arctic staghorn sculpin" = c(21315),
+                                "Butterfly scuplin" = c(21348),
+                                "Variegated snailfish" = c(22205), 
+                                "Bigmouth sculpin" = c(21420),
+                                "Arctic cod" = c(21725), 
+                                "Saffron cod" = c(21735, 21736, 21737),
+                                "Pacific herring" = c(21110), 
+                                "Capelin" = c(23041), 
+                                "Rainbow smelt" = c(23055), 
+                                "Eulachon" = c(23010), 
+                                "Shortfin eelpout" = c(24191),
+                                "Wattled eelpout" = c(24185), 
+                                "Marbled eelpout" = c(24184)
+                         ), # get some plots
+                         "invert1" = 
+                           list("Red king crab" = c(69322), 
+                                "Blue king crab" = c(69323), 
+                                "Snow crab" = c(68580), # snow crab 
+                                "Tanner crab" = c(68560)), 
+                         "invert3" = list(
+                           "Purple-orange sea star" = c(81742), 
+                           "Northern neptune snail" = c(71884), 
+                           "Jellyfishes" = c(40500, 40501, 40502, 40503, 
+                                             40504, 40505, 40506, 40507, 
+                                             40508, 40509, 40510, 40511, 
+                                             40512, 40513, 40515, 40519, 
+                                             40520, 40560, 40561)) # group...
+                           )
     
-    report_species<-list("Walleye Pollock" = c(21740, 21741, 21742, 21744),
-                         'Pacific cod' = c(21720, 21721, 21722),
-                         "Yellowfin Sole" = c(10210, 10209),
-                         "Northern and Southern Rock Sole (grouped)" = c(10262, 10261, 10263),
-                         "Flathead Sole" = c(10130),
-                         "Bering Flounder" = c(10140, 10141),
-                         "Alaska Plaice" = c(10285), # TOLEDO - include 10221 (Platichthys stellatus X Pleuronectes quadrituberculatus hybrid hybrid starry flounder X Alaska plaice)
-                         "Greenland Turbot" = c(10115, 10116),
-                         "Arrowtooth Flounder" = c(10110),
-                         "Kamchatka Flounder" = c(10112),
-                         "Pacific Halibut" = c(10120, 10121))
+# *** *** EBS ---------------------------------------------------------------
     
-  ########*** *** EBS ##############
-  if (SRVY %in% "EBS") {
+    if (SRVY %in% "EBS") {
     
     SURVEY<-"eastern Bering Sea"
     map.area<-"bs.south"
     SRVY1<-"EBS"
-    
+    SRVY00 <- c(143) # EBS
+
     reg_dat <- get_base_layers(select.region = map.area, set.crs = "auto")
     
     extrap.box = c(xmn = -179.5, xmx = -157, 
@@ -51,12 +103,15 @@ if (SRVY %in% c("EBS", "NEBS", "NBS")) {
     
     STRAT <- c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)
 
-  ######*** *** NEBS###########
-  } else if (SRVY %in% "NEBS") {
+    # *** *** NEBS ---------------------------------------------------------------
+    
+    } else if (SRVY %in% "NEBS") {
     
     SURVEY<-"northern and eastern Bering Sea"
     map.area<-"bs.all"
     SRVY1 <- c("EBS", "NBS")
+    SRVY00 <- c(98, #NBS
+                143) # EBS
     
     reg_dat <- get_base_layers(select.region = map.area, set.crs = "auto")
     
@@ -66,14 +121,16 @@ if (SRVY %in% c("EBS", "NEBS", "NBS")) {
     STRAT <- c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10, #EBS
               81, 70, 71) # NBS
     
-  
-  ######*** *** NBS###########
-  } else if (SRVY %in% "NBS") {
+    
+    # *** *** NBS ---------------------------------------------------------------
+    
+    } else if (SRVY %in% "NBS") {
     
     SURVEY<-"northern Bering Sea"
     map.area <- "bs.north" # "bs.north"
     SRVY1 <- "NBS"
-    
+    SRVY00 <- c(98) #NBS
+
     reg_dat_s <- akgfmaps::get_base_layers(select.region = "bs.south", set.crs = "auto")
     reg_dat_a <- akgfmaps::get_base_layers(select.region = "bs.all", set.crs = "auto")
     
@@ -99,8 +156,8 @@ if (SRVY %in% c("EBS", "NEBS", "NBS")) {
     
     proj4string(surveygrid_shp00) <- crs(reg_dat$akland)
     
-    # surveygrid_shp0 <- sp::spTransform(x = surveygrid_shp00, 
-    #                                    CRSobj = crs(reg_dat$akland), )
+    surveygrid_shp0 <- sp::spTransform(x = surveygrid_shp00, 
+                                       CRSobj = crs(reg_dat$akland) )
     
     surveygrid_shp <- fortify(surveygrid_shp00) # Next the shapefile has to be converted to a dataframe for use in ggplot2    
     
@@ -124,9 +181,13 @@ if (SRVY %in% c("EBS", "NEBS", "NBS")) {
     # placenames <- placenames[!(placenames$lab %in% c("Pribilof Isl.", "St. Matthew")), ]
 }
 
-################## Load Design Based Estimates #################
+placenames <- read.csv(file = system.file("data", 
+                                          file = "placenames.csv", package = "akgfmaps", 
+                                          mustWork = TRUE), stringsAsFactors = FALSE) %>% 
+  transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
 
-##### *** Weight ######
+# *** Load Design Based Estimates ----------------------------------------------
+
 df.ls<-list()
 
 for (ii in 1:length(SRVY1)) {
@@ -151,7 +212,8 @@ for (ii in 1:length(SRVY1)) {
 
 dat_cpue<-SameColNames(df.ls)
 
-################## Load Oracle Data #################
+# *** Load Oracle Data -------------------------------------------------------------
+
 a<-list.files(path = here::here("data", "oracle"))
 for (i in 1:length(a)){
   b <- read_csv(file = paste0(here::here("data", "oracle", a[i])))
@@ -162,8 +224,8 @@ for (i in 1:length(a)){
   assign(x = gsub(pattern = "\\.csv", replacement = "", x = a[i]), value = b)
 }
 
+# *** *** domain (survey area IDs)-------------------------------------------------
 
-# ######*** domain (survey area IDs)#########
 # domain<-data.frame(stratum = unique(stratum$stratum))
 # domain$region <- NA
 # domain$region[domain$stratum %in% c(81, 70, 71)]<-"NBS"
@@ -173,7 +235,8 @@ for (i in 1:length(a)){
 # domain$domain[domain$stratum %in% c(31, 32, 41, 42, 43, 82)]<-"EBS Middle Shelf"
 # domain$domain[domain$stratum %in% c(50, 61, 62, 90)]<-"EBS Outer Shelf"
 
-######*** stratum_area (survey area)#########
+# *** *** stratum_area (survey area) -----------------------------------------------
+
 stratum_area <- stratum %>% 
   # dplyr::right_join(x = ., y = domain, by = "stratum") %>%
   filter(region == SRVY0 &
@@ -196,38 +259,187 @@ stratum_area <- stratum %>%
 # ORDER BY STRATUM;
 #                          ")
 
+# *** *** cruises ------------------------------------------------------------------
 
-######*** haul_cruises#########
-haul_cruises<-left_join(x = haul, y = cruises, by = "cruisejoin")
-haul_cruises<-haul_cruises %>%
-  dplyr::filter(abundance_haul == "Y" & 
-                  performance >= 0 & 
-                 haul_type == 3 &
-                  survey_name == "Eastern Bering Sea Crab/Groundfish Bottom Trawl Survey" &
-                  # region.x == SRVY0 &
-                  !(is.null(stationid)) &
-                  stratum %in% STRAT
-                  ) 
-haul_cruises$SRVY <- NA
-# haul_cruises$SRVY[haul_cruises$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)] <- "EBS" 
-haul_cruises$SRVY[haul_cruises$survey_definition_id == 112] <- "EBS" 
-# haul_cruises$SRVY[haul_cruises$stratum %in% c(81, 70, 71)] <- "NBS"
-haul_cruises$SRVY[haul_cruises$survey_definition_id == 146] <- "NBS" 
+cruises <- cruises %>% 
+  dplyr::select(cruise_id,  year, survey_name, vessel_id, cruise, 
+                vessel_name, start_date, end_date, cruisejoin, survey_definition_id) %>% 
+  dplyr::mutate(vessel_name = paste0("F/V **", stringr::str_to_sentence(vessel_name), "**")) %>%
+  dplyr::mutate(start_month = format(x = as.POSIXlt(x = start_date), format="%m")) %>% 
+  dplyr::mutate(end_month = format(x = as.POSIXlt(x = end_date), format="%m")) %>% 
+  dplyr::left_join(x = ., 
+                   y = surv_info, 
+                   by  = "survey_definition_id")
+  # dplyr::mutate(SRVY = dplyr::case_when(
+  #   survey_definition_id == 98 ~ "NBS", 
+  #   survey_definition_id == 143 ~ "EBS", 
+  #   survey_definition_id == 47 ~ "GOA",
+  #   TRUE ~ "Other")) %>% 
+  # dplyr::mutate(SRVY_long = dplyr::case_when(
+  #   survey_definition_id == 98 ~ "northern Bering Sea", 
+  #   survey_definition_id == 143 ~ "eastern Bering Sea", 
+  #   survey_definition_id == 47 ~ "Gulf of Alaska",
+  #   TRUE ~ "Other")) %>% 
+  # dplyr::mutate(SRVY_start = dplyr::case_when(
+  #   survey_definition_id == 98 ~ 2010, 
+  #   survey_definition_id == 143 ~ 1982, 
+  #   survey_definition_id == 47 ~ NA,
+  #   TRUE ~ "Other"))
 
-######*** catch_haul_cruises, dat, catch_haul_cruises_maxyr, dat_maxyr#########
-catch_haul_cruises<-dplyr::left_join(x = catch, 
-                                            y = haul_cruises, 
-                                            by = c("hauljoin", "cruisejoin")) 
+
+
+# haul_cruises$SRVY <- NA# haul_cruises$SRVY[haul_cruises$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)] <- "EBS" 
+# haul_cruises$SRVY[haul_cruises$survey_definition_id == 112] <- "EBS" 
+# # haul_cruises$SRVY[haul_cruises$stratum %in% c(81, 70, 71)] <- "NBS"
+# haul_cruises$SRVY[haul_cruises$survey_definition_id == 146] <- "NBS" 
+
+cruises_maxyr <- cruises %>%
+  dplyr::filter(
+    year == maxyr & 
+      survey_definition_id %in% SRVY00) 
+
+# format(x = as.POSIXlt(x =cruises_maxyr$start_date), format="%B %d %Y")
+cruises_maxyr$start_month_long <- format(x = as.POSIXlt(x =cruises_maxyr$start_date), format="%B")
+cruises_maxyr$end_month_long <- format(x = as.POSIXlt(x =cruises_maxyr$start_date), format="%B")
+
+# *** *** haul_cruises -------------------------------------------------------------
+# haul_cruises<-left_join(
+#   x = haul %>% dplyr::select(-cruise, -region, -auditjoin), 
+#   y = cruises, 
+#   by = "cruisejoin")
+
+# haul_performance_success_maxyr <- haul_cruises %>%
+#   dplyr::filter(
+#     year %in% maxyr  &
+#       survey_definition_id %in% SRVY00)  %>% 
+#   dplyr::filter(
+#     abundance_haul == "Y" & 
+#       # performance >= 0 & 
+#       haul_type == 3 &
+#       !(is.null(stationid)) &
+#       survey_definition_id %in% SRVY00
+#     ) %>% 
+#   dplyr::mutate(performance_success = 
+#                   dplyr::case_when(
+#                     performance >= 0 ~ TRUE, 
+#                     TRUE ~ FALSE)) 
+
+# if (length(haul_performance_success_maxyr$stationid[
+#   haul_performance_success_maxyr$performance_success == FALSE])>0) {
+#   
+#   a <- setdiff(haul_performance_success_maxyr$stationid[
+#     haul_performance_success_maxyr$performance_success == FALSE], 
+#           haul_performance_success_maxyr$stationid[
+#             haul_performance_success_maxyr$performance_success == TRUE])
+#   
+#   if (length(a)>0) {
+#   # were all unsuccessful tows done again?
+#   length()
+#   } else {}
+#   
+#   }
+
+haul_cruises<-left_join(
+  x = haul %>% dplyr::select(-cruise, -region, -auditjoin), 
+  y = cruises, 
+  by = "cruisejoin") %>% 
+  dplyr::filter(
+    abundance_haul == "Y" & 
+      # performance >= 0 &
+      haul_type == 3 &
+      !(is.null(stationid)) &
+      survey_definition_id %in% SRVY00
+      # stratum %in% STRAT
+  )  %>% 
+  dplyr::mutate(performance_success =
+                  dplyr::case_when(
+                    performance >= 0 ~ 1, 
+                    TRUE ~ 0))
+
+haul_cruises_maxyr <- haul_cruises %>%
+  dplyr::filter(
+    year %in% maxyr  &
+      survey_definition_id %in% SRVY00) 
+
+cruises_maxyr <- cruises_maxyr %>%
+  dplyr::left_join(x = ., 
+                   y = dplyr::full_join(x = haul_cruises_maxyr %>%
+                                          dplyr::select(SRVY, stationid, 
+                                                        vessel_name) %>%
+                                          unique(.) %>%
+                                          group_by(SRVY, vessel_name) %>%
+                                          dplyr::count() %>% 
+                                          dplyr::rename(survey_n = n), 
+                                        y = haul_cruises_maxyr %>%
+                                          dplyr::select(SRVY, stationid,
+                                                        performance_success, 
+                                                        vessel_name) %>%
+                                          unique(.) %>%
+                                          group_by(SRVY, vessel_name) %>%
+                                          dplyr::summarize(performance_success = 
+                                                             sum(performance_success)), 
+                                        by = c("SRVY", "vessel_name")),
+                   by = c("SRVY", "vessel_name"))
+
+haul_cruises <- haul_cruises %>% 
+  dplyr::filter(performance >= 0)
+
+haul_cruises_maxyr <- haul_cruises_maxyr %>% 
+  dplyr::filter(performance >= 0)
+
+
+surv_info<- cruises_maxyr %>% 
+  dplyr::select(SRVY, survey_n) %>% 
+  dplyr::group_by(SRVY) %>% 
+  dplyr::mutate(survey_nn = sum(survey_n)) %>%
+  dplyr::select(-survey_n) %>%
+  unique() %>%
+  dplyr::left_join(x = ., 
+                   y = cruises_maxyr %>% 
+  dplyr::select("survey_definition_id", "SRVY", "SRVY_long", "SRVY_start") %>% 
+  unique() %>%
+  dplyr::left_join(x = ., 
+                   y = haul_cruises %>% 
+                     dplyr::filter(year <= maxyr) %>%
+                     dplyr::select(year, survey_definition_id) %>%
+                     unique()  %>%
+                     # dplyr::group_by(survey_definition_id) %>%
+                     dplyr::count(vars = survey_definition_id) %>%
+                     dplyr::rename(yrofsurvey = n, 
+                                   survey_definition_id = vars), 
+                   by = "survey_definition_id") %>% 
+  # dplyr::mutate(yrofsurvey = maxyr+1-SRVY_start) %>% 
+  dplyr::mutate(stndth = stndth(yrofsurvey)), 
+    by = "SRVY") %>%
+  dplyr::arrange(SRVY)
+
+# *** *** catch_haul_cruises, dat, catch_haul_cruises_maxyr, dat_maxyr ---------
+catch_haul_cruises<-dplyr::left_join(x = haul_cruises, 
+                                     y = catch %>% 
+                                       dplyr::select(cruisejoin, hauljoin, species_code, weight, number_fish, subsample_code), 
+                                     by = c("hauljoin", "cruisejoin")) 
 
 dat <- catch_haul_cruises
 
-dat_maxyr <- catch_haul_cruises_maxyr <- catch_haul_cruises[catch_haul_cruises$year %in% maxyr,]
-dat_maxyr_1 <- catch_haul_cruises_maxyr_1 <- catch_haul_cruises[catch_haul_cruises$year %in% (maxyr-1),]
+dat_maxyr <-
+  catch_haul_cruises_maxyr <-
+  catch_haul_cruises %>%
+  dplyr::filter(
+    year %in% maxyr  &
+      survey_definition_id %in% SRVY00)
+
+dat_maxyr_1 <- 
+  catch_haul_cruises_maxyr_1 <- 
+  catch_haul_cruises %>%
+  dplyr::filter(
+    year %in% maxyr  &
+      survey_definition_id %in% SRVY00)
 
 
-######*** haul_info #########
+# *** *** haul_info ------------------------------------------------------------
 
-haul_info <- hauls[,c( "cruise_id", "haul", "station", "stratum", "performance",  "haul_type", "gear")]
+haul_info <- hauls %>% 
+  dplyr::select("cruise_id", "haul", "station", "stratum", "performance",  "haul_type", "gear")
 
 # haul_info <- sqlQuery(channel, "SELECT
 # CRUISE_ID, HAUL, STATION, STRATUM, PERFORMANCE, HAUL_TYPE, GEAR
@@ -240,9 +452,10 @@ haul_info <- hauls[,c( "cruise_id", "haul", "station", "stratum", "performance",
 
 # latex(tablular( (Factor(strata_domain$domain, "Stratum"))))
 
-######*** vessel_info #########
+# *** *** vessel_info ----------------------------------------------------------
 
-vessel_info<-vessels[vessels$vessel_id %in% unique(catch_haul_cruises_maxyr$vessel_id), ]
+vessel_info<-vessels[vessels$vessel_id %in% 
+                       unique(catch_haul_cruises_maxyr$vessel_id), ]
 
 # vesdat<-data.frame("VESSEL_NAME" = c("FV Alaska Knight", "FV Vesteraalen"), 
 #                    "VESSEL" = c(162, 94), 
@@ -252,12 +465,24 @@ vessel_info$VESSEL_SHP <- mapvalues(vessel_info$vessel_id,
                             from=c(unique(vessel_info$vessel_id)),
                             to=c(shps[1:length(unique(vessel_info$vessel_id))]))
 
-######*** spp_info #########
-# species_classification$species_code<-as.numeric(as.character(species_classification$species_code))
-spp_info <- dplyr::left_join(x = catch_haul_cruises_maxyr[, "species_code"], 
-                             y = species_classification)
+vessel_info$length_m <- round(vessel_info$length/3.28084, digits = 1)
+vessel_info$name_ital <- paste0("F/V **", 
+                                stringr::str_to_title(vessel_info$name), "**")
 
-########*** length##############
+# *** *** spp_info -------------------------------------------------------------
+
+spp_info <- dplyr::left_join(
+  x = unique(catch_haul_cruises[, "species_code"]), 
+  y = species_classification, 
+  by = "species_code")
+
+spp_info_maxyr <- dplyr::left_join(
+  x = unique(catch_haul_cruises_maxyr[, "species_code"]), 
+  y = species_classification, 
+  by = "species_code")
+
+# *** *** length ---------------------------------------------------------------
+
 dat_length <- length %>% 
   dplyr::filter(#species_code %in% spp_code, 
                 hauljoin %in% unique(haul_cruises$hauljoin)) 
@@ -269,21 +494,22 @@ dat_length <- dplyr::left_join(x = dat_length,
 dat_length_maxyr <- dat_length %>% 
   dplyr::filter(year == maxyr)
 
-########*** length_type #########
+# *** *** length_type ----------------------------------------------------------
+
 length_type <- data.frame(matrix(data = c("1", "Fork length measurement,from tip of snout to fork of tail.",
                                           "2", "Mideye to fork of tail.",
                                           "3", "Tip of snout to hypural plate (standard).",
                                           "4", "Mideye to hypural plate.",
                                           "5", "Total length (extremity to extremity).",
-                                          "6", "Snout to second dorsal (e.G. Ratfish).",
+                                          "6", "Snout to second dorsal (e.g., Ratfish).",
                                           "7", "Length of carapace from back of right eye socket to end of carapace.",
                                           "8", "Width of carapace.",
                                           "9", "Head length (snout tip to posterior opercular margin).",
-                                          "11", "Snout to anal fin origin (e.G. Rattails).",
-                                          "12", "Mantle length (e.G. Squid).",
-                                          "13", "Posterior of orbital to end of telson (e.g. Shrimp).",
-                                          "14", "Wingtip to wingtip (e.g. skates and rays)",
-                                          "15", "Outer tip of rostrum to end of telson (e.g. shrimp)",
+                                          "11", "Snout to anal fin origin (e.g., Rattails).",
+                                          "12", "Mantle length (e.g., Squid).",
+                                          "13", "Posterior of orbital to end of telson (e.g., Shrimp).",
+                                          "14", "Wingtip to wingtip (e.g., skates and rays)",
+                                          "15", "Outer tip of rostrum to end of telson (e.g., shrimp)",
                                           "16", "Modal, created in merge juveniles script",
                                           "17", "Length frequency estimated using size composition proportions from adjacent hauls with similar catch composition"), 
                                  ncol = 2, byrow = TRUE))

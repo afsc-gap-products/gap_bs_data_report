@@ -1,0 +1,120 @@
+---
+output:
+  word_document:
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "../cite/bibliography.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+# Abstract
+
+```{r}
+min_mo <- unique(cruises_maxyr$start_month_long[cruises_maxyr$start_month ==
+                                                  min(cruises_maxyr$start_month)])
+max_mo <- unique(cruises_maxyr$end_month_long[cruises_maxyr$end_month == 
+                                                min(cruises_maxyr$end_month)])
+
+nbs_insert1 <- ifelse(SRVY == "NEBS", 
+                      #NBS
+                      paste0("In addition, the ", maxyr, 
+                             " survey coverage was expanded to include the northern Bering Sea (NBS). This is only the ", 
+                             NMFSReports::numbers2words_th(
+                               cruises %>% dplyr::filter(year > compareyr & 
+                                                             SRVY == "NBS" ) %>%
+                                 dplyr::select(year) %>% unique() %>% 
+                                 nrow()),
+                             " time since ",compareyr," that the NBS survey was done. The expanded study area covered the entire Bering Sea continental shelf (hereafter referred to as the “NEBS”) from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
+                             # EBS
+                             "The study area covered the southeastern Bering Sea continental shelf from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and to approximately the latitude of St. Matthew Island (60° 50' N).")
+
+```
+
+From `r min_mo` to `r max_mo` `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center’s Resource Assessment and Conservation Engineering Division conducted its `r yrofsurvey ``r stndth` annual `r SURVEY ` (`r SRVY `) continental shelf bottom trawl survey of groundfish and invertebrate fauna. `r nbs_insert1` Two stern trawlers, the `r `NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$name_ital)) `, were chartered to sample the `r SRVY `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations centered within a stratified systematic grid consisting of a total of `r text_list(paste0(surv_info$survey_nn, " stations in the ", surv_info$SRVY))`. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. `r ifelse(sum(cruises_maxyr$performance_success == cruises_maxyr$survey_n) == nrow(cruises_maxyr), "All", "Most") ` survey stations were sampled successfully in the `r SRVY`.
+
+```{r}
+temps <- dat %>% 
+  dplyr::select(year, surface_temperature, gear_temperature) %>%
+  dplyr::group_by(year) %>%
+  # Find mean of sst and bt by year
+  dplyr::summarise(across(c("surface_temperature", 
+                            "gear_temperature"), ~ 
+                            mean(.x, na.rm = TRUE))) %>% 
+  dplyr::rename(sst = surface_temperature, 
+                bt = gear_temperature) %>% 
+  # warmer/colder than long term average?
+  dplyr::mutate(sst_warmer_longterm = sst>mean(sst, na.rm = T)) %>% 
+  dplyr::mutate(bt_warmer_longterm = bt>mean(bt, na.rm = T)) %>%
+  dplyr::arrange(year) 
+temps$was_both_warmer_longterm <- (temps$sst_warmer_longterm + temps$bt_warmer_longterm)==2
+  # warmer/colder than previous year?
+temps$sst_warmer_prev <- temps$bt_warmer_prev <- NA
+for (i in 2:nrow(temps)) {
+  temps$sst_warmer_prev[i]<-ifelse(temps$sst[i]>temps$sst[(i-1)], TRUE, FALSE)
+  temps$bt_warmer_prev[i]<-ifelse(temps$bt[i]>temps$bt[(i-1)], TRUE, FALSE)
+}
+temps$was_both_warmer_prev <- (temps$sst_warmer_prev + temps$bt_warmer_prev)==2
+
+temps <- temps %>%
+  dplyr::arrange(-year)
+
+
+# warmer than previous year/how many consecutive years?
+if (temps$was_both_warmer_longterm[1] == temps$was_both_warmer_longterm[2]) {
+temp_insert1 <- paste0(ifelse(temps$sst_warmer_longterm[1], "Warm", "Cold"), 
+                       "temperatures continued on the ",SRVY, " shelf for the ", 
+                       numbers2words_th(x = (which(temps$was_both_warmer %in% FALSE)[1]-1), 
+                                     type = "word"), 
+                       " consecutive year. ")
+} else {
+temp_insert1 <- ""
+}
+
+
+# were both sst and bt warmer/colder?
+if (temps$sst_warmer_longterm[1] & temps$bt_warmer_longterm[1]) { # they were both...
+  temp_insert2 <- paste0("Both the mean surface (",
+                         round(x = temps$sst[temps$year == maxyr], digits = 1),
+                         "°C) and bottom temperatures (",
+                         round(x = temps$bt[temps$year == maxyr], digits = 1),
+                         "°C) were ",
+                       ifelse(temps$sst_warmer_longterm[1], "warmer", "colder"))
+} else { # they were not both...
+  temp_insert2 <- paste0("Surface temperatures (",
+                         round(x = temps$sst[temps$year == maxyr], digits = 1),
+                         "°C) were ",
+                       ifelse(temps$sst_warmer_longterm[1], "warmer", "colder"), 
+                       " and bottom temperatures (",
+                         round(x = temps$bt[temps$year == maxyr], digits = 1),"°C) were ", 
+                       ifelse(temps$bt_warmer_longterm[1], "warmer", "colder"))
+}
+
+temp_insert2 <- paste0(temp_insert1,
+                       " than the survey long term (",
+                       min(dat$year),"-",maxyr,
+                       ") averages of ",
+                       round(x = temps$sst, digits = 1),
+                       "°C for the surface and ",
+                       round(x = temps$bt, digits = 1),
+                       "°C for the bottom temperatures.")
+
+spp_info_maxyr$fish <- FALSE
+spp_info_maxyr$fish[spp_info_maxyr$class_taxon %in% c("Actinopterygii", "Chondrichthyes") &
+                  spp_info_maxyr$superclass_taxon %in% "Osteichythyes"]<-TRUE
+
+
+```
+
+`r temp_insert1``r temp_insert2` In the `r SRVY`, there was a total of `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$fish==TRUE])))` species of fishes representing `r xunits(length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$fish==TRUE])))` families and `r xunits(length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$fish==TRUE])))` genera, as well as `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$fish==FALSE])))` invertebrate taxa, representing `r xunits(length(unique(spp_info_maxyr$phylum_taxon)))` phyla identified in the catches.
+
+> not getting "36 different fish species and seven invertebrate"
+
+The distribution and relative abundance of `r xunits(sum(length(report_species$primary), length(report_species$secondary)))` different fish species and `r xunits(sum(length(report_species$invert)))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr ` and `r maxyr` `r SRVY` shelf bottom trawl surveys. For the more common fish species, there are also plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r SRVY` surveys. Tables provide estimates of bottom trawl survey biomass for most fishes and invertebrates, as well as estimates of population size for the most common fishes. Appendices provide station data, summarized catch data by station, listings of taxa, and detailed analyses of abundance and biological data of the sampled populations. 
+
+Between `r compareyr ` and `r maxyr`, there were noticeable changes in the benthic community of the NBS. Total CPUE values for many of the animals in the NBS shifted from being low in `r compareyr ` to being much higher in `r maxyr` The total estimated animal biomass in the NBS increased from 3.0 million t in `r compareyr ` to 4.5 million t in `r maxyr` driven primarily by increases in walleye pollock and Pacific cod. Major distributional shifts by these two species and others were likely in response to the warmer conditions resulting from diminished sea ice during the recent warm stanza that began in 2014. The dramatically different and unexpected results underscore the need for continuing NEBS surveys on a regular basis to learn more about the environmental variability and how fish and crab populations are responding to a dynamic and changing environment. Moreover, many of the design-based estimates of survey abundance currently used in Bering Sea and Aleutian Island (BSAI) stock assessments are biased because they do not account for the dynamic biological and physical process errors such as those readily apparent for pollock and Pacific cod in the NEBS surveys. Hence, new methods for model-based estimates of survey abundance that incorporate as well as propagate uncertainty in the stock assessment models are also needed.
+

@@ -9,7 +9,7 @@ bibliography: "../cite/bibliography.bib"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, comment = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
 ### `r spp_common` (*`r spp_sci`*)
@@ -39,7 +39,6 @@ cnt_figures<-cnt_figures+1
 
 if (indesign_flowin %in% FALSE) {
 
-      
   table_list<-species_table(table_list, dat_maxyr_spp, spp_common, SURVEY, SRVY = SRVY) 
   basiccontenttable_print <- table_list[[length(table_list)]]$print
   table_list[[length(table_list)]]$print  %>%
@@ -47,6 +46,23 @@ if (indesign_flowin %in% FALSE) {
                        cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
                        fonttype = "bold") %>% # bold
           knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
+}
+```
+
+
+```{r G2c, fig.cap=ifelse(indesign_flowin %in% TRUE, "", plot_list[[length(plot_list)]]$caption)}
+# Print or Don't Print Plot in Text
+# You don't want to print this in the document if this text will be flowed into InDesign. 
+# However, sometimes its nice to see everything all together, so this variable is 
+# something you might like to toggle on and off. 
+# Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
+if (indesign_flowin %in% FALSE) { 
+  plot0 # print plot in text
+} else if (indesign_flowin %in% TRUE){ # for reports that need to be flowed into InDesign 
+  rmarkdown::render(TableFigureHeader, 
+                    quiet = TRUE,
+                  output_dir = dir_chapters, 
+                  output_file = paste0(filename00,cnt_chapt_content,"_Title.docx"))
 }
 ```
 
@@ -73,6 +89,7 @@ if (indesign_flowin %in% FALSE) {
           knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
   }
 }
+
 ```  
   
 `r ifelse(SRVY %in% "NEBS", species_text(dat_maxyr %>% dplyr::filter(SRVY %in% "NBS"), dat_maxyr_1 %>% dplyr::filter(SRVY %in% "NBS"), basiccontenttable_print_nbs, dat_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), dat_maxyr_spp_length %>% dplyr::filter(SRVY %in% "NBS"), length_type, spp_common, spp_code, SRVY = "NBS", cnt_figures), "") `  
@@ -212,11 +229,17 @@ idwplot <- akgfmaps::make_idw_map(COMMON_NAME = dat_cpue_spp$species_name,
 idwplot <- idwplot %>% change_fill_color(new.scheme = "grey", show.plot = FALSE)
 
 plot0 <- idwplot$plot + 
-  theme(legend.position = "right") + 
+  theme(#legend.position = "right", 
+        legend.text = element_text(size = 8), 
+        legend.background = element_blank(),
+        legend.title = element_text(size = 8), 
+        plot.margin = unit(c(0,0,0,0), "cm")) + 
   geom_shadowtext(data = subset(placenames, type %in% c("bathymetry", "islands")),
     aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 3, group = 99) + 
   geom_shadowtext(data = subset(placenames, type %in% c("convention line", "peninsula")),
-    aes(x = x, y = y, label = lab, angle = 43), bg.color = "white", color = "black", size = 3, group = 99)
+    aes(x = x, y = y, label = lab, angle = 43), bg.color = "white", color = "black", size = 3, group = 99) + 
+      geom_shadowtext(data = subset(placenames, type %in% c("mainland")),
+      aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 8, group = 99)  
 
 if (!(map.area %in% c("nbs", "bs.north"))) {
   plot <- plot + 

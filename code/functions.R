@@ -2,7 +2,7 @@
 #' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
 #' author: 'L. Britt, E. J. Dawson, R. Haehn and E. H. Markowitz'
 #' purpose: Store functions
-#' start date: 2021-03-03
+#' start date: 2021-09-01
 #' date modified: 2021-03-03        # CHANGE
 #' Notes:                             # CHANGE
 #' ---
@@ -14,35 +14,36 @@ PKG <- c(
   # For creating R Markdown Docs
   "knitr", # A general-purpose tool for dynamic report generation in R
   "rmarkdown", # R Markdown Document Conversion
-
+  
   # File Management
-  "here", # For finding the root directory of your scripts and thus, find your files
-  "officer",
-
+  # "here", # For finding the root directory of your scripts and thus, find your files
+  # "officer",
+  
   # Keeping Organized
   "devtools", # Package development tools for R; used here for downloading packages from GitHub
   # "renv", # saves the packages in the R environment
-
-
+  
+  
   # Graphics
   "ggplot2", # Create Elegant Data Visualisations Using the Grammar of Graphics
-  "nmfspalette",  # devtools::install_github("nmfs-general-modeling-tools/nmfspalette"
+  # "nmfspalette",  # devtools::install_github("nmfs-general-modeling-tools/nmfspalette"
   "cowplot",
   "png",
   "extrafont",
-
+  "nmfspalette",  # devtools::install_github("nmfs-general-modeling-tools/nmfspalette")
+  
   # Text
-  "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports") # Package of my favorite grammar and file managment functions for writing reproducible reports
-
+  "NMFSReports", # devtools::install_github("emilyhmarkowitz/NMFSReports") # Package of my favorite grammar and file managment functions for writing reproducible reports
+  
   # Citations
   "knitcitations", # devtools::install_github("cboettig/knitcitations")
-
+  
   # other tidyverse
   "dplyr",
   "googledrive",
   "magrittr",
   "readr",
-
+  
   # Text Management
   "stringr",
   
@@ -68,16 +69,16 @@ PKG <- c(
   "raster", 
   "reshape", 
   "stars",
-
+  
   
   # Time
   # "lubridate",
   
   # Species
-  "taxize", 
+  # "taxize", 
   
   # For outputting JS files
-  "jsonlite", 
+  # "jsonlite", 
   
   # For editing XML files
   "XML", 
@@ -99,17 +100,15 @@ loadfonts(device = "win")
 
 
 #######CITE R PACKAGES###########
-tmp <- tempfile(fileext=".bib")
+knitr::write_bib(x = PKG,
+                 file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
 
-a<-write.bibtex(entry = eval(parse(text=paste0("c(", paste(paste0("citation('",PKG,"')"), collapse = ", "), ")"))),
-                file = tmp)
-
-write.bibtex(entry = a,
-             file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
-write.bibtex(entry = a,
-             file = paste0(dir_cite,"/bibliography_RPack.bib"))
+file.copy(from = paste0(dir_out_rawdata, "bibliography_RPack.bib"),
+          to = paste0(dir_cite,"/bibliography_RPack.bib"),
+          overwrite = TRUE)
 
 ################Functions#############
+
 
 ######### General Stuff ########
 
@@ -170,22 +169,22 @@ findhowmanyspp<-function(spp.tsn.list, ranklvl) {
 }
 
 
-CapStr <- function(y) {
-  c <- strsplit(y, " ")[[1]]
-  paste(toupper(substring(c, 1,1)), substring(c, 2),
-        sep="", collapse=" ")
-}
+# CapStr <- function(y) {
+#   c <- strsplit(y, " ")[[1]]
+#   paste(toupper(substring(c, 1,1)), substring(c, 2),
+#         sep="", collapse=" ")
+# }
 
-yrofsurvey<-(maxyr-2018)+37
-
-
-
-stndth<-ifelse(grepl(pattern = 1, x = substr(x = (maxyr-2018)+37, start = nchar((maxyr-2018)+37), 
-                                             stop = nchar((maxyr-2018)+37) )), 
-               "st", 
-               ifelse(grepl(pattern = 2, x = substr(x = (maxyr-2018)+37, start = nchar((maxyr-2018)+37), 
-                                                    stop = nchar((maxyr-2018)+37))), "nd", "th")
-)
+# yrofsurvey<-(maxyr-2018)+37
+# 
+# 
+# 
+# stndth<-ifelse(grepl(pattern = 1, x = substr(x = (maxyr-2018)+37, start = nchar((maxyr-2018)+37), 
+#                                              stop = nchar((maxyr-2018)+37) )), 
+#                "st", 
+#                ifelse(grepl(pattern = 2, x = substr(x = (maxyr-2018)+37, start = nchar((maxyr-2018)+37), 
+#                                                     stop = nchar((maxyr-2018)+37))), "nd", "th")
+# )
 
 
 #' Find the age of the file, when it was created. 
@@ -248,10 +247,10 @@ area_swept<-function(dist_fish, net_width) {
 ######### Spatial ########
 
 make_idw_map0 <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE = NA, 
-                            CPUE_KGHA = NA, region = "bs.south", extrap.box = NA, 
-                            set.breaks = "jenks", grid.cell = c(0.05, 0.05), in.crs = "+proj=longlat", 
-                            out.crs = "auto", key.title = "auto", log.transform = FALSE, 
-                            idw.nmax = 4, use.survey.bathymetry = TRUE, return.continuous.grid = TRUE) 
+                           CPUE_KGHA = NA, region = "bs.south", extrap.box = NA, 
+                           set.breaks = "jenks", grid.cell = c(0.05, 0.05), in.crs = "+proj=longlat", 
+                           out.crs = "auto", key.title = "auto", log.transform = FALSE, 
+                           idw.nmax = 4, use.survey.bathymetry = TRUE, return.continuous.grid = TRUE) 
 {
   if (is.na(x)) {
     x <- data.frame(COMMON_NAME = COMMON_NAME, 
@@ -622,14 +621,14 @@ species_text <- function(dat_maxyr, dat_maxyr_1, basiccontenttable_print,
   str <- paste0(str, "
 
 During the ", maxyr, 
-                " survey, ", 
-                NMFSReports::tolower2(spp_common), 
-                " were present at ", 
-                formatC(x = (length(unique(dat_maxyr_spp$hauljoin))/length(unique(dat_maxyr$hauljoin)))*100, digits = 1, format = "f") , 
-                "% of stations in the ", SRVY, " (", 
-                length(unique(dat_maxyr_spp$hauljoin)), " of ", 
-                length(unique(dat_maxyr$hauljoin)), 
-                " stations). ")
+" survey, ", 
+NMFSReports::tolower2(spp_common), 
+" were present at ", 
+formatC(x = (length(unique(dat_maxyr_spp$hauljoin))/length(unique(dat_maxyr$hauljoin)))*100, digits = 1, format = "f") , 
+"% of stations in the ", SRVY, " (", 
+length(unique(dat_maxyr_spp$hauljoin)), " of ", 
+length(unique(dat_maxyr$hauljoin)), 
+" stations). ")
   
   # <!-- bottom tempature -->
   str <- paste0(str, "
@@ -655,42 +654,43 @@ as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Surface Temperat
   str <- paste0(str, "
 
 They were found in waters with depths between ", 
-                as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
-                " m and ", as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
+as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
+" m and ", as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
   
   # <!-- Sizes caught  -->
   str <- paste0(str, "
 
 The ", NMFSReports::text_list(length_type$sentancefrag[length_type$code %in% unique(dat_maxyr_spp_length$length_type)]), 
-                " of ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
-                " measured during the survey were between ", min(dat_maxyr_spp_length$length, na.rm = TRUE), 
-                " and ", max(dat_maxyr_spp_length$length, na.rm = TRUE), " ", 
-                unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
-                                        spp_code %in% 68000:69930 ~ 'mm'), 
-                       TRUE ~ 'NO MEASUREMENT'), ". ")
+" of ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+" measured during the survey were between ", min(dat_maxyr_spp_length$length, na.rm = TRUE), 
+" and ", max(dat_maxyr_spp_length$length, na.rm = TRUE), " ", 
+unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
+                        spp_code %in% 68000:69930 ~ 'mm'), 
+       TRUE ~ 'NO MEASUREMENT'), ". ")
   
   # <!-- weight -->
   str <- paste0(str, "
 
 The total number of ", 
-                NMFSReports::tolower2(spp_common), 
-                " estimated to have been caught by the survey is ", 
-                NMFSReports::xunits(value = sum(dat_maxyr_spp$number_fish, na.rm = TRUE)), 
-                " individuals, which equates to ", 
-                NMFSReports::xunits(value = sum(dat_maxyr_spp$weight, na.rm = TRUE)), 
-                " kg of biomass. ")
+NMFSReports::tolower2(spp_common), 
+" estimated to have been caught by the survey is ", 
+NMFSReports::xunits(value = sum(dat_maxyr_spp$number_fish, na.rm = TRUE)), 
+" individuals, which equates to ", 
+NMFSReports::xunits(value = sum(dat_maxyr_spp$weight, na.rm = TRUE)), 
+" kg of biomass. ")
   
   str <- paste0(str, "
 
 Compared with ", maxyr-1, ", 
 abundance experienced ", 
-                NMFSReports::pchange(start = sum(dat_maxyr_1_spp$number_fish, na.rm = TRUE), end = sum(dat_maxyr_spp$number_fish, na.rm = TRUE)) ,
-                " and there was ", 
-                NMFSReports::pchange(start = sum(dat_maxyr_1_spp$weight, na.rm = TRUE), end = sum(dat_maxyr_spp$weight, na.rm = TRUE)) , 
-                " in biomass. ")
+NMFSReports::pchange(start = sum(dat_maxyr_1_spp$number_fish, na.rm = TRUE), end = sum(dat_maxyr_spp$number_fish, na.rm = TRUE)) ,
+" and there was ", 
+NMFSReports::pchange(start = sum(dat_maxyr_1_spp$weight, na.rm = TRUE), end = sum(dat_maxyr_spp$weight, na.rm = TRUE)) , 
+" in biomass. ")
   
   return(str)
   
 }
+
 
 

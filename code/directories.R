@@ -1,28 +1,28 @@
 #'  ---
 #' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-#' author: 'L. Britt, E. J. Dawson, R. Haehn and E. H. Markowitz'
+#' author: 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
 #' purpose: Create directories and short hands for those directories
-#' start date: 2021-03-03
-#' date modified: 2021-03-03        # CHANGE
+#' start date: 2021-09-01
+#' date modified: 2021-09-01        # CHANGE
 #' Notes:                             # CHANGE
 #' ---
 
-#############SAVE FILE LOCATIONS###############
+# SAVE FILE LOCATIONS ----------------------------------------------------------
 # Just in case you change the base name for any reason, it will change for anytime you load the files inside the folder, too! (e.g., if you have something against "scripts" being the name of the folder, just let the script know in one place aka right here).
-library(here)
 
 # Directories to all of your current folders
-dirs<-list.dirs(path = here(), full.names = FALSE)
+dir_in<-paste0(getwd(), "/")
+dirs<-list.dirs(path = getwd(), full.names = FALSE)
 dirs<-dirs[!grepl(pattern = "\\/", x = dirs)]
 dirs<-dirs[!grepl(pattern = "\\..", x = dirs)]
 dirs<-dirs[dirs != ""]
 for (i in 1:length(dirs)) {
   assign(x = paste0("dir_", dirs[i]),
-         value = paste0(here(dirs[i]), "/"))
+         value = paste0(dir_in, (dirs[i]), "/"))
 }
 
 # Where we save everything
-dir.output<-paste0(here::here(), "/output/")
+dir.output<-paste0(dir_in, "/output/")
 dir_out_todaysrun<-paste0(dir.output, "/",Sys.Date(),"/")
 dir.create(dir_out_todaysrun)
 
@@ -41,7 +41,7 @@ TableFigureHeader<-paste0(dir_code, "TableFigureHeader.Rmd")
 
 options("citation_format" = "pandoc")
 
-#######SAVE ALL R FILES USED FOR EACH RUN###########
+# SAVE ALL R FILES USED FOR EACH RUN -------------------------------------------
 listfiles<-list.files(path = dir_code)
 listfiles0<-c(listfiles[grepl(pattern = "\\.r",
                               x = listfiles, ignore.case = T)],
@@ -57,7 +57,7 @@ for (i in 1:length(listfiles0)){
             overwrite = T)
 }
 
-#######SAVE ALL CITE FILES USED FOR EACH RUN###########
+# SAVE ALL CITE FILES USED FOR EACH RUN ----------------------------------------
 listfiles0<-list.files(path = dir_cite)
 listfiles0<-listfiles0[!(grepl(pattern = "~",ignore.case = T, x = listfiles0))]
 
@@ -67,7 +67,5 @@ for (i in 1:length(listfiles0)){
             overwrite = T)
 }
 
-
-
-#######CITATION STYLE###########
+# CITATION STYLE ---------------------------------------------------------------
 options("citation_format" = "pandoc")

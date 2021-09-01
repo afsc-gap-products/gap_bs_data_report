@@ -1,9 +1,9 @@
 #' ---
 #' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-#' author: 'L. Britt, E. J. Dawson, R. Haehn and E. H. Markowitz'
+#' author: 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
 #' purpose: Download data
 #' start date: 2021-03-03
-#' date modified: 2021-03-03        # CHANGE
+#' date modified: 2021-09-01        # CHANGE
 #' Notes:                             # CHANGE
 #' ---
 
