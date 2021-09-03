@@ -10,27 +10,24 @@
 # START ------------------------------------------------------------------------
 
 # *** REPORT KNOWNS ------------------------------------------------------------
-report_title <- 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
-report_yr <- substr(x = Sys.Date(), start = 1, stop = 4)            # SUGGESTION
-
 # maxyr <- 2017 # or the year of the report, for example
 # compareyr <- 2010
+# compareyr_nbs <- 2010
 # SRVY<-"NEBS" 
 
-# maxyr <- 2018 # or the year of the report, for example
+# maxyr <- 2018 
 # compareyr <- 2016
 # SRVY<-"EBS" 
 
-maxyr <- 2019 # or the year of the report, for example
-compareyr <- 2017
+maxyr <- 2019 
+compareyr <- 2018
+compareyr_nbs <- 2017
 SRVY<-"NEBS" 
 
-# maxyr <- 2021 # or the year of the report, for example
+# maxyr <- 2021
 # compareyr <- 2019
+# compareyr_nbs <- 2019
 # SRVY<-"NEBS" 
-
-SRVY0 <- "BS" # in Oracle
 
 # *** OUTPUT TYPE --------------------------------------------------------------
 #Is this for InDesign?
@@ -48,6 +45,12 @@ source('./code/data.R')
 
 # source('./code/surveyspp.R')
 
+
+# *** REPORT TITLE -------------------------------------------------------------
+report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY),
+                       ' continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
+report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
+report_yr <- substr(x = Sys.Date(), start = 1, stop = 4)
 
 # *** RENV: SAVE PACKAGES USED TO CREATE THIS REPORT ---------------------------
 # renv::init()
@@ -75,7 +78,6 @@ list_tables <- list()
 list_figures <- list()
 
 # *** RUN EACH REPORT SECTION --------------------------------------------------
-
 
 # *** *** 00 - Example ------------------------
 # cnt_chapt<-auto_counter(cnt_chapt)

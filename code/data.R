@@ -18,199 +18,227 @@
 
 shps<-c(21:25)
 
-surv_info <- data.frame(survey_definition_id = c(143, 98, 47), 
-                        SRVY = c("NBS", "EBS", "GOA"), 
-                        SRVY_long = c("northern Bering Sea", "eastern Bering Sea", "Gulf of Alaska"), 
-                        SRVY_start = c(2010, 1982, NA))
+# *** Report Species ---------------------------------------------------------------
 
-# *** Bering Sea ---------------------------------------------------------------
 
-if (SRVY %in% c("EBS", "NEBS", "NBS")) {
-  
-    sectname<-"EBS-BTS-Report"
-    
-    # STRAT <- c(10,20,31,32,41,42,43,50,61,62,82,90)
-    # Northern and Southern rock sole (grouped) = c(10262, 10261, 10263)
-    report_species<-list("fish1" = # all plots and tables
-                           list("Walleye pollock" = c(21740, 21741, 21742, 21744),
-                                'Pacific cod' = c(21720, 21721, 21722),
-                                "Yellowfin sole" = c(10210, 10209),
-                                "Northern rock sole" = c(10261, 10263), 
-                                "Flathead sole" = c(10130),
-                                "Bering flounder" = c(10140, 10141),
-                                "Alaska plaice" = c(10285),
-                                "Greenland turbot" = c(10115, 10116), 
-                                "Arrowtooth flounder" = c(10110),
-                                "Kamchatka flounder" = c(10112),
-                                "Pacific halibut" = c(10120, 10121)), 
-                         "fish2" = # get some plots and go in # specimine collected table
-                           list("Bering skate" = c(435), 
-                                "Alaska skate" = c(471), 
-                                "Longhead dab" = c(10211), 
-                                "Starry flounder" = c(10220), 
-                                "Yellow Irish lord" = c(21347), 
-                                "Plain sculpin" = c(21371), 
-                                "Great sculpin" = c(21370), 
-                                "Shorthorn sculpin" = c(21368), 
-                                "Pacific ocean perch" = c(30060)), 
-                         "fish3" = list (
-                                "Rex sole" = c(10200),
-                                "Sahkalin sole" = c(10212), 
-                                "Sturgeon poacher" = c(20040),
-                                "Antlered sculpin" = c(21388),
-                                "Arctic staghorn sculpin" = c(21315),
-                                "Butterfly scuplin" = c(21348),
-                                "Variegated snailfish" = c(22205), 
-                                "Bigmouth sculpin" = c(21420),
-                                "Arctic cod" = c(21725), 
-                                "Saffron cod" = c(21735, 21736, 21737),
-                                "Pacific herring" = c(21110), 
-                                "Capelin" = c(23041), 
-                                "Rainbow smelt" = c(23055), 
-                                "Eulachon" = c(23010), 
-                                "Shortfin eelpout" = c(24191),
-                                "Wattled eelpout" = c(24185), 
-                                "Marbled eelpout" = c(24184)
-                         ), # get some plots
-                         "invert1" = 
-                           list("Red king crab" = c(69322), 
-                                "Blue king crab" = c(69323), 
-                                "Snow crab" = c(68580), # snow crab 
-                                "Tanner crab" = c(68560)), 
-                         "invert3" = list(
-                           "Purple-orange sea star" = c(81742), 
-                           "Northern neptune snail" = c(71884), 
-                           "Jellyfishes" = c(40500, 40501, 40502, 40503, 
-                                             40504, 40505, 40506, 40507, 
-                                             40508, 40509, 40510, 40511, 
-                                             40512, 40513, 40515, 40519, 
-                                             40520, 40560, 40561)) # group...
-                           )
-    
-# *** *** EBS ---------------------------------------------------------------
-    
-    if (SRVY %in% "EBS") {
-    
-    SURVEY<-"eastern Bering Sea"
-    map.area<-"bs.south"
-    SRVY1<-"EBS"
-    SRVY00 <- c(143) # EBS
+# STRAT <- c(10,20,31,32,41,42,43,50,61,62,82,90)
+# Northern and Southern rock sole (grouped) = c(10262, 10261, 10263)
+report_species_NEBS<-list("fish1" = # all plots and tables
+                            list("Walleye pollock" = c(21740, 21741, 21742, 21744),
+                                 'Pacific cod' = c(21720, 21721, 21722),
+                                 "Yellowfin sole" = c(10210, 10209),
+                                 "Northern rock sole" = c(10261, 10263), 
+                                 "Flathead sole" = c(10130),
+                                 "Bering flounder" = c(10140, 10141),
+                                 "Alaska plaice" = c(10285),
+                                 "Greenland turbot" = c(10115, 10116), 
+                                 "Arrowtooth flounder" = c(10110),
+                                 "Kamchatka flounder" = c(10112),
+                                 "Pacific halibut" = c(10120, 10121)), 
+                          "fish2" = # get some plots and go in # specimine collected table
+                            list("Bering skate" = c(435), 
+                                 "Alaska skate" = c(471), 
+                                 "Longhead dab" = c(10211), 
+                                 "Starry flounder" = c(10220), 
+                                 "Yellow Irish lord" = c(21347), 
+                                 "Plain sculpin" = c(21371), 
+                                 "Great sculpin" = c(21370), 
+                                 "Shorthorn sculpin" = c(21368), 
+                                 "Pacific ocean perch" = c(30060)), 
+                          "fish3" = list (
+                            "Rex sole" = c(10200),
+                            "Sahkalin sole" = c(10212), 
+                            "Sturgeon poacher" = c(20040),
+                            "Antlered sculpin" = c(21388),
+                            "Arctic staghorn sculpin" = c(21315),
+                            "Butterfly scuplin" = c(21348),
+                            "Variegated snailfish" = c(22205), 
+                            "Bigmouth sculpin" = c(21420),
+                            "Arctic cod" = c(21725), 
+                            "Saffron cod" = c(21735, 21736, 21737),
+                            "Pacific herring" = c(21110), 
+                            "Capelin" = c(23041), 
+                            "Rainbow smelt" = c(23055), 
+                            "Eulachon" = c(23010), 
+                            "Shortfin eelpout" = c(24191),
+                            "Wattled eelpout" = c(24185), 
+                            "Marbled eelpout" = c(24184)
+                          ), # get some plots
+                          "invert1" = 
+                            list("Red king crab" = c(69322), 
+                                 "Blue king crab" = c(69323), 
+                                 "Snow crab" = c(68580), # snow crab 
+                                 "Tanner crab" = c(68560)), 
+                          "invert3" = list(
+                            "Purple-orange sea star" = c(81742), 
+                            "Northern neptune snail" = c(71884), 
+                            "Jellyfishes" = c(40500, 40501, 40502, 40503, 
+                                              40504, 40505, 40506, 40507, 
+                                              40508, 40509, 40510, 40511, 
+                                              40512, 40513, 40515, 40519, 
+                                              40520, 40560, 40561)) # group...
+)
 
-    reg_dat <- get_base_layers(select.region = map.area, set.crs = "auto")
-    
-    extrap.box = c(xmn = -179.5, xmx = -157, 
-                   ymn = 54, ymx = 63)
-    
-    STRAT <- c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)
+# *** *** report types ---------------------------------------------------
 
-    # *** *** NEBS ---------------------------------------------------------------
-    
-    } else if (SRVY %in% "NEBS") {
-    
-    SURVEY<-"northern and eastern Bering Sea"
-    map.area<-"bs.all"
-    SRVY1 <- c("EBS", "NBS")
-    SRVY00 <- c(98, #NBS
-                143) # EBS
-    
-    reg_dat <- get_base_layers(select.region = map.area, set.crs = "auto")
-    
-    extrap.box = c(xmn = -179.5, xmx = -157, 
-                   ymn = 54, ymx = 68)
-    
-    STRAT <- c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10, #EBS
-              81, 70, 71) # NBS
-    
-    
-    # *** *** NBS ---------------------------------------------------------------
-    
-    } else if (SRVY %in% "NBS") {
-    
-    SURVEY<-"northern Bering Sea"
-    map.area <- "bs.north" # "bs.north"
-    SRVY1 <- "NBS"
-    SRVY00 <- c(98) #NBS
+# When you select a region using get_base_layers(), the grid will be clipped to only include stations in the survey region.  I haven't added NBS functionality to get_base_layers() since we do both surveys in the same year, but there is an easy workaround (third block of code below).
 
-    reg_dat_s <- akgfmaps::get_base_layers(select.region = "bs.south", set.crs = "auto")
-    reg_dat_a <- akgfmaps::get_base_layers(select.region = "bs.all", set.crs = "auto")
-    
-    library(raster)
-    reg_dat <- reg_dat_a
-    reg_dat$survey.area <- intersect(reg_dat_s$survey.area, 
-                                       reg_dat_a$survey.area)$geometry[2]
-    reg_dat$place.labels$region <- "bs.north"
-    reg_dat$plot.boundary[2,] <- reg_dat_s$plot.boundary[2,]
-    reg_dat$lat.breaks <- c(56, 58, 60, 62, 64, 66)
-    
-    extrap.box <- c(xmn = -179.5, xmx = -157, 
-                    ymn = 63, ymx = 68)
-    
-    STRAT <- c(81, 70, 71) # NBS
-    
-  }
+# library(akgfmaps)
+# full_ebs_layers <- akgfmaps::get_base_layers(select.region = "ebs", set.crs = "auto", return.survey.grid = TRUE)
+# ggplot() +
+#   geom_sf(data = full_ebs_layers$survey.grid)
+# 
+# sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs", set.crs = "auto", return.survey.grid = TRUE)
+# ggplot() +
+#   geom_sf(data = sebs_layers$survey.grid)
+# image.png
+# 
+# nbs_grid <- full_ebs_layers$survey.grid %>% filter(STATIONID %in% akgfmaps::get_survey_stations(select.region = "nbs"))
+# ggplot() +
+#   geom_sf(data = nbs_grid)
 
-    
-    # First read in the shapefile, using the path to the shapefile and the shapefile name minus the
-    # extension as arguments
-    surveygrid_shp00 <- readOGR(dsn = here::here("shapefiles","STRATA", "EBS_NBS_2019.shp"))
-    
-    proj4string(surveygrid_shp00) <- crs(reg_dat$akland)
-    
-    surveygrid_shp0 <- sp::spTransform(x = surveygrid_shp00, 
-                                       CRSobj = crs(reg_dat$akland) )
-    
-    surveygrid_shp <- fortify(surveygrid_shp00) # Next the shapefile has to be converted to a dataframe for use in ggplot2    
-    
-    
-    placenames <- read.csv(file = system.file("data", 
-                                              file = "placenames.csv", package = "akgfmaps", 
-                                              mustWork = TRUE), stringsAsFactors = FALSE) %>% 
-      transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata)) 
-    
-    placenames_n <- placenames %>% 
-      dplyr::filter(region == "bs.all") %>% 
-      dplyr::mutate(region = "bs.north") 
+report_types <- list(
+  "EBS" = list(
+    sectname = "EBS-BTS-Report", 
+    SURVEY = "eastern Bering Sea", 
+    map.area = "bs.south", 
+    SRVY1 = "EBS", 
+    SRVY0 = "BS", # in Oracle
+    SRVY00 = 143, # EBS
+    station_id = akgfmaps::get_survey_stations(
+      select.region = "ebs"),
+    reg_dat = akgfmaps::get_base_layers(
+      select.region = "ebs", 
+      set.crs = "auto", 
+      return.survey.grid = TRUE),
+    # extrap.box = c(xmn = -179.5, 
+    #                xmx = -157, 
+    #                ymn = 54, 
+    #                ymx = 63), 
+    STRAT = c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10), 
+    report_species = report_species_NEBS), 
+  "NEBS" = list(
+    sectname = "NEBS-BTS-Report", 
+    SURVEY = "northern and eastern Bering Sea",
+    map.area = "bs.all", 
+    SRVY1 = c("EBS", "NBS"), 
+    SRVY0 = "BS", # in Oracle
+    SRVY00 = c(98, #NBS
+                143), # EBS
+    station_id = akgfmaps::get_survey_stations(
+      select.region = "sebs"),
+    reg_dat = akgfmaps::get_base_layers(
+      select.region = "sebs", 
+      set.crs = "auto", 
+      return.survey.grid = TRUE),
+    # extrap.box = c(xmn = -179.5, 
+    #                xmx = -157, 
+    #                ymn = 54, 
+    #                ymx = 68), 
+    STRAT = c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10, #EBS
+              81, 70, 71),   # NBS
+    report_species = report_species_NEBS)
+)
+#   "NBS" = list(
+#     SURVEY = "northern Bering Sea",
+#     map.area = "bs.north", # "bs.north"
+#     SRVY1 = "NBS",
+#     SRVY00 <- 98, #NBS
+#     station_id = akgfmaps::get_survey_stations(select.region = "nbs"),
+#     reg_dat = akgfmaps::get_base_layers(
+#       select.region = "sebs", 
+#       set.crs = "auto", 
+#       return.survey.grid = TRUE) %>% 
+#       dplyr::filter(STATIONID %in% akgfmaps::get_survey_stations(select.region = "nbs")), 
+#     # extrap.box <- c(xmn = -179.5, 
+#     #                 xmx = -157, 
+#     #                 ymn = 63, 
+#     #                 ymx = 68),
+#     STRAT <- c(81, 70, 71)) # NBS
+# )
 
-    # placenames_n[placenames_n$lab %in% "Alaska", c("x", "y")] <- 
-        
-    placenames <- rbind.data.frame(placenames, placenames_n)
+# reg_dat_s <- akgfmaps::get_base_layers(select.region = "bs.south", set.crs = "auto")
+# reg_dat_a <- akgfmaps::get_base_layers(select.region = "bs.all", set.crs = "auto")
+# 
+# library(raster)
+# reg_dat <- reg_dat_a
+# reg_dat$survey.area <- intersect(reg_dat_s$survey.area, 
+#                                    reg_dat_a$survey.area)$geometry[2]
+# reg_dat$place.labels$region <- "bs.north"
+# reg_dat$plot.boundary[2,] <- reg_dat_s$plot.boundary[2,]
+# reg_dat$lat.breaks <- c(56, 58, 60, 62, 64, 66)
     
-    placenames <- placenames %>%
-      dplyr::filter(region == map.area)
-    
-    # placenames <- placenames[!(placenames$lab %in% c("Pribilof Isl.", "St. Matthew")), ]
-}
+#     # First read in the shapefile, using the path to the shapefile and the shapefile name minus the
+#     # extension as arguments
+#     surveygrid_shp00 <- readOGR(dsn = here::here("shapefiles","STRATA", "EBS_NBS_2019.shp"))
+#     
+#     proj4string(surveygrid_shp00) <- crs(reg_dat$akland)
+#     
+#     surveygrid_shp0 <- sp::spTransform(x = surveygrid_shp00, 
+#                                        CRSobj = crs(reg_dat$akland) )
+#     
+#     surveygrid_shp <- fortify(surveygrid_shp00) # Next the shapefile has to be converted to a dataframe for use in ggplot2    
+#     
+#     
+#     placenames <- read.csv(file = system.file("data", 
+#                                               file = "placenames.csv", package = "akgfmaps", 
+#                                               mustWork = TRUE), stringsAsFactors = FALSE) %>% 
+#       transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata)) 
+#     
+#     placenames_n <- placenames %>% 
+#       dplyr::filter(region == "bs.all") %>% 
+#       dplyr::mutate(region = "bs.north") 
+# 
+#     # placenames_n[placenames_n$lab %in% "Alaska", c("x", "y")] <- 
+#         
+#     placenames <- rbind.data.frame(placenames, placenames_n)
+#     
+#     placenames <- placenames %>%
+#       dplyr::filter(region == map.area)
+#     
+#     # placenames <- placenames[!(placenames$lab %in% c("Pribilof Isl.", "St. Matthew")), ]
+# }
 
-placenames <- read.csv(file = system.file("data", 
-                                          file = "placenames.csv", package = "akgfmaps", 
-                                          mustWork = TRUE), stringsAsFactors = FALSE) %>% 
-  transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
+# placenames <- read.csv(file = system.file("data", 
+#                                           file = "placenames.csv", package = "akgfmaps", 
+#                                           mustWork = TRUE), stringsAsFactors = FALSE) %>% 
+#   transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
+
+a <- report_types[names(report_types) == SRVY][[1]]
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+
+
 
 # *** Load Design Based Estimates ----------------------------------------------
 
-df.ls<-list()
+# df.ls<-list()
+# 
+# for (ii in 1:length(SRVY1)) {
+#   
+#   a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
+#   if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
+#     a <- a[grep(pattern = "_plusnw", x = a)]
+#   }
+#   
+#   for (i in 1:length(a)){
+#     b <- read_csv(file = a[i])
+#     b <- janitor::clean_names(b)
+#     if (names(b)[1] %in% "x1"){
+#       b$x1<-NULL
+#     }
+#     b$file <- a[i]
+#     b$survey <- SRVY1[ii]
+#     df.ls[[i]]<-b
+#     names(df.ls)[i]<-a[i]
+#   }
+# }
+# 
+# dat_cpue<-SameColNames(df.ls)
+# 
+# dat_cpue_maxyr<-dat_cpue
+# dat_cpue_maxyr_1<-dat_cpue
 
-for (ii in 1:length(SRVY1)) {
-  
-  a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
-  if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
-    a <- a[grep(pattern = "_plusnw", x = a)]
-  }
-  
-  for (i in 1:length(a)){
-    b <- read_csv(file = a[i])
-    b <- janitor::clean_names(b)
-    if (names(b)[1] %in% "x1"){
-      b$x1<-NULL
-    }
-    b$file <- a[i]
-    b$survey <- SRVY1[ii]
-    df.ls[[i]]<-b
-    names(df.ls)[i]<-a[i]
-  }
-}
 
-dat_cpue<-SameColNames(df.ls)
 
 # *** Load Oracle Data -------------------------------------------------------------
 
@@ -223,17 +251,6 @@ for (i in 1:length(a)){
   }
   assign(x = gsub(pattern = "\\.csv", replacement = "", x = a[i]), value = b)
 }
-
-# *** *** domain (survey area IDs)-------------------------------------------------
-
-# domain<-data.frame(stratum = unique(stratum$stratum))
-# domain$region <- NA
-# domain$region[domain$stratum %in% c(81, 70, 71)]<-"NBS"
-# domain$region[domain$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)]<-"EBS"
-# domain$domain <- NA
-# domain$domain[domain$stratum %in% c(10, 20)]<-"EBS Inner Shelf"
-# domain$domain[domain$stratum %in% c(31, 32, 41, 42, 43, 82)]<-"EBS Middle Shelf"
-# domain$domain[domain$stratum %in% c(50, 61, 62, 90)]<-"EBS Outer Shelf"
 
 # *** *** stratum_area (survey area) -----------------------------------------------
 
@@ -268,30 +285,13 @@ cruises <- cruises %>%
   dplyr::mutate(start_month = format(x = as.POSIXlt(x = start_date), format="%m")) %>% 
   dplyr::mutate(end_month = format(x = as.POSIXlt(x = end_date), format="%m")) %>% 
   dplyr::left_join(x = ., 
-                   y = surv_info, 
+                   y = data.frame(survey_definition_id = c(143, 98, 47), 
+                                  SRVY = c("NBS", "EBS", "GOA"), 
+                                  SRVY_long = c("northern Bering Sea", 
+                                                "eastern Bering Sea", 
+                                                "Gulf of Alaska"), 
+                                  SRVY_start = c(2010, 1982, NA)), 
                    by  = "survey_definition_id")
-  # dplyr::mutate(SRVY = dplyr::case_when(
-  #   survey_definition_id == 98 ~ "NBS", 
-  #   survey_definition_id == 143 ~ "EBS", 
-  #   survey_definition_id == 47 ~ "GOA",
-  #   TRUE ~ "Other")) %>% 
-  # dplyr::mutate(SRVY_long = dplyr::case_when(
-  #   survey_definition_id == 98 ~ "northern Bering Sea", 
-  #   survey_definition_id == 143 ~ "eastern Bering Sea", 
-  #   survey_definition_id == 47 ~ "Gulf of Alaska",
-  #   TRUE ~ "Other")) %>% 
-  # dplyr::mutate(SRVY_start = dplyr::case_when(
-  #   survey_definition_id == 98 ~ 2010, 
-  #   survey_definition_id == 143 ~ 1982, 
-  #   survey_definition_id == 47 ~ NA,
-  #   TRUE ~ "Other"))
-
-
-
-# haul_cruises$SRVY <- NA# haul_cruises$SRVY[haul_cruises$stratum %in% c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10)] <- "EBS" 
-# haul_cruises$SRVY[haul_cruises$survey_definition_id == 112] <- "EBS" 
-# # haul_cruises$SRVY[haul_cruises$stratum %in% c(81, 70, 71)] <- "NBS"
-# haul_cruises$SRVY[haul_cruises$survey_definition_id == 146] <- "NBS" 
 
 cruises_maxyr <- cruises %>%
   dplyr::filter(
@@ -300,7 +300,7 @@ cruises_maxyr <- cruises %>%
 
 # format(x = as.POSIXlt(x =cruises_maxyr$start_date), format="%B %d %Y")
 cruises_maxyr$start_month_long <- format(x = as.POSIXlt(x =cruises_maxyr$start_date), format="%B")
-cruises_maxyr$end_month_long <- format(x = as.POSIXlt(x =cruises_maxyr$start_date), format="%B")
+cruises_maxyr$end_month_long <- format(x = as.POSIXlt(x =cruises_maxyr$end_date), format="%B")
 
 # *** *** haul_cruises -------------------------------------------------------------
 # haul_cruises<-left_join(
@@ -416,25 +416,32 @@ surv_info<- cruises_maxyr %>%
 # *** *** catch_haul_cruises, dat, catch_haul_cruises_maxyr, dat_maxyr ---------
 catch_haul_cruises<-dplyr::left_join(x = haul_cruises, 
                                      y = catch %>% 
-                                       dplyr::select(cruisejoin, hauljoin, species_code, weight, number_fish, subsample_code), 
+                                       dplyr::select(cruisejoin, hauljoin,
+                                                     species_code, weight,
+                                                     number_fish, subsample_code), 
                                      by = c("hauljoin", "cruisejoin")) 
 
 dat <- catch_haul_cruises
 
+# This year's data
 dat_maxyr <-
   catch_haul_cruises_maxyr <-
   catch_haul_cruises %>%
   dplyr::filter(
-    year %in% maxyr  &
+    year %in% maxyr &
       survey_definition_id %in% SRVY00)
 
+# Previous year's data
 dat_maxyr_1 <- 
   catch_haul_cruises_maxyr_1 <- 
   catch_haul_cruises %>%
   dplyr::filter(
-    year %in% maxyr  &
+    year %in% compareyr &
       survey_definition_id %in% SRVY00)
 
+# Year of survey
+yrofsurvey <- length(unique(catch_haul_cruises$year))
+stndth0 <- stndth(yrofsurvey)
 
 # *** *** haul_info ------------------------------------------------------------
 
@@ -474,12 +481,19 @@ vessel_info$name_ital <- paste0("F/V **",
 spp_info <- dplyr::left_join(
   x = unique(catch_haul_cruises[, "species_code"]), 
   y = species_classification, 
-  by = "species_code")
+  by = "species_code") %>%
+  dplyr::mutate(fish = class_taxon %in% c("Actinopterygii", "Chondrichthyes")) %>%#& #spp_info_maxyr$superclass_taxon %in% "Osteichythyes"
+  dplyr::mutate(invert = (phylum_taxon != "Chordata"))
 
+
+# species specifically caught in the survey year
 spp_info_maxyr <- dplyr::left_join(
   x = unique(catch_haul_cruises_maxyr[, "species_code"]), 
   y = species_classification, 
-  by = "species_code")
+  by = "species_code") %>%
+  dplyr::mutate(fish = class_taxon %in% c("Actinopterygii", "Chondrichthyes")) %>%#& #spp_info_maxyr$superclass_taxon %in% "Osteichythyes"
+  dplyr::mutate(invert = (phylum_taxon != "Chordata"))
+  
 
 # *** *** length ---------------------------------------------------------------
 
@@ -496,23 +510,23 @@ dat_length_maxyr <- dat_length %>%
 
 # *** *** length_type ----------------------------------------------------------
 
-length_type <- data.frame(matrix(data = c("1", "Fork length measurement,from tip of snout to fork of tail.",
-                                          "2", "Mideye to fork of tail.",
-                                          "3", "Tip of snout to hypural plate (standard).",
-                                          "4", "Mideye to hypural plate.",
-                                          "5", "Total length (extremity to extremity).",
-                                          "6", "Snout to second dorsal (e.g., Ratfish).",
-                                          "7", "Length of carapace from back of right eye socket to end of carapace.",
-                                          "8", "Width of carapace.",
-                                          "9", "Head length (snout tip to posterior opercular margin).",
-                                          "11", "Snout to anal fin origin (e.g., Rattails).",
-                                          "12", "Mantle length (e.g., Squid).",
-                                          "13", "Posterior of orbital to end of telson (e.g., Shrimp).",
-                                          "14", "Wingtip to wingtip (e.g., skates and rays)",
-                                          "15", "Outer tip of rostrum to end of telson (e.g., shrimp)",
-                                          "16", "Modal, created in merge juveniles script",
-                                          "17", "Length frequency estimated using size composition proportions from adjacent hauls with similar catch composition"), 
-                                 ncol = 2, byrow = TRUE))
+# length_type <- data.frame(matrix(data = c("1", "Fork length measurement,from tip of snout to fork of tail.",
+#                                           "2", "Mideye to fork of tail.",
+#                                           "3", "Tip of snout to hypural plate (standard).",
+#                                           "4", "Mideye to hypural plate.",
+#                                           "5", "Total length (extremity to extremity).",
+#                                           "6", "Snout to second dorsal (e.g., Ratfish).",
+#                                           "7", "Length of carapace from back of right eye socket to end of carapace.",
+#                                           "8", "Width of carapace.",
+#                                           "9", "Head length (snout tip to posterior opercular margin).",
+#                                           "11", "Snout to anal fin origin (e.g., Rattails).",
+#                                           "12", "Mantle length (e.g., Squid).",
+#                                           "13", "Posterior of orbital to end of telson (e.g., Shrimp).",
+#                                           "14", "Wingtip to wingtip (e.g., skates and rays)",
+#                                           "15", "Outer tip of rostrum to end of telson (e.g., shrimp)",
+#                                           "16", "Modal, created in merge juveniles script",
+#                                           "17", "Length frequency estimated using size composition proportions from adjacent hauls with similar catch composition"), 
+#                                  ncol = 2, byrow = TRUE))
 
 names(length_type) <- c("code", "description")
 length_type$sentancefrag <- c("fork lengths",
