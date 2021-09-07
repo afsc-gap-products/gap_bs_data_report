@@ -16,13 +16,315 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 > edit notes: 
 > need to update [@RN956]
+> in 2018, can't calculate 49 stations: length(unique(haul_cruises_maxyr$stationid[haul_cruises_maxyr$SRVY %in% "NBS"]))
+
+```{r sample_grid}
+header <- paste0("Sampling grid and station identifiers for the ", maxyr, " eastern and northern Bering Sea continental shelf bottom trawl surveys.")
+footnote<- NA
+nickname <- "sample_grid"
+alttext <- paste0(header)
+width = 6
+height = 6
+usePNGPDF = "png"
+
+# Select data and make plot
+
+placenames <- placenames0 %>% 
+  dplyr::filter(!(lab %in% c("Pribilof Isl.", "St. Matthew")))
+
+survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
+survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+
+figure <- ggplot() +
+  # geom_sf(data = reg_dat$bathymetry, color = "grey50") +
+  geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50") +
+  geom_sf(data = reg_dat$graticule,
+          color = "grey90",
+          alpha = 0.5) +
+  geom_sf(data = reg_dat$survey.area, 
+          aes(color = reg_dat$survey.area$SURVEY), 
+          fill = NA, 
+          size = 2,
+          show.legend = TRUE) +
+  scale_color_manual(
+    name = "", #"Survey Region",
+    values = c(alpha(survey_reg_col, 0.7)),
+    breaks = rev(unique(dat_survreg$reg_shapefile)), #TOLEDO rev
+    labels = rev(unique(dat_survreg$region_long)))  +
+  ggplot2::guides(
+    shape = guide_legend(
+      order = 1, # vessels
+      override.aes = list(#fill = "white", 
+        linetype = c("blank"))), 
+    colour = guide_legend( 
+      order = 2,# survey regions
+      override.aes = list(fill = "white",
+                          color = survey_reg_col,
+                          size = 2)), 
+    fill = guide_legend( 
+      order = 3,# survey regions
+      override.aes = list(
+                          color = NA,
+                          size = 2))
+      ) +
+  geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+  geom_sf(data = reg_dat$survey.grid, color = "grey20", fill = NA) +
+  geom_sf_text(data = reg_dat$survey.grid, 
+               lineheight = 0.7,
+               mapping = aes(label = gsub(x = STATIONID, 
+                                          replacement = "\n", 
+                                          pattern = "-")),
+               color = "black",
+               size = 1.3,
+               show.legend = FALSE) +
+  coord_sf(xlim = reg_dat$plot.boundary$x, 
+           ylim = reg_dat$plot.boundary$y) +
+  scale_x_continuous(name = "Longitude", 
+                     breaks = reg_dat$lon.breaks) + 
+  scale_y_continuous(name = "Latitude", 
+                     breaks = reg_dat$lat.breaks) +
+  geom_text(data = subset(placenames, type == "mainland"), 
+            aes(x = x, y = y, label = lab), 
+            size = 14, group = 99) + 
+  geom_shadowtext(data = subset(placenames, type == "peninsula"), 
+                  aes(x = x, y = y, label = lab), size = 5, angle = 40, 
+                  bg.color = "white", color = "black", group = 99) + 
+  geom_shadowtext(
+    data = subset(placenames, type %in% c("bathymetry", "islands")),
+    aes(x = x, y = y, label = lab), 
+    bg.color = "white", color = "black", 
+    size = 2, group = 99) +
+  ggsn::scalebar(data = reg_dat$survey.grid, 
+                 location = "bottomright",
+                 dist = 100, 
+                 dist_unit = "km", 
+                 transform = FALSE, 
+                 st.dist = .02, 
+                 height = 0.02, 
+                 st.bottom = TRUE, 
+                 st.size = 3, 
+                 # transform = TRUE, 
+                 model = reg_dat$crs) +
+  #set legend position and vertical arrangement
+  # theme_bw()  +
+  theme(#plot.background = element_rect(fill = "white"), 
+    panel.background = element_rect(fill = "white", 
+                                    colour = NA), 
+    panel.border = element_rect(fill = NA, 
+                                colour = "grey20"), 
+    strip.background = element_rect(fill = "grey85", 
+                                    colour = "grey20"),
+    legend.spacing.y = unit(-0.35, "cm"),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 7),
+    # strip.background = element_rect(color = NA, fill = NA, size = 0),
+    legend.background = element_rect(colour = "transparent", fill = "transparent"),
+    legend.key = element_rect(colour = "transparent", 
+                              fill = "transparent"),
+    legend.position = c(.15, .22),
+    # legend.justification = c("right"),
+    legend.box.just = "left",
+    # legend.margin = margin(6, 6, 6, 6), 
+    legend.box = "vertical"
+  )
+
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+assign(value = res, x = nickname)
+
+```
+
+
+> this plot seems more relevant to the intro or results, not history or methods
+
+> How do I know what stations were retowed?
+
+```{r sampled_survey_stations}
+header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(surv_info$SRVY_long)," continental shelf bottom trawl surveys.")
+footnote<- NA
+nickname <- "sampled_survey_stations"
+alttext <- paste0(header, "The map also depicts the stations sampled by each survey vessel and where, if any, Norton Sound crab resampling was done.")
+width = 6
+height = 6
+usePNGPDF = "png"
+
+# Select data and make plot
+
+placenames <- placenames0 #%>% 
+# dplyr::filter(!(lab %in% c("Pribilof Isl.", "St. Matthew")))
+
+survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
+survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+
+vess_stat <- haul_cruises_maxyr %>% 
+  st_as_sf(., coords = c("start_longitude","start_latitude"), crs = 4326) %>% 
+  st_transform(., reg_dat$crs)
+
+crab_resample <- TRUE
+study1530 <- TRUE
+
+# TOLEDO - made these up!
+reg_dat$survey.grid$study <- sample(x = c("crab_resample", "study1530", ""), 
+                                    size = length(reg_dat$survey.grid$STATIONID),
+                                    replace = TRUE)
+
+figure <- ggplot() 
+  
+if (crab_resample == TRUE | study1530 == TRUE) {
+  
+  survey.grid0 <- 
+    dplyr::left_join(x = reg_dat$survey.grid, 
+                     y = data.frame(
+                       survey_study_col = c("white", "green", "blue"), 
+                       study = c("", "crab_resample", "study1530"), 
+                       study_long = c("No additional Study", "Red King Crab Resample", 
+                                      "15/30 minute Tow Study")), 
+                     by = "study")
+  figure <- figure +
+    geom_sf(data = survey.grid0, 
+            mapping  = aes(fill = study), alpha = .2,
+            color = NA,
+            size = .2) +
+    scale_fill_manual(
+      name = "", #"Additional Study",
+      values = alpha(unique(survey.grid0$survey_study_col), 0.7),
+      breaks = (unique(survey.grid0$study)), #TOLEDO rev
+      labels = (unique(survey.grid0$study_long)))  
+
+# } else {
+  
+}  
+  
+figure <- figure + 
+  geom_sf(data = reg_dat$bathymetry, color = "grey50") +
+  geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50") +
+  geom_sf(data = reg_dat$graticule,
+          color = "grey90",
+          alpha = 0.5) +
+  geom_sf(data = vess_stat, 
+          mapping = aes(shape = factor(vess_shape)), 
+          size = 1.5, 
+          show.legend = TRUE) + 
+  scale_shape_manual(
+    name = "", #"Survey Vessels",
+    values = sort(unique(vess_stat$vess_shape)),
+    breaks = sort(unique(vess_stat$vess_shape)), 
+    labels = gsub(x = sort(unique(vess_stat$vessel_name)), 
+                  pattern = "\\*\\*", replacement = "")) +
+  geom_sf(data = reg_dat$survey.area, 
+          aes(color = reg_dat$survey.area$SURVEY), 
+          fill = NA, 
+          size = 2,
+          show.legend = TRUE) +
+  scale_color_manual(
+    name = "", #"Survey Region",
+    values = c(alpha(survey_reg_col, 0.7)),
+    breaks = rev(unique(dat_survreg$reg_shapefile)), #TOLEDO rev
+    labels = rev(unique(dat_survreg$region_long)))  +
+  geom_sf_text(data = reg_dat$survey.strata, 
+               lineheight = 0.7,
+               mapping = aes(label = reg_dat$survey.strata$Stratum),
+               color = "black",
+               size = 5,
+               show.legend = FALSE) +
+  ggplot2::guides(
+    shape = guide_legend(
+      order = 1, # vessels
+      override.aes = list(#fill = "white", 
+        linetype = c("blank"))), 
+    colour = guide_legend( 
+      order = 2,# survey regions
+      override.aes = list(fill = "white",
+                          color = survey_reg_col,
+                          size = 2)), 
+    fill = guide_legend( 
+      order = 3,# survey regions
+      override.aes = list(
+                          color = NA,
+                          size = 2))
+      ) +
+  geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+  coord_sf(xlim = reg_dat$plot.boundary$x, 
+           ylim = reg_dat$plot.boundary$y) +
+  scale_x_continuous(name = "Longitude", 
+                     breaks = reg_dat$lon.breaks) + 
+  scale_y_continuous(name = "Latitude", 
+                     breaks = reg_dat$lat.breaks) +
+  geom_text(data = subset(placenames, type == "mainland"), 
+            aes(x = x, y = y, label = lab), 
+            size = 14, group = 99) + 
+  geom_shadowtext(data = subset(placenames, type == "peninsula"), 
+                  aes(x = x, y = y, label = lab), size = 5, angle = 40, 
+                  bg.color = "white", color = "black", group = 99) + 
+  geom_shadowtext(
+    data = subset(placenames, type %in% c("bathymetry", "islands")),
+    aes(x = x, y = y, label = lab), 
+    bg.color = "white", color = "black", 
+    size = 2, group = 99) +
+  # ggsn::north(data = reg_dat$survey.grid, 
+  #             symbol = 10, 
+  #             location = "topright") +
+  ggsn::scalebar(data = reg_dat$survey.grid, 
+                 location = "bottomright",
+                 dist = 100, 
+                 dist_unit = "km", 
+                 transform = FALSE, 
+                 st.dist = .02, 
+                 height = 0.02, 
+                 st.bottom = TRUE, 
+                 st.size = 3, 
+                 # transform = TRUE, 
+                 model = reg_dat$crs) +
+  #set legend position and vertical arrangement
+  # theme_bw()  +
+  theme(#plot.background = element_rect(fill = "white"), 
+    panel.background = element_rect(fill = "white", 
+                                    colour = NA), 
+    panel.border = element_rect(fill = NA, 
+                                colour = "grey20"), 
+    strip.background = element_rect(fill = "grey85", 
+                                    colour = "grey20"),
+    legend.spacing.y = unit(-0.35, "cm"),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 7),
+    # strip.background = element_rect(color = NA, fill = NA, size = 0),
+    legend.background = element_rect(colour = "transparent", fill = "transparent"),
+    legend.key = element_rect(colour = "transparent", 
+                              fill = "transparent"),
+    legend.position = c(.15, .22),
+    # legend.justification = c("right"),
+    legend.box.just = "left",
+    # legend.margin = margin(6, 6, 6, 6), 
+    legend.box = "vertical"
+  )
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+assign(value = res, x = nickname)
+
+```
 
 ```{r}
 surv_insert1 <- paste0(ifelse(length(surv_info$SRVY_long)>1, xunits(length(surv_info$SRVY_long)), "a"), 
        ' contiguous bottom trawl ', 
        ifelse(length(surv_info$SRVY_long)>1, 'surveys', 'survey'),
        ' on the Bering Sea continental shelf: ', 
-              text_list(paste0('the ',surv_info$yrofsurvey ,surv_info$stndth, ' "',surv_info$SRVY_long,'" (',surv_info$SRVY,') survey')), '.')
+              text_list(paste0('the ',surv_info$yrofsurvey ,surv_info$stndth, ' "',surv_info$SRVY_long,'" (',surv_info$SRVY,') survey')), '. ')
 
 surv_insert2 <- ""
 if (sum(surv_info$SRVY %in% "EBS")>0) {
@@ -32,193 +334,42 @@ if (sum(surv_info$SRVY %in% "EBS")>0) {
 
 if (sum(surv_info$SRVY %in% "NBS")>0) {
   surv_insert2 <- paste0(surv_insert2,
-                         'NBS has only been conducted since 2010 (Lauth 2011). ')
-  if (maxyr >= 2018) {
+                         'NBS has only been conducted since 2010 [@RN909]. ')
+  if (maxyr >= 2018 & maxyr > 2021) {
       surv_insert2 <- paste0(surv_insert2,
-  'In 2018, the "Northern Bering Sea Rapid Response" (NBS) survey was conducted for the first time in response to warmer than average seafloor water temperatures and changes in historical fish and invertebrate distribution patterns observed during the NBS survey [@RN909]. The NBS standardized 20 x 20 nautical mile (nmi) sampling grid and survey station plan implemented in 2010 and 2017 was reduced in scope and resolution for 2018 to a 30 x 30 nmi grid and the survey extent was reduced by eliminating sampling in Norton Sound and near the Alaska coastline from near Nome, AK south towards Nunivak Island, AK. (Figure 1). The modified station grid resulted in 49 northern Bering Sea stations for sampling in `r maxyr`. The NBS is a region of critical importance for increased scientific monitoring because it is a transitional zone between the NBS and Arctic Ocean that is transforming with the changing climate [@RN923].') 
+  'In 2018, the "Northern Bering Sea Rapid Response" (NBS) survey was conducted for the first time in response to warmer than average seafloor water temperatures and changes in historical fish and invertebrate distribution patterns observed during the NBS survey [@RN909]. The NBS standardized 20 x 20 nautical mile (nmi) sampling grid and survey station plan implemented in 2010 and 2017 was reduced in scope and resolution for 2018 to a 30 x 30 nmi grid and the survey extent was reduced by eliminating sampling in Norton Sound and near the Alaska coastline from near Nome, AK south towards Nunivak Island, AK (Figure ', crossref(list_obj = list_figures, nickname = "sample_grid", sublist = "number"),').') 
+      
+      haul_cruises_maxyr %>% 
+        dplyr::filter(SRVY %in% "NBS")
+      
+      length(unique(haul_cruises_maxyr$stationid[haul_cruises_maxyr$SRVY %in% "NBS"]))
+      
     if (maxyr == 2018) {
       surv_insert2 <- paste0(surv_insert2,
-  'In this document, we provide snapshots of survey results from 2018 for the NBS and rapid response NBS and compare NBS results with those from previous years.')
+  'The modified station grid resulted in 49 northern Bering Sea stations for sampling in ', maxyr,'. The NBS is a region of critical importance for increased scientific monitoring because it is a transitional zone between the NBS and Arctic Ocean that is transforming with the changing climate [@RN923]. In this document, we provide snapshots of survey results from 2018 for the NBS and rapid response NBS and compare NBS results with those from previous years.')
     }
 
   }
 }
 
-surv_insert <- paste0(surv_insert1, surv_insert2)
-
 ```
 
-In `r maxyr`, the National Marine Fisheries Service’s (NMFS) Resource Assessment and Conservation Engineering (RACE) Division of the Alaska Fisheries Science Center (AFSC) conducted `r surv_insert`. Both bottom trawl surveys are mission critical to the AFSC because the results are critical to managing fisheries resources, monitoring the ecosystem, and providing a valuable data time-series for doing basic fisheries research. Fishery-independent abundance estimates and other biological and oceanographic information from Bering Sea bottom trawl surveys are used by the AFSC, North Pacific Fishery Management Council (NPFMC) and the Alaska Department of Fish and Game (ADF&G) to manage groundfish and crab stocks and to do ecosystem forecast modeling that are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act. 
-
-> North Pacific Western Alaska Community Development Quota (CDQ) Program (Year Implimented: 1992)
-
-> Alaska Halibut and Sablefish IFQ Program (Year Implimented: 1995)
-
-> American Fisheries Act (AFA) Pollock Cooperatives (Year Implimented: 1998)
-
-> Bering Sea and Aleutian Islands (BSAI) King and Tanner Crab Rationalization (Year Implimented: 2005)
-
-> Aleutian Islands Pollock Fishery 2005
-
-> Bering Sea and Aleutian Islands (BSAI) Non-Pollock Trawl Catcher/Processor Groundfish Cooperatives (Amendment 80) (Year Implimented: 2008)
-
-> Central Gulf of Alaska (GOA) Rockfish Program (pilot implemented in 2007; Year Implimented: 2011)
-
-Good management of fisheries resources and a healthy ecosystem are especially important to the Alaska Native communities as a way of life and to the tens of thousands of people who are employed by the Alaska fishing industry that generates billions of dollars for the U.S. economy. 
-
-#### History of Bering Sea Bottom Trawl Surveys
-
-```{r}
-a<-aggregate.data.frame(x = dat$WTCPUE, 
-                     by = list("YEAR" = dat$year), 
-                     sum, na.rm = T)
-
-# xunits(min(a$x))
-```
-
-> is WTCPUE right? "0.8 million to 1.5 million metric tons (t)"
-
-The Bering Sea continental shelf supports one of the most productive groundfish and crab fisheries in the world [@RN891]. Groundfish such as walleye pollock (*Gadus chalcogrammus*), Pacific cod (*G. macrocephalus*) and yellowfin sole (*Limanda aspera*) have been the primary target species among commercial catches. Although many species of groundfish are caught commercially, walleye pollock is the most abundant with catches ranging from 0.8 million to 1.5 million metric tons (t) per year for the past 30 years, the marketed products of which represent 40% of the global whitefish market [@RN971]. Commercial crab stocks include Tanner crab (*Chionoecetes bairdi*), snow crab (*C. opilio*), red king crab (*Paralithodes camtschaticus*), blue king crab (*P. platypus*), and hair crab (*Erimacrus isenbeckii*) [@RN956].
-
-The involvement of the U.S. government in Bering Sea bottom trawl surveys dates back to the 1940s when the work was exploratory prospecting for commercial fisheries resources [@RN945]. Early efforts led to the development of a valuable single-species fishery in Alaska for red king crab. Bottom trawl surveys by the U.S. continued into the 1970s with private industry involvement to study the biology, distribution, abundance, and best fishing practices for red king crab [@RN945]. The first large-scale systematic survey of the Bering Sea shelf was conducted in 1975 under contract from the U.S. Bureau of Land Management to collect baseline data for assessing the potential impact of the growth in the offshore oil industry on the development of Bering Sea groundfish and crab fishery resources [@RN920]. During the 1975 baseline survey, sampling was conducted over the shelf between the 20-m and 200-m isobaths from the Alaska Peninsula north to approximately 62° N.
-
-In subsequent years, the area coverage of the annual surveys was reduced until 1979 when a comprehensive survey of the Bering Sea shelf was undertaken in cooperation with the Japan Fisheries Agency [@RN978]. That survey encompassed the entire region sampled in the 1975 baseline study and included the upper continental slope waters between St. Matthew and St. Lawrence islands.
-
-Following the 1979 survey, annual bottom trawl surveys have essentially re-sampled the same areas and stations established during the 1975 survey, with slight modifications in sampling design each year. Beginning in 1979 and continuing triennially until 1991, the survey was extended to include bottom trawl sampling of the continental slope and in the region between St. Matthew and St. Lawrence islands. After a hiatus in the Bering Sea slope survey from 1992 to 1999, it was resumed in 2002 as an independent bottom trawl survey series that is now conducted on a quasi-biennial basis dependent on funding [@RN979].
-
-The ongoing annual BS shelf survey time series officially began in 1982 marked by the standardization of bottom trawl gear [@RN933], survey methods and a systematic design that included 356 stations [@RN891]. Beginning in 1987, 20 new stations comprising Strata 82 and 90 (Fig. 1) were added to monitor more northerly distributions of snow crab and walleye pollock. The reason the BS shelf region continues to be surveyed annually is because it encompasses major portions of the commercially exploited Bering Sea groundfish and crab populations that require management actions under the BSAI FMP.
-
-\newpage
-\blandscape
+In `r maxyr`, the National Marine Fisheries Service’s (NMFS) Resource Assessment and Conservation Engineering (RACE) Division of the Alaska Fisheries Science Center (AFSC) conducted `r surv_insert1`
 
 
-```{r G1a}
-# Don't Edit This:
-cnt.chapt.content<-auto_counter(cnt.chapt.content)
-cnt.figures<-cnt.figures+1
-```
+`r surv_insert2` Both bottom trawl surveys are mission critical to the AFSC because the results are critical to managing fisheries resources, monitoring the ecosystem, and providing a valuable data time-series for doing basic fisheries research. Fishery-independent abundance estimates and other biological and oceanographic information from Bering Sea bottom trawl surveys are used by the AFSC, North Pacific Fishery Management Council (NPFMC) and the Alaska Department of Fish and Game (ADF&G) to manage groundfish and crab stocks and to do ecosystem forecast modeling that are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act. 
 
 
-```{r fig.width=9, fig.height = 8, G1b}
-# Edit This:
+> **Moved the below paragraph from history section**
 
-# Name Plot
-Header<-paste0("Figure ",cnt_figures,". -- Sampling grid and station identifiers for the ", maxyr, " eastern and northern Bering Sea continental shelf bottom trawl surveys.")
-Footnotes<-""
+> add notes on retow and 15/30 studys mentioned in (Figure `r crossref(list_obj = list_figures, nickname = "sample_grid", sublist = "number") `)
 
-# Make Plots
-# placenames <- read.csv(file = system.file("data", 
-#                                           file = "placenames.csv", package = "akgfmaps", 
-#                                           mustWork = TRUE), stringsAsFactors = FALSE) %>% transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
+In this document, we will compare the `r NMFSReports::text_list(x = paste0(maxyr, " ", surv_info$SRVY, " survey results with those from the ", surv_info$compareyr, " ", surv_info$SRVY, " survey [", surv_info$compareyr_ref, "]"))`. `r ifelse(SRVY == "NEBS", paste0("To simplify the results and discussion from here forward, the terms “EBS” and “NBS” will be used to refer specifically to either the eastern or northern Bering Sea bottom trawl survey area, respectively, and “NEBS” will be used when referring to the combined EBS and NBS survey areas. The combined ", maxyr, ' NEBS survey will be comapred with the ', min(surv_info$compareyr) ," NEBS survey [", surv_info$compareyr_ref[surv_info$SRVY == "NBS"], "]."), "")` For survey results referenced from previous surveys herein, the reader should refer to the AFSC Technical Memoranda cited here.
 
-placenames <- placenames[!(placenames$lab %in% c("Pribilof Isl.", "St. Matthew")), ]
-
-gg <- ggplot() +
-  # geom_sf(data = reg_dat$bathymetry) +
-  # geom_sf(data = reg_dat$survey.strata, fill = "white") +
-  geom_sf(data = reg_dat$survey.area, col = "black", fill = NA, size = 1, show.legend = TRUE) +
-  geom_path(data = surveygrid_shp,
-            aes(x = long, y = lat, group = group),
-            color = 'grey10', size = .2) +
-  geom_sf(data = reg_dat$graticule, color = "grey90", alpha = 0.5) +
-  geom_sf(data = reg_dat$akland) +
-  geom_text(mapping = aes(x = coordinates(surveygrid_shp0)[,1], 
-                          y = coordinates(surveygrid_shp0)[,2], 
-                          label=surveygrid_shp0$STATION_ID), 
-            size = 1.25, show.legend = F) +
-  coord_sf(xlim = reg_dat$plot.boundary$x, 
-           ylim = reg_dat$plot.boundary$y) +
-  scale_x_continuous(name = "Longitude", 
-                     breaks = reg_dat$lon.breaks) + 
-  scale_y_continuous(name = "Latitude", 
-                     breaks = reg_dat$lat.breaks) +
-  geom_text(data = subset(placenames, type == "mainland"), 
-            aes(x = x, y = y, label = lab), size = 14, group = 99) + 
-  geom_shadowtext(data = subset(placenames, type == "peninsula"), 
-                  aes(x = x, y = y, label = lab), size = 8, angle = 40, 
-                  bg.color = "white", color = "black", group = 99) + 
-  geom_shadowtext(data = subset(placenames, type %in% c(#"bathymetry", 
-    "islands")),
-    aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 3.88, group = 99) +
-  # geom_shadowtext(data = subset(placenames, type == "convention line"), aes(x = x, y = y, label = lab),
-  # angle = 42, size = 3, bg.color = "white", color = "black", group = 99) +
-  # ggspatial::annotation_scale(location = "br", text_cex = 1) + 
-  ggsn::scalebar(data = surveygrid_shp, location = "bottomleft",
-                 dist = 250, dist_unit = "km", transform = FALSE, st.dist = .04, 
-                 height=0.03, st.bottom = FALSE, st.size = 4) + 
-  
-  # scale_fill_manual(name = NULL,
-  # breaks = c(CapStr(SURVEY)),
-  # values = c("Eastern Bering Sea" = "green"),
-  # labels = c(CapStr(SURVEY))) +
-  # #set color for cities and labels for cities legend
-  # scale_color_manual(name = NULL, 
-  # breaks = c(CapStr(SURVEY)),
-  # values = c("Eastern Bering Sea" = "green"),
-  # labels = c(CapStr(SURVEY))) +
-  #set order of legend items (fill first)
-# guides(fill = guide_legend(order = 1), color = guide_legend(order = 2)) +
-#set legend position and vertical arrangement
-theme(legend.text = element_text(size = 9), legend.position = "bottom", legend.box = "vertical") + 
-  
-  # geom_text(data = placenames, mapping = aes(x = x, y = y, label = lab)) +
-  theme_bw() 
-
-```
-
- > how do we feel about the distance for the scale bar. 
-
-```{r G1c}
-# Don't Edit This:
-Header<-str_to_sentence(Header)
-Title0<-paste0(Header, "^[", Footnotes, "]")
-filename00<-paste0(filename0, cnt.chapt.content, "_Fig_",cnt.figures)
-
-if (designflowin %in% T){
- cnt.chapt.content<-funct_counter(cnt.chapt.content)
- rmarkdown::render(TableFigureHeader, 
- quiet = T,
- output_dir = dir.chapters, 
- output_file = paste0(filename00,cnt.chapt.content,"_Title.docx"))
-}
-```
+Good management of fisheries resources and a healthy ecosystem are especially important to the Alaska Native communities as a way of life and to the tens of thousands of people who are employed by the Alaska fishing industry that generates billions of dollars for the U.S. economy.
 
 
-```{r G1d, fig.cap=ifelse(designflowin %in% T, "", Title0)}
-# Don't Edit This:
+`r sample_grid `
 
-# Systematically save your plot with this simple function
-plot.list<-SaveGraphs(plot0 = plt, 
-                      plot.list = plot.list, 
- filename0 = filename0, 
- cnt.chapt.content = cnt.chapt.content, 
- cnt.figures = cnt.figures, 
- path = dir.chapters, 
- width = 6, height = 6) # but you can change this if you need...
-
-# Print or Don't Print Plot in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is something you might like to toggle on and off. Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (designflowin %in% F) { 
- plt #print plot in text
-}
-```
-
-
-\elandscape
-\newpage
-
-The most comprehensive bottom trawl survey coverage of the Bering Sea in a single year was in 2010 when there were three surveys: 1) the continental slope [@RN898], 2) the `r SRVY ` shelf, and 3) the NBS (@RN909; Fig. 1). The NBS survey consisted of 144 additional bottom trawl stations extending the `r SRVY ` survey grid northward to the Bering Strait and the U.S.-Russia Maritime Boundary and also included all of Norton Sound and the Chirikov Basin (Fig. 1). The NBS survey was initiated by the AFSC as part of the Loss of Sea Ice (LOSI) Research Plan to study the impacts of diminished sea ice on the marine ecosystem [@RN900]. The objective of the LOSI Research Plan was to monitor long-term climate trends in the transition zone between the temperate waters of the eastern Bering Sea and the Arctic waters of the Chukchi Sea where climate change can have a profound effect on physical and biological ecosystem processes [@RN901; @RN936; @RN932; @RN977].
-
-LOSI funding of the NBS bottom trawl survey was discontinued the following year but was re-implemented 5 years later with a new budget plan for repeating the survey in 2017 and continuing it on a biennial basis [@RN923]. With the changing environmental conditions in the `r SRVY ` (see Ocean Conditions section below), it was becoming more critical to obtain an extended time series of snapshots that included both the `r SRVY ` and NBS (hereafter, the combined areas will be referred to as the “NEBS”) for longer-term monitoring of the demersal marine fauna in response to diminishing ice in both the Bering Sea and the Arctic Ocean.
-
-In this document, we will compare the `r maxyr` `r SRVY ` survey results with those from the `r maxyr-1` `r SRVY ` survey [@RN976] as well as with those from the NEBS survey conducted in 2010 [@RN909]. For survey results referenced from previous surveys herein, the reader should refer to the AFSC Technical Memoranda cited above.
-
-> compare the above with below: 
-
-The most comprehensive bottom trawl survey coverage of the Bering Sea in a single year was in 2010 when there were three surveys: 1) the continental slope (Hoff and Britt 2011), 2) the EBS shelf, and 3) the NBS (Lauth 2011; Fig. 1). The NBS survey consisted of 144 additional bottom trawl stations extending the EBS survey grid northward to the Bering Strait and the U.S.-Russia Maritime Boundary and also included all of Norton Sound and the Chirikov Basin (Fig. 1). The NBS survey was initiated by the AFSC as part of the Loss of Sea Ice (LOSI) Research Plan to study the impacts of diminished sea ice on the marine ecosystem (Hollowed et al. 2007). The objective of the LOSI Research Plan was to monitor long-term climate trends in the transition zone between the temperate waters of the eastern Bering Sea and the Arctic waters of the Chukchi Sea where climate change can have a profound effect on physical and biological ecosystem processes (Hunt et al. 2011, Stevenson and Lauth 2012, Stabeno et al. 2012b, Stevenson and Lauth 2019).
-
-LOSI funding of the NBS bottom trawl survey was discontinued the following year but was re-implemented 5 years later with a new budget plan for repeating the survey in 2017 and continuing it on a biennial basis (Sigler et al. 2015). With the changing environmental conditions in the EBS (see Ocean Conditions section below), it was becoming more critical to obtain an extended time series of snapshots that included both the EBS and NBS (hereafter, the combined areas will be referred to as the “NEBS”) for longer-term monitoring of the demersal marine fauna in response to diminishing ice in both the Bering Sea and the Arctic Ocean.
-
-In this document, we will compare the 2017 EBS survey results with those from the 2016 EBS survey (Conner and Lauth 2017) as well as with those from the NEBS survey conducted in 2010 (Lauth 2011). For survey results referenced from previous surveys herein, the reader should refer to the AFSC Technical Memoranda cited above.
+`r sampled_survey_stations `
 

@@ -10,19 +10,25 @@
 # START ------------------------------------------------------------------------
 
 # *** REPORT KNOWNS ------------------------------------------------------------
-# maxyr <- 2017 # or the year of the report, for example
-# compareyr <- 2010
-# compareyr_nbs <- 2010
+
+maxyr <- 2017 # or the year of the report, for example
+compareyr_ebs <- 2010
+compareyr_nbs <- 2010 #will this always be the same?
+SRVY<-"NEBS"
+ref_compareyr_ebs <- "@RN976"
+ref_compareyr_nbs <- "@RN909"
+
+# maxyr <- 2018 # NOTE RAPID RESPONCE
+# compareyr_ebs <- 2016
+# compareyr_nbs <- NA #will this always be the same?
+# SRVY<-"NEBS"
+# ref_compareyr_ebs <- "@RN976" # CHANGE
+# ref_compareyr_nbs <- NA # CHANGE
+
+# maxyr <- 2019 
+# compareyr <- 2018
+# compareyr_nbs <- 2017
 # SRVY<-"NEBS" 
-
-# maxyr <- 2018 
-# compareyr <- 2016
-# SRVY<-"EBS" 
-
-maxyr <- 2019 
-compareyr <- 2018
-compareyr_nbs <- 2017
-SRVY<-"NEBS" 
 
 # maxyr <- 2021
 # compareyr <- 2019
@@ -61,6 +67,7 @@ report_yr <- substr(x = Sys.Date(), start = 1, stop = 4)
 googledrive::drive_deauth()
 googledrive::drive_auth()
 1
+dir_googledrive <- paste0("content_from_googledrive/", SRVY, " - ", maxyr, "/")
 
 # MAKE REPORT ------------------------------------------------------------------
 
@@ -137,7 +144,7 @@ rmarkdown::render(paste0(dir_code, "/05_results.Rmd"),
 cnt.chapt<-auto_counter(cnt.chapt)
 cnt.chapt.content<-"001"
 filename0<-paste0(cnt.chapt, "_Results_")
-rmarkdown::render(paste0(dir.scripts, "/5_results.rmd"),
+rmarkdown::render(paste0(dir.scripts, "/6_results.rmd"),
                   output_dir = dir.chapters,
                   output_file = paste0(filename0, cnt.chapt.content, "_Text.docx"))
 

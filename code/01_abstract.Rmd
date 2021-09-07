@@ -34,17 +34,17 @@ nbs_insert <- ifelse(SRVY == "NEBS",
                       paste0("In addition, the ", maxyr, 
                              " survey coverage was expanded to include the northern Bering Sea (NBS). This is only the ", 
                              NMFSReports::numbers2words_th(
-                               cruises %>% dplyr::filter(year > compareyr & 
+                               cruises %>% dplyr::filter(year > compareyr_nbs & 
                                                              SRVY == "NBS" ) %>%
                                  dplyr::select(year) %>% unique() %>% 
                                  nrow()),
-                             " time since ",compareyr," that the NBS survey was done. The expanded study area covered the entire Bering Sea continental shelf (hereafter referred to as the “NEBS”) from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
+                             " time since ",compareyr_nbs," that the NBS survey was done. The expanded study area covered the entire Bering Sea continental shelf (hereafter referred to as the “NEBS”) from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
                              # EBS
                              "The study area covered the southeastern Bering Sea continental shelf from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and to approximately the latitude of St. Matthew Island (60° 50' N).")
 
 ```
 
-From `r min_mo` to `r max_mo` `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center’s Resource Assessment and Conservation Engineering Division conducted its `r yrofsurvey ``r stndth0` annual `r SURVEY ` (`r SRVY `) continental shelf bottom trawl survey of groundfish and invertebrate fauna. `r nbs_insert` Two stern trawlers, the `r `NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$name_ital)) `, were chartered to sample the `r SRVY `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations centered within a stratified systematic grid consisting of a total of `r NMFSReports::text_list(paste0(surv_info$survey_nn, " stations in the ", surv_info$SRVY))`. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. `r ifelse(sum(cruises_maxyr$performance_success == cruises_maxyr$survey_n) == nrow(cruises_maxyr), "All", "Most") ` survey stations were sampled successfully in the `r SRVY`.
+From `r min_mo` to `r max_mo` `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center’s Resource Assessment and Conservation Engineering Division conducted its `r max(surv_info$yrofsurvey) ``r surv_info$stndth[surv_info$yrofsurvey == max(surv_info$yrofsurvey)] ` annual `r SURVEY ` (`r SRVY `) continental shelf bottom trawl survey of groundfish and invertebrate fauna. `r nbs_insert` `r stringr::str_to_sentence(NMFSReports::numbers2words(nrow(vessel_info)))` stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$name_ital)) `, were chartered to sample the `r SRVY `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations centered within a stratified systematic grid consisting of a total of `r NMFSReports::text_list(paste0(surv_info$survey_nn, " stations in the ", surv_info$SRVY))`. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. `r ifelse(sum(cruises_maxyr$performance_success == cruises_maxyr$survey_n) == nrow(cruises_maxyr), "All", "Most") ` survey stations were sampled successfully in the `r SRVY`.
 
 ```{r}
 temps <- dat %>% 
@@ -121,15 +121,51 @@ temp_insert2 <- paste0(temp_insert1, temp_insert2,
 
 `r temp_insert1``r temp_insert2` In the `r SRVY`, there was a total of `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$fish==TRUE])))` species of fishes representing `r xunits(length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$fish==TRUE])))` families and `r xunits(length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$fish==TRUE])))` genera, as well as `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$invert==TRUE])))` invertebrate taxa, representing `r xunits(length(unique(spp_info_maxyr$phylum_taxon)))` phyla identified in the catches.
 
-The distribution and relative abundance of `r xunits(sum(length(report_species$fish1), length(report_species$fish2), length(report_species$fish3)))` different fish species and `r xunits(sum(length(report_species$invert1), length(report_species$invert3)))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr ` and `r maxyr` `r SRVY` shelf bottom trawl surveys. For the more common fish species, there are also plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r SRVY` surveys. Tables provide estimates of bottom trawl survey biomass for most fishes and invertebrates, as well as estimates of population size for the most common fishes. Appendices provide station data, summarized catch data by station, listings of taxa, and detailed analyses of abundance and biological data of the sampled populations. 
+The distribution and relative abundance of `r xunits(sum(length(report_species$fish1), length(report_species$fish2), length(report_species$fish3)))` different fish species and `r xunits(sum(length(report_species$invert1), length(report_species$invert3)))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr_ebs ` and `r maxyr` `r SRVY` shelf bottom trawl surveys. For the more common fish species, there are also plots of abundance-at-length comparing the `r compareyr_ebs ` and `r maxyr` `r SRVY` surveys. Tables provide estimates of bottom trawl survey biomass for most fishes and invertebrates, as well as estimates of population size for the most common fishes. Appendices provide station data, summarized catch data by station, listings of taxa, and detailed analyses of abundance and biological data of the sampled populations. 
 
+> unsure how to automate the following paragraph
 
 ```{r}
 
-xunits(sum(dat_cpue$cpue_kgha))
-
-nbs_insert <- ifelse(SRVY == "NEBS", 
-                      paste0("Between ", compareyr_nbs, " and ", maxyr, ", there were noticeable changes in the benthic community of the NBS. Total CPUE values for many of the animals in the NBS shifted from being low in ", compareyr_nbs, " to being much higher in ", maxyr, " The total estimated animal biomass in the NBS increased from 3.0 million t in ", compareyr_nbs, " to 4.5 million t in ", maxyr, " driven primarily by increases in walleye pollock and Pacific cod. Major distributional shifts by these two species and others were likely in response to the warmer conditions resulting from diminished sea ice during the recent warm stanza that began in 2014. The dramatically different and unexpected results underscore the need for continuing NEBS surveys on a regular basis to learn more about the environmental variability and how fish and crab populations are responding to a dynamic and changing environment. Moreover, many of the design-based estimates of survey abundance currently used in Bering Sea and Aleutian Island (BSAI) stock assessments are biased because they do not account for the dynamic biological and physical process errors such as those readily apparent for pollock and Pacific cod in the NEBS surveys. Hence, new methods for model-based estimates of survey abundance that incorporate as well as propagate uncertainty in the stock assessment models are also needed.") )
+# if (NMFSReports::pchange(start = sum(dat_biomass_compareyr$biomass), end = sum(dat_biomass_maxyr$biomass), value_only = TRUE)>10 & # if there is a greater than X% difference
+#     SRVY == "NEBS") {
+#   
+#   dat_biomass_compspp <- dplyr::left_join(
+#     x = dat_biomass_maxyr %>% 
+#       dplyr::select(biomass, srvy, species_name, species_code) %>% 
+#       dplyr::group_by(srvy, species_name, species_code) %>%
+#       dplyr::summarise(biomass_maxyr = sum(biomass, na.rm=T)), 
+#     y = dat_biomass_compareyr %>% 
+#       dplyr::select(biomass, srvy, species_name, species_code) %>% 
+#       dplyr::group_by(srvy, species_name, species_code) %>%
+#       dplyr::summarise(biomass_compareyr = sum(biomass, na.rm=T)), 
+#     by = c("species_name", "srvy", "species_code")) %>% 
+#     dplyr::mutate(diff = (biomass_maxyr - biomass_compareyr)) %>%
+#     # dplyr::mutate(absdiff = abs(diff)) %>%
+#     dplyr::mutate(pchange = diff/biomass_compareyr) %>% 
+#     # dplyr::mutate(abspchange = abs(pchange)) %>%
+#     dplyr::arrange(desc(abs(diff), abs(pchange))) %>% 
+#     dplyr::filter(!is.na(species_name) & 
+#                     !(pchange %in% c(0,-1,NaN,NA, Inf,-Inf)))
+# 
+#     dat_biomass_compspp_notfish1 <- dat_biomass_compspp %>% 
+#     dplyr::filter(!(species_code %in% 
+#                     unlist(report_species$fish1)))  
+#     inc <- sum(dat_biomass_compspp_notfish1$pchange > 0)
+#     dec <- inc-nrow(dat_biomass_compspp_notfish1)
+#   
+#     
+#     dat_biomass_compspp_fish <- dat_biomass_compspp %>% 
+#     dplyr::filter(species_code %in% 
+#                     unlist(report_species$fish1))
+#   
+# nbs_insert <- paste0("Between ", compareyr_nbs, " and ", maxyr, 
+#                              
+#                              ", there were noticeable changes in the benthic community of the NBS. Total CPUE values for many of the animals in the NBS shifted from being low in ", compareyr_nbs, " to being much higher in ", maxyr, " The total estimated animal biomass in the NBS increased from ", xunits(sum(dat_biomass_compareyr$biomass)) ," t in ", compareyr_nbs, " to ", xunits(sum(dat_biomass_maxyr$biomass))," t in ", maxyr, " driven primarily by increases in walleye pollock and Pacific cod. Major distributional shifts by these two species and others were likely in response to the warmer conditions resulting from diminished sea ice during the recent warm stanza that began in 2014. The dramatically different and unexpected results underscore the need for continuing NEBS surveys on a regular basis to learn more about the environmental variability and how fish and crab populations are responding to a dynamic and changing environment. Moreover, many of the design-based estimates of survey abundance currently used in Bering Sea and Aleutian Island (BSAI) stock assessments are biased because they do not account for the dynamic biological and physical process errors such as those readily apparent for pollock and Pacific cod in the NEBS surveys. Hence, new methods for model-based estimates of survey abundance that incorporate as well as propagate uncertainty in the stock assessment models are also needed.") 
+# 
+# } else {
+  nbs_insert <- ""
+# }
 ```
 
 `r nbs_insert `

@@ -12,266 +12,653 @@ bibliography: "../cite/bibliography.bib"
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
-### Methods
+# Methods
 
-#### Survey Area and Sampling Design 
+## Survey Area and Sampling Design 
 
-The standardized BT survey is based on a stratified systematic design consisting of a grid with a fixed sampling station at the center of each 37.04 × 37.04 km (20 × 20 nautical mile) grid square (Figure 1). In areas surrounding St. Matthew and the Pribilof Islands, high-density “corner stations” are sampled to better assess local blue king crab concentrations (Figure 1). In `r maxyr`, the standard sampling grid was expanded to include an additional 49 stations in the NBS shelf (Figure 1). The northern extension was bounded by the U.S.-Russian Convention Line in the northwest, the Bering Strait in the north, and the mouth of Norton Sound in the east. The results reported herein include data analyses for both the `r SRVY ` and Rapid Response NBS. 
+> also true for NBS, right? "37.04 × 37.04 km (20 × 20 nautical mile)"
 
-#### Survey Vessels and Sampling Gear
+> edited this down a bit and put the following in the introduction "To simplify the results and discussion from here forward, the terms “EBS” and “NBS” will be used to refer specifically to either the eastern or northern Bering Sea bottom trawl survey area, respectively, and “NEBS” will be used when referring to the combined EBS and NBS survey areas." 
 
-```{r}
+> need to think about how to incorportate the "NBS Rapid Responce": 
 
-vess<-data.frame()
-dd<-as.Date(dat.maxyr$dates, format = "%m/%d/%y")
+The standardized annual bottom trawl survey of the EBS `r ifelse(SRVY == "NEBS", "and NBS are", " is")` based on a systematic design with `r NMFSReports::text_list(paste0(surv_info$survey_nn, " in the ", surv_info$SRVY))` fixed sampling stations at the center of 37.04 × 37.04 km (20 × 20 nautical mile) grid squares (Figure `r crossref(list_obj = list_figures, nickname = "sample_grid", sublist = "number") `). In waters surrounding St. Matthew Island and the Pribilof Islands, high-density “corner stations” are sampled to better assess local blue king crab concentrations (Figure `r crossref(list_obj = list_figures, nickname = "sample_grid", sublist = "number") `). `r ifelse(SRVY == "NEBS", paste0("The ", maxyr, " NBS survey was a northward extension of the EBS systematic design consisting of stations bounded by the U.S.-Russian Maritime Boundary, the Bering Strait, and Norton Sound.") , "")` The results reported herein include data analyses for both the `r NMFSReports::text_list(paste0(surv_info$SRVY))`. 
 
-for (i in 1:length(unique(dat.maxyr$VESSEL_NAME))){
-  vess_name<-unique(dat.maxyr$VESSEL_NAME)[i]
-  vess<-rbind.data.frame(vess, 
-                         data.frame(VESSEL_NAME = vess_name, 
-                                    VESSEL_START = min(dd[dat.maxyr$VESSEL_NAME %in% vess_name]), 
-                                    VESSEL_END = max(dd[dat.maxyr$VESSEL_NAME %in% vess_name]), 
-                                    VESSEL_M = unique(dat.maxyr$VESSEL_M[dat.maxyr$VESSEL_NAME %in% vess_name])) )
-  
-}
 
-# temp
+## Survey Vessels and Sampling Gear
 
-if ( length(unique(vess$VESSEL_START)) %in% 1 &
-     length(unique(vess$VESSEL_END)) %in% 1) {
-  temp <- paste0("started for the ", 
-                 ifelse(length(vess$VESSEL_NAME) %in% 1, 
-                        "vessel", "vessels"), 
-                 " on ",
-                 format(unique(vess$VESSEL_START), format = "%B %d %Y"),
-                 " and ended for both vessels on ", 
-                 format(unique(vess$VESSEL_END), format = "%B %d %Y"))
-} else {
-  temp <- paste0( 
-    text_list(paste0(", for ", vess$VESSEL_NAME, 
-                     ", started on ", format((vess$VESSEL_START), format = "%B %d %Y"), 
-                     " and ended on ", format((vess$VESSEL_END), format = "%B %d %Y") )) )
-  temp<-gsub(pattern = "and ,", replacement = "and,", x = temp)
-}
+```{r trawl_gear_diagram}
+header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used during the ", maxyr ," eastern and northern Bering Sea bottom trawl surveys.")
+footnote<- NA
+nickname <- "trawl_gear_diagram"
+alttext <- paste0(header)
+width = 6
+height = 6
+usePNGPDF = "png"
 
-  
-  
+# Select data and make plot
+
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "EASTERN83-112.png")) )
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
 ```
 
-The surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(unique(dat.maxyr$VESSEL_NAME))`. After the completion of the `r SRVY ` shelf survey, which `r temp`
->, both vessels transitioned into sampling survey stations in the southwest corner of the NBS survey region. The survey of the NBS survey stations was completed on 14 August 2018. 
+The `r ifelse(length(vessel_info1$vessel) == 1, "the vessel", "both vessels") ` used for the surveys are house-forward trawlers with stern ramps. The `r text_list(paste0(vessel_info1$vessel_name, " has an LOA of ", vessel_info1$length_m, " m (", vessel_info1$length_ft, " ft)") ) `. All fishing operations were conducted in rigorous compliance with national and regional protocols detailed in @RN933. The AFSC equipped each of the vessels with standard 83-112 Eastern otter trawls, which have 25.3 m (83 ft) headropes and 34.1 m (112 ft) footropes (Figure `r crossref(list_obj = list_figures, nickname = "trawl_gear_diagram", sublist = "number") `). These nets were attached to tail chains with 54.9 m (30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
 
-The `r ifelse(length(vess$VESSEL_NAME) %in% 1, "vessel", "vessels") ` used for the surveys are house-forward trawlers with stern ramps. The `r text_list(paste0(vess$VESSEL_NAME, " has an LOA of ", (vess$VESSEL_M), " m (", round(vess$VESSEL_M/3.28084, digits = 1), " ft)") ) `. All fishing operations were conducted in rigorous compliance with national and regional protocols detailed in @RN933. The AFSC equipped each of the vessels with standard 83-112 Eastern otter trawls, which have 25.3 m (83 ft) headropes and 34.1 m (112 ft) footropes (Figure 3). These nets were attached to tail chains with 54.9 m (30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
-
-!["Figure 3. -- Schematic diagram of the 83-112 eastern otter trawl gear used during the 2017 eastern and northern Bering Sea bottom trawl surveys."](C:/Users/Emii/Documents/Homework/AFSCDataReport/img/83-112EASTERN.jpg)
-
-The Marport Deep Sea Technologies Inc. net mensuration system was used during the deployment of each tow to record net spread and net height. Net spread was measured as the horizontal distance between two sensors attached immediately forward of the junction of the upper breastline and the dandyline, and net height was measured from the headrope to the seafloor. Mean net spread values for estimating area swept per tow were calculated according to methods described by Lauth and Kotwicki (2014).
+The Marport Deep Sea Technologies Inc. net mensuration system was used during the deployment of each tow to record net spread and net height. Net spread was measured as the horizontal distance between two sensors attached immediately forward of the junction of the upper breastline and the dandyline, and net height was measured from the headrope to the seafloor. Mean net spread values for estimating area swept per tow were calculated according to methods described by @RN910.
 
 Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station. Average bottom depth was calculated by adding the average net height to the average depth of the headrope. 
->In 2018, the net mensuration system failed to record data for only one tow on the FV Alaska Knight during the `r SRVY ` shelf survey. Net mensuration data was successfully collected for all tows during the NBS survey. Area swept calculations for the one tow that was missing net mensuration data was estimated using other tows in similar depths.
 
-#### `r SRVY ` Sampling Logistics and Stratification Scheme
+`r trawl_gear_diagram `
 
-Both the `r text_list(vess$VESSEL_NAME)` conducted the standard `r SRVY ` shelf survey charters beginning in Dutch Harbor, Alaska, on 3 June 2018. Survey trawl sampling of the `r SRVY ` shelf began in eastern Bristol Bay and proceeded westward to the shelf edge (Figure 2). The progression from east to west was established in response to movements of yellowfin sole and perhaps other species, which may be migrating eastward during the course of the survey (Smith and Bakkala 1982). The Vesteraalen and Alaska Knight completed the standard `r SRVY ` survey on 31 July 2018 (Figure 2).
+> How do I calculate "net mensuration system failed to record data for six tows"?
 
-For catch analysis, the `r SRVY ` shelf was divided into 12 strata bounded by the 50-m, 100-m, and 200-m isobaths, a geographic stratum line separating the northwest and southeast shelf, and localized high-density strata in the regions around St. Matthew and Pribilof Islands (Figure 1). This stratification scheme reflects the differences observed in Bering Sea groundfish distribution across the oceanographic domains, and the intention of the design was to reduce the variances of population and biomass estimates (Bakkala 1993). The purpose of high-density sampling in Strata 32, 42, 43, and 62 was to reduce variance estimates for blue king crab. Sampling density ranged from one station per 775 km2 (Stratum 42) to one per 1,496 km2 (Stratum 82) and the sampling density for the entire `r SRVY ` shelf was one station per 1,311 km2 (Table 1). For purposes of some analyses (i.e., abundance at length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30(31+32), 40 (41+42+43), 50, 60(61+62), 82, and 90 (Fig 1; Table 1).
- 
- 
 ```{r}
-## cruise_ids are set every year
-strata_haul_count <- 
-  haul_info %>%
+str_ebs <- "the net mensuration system failed to record data for six tows on the FV Vesteraalen and nine tows on the FV Alaska Knight"
+
+str_nbs <- "it failed for two tows on each vessel"
+```
+
+During the EBS survey, `r str_ebs `, and for the NBS survey `r str_nbs `. To estimate these missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921:
+
+```{r mean_net_width}
+equation = "Net width ∼ Inverse scope + Height + Inverse scope * Height"
+nickname = "mean_net_width"
+header = "Equation to relate mean net width with the inverse scope (m) and mean net height (m)."
+alttext = "To estimate these missing net width values, the mgcv package in R (Wood 2004) was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921."
+
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_eq.Rmd", package = "NMFSReports") ), 
+  quiet = TRUE
+)
+
+assign(value = res, x = nickname)
+
+```
+
+`r mean_net_width `
+
+> are these calculated each year, and if so, where do I get these values from? Also, would they be shared if there were no estimates? is n = number of successful hauls? (that doesnt seems right?)
+
+For the FV Alaska Knight, both predictor variables and their interaction were significant (P < 0.001). The resulting regression equations by survey were as follows:
+
+EBS (n = 160) 
+
+Net width (m) = 27.372 – 1424.464 * Inverse scope – 3.659 * Net height + 451.441 * Inverse scope * Height
+
+NBS (n = 86) 
+
+Net width (m) = 25.421 – 853.054 * Inverse scope – 2.617 * Net height + 144.714 * Inverse scope * Height
+
+For the FV Vesteraalen, inverse scope and net height were significant (P < 0.001) but not their interaction term. The resulting regression equations by survey were as follows:
+
+EBS (n = 224) 
+
+Net width (m) = 22.642 – 355.689 * Inverse scope – 1.619 * Net height
+
+NBS (n = 54) 
+
+Net width (m) = 21.023 – 320.270 * Inverse scope – 1.312 * Net height.
+
+These equations were subsequently used to estimate the respective net spread values for the 19 tows with missing net width values.
+
+Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station and averaged for the tow duration. Average bottom depth was calculated by adding the average net height to the average depth of the headrope.
+
+> How to incorporate: "In 2018, the net mensuration system failed to record data for only one tow on the FV Alaska Knight during the `r SRVY ` shelf survey. Net mensuration data was successfully collected for all tows during the NBS survey. Area swept calculations for the one tow that was missing net mensuration data was estimated using other tows in similar depths."
+
+> stratum 31 not listed in akgfmaps for a reason?
+
+> note: typo in haul data:   dplyr::mutate(depth = gsub(pattern = "> 1", replacement = ">1", x = description)) %>% 
+
+
+```{r stratum_areas}
+header <- paste0("Stratum areas and sampling densities for the ",maxyr,
+                 " bottom trawl survey of the ",
+                 NMFSReports::text_list(paste0(surv_info$SRVY_long, " shelf (", 
+                                               surv_info$SRVY, ")")),".")
+nickname <- "stratum_areas" 
+
+# Select data and make plot
+strata_haul_count <- haul_info %>%## cruise_ids are set every year
   na.omit() %>%
-  dplyr::filter(CRUISE_ID %in% c(726, 727) & 
-         HAUL_TYPE %in% c(3, 15) &
-         GEAR == 44 &
-         PERFORMANCE >= 0 ) %>%
-  dplyr::count(STRATUM) %>%
-  dplyr::left_join(x = ., y = stratum, by = "STRATUM") %>%
-  dplyr::mutate(density = round(AREA/n, 0))
+  dplyr::filter(cruise_id %in% cruises_maxyr$cruise_id & #c(726, 727) & # TOLEDO where do these values come from?
+                  haul_type %in% c(3, 15) &
+                  gear == 44 &
+                  performance >= 0 ) %>%
+  dplyr::left_join(x = ., 
+                   y = stratum_area, 
+                   by = "stratum")  %>%
+  dplyr::mutate(depth = gsub(pattern = "> 1", 
+                             replacement = ">1", 
+                             x = description)) %>% 
+  dplyr::mutate(depth =
+                  gsub(pattern = "[a-zA-Z]+",
+                       replacement = "",
+                       x = sapply(X = strsplit(
+                         x = depth,
+                         split = " ",
+                         fixed = TRUE),
+                         function(x) x[1])
+                  )) %>%
+  dplyr::select(stratum, area, depth) %>%
+  dplyr::group_by(stratum, area, depth) %>%
+  dplyr::count() %>%
+  dplyr::ungroup() %>% 
+  dplyr::mutate(SRVY = dplyr::case_when(
+    stratum %in% as.numeric(akgfmaps::get_base_layers(
+      select.region = "sebs")$survey.strata$Stratum) ~ "EBS", 
+    stratum %in% as.numeric(setdiff(
+      akgfmaps::get_base_layers(select.region = "ebs")$survey.strata$Stratum, 
+      akgfmaps::get_base_layers(select.region = "sebs")$survey.strata$Stratum)) 
+    ~ "NBS" 
+  )) %>% 
+  dplyr::filter(complete.cases(.)) %>% 
+  dplyr::mutate(type = dplyr::case_when( 
+    SRVY == "NBS" ~ "Shelf",
+    depth %in% "<50" ~ "Inner Shelf", 
+    depth %in% c("50-100", ">50") ~ "Middle Shelf", 
+    depth %in% c("100-200", ">100") ~ "Outer Shelf"
+  )) %>% 
+  dplyr::arrange(SRVY, stratum) %>% 
+  dplyr::select(-depth)
 
-strata_domain <- strata_haul_count %>%
-  left_join(domain)
 
-strata_domain<-strata_domain[,match(x = c("domain", "STRATUM", "AREA", "n", "density"), table = names(strata_domain))]
+if (length(unique(strata_haul_count$SRVY))>1) {
+  totals_sub <- strata_haul_count %>% 
+    dplyr::group_by(SRVY) %>% 
+    dplyr::summarise(area = sum(area, na.rm = TRUE), 
+                     n = sum(n, n.rm = TRUE)) %>% 
+    dplyr::mutate(stratum = "") %>% 
+    dplyr::mutate(type = "Total")
+}
 
-strata_domain$ord<-strata_domain$domain
-
-library(wrapr)
-map <- wrapr::qc("EBS inner shelf" = 1, "EBS middle shelf" = 2, "EBS outer shelf" = 3)
-strata_domain$ord <- as.numeric(map[strata_domain$ord])  
-
-strata_domain<-strata_domain[order(strata_domain$ord, 
-                                   strata_domain$STRATUM), ]
-
-strata_domain$ord<-NULL
-
-totals<-data.frame("Total", "", 
-                                           sum(strata_domain$AREA), 
-                                           sum(strata_domain$n), 
-                                           sum(strata_domain$density))
-
-names(totals)<-names(strata_domain)
+totals <- strata_haul_count %>% 
+  dplyr::summarise(area = sum(area, na.rm = TRUE), 
+                   n = sum(n, n.rm = TRUE)) %>% 
+  dplyr::mutate(stratum = "") %>% 
+  dplyr::mutate(type = "Total") %>% 
+  dplyr::mutate(SRVY = NMFSReports::text_list(SRVY1))
 
 
-strata_domain<-rbind.data.frame(strata_domain, 
-                                totals)
+table_raw <- 
+  rbind.data.frame(strata_haul_count, 
+                   if(exists("totals_sub")){totals_sub}, 
+                   totals) %>% 
+  dplyr::mutate(density = round(area/n, 0)) %>% 
+  dplyr::mutate(area = round(area, 0)) %>% 
+  dplyr::mutate(Region = paste0(SRVY, " ", type)) %>% 
+  dplyr::mutate(order = dplyr::case_when(
+    Region == "EBS Inner Shelf" ~ 1,
+    Region == "EBS Middle Shelf" ~ 2,
+    Region == "EBS Outer Shelf" ~ 3,
+    Region == "EBS Total" ~ 4,
+    Region == "NBS Shelf" ~ 5,
+    Region == "NBS Total" ~ 6,
+    Region == "EBS and NBS Total" ~ 7
+  ))  %>%
+  dplyr::arrange(order, stratum) %>% #SRVY, stratum) %>% 
+  dplyr::select(Region, stratum, area, n, density, -order) %>% 
+  dplyr::relocate(Region, stratum, area, n, density)
 
-table.raw<-strata_domain
+table_print <- flextable::flextable(table_raw) %>%
+  # flextable::display(., i = 1, col_key = "area", 
+  #   pattern = "{{val}}{{pow}}", part = "header",
+  #   formatters = list(val ~ as.character("km"), pow ~ as.character("2") ),
+  #   fprops = list(pow = fp_text(vertical.align = "superscript", font.size = 8))
+  #   ) %>% 
+  flextable::set_header_labels(., 
+                    Region = "",
+                    stratum = "Stratum",
+                    area = "Representative\narea (km2)",
+                    n = "Stations successfully\nsampled",
+                    density = "Sampling density\n(km2/station)"
+                    ) %>% 
+  flextable::merge_v(j = "Region") %>%
+  flextable::valign(valign = "top") %>%
+  theme_flextable_nmfstm()
 
-strata_haul_count <- strata_haul_count %>%
-  mutate(density = prettyNum(strata_haul_count$density, big.mark = ",")) %>%
-  mutate(AREA = round(AREA, 0)) %>%
-  mutate(AREA = prettyNum(strata_haul_count$AREA, big.mark = ","))%>%
-  select(STRATUM, AREA, n, density) #%>%
-#rename(Stratum = STRATUM, "Stations successfully sampled" = n,
-#"Representative area" = AREA, "Sampling density" = density)
+table_raw_stratum_areas <- table_raw
 
-table.print<-strata_domain
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
 
 ```
- 
+
+
+## EBS Sampling Logistics and Stratification Scheme
+
 ```{r}
 
-Title = paste0("Stratum areas and sampling densities for the ",maxyr," bottom trawl survey of the eastern Bering Sea (EBS) shelf and the northern Bering Sea (NBS) shelf.")
+# 4 options
+# 1. vessels started and ended on different dates
+# 2. vessels started and ended on the same dates
+# 3. vessels started on the same dates and ended on different dates
+# 4. vessels started on different dates and ended on the same dates
+# and this can be different for EBS vs NBS 
 
-table.print<-strata_domain
-# Systematically save your plot with this simple function
-tab<-SaveTables(table.raw = table.raw, 
-                table.print = table.print, 
-                Title = Title, 
-                Footnotes = Footnotes, 
-                filename0 = filename0, 
-                dir.chapters = dir.chapters, 
-                dir.tables = dir.tables, 
-                cnt.tables = cnt.tables, 
-                cnt.chapt.content = cnt.chapt.content)
+date_format<- "%B %d, %Y"
+str <- c()
 
-
-tab$Caption
-table.print<-tab$table.print
-
-# Print or Don't Print Table in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is something you might like to toggle on and off. Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (designflowin %in% F) {
+for (i in 1:length(unique(vessel_info$SRVY))){
   
-  # names(b)<-paste0("**", names(b), "**") #Bold your table column names
-  # names(b)[names(b) %in% "****"]<-"" #But don't bold where there is no column name
   
-  table.print %>%
-    format_cells(rows = 0, # make column names
-                 cols = 1:ncol(table.print), # for all columns
-                 fonttype = "bold") %>% # bold
-    knitr::kable(row.names = F, booktabs = T) #print table in text
+  srvy <- unique(vessel_info$SRVY)[i]
+  vessel_info0  <- vessel_info[vessel_info$SRVY == srvy, ]
+  temp <- "" # paste0("of the ", srvy, ", which ")
+  
+  if (length(unique(vessel_info0$start_date)) != 1 &
+      length(unique(vessel_info0$start_date)) != 1) { 
+    # 1. vessels started and ended on different dates
+    temp <- paste0(temp, 
+                   text_list(paste0("the ", vessel_info0$vessel_name, 
+                                    " started surveying on ", 
+                                    format((vessel_info0$start_date), format = date_format), 
+                                    " and ended on ", 
+                                    format((vessel_info0$end_date), format = date_format) )) )
+    temp<-gsub(pattern = "and ,", replacement = "and,", x = temp)
+    
+  } else if (length(unique(vessel_info0$start_date)) == 1 &
+             length(unique(vessel_info0$start_date)) == 1) { 
+    # 2. vessels started and ended on the same dates
+    temp <- paste0(temp, 
+                   NMFSReports::text_list(vessel_info0$vessel_name), 
+                   # ifelse(length(unique(vessel_info0$vessel)) == 1, 
+                   #        "the vessel", "both vessels"), 
+                   " started surveying the on ",
+                   format(unique(vessel_info0$start_date), format = date_format), 
+                   " and ended surveying on ", 
+                   format(unique(vessel_info0$end_date), format = date_format))
+    
+  } else if (length(unique(vessel_info0$start_date)) == 1 &
+             length(unique(vessel_info0$start_date)) != 1) {
+    # 3. vessels started on the same dates and ended on different dates
+    temp <- paste0(temp, "in the survey started for ", 
+                   ifelse(length(unique(vessel_info0$vessel)) == 1, 
+                          "the vessel", "both vessels"), 
+                   " on ",
+                   format(unique(vessel_info0$start_date), format = date_format), 
+                   " and ended ", 
+                   NMFSReports::text_list(paste0("on ", 
+                                                 format(vessel_info0$end_date, 
+                                                        format = date_format) , 
+                                                 " for the ", vessel_info0$vessel_name) ))
+    
+  } else if (length(unique(vessel_info0$start_date)) == 1 &
+             length(unique(vessel_info0$start_date)) == 1) {
+    # 4. vessels started on different dates and ended on the same dates
+    temp <- paste0(temp, "the survey started ", 
+                   
+                   NMFSReports::text_list(paste0("on ", 
+                                                 format(vessel_info0$start_date, 
+                                                        format = date_format) , 
+                                                 " for the ", vessel_info0$vessel_name) ), 
+                   " and ended for ", 
+                   
+                   ifelse(length(unique(vessel_info0$vessel)) == 1, 
+                          "the vessel", "both vessels"), 
+                   " on ",
+                   format(unique(vessel_info0$end_date), 
+                          format = date_format)
+    )
+  }
+  str = c(str, temp)
+  
 }
-```
- 
- 
-```{r T1a}
-# Don't Edit This:
-cnt.chapt.content<-auto_counter(cnt.chapt.content)
-cnt.tables<-cnt.tables+1
-```
 
-```{r T1b, echo=FALSE, warning=FALSE, message=FALSE}
-# Edit This:
+str <- data.frame(str = str, 
+                  SRVY = unique(vessel_info$SRVY))
 
-Footnotes<-"Here is a Footnote for this table"# Footnote
-Header = str_to_sentence(paste0("Table ",cnt.tables,". Here's a table"))
-
-# Select data for table
-# Make a table of content, but don't edit your content. This is just good record keeping so peolpe can check your work. 
-table.raw<-head(dat[dat$YEAR %in% 2017,
-          c("LATITUDE", "LONGITUDE", "VESSEL")])
-
-names(table.raw)<-firstup(tolower(names(table.raw)))
-
-table.raw<-dplyr::rename(table.raw, 
-                         "Vessel ID Number" = "Vessel")
-
-# Make the table pretty, like as you would have it show in the report. 
-table.print<- table.raw %>% 
-  mutate_at(vars(Latitude, Longitude), 
-            funs(round(., 1)))
 ```
 
 
-```{r T1c}
-# Don't Edit This:
-Header<-str_to_sentence(Header)
-Title0<-paste0(Header, "^[", Footnotes, "]")
-filename00<-paste0(filename0, cnt.chapt.content, "_Table_",cnt.figures)
+The `r text_list(vessel_info1$vessel_name)` conducted the standard EBS shelf survey charters beginning in Dutch Harbor, Alaska, beginning in eastern Bristol Bay and proceeding westward to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "sampled_survey_stations", sublist = "number") `). The progression from east to west was established in response to movements of yellowfin sole and perhaps other species, which may be migrating eastward during the course of the survey [@RN928]. In the EBS, the `r str$str[str$SRVY == "EBS"]` (Figure `r crossref(list_obj = list_figures, nickname = "sampled_survey_stations", sublist = "number") `).
 
-if (designflowin %in% T){
-  cnt.chapt.content<-funct_counter(cnt.chapt.content)
-  rmarkdown::render(TableFigureHeader, 
-                    quiet = T,
-                  output_dir = dir.chapters, 
-                  output_file = paste0(filename00,cnt.chapt.content,"_Title.docx"))
-}
+> OLD TEXT OF THE ABOVE PARAGRAPH: The `r text_list(vessel_info1$vessel_name)` conducted the standard `r SRVY ` shelf survey charters beginning in Dutch Harbor, Alaska, on `r format((min(vessel_info$start_date[vessel_info$SRVY == "EBS"])), format = date_format) `. Survey trawl sampling of the EBS shelf began in eastern Bristol Bay and proceeded westward to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "sampled_survey_stations", sublist = "number") `). The progression from east to west was established in response to movements of yellowfin sole and perhaps other species, which may be migrating eastward during the course of the survey [@RN928]. The `r text_list(vessel_info1$vessel_name)` completed the standard EBS survey on `r format((max(vessel_info$end_date[vessel_info$SRVY == "EBS"])), format = date_format) ` (Figure `r crossref(list_obj = list_figures, nickname = "sampled_survey_stations", sublist = "number") `).
+
+
+```{r}
+temp <- table_raw_stratum_areas %>% 
+  dplyr::filter(!grepl(pattern = "Total", x = Region) & 
+                  grepl(pattern = "EBS", x = Region))
+
+
+temp_tot <- table_raw_stratum_areas %>% 
+  dplyr::filter(grepl(pattern = ifelse(SRVY == "NEBS", "EBS Total", "Total"), x = Region) & 
+                  grepl(pattern = "EBS", x = Region)) %>% 
+  dplyr::select(density)
+
 ```
 
 
-### `r ifelse(designflowin %in% T, "", Title0)`
+> I got 1293: "sampling density for the entire EBS shelf was one station per 1,311 km^2^"
 
-```{r T1d}
-# Don't Edit This:
+For catch analysis, the `r SRVY ` shelf was divided into 12 strata bounded by the 50-m, 100-m, and 200-m isobaths, a geographic stratum line separating the northwest and southeast shelf, and localized high-density strata in the regions around St. Matthew and Pribilof Islands (Figure `r crossref(list_obj = list_figures, nickname = "sample_grid", sublist = "number") `). This stratification scheme reflects the differences observed in Bering Sea groundfish distribution across the oceanographic domains, and the intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in Strata 32, 42, 43, and 62 was to reduce variance estimates for blue king crab. Sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]` in the `r temp$Region[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]` in the `r temp$Region[temp$density == max(temp$density)]`) and the sampling density for the entire EBS shelf was one station per `r xunits(temp_tot$density)` km^2^ (Table `r crossref(list_obj = list_tables, nickname = "stratum_areas", sublist = "number")`). For purposes of some analyses (i.e., abundance at length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Figure `r crossref(list_obj = list_figures, nickname = "sample_grid", sublist = "number")`; Table `r crossref(list_obj = list_tables, nickname = "stratum_areas", sublist = "number")`).
 
-# Systematically save your plot with this simple function
-SaveTables(table.raw, table.print, Header, Footnotes, 
-                     filename00, dir.chapters, dir.tables)
 
-# Print or Don't Print Table in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is something you might like to toggle on and off. Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (designflowin %in% F) {
+> is there ever an instance where we might have 1 or 3 boats? e.g., not "both"? 
+
+> 2018: The NBS shelf was not divided into strata because the area surveyed was reduced in size compared to previous years and thus cannot directly be compared to data from previous years.
+
+```{r}
+
+nbs_insert <- ""
+
+
+if (SRVY == "NEBS") {
   
-  # names(b)<-paste0("**", names(b), "**") #Bold your table column names
-  # names(b)[names(b) %in% "****"]<-"" #But don't bold where there is no column name
   
-  table.print %>%
-          format_cells(rows = 0, # make column names
-                       cols = 1:ncol(table.print), # for all columns
-                       fonttype = "bold") %>% # bold
-          knitr::kable(row.names = F, booktabs = T) #print table in text
+  temp <- table_raw_stratum_areas %>% 
+    dplyr::filter(!grepl(pattern = "Total", x = Region) & 
+                    grepl(pattern = "NBS", x = Region))
+  
+  temp_tot <- table_raw_stratum_areas %>% 
+    dplyr::filter(grepl(pattern = "NBS Total", x = Region) & 
+                    !grepl(pattern = " NBS Total", x = Region) & 
+                    grepl(pattern = "NBS", x = Region))
+  
+  nbs_insert <- paste0(
+    "## NBS Sampling Logistics and Stratification Scheme
+    
+    After the completion of the EBS shelf survey, both vessels transitioned into sampling survey stations in the southwest corner of the NBS survey region. In the NBS shelf survey, ", 
+    str$str[str$SRVY == "NBS"], 
+    ". After the NBS suvey was completed, both vessels returned to Dutch Harbor for offloading.
+    
+    The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50-m isobath (Figure ", crossref(list_obj = list_figures, nickname = "sampled_survey_stations", sublist = "number"),
+    "). Sampling density was ", 
+    # Sampling density was 1,367 km2 /station for Stratum 70, 1,475 km2 /station for Stratum 71, 1,370 km2 /station for Stratum 81, 
+    NMFSReports::text_list(paste0(xunits(temp$density), " km^2^/station for Stratum ", temp$stratum)), 
+    "and ", xunits(temp_tot$density), " km^2^/station for the total NBS (Table ", crossref(list_obj = list_tables, nickname = "stratum_areas", sublist = "number"),").")
+  
 }
+
 ```
- 
-#### NBS Sampling Logistics and Stratification Scheme
 
-Survey trawl sampling of the NBS shelf was conducted in August. 
-The Vesteraalen conducted sampling in the NBS from 31 July to 03 August and the Alaska Knight from 1 August to 14 August. Both vessels were offloaded in Dutch Harbor. 
+`r print(nbs_insert) `
 
->The NBS shelf was not divided into strata because the area surveyed was reduced in size compared to previous years and thus cannot directly be compared to data from previous years.
+`r stratum_areas `
 
-#### Catch Sampling Procedures
+###### 
 
-Standard sampling procedures used in RACE `r SRVY ` Bering Sea assessment surveys are described in detail by @RN939 and @RN933. A brief summary of these procedures is described below.
+## Catch Sampling Procedures
+
+Standard sampling procedures used in RACE Bering Sea assessment surveys are described in detail by @RN939 and @RN933. A brief summary of these procedures is described below.
 
 Samples were collected by trawling near the center of each grid square (or grid circle, in the case of high-density strata) for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If a station was not considered trawlable due to obstructions visible on the depth sounder, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage or contained debris such as discarded crab pots which caused visible changes in net mensuration were redeployed to obtain a successful sample.
 
 Catches estimated to be less than approximately 1,150 kg (2,500 lbs) were entirely sorted and enumerated, while larger catches were weighed in aggregate and subsampled before sorting. After sorting subsampled catches, individual species were weighed and counted in aggregate, and these weights and numbers were then expanded arithmetically to the total catch. Fishes and invertebrates were identified and sorted to the lowest taxonomic level practicable. 
 
-Catch weights and numbers by species or species group were either estimated directly when subsampled, or estimated by extrapolating the proportion in the subsample to that of the entire catch weight. All Pacific halibut (Hippoglossus stenolepis) and commercial crab species were weighed and enumerated from each catch. Other selected species including Greenland turbot, large skates, Pacific cod, sculpins, sharks, and octopus were also completely sorted from the catch in most cases.
+> is the same still true for halibut in 2021? OR does it req more desc?
 
-Random samples of selected fish species (Table 2) were further processed to obtain length measurements. The number of fish in a random length sample for a species was dependent on the size range of that species in the haul, up to a maximum of about 300 specimens. For each fish in a length sample, sex was determined and then the fork or total length was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture, 50% were randomly selected to receive a preopercule tag, after which the halibut were immediately returned to the sea in an effort to reduce mortality; weights of all Pacific halibut were estimated using an IPHC length-weight regression (Courcelles 2012).
+Catch weights and numbers by species or species group were either estimated directly when subsampled, or estimated by extrapolating the proportion in the subsample to that of the entire catch weight. All Pacific halibut (*Hippoglossus stenolepis*) and commercial crab species were weighed and enumerated from each catch. Other selected species including Greenland turbot, large skates, Pacific cod, sculpins, sharks, and octopus were also completely sorted from the catch in most cases.
 
-Sagittal otoliths were collected in the field from 11 fish species in the `r SRVY ` and 1 species in the NBS (Table 2a and 2b) and brought to the AFSC to be processed for age determination. In addition, up to 20 random specimens of each Arctic cod (Boreogadus saida) and saffron cod (Eleginus gracilis) were sampled from selected catch samples in which they were present, placed in plastic bags and frozen for otolith extraction and age determination at the AFSC. For the other species, individual fish weights and lengths were collected from each fish from which age structures were taken. Pacific halibut otoliths were only collected aboard the FV Vesteraalen during the `r SRVY ` survey and aboard the FV Alaska Knight during the NBS Rapid Response survey by the IPHC and were dried and stored without preservatives. Otoliths for all other groundfishes were preserved in 50% glycerol-thymol solution.
+> "maximum of about 300 specimens" ??? More like 100-150?
 
-Depending on fish species, a length-stratified or a random sampling method was used for collecting otolith pairs in three different regions that included the southeast `r SRVY `, the northwest `r SRVY `, and the NBS. In the southeast and northwest `r SRVY `, length-stratified samples were collected from Alaska plaice (Pleuronectes quadrituberculatus; 3/sex/cm/region), yellowfin sole (Limanda aspera, 5/sex/cm/region), northern rock sole (Lepidopsetta polyxystra, 3/sex/cm/region), Greenland turbot (Reinhardtius hippoglossoides; 3 cm/sex/region), yellow Irish lord (Hemilepidotus jordani, 3/sex/cm/region), and Kamchatka flounder (Atheresthes evermanni; 2/cm/sex/region) and a random sample of otoliths were collected from Pacific cod (Gadus macrocephalus, four otolith pairs per station). Also within the two `r SRVY ` regions, random collections of up to three otolith pairs per station were taken from flathead sole (Hippoglossoides elassodon) and arrowtooth flounder (A. stomias). Sampling for walleye pollock (G. chalcogrammus) otoliths was done randomly in the two `r SRVY ` regions at each station in which the total number of walleye pollock in a catch sample was greater than 19. The survey area was also divided into low- and high-density strata based on historical density and an isobath of approximately 70 m. Five pairs of otoliths were collected in the high-density stratum and three in low-density stratum. Additionally, if juvenile walleye pollock (< 20 cm) were present in a sample, one additional pair of otoliths was taken from a randomly selected juvenile.
+> Courcelles 2012 was 2011 in my search? Also, should this my updated in 2021 considering absence of IHPC and how poorly that algo worked???
 
-#### Catch Data Analysis
+> Not done int 2021: "50% were randomly selected to receive a preopercule tag,"
 
-Trawl survey catch data were used to derive design-based estimates of biomass, population, and size structure of fish and invertebrate species. A brief description of the procedures used in the analysis of RACE Bering Sea survey data follows (for a detailed description see @RN939. Some species were grouped by family for catch data analysis because of their limited commercial value or uncertain identification. 
+Random samples of selected fish species (Table `r crossref(list_obj = list_tables, nickname = "stratum_areas", sublist = "number")`) were further processed to obtain length measurements. The number of fish in a random length sample for a species was dependent on the size range of that species in the haul, up to a maximum of about 300 specimens. For each fish in a length sample, sex was determined and then the fork or total length was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture, 50% were randomly selected to receive a preopercule tag, after which the halibut were immediately returned to the sea in an effort to reduce mortality; weights of all Pacific halibut were estimated using an IPHC length-weight regression (RN895).
 
-Mean catch per unit effort (CPUE) values for each species were calculated in kilograms per hectare (1 ha = 10,000 m2) and number of fish per hectare for each stratum; area swept (hectares) was computed as the distance towed multiplied by the mean net width [@RN889; @RN910]. Mean CPUE values were calculated for individual strata and for the overall survey area. Design-based biomass and population estimates were derived for each stratum by multiplying the stratum mean CPUE by the stratum area. Stratum totals were then summed to produce estimates for each of the strata and for the total survey area in the `r SRVY `. 
+
+> How do I know "Stomach samples collected for arrowtooth flounder and Kamchatka flounder were combined."? 
+
+> what are pathobiology samples?
+
+```{r specimen_samples}
+
+  
+l <- length_maxyr %>% 
+  dplyr::select("SRVY", species_code) %>% 
+  dplyr::group_by("SRVY" = SRVY, species_code) %>% # also type?
+  dplyr::summarise(length = as.numeric(n())) %>% 
+  dplyr::ungroup()  #%>% 
+  # dplyr::mutate(length = xunits(length, val_under_x_words = 0))
+
+a <- specimen_maxyr %>% 
+  dplyr::select("SRVY", species_code) %>% 
+  dplyr::group_by("SRVY" = SRVY, species_code) %>% # also type?
+  dplyr::summarise(age = as.numeric(n())) %>% 
+  dplyr::ungroup() #%>% 
+  # dplyr::mutate(age = xunits(age, val_under_x_words = 0))
+
+# Select data and make plot
+
+for (i in 1:nrow(surv_info)) {
+
+  header <- paste0("Biological data collected during the ", maxyr, " ", 
+                 surv_info$SRVY_long[i],
+                 " shelf bottom trawl survey.")
+  nickname <- paste0("specimen_samples_", surv_info$SRVY[i]) 
+
+table_raw <- 
+  dplyr::full_join(x = l, y = a) %>% 
+  dplyr::mutate(stomach = as.numeric(NA)) %>% # TOLEDO - placeholder
+  dplyr::mutate(pathobio = as.numeric(NA)) %>% # TOLEDO - placeholder 
+  dplyr::left_join(x = ., 
+                   y = species %>% dplyr::select(species_code,  common_name)) %>% 
+  dplyr::select(-species_code)  %>% 
+  dplyr::arrange(SRVY, desc(length), desc(age), desc(stomach), desc(pathobio)) %>% 
+  dplyr::mutate(order = 1:length(age))
+
+# to make sure that "total" rows are at the bottom
+# there has got to be a better way, but now I am v. over it, lol. I have accepted my fate. 
+temp <- table_raw %>% 
+  dplyr::select(SRVY) %>% 
+  dplyr::group_by("SRVY" = SRVY) %>% # also type?
+  dplyr::summarise(order1 = (row_number()==n())) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(order = (row_number()+0.5)) %>% 
+  dplyr::filter(order1 == TRUE) %>% 
+  dplyr::select(-order1)
+
+table_raw <- 
+  dplyr::bind_rows(table_raw, 
+                   table_raw %>% 
+                     dplyr::group_by(SRVY) %>% 
+                     dplyr::summarise(
+                       length = sum(length, na.rm = TRUE),
+                       age = sum(age, na.rm = TRUE), 
+                       stomach = sum(stomach, na.rm = TRUE), 
+                       pathobio = sum(pathobio, na.rm = TRUE)) %>% 
+                     dplyr::mutate(common_name = "Total") %>% 
+                     dplyr::left_join(x = ., y = temp)) %>% 
+  dplyr::relocate(SRVY, common_name, length, age, stomach, pathobio) %>% 
+  dplyr::arrange(order) %>% 
+  dplyr::select(-order)
+  
+table_print <- table_raw %>% 
+  dplyr::mutate(length = xunits(length, val_under_x_words = -1)) %>%
+  dplyr::mutate(age = xunits(age, val_under_x_words = -1)) %>% 
+  dplyr::mutate(stomach = xunits(stomach, val_under_x_words = -1)) %>%
+  dplyr::mutate(pathobio = xunits(pathobio, val_under_x_words = -1))
+
+table_print[is.na(table_print)]<- "-"
+
+  table_print <- flextable::flextable(table_print %>% 
+                                        dplyr::filter(SRVY == surv_info$SRVY[i]) %>% 
+                                        dplyr::select(-SRVY)) %>%
+    flextable::set_header_labels(.,
+                      common_name = surv_info$SRVY[i],
+                      length = "Length\nmeasurements",
+                      age = "Age\nmeasurements",
+                      stomach = "Stomachs\ncollected",
+                      pathobio = "Pathobiology\nsamples"
+                      ) %>%
+    # flextable::merge_v(j = "SRVY") %>%
+    flextable::valign(valign = "top") %>%
+    theme_flextable_nmfstm(x = .)
+
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
+}
+
+```
+
+
+> how do I select for otolith samples, e.g., not L-W?
+
+> I did not get the 2017 numbers in the report...
+
+```{r}
+temp <- specimen_maxyr %>% 
+  # dplyr::filter(!is.na(age_determination_method)) %>% # TOLEDO - is this how I get otolith samples?
+  dplyr::group_by(SRVY = all_of(SRVY)) %>% 
+  dplyr::summarise(species_code_n = unique(species_code)) %>% 
+  dplyr::summarise(n = length(all_of(SRVY)))   
+```
+
+
+> Where can I automate "up to 20 random specimens of each Arctic cod (*Boreogadus saida*) and saffron cod (*Eleginus gracilis*)" from?
+
+> Where can I automate "For the other species, individual fish weights and lengths were collected from each fish from which age structures were taken' from? - this doesn't have numbers, but should it?
+
+> way to automate this? What boats, surveys, and IHPC involvement: "Pacific halibut otoliths were only collected aboard the FV Vesteraalen during the `r SRVY ` survey and aboard the FV Alaska Knight during the NBS Rapid Response survey by the IPHC and were dried and stored without preservatives. "
+
+Sagittal otoliths were collected in the field from `r NMFSReports::text_list(paste0(temp$n, " fish species in the ", temp$SRVY)) ` (Table `r crossref(list_obj = list_tables, nickname = "specimen_samples_EBS", sublist = "number")` `r paste0(" and ", crossref(list_obj = list_tables, nickname = "specimen_samples_NBS", sublist = "number"))`) and brought to the AFSC to be processed for age determination. In addition, up to `20 random specimens of each Arctic cod (*Boreogadus saida*) and saffron cod (*Eleginus gracilis*)` were sampled from selected catch samples in which they were present, placed in plastic bags and frozen for otolith extraction and age determination at the AFSC. `For the other species, individual fish weights and lengths were collected from each fish from which age structures were taken`. `Pacific halibut otoliths were only collected aboard the FV Vesteraalen during the EBS survey and aboard the FV Alaska Knight during the NBS Rapid Response survey by the IPHC and were dried and stored without preservatives`. Otoliths for all other groundfishes were preserved in 50% glycerol-thymol solution.
+
+> where can I automate this whole paragraph from? Google drive for the poster?
+
+Depending on fish species, a length-stratified or a random sampling method was used for collecting otolith pairs in three different regions that included the southeast EBS, the northwest EBS, and the NBS. In the southeast and northwest EBS, length-stratified samples were collected from `Alaska plaice (*Pleuronectes quadrituberculatus*; 3/sex/cm/region), yellowfin sole (Limanda aspera, 5/sex/cm/region), northern rock sole (Lepidopsetta polyxystra, 3/sex/cm/region), Greenland turbot (Reinhardtius hippoglossoides; 3 cm/sex/region), yellow Irish lord (Hemilepidotus jordani, 3/sex/cm/region), and Kamchatka flounder (Atheresthes evermanni; 2/cm/sex/region)` and a random sample of otoliths were collected from `Pacific cod (Gadus macrocephalus, four otolith pairs per station)`. Also within the two `r SRVY ` regions, random collections of up to three otolith pairs per station were taken from `flathead sole (Hippoglossoides elassodon) and arrowtooth flounder (A. stomias)`. Sampling for `walleye pollock (G. chalcogrammus) otoliths was done randomly in the two EBS and NBS regions at each station in which the total number of walleye pollock in a catch sample was greater than 19. The survey area was also divided into low- and high-density strata based on historical density and an isobath of approximately 70 m. Five pairs of otoliths were collected in the high-density stratum and three in low-density stratum. Additionally, if juvenile walleye pollock (< 20 cm) were present in a sample, one additional pair of otoliths was taken from a randomly selected juvenile.`
+
+
+`r specimen_samples_EBS `
+
+
+`r ifelse(SRVY == "NEBS", specimen_samples_NBS, "") `
+
+###### 
+
+
+## Catch Data Analysis
+
+Trawl survey catch data were used to derive design-based estimates of biomass, population, and size structure of fish and invertebrate species. A brief description of the procedures used in the analysis of RACE Bering Sea survey data follows (for a detailed description see @RN939). Some species were grouped by family for catch data analysis because of their limited commercial value or uncertain identification. 
+
+Mean catch per unit effort (CPUE) values for each species were calculated in kilograms per hectare (1 ha = 10,000 m^2^) and number of fish per hectare for each stratum; area swept (hectares) was computed as the distance towed multiplied by the mean net width [@RN889; @RN910]. Mean CPUE values were calculated for individual strata and for the overall survey area. Design-based biomass and population estimates were derived for each stratum by multiplying the stratum mean CPUE by the stratum area. Stratum totals were then summed to produce estimates for each of the strata and for the total survey area in the `r SRVY `. 
 
 For size composition estimates, the proportion of fish at each centimeter length interval (from subsamples at each station), weighted by CPUE (number of fish/ha), was expanded to the stratum population. Stratum abundance-at-length estimates were summed for the total estimated size composition for the overall survey area in both the `r SRVY `.
 
+> which year is appropriate and what citation can I use, assuming it hasn't come out yet? "2018 NPFMC Stock Assessment and Fishery Evaluation Report for the Groundfish Resources of the Bering Sea/Aleutian Islands Region [@RN918]"
+
 Except for Pacific halibut, otolith samples collected during the survey were read for age estimates by staff of the Age and Growth Program of the AFSC's Resource Ecology and Fisheries Management (REFM) Division. The most current information about age, growth, and population analyses are presented in the 2018 NPFMC Stock Assessment and Fishery Evaluation Report for the Groundfish Resources of the Bering Sea/Aleutian Islands Region [@RN918].
 
-#### Additional Research Projects
+## Additional Research Projects
 
-In addition to standard survey operations, 24 research projects were undertaken during `r maxyr` (Table 3). A solicitation for research proposals was issued on 24 January 2018. Project requests were prioritized and modified based on their potential support of AFSC goals and their expected impact on survey resources and available time. Some of the approved projects were new for 2018, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) designated in Table 3.
+```{r special_projects}
+nickname0 <- "special_projects" 
+footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
 
+# Select data and make plot
+googledrive::drive_download(paste0(dir_googledrive, nickname0), 
+               type = "csv", 
+               overwrite = TRUE, 
+               path = paste0(dir_out_rawdata, "/", nickname0))
+
+temp <- readr::read_csv(paste0(dir_out_rawdata, "/", nickname0, ".csv"))
+
+for (i in 1:nrow(surv_info)) {
+
+  header <- paste0("Special projects and collections undertaken during the ",
+                   maxyr, " ", 
+                   surv_info$SRVY_long[i], 
+                 "shelf bottom trawl survey by principal investigator and agency.")
+  
+  nickname <- paste0(nickname0, "_", surv_info$SRVY[i]) 
+
+
+table_raw<-temp %>% 
+  dplyr::filter(SRVY == surv_info$SRVY[i]) %>% 
+  dplyr::select(-SRVY)
+
+table_print <- table_raw %>% 
+  flextable::flextable(.) %>% 
+  theme_flextable_nmfstm() %>% 
+  flextable::footnote(x = ., value = as_paragraph(footnote0), part = "header", j = 3) 
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
+}
+
+temp <- temp %>% 
+  # dplyr::filter(!is.na(age_determination_method)) %>% # TOLEDO - is this how I get otolith samples?
+  dplyr::group_by(SRVY) %>% 
+  dplyr::summarise(n = length(all_of(SRVY))) 
+
+```
+
+> "24 January 2018"
+
+> how do I know "Some of the approved projects were new for 2018, while many continued multi-year observations of supplementary data" ?
+
+In addition to standard survey operations, `r NMFSReports::text_list(paste0(temp$n, " research project",ifelse(temp$n>1, "s were", " was")," undertaken in the ", temp$SRVY))` during the `r maxyr` survey season (Table `r crossref(list_obj = list_tables, nickname = "special_projects_EBS", sublist = "number")` `r paste0(" and ", crossref(list_obj = list_tables, nickname = "special_projects_NBS", sublist = "number"))`). A solicitation for research proposals was issued on `24 January 2018`. Project requests were prioritized and modified based on their potential support of AFSC goals and their expected impact on survey resources and available time. Some of the approved projects were new for 2018, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) designated in Table `r crossref(list_obj = list_tables, nickname = "special_projects_EBS", sublist = "number")` `r paste0(" and ", crossref(list_obj = list_tables, nickname = "special_projects_NBS", sublist = "number"))`.
+
+
+`r special_projects_EBS `
+
+
+`r ifelse(SRVY == "NEBS", special_projects_NBS, "") `
+
+###### 
