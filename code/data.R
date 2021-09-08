@@ -21,7 +21,6 @@
 # *** Report Species ---------------------------------------------------------------
 
 
-# STRAT <- c(10,20,31,32,41,42,43,50,61,62,82,90)
 # Northern and Southern rock sole (grouped) = c(10262, 10261, 10263)
 report_species_NEBS<-list("fish1" = # all plots and tables
                             list("Walleye pollock" = c(21740, 21741, 21742, 21744),
@@ -163,11 +162,6 @@ report_types <- list(
       select.region = "sebs", 
       set.crs = "auto", 
       return.survey.grid = TRUE),
-    # extrap.box = c(xmn = -179.5, 
-    #                xmx = -157, 
-    #                ymn = 54, 
-    #                ymx = 63), 
-    STRAT = c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10), 
     report_species = report_species_NEBS), 
   "NEBS" = list(
     sectname = "NEBS-BTS-Report", 
@@ -183,76 +177,8 @@ report_types <- list(
       select.region = "ebs", 
       set.crs = "auto", 
       return.survey.grid = TRUE),
-    # extrap.box = c(xmn = -179.5, 
-    #                xmx = -157, 
-    #                ymn = 54, 
-    #                ymx = 68), 
-    STRAT = c(90, 82, 62, 43, 61, 41, 20, 42, 32, 50, 31, 10, #EBS
-              81, 70, 71),   # NBS
     report_species = report_species_NEBS)
 )
-#   "NBS" = list(
-#     SURVEY = "northern Bering Sea",
-#     map.area = "bs.north", # "bs.north"
-#     SRVY1 = "NBS",
-#     SRVY00 <- 98, #NBS
-#     station_id = akgfmaps::get_survey_stations(select.region = "nbs"),
-#     reg_dat = akgfmaps::get_base_layers(
-#       select.region = "sebs", 
-#       set.crs = "auto", 
-#       return.survey.grid = TRUE) %>% 
-#       dplyr::filter(STATIONID %in% akgfmaps::get_survey_stations(select.region = "nbs")), 
-#     # extrap.box <- c(xmn = -179.5, 
-#     #                 xmx = -157, 
-#     #                 ymn = 63, 
-#     #                 ymx = 68),
-#     STRAT <- c(81, 70, 71)) # NBS
-# )
-
-# reg_dat_s <- akgfmaps::get_base_layers(select.region = "bs.south", set.crs = "auto")
-# reg_dat_a <- akgfmaps::get_base_layers(select.region = "bs.all", set.crs = "auto")
-# 
-# library(raster)
-# reg_dat <- reg_dat_a
-# reg_dat$survey.area <- intersect(reg_dat_s$survey.area, 
-#                                    reg_dat_a$survey.area)$geometry[2]
-# reg_dat$place.labels$region <- "bs.north"
-# reg_dat$plot.boundary[2,] <- reg_dat_s$plot.boundary[2,]
-# reg_dat$lat.breaks <- c(56, 58, 60, 62, 64, 66)
-    
-#     # First read in the shapefile, using the path to the shapefile and the shapefile name minus the
-#     # extension as arguments
-#     surveygrid_shp00 <- readOGR(dsn = here::here("shapefiles","STRATA", "EBS_NBS_2019.shp"))
-#     
-#     proj4string(surveygrid_shp00) <- crs(reg_dat$akland)
-#     
-#     surveygrid_shp0 <- sp::spTransform(x = surveygrid_shp00, 
-#                                        CRSobj = crs(reg_dat$akland) )
-#     
-#     surveygrid_shp <- fortify(surveygrid_shp00) # Next the shapefile has to be converted to a dataframe for use in ggplot2    
-#     
-#     
-#     placenames <- read.csv(file = system.file("data",
-#                                               file = "placenames.csv", package = "akgfmaps",
-#                                               mustWork = TRUE), stringsAsFactors = FALSE) %>%
-#       transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
-# 
-#     placenames_n <- placenames %>%
-#       dplyr::filter(region == "bs.all") %>%
-#       dplyr::mutate(region = "bs.north")
-# 
-#     # placenames_n[placenames_n$lab %in% "Alaska", c("x", "y")] <-
-# 
-#     placenames <- rbind.data.frame(placenames, placenames_n)
-# 
-#     placenames <- placenames %>%
-#       dplyr::filter(region == map.area)
-# 
-#     # placenames <- placenames[!(placenames$lab %in% c("Pribilof Isl.", "St. Matthew")), ]
-# }
-
-
-
 
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
@@ -261,9 +187,6 @@ placenames0 <- read.csv(file = system.file("data",
                                           file = "placenames.csv", package = "akgfmaps",
                                           mustWork = TRUE), stringsAsFactors = FALSE) %>%
   transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
-
-
-
 
 
 # *** Load Oracle Data -------------------------------------------------------------
@@ -278,13 +201,12 @@ for (i in 1:length(a)){
   assign(x = gsub(pattern = "\\.csv", replacement = "", x = a[i]), value = b)
 }
 
-
 # *** Load Public Data -------------------------------------------------------
 
 # load(here::here("data", "publicdata", "all_data.Rdata"))
 # lastdl <- ageoffile(here::here("data", "publicdata", "all_data.Rdata"))   
 
-# *** Load BIOMASS Design Based Estimates ----------------------------------------------
+# *** Load Biomass Design Based Estimates ----------------------------------------------
 
 # df.ls <- list()
 # df.ls0 <- gsub(pattern = , ".csv", replacement = "",
@@ -380,7 +302,7 @@ stratum_area <- stratum %>%
            year <= maxyr & 
            stratum < 100 &
            # !(stratum %in%  c(70, 71, 81)) &
-           stratum %in% STRAT) %>% # TOLEDO
+           stratum %in% reg_dat$survey.strata$Stratum) %>% # TOLEDO
   filter(year == strat_yr)
 
 #G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
@@ -435,7 +357,6 @@ haul_cruises<-dplyr::left_join(
       haul_type == 3 &
       !(is.null(stationid)) &
       survey_definition_id %in% SRVY00
-      # stratum %in% STRAT
   )  %>% 
   dplyr::mutate(performance_success =
                   dplyr::case_when(
@@ -573,19 +494,27 @@ vessel_info1 <-  vessel_info %>%
 
 # *** *** spp_info -------------------------------------------------------------
 
-spp_info <- dplyr::left_join(
-  x = unique(catch_haul_cruises[, "species_code"]), 
-  y = species_classification, 
-  by = "species_code") %>%
+spp_info <- 
+  dplyr::left_join(
+    x = unique(catch_haul_cruises[, "species_code"]), 
+    y = species_classification, 
+    by = "species_code") %>%
+  dplyr::left_join(x = . , 
+                   y = species, 
+                   by = "species_code") %>%
   dplyr::mutate(fish = class_taxon %in% c("Actinopterygii", "Chondrichthyes")) %>%#& #spp_info_maxyr$superclass_taxon %in% "Osteichythyes"
   dplyr::mutate(invert = (phylum_taxon != "Chordata"))
 
 
 # species specifically caught in the survey year
-spp_info_maxyr <- dplyr::left_join(
-  x = unique(catch_haul_cruises_maxyr[, "species_code"]), 
-  y = species_classification, 
-  by = "species_code") %>%
+spp_info_maxyr <- 
+  dplyr::left_join(
+    x = unique(catch_haul_cruises_maxyr[, "species_code"]), 
+    y = species_classification, 
+    by = "species_code") %>%
+    dplyr::left_join(x = . , 
+                     y = species, 
+                     by = "species_code") %>%
   dplyr::mutate(fish = class_taxon %in% c("Actinopterygii", "Chondrichthyes")) %>%#& #spp_info_maxyr$superclass_taxon %in% "Osteichythyes"
   dplyr::mutate(invert = (phylum_taxon != "Chordata"))
   

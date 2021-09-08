@@ -12,11 +12,11 @@ bibliography: "../cite/bibliography.bib"
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
-### Results and Discussion
+# Results and Discussion
 
 All 376 of the `r SRVY ` stations and 49 rapid response NBS stations were successfully sampled in `r maxyr` (Figure 2). Summarized haul and raw catch sample data for successfully trawled stations used in the analyses are listed in Appendix A by vessel along with date, time, start and end positions, mean bottom depth, tow duration, distance fished over ground, mean net width, and trawl performance.	
 
-#### Ocean Conditions
+## Ocean Conditions
 
 Sea surface temperatures recorded during the survey ranged from 4.5° to 13.7° (Figure 4). Surface temperatures were warmest in the northwest region of the survey area. Near-bottom temperatures (measured as the temperature at the depth of the headrope while the trawl was on-bottom) ranged from 0.7°C to 9.6°C (Figure 5), with warmer near-bottom temperatures (> 3.0°C) occurring throughout a majority of the southern extent of the survey area, ranging to approximately 90 nmi north of the Pribilof Islands, approximately 60 nmi west of Nunivak Island and following the coastline north to the Anadyr Strait.
 
@@ -25,13 +25,350 @@ During the last 16 years, 2006 – 2013 (Fig. 6a) were colder than average (“c
 
 The size of the cold pool each summer depends on sea ice coverage from the previous winter, the timing of its retreat during the spring and early summer as well as other oceanographic and meteorological conditions [@RN941]. During the coldest years, sea ice extended farther south and lasted later into spring resulting in cold pools that extended farther south down the middle domain into Bristol Bay and near the Alaska Peninsula (Fig. 6a). Interannual variability in the dynamics of seasonal ice is a major environmental driver on the Bering Sea shelf (Stabeno et al. 2001, 2012a, b) that can change recruitment and migration patterns and cause major distributional shifts in groundfishes and crabs [@RN905; @RN913; @RN977]. The 2018 cold pool occupied the smallest percentage of the `r SRVY ` shelf in the survey’s 37 year time series and was confined to a small area of the upper middle shelf (50 -100 m depth) north of latitude 61° N (Figure 5). 
 
-#### Survey Data and Specimen Collections 
+## Survey Data and Specimen Collections 
 
 From the combined `r SRVY ` (Tables 2a) and NBS Rapid Response (Table 2b) trawl surveys, a total of 293,154 individual length measurements representing 45 taxa were collected. Additional collections (see Table 3 for list of projects) included 8,038 age structures (otoliths) from 11 fish taxa, 7,969 stomach samples from 4 fish taxa, and 1,279 pathobiology (blood) samples from two different crab taxa.
 
-#### Species Composition
+## Species Composition
 
-A total of 114 fish species representing 20 families and 65 genera were identified in the survey catches from both the `r SRVY ` and NBS (Appendix B, Table 6). The `r SRVY ` had a total of 93 fish species, 49 of which did not occur in the NBS. In comparison, the NBS had 70 total fish species (in 15 families), 12 of which did not occur in the `r SRVY ` (Table 4). Seven of the 12 species only occurring in the NBS (Table 4) have only been documented north of 60°N (Mecklenburg et al. 2002). Six flatfish species that were present in the `r SRVY ` were absent from the NBS including English sole (Parophrys vetulus), dover sole (Microstomus pacificus), butter sole (Isopsetta isolepis), rex sole (Glyptocephalus zachirus), hybrid starry flounder X Alaska plaice (Platichthys stellatus X Pleuronectes quadrituberculatus) and southern rock sole (Table 4).
+> compare with how this table is shown in EBS only tables
+
+```{r species_composition}
+
+if (SRVY == "NEBS"){
+
+header <- paste0("List of fish taxa from survey catches exclusive to the ",
+                 NMFSReports::text_list(paste0(surv_info$SRVY_long, " shelf (", 
+                                               surv_info$SRVY, ")")),".")
+
+footnote0 <- "Taxa in bold only documented north of 60° N latitude."
+nickname <- "species_composition" 
+
+# Select data and make plot
+table_raw <- catch_haul_cruises_maxyr %>% 
+  dplyr::select(species_code, SRVY , start_latitude) %>% 
+  dplyr::group_by(species_code, SRVY) %>% 
+  dplyr::summarise(lat = max(start_latitude)) %>% 
+  tidyr::pivot_wider(data = ., id_cols = species_code, names_from = SRVY, 
+                     values_from = lat, values_fill = NA) %>% 
+  dplyr::left_join(x = ., 
+                   y = species_classification) %>% 
+  dplyr::mutate(fish = class_taxon %in% c("Actinopterygii", "Chondrichthyes")) %>%
+  dplyr::filter(fish == TRUE) %>% 
+  dplyr::select(species_code, report_name_scientific, all_of(SRVY1)) %>% 
+  dplyr::left_join(x = ., 
+                   y = species) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::select(common_name, report_name_scientific, all_of(SRVY1), -species_code ) %>% 
+  dplyr::filter(!grepl(x = common_name, pattern = " unid.", ignore.case = TRUE, fixed = TRUE)) %>% 
+  dplyr::filter(!grepl(x = common_name, pattern = " egg", ignore.case = TRUE, fixed = TRUE)) %>% 
+  dplyr::filter(!is.na(common_name)) %>% 
+  dplyr::arrange(common_name) %>% 
+  dplyr::filter(!(!is.na(EBS) & !is.na(NBS)))  %>% 
+  dplyr::mutate(above_60 = (EBS >= 60 | NBS >= 60)) %>%
+  dplyr::mutate(above_60 = ifelse(is.na(above_60), FALSE, TRUE))  %>% 
+  dplyr::mutate(where = ifelse(is.na(NBS), 
+                               "Present in EBS but absent in NBS", 
+                               "Present in NBS but absent in EBS")) %>% 
+  dplyr::select(-NBS, -EBS)
+
+temp1 <- table_raw %>% 
+  dplyr::filter(where == "Present in EBS but absent in NBS" & 
+                  !is.na(common_name)) %>% 
+  dplyr::select(-where) 
+temp2 <- table_raw %>% 
+  dplyr::filter(where == "Present in NBS but absent in EBS" & 
+                  !is.na(common_name)) %>% 
+  dplyr::select(-where) 
+
+# make the same length so they can be bound together
+if (nrow(temp1)>nrow(temp2)){
+  temp2 <- temp2 %>% 
+    dplyr::bind_rows(., 
+                     data.frame(common_name = rep_len(NA, (nrow(temp1)-nrow(temp2))), 
+                                report_name_scientific = NA, 
+                                above_60 = FALSE))
+} else {
+  temp1 <- temp1 %>% 
+  dplyr::bind_rows(., 
+                     data.frame(common_name = rep_len(NA, (nrow(temp2)-nrow(temp1))), 
+                                report_name_scientific = NA, 
+                                above_60 = FALSE))
+}
+
+names(temp1) <- paste0(names(temp1), "_")
+
+table_print <- 
+  dplyr::bind_cols(temp1, temp2) %>% 
+  dplyr::select(-above_60, -above_60_) %>%
+  flextable::flextable(data = .) %>% 
+  flextable::italic(x = ., 
+                 j = c(2,4)) %>%
+  flextable::bold(x = ., 
+                 i = which(temp1$above_60_),
+                 j = 1:2) %>%  
+  flextable::bold(x = ., 
+                 i = which(temp2$above_60),
+                 j = 3:4) %>%
+  flextable::footnote(x = ., part = "header", i = 1, j = 1, 
+                     value = as_paragraph(footnote0)) %>%
+  add_header_row(x = ., 
+                 values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
+    colwidths = c(2, 2)) %>% 
+    flextable::set_header_labels(., 
+                                 common_name_ = "Common name",
+                    report_name_scientific_ = "Scientific name", 
+                                 common_name = "Common name",
+                    report_name_scientific = "Scientific name"
+                    ) %>% 
+  theme_flextable_nmfstm(row_lines = FALSE) %>% 
+  flextable::vline(x = ., j = 2, part = "all")
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
+} 
+
+```
+
+
+> which column is the confidence interval? Guessing upperb+lowerb?
+
+> Did I calculate proportion right?
+
+```{r biomass_est}
+
+nickname0 <- "biomass_est"
+
+for (i in 1:nrow(surv_info)) {
+
+  header <- paste0("Biomass estimates (t) for major fish species and groups taken during the ", 
+                   maxyr, " ", 
+                 surv_info$SRVY_long[i],
+                 " shelf bottom trawl survey.")
+  
+  nickname <- paste0(nickname0, "_", surv_info$SRVY[i]) 
+
+  
+#' find values based on strings
+#'
+#' @param x 
+#' @param col 
+#' @param str 
+#' @param str_not 
+#' @param col_out 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'   find_codes(x = species, str = "skate", col = "common_name", 
+#'                col_out = "common_name")
+#'     find_codes(x = species, str = "skate", col = "common_name", 
+#'                col_out = "common_name", str_not = "Alaska skate")
+#'     find_codes(x = species, str = "skate", col = "common_name")
+  find_codes <- function(x, col = "common_name", str = NULL, 
+                         str_not = NULL, col_str_not = NULL, 
+                         col_out = "species_code") {
+    out <- x 
+    
+    if (is.null(col_str_not)) {
+      col_str_not <- col
+    }
+    
+    # 1. remove codes that we defintly dont want 
+    out <- out %>% 
+      dplyr::filter(
+        !(grepl(pattern = " egg", 
+                x = unlist(out[,col]),
+                ignore.case = TRUE)))
+    
+    # 2. find the codes we do want
+    if (!is.null(str)) {
+      out <- out %>% 
+        dplyr::filter(
+            grepl(pattern = str, 
+                  x = as.character(unlist(out[,col])),
+                  ignore.case = TRUE))
+    }
+    
+    # 3. remove codes that may have been included in codes we want (2)
+    if (!is.null(str_not)) {
+      
+      str_not <- str_not[!is.na(str_not)]
+      str_not <- unique(str_not)
+      
+      for (i in 1:length(str_not)){
+        out <- out  %>%
+          dplyr::filter(!(grepl(pattern = str_not[i], 
+                         x = unlist(out[,col_str_not]),
+                         ignore.case = TRUE))) 
+      }
+    }
+    
+    # clean codes
+    out <- out  %>%
+      dplyr::select(all_of(col_out)) %>% 
+      unique() %>% 
+      unlist() 
+    
+    names(out) <- NULL
+    
+    if (length(out) == 0) {
+      out <- NA
+    } else {
+      out <- sort(out)
+    }
+    
+    return(out)
+  }
+
+  # temp <- list(
+  #   # skates
+  #   "Raidae (skates)" = list(
+  #     "Alaska skate" = find_codes(x = spp_info_maxyr, str = "Alaska skate"), 
+  #     "Other skates" = find_codes(x = spp_info_maxyr, str = "skate", str_not = "Alaska skate"), 
+  #     "Total skates" = find_codes(x = spp_info_maxyr, str = "skate")), 
+  #   # flatfishes
+  #   "Pleuronectidae (flatfishes)" = list(
+  #     "Yellowfin sole" = find_codes(x = spp_info_maxyr, str = "Yellowfin sole"), 
+  #     "Northern rock sole" = find_codes(x = spp_info_maxyr, str = "Northern rock sole"),
+  #     "Flathead sole" = find_codes(x = spp_info_maxyr, str = "Flathead sole"),
+  #     "Bering flounder" = find_codes(x = spp_info_maxyr, str = "Bering flounder"),
+  #     "Alaska plaice" = find_codes(x = spp_info_maxyr, str = "Alaska plaice"),
+  #     "Arrowtooth flounder" = find_codes(x = spp_info_maxyr, str = "Arrowtooth flounder"),
+  #     "Kamchatka flounder" = find_codes(x = spp_info_maxyr, str = "Kamchatka flounder"),
+  #     "Greenland turbot" = find_codes(x = spp_info_maxyr, str = "Greenland turbot"),
+  #     "Pacific halibut" = find_codes(x = spp_info_maxyr, str = "Pacific halibut"),
+  #     "Other flatfish" = 
+  #       find_codes(x = spp_info_maxyr, str = "Pleuronectidae", col = "family_taxon", 
+  #                  col_str_not = "common_name", 
+  #                  str_not = c("Yellowfin sole", "Northern rock sole", "Flathead sole", 
+  #                              "Bering flounder", "Alaska plaice", "Arrowtooth flounder", 
+  #                              "Kamchatka flounder", "Greenland turbot", "Pacific halibut")), 
+  #     "Total flatfish" = find_codes(x = spp_info_maxyr, str = "Pleuronectidae", 
+  #                                   col = "family_taxon")), 
+  #   
+  #   # Cod
+  #   "Gadidae (cods)" = list( 
+  #     "Walleye pollock" = find_codes(x = spp_info_maxyr, str = "Walleye pollock"), 
+  #     "Pacific cod" = find_codes(x = spp_info_maxyr, str = "Pacific cod"),
+  #     "Other cods" = 
+  #               find_codes(x = spp_info_maxyr, str = "Gadidae", col = "family_taxon", 
+  #                  col_str_not = "common_name", 
+  #                  str_not = c("Walleye pollock", "Pacific cod")), 
+  #     "Total cods" = find_codes(x = spp_info_maxyr, str = "Gadidae", col = "family_taxon")),
+  #   # mix
+  #   "Agonidae (poachers)" = find_codes(x = spp_info_maxyr, str = "Agonidae", 
+  #                                      str_not = "Cheiragonidae", col = "family_taxon"), 
+  #   "Cottidae (sculpins)" = find_codes(x = spp_info_maxyr, str = "Cottidae", col = "family_taxon"), 
+  #   "Hexagrammidae (greenlings)" = find_codes(x = spp_info_maxyr, str = "Hexagrammidae", col = "family_taxon"), 
+  #   "Cyclopteridae (lumpsuckers)" = find_codes(x = spp_info_maxyr, str = "Cyclopteridae", col = "family_taxon"), 
+  #   "Liparidae (snailfishes)" = find_codes(x = spp_info_maxyr, str = "Liparidae", col = "family_taxon"), 
+  #   "Osmeridae (smelts)" = find_codes(x = spp_info_maxyr, str = "Osmeridae", col = "family_taxon"), 
+  #   "Sichaeidae (blennies)" = find_codes(x = spp_info_maxyr, str = "Sichaeidae", col = "family_taxon"), 
+  #   "Zoarcidae (eelpouts)" = find_codes(x = spp_info_maxyr, str = "Zoarcidae", col = "family_taxon"), 
+  #   # rockfish
+  #   "Scorpaenidae (rockfish)" = list(
+  #     "Pacific ocean perch" = find_codes(x = spp_info_maxyr, str = "Pacific ocean perch"), 
+  #     "Other rockfish" = find_codes(x = spp_info_maxyr, str = "Scorpaenidae", col = "family_taxon", 
+  #                                   str_not = "Pacific ocean perch", col_str_not = "common_name"), 
+  #     "Total rockfish" = find_codes(x = spp_info_maxyr, str = "Scorpaenidae", col = "family_taxon")), 
+  #   # other
+  #   "Other fish" = NA)
+  # 
+  # temp$`Other fish` <- 
+  #   find_codes(
+  #     x = spp_info_maxyr %>% dplyr::filter(fish == TRUE), 
+  #     # col_out = "common_name",
+  #     str_not = unique(unlist(temp)), col_str_not = "species_code")
+  
+# Select data and make plot
+table_raw <- dat_biomass_maxyr %>% 
+  dplyr::mutate(conf95 = upperb) %>% # TOLEDO
+  dplyr::filter(stratum %in% reg_dat$survey.strata$Stratum & 
+                  survey == surv_info$SRVY[i]) %>% 
+  dplyr::select(species_code, survey, biomass, stratum, conf95, common_name) %>% 
+  dplyr::left_join(x = ., 
+                   y = spp_info_maxyr %>% 
+                     dplyr::select(report_name_scientific, species_code, fish)) %>% 
+  dplyr::mutate(prop = biomass/sum(biomass)) # TOLEDO
+
+  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ",NMFSReports::xunits(value = sum(biomass), words = FALSE)," t.")
+
+
+
+table_print <- table_raw
+  dplyr::bind_cols(temp1, temp2) %>% 
+  dplyr::select(-above_60, -above_60_) %>%
+  flextable::flextable(data = .) %>% 
+  flextable::italic(x = ., 
+                 j = c(2,4)) %>%
+  flextable::bold(x = ., 
+                 i = which(temp1$above_60_),
+                 j = 1:2) %>%  
+  flextable::bold(x = ., 
+                 i = which(temp2$above_60),
+                 j = 3:4) %>%
+  flextable::footnote(x = ., part = "header", i = 1, j = 1, 
+                     value = as_paragraph(footnote0)) %>%
+  add_header_row(x = ., 
+                 values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
+    colwidths = c(2, 2)) %>% 
+    flextable::set_header_labels(., 
+                                 common_name_ = "Common name",
+                    report_name_scientific_ = "Scientific name", 
+                                 common_name = "Common name",
+                    report_name_scientific = "Scientific name"
+                    ) %>% 
+  theme_flextable_nmfstm(row_lines = FALSE) %>% 
+  flextable::vline(x = ., j = 2, part = "all")
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
+} 
+
+```
+
+
+```{r}
+# <!-- > `r temp_insert1``r temp_insert2` In the `r SRVY`, there was a total of `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$fish==TRUE])))` species of fishes representing `r xunits(length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$fish==TRUE])))` families and `r xunits(length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$fish==TRUE])))` genera, as well as `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$invert==TRUE])))` invertebrate taxa, representing `r xunits(length(unique(spp_info_maxyr$phylum_taxon)))` phyla identified in the catches. -->
+```
+
+A total of `r length(unique(spp_info_maxyr$report_name_scientific[spp_info_maxyr$fish == TRUE])) ` fish species representing `r length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$fish == TRUE]))` families and `r length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$fish == TRUE])) ` genera were identified in the survey catches from the `r NMFSReports::text_list(surv_info$SRVY)` (Appendix B, Table 6). The `r SRVY ` had a total of 93 fish species, 49 of which did not occur in the NBS. In comparison, the NBS had 70 total fish species (in 15 families), 12 of which did not occur in the `r SRVY ` (Table 4). Seven of the 12 species only occurring in the NBS (Table 4) have only been documented north of 60°N [@RN912]. Six flatfish species that were present in the `r SRVY ` were absent from the NBS including English sole (Parophrys vetulus), dover sole (Microstomus pacificus), butter sole (Isopsetta isolepis), rex sole (Glyptocephalus zachirus), hybrid starry flounder X Alaska plaice (Platichthys stellatus X Pleuronectes quadrituberculatus) and southern rock sole (Table `r crossref(list_obj = list_tables, nickname = "species_composition", sublist = "number") `).
+
+
+
+`r species_composition `
 
 > For the purposes of counting the number of each taxonomic hierarchy, we employed ITIS [CITATION] which is ___. All species are idenfitied using and logged in AFSC's databases as *Eschmeyer's Ctaglog of Fishes* (CITATION Eschmeyer) and *An Annotated Checklist of the Marine Macroinvertebrates of Alaska* (CITATION: Drumm). 
 
@@ -39,31 +376,32 @@ A total of 114 fish species representing 20 families and 65 genera were identifi
 
 ```{r}
 
-# find number of ___ for species
+# # find number of ___ for species
+# 
+# spp.tsn.list0<-spp.tsn.list[names(spp.tsn.list) %in% 
+#                               unique(dat$SCIENTIFIC.y[dat$YEAR %in% maxyr])]
+# 
+# unq.spp<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "species") ))
+# 
+# unq.gen<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "genus") ))
+# 
+# unq.fam<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "family") ))
+# 
+# # unq.phyl<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "phyla") )) 
+# 
+# spp.tsn.list00<-spp.tsn.list0[names(spp.tsn.list0) %in% unique(dat.maxyr$SCIENTIFIC.y[dat.maxyr$category %in% invert])]
+# 
+# unq.spp.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "species") ))  
+#     
+# unq.phyl.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "phylum") ))  
 
-spp.tsn.list0<-spp.tsn.list[names(spp.tsn.list) %in% 
-                              unique(dat$SCIENTIFIC.y[dat$YEAR %in% maxyr])]
 
-unq.spp<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "species") ))
-
-unq.gen<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "genus") ))
-
-unq.fam<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "family") ))
-
-# unq.phyl<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "phyla") )) 
-
-spp.tsn.list00<-spp.tsn.list0[names(spp.tsn.list0) %in% unique(dat.maxyr$SCIENTIFIC.y[dat.maxyr$category %in% invert])]
-
-unq.spp.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "species") ))  
-    
-unq.phyl.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "phylum") ))  
-
+# <!-- > FROM ABSTRACT: `r temp` average surface (`r round(x = mean(dat.maxyr$SURF_TEMP, na.rm = T), digits = 1) `°C) and bottom (`r round(x = mean(dat.maxyr$BOT_TEMP, na.rm = T), digits = 1) `°C) water temperatures for the `r SRVY ` shelf were well above the long-term means from `r minyr` to `r maxyr` for the surface (`r round(x = mean(dat$SURF_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C) and for the bottom (`r round(x = mean(dat$BOT_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C). In the `r SRVY `, there were a total of `r unq.spp` species representing `r unq.fam` families and `r unq.gen` genera, as well as `r unq.spp.inv ` invertebrate taxa representing `r unq.phyl.inv` phyla, identified in the catches. -->
+  
 ```
 
-> FROM ABSTRACT: `r temp` average surface (`r round(x = mean(dat.maxyr$SURF_TEMP, na.rm = T), digits = 1) `°C) and bottom (`r round(x = mean(dat.maxyr$BOT_TEMP, na.rm = T), digits = 1) `°C) water temperatures for the `r SRVY ` shelf were well above the long-term means from `r minyr` to `r maxyr` for the surface (`r round(x = mean(dat$SURF_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C) and for the bottom (`r round(x = mean(dat$BOT_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C). In the `r SRVY `, there were a total of `r unq.spp` species representing `r unq.fam` families and `r unq.gen` genera, as well as `r unq.spp.inv ` invertebrate taxa representing `r unq.phyl.inv` phyla, identified in the catches.
 
-
-#### Relative Abundance
+## Relative Abundance
 
 The top 12 fish taxa in the `r SRVY ` accounted for 73% (243 kg/ha) of total catch CPUE (335 kg/ha) and 97% of total fish CPUE (252 kg/ha), compared with the NBS where the top 12 fish taxa accounted for only 61% (140 kg/ha) of the total catch CPUE (228 kg/ha) and 98% of total fish CPUE (143 kg/ha). 
 
@@ -72,13 +410,13 @@ The lower fish biomass in the NBS is consistent with results of a broader analys
 Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
 
 
-#### Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups
+## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups
 
 Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. In the `r SRVY `, the proportion of fishes (75%; Table 5a) was three times higher than invertebrates (25%; Table 5b). This trend was similarly true in the NBS where the proportion of fishes (63%; Table 6a) was greater than invertebrates (37%; Table 6b). Pleuronectids dominated the fish biomass in both the `r SRVY ` (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table 5a and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table 5b) and 25% in the NBS (Table 6b).
 
 Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number. Major species presented include walleye pollock (Figures 7-8 and Table 7a, b), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. 
 
 
-#### Summary of Results for Selected Major Eastern and Northern Bering Sea Fish Fauna
+## Summary of Results for Selected Major Eastern and Northern Bering Sea Fish Fauna
 
 
