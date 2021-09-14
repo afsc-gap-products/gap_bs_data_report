@@ -151,30 +151,6 @@ SameColNames<-function(df.ls) {
 }
 
 
-findhowmanyspp<-function(spp.tsn.list, ranklvl) {
-  
-  a<-rlist::list.search(.data = lapply(X = spp.tsn.list, '[', 2), 
-                        ranklvl == .)
-  names(a)<-gsub(pattern = ".rank", replacement = "", x = names(a))
-  
-  b<-lapply(X = spp.tsn.list[names(spp.tsn.list) %in% names(a)], '[', 3)
-  # b<-rlist::list.search(.data = lapply(X = spp.tsn.list, '[', 3), 
-  #                    . == ranklvl)
-  
-  unq<-c()
-  for (i in 1:length(a)) {
-    if (!(is.na(b[[i]]))) {
-      idx<-ifelse(a[[i]] %in% "species", 1, which(a[[i]])) # for invalid species
-      cc<-as.numeric(b[[i]]$id)[idx]
-      unq<-c(unq, cc)
-    }
-  }
-  unq<-unique(unq)
-  
-  return(unq)
-}
-
-
 # CapStr <- function(y) {
 #   c <- strsplit(y, " ")[[1]]
 #   paste(toupper(substring(c, 1,1)), substring(c, 2),
@@ -250,7 +226,112 @@ area_swept<-function(dist_fish, net_width) {
 }
 
 
-# Spatial-----------------------------------------------
+# Species -----------------------------------------------
+
+
+findhowmanyspp<-function(spp.tsn.list, ranklvl) {
+  
+  a<-rlist::list.search(.data = lapply(X = spp.tsn.list, '[', 2), 
+                        ranklvl == .)
+  names(a)<-gsub(pattern = ".rank", replacement = "", x = names(a))
+  
+  b<-lapply(X = spp.tsn.list[names(spp.tsn.list) %in% names(a)], '[', 3)
+  # b<-rlist::list.search(.data = lapply(X = spp.tsn.list, '[', 3), 
+  #                    . == ranklvl)
+  
+  unq<-c()
+  for (i in 1:length(a)) {
+    if (!(is.na(b[[i]]))) {
+      idx<-ifelse(a[[i]] %in% "species", 1, which(a[[i]])) # for invalid species
+      cc<-as.numeric(b[[i]]$id)[idx]
+      unq<-c(unq, cc)
+    }
+  }
+  unq<-unique(unq)
+  
+  return(unq)
+}
+
+#' find values based on strings
+#'
+#' @param x 
+#' @param col 
+#' @param str 
+#' @param str_not 
+#' @param col_out 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'   find_codes(x = species, str = "skate", col = "common_name", 
+#'                col_out = "common_name")
+#'     find_codes(x = species, str = "skate", col = "common_name", 
+#'                col_out = "common_name", str_not = "Alaska skate")
+#'     find_codes(x = species, str = "skate", col = "common_name")
+find_codes <- function(x, col = "common_name", str = NULL, 
+                       str_not = NULL, col_str_not = NULL, 
+                       col_out = "species_code") {
+  out <- x 
+  
+  if (is.null(col_str_not)) {
+    col_str_not <- col
+  }
+  
+  # 1. remove codes that we defintly dont want 
+  out <- out %>% 
+    dplyr::filter(
+      !(grepl(pattern = " egg", 
+              x = unlist(out[,col]),
+              ignore.case = TRUE)))
+  
+  # 2. find the codes we do want
+  if (!is.null(str)) {
+    
+    str <- str[!is.na(str)]
+    str <- unique(str)
+    
+    for (i in 1:length(str)){
+      
+      out <- out %>% 
+        dplyr::filter(
+          grepl(pattern = str[i], 
+                x = as.character(unlist(out[,col])),
+                ignore.case = TRUE))
+    }
+  }
+  
+  # 3. remove codes that may have been included in codes we want (2)
+  if (!is.null(str_not)) {
+    
+    str_not <- str_not[!is.na(str_not)]
+    str_not <- unique(str_not)
+    
+    for (i in 1:length(str_not)){
+      out <- out  %>%
+        dplyr::filter(!(grepl(pattern = str_not[i], 
+                              x = unlist(out[,col_str_not]),
+                              ignore.case = TRUE))) 
+    }
+  }
+  
+  # clean codes
+  out <- out  %>%
+    dplyr::select(all_of(col_out)) %>% 
+    unique() %>% 
+    unlist() 
+  
+  names(out) <- NULL
+  
+  if (length(out) == 0) {
+    out <- NA
+  } else {
+    out <- sort(out)
+  }
+  
+  return(out)
+}
+
 
 species_table <- function(table_list, dat_maxyr_spp, spp_common, SURVEY, SRVY = NA) {
   

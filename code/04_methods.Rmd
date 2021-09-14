@@ -130,6 +130,8 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 
 > note: typo in haul data:   dplyr::mutate(depth = gsub(pattern = "> 1", replacement = ">1", x = description)) %>% 
 
+> should density use stations_completed or stations_avail?
+
 
 ```{r tab_stratum_areas}
 header <- paste0("Stratum areas and sampling densities for the ",maxyr,
@@ -139,48 +141,9 @@ header <- paste0("Stratum areas and sampling densities for the ",maxyr,
 nickname <- "tab_stratum_areas" 
 
 # Select data and make plot
-strata_haul_count <- haul_info %>%## cruise_ids are set every year
-  na.omit() %>%
-  dplyr::filter(cruise_id %in% cruises_maxyr$cruise_id & #c(726, 727) & # TOLEDO where do these values come from?
-                  haul_type %in% c(3, 15) &
-                  gear == 44 &
-                  performance >= 0 ) %>%
-  dplyr::left_join(x = ., 
-                   y = stratum_area, 
-                   by = "stratum")  %>%
-  dplyr::mutate(depth = gsub(pattern = "> 1", 
-                             replacement = ">1", 
-                             x = description)) %>% 
-  dplyr::mutate(depth =
-                  gsub(pattern = "[a-zA-Z]+",
-                       replacement = "",
-                       x = sapply(X = strsplit(
-                         x = depth,
-                         split = " ",
-                         fixed = TRUE),
-                         function(x) x[1])
-                  )) %>%
-  dplyr::select(stratum, area, depth) %>%
-  dplyr::group_by(stratum, area, depth) %>%
-  dplyr::count() %>%
-  dplyr::ungroup() %>% 
-  dplyr::mutate(SRVY = dplyr::case_when(
-    stratum %in% as.numeric(akgfmaps::get_base_layers(
-      select.region = "sebs")$survey.strata$Stratum) ~ "EBS", 
-    stratum %in% as.numeric(setdiff(
-      akgfmaps::get_base_layers(select.region = "ebs")$survey.strata$Stratum, 
-      akgfmaps::get_base_layers(select.region = "sebs")$survey.strata$Stratum)) 
-    ~ "NBS" 
-  )) %>% 
-  dplyr::filter(complete.cases(.)) %>% 
-  dplyr::mutate(type = dplyr::case_when( 
-    SRVY == "NBS" ~ "Shelf",
-    depth %in% "<50" ~ "Inner Shelf", 
-    depth %in% c("50-100", ">50") ~ "Middle Shelf", 
-    depth %in% c("100-200", ">100") ~ "Outer Shelf"
-  )) %>% 
-  dplyr::arrange(SRVY, stratum) %>% 
-  dplyr::select(-depth)
+strata_haul_count <- stratum_info %>% 
+  dplyr::select(-depth, - description, -region, -stations_avail, -year) %>% 
+  dplyr::rename(n = stations_completed)
 
 
 if (length(unique(strata_haul_count$SRVY))>1) {
@@ -231,7 +194,7 @@ table_print <- flextable::flextable(table_raw) %>%
                     stratum = "Stratum",
                     area = "Representative\narea (km2)",
                     n = "Stations successfully\nsampled",
-                    density = "Sampling density\n(km2/station)"
+                    density = "Sampling density\n(km2/Stations successfully sampled)"
                     ) %>% 
   flextable::merge_v(j = "Region") %>%
   flextable::valign(valign = "top") %>%
@@ -597,12 +560,6 @@ Except for Pacific halibut, otolith samples collected during the survey were rea
 ```{r tab_special_projects}
 nickname0 <- "tab_special_projects" 
 footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
-
-# Select data and make plot
-googledrive::drive_download(paste0(dir_googledrive, "special_projects"), 
-               type = "csv", 
-               overwrite = TRUE, 
-               path = paste0(dir_out_rawdata, "/", nickname0))
 
 temp <- readr::read_csv(paste0(dir_out_rawdata, "/", nickname0, ".csv"))
 

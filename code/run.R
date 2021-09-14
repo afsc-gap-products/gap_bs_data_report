@@ -12,32 +12,41 @@
 # *** REPORT KNOWNS ------------------------------------------------------------
 
 maxyr <- 2017 # or the year of the report, for example
-compareyr_ebs <- 2010
-compareyr_nbs <- 2010 #will this always be the same?
+compareyr <- 2010
+# compareyr_nbs <- 2010 #will this always be the same?
 SRVY<-"NEBS"
 ref_compareyr_ebs <- "@RN976"
 ref_compareyr_nbs <- "@RN909"
 
 # maxyr <- 2018 # NOTE RAPID RESPONCE
-# compareyr_ebs <- 2016
-# compareyr_nbs <- NA #will this always be the same?
+# compareyr <- 2016
 # SRVY<-"NEBS"
 # ref_compareyr_ebs <- "@RN976" # CHANGE
 # ref_compareyr_nbs <- NA # CHANGE
 
 # maxyr <- 2019 
-# compareyr <- 2018
-# compareyr_nbs <- 2017
+# compareyr <- 2017
 # SRVY<-"NEBS" 
+# crabretow <- TRUE
 
 # maxyr <- 2021
 # compareyr <- 2019
-# compareyr_nbs <- 2019
 # SRVY<-"NEBS" 
+# crabretow <- TRUE
+# study1530 <- TRUE
 
 # *** OUTPUT TYPE --------------------------------------------------------------
 #Is this for InDesign?
 indesign_flowin <- FALSE
+
+
+# *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
+
+googledrive::drive_deauth()
+googledrive::drive_auth()
+1
+dir_googledrive <- paste0("content_from_googledrive/", SRVY, " - ", maxyr, "/")
+googledrive_dl <- FALSE
 
 # *** SOURCE SUPPORT SCRIPTS ---------------------------------------------------
 
@@ -62,13 +71,6 @@ report_yr <- substr(x = Sys.Date(), start = 1, stop = 4)
 # renv::init()
 # renv::snapshot()
 
-# *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
-
-googledrive::drive_deauth()
-googledrive::drive_auth()
-1
-dir_googledrive <- paste0("content_from_googledrive/", SRVY, " - ", maxyr, "/")
-
 # MAKE REPORT ------------------------------------------------------------------
 
 # *** HOUSEKEEPING -------------------------------------------------------------
@@ -85,6 +87,12 @@ list_tables <- list()
 list_figures <- list()
 
 # *** RUN EACH REPORT SECTION --------------------------------------------------
+
+# TOLEDO
+# create file that checks for errors in RMDs
+# https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/test_rmds.R
+# https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/render%20dev%20report%20with%20errors.R
+
 
 # *** *** 00 - Example ------------------------
 # cnt_chapt<-auto_counter(cnt_chapt)

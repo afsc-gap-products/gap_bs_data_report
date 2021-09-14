@@ -14,7 +14,24 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 # Results and Discussion
 
-All 376 of the `r SRVY ` stations and 49 rapid response NBS stations were successfully sampled in `r maxyr` (Figure 2). Summarized haul and raw catch sample data for successfully trawled stations used in the analyses are listed in Appendix A by vessel along with date, time, start and end positions, mean bottom depth, tow duration, distance fished over ground, mean net width, and trawl performance.	
+```{r}
+
+# str <- c()
+# 
+# for (i in 1:stratum_info$SRVY){
+# 
+# str <- NMFSReports::text_list( paste0(
+#   ifelse(sum(!(stratum_info$stations_completed == stratum_info$stations_avail))>0, 
+#          paste0("All ", stratum_info$stations_avail, " stations were"), 
+#          paste0("Of the ", stratum_info$stations_avail, " stations available, ", stratum_info$stations_completed, " were completed")), 
+#   " in the ", stratum_info$SRVY
+# ))
+# 
+# }
+```
+
+
+All 376 of the `r SRVY ` stations and 49 rapid response NBS stations were successfully sampled in `r maxyr` (Figure `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number") `). Summarized haul and raw catch sample data for successfully trawled stations used in the analyses are listed in Appendix A by vessel along with date, time, start and end positions, mean bottom depth, tow duration, distance fished over ground, mean net width, and trawl performance.	
 
 ## Ocean Conditions
 
@@ -33,7 +50,7 @@ From the combined `r SRVY ` (Tables 2a) and NBS Rapid Response (Table 2b) trawl 
 
 > compare with how this table is shown in EBS only tables
 
-```{r species_composition}
+```{r tab_species_composition}
 
 if (SRVY == "NEBS"){
 
@@ -42,7 +59,7 @@ header <- paste0("List of fish taxa from survey catches exclusive to the ",
                                                surv_info$SRVY, ")")),".")
 
 footnote0 <- "Taxa in bold only documented north of 60° N latitude."
-nickname <- "species_composition" 
+nickname <- "tab_species_composition" 
 
 # Select data and make plot
 table_raw <- catch_haul_cruises_maxyr %>% 
@@ -150,9 +167,9 @@ assign(value = res, x = paste0(nickname))
 
 > Did I calculate proportion right?
 
-```{r biomass_est}
+```{r tab_biomass_est}
 
-nickname0 <- "biomass_est"
+nickname0 <- "tab_biomass_est"
 
 for (i in 1:nrow(surv_info)) {
 
@@ -162,80 +179,6 @@ for (i in 1:nrow(surv_info)) {
                  " shelf bottom trawl survey.")
   
   nickname <- paste0(nickname0, "_", surv_info$SRVY[i]) 
-
-  
-#' find values based on strings
-#'
-#' @param x 
-#' @param col 
-#' @param str 
-#' @param str_not 
-#' @param col_out 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#'   find_codes(x = species, str = "skate", col = "common_name", 
-#'                col_out = "common_name")
-#'     find_codes(x = species, str = "skate", col = "common_name", 
-#'                col_out = "common_name", str_not = "Alaska skate")
-#'     find_codes(x = species, str = "skate", col = "common_name")
-  find_codes <- function(x, col = "common_name", str = NULL, 
-                         str_not = NULL, col_str_not = NULL, 
-                         col_out = "species_code") {
-    out <- x 
-    
-    if (is.null(col_str_not)) {
-      col_str_not <- col
-    }
-    
-    # 1. remove codes that we defintly dont want 
-    out <- out %>% 
-      dplyr::filter(
-        !(grepl(pattern = " egg", 
-                x = unlist(out[,col]),
-                ignore.case = TRUE)))
-    
-    # 2. find the codes we do want
-    if (!is.null(str)) {
-      out <- out %>% 
-        dplyr::filter(
-            grepl(pattern = str, 
-                  x = as.character(unlist(out[,col])),
-                  ignore.case = TRUE))
-    }
-    
-    # 3. remove codes that may have been included in codes we want (2)
-    if (!is.null(str_not)) {
-      
-      str_not <- str_not[!is.na(str_not)]
-      str_not <- unique(str_not)
-      
-      for (i in 1:length(str_not)){
-        out <- out  %>%
-          dplyr::filter(!(grepl(pattern = str_not[i], 
-                         x = unlist(out[,col_str_not]),
-                         ignore.case = TRUE))) 
-      }
-    }
-    
-    # clean codes
-    out <- out  %>%
-      dplyr::select(all_of(col_out)) %>% 
-      unique() %>% 
-      unlist() 
-    
-    names(out) <- NULL
-    
-    if (length(out) == 0) {
-      out <- NA
-    } else {
-      out <- sort(out)
-    }
-    
-    return(out)
-  }
 
   # temp <- list(
   #   # skates
@@ -308,7 +251,7 @@ table_raw <- dat_biomass_maxyr %>%
                      dplyr::select(report_name_scientific, species_code, fish)) %>% 
   dplyr::mutate(prop = biomass/sum(biomass)) # TOLEDO
 
-  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ",NMFSReports::xunits(value = sum(biomass), words = FALSE)," t.")
+  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ",NMFSReports::xunits(value = sum(table_raw$biomass), words = FALSE)," t.")
 
 
 

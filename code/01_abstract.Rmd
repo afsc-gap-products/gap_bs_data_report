@@ -15,14 +15,17 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 # Abstract
 
 ```{r}
-min_mo <- cruises_maxyr %>%
+# use haul_cruises_maxyr TOLEDO 
+
+min_mo <- haul_cruises_maxyr %>%
+  
   dplyr::filter(cruise %in% paste0(maxyr, "01"), 
                 start_month %in% min(start_month)) %>% 
   dplyr::select(start_month_long) %>%
   unique() %>%
   as.character()
 
-max_mo <- cruises_maxyr %>%
+max_mo <- haul_cruises_maxyr %>%
   dplyr::filter(cruise %in% paste0(maxyr, "01"), 
                 end_month %in% max(end_month)) %>% 
   dplyr::select(end_month_long) %>%
@@ -46,6 +49,8 @@ nbs_insert <- ifelse(SRVY == "NEBS",
 
 From `r min_mo` to `r max_mo` `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center’s Resource Assessment and Conservation Engineering Division conducted its `r max(surv_info$yrofsurvey) ``r surv_info$stndth[surv_info$yrofsurvey == max(surv_info$yrofsurvey)] ` annual `r SURVEY ` (`r SRVY `) continental shelf bottom trawl survey of groundfish and invertebrate fauna. `r nbs_insert` `r stringr::str_to_sentence(NMFSReports::numbers2words(nrow(vessel_info)))` stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$name_ital)) `, were chartered to sample the `r SRVY `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations centered within a stratified systematic grid consisting of a total of `r NMFSReports::text_list(paste0(surv_info$survey_nn, " stations in the ", surv_info$SRVY))`. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. `r ifelse(sum(cruises_maxyr$performance_success == cruises_maxyr$survey_n) == nrow(cruises_maxyr), "All", "Most") ` survey stations were sampled successfully in the `r SRVY`.
 
+> need weighted temperature by bottom area script from rebecca
+
 ```{r}
 temps <- dat %>% 
   dplyr::select(year, surface_temperature, gear_temperature) %>%
@@ -57,6 +62,7 @@ temps <- dat %>%
   dplyr::rename(sst = surface_temperature, 
                 bt = gear_temperature) %>% 
   # warmer/colder than long term average?
+  # TOLEDO - need weighted script thta rebecca developed to determine warm and cold years
   dplyr::mutate(sst_warmer_longterm = sst>mean(sst, na.rm = T)) %>% 
   dplyr::mutate(bt_warmer_longterm = bt>mean(bt, na.rm = T)) %>%
   dplyr::arrange(year) 
@@ -114,12 +120,14 @@ temp_insert2 <- paste0(temp_insert1, temp_insert2,
                        "°C for the bottom temperatures.")
 
 
-
-# In the NEBS, there was a total of 107 species of fishes representing 20 families and 65 genera, as well as 305 invertebrate taxa representing 12 phyla identified in the catches.
+  temp <- spp_info_maxyr %>% 
+    dplyr::filter(used_in_counts == TRUE) 
 
 ```
 
-`r temp_insert1``r temp_insert2` In the `r SRVY`, there was a total of `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$fish==TRUE])))` species of fishes representing `r xunits(length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$fish==TRUE])))` families and `r xunits(length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$fish==TRUE])))` genera, as well as `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$invert==TRUE])))` invertebrate taxa, representing `r xunits(length(unique(spp_info_maxyr$phylum_taxon)))` phyla identified in the catches.
+> make sure that species do not include gastropod eggs/shells, polycheate tubes, fish eggs, 
+
+`r temp_insert1``r temp_insert2` In the `r SRVY`, there was a total of `r xunits(length(unique(temp$report_name_scientific[spp_info_maxyr$fish==TRUE])))` species of fishes representing `r xunits(length(unique(temp$family_taxon[temp$fish==TRUE])))` families and `r xunits(length(unique(temp$genus_taxon[temp$fish==TRUE])))` genera, as well as `r xunits(length(unique(temp$report_name_scientific[temp$invert==TRUE])))` invertebrate taxa, representing `r xunits(length(unique(temp$phylum_taxon)))` phyla identified in the catches.
 
 The distribution and relative abundance of `r xunits(sum(length(report_species$fish1), length(report_species$fish2), length(report_species$fish3)))` different fish species and `r xunits(sum(length(report_species$invert1), length(report_species$invert3)))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr_ebs ` and `r maxyr` `r SRVY` shelf bottom trawl surveys. For the more common fish species, there are also plots of abundance-at-length comparing the `r compareyr_ebs ` and `r maxyr` `r SRVY` surveys. Tables provide estimates of bottom trawl survey biomass for most fishes and invertebrates, as well as estimates of population size for the most common fishes. Appendices provide station data, summarized catch data by station, listings of taxa, and detailed analyses of abundance and biological data of the sampled populations. 
 
