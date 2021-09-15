@@ -45,7 +45,7 @@ indesign_flowin <- FALSE
 googledrive::drive_deauth()
 googledrive::drive_auth()
 1
-dir_googledrive <- paste0("content_from_googledrive/", SRVY, " - ", maxyr, "/")
+dir_googledrive <- paste0("content_from_googledrive/", maxyr, " - ", SRVY, "/")
 googledrive_dl <- FALSE
 
 # *** SOURCE SUPPORT SCRIPTS ---------------------------------------------------

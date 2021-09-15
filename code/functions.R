@@ -45,6 +45,7 @@ PKG <- c(
   
   # Text Management
   "stringr",
+  "readtext",
   
   # Spatial
   "akgfmaps", # devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
@@ -480,5 +481,9 @@ NMFSReports::pchange(start = sum(dat_maxyr_1_spp$weight, na.rm = TRUE), end = su
   
 }
 
-
+CapFirst <- function(x) {
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), substring(s, 2),
+        sep="", collapse=" ")
+}
 

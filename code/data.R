@@ -43,7 +43,7 @@ report_species_NEBS<-list("fish1" = # all plots and tables
                                  "Plain sculpin" = c(21371), 
                                  "Great sculpin" = c(21370), 
                                  "Shorthorn sculpin" = c(21368), 
-                                 "Pacific ocean perch" = c(30060)), 
+                                 "Pacific ocean perch" = c(30060)), # extra to 2017
                           "fish3" = list (
                             "Rex sole" = c(10200),
                             "Sahkalin sole" = c(10212), 
@@ -259,19 +259,17 @@ for (ii in 1:length(SRVY1)) {
   }
 }
 
-biomass<-SameColNames(df.ls)
-
-biomass <- biomass %>% 
-  dplyr::filter(year <= maxyr)
+biomass <- SameColNames(df.ls)  %>%
+  dplyr::filter(year <= maxyr) %>% 
+  dplyr::rename(SRVY = survey) %>% 
+  dplyr::mutate(fish = (species_code <= 31550)) %>%
+  dplyr::mutate(invert = (species_code >= 40001))
 
 biomass_maxyr<-biomass %>% 
   dplyr::filter(year == maxyr)
 
 biomass_compareyr<-biomass %>% 
   dplyr::filter(year == compareyr)
-
-# dat_biomass_maxyr_1<-dat_biomass %>% 
-#   dplyr::filter(year == (maxyr-1))
 
 # *** Load CPUE Design Based Estimates ----------------------------------------------
 
@@ -297,19 +295,17 @@ for (ii in 1:length(SRVY1)) {
   }
 }
 
-cpue<-SameColNames(df.ls)
-
-cpue <- cpue %>% 
-  dplyr::filter(year <= maxyr)
+cpue <- SameColNames(df.ls)  %>%
+  dplyr::rename(SRVY = survey) %>% 
+  dplyr::filter(year <= maxyr) %>% 
+  dplyr::mutate(fish = (species_code <= 31550)) %>%
+  dplyr::mutate(invert = (species_code >= 40001))
 
 cpue_maxyr <- cpue %>% 
   dplyr::filter(year == maxyr)
 
 cpue_compareyr<- cpue %>% 
   dplyr::filter(year == compareyr)
-
-# cpue_maxyr_1 <- cpue %>% 
-#   dplyr::filter(year == (maxyr-1))
 
 # Wrangle Data -----------------------------------------------------------------
 
