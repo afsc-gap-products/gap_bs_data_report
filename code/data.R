@@ -176,6 +176,12 @@ report_types <- list(
     report_species = report_species_NEBS)
 )
 
+# TOLEDO
+report_types$EBS$reg_dat$survey.strata$Stratum[
+  report_types$EBS$reg_dat$survey.strata$Stratum == 30]<-31
+report_types$NEBS$reg_dat$survey.strata$Stratum[
+  report_types$NEBS$reg_dat$survey.strata$Stratum == 30]<-31
+
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
@@ -337,11 +343,10 @@ stratum_info <- stratum0 %>%
                   )) %>% 
   dplyr::select(-auditjoin, -portion) %>%
   dplyr::mutate(SRVY = dplyr::case_when(
-    stratum %in% as.numeric(akgfmaps::get_base_layers(
-      select.region = "sebs")$survey.strata$Stratum) ~ "EBS", 
+    stratum %in% as.numeric(report_types$EBS$reg_dat$survey.strata$Stratum) ~ "EBS", 
     stratum %in% as.numeric(setdiff(
-      akgfmaps::get_base_layers(select.region = "ebs")$survey.strata$Stratum, 
-      akgfmaps::get_base_layers(select.region = "sebs")$survey.strata$Stratum)) 
+      report_types$NEBS$reg_dat$survey.strata$Stratum, 
+      report_types$EBS$reg_dat$survey.strata$Stratum))
     ~ "NBS" 
   )) %>% 
   dplyr::mutate(type = dplyr::case_when( 
@@ -349,32 +354,7 @@ stratum_info <- stratum0 %>%
     depth %in% "<50" ~ "Inner Shelf", 
     depth %in% c("50-100", ">50") ~ "Middle Shelf", 
     depth %in% c("100-200", ">100") ~ "Outer Shelf"
-  )) #%>% 
-# dplyr::left_join(x = ., 
-#                  y = stations0 %>% 
-#                    dplyr::group_by(stratum) %>% 
-#                    dplyr::summarise(count(stratum)) %>% 
-#                    dplyr::select(-x) %>% 
-#                    dplyr::rename(stations_avail = freq), 
-#                  by = "stratum") %>% 
-# dplyr::left_join(x = ., 
-#                  y = haul_cruises_maxyr %>% 
-#                    # na.omit() %>%
-#                    dplyr::filter(cruise_id %in% cruises_maxyr$cruise_id & #c(726, 727) & # TOLEDO where do these values come from?
-#                                    haul_type %in% c(3, 15) &
-#                                    gear == 44 &
-#                                    performance >= 0 ) %>%
-#                    dplyr::select(stratum, stationid) %>%
-#                    unique() %>%
-#                    dplyr::group_by(stratum) %>% 
-#                    dplyr::summarise(count(stratum)) %>% 
-#                    dplyr::select(-x) %>% 
-#                    dplyr::rename(stations_completed = freq), 
-#                  by = "stratum") 
-
-
-
-
+  )) 
 
 #G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
 # ## year = 2019 is most up to date- not updated every year
@@ -408,7 +388,9 @@ haul <- haul0 %>%
                   performance >= 0 &
                   !(is.null(stationid)) &
                   haul_type == 3) %>% 
-  dplyr::select(-auditjoin)
+  dplyr::select(-auditjoin)  #%>%
+  # dplyr::mutate(start_date_haul = 
+  #                 format(x = as.POSIXlt(x = start_time), format="%Y-%m-%d"))
 
 haul_maxyr <- haul %>% 
   dplyr::filter(year == maxyr &
@@ -430,8 +412,6 @@ cruises <- cruises0 %>%
   dplyr::mutate(vess_shape = substr(x = vessel_name, 1,1)) %>%
   dplyr::mutate(vessel_ital = paste0("F/V *", stringr::str_to_title(vessel_name), "*")) %>%
   dplyr::mutate(vessel_name = paste0("F/V ", stringr::str_to_title(vessel_name))) %>%
-  dplyr::mutate(start_month_cruise = format(x = as.POSIXlt(x = start_date), format="%m")) %>%
-  dplyr::mutate(end_month_cruise = format(x = as.POSIXlt(x = end_date), format="%m")) %>%
   dplyr::left_join(
     x = ., 
     y = data.frame(survey_definition_id = c(143, 98, 47), 
@@ -441,7 +421,9 @@ cruises <- cruises0 %>%
                                  "Gulf of Alaska"), 
                    SRVY_start = c(2010, 1982, NA)), 
     by  = "survey_definition_id") %>% 
-  dplyr::rename(vessel = "vessel_id")  #%>% 
+  dplyr::rename(vessel = "vessel_id", 
+                start_date_cruise = start_date, 
+                end_date_cruise = end_date)
 # dplyr::mutate(start_month_long = format(x = as.POSIXlt(x = start_date), format="%B")) %>%
 # dplyr::mutate(end_month_long = format(x = as.POSIXlt(x = end_date), format="%B")) #%>% 
 # dplyr::left_join(x = ., 
@@ -458,14 +440,35 @@ cruises_compareyr <- cruises %>%
     year == compareyr & 
       survey_definition_id %in% SRVY00)
 
+# *** stratum_info (survey area) (reprise) -------------------------------------
+
+stratum_info <- 
+  dplyr::left_join(
+    x = stratum_info, 
+    y = haul_maxyr %>% 
+      dplyr::select(stratum, stationid) %>% 
+      dplyr::group_by(stratum) %>% 
+      dplyr::summarise(count(stratum)) %>% 
+      dplyr::rename(stations_completed = "freq") %>% 
+      dplyr::select(stratum, stations_completed), 
+    by = "stratum") %>% 
+  dplyr::left_join(
+    x = ., 
+    y = station_info %>% 
+      dplyr::select(stratum, stationid) %>% 
+      dplyr::group_by(stratum) %>% 
+      dplyr::summarise(count(stratum)) %>% 
+      dplyr::rename(stations_avail = "freq") %>% 
+      dplyr::select(stratum, stations_avail), 
+    by = "stratum") 
 
 # *** haul_cruises_vess_maxyr + _compareyr -------------------------------------
 
 temp <- function(cruises_, haul_){
   haul_cruises_vess_ <- 
-    dplyr::left_join(x = cruises_ %>% 
-                       dplyr::rename(start_date_cruise = start_date, 
-                                     end_date_cruise = end_date), 
+    dplyr::left_join(x = cruises_ ,#%>% 
+                       # dplyr::rename(start_date_cruise = start_date, 
+                       #               end_date_cruise = end_date), 
                      y = haul_ %>% 
                        dplyr::select(cruisejoin, #hauljoin, 
                                      #vessel, cruise,  #haul, 
@@ -505,7 +508,7 @@ temp <- function(haul_cruises_vess_){
   haul_cruises_ <- 
     dplyr::left_join(
       x = haul_cruises_vess_ %>% 
-        dplyr::select("year", "survey_name", "cruise", 
+        dplyr::select("year", "survey_name", "cruise", "SRVY_start" , 
                       "survey_definition_id", "SRVY", "SRVY_long", #hauljoin, 
                       cruisejoin) %>%
         unique(), 
