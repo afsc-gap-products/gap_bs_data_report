@@ -159,6 +159,20 @@ report_types <- list(
       set.crs = "auto", 
       return.survey.grid = TRUE),
     report_species = report_species_NEBS), 
+  "NBS" = list(
+    sectname = "NBS-BTS-Report", 
+    SURVEY = "northern Bering Sea", 
+    map.area = "bs.north", 
+    SRVY1 = "NBS", 
+    SRVY0 = "BS", # in Oracle
+    SRVY00 = 98, # EBS
+    station_id = akgfmaps::get_survey_stations(
+      select.region = "nbs"),
+    reg_dat = akgfmaps::get_base_layers(
+      select.region = "nbs", 
+      set.crs = "auto", 
+      return.survey.grid = TRUE),
+    report_species = report_species_NEBS), 
   "NEBS" = list(
     sectname = "NEBS-BTS-Report", 
     SURVEY = "northern and eastern Bering Sea",
@@ -317,14 +331,21 @@ cpue_compareyr<- cpue %>%
 
 # *** stratum_info (survey area) -------------------------------------------
 
-if (sum((maxyr - stratum0$year)<0 %in% TRUE) == 0) {
-  # if there are no stratum years greater, use the most recent year
-  strat_yr <- max(stratum0$year)
-} else {
-  # if the maxyr is less than the max stratum year, use the stratum yr next less
-  strat_yr <- stratum0$year[which.min((maxyr - stratum0$year)[(maxyr - stratum0$year)>=0])]
-}
-
+temp_strat <- function(yr) {
+  
+  # unique  and sort are not necessary, just easier for troubleshooting
+  if (sum(yr<unique(stratum0$year)) == 0) {
+  # if (sum((yr - stratum0$year)<0 %in% TRUE) == 0) {
+    # if there are no stratum years greater than yr, use the most recent stratum year
+    strat_yr <- max(stratum0$year)
+  } else {
+    # if the yr is less than the max stratum year, use the stratum yr next less
+    temp <- sort(unique(stratum0$year))
+    strat_yr <- temp[which((yr - temp)>-1)[length(which((yr - temp)>-1))]]
+    # strat_yr <- sort(unique(stratum0$year))[which.min((yr - sort(unique(stratum0$year)))[(yr - sort(unique(stratum0$year)))>=0])]
+  }
+  
+  
 stratum_info <- stratum0 %>% 
   dplyr::filter(
     stratum %in% reg_dat$survey.strata$Stratum &
@@ -344,17 +365,21 @@ stratum_info <- stratum0 %>%
   dplyr::select(-auditjoin, -portion) %>%
   dplyr::mutate(SRVY = dplyr::case_when(
     stratum %in% as.numeric(report_types$EBS$reg_dat$survey.strata$Stratum) ~ "EBS", 
-    stratum %in% as.numeric(setdiff(
-      report_types$NEBS$reg_dat$survey.strata$Stratum, 
-      report_types$EBS$reg_dat$survey.strata$Stratum))
-    ~ "NBS" 
+    stratum %in% as.numeric(report_types$NBS$reg_dat$survey.strata$Stratum) ~ "NBS" 
   )) %>% 
+  dplyr::filter(SRVY %in% SRVY1) %>% 
   dplyr::mutate(type = dplyr::case_when( 
     SRVY == "NBS" ~ "Shelf",
     depth %in% "<50" ~ "Inner Shelf", 
     depth %in% c("50-100", ">50") ~ "Middle Shelf", 
     depth %in% c("100-200", ">100") ~ "Outer Shelf"
   )) 
+
+  return(stratum_info)
+
+}
+
+stratum_info <- temp_strat(maxyr)
 
 #G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
 # ## year = 2019 is most up to date- not updated every year
@@ -378,27 +403,6 @@ station_info <- stations0 %>%
                    y = stratum_info %>% 
                      dplyr::select(stratum, SRVY), 
                    by = "stratum")
-
-# *** haul + maxyr ---------------------------------------------------------------------
-
-haul <- haul0 %>%  
-  dplyr::mutate(year = as.numeric(substr(x = cruise, 1,4))) %>% 
-  dplyr::filter(abundance_haul == "Y" &
-                  year <= maxyr &
-                  performance >= 0 &
-                  !(is.null(stationid)) &
-                  haul_type == 3) %>% 
-  dplyr::select(-auditjoin)  #%>%
-  # dplyr::mutate(start_date_haul = 
-  #                 format(x = as.POSIXlt(x = start_time), format="%Y-%m-%d"))
-
-haul_maxyr <- haul %>% 
-  dplyr::filter(year == maxyr &
-                  region == SRVY0)
-
-haul_compareyr <- haul %>% 
-  dplyr::filter(year == compareyr &
-                  region == SRVY0)
 
 # *** cruises + maxyr  + compareyr -----------------------------------------------
 
@@ -440,6 +444,37 @@ cruises_compareyr <- cruises %>%
     year == compareyr & 
       survey_definition_id %in% SRVY00)
 
+
+# *** haul + maxyr ---------------------------------------------------------------------
+
+haul <- haul0 %>%
+  dplyr::left_join(x = ., 
+                   y = cruises %>% 
+                     dplyr::select(cruisejoin, survey_definition_id), 
+                   by = "cruisejoin") %>%  
+  dplyr::mutate(year = as.numeric(substr(x = cruise, 1,4))) %>% 
+  dplyr::filter(abundance_haul == "Y" &
+                  year <= maxyr &
+                  performance >= 0 &
+                  !(is.null(stationid)) &
+                  haul_type == 3 & 
+                  survey_definition_id %in% SRVY00) %>% 
+  dplyr::select(-auditjoin) %>%  
+  dplyr::mutate(SRVY = dplyr::case_when(
+    survey_definition_id %in% 143 ~ "EBS",
+    survey_definition_id %in% 98 ~ "NBS"
+  ))   #%>%
+  # dplyr::filter(SRVY %in% SRVY1) # %>%
+  # dplyr::mutate(start_date_haul = 
+  #                 format(x = as.POSIXlt(x = start_time), format="%Y-%m-%d"))
+
+haul_maxyr <- haul %>% 
+  dplyr::filter(year == maxyr)
+
+haul_compareyr <- haul %>% 
+  dplyr::filter(year == compareyr)
+
+
 # *** stratum_info (survey area) (reprise) -------------------------------------
 
 stratum_info <- 
@@ -460,7 +495,17 @@ stratum_info <-
       dplyr::summarise(count(stratum)) %>% 
       dplyr::rename(stations_avail = "freq") %>% 
       dplyr::select(stratum, stations_avail), 
+    by = "stratum") %>% 
+  dplyr::left_join(
+    x = ., 
+    y = haul_maxyr %>% 
+      dplyr::select(stratum, stationid, bottom_depth) %>% 
+      dplyr::group_by(stratum) %>% 
+      dplyr::summarise(depth_mean = mean(bottom_depth, na.rm = TRUE), 
+                       depth_min = min(bottom_depth, na.rm = TRUE), 
+                       depth_max = max(bottom_depth, na.rm = TRUE)), 
     by = "stratum") 
+    
 
 # *** haul_cruises_vess_maxyr + _compareyr -------------------------------------
 
@@ -701,6 +746,42 @@ specimen_maxyr <-
 #   dplyr::filter(SRVY %in% SRVY1 & 
 #                   year== maxyr)
 
+#***  Weighted bottom tempertures ------------------------
+
+
+temps_wt_avg_yr<-c()
+
+for (i in 1:length(unique(haul$year))){
+  
+  yr <- sort(unique(haul$year))[i]
+
+  temp <- temp_strat(yr) %>% 
+    dplyr::filter(SRVY %in% SRVY1) %>%
+    dplyr::select(stratum, area, SRVY) %>%
+    dplyr::mutate(weight_all = area/sum(area)) %>% 
+    group_by(SRVY) %>% 
+    dplyr::mutate(weight_SRVY = area/sum(area)) %>% 
+    dplyr::left_join(x = haul %>% 
+                       dplyr::filter(year == yr) %>%
+                       dplyr::select(stratum, year, #stationid, 
+                                     surface_temperature, 
+                                     gear_temperature, bottom_depth), 
+                     y = ., 
+                     by = "stratum") %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(year, stratum, SRVY) %>%
+    dplyr::summarise(bt_wt_stratum = mean(gear_temperature * weight_SRVY, na.rm = TRUE), 
+                     st_wt_stratum = mean(surface_temperature * weight_SRVY, na.rm = TRUE)) %>%
+    dplyr::ungroup()  %>%
+    dplyr::group_by(year, SRVY) %>%
+    dplyr::summarise(bt_wt = sum(bt_wt_stratum, na.rm = TRUE), 
+                     st_wt = sum(st_wt_stratum, na.rm = TRUE)) %>%
+    dplyr::filter(!is.na(SRVY)) %>%
+    dplyr::filter(!is.nan(bt_wt) | !is.nan(st_wt))
+
+  temps_wt_avg_yr <- rbind.data.frame(temps_wt_avg_yr, temp)
+
+}
 
 # Footnotes ------------------------
 
