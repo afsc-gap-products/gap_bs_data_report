@@ -331,20 +331,20 @@ cpue_compareyr<- cpue %>%
 
 # *** stratum_info (survey area) -------------------------------------------
 
-temp_strat <- function(yr) {
+temp <- function(yr) {
   
-  # unique  and sort are not necessary, just easier for troubleshooting
-  if (sum(yr<unique(stratum0$year)) == 0) {
-  # if (sum((yr - stratum0$year)<0 %in% TRUE) == 0) {
-    # if there are no stratum years greater than yr, use the most recent stratum year
+  # # unique  and sort are not necessary, just easier for troubleshooting
+  # if (sum(yr<unique(stratum0$year)) == 0) {
+  # # if (sum((yr - stratum0$year)<0 %in% TRUE) == 0) {
+  #   # if there are no stratum years greater than yr, use the most recent stratum year
     strat_yr <- max(stratum0$year)
-  } else {
-    # if the yr is less than the max stratum year, use the stratum yr next less
-    temp <- sort(unique(stratum0$year))
-    strat_yr <- temp[which((yr - temp)>-1)[length(which((yr - temp)>-1))]]
-    # strat_yr <- sort(unique(stratum0$year))[which.min((yr - sort(unique(stratum0$year)))[(yr - sort(unique(stratum0$year)))>=0])]
-  }
-  
+  # } else {
+  #   # if the yr is less than the max stratum year, use the stratum yr next less
+  #   temp <- sort(unique(stratum0$year))
+  #   strat_yr <- temp[which((yr - temp)>-1)[length(which((yr - temp)>-1))]]
+  #   # strat_yr <- sort(unique(stratum0$year))[which.min((yr - sort(unique(stratum0$year)))[(yr - sort(unique(stratum0$year)))>=0])]
+  # }
+  # 
   
 stratum_info <- stratum0 %>% 
   dplyr::filter(
@@ -379,7 +379,7 @@ stratum_info <- stratum0 %>%
 
 }
 
-stratum_info <- temp_strat(maxyr)
+stratum_info <- temp(maxyr)
 
 #G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
 # ## year = 2019 is most up to date- not updated every year
@@ -749,20 +749,23 @@ specimen_maxyr <-
 #***  Weighted bottom tempertures ------------------------
 
 
-temps_wt_avg_yr<-c()
+# temps_wt_avg_yr<-c()
 
-for (i in 1:length(unique(haul$year))){
+# for (i in 1:length(unique(haul$year))){
   
-  yr <- sort(unique(haul$year))[i]
+  # yr <- sort(unique(haul$year))[i]
 
-  temp <- temp_strat(yr) %>% 
+  # temp
+
+## weighted mean pt 1
+temps_wt_avg_strat <- stratum_info %>% #temp_strat(maxyr) %>%
     dplyr::filter(SRVY %in% SRVY1) %>%
     dplyr::select(stratum, area, SRVY) %>%
     dplyr::mutate(weight_all = area/sum(area)) %>% 
     group_by(SRVY) %>% 
     dplyr::mutate(weight_SRVY = area/sum(area)) %>% 
     dplyr::left_join(x = haul %>% 
-                       dplyr::filter(year == yr) %>%
+                       # dplyr::filter(year == maxyr) %>%
                        dplyr::select(stratum, year, #stationid, 
                                      surface_temperature, 
                                      gear_temperature, bottom_depth), 
@@ -772,20 +775,72 @@ for (i in 1:length(unique(haul$year))){
     dplyr::group_by(year, stratum, SRVY) %>%
     dplyr::summarise(bt_wt_stratum = mean(gear_temperature * weight_SRVY, na.rm = TRUE), 
                      st_wt_stratum = mean(surface_temperature * weight_SRVY, na.rm = TRUE)) %>%
-    dplyr::ungroup()  %>%
+    dplyr::ungroup()  
+
+temps_wt_avg_yr <- temps_wt_avg_strat %>%
     dplyr::group_by(year, SRVY) %>%
     dplyr::summarise(bt_wt = sum(bt_wt_stratum, na.rm = TRUE), 
                      st_wt = sum(st_wt_stratum, na.rm = TRUE)) %>%
     dplyr::filter(!is.na(SRVY)) %>%
     dplyr::filter(!is.nan(bt_wt) | !is.nan(st_wt))
 
-  temps_wt_avg_yr <- rbind.data.frame(temps_wt_avg_yr, temp)
+  # temps_wt_avg_yr <- rbind.data.frame(temps_wt_avg_yr, temp)
 
+# }
+
+# long term mean pt 1
+temps_wt_avg_yr_longterm <- temps_wt_avg_yr %>% 
+  dplyr::filter(year != maxyr) %>% 
+  dplyr::ungroup() %>%
+  dplyr::group_by(SRVY) %>%
+  dplyr::arrange(desc(year)) %>%
+  dplyr::summarise(bt_wt_mean = mean(bt_wt, na.rm = TRUE), 
+                   st_wt_mean = mean(st_wt, na.rm = TRUE))
+
+## weighted mean pt 2
+temps_wt_avg_yr <- temps_wt_avg_yr %>% 
+  dplyr::ungroup() %>%
+  dplyr::left_join(x = ., 
+                   y = temps_wt_avg_yr_longterm, 
+                   by  = "SRVY") %>% 
+  dplyr::group_by(SRVY) %>% 
+  dplyr::arrange(SRVY, year) %>%
+  dplyr::mutate(bt_wt_above_mean = bt_wt>mean(bt_wt_mean, na.rm = TRUE)) %>% 
+  dplyr::mutate(st_wt_above_mean = st_wt>mean(st_wt_mean, na.rm = TRUE)) %>% 
+  dplyr::mutate(case = dplyr::case_when(
+    ((st_wt_above_mean + bt_wt_above_mean)==2) ~ "both warmer",
+    ((st_wt_above_mean + bt_wt_above_mean)==0) ~ "both colder",
+    (st_wt_above_mean == TRUE & bt_wt_above_mean == FALSE) ~ "st warmer, bt colder",
+    (st_wt_above_mean == FALSE & bt_wt_above_mean == TRUE) ~ "bt warmer, st colder") ) 
+
+# calculate the nth year of case
+nthyr <- c()
+for (ii in 1:length(unique(temps_wt_avg_yr$SRVY))){
+  temp <- temps_wt_avg_yr %>% 
+    dplyr::filter(SRVY == unique(temps_wt_avg_yr$SRVY)[ii])
+  for (i in 1:nrow(temp)) {
+    if (i == 1) {
+      nthyr0 <- 1
+    } else if (temp$case[i] != temp$case[i-1]) {
+      nthyr0 <- c(nthyr0, 1)
+    } else {
+      nthyr0 <- c(nthyr0, (nthyr0[length(nthyr0)]+1))
+    }
+  }
+  nthyr <- c(nthyr, nthyr0)
 }
+temps_wt_avg_yr$nthyr <- nthyr
+temps_wt_avg_yr <- temps_wt_avg_yr %>% 
+  dplyr::arrange(desc(year))
+
+
+temps_wt_avg_yr_longterm <- temps_wt_avg_yr %>% 
+  dplyr::filter(year == maxyr)
+
 
 # Footnotes ------------------------
 
-Footnotes.list<-list("ExOfStandardFt" = "Wow, this project is so cool!")
+# Footnotes.list<-list("ExOfStandardFt" = "Wow, this project is so cool!")
 
 # 
 # 
