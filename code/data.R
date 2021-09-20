@@ -153,9 +153,9 @@ report_types <- list(
     SRVY0 = "BS", # in Oracle
     SRVY00 = 143, # EBS
     station_id = akgfmaps::get_survey_stations(
-      select.region = "sebs"),
+      select.region = "bs.south"),
     reg_dat = akgfmaps::get_base_layers(
-      select.region = "sebs", 
+      select.region = "bs.south", 
       set.crs = "auto", 
       return.survey.grid = TRUE),
     report_species = report_species_NEBS), 
@@ -167,9 +167,9 @@ report_types <- list(
     SRVY0 = "BS", # in Oracle
     SRVY00 = 98, # EBS
     station_id = akgfmaps::get_survey_stations(
-      select.region = "nbs"),
+      select.region = "bs.north"),
     reg_dat = akgfmaps::get_base_layers(
-      select.region = "nbs", 
+      select.region = "bs.north", 
       set.crs = "auto", 
       return.survey.grid = TRUE),
     report_species = report_species_NEBS), 
@@ -182,9 +182,9 @@ report_types <- list(
     SRVY00 = c(98, #NBS
                143), # EBS
     station_id = akgfmaps::get_survey_stations(
-      select.region = "ebs"),
+      select.region = "bs.all"),
     reg_dat = akgfmaps::get_base_layers(
-      select.region = "ebs", 
+      select.region = "bs.all", 
       set.crs = "auto", 
       return.survey.grid = TRUE),
     report_species = report_species_NEBS)
@@ -199,10 +199,10 @@ report_types$NEBS$reg_dat$survey.strata$Stratum[
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
-placenames0 <- read.csv(file = system.file("data",
-                                           file = "placenames.csv", package = "akgfmaps",
-                                           mustWork = TRUE), stringsAsFactors = FALSE) %>%
-  transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
+# placenames0 <- read.csv(file = system.file("data",
+#                                            file = "placenames.csv", package = "akgfmaps",
+#                                            mustWork = TRUE), stringsAsFactors = FALSE) %>%
+#   transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
 
 # Load data --------------------------------------------------------------------
 
@@ -461,9 +461,8 @@ haul <- haul0 %>%
                   survey_definition_id %in% SRVY00) %>% 
   dplyr::select(-auditjoin) %>%  
   dplyr::mutate(SRVY = dplyr::case_when(
-    survey_definition_id %in% 143 ~ "EBS",
-    survey_definition_id %in% 98 ~ "NBS"
-  ))   #%>%
+    survey_definition_id %in% 143 ~ "NBS",
+    survey_definition_id %in% 98 ~ "EBS" )) #%>%
   # dplyr::filter(SRVY %in% SRVY1) # %>%
   # dplyr::mutate(start_date_haul = 
   #                 format(x = as.POSIXlt(x = start_time), format="%Y-%m-%d"))
@@ -762,7 +761,7 @@ temps_wt_avg_strat <- stratum_info %>% #temp_strat(maxyr) %>%
     dplyr::filter(SRVY %in% SRVY1) %>%
     dplyr::select(stratum, area, SRVY) %>%
     dplyr::mutate(weight_all = area/sum(area)) %>% 
-    group_by(SRVY) %>% 
+    dplyr::group_by(SRVY) %>% 
     dplyr::mutate(weight_SRVY = area/sum(area)) %>% 
     dplyr::left_join(x = haul %>% 
                        # dplyr::filter(year == maxyr) %>%

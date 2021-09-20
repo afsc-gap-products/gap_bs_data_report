@@ -42,6 +42,7 @@ PKG <- c(
   "googledrive",
   "magrittr",
   "readr",
+  "tidyr",
   
   # Text Management
   "stringr",

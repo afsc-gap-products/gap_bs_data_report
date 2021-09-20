@@ -11,6 +11,8 @@
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 
+workfaster <- TRUE # an attempt to satisfy limited patience
+
 maxyr <- 2017 # or the year of the report, for example
 compareyr <- 2010
 # compareyr_nbs <- 2010 #will this always be the same?

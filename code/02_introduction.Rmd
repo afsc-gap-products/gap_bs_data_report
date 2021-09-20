@@ -29,8 +29,8 @@ usePNGPDF = "png"
 
 # Select data and make plot
 
-placenames <- placenames0 %>% 
-  dplyr::filter(!(lab %in% c("Pribilof Isl.", "St. Matthew")))
+# placenames <- reg_dat$place.labels %>% 
+#   dplyr::filter(!(lab %in% c("Pribilof Isl.", "St. Matthew")))
 
 survey_reg_col <- gray.colors(length(unique(haul_cruises_maxyr$SRVY))+2)
 survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
@@ -83,14 +83,14 @@ figure <- ggplot() +
                      breaks = reg_dat$lon.breaks) + 
   scale_y_continuous(name = "Latitude", 
                      breaks = reg_dat$lat.breaks) +
-  geom_text(data = subset(placenames, type == "mainland"), 
+  geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
             aes(x = x, y = y, label = lab), 
             size = 14, group = 99) + 
-  geom_shadowtext(data = subset(placenames, type == "peninsula"), 
+  geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
                   aes(x = x, y = y, label = lab), size = 5, angle = 40, 
                   bg.color = "white", color = "black", group = 99) + 
   geom_shadowtext(
-    data = subset(placenames, type %in% c("bathymetry", "islands")),
+    data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
     aes(x = x, y = y, label = lab), 
     bg.color = "white", color = "black", 
     size = 2, group = 99) +
@@ -158,9 +158,6 @@ usePNGPDF = "png"
 
 # Select data and make plot
 
-placenames <- placenames0 #%>% 
-# dplyr::filter(!(lab %in% c("Pribilof Isl.", "St. Matthew")))
-
 survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
 survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
 
@@ -185,7 +182,7 @@ if (crab_resample == TRUE | study1530 == TRUE) {
   survey.grid0 <- 
     dplyr::left_join(x = reg_dat$survey.grid, 
                      y = data.frame(
-                       survey_study_col = c("white", "green", "blue"), 
+                       survey_study_col = c("white", nmfs_cols("medgreen"), nmfs_cols("processblue")), 
                        study = c("", "crab_resample", "study1530"), 
                        study_long = c("No additional Study", "Red King Crab Resample", 
                                       "15/30 minute Tow Study")), 
@@ -260,14 +257,14 @@ figure <- figure +
                      breaks = reg_dat$lon.breaks) + 
   scale_y_continuous(name = "Latitude", 
                      breaks = reg_dat$lat.breaks) +
-  geom_text(data = subset(placenames, type == "mainland"), 
+  geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
             aes(x = x, y = y, label = lab), 
             size = 14, group = 99) + 
-  geom_shadowtext(data = subset(placenames, type == "peninsula"), 
+  geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
                   aes(x = x, y = y, label = lab), size = 5, angle = 40, 
                   bg.color = "white", color = "black", group = 99) + 
   geom_shadowtext(
-    data = subset(placenames, type %in% c("bathymetry", "islands")),
+    data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
     aes(x = x, y = y, label = lab), 
     bg.color = "white", color = "black", 
     size = 2, group = 99) +
