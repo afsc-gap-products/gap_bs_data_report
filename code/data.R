@@ -21,6 +21,68 @@
 # *** Report Species ---------------------------------------------------------------
 
 
+#   temp <- list(
+#     # skates
+#     "Raidae (skates)" = list(
+#       "Alaska skate" = find_codes(x = spp_info_maxyr, str = "Alaska skate"),
+#       "Other skates" = find_codes(x = spp_info_maxyr, str = "skate", str_not = "Alaska skate"),
+#       "Total skates" = find_codes(x = spp_info_maxyr, str = "skate")),
+#     # flatfishes
+#     "Pleuronectidae (flatfishes)" = list(
+#       "Yellowfin sole" = find_codes(x = spp_info_maxyr, str = "Yellowfin sole"),
+#       "Northern rock sole" = find_codes(x = spp_info_maxyr, str = "Northern rock sole"),
+#       "Flathead sole" = find_codes(x = spp_info_maxyr, str = "Flathead sole"),
+#       "Bering flounder" = find_codes(x = spp_info_maxyr, str = "Bering flounder"),
+#       "Alaska plaice" = find_codes(x = spp_info_maxyr, str = "Alaska plaice"),
+#       "Arrowtooth flounder" = find_codes(x = spp_info_maxyr, str = "Arrowtooth flounder"),
+#       "Kamchatka flounder" = find_codes(x = spp_info_maxyr, str = "Kamchatka flounder"),
+#       "Greenland turbot" = find_codes(x = spp_info_maxyr, str = "Greenland turbot"),
+#       "Pacific halibut" = find_codes(x = spp_info_maxyr, str = "Pacific halibut"),
+#       "Other flatfish" =
+#         find_codes(x = spp_info_maxyr, str = "Pleuronectidae", col = "family_taxon",
+#                    col_str_not = "common_name",
+#                    str_not = c("Yellowfin sole", "Northern rock sole", "Flathead sole",
+#                                "Bering flounder", "Alaska plaice", "Arrowtooth flounder",
+#                                "Kamchatka flounder", "Greenland turbot", "Pacific halibut")),
+#       "Total flatfish" = find_codes(x = spp_info_maxyr, str = "Pleuronectidae",
+#                                     col = "family_taxon")),
+# 
+#     # Cod
+#     "Gadidae (cods)" = list(
+#       "Walleye pollock" = find_codes(x = spp_info_maxyr, str = "Walleye pollock"),
+#       "Pacific cod" = find_codes(x = spp_info_maxyr, str = "Pacific cod"),
+#       "Other cods" =
+#                 find_codes(x = spp_info_maxyr, str = "Gadidae", col = "family_taxon",
+#                    col_str_not = "common_name",
+#                    str_not = c("Walleye pollock", "Pacific cod")),
+#       "Total cods" = find_codes(x = spp_info_maxyr, str = "Gadidae", col = "family_taxon")),
+#     # mix
+#     "Agonidae (poachers)" = find_codes(x = spp_info_maxyr, str = "Agonidae",
+#                                        str_not = "Cheiragonidae", col = "family_taxon"),
+#     "Cottidae (sculpins)" = find_codes(x = spp_info_maxyr, str = "Cottidae", col = "family_taxon"),
+#     "Hexagrammidae (greenlings)" = find_codes(x = spp_info_maxyr, str = "Hexagrammidae", col = "family_taxon"),
+#     "Cyclopteridae (lumpsuckers)" = find_codes(x = spp_info_maxyr, str = "Cyclopteridae", col = "family_taxon"),
+#     "Liparidae (snailfishes)" = find_codes(x = spp_info_maxyr, str = "Liparidae", col = "family_taxon"),
+#     "Osmeridae (smelts)" = find_codes(x = spp_info_maxyr, str = "Osmeridae", col = "family_taxon"),
+#     "Sichaeidae (blennies)" = find_codes(x = spp_info_maxyr, str = "Sichaeidae", col = "family_taxon"),
+#     "Zoarcidae (eelpouts)" = find_codes(x = spp_info_maxyr, str = "Zoarcidae", col = "family_taxon"),
+#     # rockfish
+#     "Scorpaenidae (rockfish)" = list(
+#       "Pacific ocean perch" = find_codes(x = spp_info_maxyr, str = "Pacific ocean perch"),
+#       "Other rockfish" = find_codes(x = spp_info_maxyr, str = "Scorpaenidae", col = "family_taxon",
+#                                     str_not = "Pacific ocean perch", col_str_not = "common_name"),
+#       "Total rockfish" = find_codes(x = spp_info_maxyr, str = "Scorpaenidae", col = "family_taxon")),
+#     # other
+#     "Other fish" = NA)
+# 
+#   temp$`Other fish` <-
+#     find_codes(
+#       x = spp_info_maxyr %>% dplyr::filter(fish == TRUE),
+#       # col_out = "common_name",
+#       str_not = unique(unlist(temp)), col_str_not = "species_code")
+#   
+
+
 # Northern and Southern rock sole (grouped) = c(10262, 10261, 10263)
 report_species_NEBS<-list("fish1" = # all plots and tables
                             list("Walleye pollock" = c(21740, 21741, 21742, 21744),
@@ -190,6 +252,7 @@ report_types <- list(
     report_species = report_species_NEBS)
 )
 
+
 # TOLEDO
 report_types$EBS$reg_dat$survey.strata$Stratum[
   report_types$EBS$reg_dat$survey.strata$Stratum == 30]<-31
@@ -199,12 +262,36 @@ report_types$NEBS$reg_dat$survey.strata$Stratum[
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
+if(map.area %in% c("bs.south", "sebs")) {
+  extrap.box <- c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 63)
+} else if(map.area %in% c("bs.north", "nbs")) {
+  extrap.box <- c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68)
+} else if(map.area %in% c("bs.all", "ebs")) {
+  extrap.box <- c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68)
+}
+
 # placenames0 <- read.csv(file = system.file("data",
 #                                            file = "placenames.csv", package = "akgfmaps",
 #                                            mustWork = TRUE), stringsAsFactors = FALSE) %>%
 #   transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
 
 # Load data --------------------------------------------------------------------
+
+
+# *** Load Documents Cold Pool GEOTiff -----------------------------------------
+
+# TOLEDO - waiting for coldpool package
+
+# The geoTIFF files will look like this. You can mask them using something like this:
+
+# proj_crs <-  "EPSG:3338"
+# 
+# sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs", set.crs = proj_crs)
+# 
+# temp_ste <- raster::raster(here::here("data", "coldpool", "ste_2021_gear_temperature.tif")) %>%
+#   akgfmaps::rasterize_and_mask(amask = sebs_layers$survey.area)
+# 
+# plot(temp_ste)
 
 # *** Load Documents from Google Drive -----------------------------------------
 if (googledrive_dl) {
@@ -261,7 +348,9 @@ df.ls<-list()
 
 for (ii in 1:length(SRVY1)) {
   
-  a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "biomass"), full.names = TRUE)
+  a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "biomass"), 
+                pattern = ".csv", 
+                full.names = TRUE)
   if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
     a <- a[grep(pattern = "_plusnw", x = a)]
   }
@@ -447,17 +536,15 @@ cruises_compareyr <- cruises %>%
 
 # *** haul + maxyr ---------------------------------------------------------------------
 
-haul <- haul0 %>%
+temp <- haul0 %>%
   dplyr::left_join(x = ., 
                    y = cruises %>% 
                      dplyr::select(cruisejoin, survey_definition_id), 
                    by = "cruisejoin") %>%  
-  dplyr::mutate(year = as.numeric(substr(x = cruise, 1,4))) %>% 
-  dplyr::filter(abundance_haul == "Y" &
-                  year <= maxyr &
+  dplyr::mutate(year = as.numeric(substr(x = start_time, 1,4))) %>% 
+  dplyr::filter(year <= maxyr &
                   performance >= 0 &
                   !(is.null(stationid)) &
-                  haul_type == 3 & 
                   survey_definition_id %in% SRVY00) %>% 
   dplyr::select(-auditjoin) %>%  
   dplyr::mutate(SRVY = dplyr::case_when(
@@ -467,12 +554,23 @@ haul <- haul0 %>%
   # dplyr::mutate(start_date_haul = 
   #                 format(x = as.POSIXlt(x = start_time), format="%Y-%m-%d"))
 
+haul <- temp %>% 
+  dplyr::filter(abundance_haul == "Y" &
+                  haul_type == 3)
+
 haul_maxyr <- haul %>% 
   dplyr::filter(year == maxyr)
 
 haul_compareyr <- haul %>% 
   dplyr::filter(year == compareyr)
 
+# Crab retows?
+crab_resample <- FALSE
+if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
+  crab_resample <- TRUE
+  haul_maxyr_crabretow <- temp %>%
+    dplyr::filter(haul_type == 17)# crab retow == 17
+}
 
 # *** stratum_info (survey area) (reprise) -------------------------------------
 
@@ -835,6 +933,86 @@ temps_wt_avg_yr <- temps_wt_avg_yr %>%
 
 temps_wt_avg_yr_longterm <- temps_wt_avg_yr %>% 
   dplyr::filter(year == maxyr)
+
+
+# which years should we look at?
+temps_wt_avg_yr_abovebelow_plots <- 
+  cbind.data.frame(
+  "above" = temps_wt_avg_yr %>% 
+      dplyr::filter(SRVY == "EBS" & 
+                      bt_wt_above_mean == TRUE) %>% 
+      dplyr::ungroup() %>%
+      dplyr::arrange(-year) %>% 
+      dplyr::select(year) %>% 
+      head(8) %>%
+      unlist(), 
+  "below" = temps_wt_avg_yr %>% 
+  dplyr::filter(SRVY == "EBS" & 
+                  bt_wt_above_mean == FALSE) %>% 
+  dplyr::ungroup() %>%
+  dplyr::arrange(-year) %>% 
+  dplyr::select(year) %>% 
+  head(8) %>%
+  unlist())
+
+
+# *** Cold Pool ----------------------------------------------------------------
+# Load libraries ----
+#remotes::install_github("sean-rohan-noaa/akgfmaps", R_REMOTES_NO_ERRORS_FROM_WARNINGS="true", ref = "dev")
+
+# library(akgfmaps) # GitHub: sean-rohan-NOAA/akgfmaps
+# library(getPass)
+# library(ggthemes)
+# library(here)
+# library(lubridate)
+# library(metR)
+# library(raster)
+# library(RODBC)
+# library(stringr)
+# library(tidyverse)
+# library(TLUtilities) # GitHub: sean-rohan-NOAA/TLUtilities
+# library(viridis)
+# 
+# # Get gear temperature data from all hauls
+# temperature_all_hauls_df <- haul0 %>% 
+#   dplyr::filter(region == 'BS' &
+#                 (stratum %in% c(10,20,31,32,41,42,43,50,61,62,82,90)) & 
+#                 cruise > 198200 &
+#                 bottom_depth < 201 &
+#                 (haul_type %in% c(3,13))) %>%
+#   dplyr::mutate(latitude = (start_latitude + end_latitude)/2,
+#                 longitude = (start_longitude + end_longitude)/2,
+#                 year = floor(cruise/100), 
+#                 SRVY = dplyr::case_when(
+#                   survey_definition_id %in% 143 ~ "NBS",
+#                   survey_definition_id %in% 98 ~ "EBS" )) %>%
+#   dplyr::select(gear_temperature,
+#          stationid,
+#          stratum,
+#          cruise,
+#          start_time, 
+#          haul_type, 
+#          year, 
+#          latitude, 
+#          longitude) %>% 
+#   dplyr::filter(!is.na(gear_temperature), !is.na(latitude), !is.na(longitude))
+# 
+# 
+# print("Writing temperature data for all hauls to csv")
+# ifelse(!dir.exists(file.path(here::here("data"))), dir.create(file.path(here::here("data"))), FALSE)
+# write.csv(temperature_all_hauls_df,
+#           file = here::here("data", paste0(Sys.Date(), "_all_temperature_data.csv")),
+#           row.names = FALSE)
+# 
+# # Index hauls
+# temperature_df <- temperature_all_hauls_df %>% 
+#   dplyr::filter((haul_type %in% c(3,13)))
+# 
+# print("Writing temperature data for index hauls to csv")
+# write.csv(temperature_df,
+#           file = here::here("data", paste0(Sys.Date(), "_index_hauls_temperature_data.csv")),
+#           row.names = FALSE)
+
 
 
 # Footnotes ------------------------

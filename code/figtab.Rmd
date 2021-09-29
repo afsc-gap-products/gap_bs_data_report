@@ -1,0 +1,1597 @@
+---
+output:
+  word_document:
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "../cite/bibliography.bib"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+# Abstract
+
+No figures or tables. 
+
+# Introduction
+
+## fig_sample_grid
+
+```{r fig_sample_grid}
+header <- paste0("Sampling grid and station identifiers for the ", maxyr, " eastern and northern Bering Sea continental shelf bottom trawl surveys.")
+footnote<- NA
+nickname <- "fig_sample_grid"
+alttext <- paste0(header)
+width = 6
+height = 6
+usePNGPDF = "png"
+
+# Select data and make plot
+
+# placenames <- reg_dat$place.labels %>% 
+#   dplyr::filter(!(lab %in% c("Pribilof Isl.", "St. Matthew")))
+
+survey_reg_col <- gray.colors(length(unique(haul_cruises_maxyr$SRVY))+2)
+survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+
+figure <- ggplot() +
+  # geom_sf(data = reg_dat$bathymetry, color = "grey50") +
+  geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50") +
+  geom_sf(data = reg_dat$graticule,
+          color = "grey90",
+          alpha = 0.5) +
+  geom_sf(data = reg_dat$survey.area, 
+          aes(color = reg_dat$survey.area$SURVEY), 
+          fill = NA, 
+          size = 2,
+          show.legend = TRUE) +
+  scale_color_manual(
+    name = "", #"Survey Region",
+    values = c(alpha(survey_reg_col, 0.7)),
+    breaks = rev(unique(reg_dat$survey.area$SURVEY)), #TOLEDO rev
+    labels = rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))  +
+  ggplot2::guides(
+    shape = guide_legend(
+      order = 1, # vessels
+      override.aes = list(#fill = "white", 
+        linetype = c("blank"))), 
+    colour = guide_legend( 
+      order = 2,# survey regions
+      override.aes = list(fill = "white",
+                          color = survey_reg_col,
+                          size = 2)), 
+    fill = guide_legend( 
+      order = 3,# survey regions
+      override.aes = list(
+        color = NA,
+        size = 2))
+  ) +
+  geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+  geom_sf(data = reg_dat$survey.grid, color = "grey20", fill = NA) +
+  geom_sf_text(data = reg_dat$survey.grid, 
+               lineheight = 0.7,
+               mapping = aes(label = gsub(x = STATIONID, 
+                                          replacement = "\n", 
+                                          pattern = "-")),
+               color = "black",
+               size = 1.3,
+               show.legend = FALSE) +
+  coord_sf(xlim = reg_dat$plot.boundary$x, 
+           ylim = reg_dat$plot.boundary$y) +
+  scale_x_continuous(name = "Longitude", 
+                     breaks = reg_dat$lon.breaks) + 
+  scale_y_continuous(name = "Latitude", 
+                     breaks = reg_dat$lat.breaks) +
+  geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
+            aes(x = x, y = y, label = lab), 
+            size = 14, group = 99) + 
+  geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
+                  aes(x = x, y = y, label = lab), size = 5, angle = 40, 
+                  bg.color = "white", color = "black", group = 99) + 
+  geom_shadowtext(
+    data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+    aes(x = x, y = y, label = lab), 
+    bg.color = "white", color = "black", 
+    size = 2, group = 99) +
+  ggsn::scalebar(data = reg_dat$survey.grid, 
+                 location = "bottomright",
+                 dist = 100, 
+                 dist_unit = "km", 
+                 transform = FALSE, 
+                 st.dist = .02, 
+                 height = 0.02, 
+                 st.bottom = TRUE, 
+                 st.size = 3, 
+                 # transform = TRUE, 
+                 model = reg_dat$crs) +
+  #set legend position and vertical arrangement
+  # theme_bw()  +
+  theme(#plot.background = element_rect(fill = "white"), 
+    panel.background = element_rect(fill = "white", 
+                                    colour = NA), 
+    panel.border = element_rect(fill = NA, 
+                                colour = "grey20"), 
+    strip.background = element_rect(fill = "grey85", 
+                                    colour = "grey20"),
+    legend.spacing.y = unit(-0.35, "cm"),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 7),
+    # strip.background = element_rect(color = NA, fill = NA, size = 0),
+    legend.background=element_blank(),
+    legend.key = element_rect(colour = "transparent", 
+                              fill = "transparent"),
+    legend.position = c(.15, .22),
+    # legend.justification = c("right"),
+    legend.box.just = "left",
+    # legend.margin = margin(6, 6, 6, 6), 
+    legend.box = "vertical"
+  )
+
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = nickname)
+
+```
+
+
+## fig_sampled_survey_stations
+
+### How do I know what stations were retowed?
+
+```{r fig_sampled_survey_stations}
+# header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)," continental shelf bottom trawl surveys.")
+nickname <- "fig_sampled_survey_stations"
+header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)," continental shelf bottom trawl surveys. The map also depicts the stations sampled by each survey vessel and where, if any, Norton Sound crab resampling was done.")
+usePNGPDF = "png"
+
+# Select data and make plot
+survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
+survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+
+survey.grid0 <- 
+  dplyr::left_join(x = reg_dat$survey.grid, 
+                   y = dplyr::left_join(x = haul_maxyr, 
+                                        y = vessel_info) %>% 
+                     dplyr::select(stationid, vessel_name, vess_shape) %>%
+                     dplyr::mutate(vess_col = dplyr::case_when(
+                       (vess_shape == vessel_info$vess_shape[1]) ~ nmfspalette::nmfs_cols("darkgreen"), 
+                       (vess_shape == vessel_info$vess_shape[2]) ~ nmfspalette::nmfs_cols("darkblue"))) %>% 
+                     dplyr::rename(STATIONID = stationid), 
+                   by = ("STATIONID"))
+
+figure <- ggplot()
+
+if (crab_resample == TRUE) {
+  
+  survey.grid0 <- dplyr::left_join(
+    x = survey.grid0, 
+    y = haul_maxyr_crabretow %>% 
+      dplyr::mutate(study = "crab_resample", 
+                    study_col = nmfspalette::nmfs_cols("medgray"),
+                    study = "crab_resample", 
+                    study_long = "Red King Crab\nResample") %>% 
+      dplyr::select(stationid, study, study_col, study_long) %>%
+      dplyr::rename(STATIONID = stationid) %>% 
+      unique(), 
+    by = ("STATIONID")) 
+  
+  stdy <- survey.grid0 %>% dplyr::filter(!is.na(study))
+  
+  # library(ggpattern) #renv::install("coolbutuseless/ggpattern")
+
+  figure <- figure  +
+  geom_sf(data = survey.grid0 %>% dplyr::filter(!is.na(study)),
+          mapping = aes(fill = study),
+          show.legend = TRUE,
+          # color = NA,
+          na.rm = TRUE) +
+  scale_fill_manual(
+    name = "", #"Survey Vessels",
+    values = unique(survey.grid0$study_col),
+    breaks = unique(survey.grid0$study),
+    labels = unique(survey.grid0$study_long),
+    na.value = "transparent")
+    # ggpattern::geom_sf_pattern(data = stdy, 
+    #         mapping = aes(fill = study_long),
+    #         pattern = "crosshatch", 
+    #         fill = nmfspalette::nmfs_cols("medgray"),,
+    #         pattern_colour = nmfspalette::nmfs_cols("ltgray"), 
+    #         pattern_fill = nmfspalette::nmfs_cols("ltgray"),
+    #         pattern_alpha = .4,
+    #         show.legend = TRUE, 
+    #         color = NA,
+    #         na.rm = TRUE) +
+    # ggpattern::scale_pattern_manual(
+    #   name = "", #"Survey Vessels",
+    #   values = unique(stdy$study_col),
+    #   breaks = unique(stdy$study),
+    #   labels = unique(stdy$study_long), 
+    #   na.value = "transparent") 
+}
+
+vess <- survey.grid0 %>% dplyr::filter(!is.na(vessel_name))
+
+figure <- figure + 
+  geom_sf(data = reg_dat$bathymetry, color = "grey50") +
+  geom_sf(data = survey.grid0,
+          fill = NA,
+          show.legend = FALSE, 
+          na.rm = TRUE) +
+  stat_sf_coordinates(data = vess,
+                      # geom_sf_text(data = vess,
+                      mapping = aes(color = vess_col, 
+                                    shape = vess_shape),
+                      # label = vess_shape),
+                      size = 1.5, 
+                      show.legend = TRUE, 
+                      na.rm = TRUE) +
+  geom_sf(data = reg_dat$graticule,
+          color = "grey90",
+          alpha = 0.5) +
+  geom_sf(data = reg_dat$survey.area,
+          aes(color = reg_dat$survey.area$SURVEY, 
+              shape = reg_dat$survey.area$SURVEY),
+          fill = NA,
+          size = 2,
+          show.legend = TRUE) +
+  
+  scale_color_manual(
+    name = " ", #"Survey Region",
+    values = c(alpha(colour = c(survey_reg_col, 
+                                unique(vess$vess_col)), 0.7)),
+    breaks = c(rev(unique(reg_dat$survey.area$SURVEY)), 
+               unique(vess$vess_col)), 
+    labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+               unique(vess$vessel_name)), 
+    na.value = "transparent")  +
+  
+  scale_shape_manual(
+    name = " ", #"Survey Vessels",
+    values = c("", "",
+               unique(vess$vess_shape)),
+    breaks = c(unique(reg_dat$survey.area$SURVEY),
+               unique(vess$vess_shape)),
+    labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+               unique(vess$vessel_name))) +
+  
+  geom_sf_text(data = reg_dat$survey.strata, 
+               lineheight = 0.7,
+               mapping = aes(label = reg_dat$survey.strata$Stratum),
+               color = "black",
+               size = 5,
+               show.legend = FALSE) +
+  ggplot2::guides(
+    colour = guide_legend(
+      # order = 1,# survey regions
+      override.aes = list(fill = NA,
+                          # color = c(survey_reg_col, NA, NA),
+                          linetype = c(1,1,0,0),
+                          # shape = c(NA, NA, "A", "V"),
+                          size = 3)),
+    fill = guide_legend(
+      # order = 2,# survey regions
+      override.aes = list(
+        color = NA))
+  ) +
+  geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+  coord_sf(xlim = reg_dat$plot.boundary$x, 
+           ylim = reg_dat$plot.boundary$y) +
+  scale_x_continuous(name = "Longitude", 
+                     breaks = reg_dat$lon.breaks) + 
+  scale_y_continuous(name = "Latitude", 
+                     breaks = reg_dat$lat.breaks) +
+  geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
+            aes(x = x, y = y, label = lab), 
+            size = 14, group = 99) + 
+  geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
+                  aes(x = x, y = y, label = lab), size = 5, angle = 40, 
+                  bg.color = "white", color = "black", group = 99) + 
+  geom_shadowtext(
+    data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+    aes(x = x, y = y, label = lab), 
+    bg.color = "white", color = "black", 
+    size = 2, group = 99) +
+  # ggsn::north(data = reg_dat$survey.grid, 
+  #             symbol = 10, 
+  #             location = "topright") +
+  ggsn::scalebar(data = reg_dat$survey.grid, 
+                 location = "bottomright",
+                 dist = 100, 
+                 dist_unit = "km", 
+                 transform = FALSE, 
+                 st.dist = .02, 
+                 height = 0.02, 
+                 st.bottom = TRUE, 
+                 st.size = 3, 
+                 # transform = TRUE, 
+                 model = reg_dat$crs) +
+  #set legend position and vertical arrangement
+  # theme_bw()  +
+  theme(#plot.background = element_rect(fill = "white"), 
+    panel.background = element_rect(fill = "white", 
+                                    colour = NA), 
+    panel.border = element_rect(fill = NA, 
+                                colour = "grey20"), 
+    strip.background = element_rect(fill = "grey85", 
+                                    colour = "grey20"),
+    legend.spacing.y = unit(-0.35, "cm"),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 7),
+    # strip.background = element_rect(color = NA, fill = NA, size = 0),
+    legend.background=element_blank(),
+    legend.key = element_rect(colour = "transparent", 
+                              fill = "transparent"),
+    legend.position = c(.15, .22),
+    # legend.justification = c("right"),
+    legend.box.just = "left",
+    # legend.margin = margin(6, 6, 6, 6), 
+    legend.box = "vertical"
+  )
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = nickname)
+
+```
+
+
+# History
+
+No figures or tables. 
+
+# Methods
+
+## fig_trawl_gear
+
+```{r fig_trawl_gear}
+header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used during the ", maxyr ," eastern and northern Bering Sea bottom trawl surveys.")
+footnote<- NA
+nickname <- "fig_trawl_gear"
+alttext <- paste0(header)
+width = 6
+height = 6
+usePNGPDF = "png"
+
+# Select data and make plot
+
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "EASTERN83-112.png")) )
+
+# save yo' stuff and do a lot of behind the scenes work
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
+```
+
+
+## tab_stratum_areas
+
+### should density use stations_completed or stations_avail?
+
+
+```{r tab_stratum_areas}
+header <- paste0("Stratum areas and sampling densities for the ",maxyr,
+                 " bottom trawl survey of the ",
+                 NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
+                                               haul_cruises_maxyr$SRVY, ")")),".")
+nickname <- "tab_stratum_areas" 
+
+# Select data and make plot
+# strata_haul_count <- haul_maxyr %>% 
+#   dplyr::select(stratum, stationid) %>% 
+#   dplyr::group_by(stratum) %>% 
+#   dplyr::summarise(count(stratum)) %>% 
+#   dplyr::rename(stations_completed = "freq") %>% 
+#   dplyr::select(stratum, stations_completed)
+# 
+
+temp <- stratum_info %>% 
+  dplyr::select(area, stations_completed, stratum, type,  SRVY)
+
+if (length(unique(station_info$SRVY))>1) {
+  totals_sub <- stratum_info %>%
+    dplyr::group_by(SRVY) %>%
+    dplyr::summarise(area = sum(area, na.rm = TRUE),
+                     stations_completed = sum(stations_completed, n.rm = TRUE)) %>%
+    dplyr::mutate(stratum = "") %>%
+    dplyr::mutate(type = "Total") %>% 
+    dplyr::relocate(names(temp))
+}
+
+totals <- stratum_info %>% 
+  dplyr::summarise(area = sum(area, na.rm = TRUE), 
+                   stations_completed = sum(stations_completed, n.rm = TRUE)) %>% 
+  dplyr::mutate(stratum = "") %>% 
+  dplyr::mutate(type = "Total") %>% 
+  dplyr::mutate(SRVY = NMFSReports::text_list(SRVY1)) %>% 
+  dplyr::relocate(names(temp))
+
+
+table_raw <- 
+  rbind.data.frame(temp, 
+                   if(exists("totals_sub")){totals_sub}, 
+                   totals) %>% 
+  dplyr::mutate(density = round(area/stations_completed, 0)) %>% 
+  dplyr::mutate(area = round(area, 0)) %>% 
+  dplyr::mutate(Region = paste0(SRVY, " ", type)) %>% 
+  dplyr::mutate(order = dplyr::case_when(
+    Region == "EBS Inner Shelf" ~ 1,
+    Region == "EBS Middle Shelf" ~ 2,
+    Region == "EBS Outer Shelf" ~ 3,
+    Region == "EBS Total" ~ 4,
+    Region == "NBS Shelf" ~ 5,
+    Region == "NBS Total" ~ 6,
+    Region == "EBS and NBS Total" ~ 7
+  ))  %>%
+  dplyr::arrange(order, stratum) %>% #SRVY, stratum) %>% 
+  dplyr::select(Region, stratum, area, stations_completed, density, -order) %>% 
+  dplyr::relocate(Region, stratum, area, stations_completed, density)
+
+table_print <- flextable::flextable(table_raw) %>%
+  # flextable::display(., i = 1, col_key = "area", 
+  #   pattern = "{{val}}{{pow}}", part = "header",
+  #   formatters = list(val ~ as.character("km"), pow ~ as.character("2") ),
+  #   fprops = list(pow = fp_text(vertical.align = "superscript", font.size = 8))
+  #   ) %>% 
+  flextable::set_header_labels(., 
+                               Region = "",
+                               stratum = "Stratum",
+                               area = "Representative\narea (km2)",
+                               stations_completed = "Stations successfully\nsampled",
+                               density = "Sampling density\n(km2/Stations successfully sampled)"
+  ) %>% 
+  flextable::merge_v(j = "Region") %>%
+  flextable::valign(valign = "top") %>%
+  theme_flextable_nmfstm()
+
+
+table_raw_stratum_areas <- table_raw
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
+```
+
+## tab_specimen_samples
+
+> How do I know "Stomach samples collected for arrowtooth flounder and Kamchatka flounder were combined."? 
+
+> what are pathobiology samples?
+
+> how do I select for otolith samples, e.g., not L-W?
+
+> I did not get the 2017 numbers in the report...
+
+```{r tab_specimen_samples}
+nickname0 <- paste0("tab_specimen_samples") 
+
+l <- length_maxyr %>% 
+  dplyr::select("SRVY", species_code) %>% 
+  dplyr::group_by("SRVY" = SRVY, species_code) %>% # also type?
+  dplyr::summarise(length = as.numeric(n())) %>% 
+  dplyr::ungroup()  #%>% 
+# dplyr::mutate(length = xunits(length, val_under_x_words = 0))
+
+a <- specimen_maxyr %>% 
+  dplyr::select("SRVY", species_code) %>% 
+  dplyr::group_by("SRVY" = SRVY, species_code) %>% # also type?
+  dplyr::summarise(age = as.numeric(n())) %>% 
+  dplyr::ungroup() #%>% 
+# dplyr::mutate(age = xunits(age, val_under_x_words = 0))
+
+# Select data and make plot
+
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  if (nrow(haul_cruises_maxyr)>1) {
+    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+  }
+  nickname <- paste0(nickname0, "_", haul_cruises_maxyr$SRVY[i]) 
+  header <- paste0("Biological data collected during the ", maxyr, " ", 
+                   haul_cruises_maxyr$SRVY_long[i],
+                   " shelf bottom trawl survey.")
+  
+  table_raw <- 
+    dplyr::full_join(x = l, y = a) %>% 
+    dplyr::mutate(stomach = as.numeric(NA)) %>% # TOLEDO - placeholder
+    dplyr::mutate(pathobio = as.numeric(NA)) %>% # TOLEDO - placeholder 
+    dplyr::left_join(x = ., 
+                     y = spp_info %>% dplyr::select(species_code,  common_name), 
+                     by = "species_code") %>% 
+    dplyr::select(-species_code)  %>% 
+    dplyr::arrange(SRVY, desc(length), desc(age), desc(stomach), desc(pathobio)) %>% 
+    dplyr::mutate(order = 1:length(age))
+  
+  # to make sure that "total" rows are at the bottom
+  # there has got to be a better way, but now I am v. over it, lol. I have accepted my fate. 
+  temp <- table_raw %>% 
+    dplyr::select(SRVY) %>% 
+    dplyr::group_by("SRVY" = SRVY) %>% # also type?
+    dplyr::summarise(order1 = (row_number()==n())) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(order = (row_number()+0.5)) %>% 
+    dplyr::filter(order1 == TRUE) %>% 
+    dplyr::select(-order1)
+  
+  table_raw <- 
+    dplyr::bind_rows(table_raw, 
+                     table_raw %>% 
+                       dplyr::group_by(SRVY) %>% 
+                       dplyr::summarise(
+                         length = sum(length, na.rm = TRUE),
+                         age = sum(age, na.rm = TRUE), 
+                         stomach = sum(stomach, na.rm = TRUE), 
+                         pathobio = sum(pathobio, na.rm = TRUE)) %>% 
+                       dplyr::mutate(common_name = "Total") %>% 
+                       dplyr::left_join(x = ., y = temp)) %>% 
+    dplyr::relocate(SRVY, common_name, length, age, stomach, pathobio) %>% 
+    dplyr::arrange(order) %>% 
+    dplyr::select(-order)
+  
+  table_print <- table_raw %>% 
+    dplyr::mutate(length = xunits(length, val_under_x_words = -1)) %>%
+    dplyr::mutate(age = xunits(age, val_under_x_words = -1)) %>% 
+    dplyr::mutate(stomach = xunits(stomach, val_under_x_words = -1)) %>%
+    dplyr::mutate(pathobio = xunits(pathobio, val_under_x_words = -1))
+  
+  table_print[is.na(table_print)]<- "-"
+  
+  table_print <- flextable::flextable(table_print %>% 
+                                        dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+                                        dplyr::select(-SRVY)) %>%
+    flextable::set_header_labels(.,
+                                 common_name = haul_cruises_maxyr$SRVY[i],
+                                 length = "Length\nmeasurements",
+                                 age = "Age\nmeasurements",
+                                 stomach = "Stomachs\ncollected",
+                                 pathobio = "Pathobiology\nsamples"
+    ) %>%
+    # flextable::merge_v(j = "SRVY") %>%
+    flextable::valign(valign = "top") %>%
+    theme_flextable_nmfstm(x = .)
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  
+  assign(value = res, x = paste0(nickname))
+  
+}
+
+```
+
+## tab_special_projects
+
+```{r tab_special_projects}
+nickname0 <- "tab_special_projects" 
+footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
+newobj <- TRUE
+
+temp <- readr::read_csv(paste0(dir_out_rawdata, "/", nickname0, ".csv"))
+
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  if (nrow(haul_cruises_maxyr)>1) {
+    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+  }
+  nickname <- paste0(nickname0, "_", haul_cruises_maxyr$SRVY[i]) 
+  header <- paste0("Special projects and collections undertaken during the ",
+                   maxyr, " ", 
+                   haul_cruises_maxyr$SRVY_long[i], 
+                   "shelf bottom trawl survey by principal investigator and agency.")
+  
+  table_raw<-temp %>% 
+    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+    dplyr::select(-SRVY)
+  
+  table_print <- table_raw %>% 
+    flextable::flextable(.) %>% 
+    theme_flextable_nmfstm() %>% 
+    flextable::footnote(x = ., value = as_paragraph(footnote0), part = "header", j = 3) 
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  
+  assign(value = res, x = paste0(nickname))
+  
+}
+
+temp <- temp %>% 
+  # dplyr::filter(!is.na(age_determination_method)) %>% # TOLEDO - is this how I get otolith samples?
+  dplyr::group_by(SRVY) %>% 
+  dplyr::summarise(n = length(all_of(SRVY))) 
+
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```
+
+
+# Results
+
+## fig_temp_weight_mean
+
+```{r fig_temp_weight_mean}
+
+# if () {
+temp0 <- haul_cruises_maxyr %>% 
+  dplyr::filter(SRVY == "EBS")
+# } else {
+#   
+# }
+
+header <- paste0("Time series of mean survey surface and near-bottom temperatures in the ",temp0$SRVY_long," (",temp0$SRVY,") weighted by stratum based on expendable bathythermograph casts or digital dataloggers attached to the headrope during the eastern Bering Sea bottom trawl surveys from ", temp0$SRVY_start," to ", maxyr, ". The 1982-1987 means (triangles) are based on Strata 10-62 (see Figure ", crossref(list_obj = list_figures, nickname = 'fig_sampled_survey_stations', sublist = 'number'),") and the 1988-", maxyr, " means also include Strata 80 and 92. The dashed lines represent the grand stratum-area weighted mean water temperatures for ", temp0$SRVY_start,"-", maxyr, ".")
+
+footnote<- NA
+nickname <- "fig_temp_weight_mean"
+alttext <- paste0(header)
+width = 6
+height = 6
+usePNGPDF = "png"
+
+# Select data and make plot
+table_raw <- temp <- temps_wt_avg_yr %>% 
+  dplyr::filter(SRVY == "EBS") 
+
+figure <- ggplot(data = temp) +
+  # surface temperature
+  geom_line(aes(x = year, y = st_wt), 
+            color = nmfs_cols("medgreen"), size = 1) +
+  geom_point(aes(x = year, y = st_wt), 
+             color = nmfs_cols("medgreen"), fill = nmfs_cols("medgreen"), 
+             pch = 19, size = 2) +
+  geom_hline(yintercept = temp$st_wt_mean[1], 
+             linetype="dashed", color = nmfs_cols("medgreen")) + 
+  annotate("text", x = 2010, y = 8, label = "Surface", col = nmfs_cols("medgreen")) + 
+  # bottom temperature
+  geom_line(aes(x = year, y = bt_wt), 
+            color = nmfs_cols("processblue"), size = 1) +
+  geom_point(aes(x = year, y = bt_wt), 
+             color = nmfs_cols("processblue"), fill = nmfs_cols("processblue"), 
+             pch = 24, size = 3) +
+  geom_hline(yintercept = temp$bt_wt_mean[1], 
+             linetype="dashed", color = nmfs_cols("processblue")) +
+  annotate("text", x = 2010, y = 3, label = "Bottom", color = nmfs_cols("processblue")) + 
+  
+  # general
+  ylab("Mean stratum area-weighted temperature (°C)") +
+  # xlab("Year") +
+  scale_x_continuous(name = "Year", 
+                     breaks = seq(from = min(temp$year), to = max(temp$year), by = 5)) +
+  #set legend position and vertical arrangement
+  theme(#plot.background = element_rect(fill = "white"), 
+    axis.text = element_text(size = 12), 
+    axis.title = element_text(size = 15),
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 12),
+    panel.background = element_rect(fill = "white", 
+                                    colour = NA), 
+    panel.border = element_rect(fill = NA, 
+                                colour = "grey20"), 
+    strip.background = element_rect(fill = "grey85", 
+                                    colour = "grey20"))
+
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = nickname)
+
+```
+
+
+## fig_idw_surftemp_maxyr
+
+```{r fig_idw_surftemp_maxyr}
+header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
+                 NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
+footnote<- NA
+nickname <- "fig_idw_surftemp_maxyr"
+alttext <- paste0(header)
+width = 6
+height = 6
+usePNGPDF = "png"
+
+# Select data and make plot
+table_raw <- temp <- akgfmaps::make_idw_map(
+  COMMON_NAME = "Surface Temperature", 
+  LATITUDE = haul_maxyr$start_latitude, 
+  LONGITUDE = haul_maxyr$start_longitude, 
+  CPUE_KGHA = haul_maxyr$surface_temperature, 
+  # return.continuous.grid = TRUE,
+  use.survey.bathymetry = FALSE,
+  region = map.area, # Predefined bs.all area
+  set.breaks = seq(from = -2, to = 20, by = 2), # Gets Jenks breaks from classint::classIntervals()
+  grid.cell = c(ifelse(workfaster, 0.1, 0.02), ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
+  key.title = "Surface Temperature (°C)")
+
+# eval_plot_breaks(CPUE =  haul_maxyr$surface_temperature, n.breaks = 6)
+
+figure <- ggplot() + 
+  geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+  geom_stars(data = temp$continuous.grid) +
+  scale_fill_viridis_c(#option = "plasma", 
+    na.value = "transparent", 
+    breaks = seq(from = -2, to = 20, by = 2),
+    labels = seq(from = -2, to = 20, by = 2)#,
+    # alpha = 0.75
+  ) + 
+  guides(fill=guide_legend(title="Surface\nTemperature (°C)\n\n")) +
+  geom_sf(data = reg_dat$bathymetry, color = "grey50") +
+  geom_sf(data = reg_dat$graticule,
+          color = "grey90",
+          alpha = 0.5) +
+  geom_sf(data = reg_dat$survey.area, 
+          color = "black", 
+          fill = NA, 
+          size = 1) +
+  scale_x_continuous(name = "Longitude", 
+                     breaks = reg_dat$lon.breaks) + 
+  scale_y_continuous(name = "Latitude", 
+                     breaks = reg_dat$lat.breaks) +
+  coord_sf(xlim = reg_dat$plot.boundary$x, 
+           ylim = reg_dat$plot.boundary$y) +
+  geom_text(data = subset(reg_dat$place.labels, type == "mainland"),
+            aes(x = x, y = y, label = lab),
+            size = 14, group = 99) +
+  geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"),
+                  aes(x = x, y = y, label = lab), size = 5, angle = 40,
+                  bg.color = "white", color = "black", group = 99) +
+  geom_shadowtext(
+    data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+    aes(x = x, y = y, label = lab),
+    bg.color = "white", color = "black",
+    size = 2, group = 99) +
+  
+  ggsn::scalebar(data = reg_dat$survey.grid,
+                 location = "bottomright",
+                 dist = 100,
+                 dist_unit = "km",
+                 transform = FALSE,
+                 st.dist = .02,
+                 height = 0.02,
+                 st.bottom = TRUE,
+                 st.size = 3,
+                 # transform = TRUE,
+                 model = reg_dat$crs) +
+  #set legend position and vertical arrangement
+  theme(
+    panel.background = element_rect(fill = "white", 
+                                    colour = NA), 
+    panel.border = element_rect(fill = NA, 
+                                colour = "grey20"), 
+    strip.background = element_rect(fill = "grey85", 
+                                    colour = "grey20"),
+    legend.spacing.y = unit(-0.35, "cm"),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 7),
+    legend.background = element_rect(colour = "transparent", fill = "transparent"),
+    legend.key = element_rect(colour = "transparent", 
+                              fill = "transparent"),
+    legend.position = c(.15, .22),
+    legend.box.just = "left",
+    legend.box = "vertical"
+  )
+
+# a <- add_map_labels(x = figure,
+#                region = map.area,
+#                new.places = reg_dat$place.labels)
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = nickname)
+
+```
+
+## fig_idw_bottemp_longterm_mean_ (above and below)
+
+> need to figure out how to plot bs.all and bs.south on same stars_list facet_wrap
+
+```{r fig_idw_bottemp_longterm_mean_}
+nickname0 <- "fig_idw_bottemp_longterm_mean_"
+
+for (i in 1:2) { # two cases, above and below
+  width = 6
+  height = 6
+  usePNGPDF = "png"  
+  
+  subobj <- TRUE
+  newobj <- ifelse(i==1, TRUE, FALSE)
+  TF <- ifelse(i==1, FALSE, TRUE)
+  case <- ifelse(i==1, "below", "above")
+  
+  header <- paste0("Contour maps of the near-bottom temperatures from the ",
+                   NMFSReports::text_list(sort(temps_wt_avg_yr_abovebelow_plots[,case])),
+                   " Bering Sea shelf bottom trawl surveys, years when the survey mean bottom temperature was ",
+                   case,
+                   " the long-term stratum area-weighted mean.")
+  footnote<- NA
+  nickname <- paste0(nickname0, case)
+  alttext <- paste0(header)
+  
+  table_raw <- haul %>%
+      dplyr::filter(!is.na(gear_temperature)) %>% 
+      dplyr::arrange(-year) 
+  
+  figure <- plot_idw_xbyx(
+    yrs = temps_wt_avg_yr_abovebelow_plots[,case],
+    dat = table_raw,
+    cruises = cruises,
+    lat = "start_latitude",
+    lon = "start_longitude",
+    var = "gear_temperature",
+    grid = "continuous.grid",
+    extrap.box = extrap.box,
+    key.title = "Bottom Temperature (°C)",
+    workfaster = workfaster,
+    SRVY = SRVY)
+  
+  # figure <- plot(1,1)
+
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  
+  assign(value = res, x = nickname)
+}
+
+```
+
+## fig_cold_pool_area (EBS)
+
+### math for summed area is funky! TOLEDO! help!
+
+```{r fig_cold_pool_area}
+header <- paste0("Percentage of the EBS (eastern Bering Sea) shelf bottom area that is occupied by the cold pool in one degree Celsius increments.")
+footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
+nickname <- "fig_cold_pool_area"
+alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
+width = 9
+height = 6
+usePNGPDF = "png"
+
+temp <- data.frame()
+
+for (i in ifelse(workfaster,which(sort(unique(haul$year)) == compareyr),1):length(unique(haul$year))){
+
+  yr <- sort(unique(haul$year))[i]
+
+  temp0 <- haul %>%
+    dplyr::filter(year == yr &
+                    SRVY == "EBS" &
+                    !is.na(gear_temperature)) %>%
+    dplyr::select(year, SRVY, start_latitude, start_longitude, gear_temperature)
+
+  temp0 <- akgfmaps::make_idw_map(
+    COMMON_NAME = "Bottom Temperature",
+    LATITUDE = temp0$start_latitude,
+    LONGITUDE = temp0$start_longitude,
+    CPUE_KGHA = temp0$gear_temperature,
+    # use.survey.bathymetry = FALSE,
+    region = map.area,
+    set.breaks = seq(from = -2, to = 16, by = 2),
+    grid.cell = c(ifelse(workfaster, 0.1, 0.02), ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
+    key.title = "Bottom Temperature (°C)")
+
+  temp <- data.frame(temp = matrix(data = temp0$continuous.grid$var1.pred, ncol = 1),
+                     area = matrix(data = temp0$continuous.grid$Shape_Area, ncol = 1)) %>%
+    dplyr::filter(!is.na(temp)) %>%
+    dplyr::mutate(bin = cut(x = temp,
+                            breaks = c(-Inf,-1, 0, 1, 2))) %>%
+    dplyr::filter(!is.na(bin)) %>%
+    dplyr::group_by(bin) %>%
+    dplyr::summarise(area_sum = sum(area),
+                     temp_mean = mean(temp, na.rm = TRUE)) %>%
+    dplyr::mutate(year = yr) %>%
+    data.frame() %>%
+    rbind.data.frame(temp, .)
+
+  # temp <- table(temp)
+}
+
+table_raw <- temp %>%
+  dplyr::mutate(label = dplyr::case_when(
+    bin == "(-Inf,-1]" ~ "> -1°C",
+    bin == "(-1,0]" ~ "-1 to 0°C",
+    bin == "(0,1]" ~ "0 to 1°C",
+    bin == "(1,2]" ~ "1 to 2°C")) %>%
+  dplyr::mutate(area_weight = ((area_sum/(sum(temp0$continuous.grid$Shape_Area, na.rm = TRUE))))) %>%
+  dplyr::mutate(area_percent = area_weight * 100)
+# currently in meters2 and needs to become km2 to be comparable
+# sum(stratum_info$area[stratum_info$SRVY == "EBS"], na.rm = TRUE) # TOLEDO - should I use this?? close, but not the same
+
+cold_pool_area <- table_raw %>%
+  dplyr::select(area_sum, area_percent, year, temp_mean, area_weight) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(area_sum = sum(area_sum),
+                   area_percent = sum(area_percent),
+                   temp_mean = sum(temp_mean * area_weight)) %>%
+  dplyr::mutate(area_sum = (area_sum*1e-11)) %>%
+  dplyr::mutate(label = "> 2°C") %>%
+  dplyr::mutate(year = NA) %>%
+  dplyr::mutate(bin = "(-Inf,2]") %>%
+  dplyr::mutate(area_weight = NA) %>%
+  dplyr::relocate(names(table_raw))
+
+table_raw <- rbind.data.frame(table_raw, cold_pool_area)
+
+# Plot
+figure <- ggplot(table_raw %>% dplyr::filter(!is.na(year)),
+                 mapping = aes(x = year, y = area_percent, group = label)) +
+  geom_area(mapping = aes(fill=label)) +
+  # scale_fill_nmfs(palette = "secondary", discrete = TRUE) +
+  scale_fill_viridis_d(direction = -1) +
+  guides(fill=guide_legend(title="Percentage of\nEBS shelf area\n\n")) +
+  # xlab("Year") +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(from = min(temp$year), to = max(temp$year), by = 2)) +
+  ylab("Percent") +
+  ylim(0, 100)  +
+  #set legend position and vertical arrangement
+  theme(
+    panel.background = element_rect(fill = "white",
+                                    colour = NA),
+    panel.border = element_rect(fill = NA,
+                                colour = "grey20"),
+    strip.background = element_rect(fill = "grey85",
+                                    colour = "grey20"),
+    legend.spacing.y = unit(-0.35, "cm"),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 15),
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 12),
+    legend.background = element_rect(colour = "transparent", fill = "transparent"),
+    legend.key = element_rect(colour = "transparent",
+                              fill = "transparent"),
+    legend.position = c(.15, .80),
+    legend.box.just = "left",
+    legend.box = "vertical"
+  )
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = nickname)
+
+```
+
+## tab_species_composition
+
+```{r tab_species_composition}
+nickname <- "tab_species_composition" 
+footnote0 <- "Taxa in bold only documented north of 60° N latitude."
+
+# Select data and make plot
+temp0 <-
+  dplyr::left_join(x = catch_haul_cruises_maxyr %>% 
+                     dplyr::select(species_code, SRVY, "stationid", "SRVY", "stratum"), 
+                   y = station_info, 
+                   by = c("stationid", "SRVY", "stratum")) %>%
+  dplyr::group_by(species_code, SRVY) %>% 
+  dplyr::summarise(lat = max(latitude)) %>% 
+  tidyr::pivot_wider(data = ., id_cols = species_code, names_from = SRVY, 
+                     values_from = lat, values_fill = NA) %>% 
+  dplyr::left_join(x = ., 
+                   y = spp_info) %>% 
+  # dplyr::mutate(fish = (species_code <= 31550)) %>%
+  dplyr::filter(fish == TRUE) %>% 
+  dplyr::select(species_code, report_name_scientific, all_of(SRVY1)) %>% 
+  dplyr::left_join(x = .,
+                   y = species0) %>%
+  dplyr::ungroup() %>% 
+  dplyr::select(common_name, report_name_scientific, all_of(SRVY1), -species_code ) %>% 
+  dplyr::filter(!grepl(x = common_name, pattern = " unid.", fixed = TRUE)) %>% 
+  dplyr::filter(!grepl(x = common_name, pattern = " egg", fixed = TRUE)) %>% 
+  dplyr::filter(!is.na(common_name)) %>% 
+  dplyr::arrange(common_name) %>% 
+  dplyr::mutate(above_60 = (EBS >= 60 | NBS >= 60)) %>%
+  dplyr::mutate(above_60 = ifelse(is.na(above_60), FALSE, TRUE)) 
+
+
+if (SRVY == "NEBS"){
+  
+  header <- paste0("List of fish taxa from survey catches exclusive to the ",
+                   NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
+                                                 haul_cruises_maxyr$SRVY, ")")),".")
+  
+  # Select data and make plot
+  table_raw <- temp0 %>% 
+    dplyr::mutate(where = dplyr::case_when(
+      !is.na(EBS) & !is.na(NBS) ~ "Present in EBS and NBS", 
+      is.na(NBS) & !is.na(EBS)~ "Present in EBS but absent in NBS", 
+      is.na(EBS) & !is.na(NBS) ~ "Present in NBS but absent in EBS")) %>% 
+    dplyr::select(-NBS, -EBS)
+  
+  temp1 <- table_raw %>% 
+    dplyr::filter(where == "Present in EBS but absent in NBS" & 
+                    !is.na(common_name)) %>% 
+    dplyr::select(-where) 
+  
+  temp2 <- table_raw %>% 
+    dplyr::filter(where == "Present in NBS but absent in EBS" & 
+                    !is.na(common_name)) %>% 
+    dplyr::select(-where) 
+  
+  # make the same length so they can be bound together
+  if (nrow(temp1)>nrow(temp2)){
+    temp2 <- temp2 %>% 
+      dplyr::bind_rows(., 
+                       data.frame(common_name = rep_len(NA, (nrow(temp1)-nrow(temp2))), 
+                                  report_name_scientific = NA, 
+                                  above_60 = FALSE))
+  } else {
+    temp1 <- temp1 %>% 
+      dplyr::bind_rows(., 
+                       data.frame(common_name = rep_len(NA, (nrow(temp2)-nrow(temp1))), 
+                                  report_name_scientific = NA, 
+                                  above_60 = FALSE))
+  }
+  
+  names(temp1) <- paste0(names(temp1), "_")
+  
+  table_raw <- dplyr::bind_cols(temp1, temp2)
+  
+  table_print <- table_raw %>%
+    dplyr::select(-above_60, -above_60_) %>%
+    flextable::flextable(data = .) %>%
+    flextable::italic(x = .,
+                      j = c(2,4)) %>%
+    flextable::bold(x = .,
+                    i = which(temp1$above_60_),
+                    j = 1:2) %>%
+    flextable::bold(x = .,
+                    i = which(temp2$above_60),
+                    j = 3:4) %>%
+    flextable::footnote(x = ., part = "header", i = 1, j = 1,
+                        value = as_paragraph(footnote0)) %>%
+    add_header_row(x = .,
+                   values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
+                   colwidths = c(2, 2)) %>%
+    flextable::set_header_labels(.,
+                                 common_name_ = "Common name",
+                                 report_name_scientific_ = "Scientific name",
+                                 common_name = "Common name",
+                                 report_name_scientific = "Scientific name"
+    ) %>%
+    theme_flextable_nmfstm(row_lines = FALSE) %>%
+    flextable::vline(x = ., j = 2, part = "all")
+  
+} else if (SRVY == "EBS") {
+  
+  header <- paste0("List of fish taxa from survey catches in the ",
+                   NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
+                                                 haul_cruises_maxyr$SRVY, ")")),".")
+  
+  table_raw <- temp0
+  
+  # table_raw <- temp0 %>% 
+  #   dplyr::filter(!is.na(EBS)) %>% 
+  #   dplyr::select(-NBS, -EBS)
+  
+  table_print <- table_raw %>% 
+    dplyr::select(-above_60) %>%
+    flextable::flextable(data = .) %>% 
+    flextable::italic(x = ., 
+                      j = c(2)) %>%
+    flextable::bold(x = ., 
+                    i = which(table_raw$above_60),
+                    j = 1:2) %>%  
+    flextable::footnote(x = ., part = "header", i = 1, j = 1, 
+                        value = as_paragraph(footnote0)) %>%
+    add_header_row(x = ., 
+                   values = c("Present in EBS"),
+                   colwidths = c(2)) %>% 
+    flextable::set_header_labels(., 
+                                 common_name = "Common name",
+                                 report_name_scientific = "Scientific name"
+    ) %>% 
+    theme_flextable_nmfstm(row_lines = FALSE)
+}
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
+```
+
+## tab_biomass_est_fish_ (EBS and NBS)
+
+###  waiting for actual data from rebecca
+
+```{r tab_biomass_est_fish_}
+
+nickname0 <- "tab_biomass_est_fish_"
+
+# Select data and make plot
+# TOLEDO - dummy data
+temp <- cbind.data.frame(taxon_group = c("A", "A", "C", "B", "B", "B"), 
+                         taxon = letters[1:6],
+                         head(airquality), 
+                         head(airquality), 
+                         head(airquality)[,3:5])
+temp$taxon[c(2, 6)] <- paste0("Total ", temp$taxon[c(2, 6)])
+names(temp) <- c("taxon_group", "taxon", "biomass", "a", "c95", "prop", 
+                 "10", "20", "30", "40", "50", "60", "82", "90", "70", "71", "81")
+temp$a <- "±"
+
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  if (nrow(haul_cruises_maxyr)>1) {
+    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+  }
+  header <- paste0("Biomass estimates (t) for major fish species and groups taken during the ", 
+                   maxyr, " ", 
+                   haul_cruises_maxyr$SRVY_long[i],
+                   " shelf bottom trawl survey.")
+  
+  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+  
+  
+  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", NMFSReports::xunits(sum(temp$biomass, na.rm = TRUE))," t.")
+  
+  if (haul_cruises_maxyr$SRVY[i] == "EBS"){
+    strat <- c("10", "20", "30", "40", "50", "60", "82", "90")
+  } else {
+    strat <- c("70", "71", "81")
+  }
+  
+  table_raw <- temp %>% 
+    dplyr::select("taxon_group", "taxon", "biomass", "a", "c95", "prop", 
+                  all_of(strat))
+  
+  xx <- 1:nrow(table_raw)
+  xx[!grepl(pattern = "Total ", x = table_raw$taxon)] <- NA
+  xx_group <- as.numeric(factor(x = table_raw$taxon_group, 
+                                labels = 1:length(unique(table_raw$taxon_group)),
+                                levels = unique(table_raw$taxon_group),
+                                ordered = FALSE))
+  whichtobold <- xx + xx_group
+  whichtobold <- whichtobold[!is.na(whichtobold)]
+  
+  table_print <- table_raw %>%
+    flextable::as_grouped_data(groups = c("taxon_group"), columns = NULL) %>% 
+    # groups = #names(table(xx_group))[table(xx_group)>1]) %>%
+    flextable::flextable(data = .)  %>%
+    flextable::add_header_row(top = TRUE, 
+                              values = c("Taxon", 
+                                         "Estimated total biomass (t) and 95% confidence", 
+                                         "Proportion of total animal biomass", 
+                                         "Estimated biomass by stratum (t)"), 
+                              colwidths = c(2,3,1,length(strat))) %>% 
+    flextable::align(i = 1, align = "center", part = "header")  %>%  
+    flextable::footnote(x = ., part = "header", i = 1, j = 5, 
+                        value = as_paragraph(footnote0)) %>%
+    flextable::bold(x = ., part = "body", i = whichtobold) %>% 
+    flextable::set_header_labels(.,
+                                 "taxon_group" = "", 
+                                 "taxon" = "", 
+                                 "biomass" = "", 
+                                 "c95" = "", 
+                                 "a" = "", 
+                                 "prop" = "") %>%
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE) 
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  
+  assign(value = res, x = paste0(nickname))
+  
+} 
+
+```
+
+## tab_biomass_est_invert_ (EBS and NBS)
+
+### waiting for actual data from rebecca
+
+```{r tab_biomass_est_invert_}
+
+nickname0 <- "tab_biomass_est_invert_"
+
+# Select data and make plot
+# TOLEDO - dummy data
+temp <- cbind.data.frame(taxon_group = c("A", "A", "C", "B", "B", "B"), 
+                         taxon = letters[1:6],
+                         head(airquality), 
+                         head(airquality), 
+                         head(airquality)[,3:5])
+temp$taxon[c(2, 6)] <- paste0("Total ", temp$taxon[c(2, 6)])
+names(temp) <- c("taxon_group", "taxon", "biomass", "a", "c95", "prop", 
+                 "10", "20", "30", "40", "50", "60", "82", "90", "70", "71", "81")
+temp$a <- "±"
+
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  if (nrow(haul_cruises_maxyr)>1) {
+    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+  }
+  header <- paste0("Biomass estimates (t) for major fish species and groups taken during the ", 
+                   maxyr, " ", 
+                   haul_cruises_maxyr$SRVY_long[i],
+                   " shelf bottom trawl survey.")
+  
+  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+  
+  
+  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", NMFSReports::xunits(sum(temp$biomass, na.rm = TRUE))," t.")
+  
+  if (haul_cruises_maxyr$SRVY[i] == "EBS"){
+    strat <- c("10", "20", "30", "40", "50", "60", "82", "90")
+  } else {
+    strat <- c("70", "71", "81")
+  }
+  
+  table_raw <- temp %>% 
+    dplyr::select("taxon_group", "taxon", "biomass", "a", "c95", "prop", 
+                  all_of(strat))
+  
+  xx <- 1:nrow(table_raw)
+  xx[!grepl(pattern = "Total ", x = table_raw$taxon)] <- NA
+  xx_group <- as.numeric(factor(x = table_raw$taxon_group, 
+                                labels = 1:length(unique(table_raw$taxon_group)),
+                                levels = unique(table_raw$taxon_group),
+                                ordered = FALSE))
+  whichtobold <- xx + xx_group
+  whichtobold <- whichtobold[!is.na(whichtobold)]
+  
+  table_print <- table_raw %>%
+    flextable::as_grouped_data(groups = c("taxon_group"), columns = NULL) %>% 
+    # groups = #names(table(xx_group))[table(xx_group)>1]) %>%
+    flextable::flextable(data = .)  %>%
+    flextable::add_header_row(top = TRUE, 
+                              values = c("Taxon", 
+                                         "Estimated total biomass (t) and 95% confidence", 
+                                         "Proportion of total animal biomass", 
+                                         "Estimated biomass by stratum (t)"), 
+                              colwidths = c(2,3,1,length(strat))) %>% 
+    flextable::align(i = 1, align = "center", part = "header")  %>%  
+    flextable::footnote(x = ., part = "header", i = 1, j = 5, 
+                        value = as_paragraph(footnote0)) %>%
+    flextable::bold(x = ., part = "body", i = whichtobold) %>% 
+    flextable::set_header_labels(.,
+                                 "taxon_group" = "", 
+                                 "taxon" = "", 
+                                 "biomass" = "", 
+                                 "c95" = "", 
+                                 "a" = "", 
+                                 "prop" = "") %>%
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE) 
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  
+  assign(value = res, x = paste0(nickname))
+  
+} 
+```
+
+## tab_biomass_compareyr_maxyr_percchange
+
+```{r tab_biomass_compareyr_maxyr_percchange}
+
+nickname0 <- "tab_biomass_compareyr_maxyr_percchange_"
+
+# Select data and make plot
+table_raw <- rbind.data.frame(biomass_maxyr, biomass_compareyr) %>% 
+  dplyr::left_join(x = ., 
+                   y = spp_info %>% 
+                     dplyr::select(used_in_counts, species_code),
+                   by = "species_code") %>%
+  dplyr::filter(stratum == 999 &
+                  used_in_counts == TRUE &
+                  !is.na(common_name) &
+                  !(grepl(pattern = " egg", x = common_name, fixed = T)) & 
+                  !(grepl(pattern = " sp.", x = common_name, fixed = T)) & 
+                  !(grepl(pattern = " unid.", x = common_name, fixed = T))) %>% 
+  dplyr::select(year, fish, invert, biomass, SRVY, species_code, common_name) %>% 
+  unique()  %>% 
+  dplyr::left_join(
+    x = ., 
+    y = rbind.data.frame(biomass_maxyr, biomass_compareyr) %>% 
+      dplyr::select(species_code, catcount, year, SRVY) %>% 
+      unique() %>% 
+      dplyr::group_by(species_code, SRVY) %>% 
+      dplyr::summarise(catcount = sum(catcount, na.rm = TRUE)), 
+    by = c("species_code", "SRVY")) %>%
+  dplyr::filter(catcount > 49) %>% 
+  tidyr::pivot_wider(names_from = year, 
+                     # id_cols = species_code, 
+                     values_fill = NA,
+                     values_from = biomass, 
+                     names_prefix = "b_") 
+
+table_raw$pchange <- NMFSReports::pchange(start = unlist(table_raw[,paste0("b_", compareyr)]), 
+                                          end = unlist(table_raw[,paste0("b_", maxyr)]), 
+                                          value_only = TRUE)
+table_raw <- table_raw %>%
+  dplyr::filter(!is.infinite(pchange) &
+                  !is.na(pchange) &
+                  pchange != 0) %>% 
+  dplyr::arrange(-pchange, b_2017, common_name) %>% 
+  dplyr::relocate(common_name, paste0("b_", compareyr), paste0("b_", maxyr), 
+                  pchange, fish, invert, SRVY, species_code, catcount)
+
+table_raw1 <- table_raw
+
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  if (nrow(haul_cruises_maxyr)>1) {
+    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+  }
+  header <- paste0("Total estimated biomass in metric tons (t) and the percent change from the ",compareyr," and ",maxyr," ",haul_cruises_maxyr$SRVY[i]," (",haul_cruises_maxyr$SRVY_long[i],") bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
+  
+  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+  
+  table_raw <- table_raw1
+  
+  temp <- table_raw1 %>% 
+    dplyr::select(-SRVY, -species_code, -catcount) 
+  temp[,paste0("b_", compareyr)] <- round(x = temp[,paste0("b_", compareyr)], digits = 0)
+  temp[,paste0("b_", maxyr)] <- round(x = temp[,paste0("b_", maxyr)], digits = 0)
+  temp$pchange <- paste0(round(temp$pchange, digits = 0), "%")
+  
+  temp1 <- temp %>% 
+    dplyr::filter(fish == TRUE) %>% 
+    dplyr::select(-fish, -invert) 
+  temp2 <- temp %>% 
+    dplyr::filter(invert == TRUE) %>% 
+    dplyr::select(-fish, -invert) 
+  
+  # make the same length so they can be bound together
+  if (nrow(temp1)>nrow(temp2)) {
+    temp0 <- data.frame(matrix(data = NA, 
+                               nrow = (nrow(temp1)-nrow(temp2)),
+                               ncol = ncol(temp2)))
+    names(temp0) <- names(temp2)
+    temp2 <- rbind.data.frame(temp2, temp0)
+  } else {
+    temp0 <- data.frame(matrix(data = NA, 
+                               nrow = (nrow(temp2)-nrow(temp1)),
+                               ncol = ncol(temp1)))
+    names(temp0) <- names(temp1)
+    temp1 <- rbind.data.frame(temp1, temp0)
+  }
+  
+  names(temp1) <- paste0(names(temp1), "_")
+  
+  temp <-list(
+    "common_name" = "taxon", 
+    "common_name_" = "taxon", 
+    "pchange" = "change", 
+    "pchange" = "change", 
+    "a" = compareyr,
+    "b"  = maxyr, 
+    "a1" = compareyr,
+    "b1"  = maxyr)
+  names(temp)[5:8] <- c(paste0("b_", compareyr, "_"), 
+                        paste0("b_", maxyr, "_"), 
+                        paste0("b_", compareyr), 
+                        paste0("b_", maxyr))
+  
+  
+  table_print <- 
+    cbind.data.frame(temp2, 
+                     # "" = "",
+                     temp1) %>% 
+    flextable::flextable(data = .)  %>%
+    flextable::add_header_row(top = TRUE, 
+                              values = c("Invertebrate", 
+                                         "Biomass (t)", 
+                                         "%", 
+                                         "Fish", 
+                                         "Biomass (t)", 
+                                         "%"), 
+                              colwidths = c(1,2,1,1,2,1)) %>% 
+    flextable::align(i = 1, align = "center", part = "header")  %>%  
+    flextable::set_header_labels(., values = temp) %>%
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE)  %>% 
+    flextable::vline(x = ., j = 4, part = "all")
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  
+  assign(value = res, x = paste0(nickname))
+  
+} 
+
+```
+
+# Report spp
+
+
+```{r}
+# for (i in 1:length(report_species$fish1)){
+#   
+# }
+
+```
+

@@ -16,106 +16,101 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 ```{r}
 # find basic info about species
-dat_maxyr_spp<-dat_maxyr[dat_maxyr$species_code %in% spp_code,]
-
-dat_maxyr_1_spp <- dat_maxyr_1[dat_maxyr_1$species_code %in% spp_code,]
-
-dat_maxyr_spp_length <- dat_length_maxyr %>% 
+haul_maxyr_spp<-haul_maxyr %>% 
   dplyr::filter(species_code %in% spp_code)
 
+haul_maxyr_1_spp <- haul %>% 
+  dplyr::filter(species_code %in% spp_code &
+                  year %in% (maxyr-1))
+
+# length_maxyr
+# length_maxyr <- dat_length_maxyr %>% 
+  # dplyr::filter(species_code %in% spp_code)
+
 ```
 
+`r  ifelse(SRVY %in% "NEBS", "## **EBS**", "") `
 
+```{r tab_species_table_}
 
-```{r}
-cnt_chapt_content<-auto_counter(cnt_chapt_content)
-cnt_figures<-cnt_figures+1
-```
+# nickname0 <- "tab_species_table_"
+nickname0 <- "tab_biomass_est_fish_"
 
-`r  ifelse(SRVY %in% "NEBS", "## **NEBS**", "") `
-
-
-```{r T1c, fig.cap=ifelse(indesign_flowin %in% TRUE, "", table_list[[length(table_list)]]$caption)}
-
-if (indesign_flowin %in% FALSE) {
-
-  table_list<-species_table(table_list, dat_maxyr_spp, spp_common, SURVEY, SRVY = SRVY) 
-  basiccontenttable_print <- table_list[[length(table_list)]]$print
-  table_list[[length(table_list)]]$print  %>%
+# Select data and make plot
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  # if (nrow(haul_cruises_maxyr)>1) {
+  #   subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+  #   newobj <- ifelse(i==1, TRUE, FALSE)
+  # }
+  # header <- paste0("Biomass estimates (t) for major fish species and groups taken during the ", 
+  #                  maxyr, " ", 
+  #                  haul_cruises_maxyr$SRVY_long[i],
+  #                  " shelf bottom trawl survey.")
+  
+  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+# Select data and make plot
+  table_raw<-species_table(table_list, haul_maxyr_spp, spp_common, SURVEY, SRVY = SRVY) 
+  table_print <- table_raw %>%
           format_cells(rows = 0, # make column names
                        cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
                        fonttype = "bold") %>% # bold
           knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+#   res <- knitr::knit_child(
+#     text = knitr::knit_expand(
+#       file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+#     quiet = TRUE
+#   )
+#   
+# list_tables[length(list_tables)]$res <- res <- paste0("
+# ###### 
+# 
+# ",res,"
+# 
+# ")
+#   
+#   assign(value = res, x = paste0(nickname))
 }
 ```
 
 
-```{r G2c, fig.cap=ifelse(indesign_flowin %in% TRUE, "", plot_list[[length(plot_list)]]$caption)}
-# Print or Don't Print Plot in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is 
-# something you might like to toggle on and off. 
-# Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (indesign_flowin %in% FALSE) { 
-  plot0 # print plot in text
-} else if (indesign_flowin %in% TRUE){ # for reports that need to be flowed into InDesign 
-  rmarkdown::render(TableFigureHeader, 
-                    quiet = TRUE,
-                  output_dir = dir_chapters, 
-                  output_file = paste0(filename00,cnt_chapt_content,"_Title.docx"))
-}
-```
-
-`r species_text(dat_maxyr, dat_maxyr_1, basiccontenttable_print, dat_maxyr_spp, dat_maxyr_spp_length, length_type, spp_common, spp_code, SRVY, cnt_figures) `
-
-
-
+`r species_text(haul_maxyr, dat_maxyr_1, basiccontenttable_print, haul_maxyr_spp, length_maxyr, length_type, spp_common, spp_code, SRVY, cnt_figures) `
 
 `r  ifelse(SRVY %in% "NEBS", "## **NBS**", "") `
 
-
-```{r}
-if (indesign_flowin %in% FALSE) {
-  if (SRVY %in% "NEBS" && sum(dat_maxyr_spp$SRVY %in% "NBS")>0) {
-    
-  table_list<-species_table(table_list, 
-                            dat_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), 
-                            spp_common, SURVEY, SRVY = "NBS") 
-  basiccontenttable_print_nbs <- table_list[[length(table_list)]]$print
-  table_list[[length(table_list)]]$print %>%
-          format_cells(rows = 0, # make column names
-                       cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
-                       fonttype = "bold") %>% # bold
-          knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
-  }
-}
-
-```  
   
-`r ifelse(SRVY %in% "NEBS", species_text(dat_maxyr %>% dplyr::filter(SRVY %in% "NBS"), dat_maxyr_1 %>% dplyr::filter(SRVY %in% "NBS"), basiccontenttable_print_nbs, dat_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), dat_maxyr_spp_length %>% dplyr::filter(SRVY %in% "NBS"), length_type, spp_common, spp_code, SRVY = "NBS", cnt_figures), "") `  
+`r ifelse(SRVY %in% "NEBS", species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "NBS"), dat_maxyr_1 %>% dplyr::filter(year %in% (maxyr-1) & SRVY %in% "NBS"), basiccontenttable_print_nbs, haul_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), length_maxyr %>% dplyr::filter(SRVY %in% "NBS"), length_type, spp_common, spp_code, SRVY = "NBS", cnt_figures), "") `  
 
 `r  ifelse(SRVY %in% "NEBS", "## **EBS**", "") `
   
 ```{r}
-if (indesign_flowin %in% FALSE) {
-  if (SRVY %in% "NEBS" && sum(dat_maxyr_spp$SRVY %in% "EBS")>0) {
+
+if (SRVY %in% "NEBS" && sum(haul_maxyr_spp$SRVY %in% "EBS")>0) {
   # print("NBS")
   table_list<-species_table(table_list, 
-                            dat_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), 
+                            haul_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), 
                             spp_common, SURVEY, SRVY = "EBS") 
-    basiccontenttable_print_ebs <- table_list[[length(table_list)]]$print
+    # basiccontenttable_print_ebs <- table_list[[length(table_list)]]$print
     table_list[[length(table_list)]]$print  %>%
           format_cells(rows = 0, # make column names
                        cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
                        fonttype = "bold") %>% # bold
           knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
-  }
 }
 ```
 
 
-`r ifelse(SRVY %in% "NEBS", species_text(dat_maxyr %>% dplyr::filter(SRVY %in% "EBS"), dat_maxyr_1 %>% dplyr::filter(SRVY %in% "EBS"), basiccontenttable_print_ebs, dat_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), dat_maxyr_spp_length %>% dplyr::filter(SRVY %in% "EBS"), length_type, spp_common, spp_code, SRVY = "EBS", cnt_figures), "") `
+`r ifelse(SRVY %in% "NEBS", species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "EBS"), dat_maxyr_1 %>% dplyr::filter(SRVY %in% "EBS"), basiccontenttable_print_ebs, haul_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), length_maxyr %>% dplyr::filter(SRVY %in% "EBS"), length_type, spp_common, spp_code, SRVY = "EBS", cnt_figures), "") `
 
+
+```{r}
+#text
+insert <- readtext(file = paste0(dir_out_rawdata, "/doc_",spp_common,".docx"))
+```
+
+`r insert$text`
 
 ```{r}
 # str <- c()
@@ -124,11 +119,11 @@ if (indesign_flowin %in% FALSE) {
 #   
 #   str <- paste0("**NBS**
 #                 ", 
-#                 species_text(dat_maxyr %>% dplyr::filter(SRVY %in% "NBS"), 
+#                 species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "NBS"), 
 #                       dat_maxyr_1 %>% dplyr::filter(SRVY %in% "NBS"), 
 #                       basiccontenttable_print_nbs, 
-#                       dat_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), 
-#                       dat_maxyr_spp_length %>% dplyr::filter(SRVY %in% "NBS"), 
+#                       haul_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), 
+#                       length_maxyr %>% dplyr::filter(SRVY %in% "NBS"), 
 #                       length_type, 
 #                       spp_common, 
 #                       spp_code, 
@@ -136,11 +131,11 @@ if (indesign_flowin %in% FALSE) {
 #                       cnt_figures), 
 #          "**EBS**
 #          ", 
-#          species_text(dat_maxyr %>% dplyr::filter(SRVY %in% "EBS"), 
+#          species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "EBS"), 
 #                       dat_maxyr_1 %>% dplyr::filter(SRVY %in% "EBS"), 
 #                       basiccontenttable_print_ebs, 
-#                       dat_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), 
-#                       dat_maxyr_spp_length %>% dplyr::filter(SRVY %in% "EBS"), 
+#                       haul_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), 
+#                       length_maxyr %>% dplyr::filter(SRVY %in% "EBS"), 
 #                       length_type, 
 #                       spp_common, 
 #                       spp_code, 
@@ -155,9 +150,9 @@ if (indesign_flowin %in% FALSE) {
 
 # <!-- <!-- how many stations --> -->
 # <!-- <!-- Should I use haul or hauljoin? --> -->
-# <!-- Out of the total number of successful hauls (`r length(unique(dat_maxyr$hauljoin))`) `r NMFSReports::tolower2(spp_common)` was found during `r length(unique(dat_maxyr_spp$hauljoin))` (`r formatC(x = (length(unique(dat_maxyr_spp$hauljoin))/length(unique(dat_maxyr$hauljoin)))*100, digits = 1, format = "f") `% of stations). -->
+# <!-- Out of the total number of successful hauls (`r length(unique(haul_maxyr$hauljoin))`) `r NMFSReports::tolower2(spp_common)` was found during `r length(unique(haul_maxyr_spp$hauljoin))` (`r formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f") `% of stations). -->
 # 
-# <!-- During the `r maxyr` survey, `r NMFSReports::tolower2(spp_common)` were present at `r formatC(x = (length(unique(dat_maxyr_spp$hauljoin))/length(unique(dat_maxyr$hauljoin)))*100, digits = 1, format = "f") `% of stations in the `r SRVY` (`r length(unique(dat_maxyr_spp$hauljoin))` of `r length(unique(dat_maxyr$hauljoin))` stations). -->
+# <!-- During the `r maxyr` survey, `r NMFSReports::tolower2(spp_common)` were present at `r formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f") `% of stations in the `r SRVY` (`r length(unique(haul_maxyr_spp$hauljoin))` of `r length(unique(haul_maxyr$hauljoin))` stations). -->
 # 
 # 
 # <!-- <!-- bottom tempature --> -->
@@ -171,34 +166,28 @@ if (indesign_flowin %in% FALSE) {
 # 
 # 
 # <!-- <!-- Sizes caught were between  --> -->
-# <!-- The `r NMFSReports::text_list(length_type$sentancefrag[length_type$code %in% unique(dat_maxyr_spp_length$length_type)])` of `r NMFSReports::tolower2(spp_common, capitalizefirst = TRUE)` measured during the survey were between `r min(dat_maxyr_spp_length$length)` and `r max(dat_maxyr_spp_length$length)` `r unique(dplyr::case_when(spp_code %in% 1:31550 ~ "cm", spp_code %in% 68000:69930 ~ "mm"), TRUE ~ "NO MEASUREMENT")`. -->
+# <!-- The `r NMFSReports::text_list(length_type$sentancefrag[length_type$code %in% unique(length_maxyr$length_type)])` of `r NMFSReports::tolower2(spp_common, capitalizefirst = TRUE)` measured during the survey were between `r min(length_maxyr$length)` and `r max(length_maxyr$length)` `r unique(dplyr::case_when(spp_code %in% 1:31550 ~ "cm", spp_code %in% 68000:69930 ~ "mm"), TRUE ~ "NO MEASUREMENT")`. -->
 # 
 # 
 # <!-- <!-- weight --> -->
-# <!-- The total number of `r NMFSReports::tolower2(spp_common)` estimated to have been caught by the survey is `r NMFSReports::xunits(value = sum(dat_maxyr_spp$number_fish, na.rm = TRUE))` individuals, which equates to `r NMFSReports::xunits(value = sum(dat_maxyr_spp$weight, na.rm = TRUE))` kg of biomass.  -->
+# <!-- The total number of `r NMFSReports::tolower2(spp_common)` estimated to have been caught by the survey is `r NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE))` individuals, which equates to `r NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE))` kg of biomass.  -->
 # 
-# <!-- Compared with `r maxyr-1`, abundance experienced `r NMFSReports::pchange(start = sum(dat_maxyr_1_spp$number_fish, na.rm = TRUE), end = sum(dat_maxyr_spp$number_fish, na.rm = TRUE)) ` and there was `r NMFSReports::pchange(start = sum(dat_maxyr_1_spp$weight, na.rm = TRUE), end = sum(dat_maxyr_spp$weight, na.rm = TRUE)) ` in biomass.  -->
+# <!-- Compared with `r maxyr-1`, abundance experienced `r NMFSReports::pchange(start = sum(dat_maxyr_1_spp$number_fish, na.rm = TRUE), end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ` and there was `r NMFSReports::pchange(start = sum(dat_maxyr_1_spp$weight, na.rm = TRUE), end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) ` in biomass.  -->
 ```
 
-> questions:
 
-> Should NBS and EBS be different colours and have different legends because they are different surveys?
-
-> Note that figure numbers will change as I produce more of the report
-
-
-```{r G1a, message = FALSE, comment = FALSE, include = FALSE}
-# Edit This:
+```{r fig_cpue_spp_ }
+nickname0 <- paste0("fig_cpue_", spp_common)
 header <- paste0("CPUE of **", NMFSReports::tolower2(spp_common), "** (*", stringr::str_to_sentence(spp_sci), "*) across the ", SURVEY)
-footnote<-c("")
+height = 12
 
-dat_cpue_spp <- dat_cpue %>% 
+cpue_spp <- cpue %>% 
   filter(species_code %in% spp_code & 
            year %in% maxyr)
 
 # if (length(SRVY1) > 1 && SRVY %in% "NEBS") {
 # 
-#   dat_cpue_spp_n <- dat_cpue_spp %>%
+#   dat_cpue_spp_n <- cpue_spp %>%
 #     dplyr::filter(survey == "NBS")
 # 
 #   idwplot <- make_idw_map0(COMMON_NAME = dat_cpue_spp_n$species_name,
@@ -220,10 +209,10 @@ dat_cpue_spp <- dat_cpue %>%
 # 
 # }
 
-idwplot <- akgfmaps::make_idw_map(COMMON_NAME = dat_cpue_spp$species_name, 
-                         LATITUDE = dat_cpue_spp$latitude, 
-                         LONGITUDE = dat_cpue_spp$longitude, 
-                         CPUE_KGHA = dat_cpue_spp$cpue_kgha, 
+idwplot <- akgfmaps::make_idw_map(COMMON_NAME = cpue_spp$species_name, 
+                         LATITUDE = cpue_spp$latitude, 
+                         LONGITUDE = cpue_spp$longitude, 
+                         CPUE_KGHA = cpue_spp$cpue_kgha, 
                          region = map.area, 
                          key.title = spp_common)
 idwplot <- idwplot %>% change_fill_color(new.scheme = "grey", show.plot = FALSE)
@@ -247,81 +236,71 @@ if (!(map.area %in% c("nbs", "bs.north"))) {
       aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 8, group = 99)  
 }
 
-plot0
 
 ```
 
 
-```{r G1b}
-# Don't Edit This:
-# cnt_chapt_content<-auto_counter(cnt_chapt_content)
-# cnt_figures<-cnt_figures+1
 
-# Systematically save your plot with this simple function
-plot_list<-save_graphs(plot0 = plot0, 
-                      plot_list = plot_list, 
-                      header = header,
-                      footnote = footnote,
-                      filename0 = filename0, 
-                      cnt_chapt_content = cnt_chapt_content, 
-                      cnt = cnt_figures, 
-                      path = dir_out_figures, 
-                      width = 6, # you can change this if you need to...
-                      height = 12) # you can change this if you need to...
+ ## fig_idw_bottemp_longterm_mean_ (above and below)
 
-```
+> need to figure out how to plot bs.all and bs.south on same stars_list facet_wrap
 
+```{r fig_idw_bottemp_longterm_mean_}
+nickname0 <- "fig_idw_bottemp_longterm_mean_"
 
-```{r G1c, fig.cap=ifelse(indesign_flowin %in% TRUE, "", plot_list[[length(plot_list)]]$caption)}
-# Print or Don't Print Plot in Text
-# You don't want to print this in the document if this text will be flowed into InDesign. 
-# However, sometimes its nice to see everything all together, so this variable is 
-# something you might like to toggle on and off. 
-# Hense, FALSE = print here, TRUE = don't print here, just make the .pdf (coded above)
-if (indesign_flowin %in% FALSE) { 
-  plot0 # print plot in text
-} else if (indesign_flowin %in% TRUE){ # for reports that need to be flowed into InDesign 
-  rmarkdown::render(TableFigureHeader, 
-                    quiet = TRUE,
-                  output_dir = dir_chapters, 
-                  output_file = paste0(filename00,cnt_chapt_content,"_Title.docx"))
+for (i in 1:2) { # two cases, above and below
+  width = 6
+  height = 6
+  usePNGPDF = "png"  
+  
+  subobj <- TRUE
+  newobj <- ifelse(i==1, TRUE, FALSE)
+  TF <- ifelse(i==1, FALSE, TRUE)
+  case <- ifelse(i==1, "below", "above")
+  
+  header <- paste0("Contour maps of ",spp_common," (*",spp_sci,"*) the near-bottom temperatures from the ",
+                   NMFSReports::text_list(sort(temps_wt_avg_yr_abovebelow_plots[,case])),
+                   " Bering Sea shelf bottom trawl surveys, years when the survey mean bottom temperature was ",
+                   case,
+                   " the long-term stratum area-weighted mean.")
+  footnote<- NA
+  nickname <- paste0(nickname0, case)
+  alttext <- paste0(header)
+  
+  table_raw <- haul %>%
+      dplyr::filter(!is.na(gear_temperature)) %>% 
+      dplyr::arrange(-year) 
+  
+  figure <- plot_idw_xbyx(
+    yrs = temps_wt_avg_yr_abovebelow_plots[,case], 
+    dat = table_raw,
+    cruises = cruises, 
+    lat = "start_latitude",
+    lon = "start_longitude",
+    var = "gear_temperature", 
+    grid = "continuous.grid",
+    extrap.box = extrap.box, 
+    key.title = "Bottom Temperature (°C)", 
+    workfaster = workfaster, 
+    SRVY = SRVY)
+
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  
+  assign(value = res, x = nickname)
 }
-```
-
-
-
-```{r, include = FALSE}
-filename00 <- paste0(SRVY, "-", maxyr, "-", tolower(spp_common))
-
-out_new<-paste0(dir_out_rawdata, filename00, ".zip")
-
-temp <- tempfile(fileext = ".zip")
-dl <- drive_download(file = filename00,
-  path = temp, overwrite = TRUE)
-1
-
-out <- unzip(temp, exdir = tempdir())
-
-file.rename(from = out,
-            to = out_new)
-
-spp_content<-XML::htmlTreeParse(out_new, useInternal = TRUE)
-
-spp_content <- xpathApply(spp_content, "//body//text()[not(ancestor::script)][not(ancestor::style)][not(ancestor::noscript)]", xmlValue)
-
-x <- paste(cat(unlist(spp_content)))
-
-write.table(x = x, 
-            file = paste0(dir_out_rawdata, filename00, ".txt"))
 
 ```
-
-
-`r cat(unlist(spp_content)) `
-
-```{r}
-# print(cat(unlist(spp_content)))
-```
-
-
- 

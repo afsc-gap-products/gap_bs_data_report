@@ -9,7 +9,7 @@ bibliography: "../cite/bibliography.bib"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, comment = FALSE)
 ```
 
 # Results and Discussion
@@ -23,192 +23,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 A total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY, " stations")) ` were successfully sampled in `r maxyr` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `)). Summarized haul and raw catch sample data for successfully trawled stations used in the analyses are listed in Appendix A by vessel along with date, time, start and end positions, mean bottom depth, tow duration, distance fished over ground, mean net width, and trawl performance.
 
 ## Ocean Conditions
-
-
-```{r fig_temp_weight_mean}
-
-# if () {
-temp0 <- haul_cruises_maxyr %>% 
-  dplyr::filter(SRVY == "EBS")
-# } else {
-#   
-# }
-
-header <- paste0("Time series of mean survey surface and near-bottom temperatures in the ",temp0$SRVY_long," (",temp0$SRVY,") weighted by stratum based on expendable bathythermograph casts or digital dataloggers attached to the headrope during the eastern Bering Sea bottom trawl surveys from ", temp0$SRVY_start," to ", maxyr, ". The 1982-1987 means (triangles) are based on Strata 10-62 (see Figure ", crossref(list_obj = list_figures, nickname = 'fig_sampled_survey_stations', sublist = 'number'),") and the 1988-", maxyr, " means also include Strata 80 and 92. The dashed lines represent the grand stratum-area weighted mean water temperatures for ", temp0$SRVY_start,"-", maxyr, ".")
-
-footnote<- NA
-nickname <- "fig_temp_weight_mean"
-alttext <- paste0(header)
-width = 6
-height = 6
-usePNGPDF = "png"
-
-# Select data and make plot
-temp <- temps_wt_avg_yr %>% 
-  dplyr::filter(SRVY == "EBS") 
-
-figure <- ggplot(data = temp) +
-  # surface temperature
-  geom_line(aes(x = year, y = st_wt), 
-            color = nmfs_cols("medgreen"), size = 1) +
-  geom_point(aes(x = year, y = st_wt), 
-             color = nmfs_cols("medgreen"), fill = nmfs_cols("medgreen"), 
-             pch = 19, size = 2) +
-  geom_hline(yintercept = temp$st_wt_mean[1], 
-             linetype="dashed", color = nmfs_cols("medgreen")) + 
-  annotate("text", x = 2010, y = 8, label = "Surface", col = nmfs_cols("medgreen")) + 
-  # bottom temperature
-  geom_line(aes(x = year, y = bt_wt), 
-            color = nmfs_cols("processblue"), size = 1) +
-  geom_point(aes(x = year, y = bt_wt), 
-             color = nmfs_cols("processblue"), fill = nmfs_cols("processblue"), 
-             pch = 24, size = 3) +
-  geom_hline(yintercept = temp$bt_wt_mean[1], 
-             linetype="dashed", color = nmfs_cols("processblue")) +
-  annotate("text", x = 2010, y = 3, label = "Bottom", color = nmfs_cols("processblue")) + 
-
-  # general
-  ylab("Mean stratum area-weighted temperature (°C)") +
-  # xlab("Year") +
-  scale_x_continuous(name = "Year", 
-                     breaks = seq(from = min(temp$year), to = max(temp$year), by = 2)) +
-  #set legend position and vertical arrangement
-  theme(#plot.background = element_rect(fill = "white"), 
-    axis.text = element_text(size = 12), 
-    axis.title = element_text(size = 15),
-    legend.title = element_text(size = 15),
-    legend.text = element_text(size = 12),
-    panel.background = element_rect(fill = "white", 
-                                    colour = NA), 
-    panel.border = element_rect(fill = NA, 
-                                colour = "grey20"), 
-    strip.background = element_rect(fill = "grey85", 
-                                    colour = "grey20"))
-
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_fig.Rmd", 
-                       package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-assign(value = res, x = nickname)
-
-```
-
-
-```{r fig_idw_surftemp_maxyr}
-header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
-                 NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
-footnote<- NA
-nickname <- "fig_idw_surftemp_maxyr"
-alttext <- paste0(header)
-width = 6
-height = 6
-usePNGPDF = "png"
-
-# Select data and make plot
-raw <- temp <- akgfmaps::make_idw_map(
-  COMMON_NAME = "Surface Temperature", 
-  LATITUDE = haul_maxyr$start_latitude, 
-  LONGITUDE = haul_maxyr$start_longitude, 
-  CPUE_KGHA = haul_maxyr$surface_temperature, 
-  # return.continuous.grid = TRUE,
-  use.survey.bathymetry = FALSE,
-  region = map.area, # Predefined bs.all area
-  set.breaks = seq(from = -2, to = 20, by = 2), # Gets Jenks breaks from classint::classIntervals()
-  grid.cell = c(ifelse(workfaster, 0.1, 0.02), ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
-  key.title = "Surface Temperature (°C)")
-
-# eval_plot_breaks(CPUE =  haul_maxyr$surface_temperature, n.breaks = 6)
-
-figure <- ggplot() + 
-  geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-  geom_stars(data = temp$continuous.grid) +
-  scale_fill_viridis_c(#option = "plasma", 
-                     na.value = "transparent", 
-                     breaks = seq(from = -2, to = 20, by = 2),
-                     labels = seq(from = -2, to = 20, by = 2)#,
-                     # alpha = 0.75
-                     ) + 
-  guides(fill=guide_legend(title="Surface\nTemperature (°C)\n\n")) +
-  geom_sf(data = reg_dat$bathymetry, color = "grey50") +
-  geom_sf(data = reg_dat$graticule,
-          color = "grey90",
-          alpha = 0.5) +
-  geom_sf(data = reg_dat$survey.area, 
-          color = "black", 
-          fill = NA, 
-          size = 1) +
-  scale_x_continuous(name = "Longitude", 
-                     breaks = reg_dat$lon.breaks) + 
-  scale_y_continuous(name = "Latitude", 
-                     breaks = reg_dat$lat.breaks) +
-  coord_sf(xlim = reg_dat$plot.boundary$x, 
-           ylim = reg_dat$plot.boundary$y) +
-  geom_text(data = subset(reg_dat$place.labels, type == "mainland"),
-            aes(x = x, y = y, label = lab),
-            size = 14, group = 99) +
-  geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"),
-                  aes(x = x, y = y, label = lab), size = 5, angle = 40,
-                  bg.color = "white", color = "black", group = 99) +
-  geom_shadowtext(
-    data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
-    aes(x = x, y = y, label = lab),
-    bg.color = "white", color = "black",
-    size = 2, group = 99) +
-
-  ggsn::scalebar(data = reg_dat$survey.grid,
-                 location = "bottomright",
-                 dist = 100,
-                 dist_unit = "km",
-                 transform = FALSE,
-                 st.dist = .02,
-                 height = 0.02,
-                 st.bottom = TRUE,
-                 st.size = 3,
-                 # transform = TRUE,
-                 model = reg_dat$crs) +
-  #set legend position and vertical arrangement
-  theme(
-    panel.background = element_rect(fill = "white", 
-                                    colour = NA), 
-    panel.border = element_rect(fill = NA, 
-                                colour = "grey20"), 
-    strip.background = element_rect(fill = "grey85", 
-                                    colour = "grey20"),
-    legend.spacing.y = unit(-0.35, "cm"),
-    legend.title = element_text(size = 9),
-    legend.text = element_text(size = 7),
-    legend.background = element_rect(colour = "transparent", fill = "transparent"),
-    legend.key = element_rect(colour = "transparent", 
-                              fill = "transparent"),
-    legend.position = c(.15, .22),
-    legend.box.just = "left",
-    legend.box = "vertical"
-  )
-
-  # a <- add_map_labels(x = figure,
-  #                region = map.area,
-  #                new.places = reg_dat$place.labels)
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_fig.Rmd", 
-                       package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-assign(value = res, x = nickname)
-
-```
-
-
 
 ```{r}
 temp <- dplyr::left_join(x = temps_wt_avg_yr %>% 
@@ -246,270 +60,7 @@ Sea surface temperatures recorded during the `r maxyr ` `r SRVY` survey ranged f
 
 During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series (`r haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY == "EBS"] `–`r maxyr`) of the annual EBS shelf bottom trawl survey, mean summer bottom temperatures were highly variable, ranging from a low of 0.8°C to a high of 4.5°C, with a grand mean for all years of 2.5°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_temp_weight_mean', sublist = 'number')`). The mean survey bottom temperature for the EBS in `r maxyr` was 2.8°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_temp_weight_mean', sublist = 'number')`), a warmer than average year considering it was 0.3°C above the time-series mean.
 
-
-```{r fig_idw_bottemp_longterm_mean}
-nickname0 <- "fig_idw_bottemp_longterm_mean_"
-width = 6
-height = 6
-usePNGPDF = "png"
-
-yr_above_below_mean <- list()
-
-for (i in 1:2) { # two cases, above and below
-  
-  subobj <- TRUE
-  newobj <- ifelse(i==1, TRUE, FALSE)
-  TF <- ifelse(i==1, FALSE, TRUE)
-  case <- ifelse(i==1, "below", "above")
-  
-  raw <- temp <- temps_wt_avg_yr %>% 
-    dplyr::filter(SRVY == "EBS" & 
-                    bt_wt_above_mean == TF) %>% 
-    dplyr::ungroup() %>%
-    dplyr::select(year) %>% 
-    dplyr::arrange() %>% 
-    head(n = 8) %>% 
-    unlist()
-  
-  yr_above_below_mean$temp <- temp
-  names(yr_above_below_mean)[length(yr_above_below_mean)] <- case
-  
-  header <- paste0("Contour maps of the near-bottom temperatures from the ",
-                   NMFSReports::text_list(temp),
-                   " Bering Sea shelf bottom trawl surveys, years when the survey mean bottom temperature was ",
-                   case,
-                   " the long-term stratum area-weighted mean.")
-  footnote<- NA
-  nickname <- paste0(nickname0, "_", case)
-  alttext <- paste0(header)
-  
-  # Select data and make plot
-  # temp.list <- list()
-  for (ii in ifelse(workfaster,length(temp),2):1){
-    
-    temp0 <- haul %>%
-      dplyr::filter(year == temp[ii] & !is.na(gear_temperature)) %>%
-      dplyr::select(start_latitude, start_longitude, gear_temperature)
-
-    temp0 <- akgfmaps::make_idw_map(
-      COMMON_NAME = "Bottom Temperature",
-      LATITUDE = temp0$start_latitude,
-      LONGITUDE = temp0$start_longitude,
-      CPUE_KGHA = temp0$gear_temperature,
-      # use.survey.bathymetry = FALSE,
-      region = map.area,
-      set.breaks = seq(from = -2, to = 20, by = 2),
-      grid.cell = c(ifelse(workfaster, 0.1, 0.02), ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
-      key.title = "Bottom Temperature (°C)")
-
-    if (ii == length(temp)) {
-      temp.list <- temp0$continuous.grid
-      names(temp.list)[names(temp.list) == "var1.pred"] <- paste0("y", temp[ii])    
-    } else {
-      temp.list$temp <- temp0$continuous.grid$var1.pred
-      names(temp.list)[names(temp.list) == "temp"] <- paste0("y", temp[ii])   
-    }
-    
-  }
-  
-  # https://rpubs.com/michaeldorman/646276
-  temp.list <- temp.list %>% 
-    dplyr::select(paste0("y", temp))
-  names(temp.list)<-gsub(pattern = "y", replacement = "", x = names(temp.list))
-  temp.list = st_redimension(temp.list)
-  names(temp.list) = "value"
-
-  figure <- ggplot() +
-    geom_stars(data = temp.list) +
-    facet_wrap( ~ new_dim, nrow = 2) +
-    coord_equal() + 
-  scale_fill_viridis_c(#option = "plasma", 
-                     na.value = "transparent", 
-                     breaks = seq(from = -2, to = 20, by = 2),
-                     labels = seq(from = -2, to = 20, by = 2)#,
-                     # alpha = 0.75
-                     ) + 
-    guides(fill=guide_colourbar(title="Surface Temperature (°C)", 
-                                title.position="top", 
-                                title.hjust = 0.5)) +
-    geom_sf(data = reg_dat$bathymetry, color = "grey50", size = 0.5) +
-    # geom_sf(data = reg_dat$graticule,
-    #         color = "grey90",
-    #         alpha = 0.5) +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-    # geom_sf(data = reg_dat$survey.area, 
-    #         color = "black", 
-    #         fill = NA, 
-    #         size = 1) +
-    scale_x_continuous(name = "Longitude", 
-                       breaks = reg_dat$lon.breaks) + 
-    scale_y_continuous(name = "Latitude", 
-                       breaks = reg_dat$lat.breaks) +
-    coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y) +
-  #set legend position and vertical arrangement
-  theme(
-    panel.background = element_rect(fill = "white", 
-                                    colour = NA), 
-    panel.border = element_rect(fill = NA, 
-                                colour = "grey20"), 
-    strip.background = element_blank(), # strip.background = element_rect(fill = "grey85",  colour = "grey20"),
-    # legend.spacing.y = unit(-0.35, "cm"),
-    legend.title = element_text(size = 15),
-    legend.text = element_text(size = 9),
-    legend.background = element_rect(colour = "transparent", fill = "transparent"),
-    legend.key = element_rect(colour = "transparent", 
-                              fill = "transparent"),
-    legend.position="bottom", # legend.position = c(.15, .22),
-    legend.box.just = "left",
-    legend.key.width = unit(1, "in"), 
-    legend.box = "horizontal"
-  )
-  
-  # a <- add_map_labels(x = figure,
-  #                region = map.area,
-  #                new.places = reg_dat$place.labels)
-  
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_fig.Rmd", 
-                         package = "NMFSReports")), 
-    quiet = TRUE
-  )
-  
-  assign(value = res, x = nickname)
-}
-
-```
-
-> math for summed area is funky! TOLEDO! help!
-
-```{r fig_cold_pool_area}
-header <- paste0("Percentage of the EBS (eastern Bering Sea) shelf bottom area that is occupied by the cold pool in one degree Celsius increments.")
-footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
-nickname <- "fig_cold_pool_area"
-alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
-width = 6
-height = 6
-usePNGPDF = "png"
-
-temp <- data.frame()
-
-for (i in ifelse(workfaster,which(sort(unique(haul$year)) == compareyr),1):length(unique(haul$year))){
-
-  yr <- sort(unique(haul$year))[i]
-  
-temp0 <- haul %>%
-  dplyr::filter(year == yr &
-                SRVY == "EBS" & 
-                !is.na(gear_temperature)) %>%
-  dplyr::select(year, SRVY, start_latitude, start_longitude, gear_temperature)
-
-temp0 <- akgfmaps::make_idw_map(
-  COMMON_NAME = "Bottom Temperature",
-  LATITUDE = temp0$start_latitude,
-  LONGITUDE = temp0$start_longitude,
-  CPUE_KGHA = temp0$gear_temperature,
-  # use.survey.bathymetry = FALSE,
-  region = map.area,
-  set.breaks = seq(from = -2, to = 16, by = 2),
-  grid.cell = c(ifelse(workfaster, 0.1, 0.02), ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
-  key.title = "Bottom Temperature (°C)")
-
-temp <- data.frame(temp = matrix(data = temp0$continuous.grid$var1.pred, ncol = 1), 
-                   area = matrix(data = temp0$continuous.grid$Shape_Area, ncol = 1)) %>% 
-  dplyr::filter(!is.na(temp)) %>% 
-  dplyr::mutate(bin = cut(x = temp, 
-    breaks = c(-Inf,-1, 0, 1, 2))) %>% 
-  dplyr::filter(!is.na(bin)) %>% 
-  dplyr::group_by(bin) %>% 
-  dplyr::summarise(area_sum = sum(area), 
-                   temp_mean = mean(temp, na.rm = TRUE)) %>% 
-  dplyr::mutate(year = yr) %>%
-  data.frame() %>% 
-  rbind.data.frame(temp, .)
-
-# temp <- table(temp)
-}
-
-raw <- temp %>% 
-  dplyr::mutate(label = dplyr::case_when(
-    bin == "(-Inf,-1]" ~ "> -1°C", 
-    bin == "(-1,0]" ~ "-1 to 0°C", 
-    bin == "(0,1]" ~ "0 to 1°C", 
-    bin == "(1,2]" ~ "1 to 2°C")) %>% 
-  dplyr::mutate(area_weight = ((area_sum/(sum(temp0$continuous.grid$Shape_Area, na.rm = TRUE))))) %>% 
-  dplyr::mutate(area_percent = area_weight * 100) 
-# currently in meters2 and needs to become km2 to be comparable
-# sum(stratum_info$area[stratum_info$SRVY == "EBS"], na.rm = TRUE) # TOLEDO - should I use this?? close, but not the same
-
-cold_pool_area <- raw %>%
-  dplyr::select(area_sum, area_percent, year, temp_mean, area_weight) %>%
-  dplyr::group_by(year) %>% 
-  dplyr::summarise(area_sum = sum(area_sum), 
-                   area_percent = sum(area_percent), 
-                   temp_mean = sum(temp_mean * area_weight)) %>% 
-  dplyr::mutate(area_sum = (area_sum*1e-11)) %>% 
-  dplyr::mutate(label = "> 2°C") %>% 
-  dplyr::mutate(year = NA) %>% 
-  dplyr::mutate(bin = "(-Inf,2]") %>% 
-  dplyr::mutate(area_weight = NA) %>%
-  dplyr::relocate(names(raw))
-
-raw <- rbind.data.frame(raw, cold_pool_area) 
-
-# Plot
-figure <- ggplot(raw %>% dplyr::filter(!is.na(year)), 
-                 mapping = aes(x = year, y = area_percent, group = label)) +
-  geom_area(mapping = aes(fill=label)) +
-  # scale_fill_nmfs(palette = "secondary", discrete = TRUE) +
-  scale_fill_viridis_d(direction = -1) +
-  guides(fill=guide_legend(title="Percentage of\nEBS shelf area\n\n")) +
-  # xlab("Year") +
-  scale_x_continuous(name = "Year", 
-                     breaks = seq(from = min(temp$year), to = max(temp$year), by = 2)) +
-  ylab("Percent") +
-  ylim(0, 100)  +
-  #set legend position and vertical arrangement
-  theme(
-    panel.background = element_rect(fill = "white", 
-                                    colour = NA), 
-    panel.border = element_rect(fill = NA, 
-                                colour = "grey20"), 
-    strip.background = element_rect(fill = "grey85", 
-                                    colour = "grey20"),
-    legend.spacing.y = unit(-0.35, "cm"),
-    axis.text = element_text(size = 12), 
-    axis.title = element_text(size = 15),
-    legend.title = element_text(size = 15),
-    legend.text = element_text(size = 12),
-    legend.background = element_rect(colour = "transparent", fill = "transparent"),
-    legend.key = element_rect(colour = "transparent", 
-                              fill = "transparent"),
-    legend.position = c(.15, .80),
-    legend.box.just = "left",
-    legend.box = "vertical"
-  )
-
-
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_fig.Rmd", 
-                         package = "NMFSReports")), 
-    quiet = TRUE
-  )
-  
-  assign(value = res, x = nickname)
-
-```
-
-
 During the last `r (maxyr-1)-ifelse(min(yr_above_below_mean$below)>min(yr_above_below_mean$above), min(yr_above_below_mean$above), min(yr_above_below_mean$below))` years, `r NMFSReports::text_list(yr_above_below_mean$below)` were colder than average (“cold stanza”; Figure `r crossref(list_obj = list_figures, nickname = 'fig_idw_bottemp_longterm_mean_below', sublist = 'number')`), and `r NMFSReports::text_list(yr_above_below_mean$above)` were warmer than average (“warm stanza”; Figure `r crossref(list_obj = list_figures, nickname = 'fig_idw_bottemp_longterm_mean_above', sublist = 'number')`). The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`), defined by the extent of bottom temperatures below 2°C. Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool varied in size from `r NMFSReports::xunits(min(cold_pool_area$area_sum))` to `r NMFSReports::xunits(max(cold_pool_area$area_sum))` km2, occupying from `r min(cold_pool_area$area_percent)`% to `r max(cold_pool_area$area_percent)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`).
-
 
 `r fig_idw_bottemp_longterm_mean_below `
 
@@ -554,318 +105,173 @@ From the combined EBS (Tables `r crossref(list_obj = list_tables, nickname = "ta
 
 ## Species Composition
 
-> compare with how this table is shown in EBS only tables
-
-```{r tab_species_composition}
-
-if (SRVY == "NEBS"){
-
-header <- paste0("List of fish taxa from survey catches exclusive to the ",
-                 NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
-                                               haul_cruises_maxyr$SRVY, ")")),".")
-
-footnote0 <- "Taxa in bold only documented north of 60° N latitude."
-nickname <- "tab_species_composition" 
-
-# Select data and make plot
-raw <- catch_haul_cruises_maxyr %>% 
-  dplyr::select(species_code, SRVY , start_latitude) %>% 
-  dplyr::group_by(species_code, SRVY) %>% 
-  dplyr::summarise(lat = max(start_latitude)) %>% 
-  tidyr::pivot_wider(data = ., id_cols = species_code, names_from = SRVY, 
-                     values_from = lat, values_fill = NA) %>% 
-  dplyr::left_join(x = ., 
-                   y = species_classification) %>% 
-  dplyr::mutate(fish = class_taxon %in% c("Actinopterygii", "Chondrichthyes")) %>%
-  dplyr::filter(fish == TRUE) %>% 
-  dplyr::select(species_code, report_name_scientific, all_of(SRVY1)) %>% 
-  dplyr::left_join(x = ., 
-                   y = species) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::select(common_name, report_name_scientific, all_of(SRVY1), -species_code ) %>% 
-  dplyr::filter(!grepl(x = common_name, pattern = " unid.", ignore.case = TRUE, fixed = TRUE)) %>% 
-  dplyr::filter(!grepl(x = common_name, pattern = " egg", ignore.case = TRUE, fixed = TRUE)) %>% 
-  dplyr::filter(!is.na(common_name)) %>% 
-  dplyr::arrange(common_name) %>% 
-  dplyr::filter(!(!is.na(EBS) & !is.na(NBS)))  %>% 
-  dplyr::mutate(above_60 = (EBS >= 60 | NBS >= 60)) %>%
-  dplyr::mutate(above_60 = ifelse(is.na(above_60), FALSE, TRUE))  %>% 
-  dplyr::mutate(where = ifelse(is.na(NBS), 
-                               "Present in EBS but absent in NBS", 
-                               "Present in NBS but absent in EBS")) %>% 
-  dplyr::select(-NBS, -EBS)
-
-temp1 <- table_raw %>% 
-  dplyr::filter(where == "Present in EBS but absent in NBS" & 
-                  !is.na(common_name)) %>% 
-  dplyr::select(-where) 
-temp2 <- table_raw %>% 
-  dplyr::filter(where == "Present in NBS but absent in EBS" & 
-                  !is.na(common_name)) %>% 
-  dplyr::select(-where) 
-
-# make the same length so they can be bound together
-if (nrow(temp1)>nrow(temp2)){
-  temp2 <- temp2 %>% 
-    dplyr::bind_rows(., 
-                     data.frame(common_name = rep_len(NA, (nrow(temp1)-nrow(temp2))), 
-                                report_name_scientific = NA, 
-                                above_60 = FALSE))
-} else {
-  temp1 <- temp1 %>% 
-  dplyr::bind_rows(., 
-                     data.frame(common_name = rep_len(NA, (nrow(temp2)-nrow(temp1))), 
-                                report_name_scientific = NA, 
-                                above_60 = FALSE))
-}
-
-names(temp1) <- paste0(names(temp1), "_")
-
-table_print <- 
-  dplyr::bind_cols(temp1, temp2) %>% 
-  dplyr::select(-above_60, -above_60_) %>%
-  flextable::flextable(data = .) %>% 
-  flextable::italic(x = ., 
-                 j = c(2,4)) %>%
-  flextable::bold(x = ., 
-                 i = which(temp1$above_60_),
-                 j = 1:2) %>%  
-  flextable::bold(x = ., 
-                 i = which(temp2$above_60),
-                 j = 3:4) %>%
-  flextable::footnote(x = ., part = "header", i = 1, j = 1, 
-                     value = as_paragraph(footnote0)) %>%
-  add_header_row(x = ., 
-                 values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
-    colwidths = c(2, 2)) %>% 
-    flextable::set_header_labels(., 
-                                 common_name_ = "Common name",
-                    report_name_scientific_ = "Scientific name", 
-                                 common_name = "Common name",
-                    report_name_scientific = "Scientific name"
-                    ) %>% 
-  theme_flextable_nmfstm(row_lines = FALSE) %>% 
-  flextable::vline(x = ., j = 2, part = "all")
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-res <- paste0("
-###### 
-
-",res,"
-
-")
-
-assign(value = res, x = paste0(nickname))
-
-} 
-
-```
-
-
-> which column is the confidence interval? Guessing upperb+lowerb?
-
-> Did I calculate proportion right?
-
-```{r tab_biomass_est}
-
-nickname0 <- "tab_biomass_est"
-
-for (i in 1:nrow(surv_info)) {
-
-  header <- paste0("Biomass estimates (t) for major fish species and groups taken during the ", 
-                   maxyr, " ", 
-                 surv_info$SRVY_long[i],
-                 " shelf bottom trawl survey.")
-  
-  nickname <- paste0(nickname0, "_", surv_info$SRVY[i]) 
-
-  # temp <- list(
-  #   # skates
-  #   "Raidae (skates)" = list(
-  #     "Alaska skate" = find_codes(x = spp_info_maxyr, str = "Alaska skate"), 
-  #     "Other skates" = find_codes(x = spp_info_maxyr, str = "skate", str_not = "Alaska skate"), 
-  #     "Total skates" = find_codes(x = spp_info_maxyr, str = "skate")), 
-  #   # flatfishes
-  #   "Pleuronectidae (flatfishes)" = list(
-  #     "Yellowfin sole" = find_codes(x = spp_info_maxyr, str = "Yellowfin sole"), 
-  #     "Northern rock sole" = find_codes(x = spp_info_maxyr, str = "Northern rock sole"),
-  #     "Flathead sole" = find_codes(x = spp_info_maxyr, str = "Flathead sole"),
-  #     "Bering flounder" = find_codes(x = spp_info_maxyr, str = "Bering flounder"),
-  #     "Alaska plaice" = find_codes(x = spp_info_maxyr, str = "Alaska plaice"),
-  #     "Arrowtooth flounder" = find_codes(x = spp_info_maxyr, str = "Arrowtooth flounder"),
-  #     "Kamchatka flounder" = find_codes(x = spp_info_maxyr, str = "Kamchatka flounder"),
-  #     "Greenland turbot" = find_codes(x = spp_info_maxyr, str = "Greenland turbot"),
-  #     "Pacific halibut" = find_codes(x = spp_info_maxyr, str = "Pacific halibut"),
-  #     "Other flatfish" = 
-  #       find_codes(x = spp_info_maxyr, str = "Pleuronectidae", col = "family_taxon", 
-  #                  col_str_not = "common_name", 
-  #                  str_not = c("Yellowfin sole", "Northern rock sole", "Flathead sole", 
-  #                              "Bering flounder", "Alaska plaice", "Arrowtooth flounder", 
-  #                              "Kamchatka flounder", "Greenland turbot", "Pacific halibut")), 
-  #     "Total flatfish" = find_codes(x = spp_info_maxyr, str = "Pleuronectidae", 
-  #                                   col = "family_taxon")), 
-  #   
-  #   # Cod
-  #   "Gadidae (cods)" = list( 
-  #     "Walleye pollock" = find_codes(x = spp_info_maxyr, str = "Walleye pollock"), 
-  #     "Pacific cod" = find_codes(x = spp_info_maxyr, str = "Pacific cod"),
-  #     "Other cods" = 
-  #               find_codes(x = spp_info_maxyr, str = "Gadidae", col = "family_taxon", 
-  #                  col_str_not = "common_name", 
-  #                  str_not = c("Walleye pollock", "Pacific cod")), 
-  #     "Total cods" = find_codes(x = spp_info_maxyr, str = "Gadidae", col = "family_taxon")),
-  #   # mix
-  #   "Agonidae (poachers)" = find_codes(x = spp_info_maxyr, str = "Agonidae", 
-  #                                      str_not = "Cheiragonidae", col = "family_taxon"), 
-  #   "Cottidae (sculpins)" = find_codes(x = spp_info_maxyr, str = "Cottidae", col = "family_taxon"), 
-  #   "Hexagrammidae (greenlings)" = find_codes(x = spp_info_maxyr, str = "Hexagrammidae", col = "family_taxon"), 
-  #   "Cyclopteridae (lumpsuckers)" = find_codes(x = spp_info_maxyr, str = "Cyclopteridae", col = "family_taxon"), 
-  #   "Liparidae (snailfishes)" = find_codes(x = spp_info_maxyr, str = "Liparidae", col = "family_taxon"), 
-  #   "Osmeridae (smelts)" = find_codes(x = spp_info_maxyr, str = "Osmeridae", col = "family_taxon"), 
-  #   "Sichaeidae (blennies)" = find_codes(x = spp_info_maxyr, str = "Sichaeidae", col = "family_taxon"), 
-  #   "Zoarcidae (eelpouts)" = find_codes(x = spp_info_maxyr, str = "Zoarcidae", col = "family_taxon"), 
-  #   # rockfish
-  #   "Scorpaenidae (rockfish)" = list(
-  #     "Pacific ocean perch" = find_codes(x = spp_info_maxyr, str = "Pacific ocean perch"), 
-  #     "Other rockfish" = find_codes(x = spp_info_maxyr, str = "Scorpaenidae", col = "family_taxon", 
-  #                                   str_not = "Pacific ocean perch", col_str_not = "common_name"), 
-  #     "Total rockfish" = find_codes(x = spp_info_maxyr, str = "Scorpaenidae", col = "family_taxon")), 
-  #   # other
-  #   "Other fish" = NA)
-  # 
-  # temp$`Other fish` <- 
-  #   find_codes(
-  #     x = spp_info_maxyr %>% dplyr::filter(fish == TRUE), 
-  #     # col_out = "common_name",
-  #     str_not = unique(unlist(temp)), col_str_not = "species_code")
-  
-# Select data and make plot
-table_raw <- dat_biomass_maxyr %>% 
-  dplyr::mutate(conf95 = upperb) %>% # TOLEDO
-  dplyr::filter(stratum %in% reg_dat$survey.strata$Stratum & 
-                  survey == surv_info$SRVY[i]) %>% 
-  dplyr::select(species_code, survey, biomass, stratum, conf95, common_name) %>% 
-  dplyr::left_join(x = ., 
-                   y = spp_info_maxyr %>% 
-                     dplyr::select(report_name_scientific, species_code, fish)) %>% 
-  dplyr::mutate(prop = biomass/sum(biomass)) # TOLEDO
-
-  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ",NMFSReports::xunits(value = sum(table_raw$biomass), words = FALSE)," t.")
-
-
-
-table_print <- table_raw
-  dplyr::bind_cols(temp1, temp2) %>% 
-  dplyr::select(-above_60, -above_60_) %>%
-  flextable::flextable(data = .) %>% 
-  flextable::italic(x = ., 
-                 j = c(2,4)) %>%
-  flextable::bold(x = ., 
-                 i = which(temp1$above_60_),
-                 j = 1:2) %>%  
-  flextable::bold(x = ., 
-                 i = which(temp2$above_60),
-                 j = 3:4) %>%
-  flextable::footnote(x = ., part = "header", i = 1, j = 1, 
-                     value = as_paragraph(footnote0)) %>%
-  add_header_row(x = ., 
-                 values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
-    colwidths = c(2, 2)) %>% 
-    flextable::set_header_labels(., 
-                                 common_name_ = "Common name",
-                    report_name_scientific_ = "Scientific name", 
-                                 common_name = "Common name",
-                    report_name_scientific = "Scientific name"
-                    ) %>% 
-  theme_flextable_nmfstm(row_lines = FALSE) %>% 
-  flextable::vline(x = ., j = 2, part = "all")
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-res <- paste0("
-###### 
-
-",res,"
-
-")
-
-assign(value = res, x = paste0(nickname))
-
-} 
-
-```
-
+> need to check above 60* calculation in NBS
+> why does "Mecklenburg et al. 2002" get cited like this? [@RN912]
 
 ```{r}
-# <!-- > `r temp_insert1``r temp_insert2` In the `r SRVY`, there was a total of `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$fish==TRUE])))` species of fishes representing `r xunits(length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$fish==TRUE])))` families and `r xunits(length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$fish==TRUE])))` genera, as well as `r xunits(length(unique(spp_info_maxyr$species_code[spp_info_maxyr$invert==TRUE])))` invertebrate taxa, representing `r xunits(length(unique(spp_info_maxyr$phylum_taxon)))` phyla identified in the catches. -->
-```
-
-A total of `r length(unique(spp_info_maxyr$report_name_scientific[spp_info_maxyr$fish == TRUE])) ` fish species representing `r length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$fish == TRUE]))` families and `r length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$fish == TRUE])) ` genera were identified in the survey catches from the `r NMFSReports::text_list(surv_info$SRVY)` (Appendix B, Table 6). The `r SRVY ` had a total of 93 fish species, 49 of which did not occur in the NBS. In comparison, the NBS had 70 total fish species (in 15 families), 12 of which did not occur in the `r SRVY ` (Table 4). Seven of the 12 species only occurring in the NBS (Table 4) have only been documented north of 60°N [@RN912]. Six flatfish species that were present in the `r SRVY ` were absent from the NBS including English sole (Parophrys vetulus), dover sole (Microstomus pacificus), butter sole (Isopsetta isolepis), rex sole (Glyptocephalus zachirus), hybrid starry flounder X Alaska plaice (Platichthys stellatus X Pleuronectes quadrituberculatus) and southern rock sole (Table `r crossref(list_obj = list_tables, nickname = "species_composition", sublist = "number") `).
-
-
-
-`r species_composition `
-
-> For the purposes of counting the number of each taxonomic hierarchy, we employed ITIS [CITATION] which is ___. All species are idenfitied using and logged in AFSC's databases as *Eschmeyer's Ctaglog of Fishes* (CITATION Eschmeyer) and *An Annotated Checklist of the Marine Macroinvertebrates of Alaska* (CITATION: Drumm). 
-
-
-
-```{r}
-
-# # find number of ___ for species
-# 
-# spp.tsn.list0<-spp.tsn.list[names(spp.tsn.list) %in% 
-#                               unique(dat$SCIENTIFIC.y[dat$YEAR %in% maxyr])]
-# 
-# unq.spp<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "species") ))
-# 
-# unq.gen<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "genus") ))
-# 
-# unq.fam<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "family") ))
-# 
-# # unq.phyl<-xunits(length(findhowmanyspp(spp.tsn.list0, ranklvl = "phyla") )) 
-# 
-# spp.tsn.list00<-spp.tsn.list0[names(spp.tsn.list0) %in% unique(dat.maxyr$SCIENTIFIC.y[dat.maxyr$category %in% invert])]
-# 
-# unq.spp.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "species") ))  
-#     
-# unq.phyl.inv<-xunits(length(findhowmanyspp(spp.tsn.list00, ranklvl = "phylum") ))  
-
-
-# <!-- > FROM ABSTRACT: `r temp` average surface (`r round(x = mean(dat.maxyr$SURF_TEMP, na.rm = T), digits = 1) `°C) and bottom (`r round(x = mean(dat.maxyr$BOT_TEMP, na.rm = T), digits = 1) `°C) water temperatures for the `r SRVY ` shelf were well above the long-term means from `r minyr` to `r maxyr` for the surface (`r round(x = mean(dat$SURF_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C) and for the bottom (`r round(x = mean(dat$BOT_TEMP[dat$YEAR %in% (min(dat$YEAR)):maxyr], na.rm = T), digits = 1) `°C). In the `r SRVY `, there were a total of `r unq.spp` species representing `r unq.fam` families and `r unq.gen` genera, as well as `r unq.spp.inv ` invertebrate taxa representing `r unq.phyl.inv` phyla, identified in the catches. -->
+temp <- dplyr::left_join(
+  x = list_tables$tab_species_composition$raw, 
+  y = species_classification0, 
+  by = "report_name_scientific")
   
+temp_insert <- paste0(
+  "The ", SRVY ,
+  " had a total of ", xunits(nrow(temp))," fish species, ", 
+  xunits(length(temp$where[temp$where == 
+                                     "Present in EBS but absent in NBS"])),
+  " of which did not occur in the NBS. In comparison, the NBS had ",
+  xunits(length(temp$where[temp$where %in% 
+                                     c("Present in EBS and NBS", 
+                                       "Present in NBS but absent in EBS")])), 
+  " total fish species (in ",
+  xunits(length(unique(temp$family_taxon[temp$where %in% 
+                                     c("Present in EBS and NBS", 
+                                       "Present in NBS but absent in EBS")]))),
+  " families), ",
+  xunits(length(temp$where[temp$where %in% 
+                                     c("Present in NBS but absent in EBS")])),
+  " of which did not occur in the EBS (Table ", 
+  crossref(list_obj = list_tables, 
+           nickname = "tab_species_composition", 
+           sublist = "number") ,
+  "). ",
+  xunits(nrow(temp[temp$where %in% 
+                             c("Present in NBS but absent in EBS") & 
+                             temp$above_60 == TRUE, ])), 
+  " of the ",
+  xunits(length(temp$where[temp$where %in% 
+                                     c("Present in NBS but absent in EBS")])),
+  " species only occurring in the NBS (Table ", 
+  crossref(list_obj = list_tables, 
+           nickname = "tab_species_composition", 
+           sublist = "number") ,
+  ") have only been documented north of 60°N [@RN912]. ",
+  xunits(length(temp$common_name[
+        temp$where == "Present in EBS but absent in NBS" & 
+        temp$order_taxon %in% c("Pleuronectiformes")])),
+  " flatfish species that were present in the EBS were absent from the NBS including ",
+  NMFSReports::text_list(
+    paste0(
+      temp$common_name[
+        temp$where == "Present in EBS but absent in NBS" & 
+        temp$order_taxon %in% c("Pleuronectiformes")], 
+           " (*", 
+      temp$report_name_scientific[
+        temp$where == "Present in EBS but absent in NBS" & 
+        temp$order_taxon %in% c("Pleuronectiformes")], 
+           "*)")),
+  " (Table ", 
+  crossref(list_obj = list_tables, 
+           nickname = "tab_species_composition",
+           sublist = "number"), "). ", 
+  ifelse(length(temp$common_name[
+        temp$where == "Present in NBS but absent in EBS" & 
+        temp$order_taxon %in% c("Pleuronectiformes")]) > 0, 
+    paste0(NMFSReports::text_list(paste0(
+    CapFirst(xunits(length(temp$common_name[
+        temp$where == "Present in NBS but absent in EBS" & 
+        temp$order_taxon %in% c("Pleuronectiformes")]))), 
+    " flatfish species, the ",
+      temp$common_name[
+        temp$where == "Present in NBS but absent in EBS" & 
+        temp$order_taxon %in% c("Pleuronectiformes")], 
+           " (*", 
+      temp$report_name_scientific[
+        temp$where == "Present in NBS but absent in EBS" & 
+        temp$order_taxon %in% c("Pleuronectiformes")], 
+           "*)")),
+    ", was only present in the NBS."), "") )
+
 ```
 
+A total of `r length(unique(spp_info_maxyr$report_name_scientific[spp_info_maxyr$fish == TRUE])) ` fish species representing `r length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$fish == TRUE]))` families and `r length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$fish == TRUE])) ` genera were identified in the survey catches from the `r NMFSReports::text_list(haul_cruises_maxyr$SRVY)` (Appendix B, Table 6). `r `temp_insert`
+
+`r tab_species_composition `
+
+`r tab_biomass_est_fish_EBS `
+
+`r ifelse(SRVY == "NEBS", tab_biomass_est_fish_NBS, "") `
+
+`r tab_biomass_est_invert_EBS `
+
+`r ifelse(SRVY == "NEBS", tab_biomass_est_invert_NBS, "") `
+
+
+> All species are idenfitied using and logged in AFSC's databases as *Eschmeyer's Ctaglog of Fishes* (CITATION Eschmeyer) and *An Annotated Checklist of the Marine Macroinvertebrates of Alaska* (CITATION: Drumm). 
 
 ## Relative Abundance
 
-The top 12 fish taxa in the `r SRVY ` accounted for 73% (243 kg/ha) of total catch CPUE (335 kg/ha) and 97% of total fish CPUE (252 kg/ha), compared with the NBS where the top 12 fish taxa accounted for only 61% (140 kg/ha) of the total catch CPUE (228 kg/ha) and 98% of total fish CPUE (143 kg/ha). 
+> why 12?
 
-The lower fish biomass in the NBS is consistent with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf (Stevenson and Lauth 2012). The relative abundance of flatfishes and gadids were high in both the `r SRVY ` and NBS, but the species comprising each taxonomic group and their proportion of the total biomass were different between the two areas. In the `r SRVY `, there were 15 different flatfish species that together comprised almost half of the total fish biomass (48%) with yellowfin sole (22%) and northern rock sole (11%) having the greatest proportions. This contrasted with the NBS where there were twelve flatfish species with yellowfin sole (15%) and Alaska plaice (12%) making up a majority of the total fish biomass. Four flatfish species that were present in the `r SRVY ` were absent from catches in the NBS including arrowtooth flounder, butter sole (*Isopsetta isolepis*), rex sole (*Glyptocephalus zachirus*) and southern rock sole (Table 4). One flatfish species, the Arctic flounder (Liopsetta glacialis), was only present in the NBS.
+> missing data from invert EBS?
+
+> waiting for new data from rebecca
+
+```{r}
+temp <- data.frame()
+
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  
+  temp1 <- cpue_maxyr %>% 
+    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+    dplyr::select(cpue_kgha, species_code, fish, invert) %>%
+    dplyr::group_by(species_code, fish, invert) %>% 
+    dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>%
+    dplyr::arrange(-cpue_kgha) %>% 
+    dplyr::ungroup()
+  
+  temp <- rbind.data.frame(
+    temp, 
+    data.frame(
+      SRVY = haul_cruises_maxyr$SRVY[i], 
+      fish = temp1 %>% 
+        dplyr::filter(fish == TRUE) %>%
+        dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
+        as.numeric(), 
+      invert = temp1 %>% 
+        dplyr::filter(invert == TRUE) %>%
+        dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
+        as.numeric(), 
+      all = temp1 %>% 
+        dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
+        as.numeric(), 
+      topfish = temp1 %>% 
+        dplyr::filter(fish == TRUE) %>%
+        head(12) %>%
+        dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
+        as.numeric()))
+}  
+
+temp$top_fish <- paste0(round(x = temp$topfish/temp$fish, digits = 0), "%")
+temp$top_all <- paste0(round(x = temp$topfish/temp$all, digits = 0), "%")
+
+# temp[,1:4]<-NMFSReports::mod_number(x = temp[,1:4], comma_seperator = T, digits = 0)
+
+temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientific = F)
+
+# The top 12 fish taxa in the EBS accounted for 73% (243 kg/ha) of total catch CPUE (335 kg/ha) and 97% of total fish CPUE (252 kg/ha), compared with the NBS where the top 12 fish taxa accounted for only 61% (140 kg/ha) of the total catch CPUE (228 kg/ha) and 98% of total fish CPUE (143 kg/ha). 
+
+```
+
+`r NMFSReports::text_list(paste0("Of the top 12 fish taxa in the ",temp$SRVY," accounted for ",temp$top_all," (",temp$topfish," kg/ha) of total catch CPUE (",temp$all," kg/ha) and ",temp$top_fish," of total fish CPUE (",temp$fish," kg/ha)")) `
+
+> Not sure how to automate this...?
+
+The lower fish biomass in the NBS is consistent with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936]. The relative abundance of flatfishes and gadids were high in both the `r SRVY ` and NBS, but the species comprising each taxonomic group and their proportion of the total biomass were different between the two areas. In the `r SRVY `, there were 15 different flatfish species that together comprised almost half of the total fish biomass (48%) with yellowfin sole (22%) and northern rock sole (11%) having the greatest proportions. This contrasted with the NBS where there were twelve flatfish species with yellowfin sole (15%) and Alaska plaice (12%) making up a majority of the total fish biomass. Four flatfish species that were present in the `r SRVY ` were absent from catches in the NBS including arrowtooth flounder, butter sole (*Isopsetta isolepis*), rex sole (*Glyptocephalus zachirus*) and southern rock sole (Table `r crossref(list_obj = list_tables, nickname = "tab_species_composition", sublist = "number") `). One flatfish species, the Arctic flounder (Liopsetta glacialis), was only present in the NBS.
 	
 Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
 
+`r tab_biomass_compareyr_maxyr_percchange_EBS `
+
+`r ifelse(SRVY == "NEBS", tab_biomass_compareyr_maxyr_percchange_NBS, "") `
 
 ## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups
 
-Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. In the `r SRVY `, the proportion of fishes (75%; Table 5a) was three times higher than invertebrates (25%; Table 5b). This trend was similarly true in the NBS where the proportion of fishes (63%; Table 6a) was greater than invertebrates (37%; Table 6b). Pleuronectids dominated the fish biomass in both the `r SRVY ` (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table 5a and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table 5b) and 25% in the NBS (Table 6b).
+Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. In the EBS, the proportion of fishes (75%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")`) was three times higher than invertebrates (25%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`). This trend was similarly true in the NBS where the proportion of fishes (63%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number")`) was greater than invertebrates (37%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`). Pleuronectids dominated the fish biomass in both the EBS (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")` and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`) and 25% in the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`).
 
-Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number. Major species presented include walleye pollock (Figures 7-8 and Table 7a, b), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. 
+Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number. Major species presented include walleye pollock (Figures 7-8 and Table `crossref(list_obj = list_tables, nickname = "tab_biomass_compareyr_maxyr_percchange", sublist = "number")`), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. 
+`r tab_biomass_compareyr_maxyr_percchange `
 
-
-## Summary of Results for Selected Major Eastern and Northern Bering Sea Fish Fauna
+## Summary of Results for Selected Major `r haul_cruises_maxyr$SRVY_long` Fish Fauna
 
 

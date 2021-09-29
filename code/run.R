@@ -13,6 +13,13 @@
 
 workfaster <- TRUE # an attempt to satisfy limited patience
 
+# maxyr <- 2016 # or the year of the report, for example
+# compareyr <- 2015
+# # compareyr_nbs <- 2010 #will this always be the same?
+# SRVY<-"EBS"
+# ref_compareyr_ebs <- "@RN976" # temp
+# ref_compareyr_nbs <- "@RN909" # temp
+
 maxyr <- 2017 # or the year of the report, for example
 compareyr <- 2010
 # compareyr_nbs <- 2010 #will this always be the same?
@@ -41,7 +48,6 @@ ref_compareyr_nbs <- "@RN909"
 #Is this for InDesign?
 indesign_flowin <- FALSE
 
-
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 
 googledrive::drive_deauth()
@@ -66,7 +72,7 @@ source('./code/data.R')
 report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY),
                        ' continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
 report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
-report_yr <- substr(x = Sys.Date(), start = 1, stop = 4)
+report_yr <- maxyr 
 
 # *** RENV: SAVE PACKAGES USED TO CREATE THIS REPORT ---------------------------
 # renv::init()
@@ -94,15 +100,25 @@ list_figures <- list()
 # https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/test_rmds.R
 # https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/render%20dev%20report%20with%20errors.R
 
+# *** *** 00 - Figures and Tables ------------------------
+# - run figures and tables before each chapter so everything works smoothly
+if (FALSE) {
+  cnt_chapt<-auto_counter(cnt_chapt)
+  cnt_chapt_content<-"001"
+  filename0<-paste0(cnt_chapt, "_figtab_")
+  rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
+                    output_dir = dir_out_figures,
+                    output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
-# *** *** 00 - Example ------------------------
-# cnt_chapt<-auto_counter(cnt_chapt)
-# cnt_chapt_content<-"001"
-# filename0<-paste0(cnt_chapt, "_example_")
-# rmarkdown::render(paste0(dir_code, "/00_example.Rmd"),
-#                   output_dir = dir_out_chapters,
-#                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+  # SAVE OTHER OUTPUTS -----------------------------------------------------------
 
+  save(list_figures,
+       file=paste0(dir_out_figures, "/report_figures.rdata"))
+
+  save(list_tables,
+       file=paste0(dir_out_tables, "/report_tables.rdata"))
+  
+}
 
 # *** *** 01 - Abstract ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
@@ -162,10 +178,12 @@ spplist<-(SpeciesList[SRVY][[1]])
 
 for (spp0 in 1:length(spplist)) {
   
-  spp.common<-names(spplist)[spp0]
-  spp.tsn<-spplist[spp0][[1]]
-  spp.sci0<-classification(spp.tsn, "itis")[[1]]
-  spp.sci<-spp.sci0$name[spp.sci0$rank %in% "species"]
+  spp_common<-names(spplist)[spp0]
+  # spp.tsn<-spplist[spp0][[1]]
+  # spp.sci0<-classification(spp.tsn, "itis")[[1]]
+  # spp.sci<-spp.sci0$name[spp.sci0$rank %in% "species"]
+  spp_sci <- spp_info$report_name_scientific[spp_info$species_name]
+  spp_code <- spp_info$report_name_scientific[spp_info$species_code]
   
   filename0<-paste0(cnt.chapt, "_Results_")
   rmarkdown::render(paste0(dir.scripts, "/06_results_spp.Rmd"),
@@ -231,11 +249,11 @@ rmarkdown::render(paste0(dir_code, "/11_presentation.Rmd"),
 
 # SAVE OTHER OUTPUTS -----------------------------------------------------------
 
-save(list_figures,
-     file=paste0(dir_out_figures, "/report_figures.rdata"))
-
-save(list_tables,
-     file=paste0(dir_out_tables, "/report_tables.rdata"))
+# save(list_figures,
+#      file=paste0(dir_out_figures, "/report_figures.rdata"))
+# 
+# save(list_tables,
+#      file=paste0(dir_out_tables, "/report_tables.rdata"))
 
 save(list_equations,
      file=paste0(dir_out_tables, "/report_equations.rdata"))
