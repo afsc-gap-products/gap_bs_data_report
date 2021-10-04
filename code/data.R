@@ -7,82 +7,6 @@
 #' Notes:                             # CHANGE
 #' ---
 
-
-# Knowns -----------------------------------------------------------------------
-
-# months.words<-c("January", "February",	"March", "April", 
-#                 "May", "June", "July", "August", 
-#                 "September", "October", "November", "December")
-
-# Report Specific --------------------------------------------------------------
-
-# shps<-c(21:25)
-
-# *** Report Species ---------------------------------------------------------------
-
-
-#   temp <- list(
-#     # skates
-#     "Raidae (skates)" = list(
-#       "Alaska skate" = find_codes(x = spp_info_maxyr, str = "Alaska skate"),
-#       "Other skates" = find_codes(x = spp_info_maxyr, str = "skate", str_not = "Alaska skate"),
-#       "Total skates" = find_codes(x = spp_info_maxyr, str = "skate")),
-#     # flatfishes
-#     "Pleuronectidae (flatfishes)" = list(
-#       "Yellowfin sole" = find_codes(x = spp_info_maxyr, str = "Yellowfin sole"),
-#       "Northern rock sole" = find_codes(x = spp_info_maxyr, str = "Northern rock sole"),
-#       "Flathead sole" = find_codes(x = spp_info_maxyr, str = "Flathead sole"),
-#       "Bering flounder" = find_codes(x = spp_info_maxyr, str = "Bering flounder"),
-#       "Alaska plaice" = find_codes(x = spp_info_maxyr, str = "Alaska plaice"),
-#       "Arrowtooth flounder" = find_codes(x = spp_info_maxyr, str = "Arrowtooth flounder"),
-#       "Kamchatka flounder" = find_codes(x = spp_info_maxyr, str = "Kamchatka flounder"),
-#       "Greenland turbot" = find_codes(x = spp_info_maxyr, str = "Greenland turbot"),
-#       "Pacific halibut" = find_codes(x = spp_info_maxyr, str = "Pacific halibut"),
-#       "Other flatfish" =
-#         find_codes(x = spp_info_maxyr, str = "Pleuronectidae", col = "family_taxon",
-#                    col_str_not = "common_name",
-#                    str_not = c("Yellowfin sole", "Northern rock sole", "Flathead sole",
-#                                "Bering flounder", "Alaska plaice", "Arrowtooth flounder",
-#                                "Kamchatka flounder", "Greenland turbot", "Pacific halibut")),
-#       "Total flatfish" = find_codes(x = spp_info_maxyr, str = "Pleuronectidae",
-#                                     col = "family_taxon")),
-# 
-#     # Cod
-#     "Gadidae (cods)" = list(
-#       "Walleye pollock" = find_codes(x = spp_info_maxyr, str = "Walleye pollock"),
-#       "Pacific cod" = find_codes(x = spp_info_maxyr, str = "Pacific cod"),
-#       "Other cods" =
-#                 find_codes(x = spp_info_maxyr, str = "Gadidae", col = "family_taxon",
-#                    col_str_not = "common_name",
-#                    str_not = c("Walleye pollock", "Pacific cod")),
-#       "Total cods" = find_codes(x = spp_info_maxyr, str = "Gadidae", col = "family_taxon")),
-#     # mix
-#     "Agonidae (poachers)" = find_codes(x = spp_info_maxyr, str = "Agonidae",
-#                                        str_not = "Cheiragonidae", col = "family_taxon"),
-#     "Cottidae (sculpins)" = find_codes(x = spp_info_maxyr, str = "Cottidae", col = "family_taxon"),
-#     "Hexagrammidae (greenlings)" = find_codes(x = spp_info_maxyr, str = "Hexagrammidae", col = "family_taxon"),
-#     "Cyclopteridae (lumpsuckers)" = find_codes(x = spp_info_maxyr, str = "Cyclopteridae", col = "family_taxon"),
-#     "Liparidae (snailfishes)" = find_codes(x = spp_info_maxyr, str = "Liparidae", col = "family_taxon"),
-#     "Osmeridae (smelts)" = find_codes(x = spp_info_maxyr, str = "Osmeridae", col = "family_taxon"),
-#     "Sichaeidae (blennies)" = find_codes(x = spp_info_maxyr, str = "Sichaeidae", col = "family_taxon"),
-#     "Zoarcidae (eelpouts)" = find_codes(x = spp_info_maxyr, str = "Zoarcidae", col = "family_taxon"),
-#     # rockfish
-#     "Scorpaenidae (rockfish)" = list(
-#       "Pacific ocean perch" = find_codes(x = spp_info_maxyr, str = "Pacific ocean perch"),
-#       "Other rockfish" = find_codes(x = spp_info_maxyr, str = "Scorpaenidae", col = "family_taxon",
-#                                     str_not = "Pacific ocean perch", col_str_not = "common_name"),
-#       "Total rockfish" = find_codes(x = spp_info_maxyr, str = "Scorpaenidae", col = "family_taxon")),
-#     # other
-#     "Other fish" = NA)
-# 
-#   temp$`Other fish` <-
-#     find_codes(
-#       x = spp_info_maxyr %>% dplyr::filter(fish == TRUE),
-#       # col_out = "common_name",
-#       str_not = unique(unlist(temp)), col_str_not = "species_code")
-#   
-
-
 # Northern and Southern rock sole (grouped) = c(10262, 10261, 10263)
 report_species_NEBS<-list("fish1" = # all plots and tables
                             list("Walleye pollock" = c(21740, 21741, 21742, 21744),
@@ -101,7 +25,7 @@ report_species_NEBS<-list("fish1" = # all plots and tables
                                  "Alaska skate" = c(471), 
                                  "Longhead dab" = c(10211), 
                                  "Starry flounder" = c(10220), 
-                                 "Yellow Irish lord" = c(21347), 
+                                 "Yellow irish lord" = c(21347), 
                                  "Plain sculpin" = c(21371), 
                                  "Great sculpin" = c(21370), 
                                  "Shorthorn sculpin" = c(21368), 
@@ -139,49 +63,6 @@ report_species_NEBS<-list("fish1" = # all plots and tables
                                               40512, 40513, 40515, 40519, 
                                               40520, 40560, 40561)) # group...
 )
-
-invert<-c("Porifera",
-          "Cnidaria",
-          "Platyhelminthes",
-          "Nematoda",
-          "Annelida",
-          "Chromista",
-          "Echinodermata",
-          "Arthropoda",
-          "Mollusca")
-
-vert<-c("Urochordata",
-        "Agnatha",
-        "Chondrichthyes",
-        "Sarcopterygii",
-        "Tetrapoda",
-        "Actinopterygii")
-
-fish<-c("Agnatha",
-        "Chondrichthyes",
-        "Sarcopterygii",
-        "Actinopterygii")
-
-other<-c("Plantae",
-         "Fungi",
-         "Protozoa",
-         "Bacteria",
-         "Archaea")
-
-# SpCodeName.General<-list("Walleye Pollock" = 934083, # Species	Gadus chalcogrammus Pallas, 1814 – Walleye ), 
-#                          'Pacific cod' = 164711, #Species	Gadus macrocephalus Tilesius, 1810 – morue du Pacifique, bacalao del Pacifico, Pacific cod
-#                          "Yellowfin Sole" = 172907, # Species	Limanda aspera (Pallas, 1814) – yellowfin sole, limande à nageoires jaunes, Yellowfin Sole 
-#                          "Northern Rock Sole" = 616392, # Species	Lepidopsetta polyxystra Orr & Matarese, 2000 – northern rock sole, limande du nord, Northern Rock Sole
-#                          "Southern Rock Sole" = 172917, # Species	Lepidopsetta bilineata (Ayres, 1855) – rock sole, fausse limande du Pacifique, Rock Sole
-#                          "Flathead Sole" = 172875, # Species	Hippoglossoides elassodon Jordan & Gilbert, 1880 – flathead sole, Flathead Sole, plie à tête plate
-#                          "Bering Flounder" = 172876, # Species	Hippoglossoides robustus Gill & Townsend, 1897 – Bering flounder, Bering Flounder, plie de Béring
-#                          "Alaska Plaice" = 172901, # Species	Pleuronectes quadrituberculatus Pallas, 1814 – Alaska plaice, Alaska Plaice
-#                          "Greenland Turbot" = 172930, #  Species	Reinhardtius hippoglossoides (Walbaum, 1792) – Greenland halibut, platija negra, Greenland turbot, Newfoundland turbot, turbot, greeenland halibut, flétan du Groenland, Greenland Halibut
-#                          "Arrowtooth Flounder" = 172862, # Species	Atheresthes stomias (Jordan & Gilbert, 1880) – arrowtooth flounder, Arrowtooth Flounder, plie à grande bouche 
-#                          "Kamchatka Flounder" = 172861, #  Species	Atheresthes evermanni Jordan & Starks, 1904 – Kamchatka flounder, Kamchatka Flounder
-#                          "Pacific Halibut" = 172932) #Species: Hippoglossus stenolepis Schmidt, 1904 – valid)
-
-
 
 # *** report types ---------------------------------------------------
 
@@ -227,7 +108,7 @@ report_types <- list(
     map.area = "bs.north", 
     SRVY1 = "NBS", 
     SRVY0 = "BS", # in Oracle
-    SRVY00 = 98, # EBS
+    SRVY00 = 98,
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.north"),
     reg_dat = akgfmaps::get_base_layers(
@@ -270,11 +151,6 @@ if(map.area %in% c("bs.south", "sebs")) {
   extrap.box <- c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68)
 }
 
-# placenames0 <- read.csv(file = system.file("data",
-#                                            file = "placenames.csv", package = "akgfmaps",
-#                                            mustWork = TRUE), stringsAsFactors = FALSE) %>%
-#   transform_data_frame_crs(out.crs = sf::st_crs(reg_dat$survey.strata))
-
 # Load data --------------------------------------------------------------------
 
 
@@ -296,22 +172,29 @@ if(map.area %in% c("bs.south", "sebs")) {
 # *** Load Documents from Google Drive -----------------------------------------
 if (googledrive_dl) {
   
-  # Spreadsheets
-  a <- googledrive::drive_ls(path = dir_googledrive, type = "spreadsheet")
-  for (i in 1:nrow(a)){
-    googledrive::drive_download(paste0(dir_googledrive, a$name[i]), 
+  # Species Covered
+  # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
+    googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"), 
                                 type = "csv", 
                                 overwrite = TRUE, 
-                                path = paste0(dir_out_rawdata, "/tab_", a$name[i]))
+                                path = paste0(dir_out_rawdata, "/report_spp"))
+
+  # Spreadsheets
+  a <- googledrive::drive_ls(path = id_googledrive, type = "spreadsheet")
+  for (i in 1:nrow(a)){
+    googledrive::drive_download(file = a$id[i], 
+                                type = "csv", 
+                                overwrite = TRUE, 
+                                path = paste0(dir_out_rawdata, "/", a$name[i]))
   }
   
   # Word documents
-  a <- googledrive::drive_ls(path = dir_googledrive, type = "document")
+  a <- googledrive::drive_ls(path = id_googledrive, type = "document")
   for (i in 1:nrow(a)){
-    googledrive::drive_download(paste0(dir_googledrive, a$name[i]), 
+    googledrive::drive_download(file = a$id[i], 
                                 type = "docx", 
                                 overwrite = TRUE, 
-                                path = paste0(dir_out_rawdata, "/doc_", a$name[i]))
+                                path = paste0(dir_out_rawdata, "/", a$name[i]))
   }
   
 }
@@ -371,8 +254,9 @@ for (ii in 1:length(SRVY1)) {
 biomass <- SameColNames(df.ls)  %>%
   dplyr::filter(year <= maxyr) %>% 
   dplyr::rename(SRVY = survey) %>% 
-  dplyr::mutate(fish = (species_code <= 31550)) %>%
-  dplyr::mutate(invert = (species_code >= 40001))
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert"))
 
 biomass_maxyr<-biomass %>% 
   dplyr::filter(year == maxyr)
@@ -407,8 +291,9 @@ for (ii in 1:length(SRVY1)) {
 cpue <- SameColNames(df.ls)  %>%
   dplyr::rename(SRVY = survey) %>% 
   dplyr::filter(year <= maxyr) %>% 
-  dplyr::mutate(fish = (species_code <= 31550)) %>%
-  dplyr::mutate(invert = (species_code >= 40001))
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert"))
 
 cpue_maxyr <- cpue %>% 
   dplyr::filter(year == maxyr)
@@ -744,8 +629,9 @@ spp_info <-
   dplyr::left_join(x = species0, 
                    y = species_classification0, 
                    by = "species_code") %>% 
-  dplyr::mutate(fish = (species_code <= 31550)) %>%
-  dplyr::mutate(invert = (species_code >= 40001))
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert"))
 
 spp_info$used_in_counts <- 
                   ifelse(spp_info$species_code %in% #10:99988, 
@@ -762,6 +648,37 @@ spp_info$used_in_counts <-
 spp_info_maxyr <- spp_info %>% 
   dplyr::filter(species_code %in% unique(catch_haul_cruises_maxyr$species_code))
 
+# *** report_spp ---------------------------------------------------------------
+
+report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/report_spp.csv"), 
+                              skip = 1) %>% 
+  dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", x = report_title), "datar_", "community_"))))
+
+names(report_spp)[
+  grepl(pattern = ifelse(grepl(pattern = "Highlights", 
+                               x = report_title), "community_", "datar_"), 
+        x = names(report_spp))] <- 
+  gsub(pattern = ifelse(grepl(pattern = "Highlights", 
+                              x = report_title), "community_", "datar_"), 
+       replacement = "", 
+       x = names(report_spp)[
+         grepl(pattern = ifelse(grepl(pattern = "Highlights", 
+                                      x = report_title), "community_", "datar_"), 
+               x = names(report_spp))])
+
+report_spp <- report_spp %>% 
+  dplyr::filter(!is.na(order)) %>% 
+  dplyr::arrange((order)) %>% 
+  dplyr::mutate(common_name = tolower(common_name)) %>% 
+  dplyr::left_join(x = ., 
+                   y = spp_info_maxyr %>% 
+                     dplyr::mutate(common_name1 = common_name) %>% 
+                     dplyr::mutate(common_name = tolower(common_name)) %>% 
+                     dplyr::select(-species_code) %>% 
+                     unique(), 
+                   by = "common_name") %>% 
+  dplyr::select(-common_name) %>% 
+  dplyr::rename(common_name = common_name1)
 
 # *** length_maxyr ---------------------------------------------------------------
 

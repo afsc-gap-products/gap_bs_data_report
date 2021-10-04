@@ -481,10 +481,11 @@ plot_idw_xbyx <- function(
   key.title, 
   grid,
   extrap.box, 
-  set.breaks = seq(from = -2, to = 20, by = 2),
+  set.breaks = "jenks", #seq(from = -2, to = 20, by = 2),
   workfaster = FALSE, 
   nrow = 2, 
-  SRVY){
+  SRVY, 
+  col_viridis = "viridis"){
   
   # Select data and make plot
   for (ii in ifelse(workfaster,2,length(yrs)):1) {
@@ -508,17 +509,20 @@ plot_idw_xbyx <- function(
       CPUE_KGHA = as.numeric(unlist(temp[,var])),
       use.survey.bathymetry = FALSE,
       region = region, 
+      out.crs = as.character(crs(reg_dat$bathymetry)),
       extrap.box = extrap.box, 
       set.breaks = set.breaks,
       grid.cell = c(ifelse(workfaster, 0.1, 0.02), 
                     ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
       key.title = key.title)
     
+    temp0 <- temp0[grid][[1]]  
+    
     if (ii == ifelse(workfaster,2,length(yrs))) {
-      stars_list <-  temp0[grid][[1]]
-      names(stars_list)[names(stars_list) == "var1.pred"] <- paste0("y", yrs[ii])    
+      stars_list <- temp0
+      names(stars_list)[names(stars_list) == "var1.pred"] <- paste0("y", yrs[ii])  
     } else {
-      stars_list$temp <- temp0[grid][[1]]$var1.pred
+      stars_list$temp <- temp0$var1.pred
       names(stars_list)[names(stars_list) == "temp"] <- paste0("y", yrs[ii])   
     }
   }
@@ -536,10 +540,11 @@ plot_idw_xbyx <- function(
     geom_stars(data = stars_list) +
     facet_wrap( ~ new_dim, nrow = nrow) +
     coord_equal() + 
-    scale_fill_viridis_c(#option = "plasma", 
+    scale_fill_viridis_c(option = col_viridis, 
+                         limits = range(set.breaks),
       na.value = "transparent", 
-      breaks = seq(from = -2, to = 20, by = 2),
-      labels = seq(from = -2, to = 20, by = 2) ) + 
+      breaks = set.breaks,
+      labels = set.breaks) + 
     guides(fill=guide_colourbar(title=key.title, 
                                 title.position="top", 
                                 title.hjust = 0.5)) +

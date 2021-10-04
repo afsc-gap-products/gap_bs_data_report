@@ -1,36 +1,41 @@
 ---
-output:
+  output:
   word_document:
-    pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: styles_reference.docx
-    df_print: kable
+  pandoc_args: ["--metadata-file=header.yaml"]
+reference_docx: styles_reference.docx
+df_print: kable
 csl: "../cite/citestyle.csl"
 bibliography: "../cite/bibliography.bib"
 ---
-
-```{r setup, include=FALSE}
+  
+  ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
 ```{r}
-spp_sci <- report_spp$report_name_scientific[jj]
-spp_code <- eval(expr = parse(text = report_spp$species_code[jj]))
-spp_common<-report_spp$common_name[jj]
-spp_file <- report_spp$file_name[jj]
+spp_sci <- report_spp$report_name_scientific[i]
+spp_code <- report_spp$species_code[i]
+spp_common<-report_spp$common_name[i]
 ```
+
+
 ### `r spp_common` (*`r spp_sci`*)
 
 ```{r}
+
+
 # find basic info about species
-haul_maxyr_spp<-catch_haul_cruises_maxyr %>% 
+haul_maxyr_spp<-haul_maxyr %>% 
   dplyr::filter(species_code %in% spp_code)
 
-haul_compareyr_spp<-catch_haul_cruises_compareyr %>% 
-  dplyr::filter(species_code %in% spp_code)
+haul_maxyr_1_spp <- haul %>% 
+  dplyr::filter(species_code %in% spp_code &
+                  year %in% (maxyr-1))
 
-# haul_maxyr_1_spp <- haul %>% 
-#   dplyr::filter(species_code %in% spp_code &
-#                   year %in% (maxyr-1))
+# length_maxyr
+# length_maxyr <- dat_length_maxyr %>% 
+# dplyr::filter(species_code %in% spp_code)
+
 ```
 
 `r  ifelse(SRVY %in% "NEBS", "## **EBS**", "") `
@@ -52,30 +57,30 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   #                  " shelf bottom trawl survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
-# Select data and make plot
+  # Select data and make plot
   table_raw<-species_table(table_list, haul_maxyr_spp, spp_common, SURVEY, SRVY = SRVY) 
   table_print <- table_raw %>%
-          format_cells(rows = 0, # make column names
-                       cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
-                       fonttype = "bold") %>% # bold
-          knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
+    format_cells(rows = 0, # make column names
+                 cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
+                 fonttype = "bold") %>% # bold
+    knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
-#   res <- knitr::knit_child(
-#     text = knitr::knit_expand(
-#       file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-#     quiet = TRUE
-#   )
-#   
-# list_tables[length(list_tables)]$res <- res <- paste0("
-# ###### 
-# 
-# ",res,"
-# 
-# ")
-#   
-#   assign(value = res, x = paste0(nickname))
+  #   res <- knitr::knit_child(
+  #     text = knitr::knit_expand(
+  #       file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  #     quiet = TRUE
+  #   )
+  #   
+  # list_tables[length(list_tables)]$res <- res <- paste0("
+  # ###### 
+  # 
+  # ",res,"
+  # 
+  # ")
+  #   
+  #   assign(value = res, x = paste0(nickname))
 }
 ```
 
@@ -84,11 +89,11 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 `r  ifelse(SRVY %in% "NEBS", "## **NBS**", "") `
 
-  
+
 `r ifelse(SRVY %in% "NEBS", species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "NBS"), dat_maxyr_1 %>% dplyr::filter(year %in% (maxyr-1) & SRVY %in% "NBS"), basiccontenttable_print_nbs, haul_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), length_maxyr %>% dplyr::filter(SRVY %in% "NBS"), length_type, spp_common, spp_code, SRVY = "NBS", cnt_figures), "") `  
 
 `r  ifelse(SRVY %in% "NEBS", "## **EBS**", "") `
-  
+
 ```{r}
 
 if (SRVY %in% "NEBS" && sum(haul_maxyr_spp$SRVY %in% "EBS")>0) {
@@ -96,12 +101,12 @@ if (SRVY %in% "NEBS" && sum(haul_maxyr_spp$SRVY %in% "EBS")>0) {
   table_list<-species_table(table_list, 
                             haul_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), 
                             spp_common, SURVEY, SRVY = "EBS") 
-    # basiccontenttable_print_ebs <- table_list[[length(table_list)]]$print
-    table_list[[length(table_list)]]$print  %>%
-          format_cells(rows = 0, # make column names
-                       cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
-                       fonttype = "bold") %>% # bold
-          knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
+  # basiccontenttable_print_ebs <- table_list[[length(table_list)]]$print
+  table_list[[length(table_list)]]$print  %>%
+    format_cells(rows = 0, # make column names
+                 cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
+                 fonttype = "bold") %>% # bold
+    knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
 }
 ```
 
@@ -214,30 +219,30 @@ cpue_spp <- cpue %>%
 # }
 
 idwplot <- akgfmaps::make_idw_map(COMMON_NAME = cpue_spp$species_name, 
-                         LATITUDE = cpue_spp$latitude, 
-                         LONGITUDE = cpue_spp$longitude, 
-                         CPUE_KGHA = cpue_spp$cpue_kgha, 
-                         region = map.area, 
-                         key.title = spp_common)
+                                  LATITUDE = cpue_spp$latitude, 
+                                  LONGITUDE = cpue_spp$longitude, 
+                                  CPUE_KGHA = cpue_spp$cpue_kgha, 
+                                  region = map.area, 
+                                  key.title = spp_common)
 idwplot <- idwplot %>% change_fill_color(new.scheme = "grey", show.plot = FALSE)
 
 plot0 <- idwplot$plot + 
   theme(#legend.position = "right", 
-        legend.text = element_text(size = 8), 
-        legend.background = element_blank(),
-        legend.title = element_text(size = 8), 
-        plot.margin = unit(c(0,0,0,0), "cm")) + 
+    legend.text = element_text(size = 8), 
+    legend.background = element_blank(),
+    legend.title = element_text(size = 8), 
+    plot.margin = unit(c(0,0,0,0), "cm")) + 
   geom_shadowtext(data = subset(placenames, type %in% c("bathymetry", "islands")),
-    aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 3, group = 99) + 
+                  aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 3, group = 99) + 
   geom_shadowtext(data = subset(placenames, type %in% c("convention line", "peninsula")),
-    aes(x = x, y = y, label = lab, angle = 43), bg.color = "white", color = "black", size = 3, group = 99) + 
-      geom_shadowtext(data = subset(placenames, type %in% c("mainland")),
-      aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 8, group = 99)  
+                  aes(x = x, y = y, label = lab, angle = 43), bg.color = "white", color = "black", size = 3, group = 99) + 
+  geom_shadowtext(data = subset(placenames, type %in% c("mainland")),
+                  aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 8, group = 99)  
 
 if (!(map.area %in% c("nbs", "bs.north"))) {
   plot <- plot + 
-      geom_shadowtext(data = subset(placenames, type %in% c("mainland")),
-      aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 8, group = 99)  
+    geom_shadowtext(data = subset(placenames, type %in% c("mainland")),
+                    aes(x = x, y = y, label = lab), bg.color = "white", color = "black", size = 8, group = 99)  
 }
 
 
@@ -245,7 +250,7 @@ if (!(map.area %in% c("nbs", "bs.north"))) {
 
 
 
- ## fig_idw_bottemp_longterm_mean_ (above and below)
+## fig_idw_bottemp_longterm_mean_ (above and below)
 
 > need to figure out how to plot bs.all and bs.south on same stars_list facet_wrap
 
@@ -272,8 +277,8 @@ for (i in 1:2) { # two cases, above and below
   alttext <- paste0(header)
   
   table_raw <- haul %>%
-      dplyr::filter(!is.na(gear_temperature)) %>% 
-      dplyr::arrange(-year) 
+    dplyr::filter(!is.na(gear_temperature)) %>% 
+    dplyr::arrange(-year) 
   
   figure <- plot_idw_xbyx(
     yrs = temps_wt_avg_yr_abovebelow_plots[,case], 
@@ -287,7 +292,7 @@ for (i in 1:2) { # two cases, above and below
     key.title = "Bottom Temperature (°C)", 
     workfaster = workfaster, 
     SRVY = SRVY)
-
+  
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
   res <- knitr::knit_child(
@@ -297,7 +302,7 @@ for (i in 1:2) { # two cases, above and below
     quiet = TRUE
   )
   
-list_figures[length(list_figures)]$res <- res <- paste0("
+  list_figures[length(list_figures)]$res <- res <- paste0("
 ###### 
 
 ",res,"

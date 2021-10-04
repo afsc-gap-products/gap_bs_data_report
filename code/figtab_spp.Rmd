@@ -1,0 +1,94 @@
+---
+output:
+  word_document:
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "../cite/bibliography.bib"
+---
+
+```{r}
+spp_sci <- report_spp$report_name_scientific[jj]
+spp_code <- eval(expr = parse(text = report_spp$species_code[jj]))
+spp_common <- report_spp$common_name[jj]
+spp_file <- report_spp$file_name[jj]
+```
+
+## fig_idw_bottemp_[spp]_[above and below]
+
+> thoughts on set.breaks rounding?
+> need to figure out NBS issue
+
+```{r fig_idw_bottemp_}
+nickname0 <- paste0("fig_idw_bottemp_", spp_file, "_")
+
+  table_raw0 <- cpue %>%
+      dplyr::filter(!is.na(cpue_kgha)) %>% 
+      dplyr::arrange(-year) %>% 
+    dplyr::filter(common_name %in% spp_common & 
+                    year %in% unlist(temps_wt_avg_yr_abovebelow_plots))
+  
+  # set.breaks <- quantile(table_raw0$cpue_kgha, probs = c(0, .25, .5, .75, .95))
+  # set.breaks <- round(set.breaks, digits = ifelse(max(set.breaks)>100, 0, 1))
+    set.breaks <- plyr::round_any(x = quantile(table_raw0$cpue_kgha, probs = c(0, .95)), 
+                                  accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
+                                  f = ceiling)
+    set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
+
+
+for (i in 1:2) { # two cases, above and below
+  subobj <- TRUE
+  newobj <- ifelse(i==1, TRUE, FALSE)
+  TF <- ifelse(i==1, FALSE, TRUE)
+  case <- ifelse(i==1, "below", "above")
+  
+  header <- paste0("Contour maps of ",spp_common," (*",spp_sci,
+                   "*) distribution and relative abundance (kg/ha) from the ",
+                   NMFSReports::text_list(sort(temps_wt_avg_yr_abovebelow_plots[,case])),
+                   " Bering Sea shelf bottom trawl surveys, which were years when the survey mean bottom temperature was ",
+                   case,
+                   " the long-term stratum area-weighted mean.")
+  nickname <- paste0(nickname0, case)
+  alttext <- paste0(header)
+  
+  table_raw <- table_raw0 %>% 
+    dplyr::filter(year %in% temps_wt_avg_yr_abovebelow_plots[,case])
+  
+  figure <- plot_idw_xbyx(
+    yrs = temps_wt_avg_yr_abovebelow_plots[,case],
+    dat = table_raw,
+    cruises = cruises,
+    lat = "latitude",
+    lon = "longitude",
+    var = "cpue_kgha",
+    grid = "continuous.grid",
+    extrap.box = extrap.box,
+    key.title = "Relative Abundance (kg/ha)",
+    workfaster = workfaster,
+    SRVY = SRVY, 
+    set.breaks = set.breaks)
+  
+  # figure <- plot(1,1)
+
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_figures[length(list_figures)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  
+  assign(value = res, x = nickname)
+}
+
+```
+

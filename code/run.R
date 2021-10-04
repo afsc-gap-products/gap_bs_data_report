@@ -10,6 +10,7 @@
 # START ------------------------------------------------------------------------
 
 # *** REPORT KNOWNS ------------------------------------------------------------
+report_title <- paste0('Data Report: continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
 
 workfaster <- TRUE # an attempt to satisfy limited patience
 
@@ -66,8 +67,6 @@ source('./code/functions.R')
 
 source('./code/data.R')
 
-
-
 # *** REPORT TITLE -------------------------------------------------------------
 report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY),
                        ' continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
@@ -78,22 +77,7 @@ report_yr <- maxyr
 # renv::init()
 # renv::snapshot()
 
-# MAKE REPORT ------------------------------------------------------------------
-
-# *** HOUSEKEEPING -------------------------------------------------------------
-
-# Keep chapter content in a proper order
-cnt_chapt <- "000"
-# Automatically name objects with consecutive numbers
-cnt_figures <- 0 #  e.g., Figure 1
-cnt_tables <- 0 # e.g., Table 1
-cnt_equations <- 0 # e.g., Equation 1
-# Save object content
-list_equations <- list()
-list_tables <- list()
-list_figures <- list()
-
-# *** RUN EACH REPORT SECTION --------------------------------------------------
+# RUN EACH REPORT SECTION ------------------------------------------------------
 
 # TOLEDO
 # create file that checks for errors in RMDs
@@ -107,7 +91,7 @@ if (FALSE) {
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_figtab_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
-                    output_dir = dir_out_figures,
+                    output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
   # SAVE OTHER OUTPUTS -----------------------------------------------------------
@@ -166,30 +150,31 @@ rmarkdown::render(paste0(dir_code, "/05_results.Rmd"),
 
 
 # *** *** 06 - Results_spp ------------------------
-cnt.chapt<-auto_counter(cnt.chapt)
-cnt.chapt.content<-"001"
-filename0<-paste0(cnt.chapt, "_Results_")
-rmarkdown::render(paste0(dir.scripts, "/6_results.rmd"),
-                  output_dir = dir.chapters,
-                  output_file = paste0(filename0, cnt.chapt.content, "_Text.docx"))
+# cnt.chapt<-auto_counter(cnt.chapt)
+# cnt.chapt.content<-"001"
+# filename0<-paste0(cnt.chapt, "_Results_")
+# rmarkdown::render(paste0(dir.scripts, "/6_results.rmd"),
+#                   output_dir = dir.chapters,
+#                   output_file = paste0(filename0, cnt.chapt.content, "_Text.docx"))
 
 
-spplist<-(SpeciesList[SRVY][[1]])
 
-for (spp0 in 1:length(spplist)) {
+for (jj in 1:nrow(report_spp)) {
+
+  # filename0<-paste0(cnt.chapt, "_Results_Ref_")
+  # rmarkdown::render(paste0(dir.scripts, "/06_results_spp.Rmd"),
+  #                   output_dir = dir.chapters,
+  #                   output_file = paste0(filename0, cnt.chapt.content, "_Text_",
+  #                                        gsub(x = report_spp$common_name[i], 
+  #                                             pattern = " ", 
+  #                                             replacement = ""),".docx"))
   
-  spp_common<-names(spplist)[spp0]
-  # spp.tsn<-spplist[spp0][[1]]
-  # spp.sci0<-classification(spp.tsn, "itis")[[1]]
-  # spp.sci<-spp.sci0$name[spp.sci0$rank %in% "species"]
-  spp_sci <- spp_info$report_name_scientific[spp_info$species_name]
-  spp_code <- spp_info$report_name_scientific[spp_info$species_code]
   
   filename0<-paste0(cnt.chapt, "_Results_")
   rmarkdown::render(paste0(dir.scripts, "/06_results_spp.Rmd"),
                     output_dir = dir.chapters,
                     output_file = paste0(filename0, cnt.chapt.content, "_Text_",
-                                         gsub(x = spp.common, pattern = " ", replacement = ""),".docx"))
+                                         report_spp$file_name[jj],".docx"))
   
 }
 
