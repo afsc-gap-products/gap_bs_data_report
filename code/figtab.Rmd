@@ -173,8 +173,8 @@ survey.grid0 <-
                                         y = vessel_info) %>% 
                      dplyr::select(stationid, vessel_name, vess_shape) %>%
                      dplyr::mutate(vess_col = dplyr::case_when(
-                       (vess_shape == vessel_info$vess_shape[1]) ~ nmfspalette::nmfs_cols("darkgreen"), 
-                       (vess_shape == vessel_info$vess_shape[2]) ~ nmfspalette::nmfs_cols("darkblue"))) %>% 
+                       (vess_shape == vessel_info$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"), 
+                       (vess_shape == vessel_info$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray "))) %>% 
                      dplyr::rename(STATIONID = stationid), 
                    by = ("STATIONID"))
 
@@ -237,10 +237,8 @@ figure <- figure +
           show.legend = FALSE, 
           na.rm = TRUE) +
   stat_sf_coordinates(data = vess,
-                      # geom_sf_text(data = vess,
                       mapping = aes(color = vess_col, 
                                     shape = vess_shape),
-                      # label = vess_shape),
                       size = 1.5, 
                       show.legend = TRUE, 
                       na.rm = TRUE) +
@@ -256,8 +254,8 @@ figure <- figure +
   
   scale_color_manual(
     name = " ", #"Survey Region",
-    values = c(alpha(colour = c(survey_reg_col, 
-                                unique(vess$vess_col)), 0.7)),
+    values = c(alpha(colour = c(survey_reg_col), 0.7), 
+                                unique(vess$vess_col)),
     breaks = c(rev(unique(reg_dat$survey.area$SURVEY)), 
                unique(vess$vess_col)), 
     labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 

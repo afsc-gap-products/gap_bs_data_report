@@ -378,7 +378,7 @@ biomass_maxyr<-biomass %>%
   dplyr::filter(year == maxyr)
 
 biomass_compareyr<-biomass %>% 
-  dplyr::filter(year == compareyr)
+  dplyr::filter(year == compareyr[1])
 
 # *** Load CPUE Design Based Estimates ----------------------------------------------
 
@@ -414,7 +414,7 @@ cpue_maxyr <- cpue %>%
   dplyr::filter(year == maxyr)
 
 cpue_compareyr<- cpue %>% 
-  dplyr::filter(year == compareyr)
+  dplyr::filter(year == compareyr[1])
 
 # Wrangle Data -----------------------------------------------------------------
 
@@ -530,7 +530,7 @@ cruises_maxyr <- cruises %>%
 
 cruises_compareyr <- cruises %>%
   dplyr::filter(
-    year == compareyr & 
+    year == compareyr[1] & 
       survey_definition_id %in% SRVY00)
 
 
@@ -562,14 +562,15 @@ haul_maxyr <- haul %>%
   dplyr::filter(year == maxyr)
 
 haul_compareyr <- haul %>% 
-  dplyr::filter(year == compareyr)
+  dplyr::filter(year == compareyr[1])
 
 # Crab retows?
 crab_resample <- FALSE
 if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
   crab_resample <- TRUE
-  haul_maxyr_crabretow <- temp %>%
-    dplyr::filter(haul_type == 17)# crab retow == 17
+  haul_maxyr_crabretow <- haul0 %>%
+    dplyr::filter(cruise %in% c(201701, 201702)  &
+                    haul_type == 17)# crab retow == 17
 }
 
 # *** stratum_info (survey area) (reprise) -------------------------------------
@@ -683,7 +684,7 @@ temp <- function(haul_cruises_vess_){
     dplyr::select(- cruisejoin) %>%
     dplyr::mutate(stndth = NMFSReports::stndth(yrofsurvey))  %>% 
     dplyr::arrange(SRVY) %>% 
-    dplyr::mutate(compareyr = compareyr) %>%
+    dplyr::mutate(compareyr = compareyr[1]) %>%
     # c(compareyr_ebs, if(exists("compareyr_nbs")) {compareyr_nbs} )) %>% 
     dplyr::left_join(
       x = ., 
