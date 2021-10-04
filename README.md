@@ -1,4 +1,6 @@
-# AFSC Survey Data Reports
+# AFSC RACE GAP Bering Sea Survey Data Report
+
+Previously named `AFSCDataReport`
 
 Here are the basic files you need to create reproducible repeatable (e.g., annual) reports in R Markdown for AFSC Surveys! 
 
