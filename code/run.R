@@ -10,9 +10,11 @@
 # START ------------------------------------------------------------------------
 
 # *** REPORT KNOWNS ------------------------------------------------------------
-report_title <- paste0('Data Report: continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
+report_title <- "Data Report" # Fake until I get a better idea of how to automaet something down the line
 
 workfaster <- TRUE # an attempt to satisfy limited patience
+refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
+googledrive_dl <- FALSE # redownload google drive tables and docs?
 
 # maxyr <- 2016 # or the year of the report, for example
 # compareyr <- 2015
@@ -48,6 +50,7 @@ ref_compareyr_nbs <- "@RN909"
 # *** OUTPUT TYPE --------------------------------------------------------------
 #Is this for InDesign?
 indesign_flowin <- FALSE
+usePNGPDF <- "png"
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 
@@ -55,7 +58,7 @@ googledrive::drive_deauth()
 googledrive::drive_auth()
 1
 dir_googledrive <- paste0("content_from_googledrive/", maxyr, " - ", SRVY, "/")
-googledrive_dl <- FALSE
+id_googledrive <- (googledrive::drive_get(dir_googledrive)$id)
 
 # *** SOURCE SUPPORT SCRIPTS ---------------------------------------------------
 
@@ -73,9 +76,6 @@ report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY)
 report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
 report_yr <- maxyr 
 
-# *** RENV: SAVE PACKAGES USED TO CREATE THIS REPORT ---------------------------
-# renv::init()
-# renv::snapshot()
 
 # RUN EACH REPORT SECTION ------------------------------------------------------
 
@@ -150,32 +150,13 @@ rmarkdown::render(paste0(dir_code, "/05_results.Rmd"),
 
 
 # *** *** 06 - Results_spp ------------------------
-# cnt.chapt<-auto_counter(cnt.chapt)
-# cnt.chapt.content<-"001"
-# filename0<-paste0(cnt.chapt, "_Results_")
-# rmarkdown::render(paste0(dir.scripts, "/6_results.rmd"),
-#                   output_dir = dir.chapters,
-#                   output_file = paste0(filename0, cnt.chapt.content, "_Text.docx"))
-
-
-
 for (jj in 1:nrow(report_spp)) {
-
-  # filename0<-paste0(cnt.chapt, "_Results_Ref_")
-  # rmarkdown::render(paste0(dir.scripts, "/06_results_spp.Rmd"),
-  #                   output_dir = dir.chapters,
-  #                   output_file = paste0(filename0, cnt.chapt.content, "_Text_",
-  #                                        gsub(x = report_spp$common_name[i], 
-  #                                             pattern = " ", 
-  #                                             replacement = ""),".docx"))
   
-  
-  filename0<-paste0(cnt.chapt, "_Results_")
+  filename0<-paste0(cnt_chapt, "_Results_")
   rmarkdown::render(paste0(dir.scripts, "/06_results_spp.Rmd"),
-                    output_dir = dir.chapters,
-                    output_file = paste0(filename0, cnt.chapt.content, "_Text_",
+                    output_dir = dir_out_chapters,
+                    output_file = paste0(filename0, cnt_chapt_content, "_Text_",
                                          report_spp$file_name[jj],".docx"))
-  
 }
 
 # cnt_chapt<-auto_counter(cnt_chapt)

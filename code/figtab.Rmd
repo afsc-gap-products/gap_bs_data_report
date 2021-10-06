@@ -23,12 +23,7 @@ No figures or tables.
 
 ```{r fig_sample_grid}
 header <- paste0("Sampling grid and station identifiers for the ", maxyr, " eastern and northern Bering Sea continental shelf bottom trawl surveys.")
-footnote<- NA
 nickname <- "fig_sample_grid"
-alttext <- paste0(header)
-width = 6
-height = 6
-usePNGPDF = "png"
 
 # Select data and make plot
 
@@ -159,7 +154,6 @@ list_figures[length(list_figures)][[1]]$res <- res <- paste0("
 # header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)," continental shelf bottom trawl surveys.")
 nickname <- "fig_sampled_survey_stations"
 header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)," continental shelf bottom trawl surveys. The map also depicts the stations sampled by each survey vessel and where, if any, Norton Sound crab resampling was done.")
-usePNGPDF = "png"
 
 # Select data and make plot
 survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
@@ -172,7 +166,7 @@ survey.grid0 <-
                      dplyr::select(stationid, vessel_name, vess_shape) %>%
                      dplyr::mutate(vess_col = dplyr::case_when(
                        (vess_shape == vessel_info$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"), 
-                       (vess_shape == vessel_info$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray "))) %>% 
+                       (vess_shape == vessel_info$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray"))) %>% 
                      dplyr::rename(STATIONID = stationid), 
                    by = ("STATIONID"))
 
@@ -249,7 +243,6 @@ figure <- figure +
           fill = NA,
           size = 2,
           show.legend = TRUE) +
-  
   scale_color_manual(
     name = " ", #"Survey Region",
     values = c(alpha(colour = c(survey_reg_col), 0.7), 
@@ -375,12 +368,8 @@ header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used 
 footnote<- NA
 nickname <- "fig_trawl_gear"
 alttext <- paste0(header)
-width = 6
-height = 6
-usePNGPDF = "png"
 
 # Select data and make plot
-
 figure <- 
   cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, "EASTERN83-112.png")) )
@@ -627,7 +616,7 @@ nickname0 <- "tab_special_projects"
 footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
 newobj <- TRUE
 
-temp <- readr::read_csv(paste0(dir_out_rawdata, "/", nickname0, ".csv"))
+temp <- readr::read_csv(paste0(dir_out_rawdata, "/special_projects.csv"))
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
@@ -685,6 +674,8 @@ list_tables[length(list_tables)][[1]]$res <- res <- paste0("
 
 ## fig_temp_weight_mean
 
+> no longer useing the stratum mean weighted tempertaures - need to also change header
+
 ```{r fig_temp_weight_mean}
 
 # if () {
@@ -696,12 +687,7 @@ temp0 <- haul_cruises_maxyr %>%
 
 header <- paste0("Time series of mean survey surface and near-bottom temperatures in the ",temp0$SRVY_long," (",temp0$SRVY,") weighted by stratum based on expendable bathythermograph casts or digital dataloggers attached to the headrope during the eastern Bering Sea bottom trawl surveys from ", temp0$SRVY_start," to ", maxyr, ". The 1982-1987 means (triangles) are based on Strata 10-62 (see Figure ", crossref(list_obj = list_figures, nickname = 'fig_sampled_survey_stations', sublist = 'number'),") and the 1988-", maxyr, " means also include Strata 80 and 92. The dashed lines represent the grand stratum-area weighted mean water temperatures for ", temp0$SRVY_start,"-", maxyr, ".")
 
-footnote<- NA
 nickname <- "fig_temp_weight_mean"
-alttext <- paste0(header)
-width = 6
-height = 6
-usePNGPDF = "png"
 
 # Select data and make plot
 table_raw <- temp <- temps_wt_avg_yr %>% 
@@ -773,9 +759,6 @@ header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
 footnote<- NA
 nickname <- "fig_idw_surftemp_maxyr"
 alttext <- paste0(header)
-width = 6
-height = 6
-usePNGPDF = "png"
 
 # Select data and make plot
 table_raw <- temp <- akgfmaps::make_idw_map(
@@ -888,9 +871,6 @@ list_figures[length(list_figures)][[1]]$res <- res <- paste0("
 nickname0 <- "fig_idw_bottemp_longterm_mean_"
 
 for (i in 1:2) { # two cases, above and below
-  width = 6
-  height = 6
-  usePNGPDF = "png"  
   
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
@@ -902,10 +882,8 @@ for (i in 1:2) { # two cases, above and below
                    " Bering Sea shelf bottom trawl surveys, years when the survey mean bottom temperature was ",
                    case,
                    " the long-term stratum area-weighted mean.")
-  footnote<- NA
   nickname <- paste0(nickname0, case)
-  alttext <- paste0(header)
-  
+
   table_raw <- haul %>%
       dplyr::filter(!is.na(gear_temperature)) %>% 
       dplyr::arrange(-year) 
@@ -955,8 +933,6 @@ footnote <- "Areas were summarized from areas in inverse distance weighted raste
 nickname <- "fig_cold_pool_area"
 alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
 width = 9
-height = 6
-usePNGPDF = "png"
 
 temp <- data.frame()
 
@@ -1565,7 +1541,7 @@ for (jj in 1:nrow(report_spp)) {
   filename00<-paste0(cnt_chapt, "_figtab_spp_")
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = output_file = paste0(filename0, cnt.chapt.content, "_Text_",
+                    output_file = paste0(filename00, cnt_chapt_content, "_Text_",
                                          report_spp$file_name[jj],".docx"))
 }
 ```

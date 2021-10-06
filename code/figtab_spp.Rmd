@@ -31,7 +31,8 @@ nickname0 <- paste0("fig_idw_bottemp_", spp_file, "_")
   
   # set.breaks <- quantile(table_raw0$cpue_kgha, probs = c(0, .25, .5, .75, .95))
   # set.breaks <- round(set.breaks, digits = ifelse(max(set.breaks)>100, 0, 1))
-    set.breaks <- plyr::round_any(x = quantile(table_raw0$cpue_kgha, probs = c(0, .95)), 
+  set.breaks <- quantile(table_raw0$cpue_kgha, probs = c(0, .95))
+    set.breaks <- plyr::round_any(x = set.breaks, 
                                   accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
                                   f = ceiling)
     set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
@@ -90,3 +91,40 @@ list_figures[length(list_figures)][[1]]$res <- res <- paste0("
 
 ```
 
+
+## tab_cpue_biomass_[spp]
+
+```{r tab_majortaxa_pchange}
+nickname <- paste0("tab_cpue_biomass_", spp_file) 
+header <- "Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for walleye pollock (Gadus chalcogrammus) by stratum for the 2017 eastern and northern Bering Sea bottom trawl surveys. Differences in sums of estimates and totals are due to rounding."
+
+table_raw <- table_print <- data.frame(
+  x = 1, 
+  y = 1, 
+  label = "This is a placeholder")
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+assign(value = res, x = paste0(nickname))
+
+list_tables[length(list_tables)]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```

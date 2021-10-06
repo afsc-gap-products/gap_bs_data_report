@@ -177,7 +177,7 @@ if (googledrive_dl) {
     googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"), 
                                 type = "csv", 
                                 overwrite = TRUE, 
-                                path = paste0(dir_out_rawdata, "/report_spp"))
+                                path = paste0(dir_out_rawdata, "/species_local_names"))
 
   # Spreadsheets
   a <- googledrive::drive_ls(path = id_googledrive, type = "spreadsheet")
@@ -652,7 +652,7 @@ spp_info_maxyr <- spp_info %>%
 
 # *** report_spp ---------------------------------------------------------------
 
-report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/report_spp.csv"), 
+report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species_local_names.csv"), 
                               skip = 1) %>% 
   dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", x = report_title), "datar_", "community_"))))
 
@@ -850,10 +850,8 @@ temps_wt_avg_yr$nthyr <- nthyr
 temps_wt_avg_yr <- temps_wt_avg_yr %>% 
   dplyr::arrange(desc(year))
 
-
 temps_wt_avg_yr_longterm <- temps_wt_avg_yr %>% 
   dplyr::filter(year == maxyr)
-
 
 # which years should we look at?
 temps_wt_avg_yr_abovebelow_plots <- 
@@ -874,105 +872,4 @@ temps_wt_avg_yr_abovebelow_plots <-
   dplyr::select(year) %>% 
   head(8) %>%
   unlist())
-
-
-# *** Cold Pool ----------------------------------------------------------------
-# Load libraries ----
-#remotes::install_github("sean-rohan-noaa/akgfmaps", R_REMOTES_NO_ERRORS_FROM_WARNINGS="true", ref = "dev")
-
-# library(akgfmaps) # GitHub: sean-rohan-NOAA/akgfmaps
-# library(getPass)
-# library(ggthemes)
-# library(here)
-# library(lubridate)
-# library(metR)
-# library(raster)
-# library(RODBC)
-# library(stringr)
-# library(tidyverse)
-# library(TLUtilities) # GitHub: sean-rohan-NOAA/TLUtilities
-# library(viridis)
-# 
-# # Get gear temperature data from all hauls
-# temperature_all_hauls_df <- haul0 %>% 
-#   dplyr::filter(region == 'BS' &
-#                 (stratum %in% c(10,20,31,32,41,42,43,50,61,62,82,90)) & 
-#                 cruise > 198200 &
-#                 bottom_depth < 201 &
-#                 (haul_type %in% c(3,13))) %>%
-#   dplyr::mutate(latitude = (start_latitude + end_latitude)/2,
-#                 longitude = (start_longitude + end_longitude)/2,
-#                 year = floor(cruise/100), 
-#                 SRVY = dplyr::case_when(
-#                   survey_definition_id %in% 143 ~ "NBS",
-#                   survey_definition_id %in% 98 ~ "EBS" )) %>%
-#   dplyr::select(gear_temperature,
-#          stationid,
-#          stratum,
-#          cruise,
-#          start_time, 
-#          haul_type, 
-#          year, 
-#          latitude, 
-#          longitude) %>% 
-#   dplyr::filter(!is.na(gear_temperature), !is.na(latitude), !is.na(longitude))
-# 
-# 
-# print("Writing temperature data for all hauls to csv")
-# ifelse(!dir.exists(file.path(here::here("data"))), dir.create(file.path(here::here("data"))), FALSE)
-# write.csv(temperature_all_hauls_df,
-#           file = here::here("data", paste0(Sys.Date(), "_all_temperature_data.csv")),
-#           row.names = FALSE)
-# 
-# # Index hauls
-# temperature_df <- temperature_all_hauls_df %>% 
-#   dplyr::filter((haul_type %in% c(3,13)))
-# 
-# print("Writing temperature data for index hauls to csv")
-# write.csv(temperature_df,
-#           file = here::here("data", paste0(Sys.Date(), "_index_hauls_temperature_data.csv")),
-#           row.names = FALSE)
-
-
-
-# Footnotes ------------------------
-
-# Footnotes.list<-list("ExOfStandardFt" = "Wow, this project is so cool!")
-
-# 
-# 
-# minyr <- min(dat$YEAR)
-# dat<-dat[dat$YEAR %in% minyr:maxyr, ]
-# dat$COMMON_NAME<-dat$COMMON
-# dat$STATIONID<-dat$STATION
-# 
-# # Time
-# dates<-strsplit(x = dat$DATETIME, split = " ")
-# dat$dates<-sapply(dates, "[", 1 )
-# 
-# dat$DAY<-as.numeric(substr(x = as.character(dat$dates), 
-#                            start = 4, stop = 5))
-# dat$MONTH<-as.numeric(substr(x = as.character(dat$dates), 
-#                              start = 1, stop = 2))
-# 
-# 
-# months.words<-c("January", "February",	"March", "April", 
-#                 "May", "June", "July", "August", 
-#                 "September", "October", "November", "December")
-# 
-# 
-# 
-# load(file = "./data/specieslistinTSN.rdata")
-# reftable<-spp.cat2$reftable
-# reftable<-dplyr::rename(reftable, 
-#                         "SID" = "SID_orig")
-# dat<-left_join(dat, reftable, "SID")
-# 
-# 
-# dat$PERFORMANCE<-0 # TOLEDO
-# dat$HAULTYPE<-3 # TOLEDO
-# 
-# dat<-dat[dat$PERFORMANCE == 0 & dat$HAULTYPE == 3, ]
-# spp.tsn.list<-spp.cat2$tsn.list
-# dat.maxyr<-dat[dat$YEAR %in% maxyr,]
 

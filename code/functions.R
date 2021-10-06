@@ -48,8 +48,12 @@ PKG <- c(
   "stringr",
   "readtext",
   
-  # Spatial
+  # RACE-GAP Specific
   "akgfmaps", # devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
+  "coldpool", # devtools::install_github("sean-rohan-noaa/coldpool")
+  
+  
+  # Spatial
   "sf",
   "rlist", 
   "jsonlite", 
@@ -317,16 +321,19 @@ find_codes <- function(x, col = "common_name", str = NULL,
 }
 
 
-species_table <- function(haul_maxyr_spp, spp_common, SURVEY, SRVY = NA) {
+species_table <- function(haul_spp, spp_common, SURVEY0, SRVY0 = NA) {
   
   # Edit This:
-  header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY, ifelse(SRVY %in% NA, paste0(" (", SRVY, ")"), ""))
+  header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY0, ifelse(SRVY0 %in% NA, paste0(" (", SRVY0, ")"), ""))
   
   # Select data and make plot
   cols<-c("start_latitude", "start_longitude",  "weight", "number_fish", "bottom_depth", "gear_temperature", "surface_temperature")
   COLS<-c("Latitude", "Longitude", 
           "Weight", "Abundance", 
           "Bottom Depth", "Bottom Temperature", "Surface Temperature")
+  
+  haul_spp <- haul_spp %>% 
+    dplyr::filter(SRVY %in% SRVY0)
   
   # basiccontent0<-c()
   table_spp<-c()
@@ -335,9 +342,9 @@ species_table <- function(haul_maxyr_spp, spp_common, SURVEY, SRVY = NA) {
     table_spp<-rbind.data.frame(table_spp, 
                                 data.frame(metric0 = cols[ii], 
                                            Metric = COLS[ii], 
-                                           Min = min(haul_maxyr_spp[cols[ii]], na.rm = T), 
-                                           Max = max(haul_maxyr_spp[cols[ii]], na.rm = T), 
-                                           Mean = sum(haul_maxyr_spp[cols[ii]], na.rm = T)/nrow(haul_maxyr_spp)
+                                           Min = min(haul_spp[cols[ii]], na.rm = T), 
+                                           Max = max(haul_spp[cols[ii]], na.rm = T), 
+                                           Mean = sum(haul_spp[cols[ii]], na.rm = T)/nrow(haul_spp)
                                 ))
   }
   
@@ -352,15 +359,29 @@ species_table <- function(haul_maxyr_spp, spp_common, SURVEY, SRVY = NA) {
   table_raw = table_spp
   table_print = table_spp_print
   
-  return(list("table_raw" = table_raw, 
-              "table_print" = table_print))
+  return(list("header" = header, 
+              "raw" = table_raw, 
+              "print" = table_print))
 }
 
 
 species_text <- function(haul_maxyr, haul_compareyr_spp, table_spp_print, 
                          haul_maxyr_spp, length_maxyr, 
                          length_type, 
-                         spp_common, spp_code, SRVY, maxyr, compareyr) {
+                         spp_common, spp_code, SRVY0, maxyr, compareyr) {
+  
+  
+  haul_maxyr <- haul_maxyr %>% 
+    dplyr::filter(SRVY %in% SRVY0)
+  
+  haul_compareyr_spp <- haul_compareyr_spp %>% 
+    dplyr::filter(SRVY %in% SRVY0)  
+  
+  haul_maxyr_spp <- haul_maxyr_spp %>% 
+    dplyr::filter(SRVY %in% SRVY0)  
+  
+  length_maxyr <- length_maxyr %>% 
+    dplyr::filter(SRVY %in% SRVY0)
   
   str <- c()
   
@@ -382,7 +403,7 @@ During the ", maxyr,
 NMFSReports::tolower2(spp_common), 
 " were present at ", 
 formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f") , 
-"% of stations in the ", SRVY, " (", 
+"% of stations in the ", SRVY0, " (", 
 length(unique(haul_maxyr_spp$hauljoin)), " of ", 
 length(unique(haul_maxyr$hauljoin)), 
 " stations). ")
@@ -420,8 +441,9 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr
 The ", 
 NMFSReports::text_list(length_type$sentancefrag[length_type$length_type_id %in% unique(length_maxyr$length_type)]), 
 " of ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
-" measured during the survey were between ", min(length_maxyr$length, na.rm = TRUE), 
-" and ", max(length_maxyr$length, na.rm = TRUE), " ", 
+" measured during the survey were between ", 
+NMFSReports::xunits(min(length_maxyr$length, na.rm = TRUE)), 
+" and ", NMFSReports::xunits(max(length_maxyr$length, na.rm = TRUE)), " ", 
 unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
                         spp_code %in% 68000:69930 ~ 'mm'), 
        TRUE ~ 'NO MEASUREMENT'), ". ")
@@ -441,14 +463,63 @@ NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)),
 
 Compared with ", compareyr, ", 
 abundance experienced ", 
-NMFSReports::pchange(start = sum(haul_compareyr_spp$number_fish, na.rm = TRUE), end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ,
+NMFSReports::pchange(start = sum(haul_compareyr_spp$number_fish, na.rm = TRUE), 
+                     end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ,
 " and there was ", 
-NMFSReports::pchange(start = sum(haul_compareyr_spp$weight, na.rm = TRUE), end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) , 
+NMFSReports::pchange(start = sum(haul_compareyr_spp$weight, na.rm = TRUE), 
+                     end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) , 
 " in biomass. ")
   
   return(str)
   
 }
+
+species_content <- function(SURVEY000, 
+                            SRVY000, 
+                            haul_maxyr, 
+                            haul_compareyr_spp, 
+                            haul_maxyr_spp, 
+                            length_maxyr, 
+                            length_type, 
+                            spp_common, 
+                            spp_code,
+                            maxyr, 
+                            compareyr) {
+  
+  
+  table_spp_maxyr <- species_table(haul_spp = haul_maxyr_spp, 
+                                   spp_common, 
+                                   SURVEY0 = SURVEY000, 
+                                   SRVY0 = SRVY000) 
+  
+  table_spp_compareyr <- species_table(haul_spp = haul_compareyr_spp, 
+                                       spp_common, 
+                                       SURVEY0 = SURVEY000,
+                                       SRVY0 = SRVY000) 
+  
+  
+  table_spp <- dplyr::full_join(
+    x = table_spp_maxyr$print %>% 
+      dplyr::rename(
+        Min_maxyr = Min, 
+        Max_maxyr = Max, 
+        Mean_maxyr = Mean), 
+    y = table_spp_compareyr$print %>% 
+      dplyr::rename(
+        Min_compareyr = Min, 
+        Max_compareyr = Max, 
+        Mean_compareyr = Mean), 
+    by = "Metric")
+  
+  text_spp <- species_text(haul_maxyr, haul_compareyr_spp, table_spp_print = table_spp_maxyr$print, haul_maxyr_spp, length_maxyr, length_type, spp_common, spp_code, SRVY0, maxyr, compareyr)
+  
+  return(paste0(table_spp$print, 
+                "
+
+
+", text_spp))
+}
+
 
 # Plotting ----------------------------
 
@@ -503,7 +574,7 @@ plot_idw_xbyx <- function(
     temp <- dat %>%
       dplyr::filter(year == yrs[ii]) 
     
-    temp0 <- make_idw_map0(#akgfmaps::make_idw_map(
+    temp0 <- akgfmaps::make_idw_map(
       LATITUDE = as.numeric(unlist(temp[,lat])),
       LONGITUDE = as.numeric(unlist(temp[,lon])),
       CPUE_KGHA = as.numeric(unlist(temp[,var])),
