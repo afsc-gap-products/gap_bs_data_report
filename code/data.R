@@ -592,7 +592,9 @@ temp <- function(cruises_, haul_){
   catch_haul_cruises_<-
     dplyr::left_join(
       x = haul_maxyr %>% 
-        dplyr::select(cruisejoin, hauljoin, stationid, stratum), 
+        dplyr::select(cruisejoin, hauljoin, stationid, stratum, 
+                      start_latitude, start_longitude, 
+                      bottom_depth, gear_temperature, surface_temperature), 
       y = cruises_maxyr %>% 
         dplyr::select(cruisejoin, survey_name, SRVY),  
       by = c("cruisejoin")) %>% 
@@ -717,8 +719,8 @@ length_maxyr <-
 #                                  ncol = 2, byrow = TRUE))
 
 # names(length_types) <- c("code", "description")
-length_types <- length_types0
-length_types$sentancefrag <- c("fork lengths",
+length_type <- length_types0
+length_type$sentancefrag <- c("fork lengths",
                                "lengths from mideye to fork of the tail",
                                "lengths from the tip of snout to hypural plate",
                                "lengths from mideye to hypural plate",

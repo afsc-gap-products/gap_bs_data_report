@@ -18,6 +18,7 @@ spp_code <- eval(expr = parse(text = report_spp$species_code[jj]))
 spp_common<-report_spp$common_name[jj]
 spp_file <- report_spp$file_name[jj]
 ```
+
 ### `r spp_common` (*`r spp_sci`*)
 
 ```{r}
@@ -33,59 +34,191 @@ haul_compareyr_spp<-catch_haul_cruises_compareyr %>%
 #                   year %in% (maxyr-1))
 ```
 
+```{r}
+species_table <- function(haul_spp, spp_common, SURVEY, SRVY = NA) {
+  
+  # Edit This:
+  header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY, ifelse(SRVY %in% NA, paste0(" (", SRVY, ")"), ""))
+  
+  # Select data and make plot
+  cols<-c("start_latitude", "start_longitude",  "weight", "number_fish", "bottom_depth", "gear_temperature", "surface_temperature")
+  COLS<-c("Latitude", "Longitude", 
+          "Weight", "Abundance", 
+          "Bottom Depth", "Bottom Temperature", "Surface Temperature")
+  
+  # basiccontent0<-c()
+  table_spp<-c()
+  
+  for (ii in 1:length(cols)) {
+    table_spp<-rbind.data.frame(table_spp, 
+                                data.frame(metric0 = cols[ii], 
+                                           Metric = COLS[ii], 
+                                           Min = min(haul_spp[cols[ii]], na.rm = T), 
+                                           Max = max(haul_spp[cols[ii]], na.rm = T), 
+                                           Mean = sum(haul_spp[cols[ii]], na.rm = T)/nrow(haul_spp)
+                                ))
+  }
+  
+  table_spp_print <- table_spp
+  table_spp_print[, c("Min", "Max", "Mean")] <- 
+    NMFSReports::mod_number(x = table_spp_print[, c("Min", "Max", "Mean")], 
+                            comma_seperator = TRUE, 
+                            divideby = 1, 
+                            digits = 2)
+  table_spp_print$metric0<-NULL
+  
+  table_raw = table_spp
+  table_print = table_spp_print
+  
+  return(list("raw" = table_raw, 
+              "print" = table_print))
+}
+
+
+species_text <- function(haul_maxyr, haul_compareyr_spp, table_spp_print, 
+                         haul_maxyr_spp, length_maxyr, 
+                         length_type, 
+                         spp_common, spp_code, SRVY, maxyr, compareyr) {
+  
+  str <- c()
+  
+  # <!-- how many stations -->
+  str <- paste0(str, 
+                "Out of the total number of successful hauls (", 
+                length(unique(haul_maxyr$hauljoin)), ") ",  
+                NMFSReports::tolower2(spp_common), 
+                " was found during ", 
+                length(unique(haul_maxyr_spp$hauljoin)), 
+                " hauls (", 
+                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f"), 
+                "% of stations). ")
+  
+  str <- paste0(str, "
+
+During the ", maxyr, 
+" survey, ", 
+NMFSReports::tolower2(spp_common), 
+" were present at ", 
+formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f") , 
+"% of stations in the ", SRVY, " (", 
+length(unique(haul_maxyr_spp$hauljoin)), " of ", 
+length(unique(haul_maxyr$hauljoin)), 
+" stations). ")
+  
+  # <!-- bottom tempature -->
+  str <- paste0(str, "
+
+", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+" were found in bottom temperatures as warm as ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
+"°C and as cold as ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
+"°C (Figure ", cnt_figures,"). ")
+  
+  # <!-- surface temperature -->
+  str <- paste0(str, "
+
+", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+" were found in areas where surface temperatures were as warm as ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
+"°C and as cold as ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
+"°C (Figure ", cnt_figures,"). ")
+  
+  # <!-- Depth -->
+  str <- paste0(str, "
+
+They were found in waters with depths between ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
+" m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
+  
+  # <!-- Sizes caught  -->
+  str <- paste0(str, "
+
+The ", 
+NMFSReports::text_list(length_type$sentancefrag[length_type$length_type_id %in% unique(length_maxyr$length_type)]), 
+" of ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+" measured during the survey were between ", min(length_maxyr$length, na.rm = TRUE), 
+" and ", max(length_maxyr$length, na.rm = TRUE), " ", 
+unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
+                        spp_code %in% 68000:69930 ~ 'mm'), 
+       TRUE ~ 'NO MEASUREMENT'), ". ")
+  
+  # <!-- weight -->
+  str <- paste0(str, "
+
+The total number of ", 
+NMFSReports::tolower2(spp_common), 
+" estimated to have been caught by the survey is ", 
+NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)), 
+" individuals, which equates to ", 
+NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)), 
+" kg of biomass. ")
+  
+  str <- paste0(str, "
+
+Compared with ", compareyr, ", 
+abundance experienced ", 
+NMFSReports::pchange(start = sum(haul_compareyr_spp$number_fish, na.rm = TRUE), end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ,
+" and there was ", 
+NMFSReports::pchange(start = sum(haul_compareyr_spp$weight, na.rm = TRUE), end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) , 
+" in biomass. ")
+  
+  return(str)
+  
+}
+
+```
+
+
 `r  ifelse(SRVY %in% "NEBS", "## **EBS**", "") `
 
-```{r tab_species_table_}
+```{r}
+SRVY000<-"EBS"
+SURVEY000 = "eastern Bering Sea"
 
-# nickname0 <- "tab_species_table_"
-nickname0 <- "tab_biomass_est_fish_"
+if (SRVY %in% "NEBS") {
+  
+  table_spp_maxyr <- species_table(haul_spp = haul_maxyr_spp, 
+                             spp_common, 
+                             SURVEY = SURVEY000, 
+                             SRVY = SRVY000) 
+  
+  table_spp_compareyr <- species_table(haul_spp = haul_compareyr_spp, 
+                             spp_common, 
+                             SURVEY = SURVEY000, 
+                             SRVY = SRVY000) 
+  
+  table_spp <- dplyr::full_join(
+    x = table_spp_maxyr$print %>% 
+      dplyr::rename(
+        Min_maxyr = Min, 
+             Max_maxyr = Max, 
+             Mean_maxyr = Mean), 
+    x = table_spp_compareyr$print %>% 
+      dplyr::rename(
+        Min_compareyr = Min, 
+             Max_compareyr = Max, 
+             Mean_compareyr = Mean), 
+    by = "Metric")
+  
+  text_spp <- species_text(haul_maxyr, haul_compareyr_spp, table_spp_print = table_spp_maxyr$print, haul_maxyr_spp, length_maxyr, length_type, spp_common, spp_code, SRVY, maxyr, compareyr)
+  
+  print(
+  "## **EBS**
+        
+  ", table_spp$print)
 
-# Select data and make plot
-for (i in 1:nrow(haul_cruises_maxyr)) {
-  # if (nrow(haul_cruises_maxyr)>1) {
-  #   subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
-  #   newobj <- ifelse(i==1, TRUE, FALSE)
-  # }
-  # header <- paste0("Biomass estimates (t) for major fish species and groups taken during the ", 
-  #                  maxyr, " ", 
-  #                  haul_cruises_maxyr$SRVY_long[i],
-  #                  " shelf bottom trawl survey.")
-  
-  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
-# Select data and make plot
-  table_raw<-species_table(table_list, haul_maxyr_spp, spp_common, SURVEY, SRVY = SRVY) 
-  table_print <- table_raw %>%
-          format_cells(rows = 0, # make column names
-                       cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
-                       fonttype = "bold") %>% # bold
-          knitr::kable(row.names = FALSE, booktabs = TRUE) #print table in text
-  
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-#   res <- knitr::knit_child(
-#     text = knitr::knit_expand(
-#       file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-#     quiet = TRUE
-#   )
-#   
-# list_tables[length(list_tables)]$res <- res <- paste0("
-# ###### 
-# 
-# ",res,"
-# 
-# ")
-#   
-#   assign(value = res, x = paste0(nickname))
 }
 ```
 
 
-`r species_text(haul_maxyr, dat_maxyr_1, basiccontenttable_print, haul_maxyr_spp, length_maxyr, length_type, spp_common, spp_code, SRVY, cnt_figures) `
+`r species_text(haul_maxyr, haul_compareyr_spp, table_spp_print = table_spp$table_print, haul_maxyr_spp, length_maxyr, length_type, spp_common, spp_code, SRVY, maxyr, compareyr) `
 
 `r  ifelse(SRVY %in% "NEBS", "## **NBS**", "") `
 
   
-`r ifelse(SRVY %in% "NEBS", species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "NBS"), dat_maxyr_1 %>% dplyr::filter(year %in% (maxyr-1) & SRVY %in% "NBS"), basiccontenttable_print_nbs, haul_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), length_maxyr %>% dplyr::filter(SRVY %in% "NBS"), length_type, spp_common, spp_code, SRVY = "NBS", cnt_figures), "") `  
+`r ifelse(SRVY %in% "NEBS", species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "NBS"), haul_compareyr_spp %>% dplyr::filter(year %in% (maxyr-1) & SRVY %in% "NBS"), table_spp_print_nbs, haul_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), length_maxyr %>% dplyr::filter(SRVY %in% "NBS"), length_type, spp_common, spp_code, SRVY = "NBS", cnt_figures), "") `  
 
 `r  ifelse(SRVY %in% "NEBS", "## **EBS**", "") `
   
@@ -96,7 +229,7 @@ if (SRVY %in% "NEBS" && sum(haul_maxyr_spp$SRVY %in% "EBS")>0) {
   table_list<-species_table(table_list, 
                             haul_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), 
                             spp_common, SURVEY, SRVY = "EBS") 
-    # basiccontenttable_print_ebs <- table_list[[length(table_list)]]$print
+    # table_spp_print_ebs <- table_list[[length(table_list)]]$print
     table_list[[length(table_list)]]$print  %>%
           format_cells(rows = 0, # make column names
                        cols = 1:ncol(table_list[[length(table_list)]]$print), # for all columns
@@ -106,7 +239,7 @@ if (SRVY %in% "NEBS" && sum(haul_maxyr_spp$SRVY %in% "EBS")>0) {
 ```
 
 
-`r ifelse(SRVY %in% "NEBS", species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "EBS"), dat_maxyr_1 %>% dplyr::filter(SRVY %in% "EBS"), basiccontenttable_print_ebs, haul_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), length_maxyr %>% dplyr::filter(SRVY %in% "EBS"), length_type, spp_common, spp_code, SRVY = "EBS", cnt_figures), "") `
+`r ifelse(SRVY %in% "NEBS", species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "EBS"), haul_compareyr_spp %>% dplyr::filter(SRVY %in% "EBS"), table_spp_print_ebs, haul_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), length_maxyr %>% dplyr::filter(SRVY %in% "EBS"), length_type, spp_common, spp_code, SRVY = "EBS", cnt_figures), "") `
 
 
 ```{r}
@@ -124,8 +257,8 @@ insert <- readtext(file = paste0(dir_out_rawdata, "/doc_",spp_common,".docx"))
 #   str <- paste0("**NBS**
 #                 ", 
 #                 species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "NBS"), 
-#                       dat_maxyr_1 %>% dplyr::filter(SRVY %in% "NBS"), 
-#                       basiccontenttable_print_nbs, 
+#                       haul_compareyr_spp %>% dplyr::filter(SRVY %in% "NBS"), 
+#                       table_spp_print_nbs, 
 #                       haul_maxyr_spp %>% dplyr::filter(SRVY %in% "NBS"), 
 #                       length_maxyr %>% dplyr::filter(SRVY %in% "NBS"), 
 #                       length_type, 
@@ -136,8 +269,8 @@ insert <- readtext(file = paste0(dir_out_rawdata, "/doc_",spp_common,".docx"))
 #          "**EBS**
 #          ", 
 #          species_text(haul_maxyr %>% dplyr::filter(SRVY %in% "EBS"), 
-#                       dat_maxyr_1 %>% dplyr::filter(SRVY %in% "EBS"), 
-#                       basiccontenttable_print_ebs, 
+#                       haul_compareyr_spp %>% dplyr::filter(SRVY %in% "EBS"), 
+#                       table_spp_print_ebs, 
 #                       haul_maxyr_spp %>% dplyr::filter(SRVY %in% "EBS"), 
 #                       length_maxyr %>% dplyr::filter(SRVY %in% "EBS"), 
 #                       length_type, 
@@ -160,23 +293,23 @@ insert <- readtext(file = paste0(dir_out_rawdata, "/doc_",spp_common,".docx"))
 # 
 # 
 # <!-- <!-- bottom tempature --> -->
-# <!-- `r NMFSReports::tolower2(spp_common, capitalizefirst = TRUE)` were found in bottom temperatures as warm as `r as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) `°C and as cold as `r as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) `°C (Figure 7). -->
+# <!-- `r NMFSReports::tolower2(spp_common, capitalizefirst = TRUE)` were found in bottom temperatures as warm as `r as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) `°C and as cold as `r as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) `°C (Figure 7). -->
 # 
 # <!-- <!-- surface temperature --> -->
-# <!-- `r NMFSReports::tolower2(spp_common, capitalizefirst = TRUE)` were found in areas where surface temperatures were as warm as `r as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) `°C and as cold as `r as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) `°C (Figure 7). -->
+# <!-- `r NMFSReports::tolower2(spp_common, capitalizefirst = TRUE)` were found in areas where surface temperatures were as warm as `r as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) `°C and as cold as `r as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) `°C (Figure 7). -->
 # 
 # <!-- <!-- Depth --> -->
-# <!-- They were found in waters with depths between `r as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) ` m and `r as.numeric(basiccontenttable_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) ` m.   -->
+# <!-- They were found in waters with depths between `r as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) ` m and `r as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) ` m.   -->
 # 
 # 
 # <!-- <!-- Sizes caught were between  --> -->
-# <!-- The `r NMFSReports::text_list(length_type$sentancefrag[length_type$code %in% unique(length_maxyr$length_type)])` of `r NMFSReports::tolower2(spp_common, capitalizefirst = TRUE)` measured during the survey were between `r min(length_maxyr$length)` and `r max(length_maxyr$length)` `r unique(dplyr::case_when(spp_code %in% 1:31550 ~ "cm", spp_code %in% 68000:69930 ~ "mm"), TRUE ~ "NO MEASUREMENT")`. -->
+# <!-- The `r NMFSReports::text_list(length_type$sentancefrag[length_type$length_type_id %in% unique(length_maxyr$length_type)])` of `r NMFSReports::tolower2(spp_common, capitalizefirst = TRUE)` measured during the survey were between `r min(length_maxyr$length)` and `r max(length_maxyr$length)` `r unique(dplyr::case_when(spp_code %in% 1:31550 ~ "cm", spp_code %in% 68000:69930 ~ "mm"), TRUE ~ "NO MEASUREMENT")`. -->
 # 
 # 
 # <!-- <!-- weight --> -->
 # <!-- The total number of `r NMFSReports::tolower2(spp_common)` estimated to have been caught by the survey is `r NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE))` individuals, which equates to `r NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE))` kg of biomass.  -->
 # 
-# <!-- Compared with `r maxyr-1`, abundance experienced `r NMFSReports::pchange(start = sum(dat_maxyr_1_spp$number_fish, na.rm = TRUE), end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ` and there was `r NMFSReports::pchange(start = sum(dat_maxyr_1_spp$weight, na.rm = TRUE), end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) ` in biomass.  -->
+# <!-- Compared with `r maxyr-1`, abundance experienced `r NMFSReports::pchange(start = sum(haul_compareyr_spp$number_fish, na.rm = TRUE), end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ` and there was `r NMFSReports::pchange(start = sum(haul_compareyr_spp$weight, na.rm = TRUE), end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) ` in biomass.  -->
 ```
 
 

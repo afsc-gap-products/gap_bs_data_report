@@ -54,19 +54,19 @@ st_mean_longterm <- temps_wt_avg_yr$st_wt[temps_wt_avg_yr$year == (maxyr-1) & te
 
 Sea surface temperatures recorded during the `r maxyr ` `r SRVY` survey ranged from `r round(x = min(haul$surface_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul$surface_temperature, na.rm = TRUE), digits = 1)`°C and bottom temperatures ranged from `r round(x = min(haul$gear_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul$gear_temperature, na.rm = TRUE), digits = 1)`°C. The stratum-area weighted mean sea surface temperature for the EBS alone was `r round(x = st_mean_maxyr, digits = 1)`°C, which was `r round(x = st_mean_maxyr_1-st_mean_maxyr, digits = 1)`°C `r ifelse((st_mean_maxyr_1-st_mean_maxyr)>0, "lower", "higher")` than `r maxyr-1` (`r round(x = st_mean_maxyr_1, digits = 1)`°C) and `r round(x = st_mean_longterm-st_mean_maxyr, digits = 1)`°C `r ifelse((st_mean_longterm-st_mean_maxyr)>0, "lower", "higher")` the time-series mean (`r round(x = st_mean_longterm, digits = 1)`°C) (Figure `r crossref(list_obj = list_figures, nickname = 'fig_temp_weight_mean', sublist = 'number')`). In the EBS south of 60° N, surface temperatures increased from east to west across the shelf, and in the NBS they were generally higher and above 10°C in Norton Sound (Figure `r crossref(list_obj = list_figures, nickname = 'fig_idw_surftemp_maxyr', sublist = 'number')`).
 
-`r fig_temp_weight_mean `
+`r list_figure$fig_temp_weight_mean$res `
 
-`r fig_idw_surftemp_maxyr `
+`r list_figure$fig_idw_surftemp_maxyr$res `
 
 During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series (`r haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY == "EBS"] `–`r maxyr`) of the annual EBS shelf bottom trawl survey, mean summer bottom temperatures were highly variable, ranging from a low of 0.8°C to a high of 4.5°C, with a grand mean for all years of 2.5°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_temp_weight_mean', sublist = 'number')`). The mean survey bottom temperature for the EBS in `r maxyr` was 2.8°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_temp_weight_mean', sublist = 'number')`), a warmer than average year considering it was 0.3°C above the time-series mean.
 
 During the last `r (maxyr-1)-ifelse(min(yr_above_below_mean$below)>min(yr_above_below_mean$above), min(yr_above_below_mean$above), min(yr_above_below_mean$below))` years, `r NMFSReports::text_list(yr_above_below_mean$below)` were colder than average (“cold stanza”; Figure `r crossref(list_obj = list_figures, nickname = 'fig_idw_bottemp_longterm_mean_below', sublist = 'number')`), and `r NMFSReports::text_list(yr_above_below_mean$above)` were warmer than average (“warm stanza”; Figure `r crossref(list_obj = list_figures, nickname = 'fig_idw_bottemp_longterm_mean_above', sublist = 'number')`). The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`), defined by the extent of bottom temperatures below 2°C. Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool varied in size from `r NMFSReports::xunits(min(cold_pool_area$area_sum))` to `r NMFSReports::xunits(max(cold_pool_area$area_sum))` km2, occupying from `r min(cold_pool_area$area_percent)`% to `r max(cold_pool_area$area_percent)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`).
 
-`r fig_idw_bottemp_longterm_mean_below `
+`r list_figure$fig_idw_bottemp_longterm_mean_below$res `
 
-`r fig_idw_bottemp_longterm_mean_above `
+`r list_figure$fig_idw_bottemp_longterm_mean_above$res `
 
-`r fig_cold_pool_area`
+`r list_figure$fig_cold_pool_area$res`
 
 > need to think on how to automate the last part of the sentance
 
@@ -188,13 +188,13 @@ temp_insert <- paste0(
 
 A total of `r length(unique(spp_info_maxyr$report_name_scientific[spp_info_maxyr$taxon == "fish"])) ` fish species representing `r length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$taxon == "fish"]))` families and `r length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$taxon == "fish"])) ` genera were identified in the survey catches from the `r NMFSReports::text_list(haul_cruises_maxyr$SRVY)` (Appendix B, Table 6). `r `temp_insert`
 
-`r tab_species_composition `
+`r list_table$tab_species_composition$res `
 
-`r tab_biomass_est_fish_EBS `
+`r list_table$tab_biomass_est_fish_EBS$res `
 
-`r ifelse(SRVY == "NEBS", tab_biomass_est_fish_NBS, "") `
+`r ifelse(SRVY == "NEBS", list_table$tab_biomass_est_fish_NBS$res, "") `
 
-`r tab_biomass_est_invert_EBS `
+`r list_table$tab_biomass_est_invert_EBS$res `
 
 `r ifelse(SRVY == "NEBS", tab_biomass_est_invert_NBS, "") `
 
@@ -263,16 +263,18 @@ The lower fish biomass in the NBS is consistent with results of a broader analys
 	
 Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
 
-`r tab_biomass_compareyr_maxyr_percchange_EBS `
+`r list_table$tab_biomass_compareyr_maxyr_percchange_EBS$res `
 
-`r ifelse(SRVY == "NEBS", tab_biomass_compareyr_maxyr_percchange_NBS, "") `
+`r ifelse(SRVY == "NEBS", list_table$tab_biomass_compareyr_maxyr_percchange_NBS$res, "") `
 
 ## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups
 
 Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. In the EBS, the proportion of fishes (75%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")`) was three times higher than invertebrates (25%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`). This trend was similarly true in the NBS where the proportion of fishes (63%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number")`) was greater than invertebrates (37%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`). Pleuronectids dominated the fish biomass in both the EBS (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")` and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`) and 25% in the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`).
 
 Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number. Major species presented include walleye pollock (Figures 7-8 and Table `crossref(list_obj = list_tables, nickname = "tab_biomass_compareyr_maxyr_percchange", sublist = "number")`), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. 
-`r tab_biomass_compareyr_maxyr_percchange `
+
+
+`r list_table$tab_biomass_compareyr_maxyr_percchange$res `
 
 ## Summary of Results for Selected Major `r haul_cruises_maxyr$SRVY_long` Fish Fauna
 
