@@ -15,6 +15,8 @@ report_title <- "Data Report" # Fake until I get a better idea of how to automae
 workfaster <- TRUE # an attempt to satisfy limited patience
 refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- FALSE # redownload google drive tables and docs?
+indesign_flowin <- FALSE
+usePNGPDF <- "png"
 
 # maxyr <- 2016 # or the year of the report, for example
 # compareyr <- 2015
@@ -46,11 +48,6 @@ ref_compareyr_nbs <- "@RN909"
 # SRVY<-"NEBS" 
 # crabretow <- TRUE
 # study1530 <- TRUE
-
-# *** OUTPUT TYPE --------------------------------------------------------------
-#Is this for InDesign?
-indesign_flowin <- FALSE
-usePNGPDF <- "png"
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 

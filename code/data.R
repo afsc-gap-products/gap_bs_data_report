@@ -774,67 +774,88 @@ specimen_maxyr <-
 
   # temp
 
-## weighted mean pt 1
-temps_wt_avg_strat <- stratum_info %>% #temp_strat(maxyr) %>%
-    dplyr::filter(SRVY %in% SRVY1) %>%
-    dplyr::select(stratum, area, SRVY) %>%
-    dplyr::mutate(weight_all = area/sum(area)) %>% 
-    dplyr::group_by(SRVY) %>% 
-    dplyr::mutate(weight_SRVY = area/sum(area)) %>% 
-    dplyr::left_join(x = haul %>% 
-                       # dplyr::filter(year == maxyr) %>%
-                       dplyr::select(stratum, year, #stationid, 
-                                     surface_temperature, 
-                                     gear_temperature, bottom_depth), 
-                     y = ., 
-                     by = "stratum") %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(year, stratum, SRVY) %>%
-    dplyr::summarise(bt_wt_stratum = mean(gear_temperature * weight_SRVY, na.rm = TRUE), 
-                     st_wt_stratum = mean(surface_temperature * weight_SRVY, na.rm = TRUE)) %>%
-    dplyr::ungroup()  
+# ## weighted mean pt 1
+# temps_wt_avg_strat <- stratum_info %>% #temp_strat(maxyr) %>%
+#     dplyr::filter(SRVY %in% SRVY1) %>%
+#     dplyr::select(stratum, area, SRVY) %>%
+#     dplyr::mutate(weight_all = area/sum(area)) %>% 
+#     dplyr::group_by(SRVY) %>% 
+#     dplyr::mutate(weight_SRVY = area/sum(area)) %>% 
+#     dplyr::left_join(x = haul %>% 
+#                        # dplyr::filter(year == maxyr) %>%
+#                        dplyr::select(stratum, year, #stationid, 
+#                                      surface_temperature, 
+#                                      gear_temperature, bottom_depth), 
+#                      y = ., 
+#                      by = "stratum") %>%
+#     dplyr::ungroup() %>%
+#     dplyr::group_by(year, stratum, SRVY) %>%
+#     dplyr::summarise(bt_wt_stratum = mean(gear_temperature * weight_SRVY, na.rm = TRUE), 
+#                      st_wt_stratum = mean(surface_temperature * weight_SRVY, na.rm = TRUE)) %>%
+#     dplyr::ungroup()  
+# 
+# temps_wt_avg_yr <- temps_wt_avg_strat %>%
+#     dplyr::group_by(year, SRVY) %>%
+#     dplyr::summarise(bt_wt = sum(bt_wt_stratum, na.rm = TRUE), 
+#                      st_wt = sum(st_wt_stratum, na.rm = TRUE)) %>%
+#     dplyr::filter(!is.na(SRVY)) %>%
+#     dplyr::filter(!is.nan(bt_wt) | !is.nan(st_wt))
+# 
+#   # temps_wt_avg_yr <- rbind.data.frame(temps_wt_avg_yr, temp)
+# 
+# # }
+# 
+# # long term mean pt 1
+# temps_wt_avg_yr_longterm <- temps_wt_avg_yr %>% 
+#   dplyr::filter(year != maxyr) %>% 
+#   dplyr::ungroup() %>%
+#   dplyr::group_by(SRVY) %>%
+#   dplyr::arrange(desc(year)) %>%
+#   dplyr::summarise(bt_wt_mean = mean(bt_wt, na.rm = TRUE), 
+#                    st_wt_mean = mean(st_wt, na.rm = TRUE))
+# 
+# 
+# 
+# 
+# ## weighted mean pt 2
+# temps_wt_avg_yr <- temps_wt_avg_yr %>% 
+#   dplyr::ungroup() %>%
+#   dplyr::left_join(x = ., 
+#                    y = temps_wt_avg_yr_longterm, 
+#                    by  = "SRVY") %>% 
+#   dplyr::group_by(SRVY) %>% 
+#   dplyr::arrange(SRVY, year) %>%
+#   dplyr::mutate(bt_wt_above_mean = bt_wt>mean(bt_wt_mean, na.rm = TRUE)) %>% 
+#   dplyr::mutate(st_wt_above_mean = st_wt>mean(st_wt_mean, na.rm = TRUE)) %>% 
+#   dplyr::mutate(case = dplyr::case_when(
+#     ((st_wt_above_mean + bt_wt_above_mean)==2) ~ "both warmer",
+#     ((st_wt_above_mean + bt_wt_above_mean)==0) ~ "both colder",
+#     (st_wt_above_mean == TRUE & bt_wt_above_mean == FALSE) ~ "st warmer, bt colder",
+#     (st_wt_above_mean == FALSE & bt_wt_above_mean == TRUE) ~ "bt warmer, st colder") ) 
 
-temps_wt_avg_yr <- temps_wt_avg_strat %>%
-    dplyr::group_by(year, SRVY) %>%
-    dplyr::summarise(bt_wt = sum(bt_wt_stratum, na.rm = TRUE), 
-                     st_wt = sum(st_wt_stratum, na.rm = TRUE)) %>%
-    dplyr::filter(!is.na(SRVY)) %>%
-    dplyr::filter(!is.nan(bt_wt) | !is.nan(st_wt))
-
-  # temps_wt_avg_yr <- rbind.data.frame(temps_wt_avg_yr, temp)
-
-# }
-
-# long term mean pt 1
-temps_wt_avg_yr_longterm <- temps_wt_avg_yr %>% 
-  dplyr::filter(year != maxyr) %>% 
-  dplyr::ungroup() %>%
-  dplyr::group_by(SRVY) %>%
-  dplyr::arrange(desc(year)) %>%
-  dplyr::summarise(bt_wt_mean = mean(bt_wt, na.rm = TRUE), 
-                   st_wt_mean = mean(st_wt, na.rm = TRUE))
-
-## weighted mean pt 2
-temps_wt_avg_yr <- temps_wt_avg_yr %>% 
-  dplyr::ungroup() %>%
-  dplyr::left_join(x = ., 
-                   y = temps_wt_avg_yr_longterm, 
-                   by  = "SRVY") %>% 
-  dplyr::group_by(SRVY) %>% 
-  dplyr::arrange(SRVY, year) %>%
-  dplyr::mutate(bt_wt_above_mean = bt_wt>mean(bt_wt_mean, na.rm = TRUE)) %>% 
-  dplyr::mutate(st_wt_above_mean = st_wt>mean(st_wt_mean, na.rm = TRUE)) %>% 
-  dplyr::mutate(case = dplyr::case_when(
-    ((st_wt_above_mean + bt_wt_above_mean)==2) ~ "both warmer",
-    ((st_wt_above_mean + bt_wt_above_mean)==0) ~ "both colder",
-    (st_wt_above_mean == TRUE & bt_wt_above_mean == FALSE) ~ "st warmer, bt colder",
-    (st_wt_above_mean == FALSE & bt_wt_above_mean == TRUE) ~ "bt warmer, st colder") ) 
+temps_avg_yr <- coldpool:::cold_pool_index %>% 
+  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>% 
+  dplyr::rename(bt = MEAN_GEAR_TEMPERATURE, 
+                st = MEAN_SURFACE_TEMPERATURE) %>% 
+  dplyr::filter(YEAR <= maxyr) %>% 
+  janitor::clean_names() %>% 
+  dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE)) %>% 
+  dplyr::mutate(st_mean = mean(st, na.rm = TRUE)) %>% 
+  dplyr::mutate(SRVY = "EBS") %>%
+    dplyr::arrange(SRVY, year) %>%
+    dplyr::mutate(bt_above_mean = bt>bt_mean) %>%
+    dplyr::mutate(st_above_mean = st>st_mean) %>%
+    dplyr::mutate(case = dplyr::case_when(
+      ((st_above_mean + bt_above_mean)==2) ~ "both warmer",
+      ((st_above_mean + bt_above_mean)==0) ~ "both colder",
+      (st_above_mean == TRUE & bt_above_mean == FALSE) ~ "st warmer, bt colder",
+      (st_above_mean == FALSE & bt_above_mean == TRUE) ~ "bt warmer, st colder") )
 
 # calculate the nth year of case
 nthyr <- c()
-for (ii in 1:length(unique(temps_wt_avg_yr$SRVY))){
-  temp <- temps_wt_avg_yr %>% 
-    dplyr::filter(SRVY == unique(temps_wt_avg_yr$SRVY)[ii])
+for (ii in 1:length(unique(temps_avg_yr$SRVY))){
+  temp <- temps_avg_yr %>% 
+    dplyr::filter(SRVY == unique(temps_avg_yr$SRVY)[ii])
   for (i in 1:nrow(temp)) {
     if (i == 1) {
       nthyr0 <- 1
@@ -846,27 +867,27 @@ for (ii in 1:length(unique(temps_wt_avg_yr$SRVY))){
   }
   nthyr <- c(nthyr, nthyr0)
 }
-temps_wt_avg_yr$nthyr <- nthyr
-temps_wt_avg_yr <- temps_wt_avg_yr %>% 
+temps_avg_yr$nthyr <- nthyr
+temps_avg_yr <- temps_avg_yr %>% 
   dplyr::arrange(desc(year))
 
-temps_wt_avg_yr_longterm <- temps_wt_avg_yr %>% 
+temps_avg_yr_maxyr <- temps_avg_yr %>%  # temps_avg_yr_longterm
   dplyr::filter(year == maxyr)
 
 # which years should we look at?
-temps_wt_avg_yr_abovebelow_plots <- 
+temps_avg_yr_abovebelow <- 
   cbind.data.frame(
-  "above" = temps_wt_avg_yr %>% 
+  "above" = temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
-                      bt_wt_above_mean == TRUE) %>% 
+                      bt_above_mean == TRUE) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
       head(8) %>%
       unlist(), 
-  "below" = temps_wt_avg_yr %>% 
+  "below" = temps_avg_yr %>% 
   dplyr::filter(SRVY == "EBS" & 
-                  bt_wt_above_mean == FALSE) %>% 
+                  bt_above_mean == FALSE) %>% 
   dplyr::ungroup() %>%
   dplyr::arrange(-year) %>% 
   dplyr::select(year) %>% 

@@ -674,50 +674,43 @@ list_tables[length(list_tables)][[1]]$res <- res <- paste0("
 
 ## fig_temp_weight_mean
 
-> no longer useing the stratum mean weighted tempertaures - need to also change header
+> change header
 
 ```{r fig_temp_weight_mean}
-
-# if () {
-temp0 <- haul_cruises_maxyr %>% 
-  dplyr::filter(SRVY == "EBS")
-# } else {
-#   
-# }
-
-header <- paste0("Time series of mean survey surface and near-bottom temperatures in the ",temp0$SRVY_long," (",temp0$SRVY,") weighted by stratum based on expendable bathythermograph casts or digital dataloggers attached to the headrope during the eastern Bering Sea bottom trawl surveys from ", temp0$SRVY_start," to ", maxyr, ". The 1982-1987 means (triangles) are based on Strata 10-62 (see Figure ", crossref(list_obj = list_figures, nickname = 'fig_sampled_survey_stations', sublist = 'number'),") and the 1988-", maxyr, " means also include Strata 80 and 92. The dashed lines represent the grand stratum-area weighted mean water temperatures for ", temp0$SRVY_start,"-", maxyr, ".")
-
 nickname <- "fig_temp_weight_mean"
+header <- paste0("Time series of mean survey surface and near-bottom temperatures in the eastern Bering Sea (EBS) weighted by stratum based on expendable bathythermograph casts or digital dataloggers attached to the headrope during the eastern Bering Sea bottom trawl surveys from 1982 to ", maxyr, ". The 1982-1987 means (triangles) are based on Strata 10-62 (see Figure ", crossref(list_obj = list_figures, nickname = 'fig_sampled_survey_stations', sublist = 'number'),") and the 1988-", maxyr, " means also include Strata 80 and 92. The dashed lines represent the grand stratum-area weighted mean water temperatures for 1982-", maxyr, ".")
 
-# Select data and make plot
-table_raw <- temp <- temps_wt_avg_yr %>% 
-  dplyr::filter(SRVY == "EBS") 
+table_raw <- temps_avg_yr
 
-figure <- ggplot(data = temp) +
+st_col <- nmfspalette::nmfs_cols("dkgray") # nmfs_cols("medgreen")
+bt_col <- nmfspalette::nmfs_cols("supdkgray") # nmfs_cols("processblue")
+
+figure <- ggplot(data = table_raw) +
   # surface temperature
-  geom_line(aes(x = year, y = st_wt), 
-            color = nmfs_cols("medgreen"), size = 1) +
-  geom_point(aes(x = year, y = st_wt), 
-             color = nmfs_cols("medgreen"), fill = nmfs_cols("medgreen"), 
+  geom_line(aes(x = year, y = st), 
+            color = st_col, size = 1) +
+  geom_point(aes(x = year, y = st), 
+             color = st_col, fill = st_col, 
              pch = 19, size = 2) +
-  geom_hline(yintercept = temp$st_wt_mean[1], 
-             linetype="dashed", color = nmfs_cols("medgreen")) + 
-  annotate("text", x = 2010, y = 8, label = "Surface", col = nmfs_cols("medgreen")) + 
+  geom_hline(yintercept = table_raw$st_mean[1], 
+             linetype="dashed", color = st_col) + 
+  annotate("text", x = 2010, y = 8, label = "Surface", col = st_col) + 
   # bottom temperature
-  geom_line(aes(x = year, y = bt_wt), 
-            color = nmfs_cols("processblue"), size = 1) +
-  geom_point(aes(x = year, y = bt_wt), 
-             color = nmfs_cols("processblue"), fill = nmfs_cols("processblue"), 
+  geom_line(aes(x = year, y = bt), 
+            color = bt_col, size = 1) +
+  geom_point(aes(x = year, y = bt), 
+             color = bt_col, fill = bt_col, 
              pch = 24, size = 3) +
-  geom_hline(yintercept = temp$bt_wt_mean[1], 
-             linetype="dashed", color = nmfs_cols("processblue")) +
-  annotate("text", x = 2010, y = 3, label = "Bottom", color = nmfs_cols("processblue")) + 
+  geom_hline(yintercept = table_raw$bt_mean[1], 
+             linetype="dashed", color = bt_col) +
+  annotate("text", x = 2010, y = 3, label = "Bottom", color = bt_col) + 
   
   # general
-  ylab("Mean stratum area-weighted temperature (°C)") +
+  ylab("Mean temperature (°C)") +
   # xlab("Year") +
-  scale_x_continuous(name = "Year", 
-                     breaks = seq(from = min(temp$year), to = max(temp$year), by = 5)) +
+  scale_x_discrete(
+    name = "Year", 
+    breaks = seq(from = min(table_raw$year), to = max(table_raw$year), by = 5)) +
   #set legend position and vertical arrangement
   theme(#plot.background = element_rect(fill = "white"), 
     axis.text = element_text(size = 12), 
@@ -753,31 +746,27 @@ list_figures[length(list_figures)][[1]]$res <- res <- paste0("
 
 ## fig_idw_surftemp_maxyr
 
+> Summer bottom temperatures in the eastern Bering Sea continental shelf survey area, calculated from interpolation of temperature data from summer bottom trawl surveys conducted by AFSC/RACE/GAP. To load this data set, it is necessary to first load the coldpool package or raster and sp packages. Raster layers were interpolated using ordinary kriging with Matern covariance doi: 10.1007/978-1-4612-1494-6(Stein, 1999).
+
+> Rasters of summer bottom temperature in the eastern Bering Sea at 5-km resolution
+
+> still need nbs
+
 ```{r fig_idw_surftemp_maxyr}
 header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
-footnote<- NA
 nickname <- "fig_idw_surftemp_maxyr"
-alttext <- paste0(header)
 
-# Select data and make plot
-table_raw <- temp <- akgfmaps::make_idw_map(
-  COMMON_NAME = "Surface Temperature", 
-  LATITUDE = haul_maxyr$start_latitude, 
-  LONGITUDE = haul_maxyr$start_longitude, 
-  CPUE_KGHA = haul_maxyr$surface_temperature, 
-  # return.continuous.grid = TRUE,
-  use.survey.bathymetry = FALSE,
-  region = map.area, # Predefined bs.all area
-  set.breaks = seq(from = -2, to = 20, by = 2), # Gets Jenks breaks from classint::classIntervals()
-  grid.cell = c(ifelse(workfaster, 0.1, 0.02), ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
-  key.title = "Surface Temperature (°C)")
+temp <- raster::subset(x = coldpool:::ebs_surface_temperature, 
+                       subset = paste0("ste_",maxyr,"_surface_temperature")) 
+temp <- projectRaster(temp, crs = crs(reg_dat$akland))
+temp_spdf <- as(temp, "SpatialPixelsDataFrame")
+temp_df <- as.data.frame(temp_spdf)
+colnames(temp_df) <- c("value", "x", "y")
 
-# eval_plot_breaks(CPUE =  haul_maxyr$surface_temperature, n.breaks = 6)
-
-figure <- ggplot() + 
+figure <- ggplot() +  
   geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-  geom_stars(data = temp$continuous.grid) +
+  geom_tile(data=temp_df, aes(x=x, y=y, fill=value))  + 
   scale_fill_viridis_c(#option = "plasma", 
     na.value = "transparent", 
     breaks = seq(from = -2, to = 20, by = 2),
@@ -841,10 +830,6 @@ figure <- ggplot() +
     legend.box = "vertical"
   )
 
-# a <- add_map_labels(x = figure,
-#                region = map.area,
-#                new.places = reg_dat$place.labels)
-
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
 res <- knitr::knit_child(
@@ -865,7 +850,7 @@ list_figures[length(list_figures)][[1]]$res <- res <- paste0("
 
 ## fig_idw_bottemp_longterm_mean_ (above and below)
 
-> need to figure out how to plot bs.all and bs.south on same stars_list facet_wrap
+> need to figure out how to plot whole NBS
 
 ```{r fig_idw_bottemp_longterm_mean_}
 nickname0 <- "fig_idw_bottemp_longterm_mean_"
@@ -876,34 +861,20 @@ for (i in 1:2) { # two cases, above and below
   newobj <- ifelse(i==1, TRUE, FALSE)
   TF <- ifelse(i==1, FALSE, TRUE)
   case <- ifelse(i==1, "below", "above")
+  year <- sort(temps_avg_yr_abovebelow[,case])
   
   header <- paste0("Contour maps of the near-bottom temperatures from the ",
-                   NMFSReports::text_list(sort(temps_wt_avg_yr_abovebelow_plots[,case])),
+                   NMFSReports::text_list(year),
                    " Bering Sea shelf bottom trawl surveys, years when the survey mean bottom temperature was ",
                    case,
                    " the long-term stratum area-weighted mean.")
   nickname <- paste0(nickname0, case)
-
-  table_raw <- haul %>%
-      dplyr::filter(!is.na(gear_temperature)) %>% 
-      dplyr::arrange(-year) 
   
-  figure <- plot_idw_xbyx(
-    yrs = temps_wt_avg_yr_abovebelow_plots[,case],
-    dat = table_raw,
-    cruises = cruises,
-    lat = "start_latitude",
-    lon = "start_longitude",
-    var = "gear_temperature",
-    grid = "continuous.grid",
-    extrap.box = extrap.box,
-    key.title = "Bottom Temperature (°C)",
-    workfaster = workfaster,
-    SRVY = SRVY, 
-    set.breaks = seq(from = -2, to = 20, by = 2))
+  rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
+                                subset = paste0("ste_", year, "_gear_temperature"))
+  figure <- plot_temps_facet(
+    rasterbrick, key.title = "Bottom Temperature (°C)", reg_dat)
   
-  # figure <- plot(1,1)
-
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
   res <- knitr::knit_child(
@@ -913,7 +884,7 @@ for (i in 1:2) { # two cases, above and below
     quiet = TRUE
   )
   
-list_figures[length(list_figures)][[1]]$res <- res <- paste0("
+  list_figures[length(list_figures)][[1]]$res <- res <- paste0("
 ###### 
 
 ",res,"
@@ -931,84 +902,47 @@ list_figures[length(list_figures)][[1]]$res <- res <- paste0("
 header <- paste0("Percentage of the EBS (eastern Bering Sea) shelf bottom area that is occupied by the cold pool in one degree Celsius increments.")
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_cold_pool_area"
-alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
+# alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
 width = 9
 
-temp <- data.frame()
-
-for (i in ifelse(workfaster,which(sort(unique(haul$year)) == compareyr),1):length(unique(haul$year))){
-
-  yr <- sort(unique(haul$year))[i]
-
-  temp0 <- haul %>%
-    dplyr::filter(year == yr &
-                    SRVY == "EBS" &
-                    !is.na(gear_temperature)) %>%
-    dplyr::select(year, SRVY, start_latitude, start_longitude, gear_temperature)
-
-  temp0 <- akgfmaps::make_idw_map(
-    COMMON_NAME = "Bottom Temperature",
-    LATITUDE = temp0$start_latitude,
-    LONGITUDE = temp0$start_longitude,
-    CPUE_KGHA = temp0$gear_temperature,
-    # use.survey.bathymetry = FALSE,
-    region = map.area,
-    set.breaks = seq(from = -2, to = 16, by = 2),
-    grid.cell = c(ifelse(workfaster, 0.1, 0.02), ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
-    key.title = "Bottom Temperature (°C)")
-
-  temp <- data.frame(temp = matrix(data = temp0$continuous.grid$var1.pred, ncol = 1),
-                     area = matrix(data = temp0$continuous.grid$Shape_Area, ncol = 1)) %>%
-    dplyr::filter(!is.na(temp)) %>%
-    dplyr::mutate(bin = cut(x = temp,
-                            breaks = c(-Inf,-1, 0, 1, 2))) %>%
-    dplyr::filter(!is.na(bin)) %>%
-    dplyr::group_by(bin) %>%
-    dplyr::summarise(area_sum = sum(area),
-                     temp_mean = mean(temp, na.rm = TRUE)) %>%
-    dplyr::mutate(year = yr) %>%
-    data.frame() %>%
-    rbind.data.frame(temp, .)
-
-  # temp <- table(temp)
-}
-
-table_raw <- temp %>%
+  rasterbrick <- coldpool:::ebs_bottom_temperature
+  temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
+  temp_spdf <- as(temp, "SpatialPixelsDataFrame")
+  temp_df <- as.data.frame(temp_spdf)
+  temp1 <- gsub(pattern = "[A-Za-z]+", 
+                replacement = "", 
+                x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
+  temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+  colnames(temp_df) <- c(temp1, "latitude", "longitude")
+  table_raw <- temp_df %>% 
+    tidyr::pivot_longer(values_to = "value", 
+                        names_to = "year", 
+                        cols = temp1) %>% 
+    dplyr::mutate(bin = cut(x = value, 
+                            breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
+    dplyr::group_by(year, bin) %>%
+    dplyr::summarise(count(bin)) %>%
+    dplyr::mutate(perc = (freq/21299) * 100)  %>%
   dplyr::mutate(label = dplyr::case_when(
     bin == "(-Inf,-1]" ~ "> -1°C",
     bin == "(-1,0]" ~ "-1 to 0°C",
     bin == "(0,1]" ~ "0 to 1°C",
-    bin == "(1,2]" ~ "1 to 2°C")) %>%
-  dplyr::mutate(area_weight = ((area_sum/(sum(temp0$continuous.grid$Shape_Area, na.rm = TRUE))))) %>%
-  dplyr::mutate(area_percent = area_weight * 100)
-# currently in meters2 and needs to become km2 to be comparable
-# sum(stratum_info$area[stratum_info$SRVY == "EBS"], na.rm = TRUE) # TOLEDO - should I use this?? close, but not the same
-
-cold_pool_area <- table_raw %>%
-  dplyr::select(area_sum, area_percent, year, temp_mean, area_weight) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(area_sum = sum(area_sum),
-                   area_percent = sum(area_percent),
-                   temp_mean = sum(temp_mean * area_weight)) %>%
-  dplyr::mutate(area_sum = (area_sum*1e-11)) %>%
-  dplyr::mutate(label = "> 2°C") %>%
-  dplyr::mutate(year = NA) %>%
-  dplyr::mutate(bin = "(-Inf,2]") %>%
-  dplyr::mutate(area_weight = NA) %>%
-  dplyr::relocate(names(table_raw))
-
-table_raw <- rbind.data.frame(table_raw, cold_pool_area)
-
+    bin == "(1,2]" ~ "1 to 2°C")) %>% 
+    dplyr::filter(!is.na(bin)) %>%
+  dplyr::mutate(label = factor(label, 
+                               levels=c("1 to 2°C", "0 to 1°C", "-1 to 0°C", "> -1°C"), 
+                               ordered = TRUE))
 # Plot
-figure <- ggplot(table_raw %>% dplyr::filter(!is.na(year)),
-                 mapping = aes(x = year, y = area_percent, group = label)) +
-  geom_area(mapping = aes(fill=label)) +
+figure <- ggplot(table_raw, aes(x=year, y=perc, group=label, fill=label)) + 
+    geom_area() +
   # scale_fill_nmfs(palette = "secondary", discrete = TRUE) +
   scale_fill_viridis_d(direction = -1) +
   guides(fill=guide_legend(title="Percentage of\nEBS shelf area\n\n")) +
   # xlab("Year") +
-  scale_x_continuous(name = "Year",
-                     breaks = seq(from = min(temp$year), to = max(temp$year), by = 2)) +
+  scale_x_discrete(
+    name = "Year",
+                     breaks = seq(from = min(table_raw$year), 
+                                  to = max(table_raw$year), by = 2)) +
   ylab("Percent") +
   ylim(0, 100)  +
   #set legend position and vertical arrangement
@@ -1069,7 +1003,7 @@ temp0 <-
   dplyr::left_join(x = ., 
                    y = spp_info) %>% 
   # dplyr::mutate(fish = (species_code <= 31550)) %>%
-  dplyr::filter(fish == TRUE) %>% 
+  dplyr::filter(taxon == "fish") %>% 
   dplyr::select(species_code, report_name_scientific, all_of(SRVY1)) %>% 
   dplyr::left_join(x = .,
                    y = species0) %>%

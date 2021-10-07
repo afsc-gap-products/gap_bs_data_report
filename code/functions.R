@@ -74,6 +74,11 @@ PKG <- c(
   "raster", 
   "reshape", 
   "stars",
+  "grid", 
+  
+  # library(rasterVis)
+  # library(scales)
+  # library(ggthemes) # theme_map()
   
   
   # Time
@@ -650,3 +655,61 @@ plot_idw_xbyx <- function(
   
 }
 
+
+plot_temps_facet <- function(rasterbrick, key.title = "Temperature (°C)", reg_dat) {
+  
+  temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
+  temp_spdf <- as(temp, "SpatialPixelsDataFrame")
+  temp_df <- as.data.frame(temp_spdf)
+  temp1 <- gsub(pattern = "[A-Za-z]+", 
+                replacement = "", 
+                x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
+  temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+  colnames(temp_df) <- c(temp1, "x", "y")
+  temp_df <- temp_df %>% 
+    tidyr::pivot_longer(values_to = "value", 
+                        names_to = "year", 
+                        cols = temp1)
+  
+  figure <- ggplot() +
+    geom_tile(data=temp_df, aes(x=x, y=y, fill=value))  +
+    facet_wrap( ~ year, nrow = 2) +
+    coord_equal() + 
+    scale_fill_viridis_c(
+      option = "viridis", 
+      na.value = "transparent", 
+      limits = c(-2, 10),
+      breaks = seq(from = -4, to = 20, by = 2),
+      labels = seq(from = -4, to = 20, by = 2) ) + 
+    guides(fill=guide_colourbar(title=key.title, 
+                                title.position="top", 
+                                title.hjust = 0.5)) +
+    geom_sf(data = reg_dat$bathymetry, color = "grey50", size = 0.5) +
+    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    scale_x_continuous(name = "Longitude",
+                       breaks = reg_dat$lon.breaks) +
+    scale_y_continuous(name = "Latitude",
+                       breaks = reg_dat$lat.breaks) +
+    coord_sf(xlim = reg_dat$plot.boundary$x, 
+             ylim = reg_dat$plot.boundary$y) +
+    #set legend position and vertical arrangement
+    theme(
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      strip.background = element_blank(), 
+      legend.title = element_text(size = 15),
+      legend.text = element_text(size = 9),
+      legend.background = element_rect(colour = "transparent", fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      axis.text = element_blank(),
+      legend.position="bottom", 
+      legend.box.just = "left",
+      legend.key.width = unit(.5, "in"), 
+      legend.box = "horizontal"
+    )
+  return(figure)
+  
+}
