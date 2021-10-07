@@ -1343,7 +1343,7 @@ table_raw <- rbind.data.frame(biomass_maxyr, biomass_compareyr) %>%
                   !(grepl(pattern = " egg", x = common_name, fixed = T)) & 
                   !(grepl(pattern = " sp.", x = common_name, fixed = T)) & 
                   !(grepl(pattern = " unid.", x = common_name, fixed = T))) %>% 
-  dplyr::select(year, fish, invert, biomass, SRVY, species_code, common_name) %>% 
+  dplyr::select(year, taxon, biomass, SRVY, species_code, common_name) %>% 
   unique()  %>% 
   dplyr::left_join(
     x = ., 
@@ -1369,7 +1369,7 @@ table_raw <- table_raw %>%
                   pchange != 0) %>% 
   dplyr::arrange(-pchange, b_2017, common_name) %>% 
   dplyr::relocate(common_name, paste0("b_", compareyr), paste0("b_", maxyr), 
-                  pchange, fish, invert, SRVY, species_code, catcount)
+                  pchange, taxon, SRVY, species_code, catcount)
 
 table_raw1 <- table_raw
 
@@ -1391,11 +1391,11 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   temp$pchange <- paste0(round(temp$pchange, digits = 0), "%")
   
   temp1 <- temp %>% 
-    dplyr::filter(fish == TRUE) %>% 
-    dplyr::select(-fish, -invert) 
+    dplyr::filter(taxon == "fish") %>% 
+    dplyr::select(-taxon) 
   temp2 <- temp %>% 
-    dplyr::filter(invert == TRUE) %>% 
-    dplyr::select(-fish, -invert) 
+    dplyr::filter(taxon == "invert") %>% 
+    dplyr::select(-taxon) 
   
   # make the same length so they can be bound together
   if (nrow(temp1)>nrow(temp2)) {
@@ -1466,17 +1466,4 @@ list_tables[length(list_tables)][[1]]$res <- res <- paste0("
 
 ```
 
-# Results - spp
-
-```{r}
-for (jj in 1:nrow(report_spp)) {
-  cnt_chapt<-auto_counter(cnt_chapt)
-  cnt_chapt_content<-"001"
-  filename00<-paste0(cnt_chapt, "_figtab_spp_")
-  rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                    output_dir = dir_out_ref,
-                    output_file = paste0(filename00, cnt_chapt_content, "_Text_",
-                                         report_spp$file_name[jj],".docx"))
-}
-```
 

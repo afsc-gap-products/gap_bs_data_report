@@ -67,6 +67,7 @@ source('./code/functions.R')
 
 source('./code/data.R')
 
+
 # *** REPORT TITLE -------------------------------------------------------------
 report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY),
                        ' continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
@@ -91,6 +92,18 @@ if (FALSE) {
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
+  for (jj in 1:nrow(report_spp)) {
+    
+    print(paste0(jj, " of ", nrow(report_spp)))
+    
+    # cnt_chapt<-auto_counter(cnt_chapt)
+    # cnt_chapt_content<-"001"
+    filename00<-paste0(cnt_chapt, "_figtab_spp_")
+    rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
+                      output_dir = dir_out_ref,
+                      output_file = paste0(filename00, cnt_chapt_content, "_Text_",
+                                           report_spp$file_name[jj],".docx"))
+  }
   # SAVE OTHER OUTPUTS -----------------------------------------------------------
 
   save(list_figures,
@@ -100,6 +113,9 @@ if (FALSE) {
        file=paste0(dir_out_tables, "/report_tables.rdata"))
   
 }
+
+load(file = paste0(dir_out_tables, "/report_figures.rdata"))
+load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
 # *** *** 01 - Abstract ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)

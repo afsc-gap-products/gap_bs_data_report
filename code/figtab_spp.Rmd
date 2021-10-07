@@ -27,7 +27,7 @@ nickname0 <- paste0("fig_idw_bottemp_", spp_file, "_")
       dplyr::filter(!is.na(cpue_kgha)) %>% 
       dplyr::arrange(-year) %>% 
     dplyr::filter(common_name %in% spp_common & 
-                    year %in% unlist(temps_wt_avg_yr_abovebelow_plots))
+                    year %in% unlist(temps_avg_yr_abovebelow))
   
   # set.breaks <- quantile(table_raw0$cpue_kgha, probs = c(0, .25, .5, .75, .95))
   # set.breaks <- round(set.breaks, digits = ifelse(max(set.breaks)>100, 0, 1))
@@ -46,18 +46,17 @@ for (i in 1:2) { # two cases, above and below
   
   header <- paste0("Contour maps of ",spp_common," (*",spp_sci,
                    "*) distribution and relative abundance (kg/ha) from the ",
-                   NMFSReports::text_list(sort(temps_wt_avg_yr_abovebelow_plots[,case])),
+                   NMFSReports::text_list(sort(temps_avg_yr_abovebelow[,case])),
                    " Bering Sea shelf bottom trawl surveys, which were years when the survey mean bottom temperature was ",
                    case,
                    " the long-term stratum area-weighted mean.")
   nickname <- paste0(nickname0, case)
-  alttext <- paste0(header)
-  
+
   table_raw <- table_raw0 %>% 
-    dplyr::filter(year %in% temps_wt_avg_yr_abovebelow_plots[,case])
+    dplyr::filter(year %in% temps_avg_yr_abovebelow[,case])
   
   figure <- plot_idw_xbyx(
-    yrs = temps_wt_avg_yr_abovebelow_plots[,case],
+    yrs = temps_avg_yr_abovebelow[,case],
     dat = table_raw,
     cruises = cruises,
     lat = "latitude",
