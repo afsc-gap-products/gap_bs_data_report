@@ -85,7 +85,7 @@ report_yr <- maxyr
 # *** *** 00 - Figures and Tables ------------------------
 # - run figures and tables before each chapter so everything works smoothly
 if (FALSE) {
-  cnt_chapt<-auto_counter(cnt_chapt)
+  # cnt_chapt<-auto_counter(cnt_chapt)
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_figtab_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
@@ -165,8 +165,8 @@ rmarkdown::render(paste0(dir_code, "/05_results.Rmd"),
 # *** *** 06 - Results_spp ------------------------
 for (jj in 1:nrow(report_spp)) {
   
-  filename0<-paste0(cnt_chapt, "_Results_")
-  rmarkdown::render(paste0(dir.scripts, "/06_results_spp.Rmd"),
+  # filename0<-paste0(cnt_chapt, "_Results_")
+  rmarkdown::render(paste0(dir_code, "/06_results_spp.Rmd"),
                     output_dir = dir_out_chapters,
                     output_file = paste0(filename0, cnt_chapt_content, "_Text_",
                                          report_spp$file_name[jj],".docx"))

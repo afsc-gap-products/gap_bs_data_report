@@ -894,3 +894,30 @@ temps_avg_yr_abovebelow <-
   head(8) %>%
   unlist())
 
+temp <- coldpool:::ebs_bottom_temperature
+temp <- projectRaster(temp, crs = crs(reg_dat$akland))
+temp <- as(temp, "SpatialPixelsDataFrame")
+temp <- as.data.frame(temp)
+temp1 <- gsub(pattern = "[A-Za-z]+", 
+              replacement = "", 
+              x = names(temp[!(names(temp) %in% c("x", "y"))]))
+temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+colnames(temp) <- c(temp1, "latitude", "longitude")
+cold_pool_area <- temp %>% 
+  tidyr::pivot_longer(values_to = "value", 
+                      names_to = "year", 
+                      cols = temp1) %>% 
+  dplyr::mutate(bin = cut(x = value, 
+                          breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
+  dplyr::group_by(year, bin) %>%
+  dplyr::summarise(count(bin)) %>%
+  dplyr::mutate(perc = (freq/21299) * 100)  %>%
+  dplyr::mutate(label = dplyr::case_when(
+    bin == "(-Inf,-1]" ~ "> -1°C",
+    bin == "(-1,0]" ~ "-1 to 0°C",
+    bin == "(0,1]" ~ "0 to 1°C",
+    bin == "(1,2]" ~ "1 to 2°C")) %>% 
+  dplyr::filter(!is.na(bin)) %>%
+  dplyr::mutate(label = factor(label, 
+                               levels=c("1 to 2°C", "0 to 1°C", "-1 to 0°C", "> -1°C"), 
+                               ordered = TRUE))
