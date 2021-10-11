@@ -490,7 +490,7 @@ stratum_info <-
     by = "stratum") 
     
 
-# *** haul_cruises_vess_maxyr + _compareyr -------------------------------------
+# *** haul_cruises_vess_ + _maxyr + _compareyr -------------------------------------
 
 temp <- function(cruises_, haul_){
   haul_cruises_vess_ <- 
@@ -498,10 +498,12 @@ temp <- function(cruises_, haul_){
                        # dplyr::rename(start_date_cruise = start_date, 
                        #               end_date_cruise = end_date), 
                      y = haul_ %>% 
-                       dplyr::select(cruisejoin, #hauljoin, 
+                       dplyr::select(cruisejoin, hauljoin, stationid, stratum, haul, 
+                                     gear_depth, duration, distance_fished, net_width, net_height,
                                      #vessel, cruise,  #haul, 
-                                     stationid, start_time) %>% 
-                       dplyr::group_by(cruisejoin) %>% 
+                                     start_time) %>% 
+                       dplyr::group_by(cruisejoin, hauljoin, stationid, stratum, haul, 
+                                       gear_depth, duration, distance_fished, net_width, net_height) %>% 
                        dplyr::summarise(start_date_haul = min(start_time), 
                                         end_date_haul = max(start_time), 
                                         # cruisejoin = unique(cruisejoin),
@@ -517,6 +519,8 @@ temp <- function(cruises_, haul_){
     dplyr::mutate(length_m = round(length_ft/3.28084, 
                                    digits = 1)) 
 }
+
+haul_cruises_vess <- temp(cruises, haul) 
 
 haul_cruises_vess_maxyr <- temp(cruises_maxyr, haul_maxyr) 
 
@@ -581,22 +585,32 @@ temp <- function(haul_cruises_vess_){
   
 }
 
+haul_cruises <- temp(haul_cruises_vess_ = haul_cruises_vess) 
+
 haul_cruises_maxyr <- temp(haul_cruises_vess_ = haul_cruises_vess_maxyr) 
 
 haul_cruises_compareyr <- temp(haul_cruises_vess_compareyr) 
 
+# *** catch --------------------------------------------------------------------
+
+## assigns groups based on species code
+## 2 "other crab" groups because species codes 69010: 69200 are hermit crabs
+catch <-  catch0
+
+
 # *** catch_haul_cruises_maxyr + maxyr-1-----------------------------------------------
 
-temp <- function(cruises_, haul_){
+temp <- function(cruises_, haul_, catch){
   # This year's data
   catch_haul_cruises_<-
     dplyr::left_join(
-      x = haul_maxyr %>% 
-        dplyr::select(cruisejoin, hauljoin, stationid, stratum, 
+      x = haul_ %>% 
+        dplyr::select(cruisejoin, hauljoin, stationid, stratum, haul,
                       start_latitude, start_longitude, 
-                      bottom_depth, gear_temperature, surface_temperature), 
-      y = cruises_maxyr %>% 
-        dplyr::select(cruisejoin, survey_name, SRVY),  
+                      bottom_depth, gear_temperature, surface_temperature, 
+                      "duration", "distance_fished" ,"net_width" ,"net_measured", "net_height"), 
+      y = cruises_ %>% 
+        dplyr::select(cruisejoin, survey_name, SRVY, year),  
       by = c("cruisejoin")) %>% 
     dplyr::left_join(
       x= ., 
@@ -606,16 +620,18 @@ temp <- function(cruises_, haul_){
     #   by = c("cruisejoin")) %>% 
     # dplyr::left_join(
     #   x = ., 
-      y = catch0 %>% 
+      y = catch %>% 
         dplyr::select(cruisejoin, hauljoin,
                       species_code, weight,
                       number_fish, subsample_code), 
       by = c("hauljoin", "cruisejoin")) 
 }
 
-catch_haul_cruises_maxyr <- temp(cruises_maxyr, haul_maxyr)
+catch_haul_cruises <- temp(cruises, haul, catch)
 
-catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr)
+catch_haul_cruises_maxyr <- temp(cruises_maxyr, haul_maxyr, catch)
+
+catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr, catch)
 
 
 # *** spp_info + spp_info_maxyr ------------------------------------------------
@@ -633,7 +649,76 @@ spp_info <-
                    by = "species_code") %>% 
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert"))
+    species_code >= 40001 ~ "invert")) %>% 
+  dplyr::mutate(group = case_when(
+    species_code == 69323 ~ "blue king crab",
+    species_code == 21368 ~ "warty sculpin_Myoxocephalus@scorpius",
+    species_code == 10261 ~ "northern rock sole",
+    species_code == 10220 ~ "starry flounder",
+    species_code == 21110 ~ "Pacific herring",
+    species_code == 10140 ~ "Bering flounder",
+    species_code == 71884 ~ "Neptune whelk_Neptunea@heros",
+    species_code == 21371 ~ "plain sculpin",
+    species_code == 81742 ~ "purple-orange sea star",
+    species_code == 10285 ~ "Alaska plaice",
+    species_code == 471 ~ "Alaska skate",
+    species_code == 10210 ~ "yellowfin sole",
+    species_code == 69322 ~ "red king crab",
+    species_code == 21735 ~ "saffron cod",
+    species_code == 10120 ~ "Pacific halibut",
+    species_code == 68580 ~ "snow crab",
+    species_code == 21725 ~ "Arctic cod",
+    species_code == 21921 ~ "Atka mackeral",
+    species_code == 68560 ~ "Tanner crab",
+    species_code >= 66000 & species_code <= 67499 ~ "all shrimps_",
+    species_code >= 21740 & species_code <= 21741 ~ "walleye pollock",
+    species_code >= 21720 & species_code <= 21721 ~ "Pacific cod",
+    species_code >= 83020 & species_code <= 83022 ~ "basket starfish_Gorgonocephalus@eucnemis",
+    species_code >= 97000 & species_code <= 97120 ~ "brachiopods",
+    species_code >= 83000 & species_code <= 83701 ~ "brittle stars and sand dollars_",
+    species_code >= 82730 & species_code <= 82741 ~ "brittle stars and sand dollars_",
+    species_code >= 95000 & species_code <= 95199 ~ "byrozoans_Bryozoa",
+    species_code >= 70100 & species_code <= 70151 ~ "chitons",
+    species_code >= 74000 & species_code <= 75799 ~ "clams, mussels, scallops_Bivalvia",
+    species_code >= 41100 & species_code <= 41499 ~ "corals_Anthozoa",
+    species_code >= 44000 & species_code <= 44499 ~ "corals_Anthozoa",
+    species_code >= 44890 & species_code <= 44999 ~ "corals_Anthozoa",
+    species_code >= 24100 & species_code <= 24395 ~ "eelpouts_Zoarcidae",
+    species_code >= 99990 & species_code <= 99998 ~ "empty shells and debris",
+    species_code >= 69010 & species_code <= 69249 ~ "hermit crabs_Paguridae",
+    species_code >= 40060 & species_code <= 40999 ~ "jellyfishes_Scyphozoa",
+    species_code >= 22170 & species_code <= 22199 ~ "lumpsuckers",
+    species_code >= 78010 & species_code <= 78499 ~ "octopuses",
+    species_code >= 68000 & species_code <= 69009 ~ "other crabs_",
+    species_code >= 69201 & species_code <= 69549 ~ "other crabs_",
+    species_code >= 10000 & species_code <= 10399 ~ "other flatfishes_Pleuronectidae",
+    species_code >= 21300 & species_code <= 21499 ~ "other sculpins_Cottidae",
+    species_code >= 80000 & species_code <= 82499 ~ "other sea stars_Asteroidea",
+    species_code >= 71000 & species_code <= 73999 ~ "other snails_Gastropoda",
+    species_code >= 20000 & species_code <= 20099 ~ "poachers_Agonidae",
+    species_code >= 23800 & species_code <= 23870 ~ "pricklebacks_Stichaeidae",
+    species_code >= 23200 & species_code <= 23310 ~ "salmonids",
+    species_code >= 82730 & species_code <= 82740 ~ "sand dollar",
+    species_code >= 43000 & species_code <= 43999 ~ "sea anemones_Actiniaria",
+    species_code >= 85000 & species_code <= 85500 ~ "sea cucumbers_Holothuroidea",
+    species_code >= 82500 & species_code <= 82691 ~ "sea urchins_Strongylocentrotus@spp.",
+    species_code >= 23000 & species_code <= 23071 ~ "smelts_Osmeridae",
+    species_code >= 22200 & species_code <= 22299 ~ "snailfishes_Liparidae",
+    species_code >= 91000 & species_code <= 91999 ~ "sponges",
+    species_code >= 98000 & species_code <= 99909 ~ "tunicates_Urochordata",
+    species_code >= 50000 & species_code <= 59999 ~ "misc worms_",
+    species_code >= 92000 & species_code <= 97499 ~ "misc worms_",
+    species_code >= 20300 & species_code <= 20399 ~ "wolffishes",
+    species_code >= 21900 & species_code <= 21935 ~ "greenlings",
+    species_code >= 21752 & species_code <= 21753 ~ "sticklebacks",
+    species_code >= 40010 & species_code <= 40050 ~ "hydroids",
+    species_code >= 20200 & species_code <= 20204 ~ "sand lances",
+    species_code >= 78502 & species_code <= 79001 ~ "squids",
+    species_code >= 79020 & species_code <= 79513 ~ "squids",
+    species_code >= 82750 & species_code <= 82775 ~ "sea lilies",
+    species_code == 474 | 401 | 402 | 403 | 421 | 436 ~ "skate egg cases",
+    species_code == 1 ~ "fish eggs",
+    TRUE ~ "other"))
 
 spp_info$used_in_counts <- 
                   ifelse(spp_info$species_code %in% #10:99988, 
@@ -645,6 +730,17 @@ spp_info$used_in_counts <-
                                       col_out = "species_code"), 
                          TRUE, FALSE)  # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
 
+temp <- spp_info[(!grepl(pattern = "@", x = spp_info$group, fixed = T) &
+                    !grepl(pattern = "_", x = spp_info$group, fixed = T)),]
+for (i in 1:length(unique(temp$group))) {
+  temp1 <- unique(temp$species_name[temp$group == unique(temp$group)[i]])
+  temp1 <- unique(gsub(pattern = " (juvenile)", replacement = "", x = temp1, fixed = TRUE))
+  if (length(temp1) == 1) {
+    spp_info$group[spp_info$group == unique(temp$group)[i]] <- 
+      paste0(unique(temp$group)[i], "_",
+             gsub(pattern = " ", replacement = "@", x = temp1, fixed = TRUE))
+  } 
+}
 
 # species specifically caught in the survey year
 spp_info_maxyr <- spp_info %>% 
@@ -913,11 +1009,11 @@ cold_pool_area <- temp %>%
   dplyr::summarise(count(bin)) %>%
   dplyr::mutate(perc = (freq/21299) * 100)  %>%
   dplyr::mutate(label = dplyr::case_when(
-    bin == "(-Inf,-1]" ~ "> -1°C",
-    bin == "(-1,0]" ~ "-1 to 0°C",
-    bin == "(0,1]" ~ "0 to 1°C",
-    bin == "(1,2]" ~ "1 to 2°C")) %>% 
+    bin == "(-Inf,-1]" ~ "> -1\u00B0CC",
+    bin == "(-1,0]" ~ "-1 to 0\u00B0CC",
+    bin == "(0,1]" ~ "0 to 1\u00B0CC",
+    bin == "(1,2]" ~ "1 to 2\u00B0CC")) %>% 
   dplyr::filter(!is.na(bin)) %>%
   dplyr::mutate(label = factor(label, 
-                               levels=c("1 to 2°C", "0 to 1°C", "-1 to 0°C", "> -1°C"), 
+                               levels=c("1 to 2\u00B0CC", "0 to 1\u00B0CC", "-1 to 0\u00B0CC", "> -1\u00B0CC"), 
                                ordered = TRUE))

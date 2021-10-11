@@ -656,7 +656,11 @@ plot_idw_xbyx <- function(
 }
 
 
-plot_temps_facet <- function(rasterbrick, key.title = "Temperature (°C)", reg_dat) {
+plot_temps_facet <- function(rasterbrick, 
+                             key.title = "Temperature (°C)", 
+                             reg_dat, 
+                             colorbar_limits = c(-2, 10), 
+                             colorbar_breaks = seq(from = -4, to = 20, by = 2)) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -673,14 +677,15 @@ plot_temps_facet <- function(rasterbrick, key.title = "Temperature (°C)", reg_d
   
   figure <- ggplot() +
     geom_tile(data=temp_df, aes(x=x, y=y, fill=value))  +
-    facet_wrap( ~ year, nrow = 2) +
+    facet_wrap( ~ year, 
+                nrow = ifelse(length(unique(temp_df$year))>4, 1, 2)) +
     coord_equal() + 
     scale_fill_viridis_c(
       option = "viridis", 
       na.value = "transparent", 
-      limits = c(-2, 10),
-      breaks = seq(from = -4, to = 20, by = 2),
-      labels = seq(from = -4, to = 20, by = 2) ) + 
+      limits = colorbar_limits,
+      breaks = colorbar_breaks,
+      labels = colorbar_breaks) + 
     guides(fill=guide_colourbar(title=key.title, 
                                 title.position="top", 
                                 title.hjust = 0.5)) +

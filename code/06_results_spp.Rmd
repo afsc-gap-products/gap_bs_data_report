@@ -28,14 +28,12 @@ haul_maxyr_spp<-catch_haul_cruises_maxyr %>%
 
 haul_compareyr_spp<-catch_haul_cruises_compareyr %>% 
   dplyr::filter(species_code %in% spp_code)
-
 ```
 
+`r ifelse(refcontent, "## **EBS**", "")`
 
 ```{r}
 if (refcontent) {
-print("## **EBS**") 
-
 temp<-species_content(
   SURVEY000 = "eastern Bering Sea", 
   SRVY000 = "EBS", 
@@ -48,19 +46,17 @@ temp<-species_content(
   spp_code,
   maxyr, 
   compareyr)
-
-print(temp)
 }
 ```
 
+`r temp`
+
+`r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "## **NBS**", ""), "")`
 
 ```{r}
 if (refcontent) {
 
 if (SRVY %in% "NEBS") {
-  
-print(ifelse(SRVY %in% "NEBS", "## **NBS**", "")) 
-
 temp<-species_content(
   SURVEY000 = "northern Bering Sea", 
   SRVY000 = "NBS", 
@@ -73,18 +69,16 @@ temp<-species_content(
   spp_code,
   maxyr, 
   compareyr)
-
-print(temp)
 }
 }
 ```
 
+`r temp`
 
+`r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "## **NEBS**", ""), "")`
 
 ```{r}
 if (refcontent) {
-print(ifelse(SRVY %in% "NEBS", "## **NEBS**", "")) 
-
 temp<-species_content(
   SURVEY000 = SURVEY, 
   SRVY000 = SRVY, 
@@ -97,18 +91,15 @@ temp<-species_content(
   spp_code,
   maxyr, 
   compareyr)
-
-print(temp)
 }
 ```
 
+`r temp`
 
 ```{r}
-#text
-insert <- readtext(file = paste0(dir_out_rawdata, "/",spp_common,".docx"))
+insert <- readtext(file = paste0(dir_out_rawdata, "/",spp_file,".docx"))
+insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert$text)
 ```
-
-`r insert$text`
 
 `r list_figures[paste0("fig_idw_bottemp_", spp_file, "_above")]$res `
 
