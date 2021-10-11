@@ -11,7 +11,7 @@
 
 
 PKG <- c(#"dplyr", "tidyverse", "knitr", "kableExtra", "reshape",
-         "RODBC")
+  "RODBC")
 for (p in PKG) {
   if(!require(p,character.only = TRUE)) {  
     install.packages(p)
@@ -19,15 +19,35 @@ for (p in PKG) {
 }
 
 # This has a specific username and password because I DONT want people to have access to this!
-source("C:/Users/emily.markowitz/Documents/Projects/ConnectToOracle.R")
-# channel<-odbcConnect(dsn = "AFSC",
-#                      uid = "USERNAME", # change
-#                      pwd = "PASSWORD", #change
-#                      believeNRows = FALSE)
-# 
-# odbcGetInfo(channel)
+# source("C:/Users/emily.markowitz/Documents/Projects/ConnectToOracle.R")
+source("C:/Users/emily.markowitz/Work/Projects/ConnectToOracle.R")
 
+##################DOWNLOAD CPUE and BIOMASS EST##################################
 
+# EBS 
+
+a<-RODBC::sqlQuery(channel, "SELECT * FROM HAEHNR.biomass_ebs_plusnw_safe")
+write.csv(x=a, "./data/biomass_nbs_safe.csv")
+
+a<-RODBC::sqlQuery(channel, "SELECT * FROM HAEHNR.biomass_ebs_plusnw_grouped")
+write.csv(x=a, "./data/biomass_ebs_plusnw_grouped.csv")
+
+# a<-RODBC::sqlQuery(channel, "SELECT * FROM HAEHNR.cpue_nbs")
+# write.csv(x=a, "./data/cpue_nbs.csv")
+
+a<-RODBC::sqlQuery(channel, "SELECT * FROM HAEHNR.sizecomp_ebs_plusnw_stratum")
+write.csv(x=a, "./data/sizecomp_ebs_plusnw_stratum.csv")
+
+# NBS 
+
+a<-RODBC::sqlQuery(channel, "SELECT * FROM HAEHNR.biomass_nbs_safe")
+write.csv(x=a, "./data/biomass_nbs_safe.csv")
+
+a<-RODBC::sqlQuery(channel, "SELECT * FROM HAEHNR.cpue_nbs")
+write.csv(x=a, "./data/cpue_nbs.csv")
+
+a<-RODBC::sqlQuery(channel, "SELECT * FROM HAEHNR.sizecomp_nbs_stratum")
+write.csv(x=a, "./data/sizecomp_nbs_stratum.csv")
 
 ##################DOWNLOAD TABLES##################################
 
@@ -97,5 +117,4 @@ write.csv(x=a, "./data/specimen_ADFG.csv")
 #           exdir = paste0("./data/"))
 #   }
 # }
-
 

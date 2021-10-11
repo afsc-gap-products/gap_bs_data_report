@@ -751,7 +751,7 @@ spp_info_maxyr <- spp_info %>%
 
 # *** report_spp ---------------------------------------------------------------
 
-report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species_local_names.csv"), 
+report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
                               skip = 1) %>% 
   dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", x = report_title), "datar_", "community_"))))
 
