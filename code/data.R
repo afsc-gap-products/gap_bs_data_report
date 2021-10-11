@@ -347,13 +347,16 @@ stratum_info <- stratum0 %>%
     depth %in% "<50" ~ "Inner Shelf", 
     depth %in% c("50-100", ">50") ~ "Middle Shelf", 
     depth %in% c("100-200", ">100") ~ "Outer Shelf"
-  )) 
+  )) %>% 
+  dplyr::mutate(area_km2 = area, 
+                area_ha = area/100, 
+                area_nmi2 = area/3.429904)
 
   return(stratum_info)
 
 }
 
-stratum_info <- temp(maxyr)
+stratum_info <- temp(yr = maxyr)
 
 #G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
 # ## year = 2019 is most up to date- not updated every year

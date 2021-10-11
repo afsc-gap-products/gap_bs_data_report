@@ -94,21 +94,26 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 ## EBS Sampling Logistics and Stratification Scheme
 
 ```{r}
-
-# 4 options
-# 1. vessels started and ended on different dates
-# 2. vessels started and ended on the same dates
-# 3. vessels started on the same dates and ended on different dates
-# 4. vessels started on different dates and ended on the same dates
-# and this can be different for EBS vs NBS 
-
 date_format<- "%B %d, %Y"
 str <- c()
 
-for (i in 1:length(unique(cruises_maxyr$SRVY))){
+for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
   
-  srvy <- unique(cruises_maxyr$SRVY)[i]
-  cruises_maxyr0  <- cruises_maxyr[cruises_maxyr$SRVY == srvy, ]
+  srvy <- unique(haul_cruises_vess_maxyr$SRVY)[i]
+  cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
+    dplyr::filter(SRVY == srvy) %>% 
+    dplyr::select("year", "survey_name", "vessel", "vessel_name", 
+                  "vessel_ital", "SRVY", "SRVY_long", 
+                  "start_date_cruise", "end_date_cruise", 
+                  "start_date_haul", "end_date_haul") %>% 
+    unique() %>% 
+    group_by(year, survey_name, vessel, vessel_name, 
+             vessel_ital, SRVY, SRVY_long) %>% 
+    dplyr::summarise(start_date_cruise = min(start_date_cruise), 
+                     end_date_cruise = max(end_date_cruise), 
+                     start_date_haul = min(start_date_haul), 
+                     end_date_haul = max(end_date_haul))
+  
   temp <- "" # paste0("of the ", srvy, ", which ")
   
   if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
@@ -135,7 +140,7 @@ for (i in 1:length(unique(cruises_maxyr$SRVY))){
                    format(unique(cruises_maxyr0$end_date_haul), format = date_format))
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
-             length(unique(cruises_maxyr0$start_date_haul)) != 1) {
+             length(unique(cruises_maxyr0$end_date_haul)) != 1) {
     # 3. vessels started on the same dates and ended on different dates
     temp <- paste0(temp, "in the survey started for ", 
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
