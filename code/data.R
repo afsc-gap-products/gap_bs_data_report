@@ -201,6 +201,10 @@ if (googledrive_dl) {
 # *** Load Oracle Data -------------------------------------------------------------
 
 a<-list.files(path = here::here("data", "oracle"))
+a <- a[!(grepl(pattern = "biomass_", x = a)) & 
+         !(grepl(pattern = "cpue_", x = a)) & 
+         !(grepl(pattern = "sizecomp_", x = a)) & 
+         !(grepl(pattern = "_ADFG", x = a))]
 for (i in 1:length(a)){
   b <- read_csv(file = paste0(here::here("data", "oracle", a[i])))
   b <- janitor::clean_names(b)
@@ -307,7 +311,7 @@ for (ii in 1:length(SRVY1)) {
   # }
   
   a<-list.files(path = paste0(dir_data, "/oracle/"), 
-                pattern = paste0("biomass_", tolower(SRVY1[ii])), 
+                pattern = paste0("cpue_", tolower(SRVY1[ii])), 
                 full.names = TRUE)
   
   for (i in 1:length(a)){
@@ -418,7 +422,7 @@ station_info <- stations0 %>%
 
 # *** cruises + maxyr  + compareyr -----------------------------------------------
 
-cruises <- cruises0 %>% 
+cruises <- cruises_v0 %>% 
   dplyr::select(cruise_id,  year, survey_name, vessel_id, cruise, survey_definition_id, 
                 vessel_name, start_date, end_date, cruisejoin) %>% 
   dplyr::filter(year != 2020 & # no surveys happened this year that I care about
