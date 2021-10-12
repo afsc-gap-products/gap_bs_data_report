@@ -29,6 +29,7 @@ PKG <- c(
   "cowplot",
   "png",
   "extrafont",
+  "ggpubr",
   "nmfspalette",  # devtools::install_github("nmfs-general-modeling-tools/nmfspalette")
   
   # Text

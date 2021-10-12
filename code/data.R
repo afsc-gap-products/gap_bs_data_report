@@ -250,7 +250,8 @@ for (ii in 1:length(SRVY1)) {
 }
 
 biomass <- SameColNames(df.ls)  %>%
-  dplyr::filter(year <= maxyr) %>% 
+  dplyr::filter(year <= maxyr &
+                  stratum == 999) %>% 
   dplyr::rename(SRVY = survey) %>% 
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
@@ -287,14 +288,12 @@ for (ii in 1:length(SRVY1)) {
 }
 
 sizecomp <- SameColNames(df.ls)  %>%
-  dplyr::filter(year <= maxyr) %>% 
+  dplyr::filter(year <= maxyr & 
+                  stratum == 999999) %>% 
   dplyr::rename(SRVY = survey) %>% 
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert"))
-
-# put length in cm, not mm
-sizecomp <- sizecomp %>%
+    species_code >= 40001 ~ "invert")) %>%
   dplyr::mutate(length = length/10)
 
 sizecomp_maxyr<-sizecomp %>% 
