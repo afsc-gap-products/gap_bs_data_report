@@ -595,8 +595,8 @@ plot_idw_xbyx <- function(
       out.crs = as.character(crs(reg_dat$bathymetry)),
       extrap.box = extrap.box, 
       set.breaks = set.breaks,
-      grid.cell = c(ifelse(workfaster, 0.8, 0.02), 
-                    ifelse(workfaster, 0.8, 0.02)), # 0.2x0.2 degree grid cells
+      grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
+                    ifelse(workfaster, 1.5, 0.02)), # 0.2x0.2 degree grid cells
       key.title = key.title)
     
     temp0 <- temp0[grid][[1]]  

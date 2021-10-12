@@ -174,10 +174,10 @@ if (googledrive_dl) {
   
   # Species Covered
   # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
-    googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"), 
-                                type = "csv", 
-                                overwrite = TRUE, 
-                                path = paste0(dir_out_rawdata, "/species_local_names"))
+    googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
+                                type = "csv",
+                                overwrite = TRUE,
+                                path = paste0(dir_out_rawdata, "/0_species_local_names"))
 
   # Spreadsheets
   a <- googledrive::drive_ls(path = id_googledrive, type = "spreadsheet")
@@ -292,6 +292,10 @@ sizecomp <- SameColNames(df.ls)  %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert"))
+
+# put length in cm, not mm
+sizecomp <- sizecomp %>%
+  dplyr::mutate(length = length/10)
 
 sizecomp_maxyr<-sizecomp %>% 
   dplyr::filter(year == maxyr)
@@ -1049,13 +1053,13 @@ cold_pool_area <- temp %>%
                           breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
   dplyr::group_by(year, bin) %>%
   dplyr::summarise(count(bin)) %>%
-  dplyr::mutate(perc = (freq/21299) * 100)  %>%
+  dplyr::mutate(perc = (freq/length(temp$`1982`)) * 100)  %>% # length(temp$`1982`) = 21299 is the number of cells and shouldnt change?
   dplyr::mutate(label = dplyr::case_when(
-    bin == "(-Inf,-1]" ~ "> -1\u00B0CC",
-    bin == "(-1,0]" ~ "-1 to 0\u00B0CC",
-    bin == "(0,1]" ~ "0 to 1\u00B0CC",
-    bin == "(1,2]" ~ "1 to 2\u00B0CC")) %>% 
+    bin == "(-Inf,-1]" ~ "> -1\u00B0C",
+    bin == "(-1,0]" ~ "-1 to 0\u00B0C",
+    bin == "(0,1]" ~ "0 to 1\u00B0C",
+    bin == "(1,2]" ~ "1 to 2\u00B0C")) %>% 
   dplyr::filter(!is.na(bin)) %>%
   dplyr::mutate(label = factor(label, 
-                               levels=c("1 to 2\u00B0CC", "0 to 1\u00B0CC", "-1 to 0\u00B0CC", "> -1\u00B0CC"), 
+                               levels=c("1 to 2\u00B0C", "0 to 1\u00B0C", "-1 to 0\u00B0C", "> -1\u00B0C"), 
                                ordered = TRUE))

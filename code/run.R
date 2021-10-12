@@ -14,7 +14,7 @@ report_title <- "Data Report" # Fake until I get a better idea of how to automae
 
 workfaster <- TRUE # an attempt to satisfy limited patience
 refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
-googledrive_dl <- FALSE # redownload google drive tables and docs?
+googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 usePNGPDF <- "png"
 
