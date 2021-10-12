@@ -422,7 +422,7 @@ station_info <- stations0 %>%
 
 # *** cruises + maxyr  + compareyr -----------------------------------------------
 
-cruises <- cruises_v0 %>% 
+cruises <- v_cruises0 %>% 
   dplyr::select(cruise_id,  year, survey_name, vessel_id, cruise, survey_definition_id, 
                 vessel_name, start_date, end_date, cruisejoin) %>% 
   dplyr::filter(year != 2020 & # no surveys happened this year that I care about
