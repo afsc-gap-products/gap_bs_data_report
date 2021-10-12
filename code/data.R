@@ -1053,6 +1053,7 @@ cold_pool_area <- temp %>%
                           breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
   dplyr::group_by(year, bin) %>%
   dplyr::summarise(count(bin)) %>%
+  dplyr::filter(year <= maxyr) %>%
   dplyr::mutate(perc = (freq/length(temp$`1982`)) * 100)  %>% # length(temp$`1982`) = 21299 is the number of cells and shouldnt change?
   dplyr::mutate(label = dplyr::case_when(
     bin == "(-Inf,-1]" ~ "> -1\u00B0C",
