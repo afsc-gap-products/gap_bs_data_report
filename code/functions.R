@@ -563,6 +563,13 @@ plot_idw_xbyx <- function(
   SRVY, 
   col_viridis = "viridis"){
   
+  if(set.breaks =="auto"){
+  set.breaks <- quantile(as.numeric(unlist(dat[dat$year %in% yrs,var])), probs = c(0, .95))
+  set.breaks <- plyr::round_any(x = set.breaks, 
+                                accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
+                                f = ceiling)
+  set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
+  }
   # Select data and make plot
   for (ii in ifelse(workfaster,2,length(yrs)):1) {
     
@@ -588,8 +595,8 @@ plot_idw_xbyx <- function(
       out.crs = as.character(crs(reg_dat$bathymetry)),
       extrap.box = extrap.box, 
       set.breaks = set.breaks,
-      grid.cell = c(ifelse(workfaster, 0.1, 0.02), 
-                    ifelse(workfaster, 0.1, 0.02)), # 0.2x0.2 degree grid cells
+      grid.cell = c(ifelse(workfaster, 0.8, 0.02), 
+                    ifelse(workfaster, 0.8, 0.02)), # 0.2x0.2 degree grid cells
       key.title = key.title)
     
     temp0 <- temp0[grid][[1]]  
@@ -678,7 +685,7 @@ plot_temps_facet <- function(rasterbrick,
   figure <- ggplot() +
     geom_tile(data=temp_df, aes(x=x, y=y, fill=value))  +
     facet_wrap( ~ year, 
-                nrow = ifelse(length(unique(temp_df$year))>4, 1, 2)) +
+                nrow = ifelse(length(names(rasterbrick))>=4, 2, 1)) +
     coord_equal() + 
     scale_fill_viridis_c(
       option = "viridis", 

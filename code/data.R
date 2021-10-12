@@ -217,26 +217,20 @@ for (i in 1:length(a)){
 
 # *** Load Biomass Design Based Estimates ----------------------------------------------
 
-# df.ls <- list()
-# df.ls0 <- gsub(pattern = , ".csv", replacement = "",
-#          x = a[grep(pattern = "biomass_", x = a)])
-# for (i in 1:length(df.ls0)){
-#   df.ls$temp <- get(df.ls0[i])
-#   df.ls$temp$file <- df.ls0[i]
-#   df.ls$temp$SRVY <- toupper(strsplit(x = df.ls0[i], split = "_")[[1]][2])
-#   names(df.ls)[i] <- df.ls0[i]
-# }
-
 df.ls<-list()
 
 for (ii in 1:length(SRVY1)) {
   
-  a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "biomass"), 
-                pattern = ".csv", 
+  # a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "biomass"), 
+  #               pattern = ".csv", 
+  #               full.names = TRUE)
+  # if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
+  #   a <- a[grep(pattern = "_plusnw", x = a)]
+  # }
+  
+  a<-list.files(path = paste0(dir_data, "/oracle/"), 
+                pattern = paste0("biomass_", tolower(SRVY1[ii])), 
                 full.names = TRUE)
-  if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
-    a <- a[grep(pattern = "_plusnw", x = a)]
-  }
   
   for (i in 1:length(a)){
     b <- read_csv(file = a[i])
@@ -264,16 +258,57 @@ biomass_maxyr<-biomass %>%
 biomass_compareyr<-biomass %>% 
   dplyr::filter(year == compareyr[1])
 
+
+# *** Load Size Comp Design Based Estimates ----------------------------------------------
+
+df.ls<-list()
+
+for (ii in 1:length(SRVY1)) {
+  
+  a<-list.files(path = paste0(dir_data, "/oracle/"), 
+                pattern = paste0("sizecomp_", tolower(SRVY1[ii])), 
+                full.names = TRUE)
+  
+  for (i in 1:length(a)){
+    b <- read_csv(file = a[i])
+    b <- janitor::clean_names(b)
+    if (names(b)[1] %in% "x1"){
+      b$x1<-NULL
+    }
+    b$file <- a[i]
+    b$survey <- SRVY1[ii]
+    df.ls[[i]]<-b
+    names(df.ls)[i]<-a[i]
+  }
+}
+
+sizecomp <- SameColNames(df.ls)  %>%
+  dplyr::filter(year <= maxyr) %>% 
+  dplyr::rename(SRVY = survey) %>% 
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert"))
+
+sizecomp_maxyr<-sizecomp %>% 
+  dplyr::filter(year == maxyr)
+
+sizecomp_compareyr<-sizecomp %>% 
+  dplyr::filter(year == compareyr[1])
+
 # *** Load CPUE Design Based Estimates ----------------------------------------------
 
 df.ls<-list()
 
 for (ii in 1:length(SRVY1)) {
   
-  a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
-  if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
-    a <- a[grep(pattern = "_plusnw", x = a)]
-  }
+  # a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
+  # if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
+  #   a <- a[grep(pattern = "_plusnw", x = a)]
+  # }
+  
+  a<-list.files(path = paste0(dir_data, "/oracle/"), 
+                pattern = paste0("biomass_", tolower(SRVY1[ii])), 
+                full.names = TRUE)
   
   for (i in 1:length(a)){
     b <- read_csv(file = a[i])
