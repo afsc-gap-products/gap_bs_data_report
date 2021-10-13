@@ -223,36 +223,36 @@ for (i in 1:length(a)){
 
 df.ls<-list()
 
-for (ii in 1:length(SRVY1)) {
-  
-  # a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "biomass"), 
-  #               pattern = ".csv", 
-  #               full.names = TRUE)
-  # if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
-  #   a <- a[grep(pattern = "_plusnw", x = a)]
-  # }
-  
-  a<-list.files(path = paste0(dir_data, "/oracle/"), 
-                pattern = paste0("biomass_", tolower(SRVY1[ii])), 
-                full.names = TRUE)
-  
-  for (i in 1:length(a)){
-    b <- read_csv(file = a[i])
-    b <- janitor::clean_names(b)
-    if (names(b)[1] %in% "x1"){
-      b$x1<-NULL
-    }
-    b$file <- a[i]
-    b$survey <- SRVY1[ii]
-    df.ls[[i]]<-b
-    names(df.ls)[i]<-a[i]
+# for (ii in 1:length(SRVY1)) {
+
+# a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "biomass"), 
+#               pattern = ".csv", 
+#               full.names = TRUE)
+# if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
+#   a <- a[grep(pattern = "_plusnw", x = a)]
+# }
+
+a<-list.files(path = paste0(dir_data, "/oracle/"), 
+              pattern = paste0("biomass_"), 
+              full.names = TRUE)
+
+for (i in 1:length(a)){
+  b <- read_csv(file = a[i])
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
   }
+  b$file <- a[i]
+  b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
 }
+# }
 
 biomass <- SameColNames(df.ls)  %>%
   dplyr::filter(year <= maxyr &
                   stratum == 999) %>% 
-  dplyr::rename(SRVY = survey) %>% 
+  dplyr::rename(SRVY = survey) %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert"))
@@ -268,10 +268,10 @@ biomass_compareyr<-biomass %>%
 
 df.ls<-list()
 
-for (ii in 1:length(SRVY1)) {
+# for (ii in 1:length(SRVY1)) {
   
   a<-list.files(path = paste0(dir_data, "/oracle/"), 
-                pattern = paste0("sizecomp_", tolower(SRVY1[ii])), 
+                pattern = paste0("sizecomp_"), 
                 full.names = TRUE)
   
   for (i in 1:length(a)){
@@ -281,11 +281,11 @@ for (ii in 1:length(SRVY1)) {
       b$x1<-NULL
     }
     b$file <- a[i]
-    b$survey <- SRVY1[ii]
+    b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
     df.ls[[i]]<-b
     names(df.ls)[i]<-a[i]
   }
-}
+# }
 
 sizecomp <- SameColNames(df.ls)  %>%
   dplyr::filter(year <= maxyr & 
@@ -306,7 +306,7 @@ sizecomp_compareyr<-sizecomp %>%
 
 df.ls<-list()
 
-for (ii in 1:length(SRVY1)) {
+# for (ii in 1:length(SRVY1)) {
   
   # a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
   # if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
@@ -314,7 +314,7 @@ for (ii in 1:length(SRVY1)) {
   # }
   
   a<-list.files(path = paste0(dir_data, "/oracle/"), 
-                pattern = paste0("cpue_", tolower(SRVY1[ii])), 
+                pattern = paste0("cpue_"), 
                 full.names = TRUE)
   
   for (i in 1:length(a)){
@@ -324,11 +324,12 @@ for (ii in 1:length(SRVY1)) {
       b$x1<-NULL
     }
     b$file <- a[i]
-    b$survey <- SRVY1[ii]
+    temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
+    b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
     df.ls[[i]]<-b
     names(df.ls)[i]<-a[i]
   }
-}
+# }
 
 cpue <- SameColNames(df.ls)  %>%
   dplyr::rename(SRVY = survey) %>% 
