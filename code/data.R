@@ -714,7 +714,7 @@ spp_info <-
     species_code == 10120 ~ "Pacific halibut",
     species_code == 68580 ~ "snow crab",
     species_code == 21725 ~ "Arctic cod",
-    species_code == 21921 ~ "Atka mackeral",
+    species_code == 21921 ~ "Atka mackerel",
     species_code == 68560 ~ "Tanner crab",
     species_code >= 66000 & species_code <= 67499 ~ "all shrimps_",
     species_code >= 21740 & species_code <= 21741 ~ "walleye pollock",

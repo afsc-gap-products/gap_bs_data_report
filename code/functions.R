@@ -565,11 +565,11 @@ plot_idw_xbyx <- function(
   col_viridis = "viridis"){
   
   if(set.breaks =="auto"){
-  set.breaks <- quantile(as.numeric(unlist(dat[dat$year %in% yrs,var])), probs = c(0, .95))
-  set.breaks <- plyr::round_any(x = set.breaks, 
-                                accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
-                                f = ceiling)
-  set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
+    set.breaks <- quantile(as.numeric(unlist(dat[dat$year %in% yrs,var])), probs = c(0, .95))
+    set.breaks <- plyr::round_any(x = set.breaks, 
+                                  accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
+                                  f = ceiling)
+    set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
   }
   # Select data and make plot
   for (ii in ifelse(workfaster,2,length(yrs)):1) {
@@ -626,9 +626,9 @@ plot_idw_xbyx <- function(
     coord_equal() + 
     scale_fill_viridis_c(option = col_viridis, 
                          limits = range(set.breaks),
-      na.value = "transparent", 
-      breaks = set.breaks,
-      labels = set.breaks) + 
+                         na.value = "transparent", 
+                         breaks = set.breaks,
+                         labels = set.breaks) + 
     guides(fill=guide_colourbar(title=key.title, 
                                 title.position="top", 
                                 title.hjust = 0.5)) +
