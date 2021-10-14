@@ -174,15 +174,15 @@ if (googledrive_dl) {
   
   # Species Covered
   # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
-    googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
-                                type = "csv",
-                                overwrite = TRUE,
-                                path = paste0(dir_out_rawdata, "/0_species_local_names"))
+    # googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
+    #                             type = "csv",
+    #                             overwrite = TRUE,
+    #                             path = paste0(dir_out_rawdata, "/0_species_local_names"))
 
   # Spreadsheets
   a <- googledrive::drive_ls(path = id_googledrive, type = "spreadsheet")
   for (i in 1:nrow(a)){
-    googledrive::drive_download(file = a$id[i], 
+    googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
                                 type = "csv", 
                                 overwrite = TRUE, 
                                 path = paste0(dir_out_rawdata, "/", a$name[i]))
@@ -191,7 +191,7 @@ if (googledrive_dl) {
   # Word documents
   a <- googledrive::drive_ls(path = id_googledrive, type = "document")
   for (i in 1:nrow(a)){
-    googledrive::drive_download(file = a$id[i], 
+    googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
                                 type = "docx", 
                                 overwrite = TRUE, 
                                 path = paste0(dir_out_rawdata, "/", a$name[i]))
