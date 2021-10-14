@@ -602,14 +602,14 @@ plot_idw_xbyx <- function(
   for (ii in ifelse(workfaster,2,length(yrs)):1) {
     
     region <- "bs.south"
-    # if (SRVY == "NEBS"){
-    #   temp1 <- cruises %>%
-    #     dplyr::filter(year %in% yrs[ii]) %>%
-    #     dplyr::select(SRVY) %>%
-    #     unlist() %>%
-    #     unique()
-    #   region <- ifelse(sum(temp1 %in% "NBS")>0, "bs.all", "bs.south")
-    # }
+    if (SRVY == "NEBS"){
+      temp1 <- cruises %>%
+        dplyr::filter(year %in% yrs[ii]) %>%
+        dplyr::select(SRVY) %>%
+        unlist() %>%
+        unique()
+      region <- ifelse(sum(temp1 %in% "NBS")>0, "bs.all", "bs.south")
+    }
     
     temp <- dat %>%
       dplyr::filter(year == yrs[ii]) 
@@ -699,7 +699,7 @@ plot_idw_xbyx <- function(
                                   colour = "grey20"), 
       strip.background = element_blank(), 
       strip.text = element_text(size = 12, face = "bold"),
-      legend.title = element_text(size = 15), 
+      legend.title = element_text(size = 12), 
       legend.text = element_text(size = 9),
       legend.background = element_rect(colour = "transparent", fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
