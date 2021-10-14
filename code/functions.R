@@ -556,7 +556,7 @@ plot_idw_xbyx <- function(
   lon,
   var,
   key.title, 
-  grid,
+  grid = "extrapolation.grid",
   extrap.box, 
   set.breaks = "jenks", #seq(from = -2, to = 20, by = 2),
   workfaster = FALSE, 
@@ -564,13 +564,40 @@ plot_idw_xbyx <- function(
   SRVY, 
   col_viridis = "viridis"){
   
+  yrs <- as.numeric(sort(x = yrs, decreasing = T))
+  
   if(set.breaks =="auto"){
-    set.breaks <- quantile(as.numeric(unlist(dat[dat$year %in% yrs,var])), probs = c(0, .95))
-    set.breaks <- plyr::round_any(x = set.breaks, 
-                                  accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
-                                  f = ceiling)
-    set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
+    
+    set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var])), 
+                                            n = 5, style = "jenks")$brks
+    set.breaks <- c()
+    for (i in 1:length(set.breaks0)) {
+      if (i == length(set.breaks0)) {
+        set.breaks<-c(set.breaks, round(set.breaks0[i], digits = 0))
+      } else if (i == 1) {
+        set.breaks<-c(set.breaks, 0)
+      } else {    
+        set.breaks <- c(set.breaks, 
+                        plyr::round_any(x = set.breaks0[i], 
+                                        accuracy = ifelse(max(set.breaks0[i])>300, 100, 
+                                                          ifelse(max(set.breaks0[i])>100, 50, 
+                                                                 ifelse(max(set.breaks0[i])>20, 10, 
+                                                                        ifelse(max(set.breaks0[i])>10, 
+                                                                               round(set.breaks0[i], digits = 0), 
+                                                                               round(set.breaks0[i], digits = 1))))),
+                                        f = ceiling))    
+      }
+    }
+    set.breaks <- unique(set.breaks)
   }
+  # if(set.breaks =="auto"){
+  #   set.breaks <- quantile(as.numeric(unlist(dat[dat$year %in% yrs,var])), probs = c(0, .95))
+  #   set.breaks <- plyr::round_any(x = set.breaks, 
+  #                                 accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
+  #                                 f = ceiling)
+  #   set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
+  # }
+  
   # Select data and make plot
   for (ii in ifelse(workfaster,2,length(yrs)):1) {
     
@@ -587,7 +614,7 @@ plot_idw_xbyx <- function(
     temp <- dat %>%
       dplyr::filter(year == yrs[ii]) 
     
-    temp0 <- akgfmaps::make_idw_map(
+    temp1 <- akgfmaps::make_idw_map(
       LATITUDE = as.numeric(unlist(temp[,lat])),
       LONGITUDE = as.numeric(unlist(temp[,lon])),
       CPUE_KGHA = as.numeric(unlist(temp[,var])),
@@ -600,7 +627,7 @@ plot_idw_xbyx <- function(
                     ifelse(workfaster, 1.5, 0.02)), # 0.2x0.2 degree grid cells
       key.title = key.title)
     
-    temp0 <- temp0[grid][[1]]  
+    temp0 <- temp1[grid][[1]]  
     
     if (ii == ifelse(workfaster,2,length(yrs))) {
       stars_list <- temp0
@@ -621,25 +648,49 @@ plot_idw_xbyx <- function(
   names(stars_list) = "value"
   
   figure <- ggplot() +
+    # geom_sf(data = reg_dat$survey.area, color = "grey20", fill = NA, size = 0.5) +
     geom_stars(data = stars_list) +
     facet_wrap( ~ new_dim, nrow = nrow) +
-    coord_equal() + 
-    scale_fill_viridis_c(option = col_viridis, 
-                         limits = range(set.breaks),
-                         na.value = "transparent", 
-                         breaks = set.breaks,
-                         labels = set.breaks) + 
-    guides(fill=guide_colourbar(title=key.title, 
-                                title.position="top", 
-                                title.hjust = 0.5)) +
-    geom_sf(data = reg_dat$bathymetry, color = "grey50", size = 0.5) +
+    coord_equal() +
     geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
     scale_x_continuous(name = "Longitude",
                        breaks = reg_dat$lon.breaks) +
     scale_y_continuous(name = "Latitude",
                        breaks = reg_dat$lat.breaks) +
     coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y) +
+             ylim = reg_dat$plot.boundary$y)
+  
+  if (grid == "continuous.grid") {
+    figure <- figure + 
+      scale_fill_viridis_c(option = col_viridis, 
+                           #limits = range(set.breaks),
+                           na.value = "transparent", 
+                           breaks = set.breaks,
+                           labels = set.breaks)  + 
+      guides(fill=guide_colourbar(title=key.title, 
+                                  title.position="top", 
+                                  title.hjust = 0.5))
+    
+  } else if (grid == "extrapolation.grid") {
+    # temp <- factor(x = temp0$var1.pred, levels = levels(temp0$var1.pred), labels = levels(temp0$var1.pred), ordered = T)
+    figure <- figure +
+      scale_fill_manual(
+        values=c("gray90", 
+                 viridis::mako(
+                   direction = -1, 
+                   n = temp1$n.breaks,
+                   begin = 0,
+                   end = 0.80)), 
+        name = key.title,
+        levels(temp0$var1.pred), 
+        levels(temp0$var1.pred))      
+  }
+  
+  figure <- figure +
+    guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+      fill = guide_legend(title.position="top", 
+                          label.position = "bottom",
+                          title.hjust = 0.5, nrow = 1)) +
     #set legend position and vertical arrangement
     theme(
       panel.background = element_rect(fill = "white", 
@@ -647,7 +698,8 @@ plot_idw_xbyx <- function(
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
       strip.background = element_blank(), 
-      legend.title = element_text(size = 15),
+      strip.text = element_text(size = 12, face = "bold"),
+      legend.title = element_text(size = 15), 
       legend.text = element_text(size = 9),
       legend.background = element_rect(colour = "transparent", fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
@@ -662,6 +714,7 @@ plot_idw_xbyx <- function(
   return(figure)
   
 }
+
 
 
 plot_temps_facet <- function(rasterbrick, 
@@ -712,6 +765,7 @@ plot_temps_facet <- function(rasterbrick,
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
       strip.background = element_blank(), 
+      strip.text = element_text(size = 12, face = "bold"),
       legend.title = element_text(size = 15),
       legend.text = element_text(size = 9),
       legend.background = element_rect(colour = "transparent", fill = "transparent"),
