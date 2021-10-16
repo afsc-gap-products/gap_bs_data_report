@@ -529,6 +529,11 @@ species_content <- function(SURVEY000,
 
 # Plotting ----------------------------
 
+
+# https://coolbutuseless.github.io/package/ggpattern/
+# https://github.com/trevorld/gridpattern
+
+
 #' Plot IDW maps in x by x facet_wraps
 #'
 #' @param yrs The years, as a vector, that subplots should be created for
@@ -725,12 +730,113 @@ plot_idw_xbyx <- function(
 #' @param colorbar_breaks numeric vector of breaks to use for temperature plots
 #' @param viridi_palette_option Viridis palette option passed to viridis::viridis_pal(). Default = "H" (turbo)
 #' @export
-
 plot_temps_facet <- function(rasterbrick, 
                              key.title = "Temperature (°C)", 
                              reg_dat, 
                              colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
                              viridis_palette_option = "H") {
+  
+  temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
+  temp_spdf <- as(temp, "SpatialPixelsDataFrame")
+  temp_df <- as.data.frame(temp_spdf)
+  temp1 <- gsub(pattern = "[A-Za-z]+", 
+                replacement = "", 
+                x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
+  temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+  colnames(temp_df) <- c(temp1, "x", "y")
+  temp_df <- temp_df %>% 
+    tidyr::pivot_longer(values_to = "value", 
+                        names_to = "year", 
+                        cols = temp1)
+  
+  fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
+  
+  figure <- ggplot() +
+    geom_tile(data=temp_df, aes(x=x, y=y, fill=cut(value, breaks = colorbar_breaks)))  +
+    facet_wrap( ~ year, 
+                nrow = ifelse(length(names(rasterbrick))>=4, 2, 1)) +
+    coord_equal() +
+    scale_fill_manual(values = fig_palette) +
+    geom_sf(data = reg_dat$survey.strata,
+            color = "grey50",
+            size = 0.1,
+            alpha = 0,
+            fill = NA) +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey90",
+            alpha = 0.2) +
+    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    scale_x_continuous(name = "Longitude",
+                       breaks = reg_dat$lon.breaks) +
+    scale_y_continuous(name = "Latitude",
+                       breaks = reg_dat$lat.breaks) +
+    coord_sf(xlim = reg_dat$plot.boundary$x, 
+             ylim = reg_dat$plot.boundary$y)  +
+    
+    ggsn::scalebar(data = reg_dat$survey.grid,
+                   location = "bottomright",
+                   dist = 100,
+                   dist_unit = "km",
+                   transform = FALSE,
+                   st.dist = .02,
+                   height = 0.02,
+                   st.bottom = TRUE,
+                   st.size = 3,
+                   # transform = TRUE,
+                   model = reg_dat$crs) +
+    #set legend position and vertical arrangement
+    theme(
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 12, face = "bold"),
+      legend.position = "none"#,
+      # axis.text = element_blank()
+    )
+  
+  
+  #   Turbo represents a tradeoff between interpretability and accessibility. If it seems like that won't be accessible because of how it's distributed (e.g., faxing), then by all means change it, because it doesn't have linear luminosity and chromaticity. For temperatures, I think it's pretty difficult to distinguish shades of blue. So if you're going to choose an alternative palette, I think it would be great if the cold pool is black (where < 0 is black; e.g., Which would be magma or inferno, whcih have a larger luminance gradient)
+  
+  # Turbo color map:
+  # https://github.com/sjmgarnier/viridis/issues/65
+  
+  # https://stackoverflow.com/questions/50506832/create-discrete-color-bar-with-varying-interval-widths-and-no-spacing-between-le
+  # https://stackoverflow.com/questions/64013935/custom-color-palette-for-scale-fill-fermenter
+  
+  # cold_pool_cbar 
+  # https://github.com/sean-rohan-NOAA/coldpool/blob/main/1_cold_pool_index.Rmd#L169 
+  cbar_legend <- legend_discrete_cbar(breaks = colorbar_breaks,
+                                      colors = fig_palette,
+                                      legend_direction = "horizontal",
+                                      font_size = 3,
+                                      width = 0.1,
+                                      expand_size.x = 0.3,
+                                      expand_size.y = 0.3,
+                                      expand.x = 0.3,
+                                      expand.y = 0.9,
+                                      spacing_scaling = 1,
+                                      text.hjust = 0.5,
+                                      text.vjust = 0.5,
+                                      font.family = "sans",
+                                      neat.labels = FALSE) + 
+    annotate("text", 
+             x = 1.15, 
+             y = mean(colorbar_breaks[!is.infinite(colorbar_breaks)]), 
+             label = key.title, 
+             size = rel(3.2)) + 
+    theme(plot.margin = unit(c(-5,5,5, 5), units = "mm"))
+  
+  figure_and_legend <- cowplot::plot_grid(figure,
+                                          cbar_legend,
+                                          nrow = 2,
+                                          rel_heights = c(0.8,0.2))
+  
+  return(figure_and_legend)
+  
+}
+
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
