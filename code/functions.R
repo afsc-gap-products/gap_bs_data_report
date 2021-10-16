@@ -891,80 +891,6 @@ plot_temps_facet <- function(rasterbrick,
   
 }
 
-  
-  temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
-  temp_spdf <- as(temp, "SpatialPixelsDataFrame")
-  temp_df <- as.data.frame(temp_spdf)
-  temp1 <- gsub(pattern = "[A-Za-z]+", 
-                replacement = "", 
-                x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
-  temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
-  colnames(temp_df) <- c(temp1, "x", "y")
-  temp_df <- temp_df %>% 
-    tidyr::pivot_longer(values_to = "value", 
-                        names_to = "year", 
-                        cols = temp1)
-  
-  fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
-  
-  figure <- ggplot() +
-    geom_tile(data=temp_df, aes(x=x, y=y, fill=cut(value, breaks = colorbar_breaks)))  +
-    facet_wrap( ~ year, 
-                nrow = ifelse(length(names(rasterbrick))>=4, 2, 1)) +
-    coord_equal() +
-    scale_fill_manual(values = fig_palette) +
-  geom_sf(data = reg_dat$survey.strata, 
-          color = "grey50", 
-          size = 0.5,
-          fill = NA) +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-    scale_x_continuous(name = "Longitude",
-                       breaks = reg_dat$lon.breaks) +
-    scale_y_continuous(name = "Latitude",
-                       breaks = reg_dat$lat.breaks) +
-    coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y) +
-    #set legend position and vertical arrangement
-    theme(
-      panel.background = element_rect(fill = "white", 
-                                      colour = NA), 
-      panel.border = element_rect(fill = NA, 
-                                  colour = "grey20"), 
-      strip.background = element_blank(), 
-      strip.text = element_text(size = 12, face = "bold"),
-      legend.position = "none",
-      axis.text = element_blank()
-    )
-  
-  cbar_legend <- legend_discrete_cbar(breaks = colorbar_breaks,
-                                      colors = fig_palette,
-                                      legend_direction = "horizontal",
-                                      font_size = 3,
-                                      width = 0.1,
-                                      expand_size.x = 0.3,
-                                      expand_size.y = 0.3,
-                                      expand.x = 0.3,
-                                      expand.y = 0.9,
-                                      spacing_scaling = 1,
-                                      text.hjust = 0.5,
-                                      text.vjust = 0.5,
-                                      font.family = "sans",
-                                      neat.labels = FALSE) + 
-    annotate("text", 
-             x = 1.15, 
-             y = mean(colorbar_breaks[!is.infinite(colorbar_breaks)]), 
-             label = key.title, 
-             size = rel(3.2)) + 
-    theme(plot.margin = unit(c(-5,5,5, 5), units = "mm"))
-  
-  figure_and_legend <- cowplot::plot_grid(figure,
-                                          cbar_legend,
-                                          nrow = 2,
-                                          rel_heights = c(0.8,0.2))
-  
-  return(figure_and_legend)
-  
-}
 
 
 #' Discrete continuous bar
@@ -999,8 +925,9 @@ legend_discrete_cbar <- function(
   text.hjust = NULL,
   text.color = "black",
   neat.labels = FALSE,
-  font.family = "serif"
-) {
+  font.family = "serif") {
+  
+  
   require(ggplot2)
   if (!(spacing %in% c("natural", "constant"))) stop("spacing must be either 'natural' or 'constant'")
   if (!(direction %in% c(1, -1))) stop("direction must be either 1 or -1")
