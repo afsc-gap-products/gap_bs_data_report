@@ -464,6 +464,11 @@ cruises_compareyr <- cruises %>%
     year == compareyr[1] & 
       survey_definition_id %in% SRVY00)
 
+nbsyr <- sort(cruises %>% 
+                dplyr::filter(SRVY == "NBS") %>% 
+                dplyr::select(year) %>% 
+                unique() %>% 
+                unlist())
 
 # *** haul + maxyr ---------------------------------------------------------------------
 

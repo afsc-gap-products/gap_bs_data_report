@@ -674,52 +674,15 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ```{r fig_temp_weight_mean}
 nickname <- "fig_temp_weight_mean"
-header <- paste0("Time series of mean survey surface and near-bottom temperatures in the eastern Bering Sea (EBS) weighted by stratum based on expendable bathythermograph casts or digital dataloggers attached to the headrope during the eastern Bering Sea bottom trawl surveys from 1982 to ", maxyr, ". The 1982-1987 means (triangles) are based on Strata 10-62 (see Figure ", crossref(list_obj = list_figures, nickname = 'fig_sampled_survey_stations', sublist = 'number'),") and the 1988-", maxyr, " means also include Strata 80 and 92. The dashed lines represent the grand stratum-area weighted mean water temperatures for 1982-", maxyr, ".")
+header <- paste0("Average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the eastern Bering Sea (EBS) shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and northern Bering Sea (NBS) shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
 
-table_raw <- temps_avg_yr
+height <- 3
 
-st_col <- nmfspalette::nmfs_cols("dkgray") # nmfs_cols("medgreen")
-bt_col <- nmfspalette::nmfs_cols("supdkgray") # nmfs_cols("processblue")
+# https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/average_temperature.png
 
-figure <- ggplot(data = table_raw) +
-  # surface temperature
-  geom_line(aes(x = year, y = st), 
-            color = st_col, size = 1) +
-  geom_point(aes(x = year, y = st), 
-             color = st_col, fill = st_col, 
-             pch = 19, size = 2) +
-  geom_hline(yintercept = table_raw$st_mean[1], 
-             linetype="dashed", color = st_col) + 
-  annotate("text", x = 2010, y = 8, label = "Surface", col = st_col) + 
-  # bottom temperature
-  geom_line(aes(x = year, y = bt), 
-            color = bt_col, size = 1) +
-  geom_point(aes(x = year, y = bt), 
-             color = bt_col, fill = bt_col, 
-             pch = 24, size = 3) +
-  geom_hline(yintercept = table_raw$bt_mean[1], 
-             linetype="dashed", color = bt_col) +
-  annotate("text", x = 2010, y = 3, label = "Bottom", color = bt_col) + 
-  
-  # general
-  ylab("Mean temperature (°C)") +
-  # xlab("Year") +
-  scale_x_discrete(
-    name = "Year", 
-    breaks = seq(from = min(table_raw$year), to = max(table_raw$year), by = 5)) +
-  #set legend position and vertical arrangement
-  theme(#plot.background = element_rect(fill = "white"), 
-    axis.text = element_text(size = 12), 
-    axis.title = element_text(size = 15),
-    legend.title = element_text(size = 15),
-    legend.text = element_text(size = 12),
-    panel.background = element_rect(fill = "white", 
-                                    colour = NA), 
-    panel.border = element_rect(fill = NA, 
-                                colour = "grey20"), 
-    strip.background = element_rect(fill = "grey85", 
-                                    colour = "grey20"))
-
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "average_temperature.png")) )
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header

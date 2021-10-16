@@ -563,22 +563,24 @@ plot_idw_xbyx <- function(
   key.title, 
   grid = "extrapolation.grid",
   extrap.box, 
-  set.breaks = "jenks", #seq(from = -2, to = 20, by = 2),
+  set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
   workfaster = FALSE, 
   nrow = 2, 
   SRVY, 
-  col_viridis = "viridis"){
+  col_viridis = "mako") {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
-  if(set.breaks =="auto"){
+  if(set.breaks =="auto") {
     
     set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var])), 
                                             n = 5, style = "jenks")$brks
     set.breaks <- c()
+    
     for (i in 1:length(set.breaks0)) {
+      
       if (i == length(set.breaks0)) {
-        set.breaks<-c(set.breaks, round(set.breaks0[i], digits = 0))
+        set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)#round(set.breaks0[i], digits = 0))
       } else if (i == 1) {
         set.breaks<-c(set.breaks, 0)
       } else {    
@@ -653,17 +655,37 @@ plot_idw_xbyx <- function(
   names(stars_list) = "value"
   
   figure <- ggplot() +
-    # geom_sf(data = reg_dat$survey.area, color = "grey20", fill = NA, size = 0.5) +
     geom_stars(data = stars_list) +
     facet_wrap( ~ new_dim, nrow = nrow) +
     coord_equal() +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    geom_sf(data = reg_dat$survey.strata,
+            color = "grey50",
+            size = 0.1,
+            alpha = 0,
+            fill = NA) +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2) +
+    geom_sf(data = reg_dat$akland, 
+            color = NA, 
+            fill = "grey50") +
     scale_x_continuous(name = "Longitude",
                        breaks = reg_dat$lon.breaks) +
     scale_y_continuous(name = "Latitude",
                        breaks = reg_dat$lat.breaks) +
     coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y)
+             ylim = reg_dat$plot.boundary$y)  +
+    
+    ggsn::scalebar(data = reg_dat$survey.grid,
+                   location = "bottomright",
+                   dist = 150,
+                   dist_unit = "nm",
+                   transform = FALSE,
+                   st.dist = .035,
+                   height = 0.02,
+                   st.bottom = TRUE,
+                   st.size = 3,
+                   model = reg_dat$crs) +
   
   if (grid == "continuous.grid") {
     figure <- figure + 
@@ -692,12 +714,13 @@ plot_idw_xbyx <- function(
   }
   
   figure <- figure +
-    guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+    guides(
       fill = guide_legend(title.position="top", 
                           label.position = "bottom",
                           title.hjust = 0.5, nrow = 1)) +
+    
     #set legend position and vertical arrangement
-    theme(
+    theme( 
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
@@ -709,16 +732,40 @@ plot_idw_xbyx <- function(
       legend.background = element_rect(colour = "transparent", fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
                                 fill = "transparent"),
-      axis.text = element_blank(),
+      legend.title.align = .1, 
       legend.position="bottom", 
       legend.box.just = "left",
       legend.key.width = unit(.5, "in"), 
-      legend.box = "horizontal"
-    )
+      legend.box = "horizontal")
+  
+  
+  # #set legend position and vertical arrangement
+  # theme(
+  #   legend.title.align = 0.5, 
+  #   panel.background = element_rect(fill = "white", 
+  #                                   colour = NA), 
+  #   panel.border = element_rect(fill = NA, 
+  #                               colour = "grey20"), 
+  #   strip.background = element_blank(), 
+  #   strip.text = element_text(size = 12, face = "bold"),
+  #   legend.title = element_text(size = 12), 
+  #   legend.text = element_text(size = 9), ,
+  #   legend.background = element_rect(colour = "transparent", fill = "transparent"),
+  #   legend.key = element_rect(colour = "transparent", 
+  #                             fill = "transparent"),
+  #   # axis.text = element_blank(),
+  #   legend.position="bottom", 
+  #   legend.box.just = "left",
+  #   legend.key.width = unit(.5, "in"), 
+  #   legend.box = "horizontal"
+  # )
   
   return(figure)
   
 }
+
+
+
 
 #' Plot temperature facet grid
 #' 
@@ -763,9 +810,11 @@ plot_temps_facet <- function(rasterbrick,
             alpha = 0,
             fill = NA) +
     geom_sf(data = reg_dat$graticule,
-            color = "grey90",
+            color = "grey80",
             alpha = 0.2) +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    geom_sf(data = reg_dat$akland, 
+            color = NA, 
+            fill = "grey50") +
     scale_x_continuous(name = "Longitude",
                        breaks = reg_dat$lon.breaks) +
     scale_y_continuous(name = "Latitude",
@@ -775,16 +824,20 @@ plot_temps_facet <- function(rasterbrick,
     
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomright",
-                   dist = 100,
-                   dist_unit = "km",
+                   dist = 150,
+                   dist_unit = "nm",
                    transform = FALSE,
-                   st.dist = .02,
+                   st.dist = .035,
                    height = 0.02,
                    st.bottom = TRUE,
                    st.size = 3,
-                   # transform = TRUE,
                    model = reg_dat$crs) +
     #set legend position and vertical arrangement
+    guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+      fill = guide_legend(title.position="top", 
+                          label.position = "bottom",
+                          title.hjust = 0.5, nrow = 1)) +
+    
     theme(
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
@@ -792,8 +845,7 @@ plot_temps_facet <- function(rasterbrick,
                                   colour = "grey20"), 
       strip.background = element_blank(), 
       strip.text = element_text(size = 12, face = "bold"),
-      legend.position = "none"#,
-      # axis.text = element_blank()
+      legend.position = "none"
     )
   
   
