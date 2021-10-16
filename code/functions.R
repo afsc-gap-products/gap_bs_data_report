@@ -31,6 +31,7 @@ PKG <- c(
   "extrafont",
   "ggpubr",
   "nmfspalette",  # devtools::install_github("nmfs-general-modeling-tools/nmfspalette")
+  "lemon",
   
   # Text
   "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports") # Package of my favorite grammar and file managment functions for writing reproducible reports
@@ -646,8 +647,6 @@ plot_idw_xbyx <- function(
     }
   }
   
-  # figure <- plot_xbyx_maps(stars_list = stars_list, title="Bottom Temperature (°C)")
-  
   # https://rpubs.com/michaeldorman/646276
   stars_list <- stars_list %>% 
     dplyr::select(names(stars_list)[substr(start = 1, stop = 1, x = names(stars_list)) == "y"])
@@ -686,7 +685,7 @@ plot_idw_xbyx <- function(
                    height = 0.02,
                    st.bottom = TRUE,
                    st.size = 3,
-                   model = reg_dat$crs) +
+                   model = reg_dat$crs) 
   
   if (grid == "continuous.grid") {
     figure <- figure + 
