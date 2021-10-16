@@ -669,9 +669,9 @@ plot_idw_xbyx <- function(
     geom_sf(data = reg_dat$akland, 
             color = NA, 
             fill = "grey50") +
-    scale_x_continuous(name = "Longitude",
+    scale_x_continuous(name = "", # "Longitude",
                        breaks = reg_dat$lon.breaks) +
-    scale_y_continuous(name = "Latitude",
+    scale_y_continuous(name = "", # "Latitude",
                        breaks = reg_dat$lat.breaks) +
     coord_sf(xlim = reg_dat$plot.boundary$x, 
              ylim = reg_dat$plot.boundary$y)  +
@@ -816,9 +816,9 @@ plot_temps_facet <- function(rasterbrick,
     geom_sf(data = reg_dat$akland, 
             color = NA, 
             fill = "grey50") +
-    scale_x_continuous(name = "Longitude",
+    scale_x_continuous(name = "",#"Longitude",
                        breaks = reg_dat$lon.breaks) +
-    scale_y_continuous(name = "Latitude",
+    scale_y_continuous(name = "",#Latitude",
                        breaks = reg_dat$lat.breaks) +
     coord_sf(xlim = reg_dat$plot.boundary$x, 
              ylim = reg_dat$plot.boundary$y)  +
