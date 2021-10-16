@@ -567,6 +567,7 @@ plot_idw_xbyx <- function(
   workfaster = FALSE, 
   nrow = 2, 
   SRVY, 
+  dist_unit = "nm", # nautical miles
   col_viridis = "mako") {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
@@ -679,7 +680,7 @@ plot_idw_xbyx <- function(
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomright",
                    dist = 150,
-                   dist_unit = "nm",
+                   dist_unit = dist_unit,
                    transform = FALSE,
                    st.dist = .035,
                    height = 0.02,
@@ -781,6 +782,7 @@ plot_temps_facet <- function(rasterbrick,
                              key.title = "Temperature (°C)", 
                              reg_dat, 
                              colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+                             dist_unit = "nm", # nautical miles
                              viridis_palette_option = "H") {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
@@ -825,7 +827,7 @@ plot_temps_facet <- function(rasterbrick,
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomright",
                    dist = 150,
-                   dist_unit = "nm",
+                   dist_unit = dist_unit,
                    transform = FALSE,
                    st.dist = .035,
                    height = 0.02,

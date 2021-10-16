@@ -808,11 +808,13 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ```
 
 ## fig_idw_bottemp_longterm_mean_ (above and below)
+## fig_bt_all_nebs_surveys
 
 > need to figure out how to plot whole NBS
 
 ```{r fig_idw_bottemp_longterm_mean_}
-nickname0 <- "fig_idw_bottemp_longterm_mean_"
+# nickname0 <- "fig_idw_bottemp_longterm_mean_"
+nickname <- "fig_bt_all_nebs_surveys"
 
 for (i in 1:2) { # two cases, above and below
   
@@ -831,8 +833,12 @@ for (i in 1:2) { # two cases, above and below
   
   rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
                                 subset = paste0("ste_", year, "_gear_temperature"))
-  figure <- plot_temps_facet(
-    rasterbrick, key.title = "Bottom Temperature (°C)", reg_dat)
+figure <- plot_temps_facet(
+    rasterbrick = rasterbrick, 
+    key.title = expression(bold("Bottom Temperature (°C)")), 
+    reg_dat = reg_dat, 
+    colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+    viridis_palette_option = "H") 
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -858,72 +864,15 @@ for (i in 1:2) { # two cases, above and below
 ### math for summed area is funky! TOLEDO! help!
 
 ```{r fig_cold_pool_area}
-header <- paste0("Percentage of the EBS (eastern Bering Sea) shelf bottom area that is occupied by the cold pool in one degree Celsius increments.")
+header <- paste0("Cold pool extent in the eastern Bering Sea (EBS), as measured using observations from the EBS bottom trawl survey. Extent of the cold pool in proportion to the total EBS shelf survey area from 1982–",maxyr,". Shading denotes bottom temperatures ≤ 2°C, ≤ 1°C, ≤ 0°C, and ≤ -1°C.")
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_cold_pool_area"
-# alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
-width = 9
+height = 3
 
-  rasterbrick <- coldpool:::ebs_bottom_temperature
-  temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
-  temp_spdf <- as(temp, "SpatialPixelsDataFrame")
-  temp_df <- as.data.frame(temp_spdf)
-  temp1 <- gsub(pattern = "[A-Za-z]+", 
-                replacement = "", 
-                x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
-  temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
-  colnames(temp_df) <- c(temp1, "latitude", "longitude")
-  table_raw <- temp_df %>% 
-    tidyr::pivot_longer(values_to = "value", 
-                        names_to = "year", 
-                        cols = temp1) %>% 
-    dplyr::mutate(bin = cut(x = value, 
-                            breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
-    dplyr::group_by(year, bin) %>%
-    dplyr::summarise(count(bin)) %>%
-    dplyr::mutate(perc = (freq/21299) * 100)  %>%
-  dplyr::mutate(label = dplyr::case_when(
-    bin == "(-Inf,-1]" ~ "> -1°C",
-    bin == "(-1,0]" ~ "-1 to 0°C",
-    bin == "(0,1]" ~ "0 to 1°C",
-    bin == "(1,2]" ~ "1 to 2°C")) %>% 
-    dplyr::filter(!is.na(bin)) %>%
-  dplyr::mutate(label = factor(label, 
-                               levels=c("1 to 2°C", "0 to 1°C", "-1 to 0°C", "> -1°C"), 
-                               ordered = TRUE))
-# Plot
-figure <- ggplot(table_raw, aes(x=year, y=perc, group=label, fill=label)) + 
-    geom_area() +
-  # scale_fill_nmfs(palette = "secondary", discrete = TRUE) +
-  scale_fill_viridis_d(direction = -1) +
-  guides(fill=guide_legend(title="Percentage of\nEBS shelf area\n\n")) +
-  # xlab("Year") +
-  scale_x_discrete(
-    name = "Year",
-                     breaks = seq(from = min(table_raw$year), 
-                                  to = max(table_raw$year), by = 2)) +
-  ylab("Percent") +
-  ylim(0, 100)  +
-  #set legend position and vertical arrangement
-  theme(
-    panel.background = element_rect(fill = "white",
-                                    colour = NA),
-    panel.border = element_rect(fill = NA,
-                                colour = "grey20"),
-    strip.background = element_rect(fill = "grey85",
-                                    colour = "grey20"),
-    legend.spacing.y = unit(-0.35, "cm"),
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 15),
-    legend.title = element_text(size = 12),
-    legend.text = element_text(size = 12),
-    legend.background = element_rect(colour = "transparent", fill = "transparent"),
-    legend.key = element_rect(colour = "transparent",
-                              fill = "transparent"),
-    legend.position = c(.15, .80),
-    legend.box.just = "left",
-    legend.box = "vertical"
-  )
+# https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/stacked_temperature.png?raw=true
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature.png")) )
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
