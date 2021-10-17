@@ -647,11 +647,14 @@ plot_idw_xbyx <- function(
     }
   }
   
+  
+  # stars_list0<-stars_list
+  
   # https://rpubs.com/michaeldorman/646276
   stars_list <- stars_list %>% 
     dplyr::select(names(stars_list)[substr(start = 1, stop = 1, x = names(stars_list)) == "y"])
   names(stars_list)<-gsub(pattern = "y", replacement = "", x = names(stars_list))
-  stars_list = st_redimension(stars_list)
+  stars_list = stars::st_redimension(stars_list)
   names(stars_list) = "value"
   
   figure <- ggplot() +
@@ -677,7 +680,7 @@ plot_idw_xbyx <- function(
              ylim = reg_dat$plot.boundary$y)  +
     
     ggsn::scalebar(data = reg_dat$survey.grid,
-                   location = "bottomright",
+                   location = "bottomleft",
                    dist = 150,
                    dist_unit = dist_unit,
                    transform = FALSE,
@@ -767,6 +770,7 @@ plot_idw_xbyx <- function(
 
 
 
+
 #' Plot temperature facet grid
 #' 
 #' Generate multipanel temperature plot from a raster brick.
@@ -824,7 +828,7 @@ plot_temps_facet <- function(rasterbrick,
              ylim = reg_dat$plot.boundary$y)  +
     
     ggsn::scalebar(data = reg_dat$survey.grid,
-                   location = "bottomright",
+                   location = "bottomleft",
                    dist = 150,
                    dist_unit = dist_unit,
                    transform = FALSE,
