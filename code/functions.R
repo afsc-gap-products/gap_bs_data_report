@@ -558,9 +558,9 @@ plot_idw_xbyx <- function(
   yrs, 
   dat, 
   cruises, 
-  lat,
-  lon,
-  var,
+  lat = "latitude",
+  lon = "longitude",
+  var = "cpue_kgha",
   key.title, 
   grid = "extrapolation.grid",
   extrap.box, 
@@ -582,7 +582,7 @@ plot_idw_xbyx <- function(
     for (i in 1:length(set.breaks0)) {
       
       if (i == length(set.breaks0)) {
-        set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)#round(set.breaks0[i], digits = 0))
+        set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)# #round(set.breaks0[i], digits = 0))
       } else if (i == 1) {
         set.breaks<-c(set.breaks, 0)
       } else {    

@@ -815,14 +815,16 @@ names(report_spp)[
                                       x = report_title), "community_", "datar_"), 
                x = names(report_spp))])
 
-report_spp <- report_spp %>% 
-  dplyr::filter(!is.na(order)) %>% 
-  dplyr::arrange((order)) %>% 
-  dplyr::mutate(common_name = tolower(common_name)) %>% 
-  dplyr::left_join(x = ., 
-                   y = spp_info_maxyr %>% 
-                     dplyr::mutate(common_name1 = common_name) %>% 
-                     dplyr::mutate(common_name = tolower(common_name)) %>% 
+report_spp <-  
+  dplyr::left_join(x = report_spp %>% 
+                     dplyr::filter(!is.na(order)) %>% 
+                     dplyr::arrange((order)) %>% 
+                     dplyr::mutate(common_name = tolower(common_name))  %>% 
+                     dplyr::mutate(common_name1 = common_name) %>%
+                     dplyr::mutate(common_name = tolower(common_name)), 
+                   y = spp_info %>% 
+                     # dplyr::mutate(common_name1 = common_name) %>%
+                     dplyr::mutate(common_name = tolower(common_name)) %>%
                      dplyr::select(-species_code) %>% 
                      unique(), 
                    by = "common_name") %>% 
