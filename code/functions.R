@@ -575,7 +575,7 @@ plot_idw_xbyx <- function(
   
   if(set.breaks =="auto") {
     
-    set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var])), 
+    set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
                                             n = 5, style = "jenks")$brks
     set.breaks <- c()
     
@@ -684,7 +684,7 @@ plot_idw_xbyx <- function(
                    dist = 150,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = .035,
+                   st.dist = .04,
                    height = 0.02,
                    st.bottom = TRUE,
                    st.size = 3,
@@ -832,7 +832,7 @@ plot_temps_facet <- function(rasterbrick,
                    dist = 150,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = .035,
+                   st.dist = .04,
                    height = 0.02,
                    st.bottom = TRUE,
                    st.size = 3,
