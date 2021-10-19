@@ -328,10 +328,10 @@ find_codes <- function(x, col = "common_name", str = NULL,
 }
 
 
-species_table <- function(haul_spp, spp_common, SURVEY0, SRVY0 = NA) {
+species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
   
   # Edit This:
-  header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY0, ifelse(SRVY0 %in% NA, paste0(" (", SRVY0, ")"), ""))
+  header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
   
   # Select data and make plot
   cols<-c("start_latitude", "start_longitude",  "weight", "number_fish", "bottom_depth", "gear_temperature", "surface_temperature")
@@ -340,7 +340,9 @@ species_table <- function(haul_spp, spp_common, SURVEY0, SRVY0 = NA) {
           "Bottom Depth", "Bottom Temperature", "Surface Temperature")
   
   haul_spp <- haul_spp %>% 
-    dplyr::filter(SRVY %in% SRVY0)
+    dplyr::filter(SRVY %in% SRVY000)
+  
+  # if (nrow(haul_spp)==0) {
   
   # basiccontent0<-c()
   table_spp<-c()
@@ -349,9 +351,9 @@ species_table <- function(haul_spp, spp_common, SURVEY0, SRVY0 = NA) {
     table_spp<-rbind.data.frame(table_spp, 
                                 data.frame(metric0 = cols[ii], 
                                            Metric = COLS[ii], 
-                                           Min = min(haul_spp[cols[ii]], na.rm = T), 
-                                           Max = max(haul_spp[cols[ii]], na.rm = T), 
-                                           Mean = sum(haul_spp[cols[ii]], na.rm = T)/nrow(haul_spp)
+                                           Min = ifelse((nrow(haul_spp)==0), NA, min(haul_spp[,cols[ii]], na.rm = T)), 
+                                           Max = ifelse((nrow(haul_spp)==0), NA, max(haul_spp[,cols[ii]], na.rm = T)), 
+                                           Mean = ifelse((nrow(haul_spp)==0), NA, sum(haul_spp[,cols[ii]], na.rm = T)/nrow(haul_spp))
                                 ))
   }
   
@@ -363,56 +365,53 @@ species_table <- function(haul_spp, spp_common, SURVEY0, SRVY0 = NA) {
                             digits = 2)
   table_spp_print$metric0<-NULL
   
-  table_raw = table_spp
-  table_print = table_spp_print
+  # table_raw = table_spp
+  # table_print = table_spp_print
   
   return(list("header" = header, 
-              "raw" = table_raw, 
-              "print" = table_print))
+              "raw" = table_spp, 
+              "print" = table_spp_print))
 }
 
 
-species_text <- function(haul_maxyr, haul_compareyr_spp, table_spp_print, 
-                         haul_maxyr_spp, length_maxyr, 
-                         length_type, 
-                         spp_common, spp_code, SRVY0, maxyr, compareyr) {
-  
-  
-  haul_maxyr <- haul_maxyr %>% 
-    dplyr::filter(SRVY %in% SRVY0)
-  
-  haul_compareyr_spp <- haul_compareyr_spp %>% 
-    dplyr::filter(SRVY %in% SRVY0)  
-  
-  haul_maxyr_spp <- haul_maxyr_spp %>% 
-    dplyr::filter(SRVY %in% SRVY0)  
-  
-  length_maxyr <- length_maxyr %>% 
-    dplyr::filter(SRVY %in% SRVY0)
+species_text <- function(
+  table_spp_print, 
+  haul_maxyr, 
+  haul_spp, 
+  biomass_cpue,
+  length_maxyr0, 
+  spp_common, 
+  spp_code, 
+  SRVY000, 
+  maxyr, 
+  compareyr) {
   
   str <- c()
   
   # <!-- how many stations -->
   str <- paste0(str, 
                 "Out of the total number of successful hauls (", 
-                length(unique(haul_maxyr$hauljoin)), ") ",  
+                length(unique(haul_maxyr0$hauljoin)), ") ",  
                 NMFSReports::tolower2(spp_common), 
                 " was found during ", 
                 length(unique(haul_maxyr_spp$hauljoin)), 
                 " hauls (", 
-                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f"), 
+                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"), 
                 "% of stations). ")
   
+  # different version of above
   str <- paste0(str, "
 
 During the ", maxyr, 
 " survey, ", 
 NMFSReports::tolower2(spp_common), 
 " were present at ", 
-formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f") , 
-"% of stations in the ", SRVY0, " (", 
+formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
+        digits = 1, format = "f") , 
+"% of stations in the ", 
+ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000), " (", 
 length(unique(haul_maxyr_spp$hauljoin)), " of ", 
-length(unique(haul_maxyr$hauljoin)), 
+length(unique(haul_maxyr0$hauljoin)), 
 " stations). ")
   
   # <!-- bottom tempature -->
@@ -423,7 +422,7 @@ length(unique(haul_maxyr$hauljoin)),
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
 "°C and as cold as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
-"°C (Figure ", cnt_figures,"). ")
+"°C. ") #  (Figure ", cnt_figures,")
   
   # <!-- surface temperature -->
   str <- paste0(str, "
@@ -433,7 +432,7 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>%
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
 "°C and as cold as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
-"°C (Figure ", cnt_figures,"). ")
+"°C. ") #  (Figure ", cnt_figures,")
   
   # <!-- Depth -->
   str <- paste0(str, "
@@ -443,39 +442,147 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr
 " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
   
   # <!-- Sizes caught  -->
-  str <- paste0(str, "
+  
+  if (nrow(length_maxyr0) != 0) {
+    
+    str <- paste0(str, "
 
 The ", 
-NMFSReports::text_list(length_type$sentancefrag[length_type$length_type_id %in% unique(length_maxyr$length_type)]), 
-" of ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
+" of ", NMFSReports::tolower2(spp_common), 
 " measured during the survey were between ", 
-NMFSReports::xunits(min(length_maxyr$length, na.rm = TRUE)), 
-" and ", NMFSReports::xunits(max(length_maxyr$length, na.rm = TRUE)), " ", 
+# NMFSReports::xunits(
+(min(length_maxyr0$length, na.rm = TRUE)), 
+" and ", #NMFSReports::xunits
+(max(length_maxyr0$length, na.rm = TRUE)), " ", 
 unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
                         spp_code %in% 68000:69930 ~ 'mm'), 
        TRUE ~ 'NO MEASUREMENT'), ". ")
+  }
+  
   
   # <!-- weight -->
   str <- paste0(str, "
 
-The total number of ", 
-NMFSReports::tolower2(spp_common), 
-" estimated to have been caught by the survey is ", 
-NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)), 
-" individuals, which equates to ", 
-NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)), 
-" kg of biomass. ")
+The total number of ",
+NMFSReports::tolower2(spp_common),
+" estimated to have been caught by the survey is ",
+NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)),
+" individuals equating to ",
+NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)),
+" kg of catch. ")
+  # 
+  #   str <- paste0(str, "
+  # 
+  # Compared with ", compareyr, ", abundance experienced ",
+  # NMFSReports::pchange(start = sum(haul_compareyr_spp$number_fish, na.rm = TRUE),
+  #                      end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ,
+  # " and there was ",
+  # NMFSReports::pchange(start = sum(haul_compareyr_spp$weight, na.rm = TRUE),
+  #                      end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) ,
+  # " in biomass. ")
   
-  str <- paste0(str, "
+  
+  tempyr <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
+  
+  temp <- function(biomass_cpue, maxyr, compareyr, tempyr, 
+                   metric = "biomass", metric_long = "biomass", unit = " mt", 
+                   SRVY000, spp_common) {
+    
+    str0 <- paste0("Compared with ", 
+                   compareyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
+                   unit,"), ",spp_common," ",metric_long," in ", 
+                   maxyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
+                   unit,") in the ",
+                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000)," experienced ",
+                   NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE),
+                                        end = sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)) , 
+                   # compare to the year before these
+                   ". Previously, ",spp_common," ",metric_long," in ", 
+                   compareyr, " experienced ",
+                   NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE),
+                                        end = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)), 
+                   " compared to ",metric_long," in ", 
+                   tempyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,").")
+    
+    return(str0)
+  }
+  
+  
+  if ( (nrow(biomass_cpue) != 0) ) {
+    ## pchange_biomass
+    str <- paste0(str, "
 
-Compared with ", compareyr, ", 
-abundance experienced ", 
-NMFSReports::pchange(start = sum(haul_compareyr_spp$number_fish, na.rm = TRUE), 
-                     end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ,
-" and there was ", 
-NMFSReports::pchange(start = sum(haul_compareyr_spp$weight, na.rm = TRUE), 
-                     end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) , 
-" in biomass. ")
+", temp(biomass_cpue, maxyr, compareyr, tempyr, metric = "biomass", metric_long = "biomass", unit = " mt", SRVY000, spp_common))
+    
+    
+    
+    # pchange cpue
+    str <- paste0(str, "
+
+", temp(biomass_cpue, maxyr, compareyr, tempyr, metric = "cpue_kgha", metric_long = "CPUE", unit = " kg/ha", SRVY000, spp_common))
+    
+    
+    
+    # Yellowfin sole biomass increased by 22% between 2017 and 2019 in the NBS area.
+    # In 2019, the Alaska plaice exhibited a slight 0.8% decrease (321,571 mt; Table 1) in the total NBS survey biomass compared with 2017; however, biomass in 2019 was 24% greater than in 2010.
+    # Biomass of the purple-orange sea star increased by 26% between 2017 and 2019 and by 40% between 2010 and 2019.
+    # The estimated biomass of the northern Neptune snail decreased by 18% (Table 1) between 2017 (327,678 mt) and 2019 (146,344 mt). However, the biomass was 32% greater in 2019 than in 2010.
+    # There was a 10% reduction in saffron cod biomass in 2019 from 2010 (Table 1), but a 6% increase in saffron cod biomass from 2017 to 2019.
+    # Between 2010 and 2019, there was a 99.8% reduction in Arctic cod biomass in the NBS.
+    # This represents a 5,421% increase from the biomass observed in 2010.
+    # Biomass of this skate increased 24% from 2010 to 2019.
+    # 25% increase (2,827 mt) in the estimated biomass of red king crab compared to 2017 (2,256 mt). The increase in biomass in 2019 relative to 2010 was slightly less (13%) (Table 1). 
+    # Blue king crab biomass decreased by 79% from 2017 to 2019. Biomass in 2019 (1,212 mt) was more similar to 2010 (2,133 mt) (Table 1).
+    # Pacific halibut showed an estimated 42% increase in total biomass from 2017 (18,507 m) to 2019 (25,722 mt; Table 1). 
+    # Biomass of Bering flounder increased by 50% between 2010 and 2019 (12,355 mt to 18,526 mt; Table 1).
+    # The relative Pacific herring biomass increased 282% from 23,011 mt in 2010 to 87,918 mt in 2019 (Table 1).
+    
+    # ## p_mt_of_survey	
+    metric = "biomass"
+    metric_long = "biomass"
+    unit = " mt"
+    
+    # total biomass
+    temp2 <- biomass_cpue  %>%
+      dplyr::select(biomass, year) %>%
+      dplyr::group_by(year) %>% 
+      dplyr::summarise(biomass = sum(biomass, na.rm = T)) 
+    
+    str <- paste0(str, "
+                  
+                  In ",maxyr,", ",spp_common," comprised ",
+                  xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)/temp2$biomass[temp2$year == maxyr], 
+                         val_under_x_words = NULL),"% (", 
+                  xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
+                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"), 
+                  ") of the ",
+                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+                  " survey biomass. ",
+                  
+                  "Previously in ",compareyr,", ",spp_common," comprised ",
+                  xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)/temp2$biomass[temp2$year == compareyr], 
+                         val_under_x_words = NULL),"% (", 
+                  xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
+                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"), 
+                  ") of the ",
+                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+                  " survey biomass. ")
+    
+    # comprising 12% (520,029 mt; Table 1) of the total NBS survey area biomass - YFS
+    # In 2019, snow crab comprised 4% (167,124 mt, Table 1) of the NBS survey biomass... In 2017, snow crab comprised 5% (223,216 mt) of the NBS survey biomass
+    # This species of sea star made up 10% (414,423 mt, Table 1) of the 2019 total fish and invertebrate biomass in the NBS. 
+    # Saffron cod represented almost 2% of the biomass in the 2019 NBS.
+    # Arctic cod represented approximately 0.001% of the 2019 NBS biomass, 0.1% of the 2017 biomass and 1% of the 2010 biomass.
+    # Pacific cod represented about 9% of the biomass in the 2019 NBS survey; this represents a 29% increase from 2017 NBS Pacific cod biomass.
+    # Walleye pollock represented 27% of the total NBS biomass in 2019.
+    # 
+    # ## size_comp
+    # In 2010 and 2017, size compositions were similar with length cohort modes around 24 cm and 36 cm, while in 2019 the size class modes are less distinct and the smallest size class mode appears from 18-22cm (Figure 7).
+    # A similar size composition was observed in 2010 and 2017 (Figure 23).
+    
+    
+  }
   
   return(str)
   
@@ -484,48 +591,85 @@ NMFSReports::pchange(start = sum(haul_compareyr_spp$weight, na.rm = TRUE),
 species_content <- function(SURVEY000, 
                             SRVY000, 
                             haul_maxyr, 
-                            haul_compareyr_spp, 
-                            haul_maxyr_spp, 
-                            length_maxyr, 
-                            length_type, 
+                            haul_spp, 
+                            biomass_cpue,
+                            length_maxyr0,
                             spp_common, 
                             spp_code,
                             maxyr, 
                             compareyr) {
   
   
-  table_spp_maxyr <- species_table(haul_spp = haul_maxyr_spp, 
-                                   spp_common, 
-                                   SURVEY0 = SURVEY000, 
-                                   SRVY0 = SRVY000) 
+  # Data work up
+  biomass_cpue <- biomass_cpue %>%
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000)
   
-  table_spp_compareyr <- species_table(haul_spp = haul_compareyr_spp, 
-                                       spp_common, 
-                                       SURVEY0 = SURVEY000,
-                                       SRVY0 = SRVY000) 
+  haul_maxyr0 <- haul_maxyr %>% 
+    dplyr::filter(SRVY %in% SRVY000)
+  
+  haul_maxyr_spp <- haul_spp %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000 &
+                    year == maxyr)  
+  
+  haul_compareyr_spp <- haul_spp %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000 &
+                    year == compareyr)  
+  
+  length_maxyr0 <- length_maxyr0 %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000)
+  
+  # tables from maxyr
+  table_spp_maxyr <- 
+    species_table(haul_spp = haul_spp %>% dplyr::filter(year == maxyr), 
+                  spp_common, 
+                  SURVEY000 = SURVEY000, 
+                  SRVY000 = SRVY000) 
+  
+  # tables from compareyr
+  table_spp_compareyr <- 
+    species_table(haul_spp =  haul_spp %>% dplyr::filter(year == compareyr), 
+                  spp_common, 
+                  SURVEY000 = SURVEY000,
+                  SRVY000 = SRVY000) 
   
   
   table_spp <- dplyr::full_join(
     x = table_spp_maxyr$print %>% 
       dplyr::rename(
-        Min_maxyr = Min, 
-        Max_maxyr = Max, 
-        Mean_maxyr = Mean), 
+        min_maxyr = Min, 
+        max_maxyr = Max, 
+        ean_maxyr = Mean), 
     y = table_spp_compareyr$print %>% 
       dplyr::rename(
-        Min_compareyr = Min, 
-        Max_compareyr = Max, 
-        Mean_compareyr = Mean), 
-    by = "Metric")
+        min_compareyr = Min, 
+        max_compareyr = Max, 
+        mean_compareyr = Mean), 
+    by = "Metric") %>% 
+    flextable::flextable(.) %>%
+    NMFSReports::theme_flextable_nmfstm()
   
-  text_spp <- species_text(haul_maxyr, haul_compareyr_spp, table_spp_print = table_spp_maxyr$print, haul_maxyr_spp, length_maxyr, length_type, spp_common, spp_code, SRVY0, maxyr, compareyr)
+  text_spp <- species_text(
+    haul_maxyr, 
+    haul_spp, 
+    biomass_cpue,
+    length_maxyr0, 
+    table_spp_print = table_spp_maxyr$print, 
+    spp_common, 
+    spp_code, 
+    SRVY000, 
+    maxyr, 
+    compareyr)
   
-  return(paste0(table_spp$print, 
-                "
-
-
-", text_spp))
+  return(list("table_spp" = table_spp, 
+              "text_spp" = text_spp))
 }
+
+
+
 
 
 # Plotting ----------------------------
