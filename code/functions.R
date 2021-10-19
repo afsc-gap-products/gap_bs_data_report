@@ -376,7 +376,7 @@ species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
 
 species_text <- function(
   table_spp_print, 
-  haul_maxyr, 
+  haul_maxyr0, 
   haul_spp, 
   biomass_cpue,
   length_maxyr0, 
@@ -385,6 +385,16 @@ species_text <- function(
   SRVY000, 
   maxyr, 
   compareyr) {
+  
+  haul_maxyr_spp <- haul_spp %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000 &
+                    year == maxyr)  
+  
+  haul_compareyr_spp <- haul_spp %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000 &
+                    year == compareyr)  
   
   str <- c()
   
@@ -608,15 +618,6 @@ species_content <- function(SURVEY000,
   haul_maxyr0 <- haul_maxyr %>% 
     dplyr::filter(SRVY %in% SRVY000)
   
-  haul_maxyr_spp <- haul_spp %>% 
-    dplyr::filter(species_code %in% spp_code & 
-                    SRVY %in% SRVY000 &
-                    year == maxyr)  
-  
-  haul_compareyr_spp <- haul_spp %>% 
-    dplyr::filter(species_code %in% spp_code & 
-                    SRVY %in% SRVY000 &
-                    year == compareyr)  
   
   length_maxyr0 <- length_maxyr0 %>% 
     dplyr::filter(species_code %in% spp_code & 
@@ -653,7 +654,7 @@ species_content <- function(SURVEY000,
     NMFSReports::theme_flextable_nmfstm()
   
   text_spp <- species_text(
-    haul_maxyr, 
+    haul_maxyr0, 
     haul_spp, 
     biomass_cpue,
     length_maxyr0, 
