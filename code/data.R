@@ -12,55 +12,55 @@ report_species_NEBS<-list("fish1" = # all plots and tables
                             list("Walleye pollock" = c(21740, 21741, 21742, 21744),
                                  'Pacific cod' = c(21720, 21721, 21722),
                                  "Yellowfin sole" = c(10210, 10209),
-                                 "Northern rock sole" = c(10261, 10263), 
+                                 "Northern rock sole" = c(10261, 10263),
                                  "Flathead sole" = c(10130),
                                  "Bering flounder" = c(10140, 10141),
                                  "Alaska plaice" = c(10285),
-                                 "Greenland turbot" = c(10115, 10116), 
+                                 "Greenland turbot" = c(10115, 10116),
                                  "Arrowtooth flounder" = c(10110),
                                  "Kamchatka flounder" = c(10112),
-                                 "Pacific halibut" = c(10120, 10121)), 
+                                 "Pacific halibut" = c(10120, 10121)),
                           "fish2" = # get some plots and go in # specimine collected table
-                            list("Bering skate" = c(435), 
-                                 "Alaska skate" = c(471), 
-                                 "Longhead dab" = c(10211), 
-                                 "Starry flounder" = c(10220), 
-                                 "Yellow irish lord" = c(21347), 
-                                 "Plain sculpin" = c(21371), 
-                                 "Great sculpin" = c(21370), 
-                                 "Shorthorn sculpin" = c(21368), 
+                            list("Bering skate" = c(435),
+                                 "Alaska skate" = c(471),
+                                 "Longhead dab" = c(10211),
+                                 "Starry flounder" = c(10220),
+                                 "Yellow irish lord" = c(21347),
+                                 "Plain sculpin" = c(21371),
+                                 "Great sculpin" = c(21370),
+                                 "Shorthorn sculpin" = c(21368),
                                  "Pacific ocean perch" = c(30060)), # extra to 2017
                           "fish3" = list (
                             "Rex sole" = c(10200),
-                            "Sahkalin sole" = c(10212), 
+                            "Sahkalin sole" = c(10212),
                             "Sturgeon poacher" = c(20040),
                             "Antlered sculpin" = c(21388),
                             "Arctic staghorn sculpin" = c(21315),
                             "Butterfly scuplin" = c(21348),
-                            "Variegated snailfish" = c(22205), 
+                            "Variegated snailfish" = c(22205),
                             "Bigmouth sculpin" = c(21420),
-                            "Arctic cod" = c(21725), 
+                            "Arctic cod" = c(21725),
                             "Saffron cod" = c(21735, 21736, 21737),
-                            "Pacific herring" = c(21110), 
-                            "Capelin" = c(23041), 
-                            "Rainbow smelt" = c(23055), 
-                            "Eulachon" = c(23010), 
+                            "Pacific herring" = c(21110),
+                            "Capelin" = c(23041),
+                            "Rainbow smelt" = c(23055),
+                            "Eulachon" = c(23010),
                             "Shortfin eelpout" = c(24191),
-                            "Wattled eelpout" = c(24185), 
+                            "Wattled eelpout" = c(24185),
                             "Marbled eelpout" = c(24184)
                           ), # get some plots
-                          "invert1" = 
-                            list("Red king crab" = c(69322), 
-                                 "Blue king crab" = c(69323), 
-                                 "Snow crab" = c(68580), # snow crab 
-                                 "Tanner crab" = c(68560)), 
+                          "invert1" =
+                            list("Red king crab" = c(69322),
+                                 "Blue king crab" = c(69323),
+                                 "Snow crab" = c(68580), # snow crab
+                                 "Tanner crab" = c(68560)),
                           "invert3" = list(
-                            "Purple-orange sea star" = c(81742), 
-                            "Northern neptune snail" = c(71884), 
-                            "Jellyfishes" = c(40500, 40501, 40502, 40503, 
-                                              40504, 40505, 40506, 40507, 
-                                              40508, 40509, 40510, 40511, 
-                                              40512, 40513, 40515, 40519, 
+                            "Purple-orange sea star" = c(81742),
+                            "Northern neptune snail" = c(71884),
+                            "Jellyfishes" = c(40500, 40501, 40502, 40503,
+                                              40504, 40505, 40506, 40507,
+                                              40508, 40509, 40510, 40511,
+                                              40512, 40513, 40515, 40519,
                                               40520, 40560, 40561)) # group...
 )
 
@@ -174,10 +174,10 @@ if (googledrive_dl) {
   
   # Species Covered
   # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
-    # googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
-    #                             type = "csv",
-    #                             overwrite = TRUE,
-    #                             path = paste0(dir_out_rawdata, "/0_species_local_names"))
+  # googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
+  #                             type = "csv",
+  #                             overwrite = TRUE,
+  #                             path = paste0(dir_out_rawdata, "/0_species_local_names"))
 
   # Spreadsheets
   a <- googledrive::drive_ls(path = id_googledrive, type = "spreadsheet")
@@ -249,19 +249,13 @@ for (i in 1:length(a)){
 }
 # }
 
-biomass <- SameColNames(df.ls)  %>%
+biomass_pub <- SameColNames(df.ls)  %>%
   dplyr::filter(year <= maxyr &
                   stratum == 999) %>% 
   dplyr::rename(SRVY = survey) %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert"))
-
-biomass_maxyr<-biomass %>% 
-  dplyr::filter(year == maxyr)
-
-biomass_compareyr<-biomass %>% 
-  dplyr::filter(year == compareyr[1])
 
 
 # *** Load Size Comp Design Based Estimates ----------------------------------------------
@@ -345,6 +339,155 @@ cpue_compareyr<- cpue %>%
   dplyr::filter(year == compareyr[1])
 
 # Wrangle Data -----------------------------------------------------------------
+
+
+
+# *** spp_info + spp_info_maxyr ------------------------------------------------
+
+# setdiff(unique(spp_info$species_code), 
+#         find_codes(x = spp_info,  
+#            str_not = c(" shells", "empty", "unsorted", "shab"#, " egg", "unid.", "compound"
+#                        ), 
+#            col_str_not = "common_name",
+#            col_out = "species_code"))
+
+spp_info <- 
+  dplyr::left_join(x = species0, 
+                   y = species_classification0, 
+                   by = "species_code") %>% 
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert")) %>% 
+  dplyr::mutate(group = case_when(
+    species_code == 69323 ~ "blue king crab",
+    species_code == 21368 ~ "warty sculpin_Myoxocephalus@scorpius",
+    species_code == 10261 ~ "northern rock sole",
+    species_code == 10220 ~ "starry flounder",
+    species_code == 21110 ~ "Pacific herring",
+    species_code == 10140 ~ "Bering flounder",
+    species_code == 71884 ~ "Neptune whelk_Neptunea@heros",
+    species_code == 21371 ~ "plain sculpin",
+    species_code == 81742 ~ "purple-orange sea star",
+    species_code == 10285 ~ "Alaska plaice",
+    species_code == 471 ~ "Alaska skate",
+    species_code == 10210 ~ "yellowfin sole",
+    species_code == 69322 ~ "red king crab",
+    species_code == 21735 ~ "saffron cod",
+    species_code == 10120 ~ "Pacific halibut",
+    species_code == 68580 ~ "snow crab",
+    species_code == 21725 ~ "Arctic cod",
+    species_code == 21921 ~ "Atka mackerel",
+    species_code == 68560 ~ "Tanner crab",
+    species_code >= 66000 & species_code <= 67499 ~ "all shrimps_",
+    species_code >= 21740 & species_code <= 21741 ~ "walleye pollock",
+    species_code >= 21720 & species_code <= 21721 ~ "Pacific cod",
+    species_code >= 83020 & species_code <= 83022 ~ "basket starfish_Gorgonocephalus@eucnemis",
+    species_code >= 97000 & species_code <= 97120 ~ "brachiopods",
+    species_code >= 83000 & species_code <= 83701 ~ "brittle stars and sand dollars_",
+    species_code >= 82730 & species_code <= 82741 ~ "brittle stars and sand dollars_",
+    species_code >= 95000 & species_code <= 95199 ~ "byrozoans_Bryozoa",
+    species_code >= 70100 & species_code <= 70151 ~ "chitons",
+    species_code >= 74000 & species_code <= 75799 ~ "clams, mussels, scallops_Bivalvia",
+    species_code >= 41100 & species_code <= 41499 ~ "corals_Anthozoa",
+    species_code >= 44000 & species_code <= 44499 ~ "corals_Anthozoa",
+    species_code >= 44890 & species_code <= 44999 ~ "corals_Anthozoa",
+    species_code >= 24100 & species_code <= 24395 ~ "eelpouts_Zoarcidae",
+    species_code >= 99990 & species_code <= 99998 ~ "empty shells and debris",
+    species_code >= 69010 & species_code <= 69249 ~ "hermit crabs_Paguridae",
+    species_code >= 40060 & species_code <= 40999 ~ "jellyfishes_Scyphozoa",
+    species_code >= 22170 & species_code <= 22199 ~ "lumpsuckers",
+    species_code >= 78010 & species_code <= 78499 ~ "octopuses",
+    species_code >= 68000 & species_code <= 69009 ~ "other crabs_",
+    species_code >= 69201 & species_code <= 69549 ~ "other crabs_",
+    species_code >= 10000 & species_code <= 10399 ~ "other flatfishes_Pleuronectidae",
+    species_code >= 21300 & species_code <= 21499 ~ "other sculpins_Cottidae",
+    species_code >= 80000 & species_code <= 82499 ~ "other sea stars_Asteroidea",
+    species_code >= 71000 & species_code <= 73999 ~ "other snails_Gastropoda",
+    species_code >= 20000 & species_code <= 20099 ~ "poachers_Agonidae",
+    species_code >= 23800 & species_code <= 23870 ~ "pricklebacks_Stichaeidae",
+    species_code >= 23200 & species_code <= 23310 ~ "salmonids",
+    species_code >= 82730 & species_code <= 82740 ~ "sand dollar",
+    species_code >= 43000 & species_code <= 43999 ~ "sea anemones_Actiniaria",
+    species_code >= 85000 & species_code <= 85500 ~ "sea cucumbers_Holothuroidea",
+    species_code >= 82500 & species_code <= 82691 ~ "sea urchins_Strongylocentrotus@spp.",
+    species_code >= 23000 & species_code <= 23071 ~ "smelts_Osmeridae",
+    species_code >= 22200 & species_code <= 22299 ~ "snailfishes_Liparidae",
+    species_code >= 91000 & species_code <= 91999 ~ "sponges",
+    species_code >= 98000 & species_code <= 99909 ~ "tunicates_Urochordata",
+    species_code >= 50000 & species_code <= 59999 ~ "misc worms_",
+    species_code >= 92000 & species_code <= 97499 ~ "misc worms_",
+    species_code >= 20300 & species_code <= 20399 ~ "wolffishes",
+    species_code >= 21900 & species_code <= 21935 ~ "greenlings",
+    species_code >= 21752 & species_code <= 21753 ~ "sticklebacks",
+    species_code >= 40010 & species_code <= 40050 ~ "hydroids",
+    species_code >= 20200 & species_code <= 20204 ~ "sand lances",
+    species_code >= 78502 & species_code <= 79001 ~ "squids",
+    species_code >= 79020 & species_code <= 79513 ~ "squids",
+    species_code >= 82750 & species_code <= 82775 ~ "sea lilies",
+    species_code == 474 | 401 | 402 | 403 | 421 | 436 ~ "skate egg cases",
+    species_code == 1 ~ "fish eggs",
+    TRUE ~ "other"))
+
+spp_info$used_in_counts <- 
+  ifelse(spp_info$species_code %in% #10:99988, 
+           find_codes(x = spp_info,  
+                      str_not = c(" shells", "empty", "unsorted", "shab"
+                                  #, " egg", "unid.", "compound"
+                      ),
+                      col_str_not = "common_name",
+                      col_out = "species_code"), 
+         TRUE, FALSE)  # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
+
+temp <- spp_info[(!grepl(pattern = "@", x = spp_info$group, fixed = T) &
+                    !grepl(pattern = "_", x = spp_info$group, fixed = T)),]
+for (i in 1:length(unique(temp$group))) {
+  temp1 <- unique(temp$species_name[temp$group == unique(temp$group)[i]])
+  temp1 <- unique(gsub(pattern = " (juvenile)", replacement = "", x = temp1, fixed = TRUE))
+  if (length(temp1) == 1) {
+    spp_info$group[spp_info$group == unique(temp$group)[i]] <- 
+      paste0(unique(temp$group)[i], "_",
+             gsub(pattern = " ", replacement = "@", x = temp1, fixed = TRUE))
+  } 
+}
+
+# species specifically caught in the survey year
+spp_info_maxyr <- spp_info %>% 
+  dplyr::filter(species_code %in% unique(catch_haul_cruises_maxyr$species_code))
+
+# *** report_spp ---------------------------------------------------------------
+
+report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
+                              skip = 1) %>% 
+  dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", x = report_title), "datar_", "community_"))))
+
+names(report_spp)[
+  grepl(pattern = ifelse(grepl(pattern = "Highlights", 
+                               x = report_title), "community_", "datar_"), 
+        x = names(report_spp))] <- 
+  gsub(pattern = ifelse(grepl(pattern = "Highlights", 
+                              x = report_title), "community_", "datar_"), 
+       replacement = "", 
+       x = names(report_spp)[
+         grepl(pattern = ifelse(grepl(pattern = "Highlights", 
+                                      x = report_title), "community_", "datar_"), 
+               x = names(report_spp))])
+
+report_spp <-  
+  dplyr::left_join(x = report_spp %>% 
+                     dplyr::filter(!is.na(order)) %>% 
+                     dplyr::arrange((order)) %>% 
+                     dplyr::mutate(common_name = tolower(common_name))  %>% 
+                     dplyr::mutate(common_name1 = common_name) %>%
+                     dplyr::mutate(common_name = tolower(common_name)), 
+                   y = spp_info %>% 
+                     # dplyr::mutate(common_name1 = common_name) %>%
+                     dplyr::mutate(common_name = tolower(common_name)) %>%
+                     dplyr::select(-species_code) %>% 
+                     unique(), 
+                   by = "common_name") %>% 
+  dplyr::select(-common_name) %>% 
+  dplyr::rename(common_name = common_name1)
+
 
 # *** stratum_info (survey area) -------------------------------------------
 
@@ -479,11 +622,11 @@ nbsyr <- sort(cruises %>%
 
 # *** haul + maxyr ---------------------------------------------------------------------
 
-temp <- haul0 %>%
-  dplyr::left_join(x = ., 
-                   y = cruises %>% 
-                     dplyr::select(cruisejoin, survey_definition_id), 
-                   by = "cruisejoin") %>%  
+temp <- dplyr::left_join(
+  x = haul0, 
+  y = cruises %>% 
+    dplyr::select(cruisejoin, survey_definition_id), 
+  by = "cruisejoin") %>%  
   dplyr::mutate(year = as.numeric(substr(x = start_time, 1,4))) %>% 
   dplyr::filter(year <= maxyr &
                   performance >= 0 &
@@ -691,152 +834,6 @@ catch_haul_cruises_maxyr <- temp(cruises_maxyr, haul_maxyr, catch)
 
 catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr, catch)
 
-
-# *** spp_info + spp_info_maxyr ------------------------------------------------
-
-# setdiff(unique(spp_info$species_code), 
-#         find_codes(x = spp_info,  
-#            str_not = c(" shells", "empty", "unsorted", "shab"#, " egg", "unid.", "compound"
-#                        ), 
-#            col_str_not = "common_name",
-#            col_out = "species_code"))
-
-spp_info <- 
-  dplyr::left_join(x = species0, 
-                   y = species_classification0, 
-                   by = "species_code") %>% 
-  dplyr::mutate(taxon = dplyr::case_when(
-    species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert")) %>% 
-  dplyr::mutate(group = case_when(
-    species_code == 69323 ~ "blue king crab",
-    species_code == 21368 ~ "warty sculpin_Myoxocephalus@scorpius",
-    species_code == 10261 ~ "northern rock sole",
-    species_code == 10220 ~ "starry flounder",
-    species_code == 21110 ~ "Pacific herring",
-    species_code == 10140 ~ "Bering flounder",
-    species_code == 71884 ~ "Neptune whelk_Neptunea@heros",
-    species_code == 21371 ~ "plain sculpin",
-    species_code == 81742 ~ "purple-orange sea star",
-    species_code == 10285 ~ "Alaska plaice",
-    species_code == 471 ~ "Alaska skate",
-    species_code == 10210 ~ "yellowfin sole",
-    species_code == 69322 ~ "red king crab",
-    species_code == 21735 ~ "saffron cod",
-    species_code == 10120 ~ "Pacific halibut",
-    species_code == 68580 ~ "snow crab",
-    species_code == 21725 ~ "Arctic cod",
-    species_code == 21921 ~ "Atka mackerel",
-    species_code == 68560 ~ "Tanner crab",
-    species_code >= 66000 & species_code <= 67499 ~ "all shrimps_",
-    species_code >= 21740 & species_code <= 21741 ~ "walleye pollock",
-    species_code >= 21720 & species_code <= 21721 ~ "Pacific cod",
-    species_code >= 83020 & species_code <= 83022 ~ "basket starfish_Gorgonocephalus@eucnemis",
-    species_code >= 97000 & species_code <= 97120 ~ "brachiopods",
-    species_code >= 83000 & species_code <= 83701 ~ "brittle stars and sand dollars_",
-    species_code >= 82730 & species_code <= 82741 ~ "brittle stars and sand dollars_",
-    species_code >= 95000 & species_code <= 95199 ~ "byrozoans_Bryozoa",
-    species_code >= 70100 & species_code <= 70151 ~ "chitons",
-    species_code >= 74000 & species_code <= 75799 ~ "clams, mussels, scallops_Bivalvia",
-    species_code >= 41100 & species_code <= 41499 ~ "corals_Anthozoa",
-    species_code >= 44000 & species_code <= 44499 ~ "corals_Anthozoa",
-    species_code >= 44890 & species_code <= 44999 ~ "corals_Anthozoa",
-    species_code >= 24100 & species_code <= 24395 ~ "eelpouts_Zoarcidae",
-    species_code >= 99990 & species_code <= 99998 ~ "empty shells and debris",
-    species_code >= 69010 & species_code <= 69249 ~ "hermit crabs_Paguridae",
-    species_code >= 40060 & species_code <= 40999 ~ "jellyfishes_Scyphozoa",
-    species_code >= 22170 & species_code <= 22199 ~ "lumpsuckers",
-    species_code >= 78010 & species_code <= 78499 ~ "octopuses",
-    species_code >= 68000 & species_code <= 69009 ~ "other crabs_",
-    species_code >= 69201 & species_code <= 69549 ~ "other crabs_",
-    species_code >= 10000 & species_code <= 10399 ~ "other flatfishes_Pleuronectidae",
-    species_code >= 21300 & species_code <= 21499 ~ "other sculpins_Cottidae",
-    species_code >= 80000 & species_code <= 82499 ~ "other sea stars_Asteroidea",
-    species_code >= 71000 & species_code <= 73999 ~ "other snails_Gastropoda",
-    species_code >= 20000 & species_code <= 20099 ~ "poachers_Agonidae",
-    species_code >= 23800 & species_code <= 23870 ~ "pricklebacks_Stichaeidae",
-    species_code >= 23200 & species_code <= 23310 ~ "salmonids",
-    species_code >= 82730 & species_code <= 82740 ~ "sand dollar",
-    species_code >= 43000 & species_code <= 43999 ~ "sea anemones_Actiniaria",
-    species_code >= 85000 & species_code <= 85500 ~ "sea cucumbers_Holothuroidea",
-    species_code >= 82500 & species_code <= 82691 ~ "sea urchins_Strongylocentrotus@spp.",
-    species_code >= 23000 & species_code <= 23071 ~ "smelts_Osmeridae",
-    species_code >= 22200 & species_code <= 22299 ~ "snailfishes_Liparidae",
-    species_code >= 91000 & species_code <= 91999 ~ "sponges",
-    species_code >= 98000 & species_code <= 99909 ~ "tunicates_Urochordata",
-    species_code >= 50000 & species_code <= 59999 ~ "misc worms_",
-    species_code >= 92000 & species_code <= 97499 ~ "misc worms_",
-    species_code >= 20300 & species_code <= 20399 ~ "wolffishes",
-    species_code >= 21900 & species_code <= 21935 ~ "greenlings",
-    species_code >= 21752 & species_code <= 21753 ~ "sticklebacks",
-    species_code >= 40010 & species_code <= 40050 ~ "hydroids",
-    species_code >= 20200 & species_code <= 20204 ~ "sand lances",
-    species_code >= 78502 & species_code <= 79001 ~ "squids",
-    species_code >= 79020 & species_code <= 79513 ~ "squids",
-    species_code >= 82750 & species_code <= 82775 ~ "sea lilies",
-    species_code == 474 | 401 | 402 | 403 | 421 | 436 ~ "skate egg cases",
-    species_code == 1 ~ "fish eggs",
-    TRUE ~ "other"))
-
-spp_info$used_in_counts <- 
-                  ifelse(spp_info$species_code %in% #10:99988, 
-                           find_codes(x = spp_info,  
-                                      str_not = c(" shells", "empty", "unsorted", "shab"
-                                                  #, " egg", "unid.", "compound"
-                                      ),
-                                      col_str_not = "common_name",
-                                      col_out = "species_code"), 
-                         TRUE, FALSE)  # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
-
-temp <- spp_info[(!grepl(pattern = "@", x = spp_info$group, fixed = T) &
-                    !grepl(pattern = "_", x = spp_info$group, fixed = T)),]
-for (i in 1:length(unique(temp$group))) {
-  temp1 <- unique(temp$species_name[temp$group == unique(temp$group)[i]])
-  temp1 <- unique(gsub(pattern = " (juvenile)", replacement = "", x = temp1, fixed = TRUE))
-  if (length(temp1) == 1) {
-    spp_info$group[spp_info$group == unique(temp$group)[i]] <- 
-      paste0(unique(temp$group)[i], "_",
-             gsub(pattern = " ", replacement = "@", x = temp1, fixed = TRUE))
-  } 
-}
-
-# species specifically caught in the survey year
-spp_info_maxyr <- spp_info %>% 
-  dplyr::filter(species_code %in% unique(catch_haul_cruises_maxyr$species_code))
-
-# *** report_spp ---------------------------------------------------------------
-
-report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
-                              skip = 1) %>% 
-  dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", x = report_title), "datar_", "community_"))))
-
-names(report_spp)[
-  grepl(pattern = ifelse(grepl(pattern = "Highlights", 
-                               x = report_title), "community_", "datar_"), 
-        x = names(report_spp))] <- 
-  gsub(pattern = ifelse(grepl(pattern = "Highlights", 
-                              x = report_title), "community_", "datar_"), 
-       replacement = "", 
-       x = names(report_spp)[
-         grepl(pattern = ifelse(grepl(pattern = "Highlights", 
-                                      x = report_title), "community_", "datar_"), 
-               x = names(report_spp))])
-
-report_spp <-  
-  dplyr::left_join(x = report_spp %>% 
-                     dplyr::filter(!is.na(order)) %>% 
-                     dplyr::arrange((order)) %>% 
-                     dplyr::mutate(common_name = tolower(common_name))  %>% 
-                     dplyr::mutate(common_name1 = common_name) %>%
-                     dplyr::mutate(common_name = tolower(common_name)), 
-                   y = spp_info %>% 
-                     # dplyr::mutate(common_name1 = common_name) %>%
-                     dplyr::mutate(common_name = tolower(common_name)) %>%
-                     dplyr::select(-species_code) %>% 
-                     unique(), 
-                   by = "common_name") %>% 
-  dplyr::select(-common_name) %>% 
-  dplyr::rename(common_name = common_name1)
 
 # *** length_maxyr ---------------------------------------------------------------
 
@@ -1078,3 +1075,95 @@ cold_pool_area <- temp %>%
   dplyr::mutate(label = factor(label, 
                                levels=c("1 to 2\u00B0C", "0 to 1\u00B0C", "-1 to 0\u00B0C", "> -1\u00B0C"), 
                                ordered = TRUE))
+
+# *** Calculate Biomass -----------------------------------------------------------
+
+temp <- tidyr::crossing(
+  # haul_cruises_vess %>%
+  #   dplyr::filter(SRVY %in% c("EBS", "NBS")), 
+  # Find the species tht were actually found on the survey 
+  dplyr::distinct(
+    dplyr::left_join(
+      x = catch_haul_cruises %>%
+        dplyr::filter(SRVY %in% c("EBS", "NBS")), 
+      y = spp_info %>% 
+        dplyr::select(species_code, group), 
+      by = "species_code"), 
+    species_code, group)) %>%
+  dplyr::left_join(
+    x = ., 
+    y = catch_haul_cruises %>% 
+      dplyr::filter(SRVY %in% c("EBS", "NBS")) %>%
+      dplyr::select(year, "cruisejoin", "hauljoin", stationid, stratum, SRVY,
+                    "species_code", 
+                    "weight", "number_fish", 
+                    distance_fished, net_width), 
+    by = c("species_code")) %>% 
+  #### a check for species with weights greater then 0
+  ## sum catch weight (by groups) by station and join to haul table (again) to add on relevent haul data
+  dplyr::group_by(year, stationid, stratum, hauljoin, SRVY, #species_code, 
+                  group, distance_fished, net_width) %>%
+  dplyr::summarise(wt_kg_summed_by_station = sum(weight, na.rm = TRUE), # overwrite NAs in assign_group_zeros where data exists
+                   num_summed_by_station = sum(number_fish, na.rm = TRUE)) %>% # overwrite NAs in
+  
+  ## checks catch_and_zeros table for species that are not in groups, if species are not grouped
+  #### add group to assign_groups table
+  ## calculates CPUE for each species group by station
+  mutate(effort = distance_fished * net_width/10) %>%
+  mutate(CPUE_weight_kgperhect = wt_kg_summed_by_station/effort) %>%
+  mutate(CPUE_number_perhect = ifelse(wt_kg_summed_by_station > 0 & num_summed_by_station == 0, NA, 
+                                      (CPUE_number = num_summed_by_station/effort))) %>% 
+  #### this is to check CPUEs by group, station and year against the SQL code
+  ## add area to CPUE table
+  dplyr::left_join(x = ., 
+                   y = stratum_info %>% 
+                     dplyr::select(stratum, area), 
+                   by = 'stratum') 
+
+# calculates total area by adding up the unique area values (each strata has a different value)
+total_area <- sum(unique(temp$area))
+
+biomass <- temp %>%
+  ## calculates mean CPUE (weight) by year, group, stratum, and area
+  dplyr::ungroup() %>%
+  dplyr::group_by(year, group, stratum, SRVY, area) %>% 
+  dplyr::summarise(CPUE_by_group_stratum = mean(CPUE_weight_kgperhect, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  ## creates column for meanCPUE per group/stratum/year*area of stratum
+  dplyr::mutate(mean_cpue_times_area = (CPUE_by_group_stratum * area)) %>%
+  ## calculates sum of mean CPUE*area (over the 3 strata)
+  dplyr::ungroup() %>%
+  dplyr::group_by(year, group, SRVY) %>%
+  dplyr::summarise(mean_CPUE_all_strata_times_area = 
+                     sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  ## creates column with weighted CPUEs
+  dplyr::mutate(weighted_CPUE = (mean_CPUE_all_strata_times_area / total_area), #) %>%
+                ### uses WEIGHTED CPUEs to calculate biomass
+                ## includes empty shells and debris
+                # dplyr::group_by(year, group) %>%
+                biomass_mt = weighted_CPUE*(total_area*.1)) %>%
+  # total biomass excluding empty shells and debris for each year
+  dplyr::filter(group != 'empty shells and debris')  %>% 
+  dplyr::mutate(type = ifelse(
+    grepl(pattern = "@", x = (group), fixed = TRUE),
+    # species_name == paste0(genus_taxon, " ", species_taxon),
+    "ital", NA)) %>%
+  tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
+  dplyr::select(-extra) %>%
+  dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ", 
+                                    x = species_name, fixed = TRUE)) %>%
+  dplyr::select(year, group, species_name, SRVY, 
+                type, biomass_mt) %>%
+  ## creates a biomass column for each year
+  tidyr::pivot_wider(
+    id_cols = c("group", "species_name", "SRVY", type),
+    names_from = "year",
+    values_from = "biomass_mt", 
+    values_fill = NA)  %>% 
+  dplyr::ungroup() 
+
+
+biomass_maxyr<-biomass %>% 
+  dplyr::filter(year == maxyr)
+
+biomass_compareyr<-biomass %>% 
+  dplyr::filter(year == compareyr[1])

@@ -327,6 +327,7 @@ find_codes <- function(x, col = "common_name", str = NULL,
   return(out)
 }
 
+# Species
 
 species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
   
@@ -334,9 +335,10 @@ species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
   header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
   
   # Select data and make plot
-  cols<-c("start_latitude", "start_longitude",  "weight", "number_fish", "bottom_depth", "gear_temperature", "surface_temperature")
+  cols<-c("start_latitude", "start_longitude",  #"weight", "number_fish", 
+          "bottom_depth", "gear_temperature", "surface_temperature")
   COLS<-c("Latitude", "Longitude", 
-          "Weight", "Abundance", 
+          # "Weight", "Abundance", 
           "Bottom Depth", "Bottom Temperature", "Surface Temperature")
   
   haul_spp <- haul_spp %>% 
@@ -430,9 +432,9 @@ length(unique(haul_maxyr0$hauljoin)),
 ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
 " were found in bottom temperatures as warm as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
-"°C and as cold as ", 
+"\u00B0C and as cold as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
-"°C. ") #  (Figure ", cnt_figures,")
+"\u00B0C. ") #  (Figure ", cnt_figures,")
   
   # <!-- surface temperature -->
   str <- paste0(str, "
@@ -440,9 +442,9 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>%
 ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
 " were found in areas where surface temperatures were as warm as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
-"°C and as cold as ", 
+"\u00B0C and as cold as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
-"°C. ") #  (Figure ", cnt_figures,")
+"\u00B0C. ") #  (Figure ", cnt_figures,")
   
   # <!-- Depth -->
   str <- paste0(str, "
@@ -472,15 +474,15 @@ unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm',
   
   
   # <!-- weight -->
-  str <- paste0(str, "
-
-The total number of ",
-NMFSReports::tolower2(spp_common),
-" estimated to have been caught by the survey is ",
-NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)),
-" individuals equating to ",
-NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)),
-" kg of catch. ")
+  #   str <- paste0(str, "
+  # 
+  # The total number of ",
+  # NMFSReports::tolower2(spp_common),
+  # " estimated to have been caught by the survey is ",
+  # NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)),
+  # " individuals equating to ",
+  # NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)),
+  # " kg of catch. ")
   # 
   #   str <- paste0(str, "
   # 
@@ -565,7 +567,7 @@ NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)),
                   xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)/temp2$biomass[temp2$year == maxyr], 
                          val_under_x_words = NULL),"% (", 
                   xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
-                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"), 
+                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey biomass. ",
@@ -574,12 +576,10 @@ NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)),
                   xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)/temp2$biomass[temp2$year == compareyr], 
                          val_under_x_words = NULL),"% (", 
                   xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
-                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"), 
+                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-                  " survey biomass. 
-                  
-                  ")
+                  " survey biomass. ")
     
     # comprising 12% (520,029 mt; Table 1) of the total NBS survey area biomass - YFS
     # In 2019, snow crab comprised 4% (167,124 mt, Table 1) of the NBS survey biomass... In 2017, snow crab comprised 5% (223,216 mt) of the NBS survey biomass
@@ -670,8 +670,6 @@ species_content <- function(SURVEY000,
   return(list("table_spp" = table_spp, 
               "text_spp" = text_spp))
 }
-
-
 
 
 
