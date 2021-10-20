@@ -451,8 +451,7 @@ for (i in 1:length(unique(temp$group))) {
 }
 
 # species specifically caught in the survey year
-spp_info_maxyr <- spp_info %>% 
-  dplyr::filter(species_code %in% unique(catch_haul_cruises_maxyr$species_code))
+
 
 # *** report_spp ---------------------------------------------------------------
 
@@ -834,6 +833,8 @@ catch_haul_cruises_maxyr <- temp(cruises_maxyr, haul_maxyr, catch)
 
 catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr, catch)
 
+spp_info_maxyr <- spp_info %>% 
+  dplyr::filter(species_code %in% unique(catch_haul_cruises_maxyr$species_code))
 
 # *** length_maxyr ---------------------------------------------------------------
 
