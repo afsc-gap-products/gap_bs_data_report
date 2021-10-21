@@ -359,13 +359,14 @@ species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
   
   table_spp_print <- table_spp
   
-  for (ii in c("Min", "Max", "Mean")){
-    table_spp_print[,ii] <- 
-      trimws(formatC(x = table_spp_print[,ii], 
-                     big.mark = ",", 
-                     digits = 2, format = "f"))
+  if (nrow(haul_spp) != 0) {
+    for (ii in c("Min", "Max", "Mean")){
+      table_spp_print[,ii] <- 
+        trimws(formatC(x = table_spp_print[,ii], 
+                       big.mark = ",", 
+                       digits = 2, format = "f"))
+    }
   }
-  
   table_spp_print$metric0<-NULL
   
   # table_raw = table_spp
@@ -1222,4 +1223,111 @@ legend_discrete_cbar <- function(
   }
   
   return(cbar_plot)
+}
+
+
+#' plot_size_comp
+#'
+#' @param sizecomp data.frame with these columns: "year" ,"unsexed" ,"total" ,"SRVY", "stratum" ."species_name .species_code ,males", "length", "file", "females", "common_name", "taxon"  
+#' @param SRVY1 "NBS", "EBS", or c("NBS", "EBS")
+#' @param spp_code numeric. 
+#' @param spp_common string. 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
+  table_raw <- sizecomp %>%
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% SRVY1) %>%
+    dplyr::select(length, males, females, unsexed, year) %>%
+    tidyr::pivot_longer(cols = c(males, females, unsexed),
+                        names_to = "sex", values_to = "pop") %>%
+    dplyr::group_by(length, year, sex) %>%
+    dplyr::summarise(pop = sum(pop, na.rm = TRUE)) %>%
+    dplyr::mutate(sex = stringr::str_to_title(sex)) #%>%
+  
+  table_raw$year <- factor(
+    x = table_raw$year,
+    levels = as.character(sort(unique(table_raw$year))),
+    labels = as.character(sort(unique(table_raw$year))),
+    ordered = TRUE)
+  
+  table_raw$sex <- factor(
+    x = table_raw$sex,
+    levels = as.character(sort(unique(table_raw$sex), decreasing = TRUE)),
+    labels = as.character(sort(unique(table_raw$sex), decreasing = TRUE)),
+    ordered = TRUE)
+  
+  # find appropriate units
+  # pop
+  pop_unit <- ifelse(grepl(x = NMFSReports::xunits(max(table_raw$pop)), 
+                           pattern = "million", 
+                           ignore.case = TRUE), 1e6, 1e3)
+  
+  pop_unit_word <- ifelse(pop_unit == 1e06, "millions", "thousands")
+  
+  # mm vs cm
+  len_unit_axis <- ifelse(max(table_raw$length)-min(table_raw$length)>50, 10, 5)
+  len_unit_word <- ifelse(report_spp$taxon[jj] == "fish", "cm", "mm")
+  
+  # more math
+  table_raw <- table_raw %>%
+    dplyr::mutate(pop = pop/pop_unit, 
+                  length = length*ifelse(len_unit_word == "mm", 10, 1)) #%>%
+  
+  
+  
+  
+  figure <- ggplot(data = table_raw,
+                   mapping = aes(x = length,
+                                 y = pop,
+                                 fill = sex))+
+    geom_bar(position="stack", stat="identity")+
+    scale_fill_viridis_d(direction = -1, 
+                         option = "mako",
+                         begin = .2,
+                         end = .6,
+                         na.value = "transparent") +
+    guides(fill=guide_legend(title="")) +
+    scale_x_continuous(
+      name = paste0(str_to_title(spp_common), " Length (", len_unit_word, ")"),
+      limits = c(ifelse(min(table_raw$length) > 20, min(table_raw$length), 0), 
+                 max(table_raw$length)),
+      breaks = seq(from = 0,
+                   to = max(table_raw$length), 
+                   by = len_unit_axis)) +
+    ylab(paste0("Population numbers (",pop_unit_word,")")) +
+    # xlab("Length (cm)") +
+    facet_grid(year ~ .,
+               # ncol = 1,
+               scales = "free_x") +
+    # coord_capped_cart(bottom='both', left='both', xlim=c(0,max(table_raw$length))) +
+    guides(
+      fill = guide_legend(title.position="top",
+                          label.position = "bottom",
+                          title.hjust = 0.5, nrow = 1)) +
+    theme(
+      # axis.line=element_line(),
+      panel.background = element_rect(fill = "white"),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey95"),
+      panel.border = element_rect(fill = NA,
+                                  colour = "grey20"),
+      strip.background = element_blank(),
+      strip.text = element_text(size = 12, face = "bold"),
+      legend.title = element_blank(), #element_text(size = 15),
+      legend.text = element_text(size = 10),
+      legend.background = element_rect(colour = "transparent", fill = "transparent"),
+      legend.key = element_rect(colour = "transparent",
+                                fill = "transparent"),
+      axis.text = element_text(size = 12),
+      legend.position="bottom",
+      legend.box.just = "left",
+      legend.key.width = unit(.5, "in"),
+      legend.box = "horizontal"
+    )
 }

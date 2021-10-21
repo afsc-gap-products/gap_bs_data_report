@@ -264,85 +264,141 @@ biomass_maxyr<-biomass %>%
 biomass_compareyr<-biomass %>%
   dplyr::filter(year == compareyr[1])
 
-# *** Load Size Comp Design Based Estimates ----------------------------------------------
 
+## *** Load CPUE Design Based Estimates ----------------------------------------------
+
+
+# GF data
 df.ls<-list()
+a<-list.files(path = paste0(dir_data, "/oracle/"), 
+              pattern = paste0("sizecomp_"), 
+              full.names = TRUE)
 
-# for (ii in 1:length(SRVY1)) {
-  
-  a<-list.files(path = paste0(dir_data, "/oracle/"), 
-                pattern = paste0("sizecomp_"), 
-                full.names = TRUE)
-  
-  for (i in 1:length(a)){
-    b <- read_csv(file = a[i])
-    b <- janitor::clean_names(b)
-    if (names(b)[1] %in% "x1"){
-      b$x1<-NULL
-    }
-    b$file <- a[i]
-    b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
-    df.ls[[i]]<-b
-    names(df.ls)[i]<-a[i]
+for (i in 1:length(a)){
+  b <- read_csv(file = a[i])
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
   }
-# }
+  b$file <- a[i]
+  b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
+}
+
 
 sizecomp <- SameColNames(df.ls)  %>%
   dplyr::filter(year <= maxyr & 
                   stratum == 999999) %>% 
-  dplyr::rename(SRVY = survey) %>% 
+  dplyr::rename(SRVY = survey)  %>% 
+  dplyr::select(length, males, females, unsexed, year, species_code, SRVY) %>%
+  tidyr::pivot_longer(cols = c(males, females, unsexed),
+                      names_to = "sex", values_to = "pop") %>% 
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert")) %>%
   dplyr::mutate(length = length/10)
 
-sizecomp_maxyr<-sizecomp %>% 
-  dplyr::filter(year == maxyr)
 
-sizecomp_compareyr<-sizecomp %>% 
-  dplyr::filter(year == compareyr[1])
 
-# *** Load CPUE Design Based Estimates ----------------------------------------------
-
+# Crab
 df.ls<-list()
+a<-list.files(path = paste0(dir_data, "/crab/sizecomp/"), 
+              # pattern = paste0("sizecomp_"), 
+              full.names = TRUE)
 
-# for (ii in 1:length(SRVY1)) {
-  
-  # a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
-  # if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
-  #   a <- a[grep(pattern = "_plusnw", x = a)]
-  # }
-  
-  a<-list.files(path = paste0(dir_data, "/oracle/"), 
-                pattern = paste0("cpue_"), 
-                full.names = TRUE)
-  
-  for (i in 1:length(a)){
-    b <- read_csv(file = a[i])
-    b <- janitor::clean_names(b)
-    if (names(b)[1] %in% "x1"){
-      b$x1<-NULL
-    }
-    b$file <- a[i]
-    temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
-    b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
-    df.ls[[i]]<-b
-    names(df.ls)[i]<-a[i]
+for (i in 1:length(a)){
+  b <- read_csv(file = a[i])
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
   }
-# }
+  b$file <- a[i]
+  # b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
+}
 
-cpue <- SameColNames(df.ls)  %>%
-  dplyr::rename(SRVY = survey) %>% 
-  dplyr::filter(year <= maxyr) %>% 
+
+sizecomp_crab <- #SameColNames(df.ls) %>% 
+  dplyr::left_join(
+    x = SameColNames(df.ls),
+    y = haul %>%
+      dplyr::select(stationid, stratum, SRVY) %>%
+      unique(),
+    by = c("gis_station" = "stationid")) %>%
+  # dplyr::filter(year <= maxyr) %>% 
+  # dplyr::select(-shell_condition, -vessel, -haul) %>% 
+  dplyr::rename(#SRVY = srvy, 
+    cruiseid = cruise, 
+    length = size1,
+    unsexed = number_unsexed_size1, 
+    males = number_male_size1, 
+    females_mature = number_female_size1_mature, 
+    females_immature = number_female_size1_immature) %>%
+  dplyr::mutate(year = maxyr) %>% 
+  dplyr::select(length, males, females_mature, females_immature, unsexed, year, species_code, SRVY) %>%
+  tidyr::pivot_longer(cols = c(males, females_mature, females_immature, unsexed),
+                      names_to = "sex", values_to = "pop") %>%
+  dplyr::filter(!is.na(length) & !is.na(pop) & pop != 0 & !is.na(species_code)) %>% 
+  dplyr::group_by(sex, length, year, species_code) %>% 
+  dplyr::summarise(pop = sum(pop, na.rm = TRUE)) %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert"))
+    species_code >= 40001 ~ "invert")) %>%
+  dplyr::mutate(length = length/10) # cm
 
-cpue_maxyr <- cpue %>% 
+
+# Combine
+
+sizecomp <- SameColNames(list(sizecomp, sizecomp_crab)) %>% 
+  dplyr::filter(length < 0)
+
+sizecomp_maxyr<-sizecomp %>%
   dplyr::filter(year == maxyr)
 
-cpue_compareyr<- cpue %>% 
+sizecomp_compareyr<-sizecomp %>%
   dplyr::filter(year == compareyr[1])
+
+# df.ls<-list()
+# 
+# # for (ii in 1:length(SRVY1)) {
+#   
+#   # a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
+#   # if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
+#   #   a <- a[grep(pattern = "_plusnw", x = a)]
+#   # }
+#   
+#   a<-list.files(path = paste0(dir_data, "/oracle/"), 
+#                 pattern = paste0("cpue_"), 
+#                 full.names = TRUE)
+#   
+#   for (i in 1:length(a)){
+#     b <- read_csv(file = a[i])
+#     b <- janitor::clean_names(b)
+#     if (names(b)[1] %in% "x1"){
+#       b$x1<-NULL
+#     }
+#     b$file <- a[i]
+#     temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
+#     b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
+#     df.ls[[i]]<-b
+#     names(df.ls)[i]<-a[i]
+#   }
+# # }
+# 
+# cpue <- SameColNames(df.ls)  %>%
+#   dplyr::rename(SRVY = survey) %>% 
+#   dplyr::filter(year <= maxyr) %>% 
+#   dplyr::mutate(taxon = dplyr::case_when(
+#     species_code <= 31550 ~ "fish", 
+#     species_code >= 40001 ~ "invert"))
+# 
+# cpue_maxyr <- cpue %>% 
+#   dplyr::filter(year == maxyr)
+# 
+# cpue_compareyr<- cpue %>% 
+#   dplyr::filter(year == compareyr[1])
 
 # Wrangle Data -----------------------------------------------------------------
 
@@ -1176,3 +1232,101 @@ cold_pool_area <- temp %>%
 # 
 # biomass_compareyr<-biomass %>% 
 #   dplyr::filter(year == compareyr[1])
+
+
+# *** Load Size Comp Design Based Estimates ----------------------------------------------
+
+
+# GF data
+df.ls<-list()
+a<-list.files(path = paste0(dir_data, "/oracle/"), 
+              pattern = paste0("sizecomp_"), 
+              full.names = TRUE)
+
+for (i in 1:length(a)){
+  b <- read_csv(file = a[i])
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
+  }
+  b$file <- a[i]
+  b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
+}
+
+
+sizecomp <- SameColNames(df.ls)  %>%
+  dplyr::filter(year <= maxyr & 
+                  stratum == 999999) %>% 
+  dplyr::rename(SRVY = survey)  %>% 
+  dplyr::select(length, males, females, unsexed, year, species_code, SRVY) %>%
+  tidyr::pivot_longer(cols = c(males, females, unsexed),
+                      names_to = "sex", values_to = "pop") %>% 
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert")) %>%
+  dplyr::mutate(length = length/10) %>% 
+  dplyr::filter(length > 0)
+
+
+
+# Crab
+df.ls<-list()
+a<-list.files(path = paste0(dir_data, "/crab/sizecomp/"), 
+              # pattern = paste0("sizecomp_"), 
+              full.names = TRUE)
+
+for (i in 1:length(a)){
+  b <- read_csv(file = a[i])
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
+  }
+  b$file <- a[i]
+  # b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
+}
+
+
+sizecomp_crab <- #SameColNames(df.ls) %>% 
+  dplyr::left_join(
+    x = SameColNames(df.ls),
+    y = haul %>%
+      dplyr::select(stationid, stratum, SRVY) %>%
+      unique(),
+    by = c("gis_station" = "stationid")) %>%
+  # dplyr::filter(year <= maxyr) %>% 
+  # dplyr::select(-shell_condition, -vessel, -haul) %>% 
+  dplyr::mutate(year = substr(cruise, start = 1, stop = 4)) %>% 
+  dplyr::rename(#SRVY = srvy, 
+    # cruiseid = cruise, 
+    length = size1,
+    unsexed = number_unsexed_size1, 
+    males = number_male_size1, 
+    females_mature = number_female_size1_mature, 
+    females_immature = number_female_size1_immature) %>%
+  dplyr::select(length, males, females_mature, females_immature, unsexed, year, species_code, SRVY) %>%
+  tidyr::pivot_longer(cols = c(males, females_mature, females_immature, unsexed),
+                      names_to = "sex", values_to = "pop") %>%
+  dplyr::filter(!is.na(length) & !is.na(pop) & pop != 0 & !is.na(species_code)) %>% 
+  dplyr::group_by(sex, length, year, species_code, SRVY) %>% 
+  dplyr::summarise(pop = sum(pop, na.rm = TRUE)) %>%
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert")) %>%
+  dplyr::mutate(length = length/10) # cm
+
+
+# Combine
+
+sizecomp <- SameColNames(list("gf" = sizecomp, 
+                              "crab" = sizecomp_crab)) %>% 
+  dplyr::rename(SRVY = srvy)
+
+sizecomp_maxyr<-sizecomp %>%
+  dplyr::filter(year == maxyr)
+
+sizecomp_compareyr<-sizecomp %>%
+  dplyr::filter(year == compareyr[1])
