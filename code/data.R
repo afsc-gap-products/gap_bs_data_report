@@ -456,6 +456,8 @@ for (i in 1:length(unique(temp$group))) {
   } 
 }
 
+spp_info$common_name[spp_info$common_name %in% "shorthorn (=warty) sculpin"] <- "warty sculpin"
+
 # species specifically caught in the survey year
 
 
