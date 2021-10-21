@@ -327,11 +327,9 @@ find_codes <- function(x, col = "common_name", str = NULL,
   return(out)
 }
 
-# Species
 
 species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
   
-  # Edit This:
   header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
   
   # Select data and make plot
@@ -360,11 +358,14 @@ species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
   }
   
   table_spp_print <- table_spp
-  table_spp_print[, c("Min", "Max", "Mean")] <- 
-    NMFSReports::mod_number(x = table_spp_print[, c("Min", "Max", "Mean")], 
-                            comma_seperator = TRUE, 
-                            divideby = 1, 
-                            digits = 2)
+  
+  for (ii in c("Min", "Max", "Mean")){
+    table_spp_print[,ii] <- 
+      trimws(formatC(x = table_spp_print[,ii], 
+                     big.mark = ",", 
+                     digits = 2, format = "f"))
+  }
+  
   table_spp_print$metric0<-NULL
   
   # table_raw = table_spp

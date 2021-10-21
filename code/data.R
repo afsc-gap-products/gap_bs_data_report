@@ -249,7 +249,7 @@ for (i in 1:length(a)){
 }
 # }
 
-biomass_pub <- SameColNames(df.ls)  %>%
+biomass <- SameColNames(df.ls)  %>%
   dplyr::filter(year <= maxyr &
                   stratum == 999) %>% 
   dplyr::rename(SRVY = survey) %>%
@@ -257,6 +257,12 @@ biomass_pub <- SameColNames(df.ls)  %>%
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert"))
 
+
+biomass_maxyr<-biomass %>%
+  dplyr::filter(year == maxyr)
+
+biomass_compareyr<-biomass %>%
+  dplyr::filter(year == compareyr[1])
 
 # *** Load Size Comp Design Based Estimates ----------------------------------------------
 
