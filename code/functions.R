@@ -1228,7 +1228,7 @@ legend_discrete_cbar <- function(
 
 #' plot_size_comp
 #'
-#' @param sizecomp data.frame with these columns: "year" ,"unsexed" ,"total" ,"SRVY", "stratum" ."species_name .species_code ,males", "length", "file", "females", "common_name", "taxon"  
+#' @param sizecomp data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
 #' @param SRVY1 "NBS", "EBS", or c("NBS", "EBS")
 #' @param spp_code numeric. 
 #' @param spp_common string. 
@@ -1238,15 +1238,17 @@ legend_discrete_cbar <- function(
 #'
 #' @examples
 plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
+  
   table_raw <- sizecomp %>%
     dplyr::filter(species_code %in% spp_code &
                     SRVY %in% SRVY1) %>%
-    dplyr::select(length, males, females, unsexed, year) %>%
-    tidyr::pivot_longer(cols = c(males, females, unsexed),
-                        names_to = "sex", values_to = "pop") %>%
-    dplyr::group_by(length, year, sex) %>%
-    dplyr::summarise(pop = sum(pop, na.rm = TRUE)) %>%
-    dplyr::mutate(sex = stringr::str_to_title(sex)) #%>%
+    # dplyr::select(length, males, females, unsexed, year) %>%
+    # tidyr::pivot_longer(cols = c(males, females, unsexed),
+    #                     names_to = "sex", values_to = "pop") %>%
+    # dplyr::group_by(length, year, sex) %>%
+    # dplyr::summarise(pop = sum(pop, na.rm = TRUE)) %>%
+    dplyr::mutate(sex = stringr::str_to_title(
+      gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) #%>%
   
   table_raw$year <- factor(
     x = table_raw$year,
@@ -1269,13 +1271,14 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
   pop_unit_word <- ifelse(pop_unit == 1e06, "millions", "thousands")
   
   # mm vs cm
-  len_unit_axis <- ifelse(max(table_raw$length)-min(table_raw$length)>50, 10, 5)
   len_unit_word <- ifelse(report_spp$taxon[jj] == "fish", "cm", "mm")
-  
-  # more math
   table_raw <- table_raw %>%
     dplyr::mutate(pop = pop/pop_unit, 
                   length = length*ifelse(len_unit_word == "mm", 10, 1)) #%>%
+  len_unit_axis <- ifelse(max(table_raw$length)-min(table_raw$length)>50, 10, 5)
+  
+  # more math
+  
   
   
   
@@ -1331,3 +1334,4 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
       legend.box = "horizontal"
     )
 }
+
