@@ -505,8 +505,8 @@ stratum_info <- stratum0 %>%
     depth %in% c("100-200", ">100") ~ "Outer Shelf"
   )) %>% 
   dplyr::mutate(area_km2 = area, 
-                area_ha = area/100, 
-                area_nmi2 = area/3.429904)
+                area_ha = area/divkm2forha, 
+                area_nmi2 = area/divkm2fornmi2)
 
   return(stratum_info)
 

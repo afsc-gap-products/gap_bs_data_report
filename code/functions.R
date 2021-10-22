@@ -221,6 +221,68 @@ CapFirst <- function(x) {
 }
 
 
+
+readtext2 <- function(file, refcontent = FALSE){
+  
+  # read in document
+  insert <- readtext(file = file)
+  
+  if (insert == "") { # if there is nothing in the doc, no problem!
+    insert <- ""
+  } else { # if there is something in the doc
+    
+    # remind reviewers what is code and what is not:
+    if (refcontent) { 
+      insert <- paste0("**Hand written text from google drive**: ", 
+                       gsub(pattern = "\n", replacement = "\n\n\n **Hand written text from google drive**:", x = insert$text), 
+                       "*")
+    } else {
+      insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert$text)
+    }
+    
+    # incorportate r code in the text
+    # insert <- strsplit(x = insert, split = "`r")[[1]]
+    insert <- strsplit(x = insert, split = "`")[[1]]
+    insert[substr(start = 1, stop = 2, x = insert) != "r "] <- 
+      paste0('"', insert[substr(start = 1, stop = 2, x = insert) != "r "], '",')
+    # paste0("'", insert[substr(start = 1, stop = 2, x = insert) != "r "], "',")
+    insert[substr(start = 1, stop = 2, x = insert) == "r "] <- 
+      paste0(substr(x = insert[substr(start = 1, stop = 2, x = insert) == "r "] , 
+                    start = 3, 
+                    stop = nchar(insert[substr(start = 1, stop = 2, x = insert) == "r "] )), ",")
+    insert <- paste0(insert, collapse = "")
+    insert<-paste0(substr(x = insert, start = 1, stop = nchar(insert)-1)) # get rid of ",)" at end of last paragraph
+    insert <- paste0("paste0(", insert, ")", collapse = "")
+    eval(parse( text= insert ))
+    
+  }
+  return(insert)
+}
+
+
+# Converions --------------------------------------------
+
+
+# https://github.com/geanders/weathermetrics/blob/master/R/temperature_conversions.R
+c2f <- function (T.celsius, round = 2) {
+    T.fahrenheit <- (9/5) * T.celsius + 32
+    T.fahrenheit <- round(T.fahrenheit, digits = round)
+    return(T.fahrenheit)
+  }
+
+# divkmfornmi <- 
+# 
+# divnmiforkm
+# 
+divnmi2forkm2 <- 1/3.429904
+
+divkm2fornmi2 <- 3.429904
+# divkm2fornmi2 <- 0.291160601164372384405766883164727405629748185875095639378254783272052516569336
+
+divkm2forha <- 100
+
+divmforft <- 3.28084
+  
 # Species -----------------------------------------------
 
 
