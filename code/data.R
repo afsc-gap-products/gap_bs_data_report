@@ -1144,6 +1144,7 @@ cold_pool_area <- temp %>%
 # *** Load Size Comp Design Based Estimates ----------------------------------------------
 
 
+
 # GF data
 df.ls<-list()
 a<-list.files(path = paste0(dir_data, "/oracle/"), 
@@ -1200,22 +1201,24 @@ for (i in 1:length(a)){
 sizecomp_crab <- #SameColNames(df.ls) %>% 
   dplyr::left_join(
     x = SameColNames(df.ls),
-    y = haul %>%
+    y = station_info %>%
       dplyr::select(stationid, stratum, SRVY) %>%
       unique(),
     by = c("gis_station" = "stationid")) %>%
-  # dplyr::filter(year <= maxyr) %>% 
-  # dplyr::select(-shell_condition, -vessel, -haul) %>% 
   dplyr::mutate(year = substr(cruise, start = 1, stop = 4)) %>% 
   dplyr::rename(#SRVY = srvy, 
     # cruiseid = cruise, 
     length = size1,
     unsexed = number_unsexed_size1, 
     males = number_male_size1, 
-    females_mature = number_female_size1_mature, 
-    females_immature = number_female_size1_immature) %>%
-  dplyr::select(length, males, females_mature, females_immature, unsexed, year, species_code, SRVY) %>%
-  tidyr::pivot_longer(cols = c(males, females_mature, females_immature, unsexed),
+    females = number_female_size1,
+    # females_mature = number_female_size1_mature, 
+    # females_immature = number_female_size1_immature
+  ) %>%
+  dplyr::select(length, males, females,#_mature, females_immature, 
+                unsexed, year, species_code, SRVY, file) %>%
+  tidyr::pivot_longer(cols = c(males, females,#_mature, females_immature, 
+                               unsexed),
                       names_to = "sex", values_to = "pop") %>%
   dplyr::filter(!is.na(length) & !is.na(pop) & pop != 0 & !is.na(species_code)) %>% 
   dplyr::group_by(sex, length, year, species_code, SRVY) %>% 

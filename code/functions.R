@@ -1264,25 +1264,34 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
   
   # find appropriate units
   # pop
-  pop_unit <- ifelse(grepl(x = NMFSReports::xunits(max(table_raw$pop)), 
-                           pattern = "million", 
-                           ignore.case = TRUE), 1e6, 1e3)
+  if (max(table_raw$pop)<1e3) {
+    pop_unit <- 1
+    pop_unit_word <- ""
+  } else if (max(table_raw$pop)<1e6) {
+    pop_unit <- 1e3
+    pop_unit_word <- " (thousands)" 
+  } else if (max(table_raw$pop)>=1e6) {
+    pop_unit <- 1e6
+    pop_unit_word <- " (millions)"
+  }
   
-  pop_unit_word <- ifelse(pop_unit == 1e06, "millions", "thousands")
+  # pop_unit <- ifelse(grepl(x = NMFSReports::xunits(max(table_raw$pop)), 
+  #                          pattern = "million", 
+  #                          ignore.case = TRUE), 1e6, 1e3)
+  # 
+  # pop_unit_word <- ifelse(pop_unit == 1e06, "millions", "thousands")
   
   # mm vs cm
-  len_unit_word <- ifelse(report_spp$taxon[jj] == "fish", "cm", "mm")
+  len_unit_word <- ifelse(#report_spp$taxon[jj] =="fish", 
+    max(table_raw$length)-min(table_raw$length)>45, 
+    "cm", "mm")
   table_raw <- table_raw %>%
     dplyr::mutate(pop = pop/pop_unit, 
                   length = length*ifelse(len_unit_word == "mm", 10, 1)) #%>%
-  len_unit_axis <- ifelse(max(table_raw$length)-min(table_raw$length)>50, 10, 5)
+  len_unit_axis <- ifelse(max(table_raw$length)-min(table_raw$length)>150, 50, 
+                          ifelse(max(table_raw$length)-min(table_raw$length)>45, 10, 5))
   
-  # more math
-  
-  
-  
-  
-  
+  # figure 
   figure <- ggplot(data = table_raw,
                    mapping = aes(x = length,
                                  y = pop,
@@ -1301,8 +1310,20 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
       breaks = seq(from = 0,
                    to = max(table_raw$length), 
                    by = len_unit_axis)) +
-    ylab(paste0("Population numbers (",pop_unit_word,")")) +
-    # xlab("Length (cm)") +
+    
+    # if (pop_unit > 1) {
+    # figure <- figure + 
+    ylab(paste0("Population",pop_unit_word)) +
+    # } else {
+    #   figure <- figure +
+    #     scale_y_continuous(
+    #     name = paste0("Population numbers",pop_unit_word),
+    #     breaks = seq(from = 0,
+    #                  to = max(table_raw$pop),
+    #                  by = ifelse(5)))
+    # }
+    
+    # figure <- figure + 
     facet_grid(year ~ .,
                # ncol = 1,
                scales = "free_x") +
@@ -1334,4 +1355,3 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
       legend.box = "horizontal"
     )
 }
-
