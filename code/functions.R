@@ -1287,7 +1287,8 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
     "cm", "mm")
   table_raw <- table_raw %>%
     dplyr::mutate(pop = pop/pop_unit, 
-                  length = length*ifelse(len_unit_word == "mm", 10, 1)) #%>%
+                  length = round(
+                    x = length*ifelse(len_unit_word == "mm", 10, 1), digits = 0)) #%>%
   len_unit_axis <- ifelse(max(table_raw$length)-min(table_raw$length)>150, 50, 
                           ifelse(max(table_raw$length)-min(table_raw$length)>45, 10, 5))
   

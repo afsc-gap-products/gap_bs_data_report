@@ -1216,11 +1216,16 @@ sizecomp_crab <- #SameColNames(df.ls) %>%
     # females_immature = number_female_size1_immature
   ) %>%
   dplyr::select(length, males, females,#_mature, females_immature, 
-                unsexed, year, species_code, SRVY, file) %>%
+                unsexed, year, species_code, SRVY, file, clutch_size) %>%
   tidyr::pivot_longer(cols = c(males, females,#_mature, females_immature, 
                                unsexed),
                       names_to = "sex", values_to = "pop") %>%
   dplyr::filter(!is.na(length) & !is.na(pop) & pop != 0 & !is.na(species_code)) %>% 
+  dplyr::mutate(sex = dplyr::case_when(
+    clutch_size == 0 & sex == "females" ~ "Females (Immature)", 
+    clutch_size >= 1 & sex == "females" ~ "Females (Mature)", 
+    TRUE ~ sex
+  )) %>%
   dplyr::group_by(sex, length, year, species_code, SRVY) %>% 
   dplyr::summarise(pop = sum(pop, na.rm = TRUE)) %>%
   dplyr::mutate(taxon = dplyr::case_when(
