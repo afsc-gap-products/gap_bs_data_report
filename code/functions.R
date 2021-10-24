@@ -800,9 +800,7 @@ plot_idw_xbyx <- function(
                                         accuracy = ifelse(max(set.breaks0[i])>300, 100, 
                                                           ifelse(max(set.breaks0[i])>100, 50, 
                                                                  ifelse(max(set.breaks0[i])>20, 10, 
-                                                                        ifelse(max(set.breaks0[i])>10, 
-                                                                               round(set.breaks0[i], digits = 0), 
-                                                                               round(set.breaks0[i], digits = 1))))),
+                                                                        1))), 
                                         f = ceiling))    
       }
     }
@@ -830,7 +828,8 @@ plot_idw_xbyx <- function(
     }
     
     temp <- dat %>%
-      dplyr::filter(year == yrs[ii]) 
+      dplyr::filter(year == yrs[ii] # & cpue_kgha > 0
+      ) 
     
     temp1 <- akgfmaps::make_idw_map(
       LATITUDE = as.numeric(unlist(temp[,lat])),
@@ -950,31 +949,10 @@ plot_idw_xbyx <- function(
       legend.key.width = unit(.5, "in"), 
       legend.box = "horizontal")
   
-  
-  # #set legend position and vertical arrangement
-  # theme(
-  #   legend.title.align = 0.5, 
-  #   panel.background = element_rect(fill = "white", 
-  #                                   colour = NA), 
-  #   panel.border = element_rect(fill = NA, 
-  #                               colour = "grey20"), 
-  #   strip.background = element_blank(), 
-  #   strip.text = element_text(size = 12, face = "bold"),
-  #   legend.title = element_text(size = 12), 
-  #   legend.text = element_text(size = 9), ,
-  #   legend.background = element_rect(colour = "transparent", fill = "transparent"),
-  #   legend.key = element_rect(colour = "transparent", 
-  #                             fill = "transparent"),
-  #   # axis.text = element_blank(),
-  #   legend.position="bottom", 
-  #   legend.box.just = "left",
-  #   legend.key.width = unit(.5, "in"), 
-  #   legend.box = "horizontal"
-  # )
-  
   return(figure)
   
 }
+
 
 
 
