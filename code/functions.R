@@ -82,6 +82,10 @@ PKG <- c(
   # library(scales)
   # library(ggthemes) # theme_map()
   
+  # check website links
+  "pingr",
+  "httr",
+  
   
   # Time
   # "lubridate",
