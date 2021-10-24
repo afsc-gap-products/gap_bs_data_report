@@ -1273,12 +1273,13 @@ legend_discrete_cbar <- function(
 #' @param SRVY1 "NBS", "EBS", or c("NBS", "EBS")
 #' @param spp_code numeric. 
 #' @param spp_common string. 
+#' @param spp_print string. 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
+plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common, spp_print){
   
   table_raw <- sizecomp %>%
     dplyr::filter(species_code %in% spp_code &
@@ -1346,7 +1347,7 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common){
                          na.value = "transparent") +
     guides(fill=guide_legend(title="")) +
     scale_x_continuous(
-      name = paste0(str_to_title(spp_common), " Length (", len_unit_word, ")"),
+      name = paste0(str_to_title(spp_print), " Length (", len_unit_word, ")"),
       limits = c(ifelse(min(table_raw$length) > 20, min(table_raw$length), 0), 
                  max(table_raw$length)),
       breaks = seq(from = 0,

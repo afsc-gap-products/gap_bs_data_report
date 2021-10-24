@@ -307,6 +307,8 @@ cpue_maxyr <- cpue %>%
 cpue_compareyr<- cpue %>%
   dplyr::filter(year == compareyr[1])
 
+cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune snail"
+
 # Wrangle Data -----------------------------------------------------------------
 
 
