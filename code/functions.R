@@ -866,7 +866,7 @@ plot_idw_xbyx <- function(
   names(stars_list) = "value"
   
   figure <- ggplot() +
-    geom_stars(data = stars_list) +
+    geom_stars(data = stars_list, na.rm = TRUE) +
     facet_wrap( ~ new_dim, nrow = nrow) +
     coord_equal() +
     geom_sf(data = reg_dat$survey.strata,
@@ -920,8 +920,9 @@ plot_idw_xbyx <- function(
                    begin = 0,
                    end = 0.80)), 
         name = key.title,
-        levels(temp0$var1.pred), 
-        levels(temp0$var1.pred))      
+        na.value = "transparent", 
+        breaks = levels(temp0$var1.pred), 
+        labels = levels(temp0$var1.pred))      
   }
   
   figure <- figure +
