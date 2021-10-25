@@ -721,9 +721,8 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
     str <- paste0(str, "
                   
                   In ",maxyr,", ",spp_print," comprised ",
-                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)/
-                           temp2$biomass[temp2$year == maxyr], 
-                         val_under_x_words = NULL),"% (", 
+                  xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)/
+                               temp2$biomass[temp2$year == maxyr])*100)," (", 
                   xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
                   NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
                   ") of the ",
@@ -731,9 +730,8 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
                   " survey biomass. ",
                   
                   "Previously in ",compareyr,", ",spp_print," comprised ",
-                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
-                           temp2$biomass[temp2$year == compareyr], 
-                         val_under_x_words = NULL),"% (", 
+                  xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
+                               temp2$biomass[temp2$year == compareyr])*100)," (", 
                   xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
                   NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
                   ") of the ",
