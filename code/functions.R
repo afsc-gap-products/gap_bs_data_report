@@ -529,6 +529,7 @@ species_text <- function(
   biomass_cpue,
   length_maxyr0, 
   spp_common, 
+  spp_print, 
   spp_code, 
   SRVY000, 
   maxyr, 
@@ -550,7 +551,7 @@ species_text <- function(
   str <- paste0(str, 
                 "Out of the total number of successful hauls (", 
                 length(unique(haul_maxyr0$hauljoin)), ") ",  
-                NMFSReports::tolower2(spp_common), 
+                NMFSReports::tolower2(spp_print), 
                 " was found during ", 
                 length(unique(haul_maxyr_spp$hauljoin)), 
                 " hauls (", 
@@ -562,7 +563,7 @@ species_text <- function(
 
 During the ", maxyr, 
 " survey, ", 
-NMFSReports::tolower2(spp_common), 
+NMFSReports::tolower2(spp_print), 
 " were present at ", 
 formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
         digits = 1, format = "f") , 
@@ -575,7 +576,7 @@ length(unique(haul_maxyr0$hauljoin)),
   # <!-- bottom tempature -->
   str <- paste0(str, "
 
-", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+", NMFSReports::tolower2(spp_print, capitalizefirst = TRUE), 
 " were found in bottom temperatures as warm as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
 "\u00B0C and as cold as ", 
@@ -585,7 +586,7 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>%
   # <!-- surface temperature -->
   str <- paste0(str, "
 
-", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
+", NMFSReports::tolower2(spp_print, capitalizefirst = TRUE), 
 " were found in areas where surface temperatures were as warm as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
 "\u00B0C and as cold as ", 
@@ -607,7 +608,7 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr
 
 The ", 
 NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
-" of ", NMFSReports::tolower2(spp_common), 
+" of ", NMFSReports::tolower2(spp_print), 
 " measured during the survey were between ", 
 # NMFSReports::xunits(
 (min(length_maxyr0$length, na.rm = TRUE)), 
@@ -645,18 +646,18 @@ unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm',
   
   temp <- function(biomass_cpue, maxyr, compareyr, tempyr, 
                    metric = "biomass", metric_long = "biomass", unit = " mt", 
-                   SRVY000, spp_common) {
+                   SRVY000, spp_print) {
     
     str0 <- paste0("Compared with ", 
                    compareyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
-                   unit,"), ",spp_common," ",metric_long," in ", 
+                   unit,"), ",spp_print," ",metric_long," in ", 
                    maxyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
                    unit,") in the ",
                    ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000)," experienced ",
                    NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE),
                                         end = sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)) , 
                    # compare to the year before these
-                   ". Previously, ",spp_common," ",metric_long," in ", 
+                   ". Previously, ",spp_print," ",metric_long," in ", 
                    compareyr, " experienced ",
                    NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE),
                                         end = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)), 
@@ -671,14 +672,14 @@ unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm',
     ## pchange_biomass
     str <- paste0(str, "
 
-", temp(biomass_cpue, maxyr, compareyr, tempyr, metric = "biomass", metric_long = "biomass", unit = " mt", SRVY000, spp_common))
+", temp(biomass_cpue, maxyr, compareyr, tempyr, metric = "biomass", metric_long = "biomass", unit = " mt", SRVY000, spp_print))
     
     
     
     # pchange cpue
     str <- paste0(str, "
 
-", temp(biomass_cpue, maxyr, compareyr, tempyr, metric = "cpue_kgha", metric_long = "CPUE", unit = " kg/ha", SRVY000, spp_common))
+", temp(biomass_cpue, maxyr, compareyr, tempyr, metric = "cpue_kgha", metric_long = "CPUE", unit = " kg/ha", SRVY000, spp_print))
     
     
     
@@ -709,7 +710,7 @@ unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm',
     
     str <- paste0(str, "
                   
-                  In ",maxyr,", ",spp_common," comprised ",
+                  In ",maxyr,", ",spp_print," comprised ",
                   xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)/temp2$biomass[temp2$year == maxyr], 
                          val_under_x_words = NULL),"% (", 
                   xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
@@ -718,7 +719,7 @@ unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm',
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey biomass. ",
                   
-                  "Previously in ",compareyr,", ",spp_common," comprised ",
+                  "Previously in ",compareyr,", ",spp_print," comprised ",
                   xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)/temp2$biomass[temp2$year == compareyr], 
                          val_under_x_words = NULL),"% (", 
                   xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
@@ -753,6 +754,7 @@ species_content <- function(SURVEY000,
                             biomass_cpue,
                             length_maxyr0,
                             spp_common, 
+                            spp_print, 
                             spp_code,
                             maxyr, 
                             compareyr) {
@@ -760,7 +762,7 @@ species_content <- function(SURVEY000,
   
   # Data work up
   biomass_cpue <- biomass_cpue %>%
-    dplyr::filter(species_code %in% spp_code & 
+    dplyr::filter(common_name %in% spp_common & 
                     SRVY %in% SRVY000)
   
   haul_maxyr0 <- haul_maxyr %>% 
@@ -768,7 +770,7 @@ species_content <- function(SURVEY000,
   
   
   length_maxyr0 <- length_maxyr0 %>% 
-    dplyr::filter(species_code %in% spp_code & 
+    dplyr::filter(common_name %in% spp_common & 
                     SRVY %in% SRVY000)
   
   # tables from maxyr
@@ -808,6 +810,7 @@ species_content <- function(SURVEY000,
     length_maxyr0, 
     table_spp_print = table_spp_maxyr$print, 
     spp_common, 
+    spp_print, 
     spp_code, 
     SRVY000, 
     maxyr, 
