@@ -600,23 +600,26 @@ They were found in waters with depths between ",
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
 " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
   
-  # <!-- Sizes caught  -->
+  # <!-- Sizes lengths caught  -->
   
   if (nrow(length_maxyr0) != 0) {
+    
+    
+    unit <- unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
+                                    spp_code %in% 68000:69930 ~ 'mm'), 
+                   TRUE ~ 'NO MEASUREMENT')
     
     str <- paste0(str, "
 
 The ", 
 NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
 " of ", NMFSReports::tolower2(spp_print), 
-" measured during the survey were between ", 
+" measured during the ",maxyr," ",SRVY000," survey were between ", 
 # NMFSReports::xunits(
-(min(length_maxyr0$length, na.rm = TRUE)), 
+(min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
 " and ", #NMFSReports::xunits
-(max(length_maxyr0$length, na.rm = TRUE)), " ", 
-unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
-                        spp_code %in% 68000:69930 ~ 'mm'), 
-       TRUE ~ 'NO MEASUREMENT'), ". ")
+(max(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+" ", unit, ". ")
   }
   
   
