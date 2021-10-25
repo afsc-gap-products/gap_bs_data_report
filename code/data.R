@@ -333,6 +333,13 @@ spp_info <-
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert")) %>% 
   dplyr::mutate(group = case_when(
+    # added
+    species_code == 98105 ~ "sea onion_Boltenia@ovifera",  # added
+    species_code %in% 98200:98205 ~ "sea peach_Halocynthia@sp.", # added
+    species_code %in% 23010 ~ "eulachon_Thaleichthys@pacificus", # added
+    species_code %in% 23041 ~ "capelin_Mallotus@villosus", # added
+    species_code %in% 23055 ~ "rainbow smelt_Osmerus@mordax", # added
+    # previous
     species_code == 69323 ~ "blue king crab",
     species_code == 21368 ~ "warty sculpin_Myoxocephalus@scorpius",
     species_code == 10261 ~ "northern rock sole",
@@ -400,12 +407,7 @@ spp_info <-
     species_code >= 82750 & species_code <= 82775 ~ "sea lilies",
     species_code == 474 | 401 | 402 | 403 | 421 | 436 ~ "skate egg cases",
     species_code == 1 ~ "fish eggs",
-    # added
-    species_code == 98105 ~ "sea onion_Boltenia@ovifera",  # added
-    species_code %in% 98200:98205 ~ "sea peach_Halocynthia@sp.", # added
-    species_code %in% 23010 ~ "eulachon_Thaleichthys@pacificus", # added
-    species_code %in% 23041 ~ "capelin_Mallotus@villosus", # added
-    species_code %in% 23055 ~ "rainbow smelt_Osmerus@mordax", # added
+
     TRUE ~ "other"))
 
 spp_info$used_in_counts <- 
