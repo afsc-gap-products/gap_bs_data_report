@@ -244,20 +244,20 @@ readtext2 <- function(file, refcontent = FALSE){
       insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert$text)
     }
     
-    # # incorportate r code in the text
-    # # insert <- strsplit(x = insert, split = "`r")[[1]]
-    # insert <- strsplit(x = insert, split = "`")[[1]]
-    # insert[substr(start = 1, stop = 2, x = insert) != "r "] <- 
-    #   paste0('"', insert[substr(start = 1, stop = 2, x = insert) != "r "], '",')
-    # # paste0("'", insert[substr(start = 1, stop = 2, x = insert) != "r "], "',")
-    # insert[substr(start = 1, stop = 2, x = insert) == "r "] <- 
-    #   paste0(substr(x = insert[substr(start = 1, stop = 2, x = insert) == "r "] , 
-    #                 start = 3, 
-    #                 stop = nchar(insert[substr(start = 1, stop = 2, x = insert) == "r "] )), ",")
-    # insert <- paste0(insert, collapse = "")
-    # insert<-paste0(substr(x = insert, start = 1, stop = nchar(insert)-1)) # get rid of ",)" at end of last paragraph
-    # insert <- paste0("paste0(", insert, ")", collapse = "")
-    # eval(parse( text= insert ))
+    # incorportate r code in the text
+    # insert <- strsplit(x = insert, split = "`r")[[1]]
+    insert <- strsplit(x = insert, split = "`")[[1]]
+    insert[substr(start = 1, stop = 2, x = insert) != "r "] <-
+      paste0('"', insert[substr(start = 1, stop = 2, x = insert) != "r "], '",')
+    # paste0("'", insert[substr(start = 1, stop = 2, x = insert) != "r "], "',")
+    insert[substr(start = 1, stop = 2, x = insert) == "r "] <-
+      paste0(substr(x = insert[substr(start = 1, stop = 2, x = insert) == "r "] ,
+                    start = 3,
+                    stop = nchar(insert[substr(start = 1, stop = 2, x = insert) == "r "] )), ",")
+    insert <- paste0(insert, collapse = "")
+    insert<-paste0(substr(x = insert, start = 1, stop = nchar(insert)-1)) # get rid of ",)" at end of last paragraph
+    insert <- paste0("paste0(", insert, ")", collapse = "")
+    eval(parse( text= insert ))
     
   }
   return(insert)
