@@ -545,6 +545,12 @@ species_text <- function(
                     SRVY %in% SRVY000 &
                     year == compareyr)  
   
+  biomass_cpue <- biomass_cpue %>% 
+    dplyr::filter(SRVY %in% SRVY000)    
+  
+  biomass_cpue_spp <- biomass_cpue %>%
+    dplyr::filter(common_name %in% spp_common)
+  
   str <- c()
   
   # <!-- how many stations -->
@@ -647,25 +653,25 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
   
   tempyr <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
   
-  temp <- function(biomass_cpue, maxyr, compareyr, tempyr, 
+  temp <- function(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
                    metric = "biomass", metric_long = "biomass", unit = " mt", 
                    SRVY000, spp_print) {
     
     str0 <- paste0("Compared with ", 
-                   compareyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
+                   compareyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
                    unit,"), ",spp_print," ",metric_long," in ", 
-                   maxyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
+                   maxyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
                    unit,") in the ",
                    ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000)," experienced ",
-                   NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE),
-                                        end = sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)) , 
+                   NMFSReports::pchange(start = sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE),
+                                        end = sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)) , 
                    # compare to the year before these
                    ". Previously, ",spp_print," ",metric_long," in ", 
                    compareyr, " experienced ",
-                   NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE),
-                                        end = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)), 
+                   NMFSReports::pchange(start = sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE),
+                                        end = sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)), 
                    " compared to ",metric_long," in ", 
-                   tempyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,").")
+                   tempyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,").")
     
     return(str0)
   }
@@ -675,14 +681,14 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
     ## pchange_biomass
     str <- paste0(str, "
 
-", temp(biomass_cpue, maxyr, compareyr, tempyr, metric = "biomass", metric_long = "biomass", unit = " mt", SRVY000, spp_print))
+", temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, metric = "biomass", metric_long = "biomass", unit = " mt", SRVY000, spp_print))
     
     
     
     # pchange cpue
-    str <- paste0(str, "
-
-", temp(biomass_cpue, maxyr, compareyr, tempyr, metric = "cpue_kgha", metric_long = "CPUE", unit = " kg/ha", SRVY000, spp_print))
+    #     str <- paste0(str, "
+    # 
+    # ", temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, metric = "cpue_kgha", metric_long = "CPUE", unit = " kg/ha", SRVY000, spp_print))
     
     
     
@@ -707,6 +713,7 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
     
     # total biomass
     temp2 <- biomass_cpue  %>%
+      dplyr::ungroup() %>% 
       dplyr::select(biomass, year) %>%
       dplyr::group_by(year) %>% 
       dplyr::summarise(biomass = sum(biomass, na.rm = T)) 
@@ -714,18 +721,20 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
     str <- paste0(str, "
                   
                   In ",maxyr,", ",spp_print," comprised ",
-                  xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)/temp2$biomass[temp2$year == maxyr], 
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)/
+                           temp2$biomass[temp2$year == maxyr], 
                          val_under_x_words = NULL),"% (", 
-                  xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
                   NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey biomass. ",
                   
                   "Previously in ",compareyr,", ",spp_print," comprised ",
-                  xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)/temp2$biomass[temp2$year == compareyr], 
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
+                           temp2$biomass[temp2$year == compareyr], 
                          val_under_x_words = NULL),"% (", 
-                  xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
                   NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
@@ -764,9 +773,6 @@ species_content <- function(SURVEY000,
   
   
   # Data work up
-  biomass_cpue <- biomass_cpue %>%
-    dplyr::filter(common_name %in% spp_common & 
-                    SRVY %in% SRVY000)
   
   haul_maxyr0 <- haul_maxyr %>% 
     dplyr::filter(SRVY %in% SRVY000)
