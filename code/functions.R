@@ -727,24 +727,24 @@ ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
       dplyr::summarise(biomass = sum(biomass, na.rm = T)) 
     
     str <- paste0(str, "
-                  
-                  In ",maxyr,", ",spp_print," comprised ",
-                  xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)/
-                               temp2$biomass[temp2$year == maxyr])*100)," (", 
-                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
-                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
-                  ") of the ",
-                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-                  " survey biomass. ",
-                  
-                  "Previously in ",compareyr,", ",spp_print," comprised ",
-                  xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
-                               temp2$biomass[temp2$year == compareyr])*100)," (", 
-                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
-                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
-                  ") of the ",
-                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-                  " survey biomass. ")
+  
+In ",maxyr,", ",spp_print," comprised ",
+xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)/
+             temp2$biomass[temp2$year == maxyr])*100)," (", 
+xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
+NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
+") of the ",
+ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+" survey biomass. ",
+
+"Previously in ",compareyr,", ",spp_print," comprised ",
+xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
+temp2$biomass[temp2$year == compareyr])*100)," (", 
+xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
+NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
+") of the ",
+ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+" survey biomass. ")
     
     # comprising 12% (520,029 mt; Table 1) of the total NBS survey area biomass - YFS
     # In 2019, snow crab comprised 4% (167,124 mt, Table 1) of the NBS survey biomass... In 2017, snow crab comprised 5% (223,216 mt) of the NBS survey biomass
