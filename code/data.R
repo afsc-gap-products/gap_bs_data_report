@@ -1102,7 +1102,8 @@ temp <- tidyr::crossing(
   dplyr::left_join(x = .,
                    y = stratum_info %>%
                      dplyr::select(stratum, area),
-                   by = 'stratum') #%>%
+                   by = 'stratum')  %>% 
+  dplyr::ungroup()#%>%
 
 
 cpue_biomass_station <- temp %>% 
@@ -1115,7 +1116,8 @@ cpue_biomass_station <- temp %>%
   tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
   dplyr::select(-extra) %>%
   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
-                                    x = species_name, fixed = TRUE))
+                                    x = species_name, fixed = TRUE)) %>% 
+  dplyr::ungroup()
 
 
 
@@ -1158,7 +1160,8 @@ cpue_biomass_total <- temp %>%
   tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
   dplyr::select(-extra) %>%
   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
-                                    x = species_name, fixed = TRUE))
+                                    x = species_name, fixed = TRUE)) %>% 
+  dplyr::ungroup()
 
 
 
