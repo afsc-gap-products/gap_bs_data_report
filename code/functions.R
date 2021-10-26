@@ -229,7 +229,7 @@ CapFirst <- function(x) {
 readtext2 <- function(file, refcontent = FALSE){
   
   # read in document
-  insert <- readtext(file = file)
+  insert <- readtext(file = file)$text
   
   if (insert == "") { # if there is nothing in the doc, no problem!
     insert <- ""
@@ -238,8 +238,8 @@ readtext2 <- function(file, refcontent = FALSE){
     # remind reviewers what is code and what is not:
     if (refcontent) { 
       insert <- paste0("**Hand written text from google drive**: ", 
-                       gsub(pattern = "\n", replacement = "\n\n\n **Hand written text from google drive**:", x = insert$text), 
-                       "*")
+                       gsub(pattern = "\n", replacement = "\n\n\n **Hand written text from google drive**:", x = insert), 
+                       "")
     } else {
       insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert$text)
     }
@@ -257,11 +257,12 @@ readtext2 <- function(file, refcontent = FALSE){
     insert <- paste0(insert, collapse = "")
     insert<-paste0(substr(x = insert, start = 1, stop = nchar(insert)-1)) # get rid of ",)" at end of last paragraph
     insert <- paste0("paste0(", insert, ")", collapse = "")
-    eval(parse( text= insert ))
+    insert <- eval(parse( text= insert ))
     
   }
   return(insert)
 }
+
 
 library(pingr)
 
@@ -472,7 +473,10 @@ find_codes <- function(x, col = "common_name", str = NULL,
 }
 
 
-species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
+species_table <- function(haul_spp, 
+                          spp_common, 
+                          SURVEY000, 
+                          SRVY000 = NA) {
   
   header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
   
@@ -524,8 +528,7 @@ species_table <- function(haul_spp, spp_common, SURVEY000, SRVY000 = NA) {
 
 species_text <- function(
   table_spp_print, 
-  haul_maxyr0, 
-  haul_spp, 
+  haul0, 
   biomass_cpue,
   length_maxyr0, 
   spp_common, 
@@ -535,12 +538,14 @@ species_text <- function(
   maxyr, 
   compareyr) {
   
-  haul_maxyr_spp <- haul_spp %>% 
-    dplyr::filter(species_code %in% spp_code & 
-                    SRVY %in% SRVY000 &
-                    year == maxyr)  
+  haul_maxyr0 <- haul0 %>% 
+    dplyr::filter(SRVY %in% SRVY000 &
+                    year == maxyr) 
   
-  haul_compareyr_spp <- haul_spp %>% 
+  haul_maxyr_spp <- haul_maxyr0 %>% 
+    dplyr::filter(species_code %in% spp_code)  
+  
+  haul_compareyr_spp <- haul0 %>% 
     dplyr::filter(species_code %in% spp_code & 
                     SRVY %in% SRVY000 &
                     year == compareyr)  
@@ -549,7 +554,8 @@ species_text <- function(
     dplyr::filter(SRVY %in% SRVY000)    
   
   biomass_cpue_spp <- biomass_cpue %>%
-    dplyr::filter(common_name %in% spp_common)
+    dplyr::filter(tolower(common_name) %in% tolower(spp_common) & 
+                    SRVY %in% SRVY000)
   
   str <- c()
   
@@ -620,7 +626,9 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr
 The ", 
 NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
 " of ", NMFSReports::tolower2(spp_print), 
-" measured during the ",maxyr," ",SRVY000," survey were between ", 
+" measured during the ",maxyr," ",
+ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+" survey were between ", 
 # NMFSReports::xunits(
 (min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
 " and ", #NMFSReports::xunits
@@ -677,7 +685,7 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
   }
   
   
-  if ( (nrow(biomass_cpue) != 0) ) {
+  if ( (nrow(biomass_cpue_spp) != 0) ) {
     ## pchange_biomass
     str <- paste0(str, "
 
@@ -707,9 +715,9 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
     # The relative Pacific herring biomass increased 282% from 23,011 mt in 2010 to 87,918 mt in 2019 (Table 1).
     
     # ## p_mt_of_survey	
-    metric = "biomass"
-    metric_long = "biomass"
-    unit = " mt"
+    metric <- "biomass"
+    metric_long <- "biomass"
+    unit <- " mt"
     
     # total biomass
     temp2 <- biomass_cpue  %>%
@@ -759,8 +767,7 @@ NMFSReports::text_list(unique(length_maxyr0$sentancefrag)),
 
 species_content <- function(SURVEY000, 
                             SRVY000, 
-                            haul_maxyr, 
-                            haul_spp, 
+                            haul0, 
                             biomass_cpue,
                             length_maxyr0,
                             spp_common, 
@@ -772,24 +779,29 @@ species_content <- function(SURVEY000,
   
   # Data work up
   
-  haul_maxyr0 <- haul_maxyr %>% 
-    dplyr::filter(SRVY %in% SRVY000)
+  # haul_maxyr0 <- haul0 %>% 
+  #   dplyr::filter(SRVY %in% SRVY000 &
+  #                   year == maxyr)
   
   
   length_maxyr0 <- length_maxyr0 %>% 
-    dplyr::filter(common_name %in% spp_common & 
+    dplyr::filter(tolower(common_name) %in% tolower(spp_common) & 
                     SRVY %in% SRVY000)
   
   # tables from maxyr
   table_spp_maxyr <- 
-    species_table(haul_spp = haul_spp %>% dplyr::filter(year == maxyr), 
+    species_table(haul_spp = haul0 %>% 
+                    dplyr::filter(year == maxyr &
+                                    species_code %in% spp_code), 
                   spp_common, 
                   SURVEY000 = SURVEY000, 
                   SRVY000 = SRVY000) 
   
   # tables from compareyr
   table_spp_compareyr <- 
-    species_table(haul_spp =  haul_spp %>% dplyr::filter(year == compareyr), 
+    species_table(haul_spp =  haul0 %>% 
+                    dplyr::filter(year == compareyr &
+                                    species_code %in% spp_code), 
                   spp_common, 
                   SURVEY000 = SURVEY000,
                   SRVY000 = SRVY000) 
@@ -811,8 +823,7 @@ species_content <- function(SURVEY000,
     NMFSReports::theme_flextable_nmfstm()
   
   text_spp <- species_text(
-    haul_maxyr0, 
-    haul_spp, 
+    haul0, 
     biomass_cpue,
     length_maxyr0, 
     table_spp_print = table_spp_maxyr$print, 
@@ -826,6 +837,8 @@ species_content <- function(SURVEY000,
   return(list("table_spp" = table_spp, 
               "text_spp" = text_spp))
 }
+
+
 
 
 
