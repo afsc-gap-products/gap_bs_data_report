@@ -241,7 +241,7 @@ readtext2 <- function(file, refcontent = FALSE){
                        gsub(pattern = "\n", replacement = "\n\n\n **Hand written text from google drive**:", x = insert), 
                        "")
     } else {
-      insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert$text)
+      insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert)
     }
     
     # incorportate r code in the text
