@@ -1495,7 +1495,8 @@ plot_size_comp <- function(sizecomp,
                            SRVY1, 
                            spp_code, 
                            spp_common, 
-                           spp_print){
+                           spp_print, 
+                           type = "length"){
   
   table_raw <- sizecomp %>%
     dplyr::filter(species_code %in% spp_code &
@@ -1540,9 +1541,9 @@ plot_size_comp <- function(sizecomp,
   # pop_unit_word <- ifelse(pop_unit == 1e06, "millions", "thousands")
   
   # mm vs cm
-  len_unit_word <- ifelse(#report_spp$taxon[jj] =="fish", 
-    max(table_raw$length)-min(table_raw$length)>45, 
-    "cm", "mm")
+  len_unit_word <- ifelse(report_spp$taxon[jj] =="fish", 
+                          # max(table_raw$length)-min(table_raw$length)>45, 
+                          "cm", "mm")
   table_raw <- table_raw %>%
     dplyr::mutate(pop = pop/pop_unit, 
                   length = round(
@@ -1565,7 +1566,7 @@ plot_size_comp <- function(sizecomp,
     scale_y_continuous(name = paste0("Population",pop_unit_word), 
                        breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
     scale_x_continuous(
-      name = paste0(str_to_title(spp_print), " Length (", len_unit_word, ")"),
+      name = paste0(str_to_sentence(spp_print), " ",type," (", len_unit_word, ")"),
       limits = c(ifelse(min(table_raw$length) > 20, min(table_raw$length), 0), 
                  max(table_raw$length)),
       breaks = seq(from = 0,
@@ -1618,4 +1619,5 @@ plot_size_comp <- function(sizecomp,
       legend.box = "horizontal"
     )
 }
+
 
