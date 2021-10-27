@@ -1541,7 +1541,7 @@ plot_size_comp <- function(sizecomp,
   # pop_unit_word <- ifelse(pop_unit == 1e06, "millions", "thousands")
   
   # mm vs cm
-  len_unit_word <- ifelse(grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
+  len_unit_word <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
                           #report_spp$taxon[jj] =="fish", 
                           # max(table_raw$length)-min(table_raw$length)>45, 
                           "cm", "mm")
