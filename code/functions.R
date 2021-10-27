@@ -1146,7 +1146,7 @@ plot_idw_xbyx <- function(
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
-      axis.text = element_text(size = 12),
+      axis.text = element_text(size = 9),
       
       strip.background = element_blank(), 
       strip.text = element_text(size = 12, face = "bold"), 
@@ -1157,7 +1157,7 @@ plot_idw_xbyx <- function(
       legend.key = element_rect(colour = "transparent", 
                                 fill = "transparent"),
       # legend.title.align = 0,#.1, 
-      legend.position="bottom",
+      legend.position = "bottom",
       # legend.box.just = "center",
       # legend.key.width = unit(.5, "in"), 
       legend.box = "horizontal")
