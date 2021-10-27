@@ -563,7 +563,7 @@ species_text <- function(
   str <- paste0(str, 
                 "Out of the total number of successful hauls (", 
                 length(unique(haul_maxyr0$hauljoin)), ") ",  
-                NMFSReports::tolower2(spp_print), 
+                spp_print, 
                 " was found during ", 
                 length(unique(haul_maxyr_spp$hauljoin)), 
                 " hauls (", 
@@ -573,10 +573,7 @@ species_text <- function(
   # different version of above
   str <- paste0(str, "
 
-During the ", maxyr, 
-" survey, ", 
-NMFSReports::tolower2(spp_print), 
-" were present at ", 
+During the ", maxyr, " survey, ", spp_print, " were present at ", 
 formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
         digits = 1, format = "f") , 
 "% of stations in the ", 
@@ -588,7 +585,7 @@ length(unique(haul_maxyr0$hauljoin)),
   # <!-- bottom tempature -->
   str <- paste0(str, "
 
-", NMFSReports::tolower2(spp_print, capitalizefirst = TRUE), 
+", stringr::str_to_sentence(spp_print), 
 " were found in bottom temperatures as warm as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
 "\u00B0C and as cold as ", 
@@ -598,7 +595,7 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>%
   # <!-- surface temperature -->
   str <- paste0(str, "
 
-", NMFSReports::tolower2(spp_print, capitalizefirst = TRUE), 
+", stringr::str_to_sentence(spp_print), 
 " were found in areas where surface temperatures were as warm as ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
 "\u00B0C and as cold as ", 
@@ -625,7 +622,7 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr
 
 The ", 
 NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
-" of ", NMFSReports::tolower2(spp_print), 
+" of ", spp_print, 
 " measured during the ",maxyr," ",
 ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 " survey were between ", 
@@ -839,7 +836,112 @@ species_content <- function(SURVEY000,
 }
 
 
-
+#' Make a string lower case except for stated (and common NOAA) proper nouns.
+#'
+#' Make a string lower case except for stated (and common NOAA) proper nouns.
+#' @param str0 The text string.
+#' @param capitalizefirst Default = FALSE
+#' @param add_cap A vector of strings that the user does not want capitalized
+#' @keywords Text editing
+#' @export
+#' @examples
+#' tolower2(str0 = "notice how there are built-in proper nouns are capitalized:
+#' alaska is not in the south atlantic.",
+#'          capitalizefirst = TRUE,
+#'          add_cap = "Proper nouns")
+# tolower2<-function(str0,
+#                    capitalizefirst = FALSE,
+#                    add_cap = "") {
+#   str2<-c()
+# 
+#   if (str0[1] %in% "") {
+#     str<-""
+#   } else {
+#     for (i in 1:length(str0)) {
+#       str1<-gsub(pattern = "\\(", replacement = "\\( ", x = tolower(str0[i]))
+#       str1<-gsub(pattern = "\\)", replacement = " \\)", x = str1)
+#       str1<-strsplit(x = str1, split = " ")[[1]]
+#       # str1<-gsub(pattern = "fw", replacement = "freshwater", x = str1, ignore.case = T)
+# 
+#       keywords <- c( add_cap, #user added
+#                      #State
+#                      "Alabama", "Alaska", "California", "Connecticut",
+#                      "Delaware", #"East Florida", "West Florida",
+#                      "Florida", "Georgia",
+#                      "Louisiana", "Maine", "Maryland", "Massachusetts",
+#                      "Mississippi", "New Hampshire", "New Jersey", "New York",
+#                      "North Carolina", "Oregon", "Rhode Island", "South Carolina",
+#                      "Texas",  "Virginia", "Washington",
+#                      #Region
+#                      "North Pacific", "Pacific", "Western Pacific (Hawai`i)", "Western Pacific",
+#                      "New England",
+#                      "Mid-Atlantic","Gulf of Mexico",
+#                      "South Atlantic",
+#                      #For specific Species
+#                      "Spanish", "Gulf", "Bringham's", "Von Siebold's", "Pfluger's", "African", "Eurpoean",
+#                      "Southern kingfish", "Southern flounder",
+#                      # Other
+#                      "Atlantic", "American",
+#                      # "Atka",
+#                      "Chinook", "Great Lakes")
+# 
+#       # keywords<-c(keywords, paste0("(", keywords), paste0(keywords, ")"))
+# 
+# 
+#       for (ii in 1:length(keywords)) {
+#         keywords1<-strsplit(x = keywords[ii], split = " ")[[1]]
+#         if (length(keywords1) %in% 1 &
+#             sum(grepl(x = str0, pattern = keywords1[1], ignore.case = T))>0) {
+#           str1[grep(x = str1, pattern = keywords[ii], ignore.case = T)]<-keywords[ii]
+#         } else if (length(keywords1) %in% 2 &
+#                    sum(grepl(x = str0, pattern = keywords1[1], ignore.case = T)>0) &
+#                    sum(grepl(x = str0, pattern = keywords1[2], ignore.case = T)>0)) {
+#           str1[grep(x = str1, pattern = keywords1[1], ignore.case = T)]<-keywords1[1]
+#           str1[grep(x = str1, pattern = keywords1[2], ignore.case = T)]<-keywords1[2]
+#         } else if (length(keywords1) %in% 3 &
+#                    grepl(x = str0, pattern = keywords1[1], ignore.case = T) &
+#                    grepl(x = str0, pattern = keywords1[2], ignore.case = T) &
+#                    grepl(x = str0, pattern = keywords1[3], ignore.case = T)) {
+#           str1[sum(grep(x = str1, pattern = keywords1[1], ignore.case = T)>0)]<-keywords1[1]
+#           str1[sum(grep(x = str1, pattern = keywords1[2], ignore.case = T)>0)]<-keywords1[2]
+#           str1[sum(grep(x = str1, pattern = keywords1[3], ignore.case = T)>0)]<-keywords1[3]
+#         }
+#       }
+# 
+#       # if (str1[1] == "von" & str1[2] == "siebolds") {
+#       #   str1<-str1[2:length(str1)]
+#       #   str1<-c("VonSiebold's", str1[3])
+#       # }
+# 
+#       # if (sum(grepl(pattern = "*A'u*", x = str1, ignore.case = T))>=1) {
+#       #   str1[grepl(pattern = "*A'u*", x = str1, ignore.case = T)]<-"*A\U02BBu*"
+#       # }
+#       #
+#       # if (sum(grepl(pattern = "*O'io*", x = str1, ignore.case = T))>=1) {
+#       #   str1[grepl(pattern = "*O'io*", x = str1, ignore.case = T)]<-"*O\U02BBio*"
+#       # }
+#       #
+#       # if (sum(grepl(pattern = "*'Ahi*", x = str1, ignore.case = T))>=1) {
+#       #   str1[grepl(pattern = "*'Ahi*", x = str1, ignore.case = T)]<-"*\U02BBAhi*"
+#       # }
+# 
+# 
+#       str1<-paste(str1, collapse = " ")
+#       str1<-gsub(pattern = "\\( ", replacement = "\\(", x = str1)
+#       str1<-gsub(pattern = " \\)", replacement = "\\)", x = str1)
+#       if (capitalizefirst==T) {
+#         str1<-paste(toupper(substr(str1, 1, 1)), substr(str1, 2, nchar(str1)), sep="")
+# 
+#       }
+# 
+#       str1<-gsub(pattern = "&", replacement = "and", x = str1)
+# 
+#       str2<-c(str2, str1)
+#     }
+#     str2<-trimws(str2)
+#   }
+#   return(str2)
+# }
 
 
 # Plotting ----------------------------
@@ -1032,9 +1134,11 @@ plot_idw_xbyx <- function(
   
   figure <- figure +
     guides(
-      fill = guide_legend(title.position="top", 
+      fill = guide_legend(title.position = "top", 
                           label.position = "bottom",
-                          title.hjust = 0.5, nrow = 1)) +
+                          title.hjust = 0.5,
+                          nrow = 1
+      )) +
     
     #set legend position and vertical arrangement
     theme( 
@@ -1042,17 +1146,20 @@ plot_idw_xbyx <- function(
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
+      axis.text = element_text(size = 12),
+      
       strip.background = element_blank(), 
-      strip.text = element_text(size = 12, face = "bold"),
-      legend.title = element_text(size = 12), 
-      legend.text = element_text(size = 9),
-      legend.background = element_rect(colour = "transparent", fill = "transparent"),
+      strip.text = element_text(size = 12, face = "bold"), 
+      # legend.title = element_text(size = 12), #, vjust = .5, hjust = .3),
+      legend.text = element_text(size = 10),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
                                 fill = "transparent"),
-      legend.title.align = .1, 
-      legend.position="bottom", 
-      legend.box.just = "left",
-      legend.key.width = unit(.5, "in"), 
+      # legend.title.align = 0,#.1, 
+      legend.position="bottom",
+      # legend.box.just = "center",
+      # legend.key.width = unit(.5, "in"), 
       legend.box = "horizontal")
   
   return(figure)
@@ -1384,7 +1491,11 @@ legend_discrete_cbar <- function(
 #' @export
 #'
 #' @examples
-plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common, spp_print){
+plot_size_comp <- function(sizecomp, 
+                           SRVY1, 
+                           spp_code, 
+                           spp_common, 
+                           spp_print){
   
   table_raw <- sizecomp %>%
     dplyr::filter(species_code %in% spp_code &
@@ -1451,6 +1562,8 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common, spp_print){
                          end = .6,
                          na.value = "transparent") +
     guides(fill=guide_legend(title="")) +
+    scale_y_continuous(name = paste0("Population",pop_unit_word), 
+                       breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
     scale_x_continuous(
       name = paste0(str_to_title(spp_print), " Length (", len_unit_word, ")"),
       limits = c(ifelse(min(table_raw$length) > 20, min(table_raw$length), 0), 
@@ -1461,7 +1574,6 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common, spp_print){
     
     # if (pop_unit > 1) {
     # figure <- figure + 
-    ylab(paste0("Population",pop_unit_word)) +
     # } else {
     #   figure <- figure +
     #     scale_y_continuous(
@@ -1470,16 +1582,18 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common, spp_print){
     #                  to = max(table_raw$pop),
     #                  by = ifelse(5)))
     # }
-    
-    # figure <- figure + 
-    facet_grid(year ~ .,
-               # ncol = 1,
-               scales = "free_x") +
+  
+  # figure <- figure + 
+  facet_grid(year ~ .,
+             # ncol = 1,
+             scales = "free_x") +
     # coord_capped_cart(bottom='both', left='both', xlim=c(0,max(table_raw$length))) +
     guides(
-      fill = guide_legend(title.position="top",
+      fill = guide_legend(title.position = "top", 
                           label.position = "bottom",
-                          title.hjust = 0.5, nrow = 1)) +
+                          title.hjust = 0.5,
+                          nrow = 1
+      )) +
     theme(
       # axis.line=element_line(),
       panel.background = element_rect(fill = "white"),
@@ -1493,13 +1607,15 @@ plot_size_comp <- function(sizecomp, SRVY1, spp_code, spp_common, spp_print){
       strip.text = element_text(size = 12, face = "bold"),
       legend.title = element_blank(), #element_text(size = 15),
       legend.text = element_text(size = 10),
-      legend.background = element_rect(colour = "transparent", fill = "transparent"),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
       legend.key = element_rect(colour = "transparent",
                                 fill = "transparent"),
       axis.text = element_text(size = 12),
       legend.position="bottom",
-      legend.box.just = "left",
-      legend.key.width = unit(.5, "in"),
+      # legend.box.just = "left",
+      # legend.key.width = unit(.5, "in"),
       legend.box = "horizontal"
     )
 }
+
