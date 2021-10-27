@@ -1541,7 +1541,8 @@ plot_size_comp <- function(sizecomp,
   # pop_unit_word <- ifelse(pop_unit == 1e06, "millions", "thousands")
   
   # mm vs cm
-  len_unit_word <- ifelse(report_spp$taxon[jj] =="fish", 
+  len_unit_word <- ifelse(grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
+                          #report_spp$taxon[jj] =="fish", 
                           # max(table_raw$length)-min(table_raw$length)>45, 
                           "cm", "mm")
   table_raw <- table_raw %>%
@@ -1619,5 +1620,6 @@ plot_size_comp <- function(sizecomp,
       legend.box = "horizontal"
     )
 }
+
 
 
