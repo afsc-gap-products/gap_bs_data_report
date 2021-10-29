@@ -638,8 +638,7 @@ ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
   # <!-- weight -->
   #   str <- paste0(str, "
   # 
-  # The total number of ",
-  # NMFSReports::tolower2(spp_common),
+  # The total number of ", spp_print,
   # " estimated to have been caught by the survey is ",
   # NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)),
   # " individuals equating to ",
@@ -1488,7 +1487,6 @@ legend_discrete_cbar <- function(
 #' @param sizecomp data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
 #' @param SRVY1 "NBS", "EBS", or c("NBS", "EBS")
 #' @param spp_code numeric. 
-#' @param spp_common string. 
 #' @param spp_print string. 
 #' @param print_n TRUE/FALSE. Default = FALSE. Will print n = number of the species counted. 
 #'
@@ -1499,7 +1497,6 @@ legend_discrete_cbar <- function(
 plot_size_comp <- function(sizecomp, 
                            SRVY1, 
                            spp_code, 
-                           spp_common, 
                            spp_print, 
                            type = "length", 
                            print_n = FALSE){
