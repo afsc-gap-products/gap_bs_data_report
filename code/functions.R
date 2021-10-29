@@ -1622,7 +1622,7 @@ plot_size_comp <- function(sizecomp,
                        dplyr::mutate(year = as.character(year)) %>% 
                        dplyr::ungroup() %>% 
                        dplyr::group_by((year)) %>% 
-                       dplyr::summarise(pop = formatC(x = sum(pop, na.rm = TRUE), 
+                       dplyr::summarise(pop = formatC(x = sum(pop*pop_unit, na.rm = TRUE), 
                                                       digits = 0, big.mark = ",", format = "f")) %>% 
                        dplyr::select(pop) %>% 
                        unlist()))
