@@ -350,7 +350,7 @@ spp_info <-
     species_code >= 82750 & species_code <= 82775 ~ "sea lilies",
     species_code == 474 | 401 | 402 | 403 | 421 | 436 ~ "skate egg cases",
     species_code == 1 ~ "fish eggs",
-
+    
     TRUE ~ "other"))
 
 spp_info$used_in_counts <- 
@@ -375,8 +375,6 @@ for (i in 1:length(unique(temp$group))) {
   } 
 }
 
-spp_info$common_name[spp_info$common_name %in% "shorthorn (=warty) sculpin"] <- "shorthorn sculpin"
-
 # species specifically caught in the survey year
 
 
@@ -398,21 +396,27 @@ names(report_spp)[
                                       x = report_title), "community_", "datar_"), 
                x = names(report_spp))])
 
+# expand google spreadsheet
+report_spp0<-data.frame()
+report_spp$species_code1 <- report_spp$species_code
+report_spp$species_code <- NA
+for (i in 1:nrow(report_spp)){
+  temp <- eval(expr = parse(text = report_spp$species_code1[i]))
+  for (ii in 1:length(temp)) {
+    temp1<-report_spp[i,]
+    temp1$species_code <- temp[ii]
+    report_spp0<-rbind.data.frame(report_spp0, temp1)
+  }
+}
+
 report_spp <-  
-  dplyr::left_join(x = report_spp %>% 
+  dplyr::left_join(x = report_spp0 %>% 
                      dplyr::filter(!is.na(order)) %>% 
-                     dplyr::arrange((order)) %>% 
-                     dplyr::mutate(common_name = tolower(common_name))  %>% 
-                     dplyr::mutate(common_name1 = common_name) %>%
-                     dplyr::mutate(common_name = tolower(common_name)), 
+                     dplyr::arrange((order))%>%
+                     dplyr::select(-common_name), 
                    y = spp_info %>% 
-                     # dplyr::mutate(common_name1 = common_name) %>%
-                     dplyr::mutate(common_name = tolower(common_name)) %>%
-                     dplyr::select(-species_code) %>% 
                      unique(), 
-                   by = "common_name") %>% 
-  dplyr::select(-common_name) %>% 
-  dplyr::rename(common_name = common_name1)
+                   by = "species_code") 
 
 
 # *** stratum_info (survey area) -------------------------------------------
