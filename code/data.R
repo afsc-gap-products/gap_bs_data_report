@@ -279,7 +279,7 @@ spp_info <-
     species_code == 98105 ~ "sea onion_Boltenia@ovifera",  # added
     species_code %in% 98200:98205 ~ "sea peach_Halocynthia@sp.", # added
     species_code %in% 23010 ~ "eulachon_Thaleichthys@pacificus", # added
-    species_code %in% 23041 ~ "capelin_Mallotus@villosus", # added
+    species_code %in% 23041 ~ "Pacific capelin_Mallotus@villosus", # added
     species_code %in% 23055 ~ "rainbow smelt_Osmerus@mordax", # added
     # previous
     species_code == 69323 ~ "blue king crab",
@@ -288,7 +288,7 @@ spp_info <-
     species_code == 10220 ~ "starry flounder",
     species_code == 21110 ~ "Pacific herring",
     species_code == 10140 ~ "Bering flounder",
-    species_code == 71884 ~ "northern Neptune snail_Neptunea@heros", # "Neptune whelk_Neptunea@heros",
+    species_code == 71884 ~ "northern Neptune whelk_Neptunea@heros", # "Neptune whelk_Neptunea@heros",
     species_code == 21371 ~ "plain sculpin",
     species_code == 81742 ~ "purple-orange sea star",
     species_code == 10285 ~ "Alaska plaice",
@@ -793,7 +793,6 @@ catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr, catch)
 spp_info_maxyr <- spp_info %>% 
   dplyr::filter(species_code %in% unique(catch_haul_cruises_maxyr$species_code))
 
-# *** length ---------------------------------------------------------------
 
 # *** length ---------------------------------------------------------------
 
@@ -880,7 +879,7 @@ length_crab <- #SameColNames(df.ls) %>%
 # Combine
 length_data <- SameColNames(list(
   "gf" = length_data %>% 
-    dplyr::select(-catchjoin, -cruise, -cruisejoin, -region, -haul, -sample_type), 
+    dplyr::select(-catchjoin, -cruise, -cruisejoin, -region, -haul), 
   "crab" = length_crab))  %>% 
   dplyr::rename(SRVY = srvy)
 
