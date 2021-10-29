@@ -7,63 +7,6 @@
 #' Notes:                             # CHANGE
 #' ---
 
-# Northern and Southern rock sole (grouped) = c(10262, 10261, 10263)
-# report_species_NEBS<-list("fish1" = # all plots and tables
-#                             list("Walleye pollock" = c(21740, 21741, 21742, 21744),
-#                                  'Pacific cod' = c(21720, 21721, 21722),
-#                                  "Yellowfin sole" = c(10210, 10209),
-#                                  "Northern rock sole" = c(10261, 10263),
-#                                  "Flathead sole" = c(10130),
-#                                  "Bering flounder" = c(10140, 10141),
-#                                  "Alaska plaice" = c(10285),
-#                                  "Greenland turbot" = c(10115, 10116),
-#                                  "Arrowtooth flounder" = c(10110),
-#                                  "Kamchatka flounder" = c(10112),
-#                                  "Pacific halibut" = c(10120, 10121)),
-#                           "fish2" = # get some plots and go in # specimine collected table
-#                             list("Bering skate" = c(435),
-#                                  "Alaska skate" = c(471),
-#                                  "Longhead dab" = c(10211),
-#                                  "Starry flounder" = c(10220),
-#                                  "Yellow irish lord" = c(21347),
-#                                  "Plain sculpin" = c(21371),
-#                                  "Great sculpin" = c(21370),
-#                                  "Shorthorn sculpin" = c(21368),
-#                                  "Pacific ocean perch" = c(30060)), # extra to 2017
-#                           "fish3" = list (
-#                             "Rex sole" = c(10200),
-#                             "Sahkalin sole" = c(10212),
-#                             "Sturgeon poacher" = c(20040),
-#                             "Antlered sculpin" = c(21388),
-#                             "Arctic staghorn sculpin" = c(21315),
-#                             "Butterfly scuplin" = c(21348),
-#                             "Variegated snailfish" = c(22205),
-#                             "Bigmouth sculpin" = c(21420),
-#                             "Arctic cod" = c(21725),
-#                             "Saffron cod" = c(21735, 21736, 21737),
-#                             "Pacific herring" = c(21110),
-#                             "Capelin" = c(23041),
-#                             "Rainbow smelt" = c(23055),
-#                             "Eulachon" = c(23010),
-#                             "Shortfin eelpout" = c(24191),
-#                             "Wattled eelpout" = c(24185),
-#                             "Marbled eelpout" = c(24184)
-#                           ), # get some plots
-#                           "invert1" =
-#                             list("Red king crab" = c(69322),
-#                                  "Blue king crab" = c(69323),
-#                                  "Snow crab" = c(68580), # snow crab
-#                                  "Tanner crab" = c(68560)),
-#                           "invert3" = list(
-#                             "Purple-orange sea star" = c(81742),
-#                             "Northern neptune snail" = c(71884),
-#                             "Jellyfishes" = c(40500, 40501, 40502, 40503,
-#                                               40504, 40505, 40506, 40507,
-#                                               40508, 40509, 40510, 40511,
-#                                               40512, 40513, 40515, 40519,
-#                                               40520, 40560, 40561)) # group...
-# )
-
 # *** report types ---------------------------------------------------
 
 # When you select a region using get_base_layers(), the grid will be clipped to only include stations in the survey region.  I haven't added NBS functionality to get_base_layers() since we do both surveys in the same year, but there is an easy workaround (third block of code below).
@@ -346,7 +289,7 @@ spp_info <-
     species_code == 10220 ~ "starry flounder",
     species_code == 21110 ~ "Pacific herring",
     species_code == 10140 ~ "Bering flounder",
-    species_code == 71884 ~ "Northern neptune snail_Neptunea@heros", # "Neptune whelk_Neptunea@heros",
+    species_code == 71884 ~ "northern Neptune snail_Neptunea@heros", # "Neptune whelk_Neptunea@heros",
     species_code == 21371 ~ "plain sculpin",
     species_code == 81742 ~ "purple-orange sea star",
     species_code == 10285 ~ "Alaska plaice",
