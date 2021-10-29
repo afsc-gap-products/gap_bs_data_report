@@ -268,6 +268,17 @@ cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune sna
 #            col_str_not = "common_name",
 #            col_out = "species_code"))
 
+
+
+# *** spp_info + spp_info_maxyr ------------------------------------------------
+
+# setdiff(unique(spp_info$species_code), 
+#         find_codes(x = spp_info,  
+#            str_not = c(" shells", "empty", "unsorted", "shab"#, " egg", "unid.", "compound"
+#                        ), 
+#            col_str_not = "common_name",
+#            col_out = "species_code"))
+
 spp_info <- 
   dplyr::left_join(x = species0, 
                    y = species_classification0, 
@@ -375,6 +386,9 @@ for (i in 1:length(unique(temp$group))) {
   } 
 }
 
+# spp_info$common_name[spp_info$common_name %in% "shorthorn (=warty) sculpin"] <- "shorthorn sculpin"
+# spp_info$common_name[spp_info$species_name %in% "Neptunea heros"] <- "northern Neptune whelk"
+
 # species specifically caught in the survey year
 
 
@@ -401,13 +415,18 @@ report_spp0<-data.frame()
 report_spp$species_code1 <- report_spp$species_code
 report_spp$species_code <- NA
 for (i in 1:nrow(report_spp)){
+  # if (grepl(pattern = "c(", x = report_spp$species_code[i], fixed = TRUE)) {
   temp <- eval(expr = parse(text = report_spp$species_code1[i]))
   for (ii in 1:length(temp)) {
     temp1<-report_spp[i,]
     temp1$species_code <- temp[ii]
     report_spp0<-rbind.data.frame(report_spp0, temp1)
   }
+  # } else {
+  #   report_spp0<-rbind.data.frame(report_spp0, report_spp[i,])
+  # }
 }
+# report_spp$species_code <- as.numeric(report_spp0$species_code)
 
 report_spp <-  
   dplyr::left_join(x = report_spp0 %>% 
@@ -416,7 +435,26 @@ report_spp <-
                      dplyr::select(-common_name), 
                    y = spp_info %>% 
                      unique(), 
-                   by = "species_code") 
+                   by = "species_code") %>%
+  dplyr::mutate(species_code = species_code1) %>%
+  dplyr::select(#common_name,
+    file_name, print_name, #species_name, 
+    # report_name_scientific, 
+    taxon, group, species_code, 
+    scientific_name_prev, 
+    dplyr::starts_with("lang_"), dplyr::starts_with("plot_")) %>%
+  dplyr::filter(!grepl(pattern = "other ", x = group) & 
+                  !grepl(pattern = "egg ", x = group)) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(type = ifelse(
+    grepl(pattern = "@", x = (group), fixed = TRUE),
+    # species_name == paste0(genus_taxon, " ", species_taxon),
+    "ital", NA)) %>%
+  tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
+  dplyr::select(-extra) %>%
+  dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
+                                    x = species_name, fixed = TRUE)) %>% 
+  dplyr::ungroup()
 
 
 # *** stratum_info (survey area) -------------------------------------------

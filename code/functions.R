@@ -474,11 +474,12 @@ find_codes <- function(x, col = "common_name", str = NULL,
 
 
 species_table <- function(haul_spp, 
-                          spp_common, 
+                          spp_print, 
+                          spp_sci,
                           SURVEY000, 
                           SRVY000 = NA) {
   
-  header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
+  header <- paste0("Summary of environmental variables that ", spp_print, " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
   
   # Select data and make plot
   cols<-c("start_latitude", "start_longitude",  #"weight", "number_fish", 
@@ -531,7 +532,7 @@ species_text <- function(
   haul0, 
   biomass_cpue,
   length_maxyr0, 
-  spp_common, 
+  spp_sci,
   spp_print, 
   spp_code, 
   SRVY000, 
@@ -554,7 +555,7 @@ species_text <- function(
     dplyr::filter(SRVY %in% SRVY000)    
   
   biomass_cpue_spp <- biomass_cpue %>%
-    dplyr::filter(tolower(common_name) %in% tolower(spp_common) & 
+    dplyr::filter(species_name %in% spp_sci & 
                     SRVY %in% SRVY000)
   
   str <- c()
@@ -736,7 +737,7 @@ ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 
 "Previously in ",compareyr,", ",spp_print," comprised ",
 xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
-temp2$biomass[temp2$year == compareyr])*100)," (", 
+             temp2$biomass[temp2$year == compareyr])*100)," (", 
 xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
 NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
 ") of the ",
@@ -767,7 +768,7 @@ species_content <- function(SURVEY000,
                             haul0, 
                             biomass_cpue,
                             length_maxyr0,
-                            spp_common, 
+                            spp_sci,
                             spp_print, 
                             spp_code,
                             maxyr, 
@@ -782,7 +783,7 @@ species_content <- function(SURVEY000,
   
   
   length_maxyr0 <- length_maxyr0 %>% 
-    dplyr::filter(tolower(common_name) %in% tolower(spp_common) & 
+    dplyr::filter(species_code %in% spp_code & 
                     SRVY %in% SRVY000)
   
   # tables from maxyr
@@ -790,7 +791,8 @@ species_content <- function(SURVEY000,
     species_table(haul_spp = haul0 %>% 
                     dplyr::filter(year == maxyr &
                                     species_code %in% spp_code), 
-                  spp_common, 
+                  spp_print, 
+                  spp_sci,
                   SURVEY000 = SURVEY000, 
                   SRVY000 = SRVY000) 
   
@@ -799,7 +801,8 @@ species_content <- function(SURVEY000,
     species_table(haul_spp =  haul0 %>% 
                     dplyr::filter(year == compareyr &
                                     species_code %in% spp_code), 
-                  spp_common, 
+                  spp_print, 
+                  spp_sci,
                   SURVEY000 = SURVEY000,
                   SRVY000 = SRVY000) 
   
@@ -824,7 +827,7 @@ species_content <- function(SURVEY000,
     biomass_cpue,
     length_maxyr0, 
     table_spp_print = table_spp_maxyr$print, 
-    spp_common, 
+    spp_sci,
     spp_print, 
     spp_code, 
     SRVY000, 
@@ -834,6 +837,7 @@ species_content <- function(SURVEY000,
   return(list("table_spp" = table_spp, 
               "text_spp" = text_spp))
 }
+
 
 
 #' Make a string lower case except for stated (and common NOAA) proper nouns.
