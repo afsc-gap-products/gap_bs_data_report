@@ -341,7 +341,7 @@ spp_info <-
     species_code %in% 23055 ~ "rainbow smelt_Osmerus@mordax", # added
     # previous
     species_code == 69323 ~ "blue king crab",
-    species_code == 21368 ~ "warty sculpin_Myoxocephalus@scorpius",
+    species_code == 21368 ~ "shorthorn sculpin_Myoxocephalus@scorpius",
     species_code == 10261 ~ "northern rock sole",
     species_code == 10220 ~ "starry flounder",
     species_code == 21110 ~ "Pacific herring",
@@ -366,7 +366,7 @@ spp_info <-
     species_code >= 97000 & species_code <= 97120 ~ "brachiopods",
     species_code >= 83000 & species_code <= 83701 ~ "brittle stars and sand dollars_",
     species_code >= 82730 & species_code <= 82741 ~ "brittle stars and sand dollars_",
-    species_code >= 95000 & species_code <= 95199 ~ "byrozoans_Bryozoa",
+    species_code >= 95000 & species_code <= 95199 ~ "bryozoans_Bryozoa",
     species_code >= 70100 & species_code <= 70151 ~ "chitons",
     species_code >= 74000 & species_code <= 75799 ~ "clams, mussels, scallops_Bivalvia",
     species_code >= 41100 & species_code <= 41499 ~ "corals_Anthozoa",
@@ -432,7 +432,7 @@ for (i in 1:length(unique(temp$group))) {
   } 
 }
 
-spp_info$common_name[spp_info$common_name %in% "shorthorn (=warty) sculpin"] <- "warty sculpin"
+spp_info$common_name[spp_info$common_name %in% "shorthorn (=warty) sculpin"] <- "shorthorn sculpin"
 
 # species specifically caught in the survey year
 
