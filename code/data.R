@@ -258,18 +258,6 @@ cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune sna
 # Wrangle Data -----------------------------------------------------------------
 
 
-
-# *** spp_info + spp_info_maxyr ------------------------------------------------
-
-# setdiff(unique(spp_info$species_code), 
-#         find_codes(x = spp_info,  
-#            str_not = c(" shells", "empty", "unsorted", "shab"#, " egg", "unid.", "compound"
-#                        ), 
-#            col_str_not = "common_name",
-#            col_out = "species_code"))
-
-
-
 # *** spp_info + spp_info_maxyr ------------------------------------------------
 
 # setdiff(unique(spp_info$species_code), 
@@ -349,8 +337,8 @@ spp_info <-
     species_code >= 22200 & species_code <= 22299 ~ "snailfishes_Liparidae",
     species_code >= 91000 & species_code <= 91999 ~ "sponges",
     species_code >= 98000 & species_code <= 99909 ~ "tunicates_Urochordata",
-    species_code >= 50000 & species_code <= 59999 ~ "misc worms_",
-    species_code >= 92000 & species_code <= 97499 ~ "misc worms_",
+    species_code >= 50000 & species_code <= 59999 ~ "miscellaneous worms_",
+    species_code >= 92000 & species_code <= 97499 ~ "miscellaneous worms_",
     species_code >= 20300 & species_code <= 20399 ~ "wolffishes",
     species_code >= 21900 & species_code <= 21935 ~ "greenlings",
     species_code >= 21752 & species_code <= 21753 ~ "sticklebacks",
@@ -805,20 +793,98 @@ catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr, catch)
 spp_info_maxyr <- spp_info %>% 
   dplyr::filter(species_code %in% unique(catch_haul_cruises_maxyr$species_code))
 
-# *** length_maxyr ---------------------------------------------------------------
+# *** length ---------------------------------------------------------------
 
-length_maxyr <- 
+# *** length ---------------------------------------------------------------
+
+length_data <- 
   dplyr::left_join(
-    x = haul_maxyr %>% 
+    x = haul %>% 
       dplyr::select(cruisejoin, hauljoin, stationid, stratum), 
-    y = cruises_maxyr %>% 
+    y = cruises %>% 
       dplyr::select(cruisejoin, survey_name, SRVY),  
     by = c("cruisejoin")) %>% 
   dplyr::left_join(
     x= ., 
     y = length0,
     by = c("cruisejoin", "hauljoin")) %>% 
-  dplyr::select(-auditjoin)
+  dplyr::select(-auditjoin) %>% 
+  dplyr::mutate(sex_code = sex, 
+                sex = dplyr::case_when(
+                  sex_code == 1 ~ "males", 
+                  sex_code == 2 ~ "females", 
+                  sex_code == 3 ~ "unsexed")) %>% 
+  dplyr::mutate(year = substr(x = cruise, start = 1, stop = 4))
+
+
+# load crab data
+
+df.ls<-list()
+a<-list.files(path = paste0(dir_data, "/crab/lengthfreq/"), 
+              # pattern = paste0("sizecomp_"), 
+              full.names = TRUE)
+
+for (i in 1:length(a)){
+  b <- read_csv(file = a[i])
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
+  }
+  b$file <- a[i]
+  # b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
+}
+
+
+
+length_crab <- #SameColNames(df.ls) %>% 
+  dplyr::left_join(
+    x = SameColNames(df.ls),
+    y = station_info %>%
+      dplyr::select(stationid, stratum, SRVY) %>%
+      unique(),
+    by = c("gis_station" = "stationid")) %>%
+  dplyr::mutate(year = substr(cruise, start = 1, stop = 4)) %>% 
+  # dplyr::filter(year == maxyr) %>% 
+  dplyr::rename(#SRVY = srvy, 
+    # cruiseid = cruise, 
+    length = size1,
+    unsexed = number_unsexed_size1, 
+    males = number_male_size1, 
+    females = number_female_size1,
+    # females_mature = number_female_size1_mature, 
+    # females_immature = number_female_size1_immature
+  ) %>%
+  dplyr::select(length, males, females, hauljoin, stratum, gis_station, #_mature, females_immature, 
+                unsexed, year, species_code, SRVY, file, clutch_size) %>%
+  tidyr::pivot_longer(cols = c(males, females,#_mature, females_immature, 
+                               unsexed),
+                      names_to = "sex", values_to = "frequency") %>%
+  dplyr::filter(!is.na(length) & !is.na(frequency) & frequency != 0 & !is.na(species_code)) %>% 
+  dplyr::mutate(sex = dplyr::case_when(
+    clutch_size == 0 & sex == "females" ~ "Females (Immature)", 
+    clutch_size >= 1 & sex == "females" ~ "Females (Mature)", 
+    TRUE ~ sex
+  )) %>%
+  dplyr::group_by(sex, length, year, species_code, SRVY) %>% 
+  dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) %>%
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert")) %>%
+  dplyr::mutate(length = length/10,  # cm
+                length_type = 0, 
+                sex_code = 0)
+
+
+# Combine
+length_data <- SameColNames(list(
+  "gf" = length_data %>% 
+    dplyr::select(-catchjoin, -cruise, -cruisejoin, -region, -haul, -sample_type), 
+  "crab" = length_crab))  %>% 
+  dplyr::rename(SRVY = srvy)
+
+
 
 
 # *** length_type ----------------------------------------------------------
@@ -844,21 +910,26 @@ length_maxyr <-
 # names(length_types) <- c("code", "description")
 length_type <- length_types0
 length_type$sentancefrag <- c("fork lengths",
-                               "lengths from mideye to fork of the tail",
-                               "lengths from the tip of snout to hypural plate",
-                               "lengths from mideye to hypural plate",
-                               "total lengths",
-                               "snout to second dorsal lengths",
-                               "lengths of carapace from back of right eye socket to the end of the carapace",
-                               "carapace widths",
-                               "head lengths",
-                               "snout to anal fin origin lengths",
-                               "mantle lengths",
-                               "posterior of orbital to end of telson lengths",
-                               "wingtip to wingtip lengths",
-                               "outer tip of rostrum to end of telson lengths",
-                               "modal lengths",
-                               "frequency of lengths estimated using size composition proportions from adjacent hauls with similar catch composition")
+                              "lengths from mideye to fork of the tail",
+                              "lengths from the tip of snout to hypural plate",
+                              "lengths from mideye to hypural plate",
+                              "total lengths",
+                              "snout to second dorsal lengths",
+                              "lengths of carapace from back of right eye socket to the end of the carapace",
+                              "carapace widths",
+                              "head lengths",
+                              "snout to anal fin origin lengths",
+                              "mantle lengths",
+                              "posterior of orbital to end of telson lengths",
+                              "wingtip to wingtip lengths",
+                              "outer tip of rostrum to end of telson lengths",
+                              "modal lengths",
+                              "frequency of lengths estimated using size composition proportions from adjacent hauls with similar catch composition")
+
+length_data <-  dplyr::left_join(length_data, length_type, by = c("length_type" = "length_type_id"))
+
+length_maxyr <- length_data %>% 
+  dplyr::filter(year == maxyr) 
 
 # *** Specimen + maxyr------------------------------------------------
 
@@ -1189,7 +1260,7 @@ sizecomp <- SameColNames(df.ls)  %>%
 
 
 
-# Crab
+# Crab # TOLEDO NEW DATA COMING
 df.ls<-list()
 a<-list.files(path = paste0(dir_data, "/crab/sizecomp/"), 
               # pattern = paste0("sizecomp_"), 

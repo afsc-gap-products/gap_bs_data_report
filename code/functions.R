@@ -1485,6 +1485,7 @@ legend_discrete_cbar <- function(
 #' plot_size_comp
 #'
 #' @param sizecomp data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
+#' @param length_data0 data.frame of sampled lengths
 #' @param SRVY1 "NBS", "EBS", or c("NBS", "EBS")
 #' @param spp_code numeric. 
 #' @param spp_print string. 
@@ -1494,7 +1495,8 @@ legend_discrete_cbar <- function(
 #' @export
 #'
 #' @examples
-plot_size_comp <- function(sizecomp, 
+plot_size_comp <- function(sizecomp,
+                           length_data0,
                            SRVY1, 
                            spp_code, 
                            spp_print, 
@@ -1617,14 +1619,14 @@ plot_size_comp <- function(sizecomp,
   if (print_n) {
     
     dat_text  <- data.frame(
-      label = paste0("n = ",   
-                     table_raw %>% 
+      label = paste0(c("number lengthed = ", rep_len(x = "", length.out = (length(unique(length_data0$year))-1))),   
+                     length_data0 %>% 
                        dplyr::mutate(year = as.character(year)) %>% 
                        dplyr::ungroup() %>% 
                        dplyr::group_by((year)) %>% 
-                       dplyr::summarise(pop = formatC(x = sum(pop*pop_unit, na.rm = TRUE), 
-                                                      digits = 0, big.mark = ",", format = "f")) %>% 
-                       dplyr::select(pop) %>% 
+                       dplyr::summarise(frequency = formatC(x = sum(frequency, na.rm = TRUE), 
+                                                            digits = 0, big.mark = ",", format = "f")) %>% 
+                       dplyr::select(frequency) %>% 
                        unlist()))
     
     dat_text$label <- gsub("\\s", " ", format(dat_text$label, width=max(nchar(dat_text$label))))
