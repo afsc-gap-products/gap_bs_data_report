@@ -1490,6 +1490,7 @@ legend_discrete_cbar <- function(
 #' @param spp_code numeric. 
 #' @param spp_common string. 
 #' @param spp_print string. 
+#' @param print_n TRUE/FALSE. Default = FALSE. Will print n = number of the species counted. 
 #'
 #' @return
 #' @export
@@ -1500,7 +1501,8 @@ plot_size_comp <- function(sizecomp,
                            spp_code, 
                            spp_common, 
                            spp_print, 
-                           type = "length"){
+                           type = "length", 
+                           print_n = FALSE){
   
   table_raw <- sizecomp %>%
     dplyr::filter(species_code %in% spp_code &
@@ -1538,6 +1540,10 @@ plot_size_comp <- function(sizecomp,
     pop_unit_word <- " (millions)"
   }
   
+  
+  
+  
+  
   # pop_unit <- ifelse(grepl(x = NMFSReports::xunits(max(table_raw$pop)), 
   #                          pattern = "million", 
   #                          ignore.case = TRUE), 1e6, 1e3)
@@ -1561,7 +1567,7 @@ plot_size_comp <- function(sizecomp,
                    mapping = aes(x = length,
                                  y = pop,
                                  fill = sex))+
-    geom_bar(position="stack", stat="identity")+
+    geom_bar(position="stack", stat="identity") +
     scale_fill_viridis_d(direction = -1, 
                          option = "mako",
                          begin = .2,
@@ -1576,23 +1582,9 @@ plot_size_comp <- function(sizecomp,
                  max(table_raw$length)),
       breaks = seq(from = 0,
                    to = max(table_raw$length), 
-                   by = len_unit_axis)) +
-    
-    # if (pop_unit > 1) {
-    # figure <- figure + 
-    # } else {
-    #   figure <- figure +
-    #     scale_y_continuous(
-    #     name = paste0("Population numbers",pop_unit_word),
-    #     breaks = seq(from = 0,
-    #                  to = max(table_raw$pop),
-    #                  by = ifelse(5)))
-    # }
-  
-  # figure <- figure + 
-  facet_grid(year ~ .,
-             # ncol = 1,
-             scales = "free_x") +
+                   by = len_unit_axis))  +
+    facet_grid(year ~ .,
+               scales = "free_x") + 
     # coord_capped_cart(bottom='both', left='both', xlim=c(0,max(table_raw$length))) +
     guides(
       fill = guide_legend(title.position = "top", 
@@ -1623,7 +1615,43 @@ plot_size_comp <- function(sizecomp,
       # legend.key.width = unit(.5, "in"),
       legend.box = "horizontal"
     )
+  
+  
+  if (print_n) {
+    
+    dat_text  <- data.frame(
+      label = paste0("n = ",   
+                     table_raw %>% 
+                       dplyr::mutate(year = as.character(year)) %>% 
+                       dplyr::ungroup() %>% 
+                       dplyr::group_by((year)) %>% 
+                       dplyr::summarise(pop = formatC(x = sum(pop, na.rm = TRUE), 
+                                                      digits = 0, big.mark = ",", format = "f")) %>% 
+                       dplyr::select(pop) %>% 
+                       unlist()))
+    
+    dat_text$label <- gsub("\\s", " ", format(dat_text$label, width=max(nchar(dat_text$label))))
+    
+    
+    figure <- 
+      tag_facet(p = figure, x = Inf, y = Inf, 
+                hjust = 1.5,
+                tag_pool = dat_text$label, open = "", close = "")
+  }
+  
+  return(figure)
 }
 
 
+
+# https://stackoverflow.com/questions/11889625/annotating-text-on-individual-facet-in-ggplot2
+tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, y = Inf, 
+                      hjust = -0.5, vjust = 1.5, fontface = 2, family = "", ...) {
+  
+  gb <- ggplot_build(p)
+  lay <- gb$layout$layout
+  tags <- cbind(lay, label = paste0(open, tag_pool[lay$PANEL], close), x = x, y = y)
+  p + geom_text(data = tags, aes_string(x = "x", y = "y", label = "label"), ..., hjust = hjust, 
+                vjust = vjust, fontface = fontface, family = family, inherit.aes = FALSE) 
+}
 
