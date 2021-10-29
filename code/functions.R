@@ -1564,7 +1564,7 @@ plot_size_comp <- function(sizecomp,
                    mapping = aes(x = length,
                                  y = pop,
                                  fill = sex))+
-    geom_bar(position="stack", stat="identity") +
+    geom_bar(position="stack", stat="identity", na.rm = TRUE) +
     scale_fill_viridis_d(direction = -1, 
                          option = "mako",
                          begin = .2,
