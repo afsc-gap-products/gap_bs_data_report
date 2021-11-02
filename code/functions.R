@@ -1486,7 +1486,7 @@ legend_discrete_cbar <- function(
 
 #' plot_size_comp
 #'
-#' @param sizecomp data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
+#' @param sizecomp0 data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
 #' @param length_data0 data.frame of sampled lengths
 #' @param SRVY1 "NBS", "EBS", or c("NBS", "EBS")
 #' @param spp_code numeric. 
@@ -1497,7 +1497,7 @@ legend_discrete_cbar <- function(
 #' @export
 #'
 #' @examples
-plot_size_comp <- function(sizecomp,
+plot_size_comp <- function(sizecomp0,
                            length_data0,
                            SRVY1, 
                            spp_code, 
@@ -1505,9 +1505,9 @@ plot_size_comp <- function(sizecomp,
                            type = "length", 
                            print_n = FALSE){
   
-  table_raw <- sizecomp %>%
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% SRVY1) %>%
+  table_raw <- sizecomp0 %>%
+    # dplyr::filter(species_code %in% spp_code &
+    #                 SRVY %in% SRVY1) %>%
     # dplyr::select(length, males, females, unsexed, year) %>%
     # tidyr::pivot_longer(cols = c(males, females, unsexed),
     #                     names_to = "sex", values_to = "pop") %>%
@@ -1631,17 +1631,20 @@ plot_size_comp <- function(sizecomp,
                        dplyr::select(frequency) %>% 
                        unlist()))
     
-    dat_text$label <- gsub("\\s", " ", format(dat_text$label, width=max(nchar(dat_text$label))))
+    dat_text$label <- gsub("\\s", " ", formatC(x = dat_text$label)) #, width=max(nchar(dat_text$label))))
     
     
     figure <- 
-      tag_facet(p = figure, x = Inf, y = Inf, 
+      tag_facet(p = figure, 
+                x = Inf, y = Inf, 
                 hjust = 1.25,
-                tag_pool = dat_text$label, open = "", close = "")
+                tag_pool = dat_text$label, 
+                open = "", close = "")
   }
   
   return(figure)
 }
+
 
 
 
