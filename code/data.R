@@ -442,7 +442,12 @@ report_spp <-
   dplyr::select(-extra) %>%
   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
                                     x = species_name, fixed = TRUE)) %>% 
-  dplyr::ungroup()
+  dplyr::ungroup() %>% 
+  dplyr::mutate(species_name0 = species_name, 
+                species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
+                species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
+                species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE))
+
 
 
 # *** stratum_info (survey area) -------------------------------------------
