@@ -1219,11 +1219,9 @@ cpue_biomass_total <- temp %>%
   dplyr::ungroup()
 
 
-
-
 # *** Load Size Comp Design Based Estimates ----------------------------------------------
 
-
+# *** Load Size Comp Design Based Estimates ----------------------------------------------
 
 # GF data
 df.ls<-list()
@@ -1259,7 +1257,7 @@ sizecomp <- SameColNames(df.ls)  %>%
 
 
 
-# Crab # TOLEDO NEW DATA COMING
+# Crab 
 df.ls<-list()
 a<-list.files(path = paste0(dir_data, "/crab/sizecomp/"), 
               # pattern = paste0("sizecomp_"), 
@@ -1278,34 +1276,40 @@ for (i in 1:length(a)){
 }
 
 
-sizecomp_crab <- #SameColNames(df.ls) %>% 
-  dplyr::left_join(
-    x = SameColNames(df.ls),
-    y = station_info %>%
-      dplyr::select(stationid, stratum, SRVY) %>%
-      unique(),
-    by = c("gis_station" = "stationid")) %>%
-  dplyr::mutate(year = substr(cruise, start = 1, stop = 4)) %>% 
-  dplyr::rename(#SRVY = srvy, 
-    # cruiseid = cruise, 
+sizecomp_crab <- SameColNames(df.ls) %>% 
+  # dplyr::left_join(
+  #   x = SameColNames(df.ls),
+  #   y = station_info %>%
+  #     dplyr::select(stationid, stratum, SRVY) %>%
+  #     unique(),
+  #   by = c("gis_station" = "stationid")) %>%
+  dplyr::mutate(SRVY = "NBS", 
+                species_code = dplyr::case_when(
+                  grepl(pattern = "_BK_", x = sizecomp_crab$file, ignore.case = TRUE) ~ 69323, # "blue king crab"
+                  grepl(pattern = "_RKC_", x = sizecomp_crab$file, ignore.case = TRUE) ~ 69322, # "red king crab"
+                  grepl(pattern = "_CO_", x = sizecomp_crab$file, ignore.case = TRUE) ~ 68580 # "snow crab"
+                )) %>%
+  dplyr::rename( 
+    year = survey_year,
     length = size1,
-    unsexed = number_unsexed_size1, 
-    males = number_male_size1, 
-    females = number_female_size1,
+    unsexed = num_unsexed_size1, 
+    males = num_male_size1, 
+    females = num_female_size1,
     # females_mature = number_female_size1_mature, 
     # females_immature = number_female_size1_immature
   ) %>%
   dplyr::select(length, males, females,#_mature, females_immature, 
-                unsexed, year, species_code, SRVY, file, clutch_size) %>%
+                unsexed, year, species_code, SRVY#, file, clutch_size
+  ) %>%
   tidyr::pivot_longer(cols = c(males, females,#_mature, females_immature, 
                                unsexed),
                       names_to = "sex", values_to = "pop") %>%
   dplyr::filter(!is.na(length) & !is.na(pop) & pop != 0 & !is.na(species_code)) %>% 
-  dplyr::mutate(sex = dplyr::case_when(
-    clutch_size == 0 & sex == "females" ~ "Females (Immature)", 
-    clutch_size >= 1 & sex == "females" ~ "Females (Mature)", 
-    TRUE ~ sex
-  )) %>%
+  # dplyr::mutate(sex = dplyr::case_when(
+  #   clutch_size == 0 & sex == "females" ~ "Females (Immature)", 
+  #   clutch_size >= 1 & sex == "females" ~ "Females (Mature)", 
+  #   TRUE ~ sex
+  # )) %>%
   dplyr::group_by(sex, length, year, species_code, SRVY) %>% 
   dplyr::summarise(pop = sum(pop, na.rm = TRUE)) %>%
   dplyr::mutate(taxon = dplyr::case_when(
@@ -1325,3 +1329,5 @@ sizecomp_maxyr<-sizecomp %>%
 
 sizecomp_compareyr<-sizecomp %>%
   dplyr::filter(year == compareyr[1])
+
+

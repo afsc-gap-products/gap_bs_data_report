@@ -364,7 +364,9 @@ divkm2fornmi2 <- 3.429904
 
 divkm2forha <- 100
 
-divmforft <- 3.28084
+divmforft <- 0.3048
+  
+divftform <- 3.28084
   
 # Species -----------------------------------------------
 
@@ -1619,7 +1621,7 @@ plot_size_comp <- function(sizecomp,
   if (print_n) {
     
     dat_text  <- data.frame(
-      label = paste0(c("number lengthed = ", rep_len(x = "", length.out = (length(unique(length_data0$year))-1))),   
+      label = paste0(c("# measured:", rep_len(x = "", length.out = (length(unique(length_data0$year))-1))),   
                      length_data0 %>% 
                        dplyr::mutate(year = as.character(year)) %>% 
                        dplyr::ungroup() %>% 
