@@ -1636,12 +1636,13 @@ plot_size_comp <- function(sizecomp,
     
     figure <- 
       tag_facet(p = figure, x = Inf, y = Inf, 
-                hjust = 1.5,
+                hjust = 1.25,
                 tag_pool = dat_text$label, open = "", close = "")
   }
   
   return(figure)
 }
+
 
 
 
