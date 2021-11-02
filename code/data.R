@@ -1221,8 +1221,6 @@ cpue_biomass_total <- temp %>%
 
 # *** Load Size Comp Design Based Estimates ----------------------------------------------
 
-# *** Load Size Comp Design Based Estimates ----------------------------------------------
-
 # GF data
 df.ls<-list()
 a<-list.files(path = paste0(dir_data, "/oracle/"), 
@@ -1285,9 +1283,9 @@ sizecomp_crab <- SameColNames(df.ls) %>%
   #   by = c("gis_station" = "stationid")) %>%
   dplyr::mutate(SRVY = "NBS", 
                 species_code = dplyr::case_when(
-                  grepl(pattern = "_BK_", x = sizecomp_crab$file, ignore.case = TRUE) ~ 69323, # "blue king crab"
-                  grepl(pattern = "_RKC_", x = sizecomp_crab$file, ignore.case = TRUE) ~ 69322, # "red king crab"
-                  grepl(pattern = "_CO_", x = sizecomp_crab$file, ignore.case = TRUE) ~ 68580 # "snow crab"
+                  grepl(pattern = "_BK_", x = file, ignore.case = TRUE) ~ 69323, # "blue king crab"
+                  grepl(pattern = "_RKC_", x = file, ignore.case = TRUE) ~ 69322, # "red king crab"
+                  grepl(pattern = "_CO_", x = file, ignore.case = TRUE) ~ 68580 # "snow crab"
                 )) %>%
   dplyr::rename( 
     year = survey_year,
