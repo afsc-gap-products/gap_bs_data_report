@@ -834,21 +834,21 @@ for (i in 1:length(a)){
     b$x1<-NULL
   }
   b$file <- a[i]
-  # b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
   df.ls[[i]]<-b
   names(df.ls)[i]<-a[i]
 }
 
-length_crab <- #SameColNames(df.ls) %>% 
-  dplyr::left_join(
-    x = SameColNames(df.ls),
-    y = station_info %>%
-      dplyr::select(stationid, stratum, SRVY) %>%
-      unique(),
-    by = c("gis_station" = "stationid")) %>%
+length_crab <- SameColNames(df.ls) %>% 
+  # dplyr::left_join(
+  #   x = SameColNames(df.ls),
+  # y = station_info %>%
+  #   dplyr::select(stationid, stratum, SRVY) %>%
+  #   unique(),
+  # by = c("station" = "stationid")) %>%
   dplyr::mutate(year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
   dplyr::select(length, width, sex, #, file, unsexed, males, females, hauljoin, stratum, gis_station, #_mature, females_immature,
-                year, species_code, SRVY, clutch_size) %>%
+                year, species_code, #SRVY, 
+                clutch_size) %>%
   # dplyr::rename(length = width) %>%
   dplyr::mutate(sex_code = sex, 
                 sex = dplyr::case_when(
@@ -858,19 +858,19 @@ length_crab <- #SameColNames(df.ls) %>%
                   (clutch_size >= 1 & sex == 2) ~ "Females (Mature)"), 
                 length = dplyr::case_when(
                   species_code %in% c(68580) ~ width,  # "snow crab"
-                  TRUE ~ length
-                )) %>%
+                  TRUE ~ length), 
+                frequency = 1) %>%
   dplyr::select(-width) %>% 
   dplyr::filter(!is.na(length)) %>% 
-  dplyr::group_by(sex, length, year, species_code, SRVY) %>% 
-  dplyr::summarise(frequency = n()) %>%
+  dplyr::group_by(sex, length, year, species_code, SRVY) %>%
+  dplyr::summarise(frequency = n()) %>% 
+  dplyr::ungroup() %>%
   dplyr::mutate(
     taxon = dplyr::case_when(
       species_code <= 31550 ~ "fish", 
       species_code >= 40001 ~ "invert"), 
     #length = length/10,  # cm
-    length_type = NA) %>% 
-  ungroup()
+    length_type = NA)
 
 
 # Combine
