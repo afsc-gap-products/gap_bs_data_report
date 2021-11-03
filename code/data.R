@@ -845,9 +845,10 @@ length_crab <- SameColNames(df.ls) %>%
   #   dplyr::select(stationid, stratum, SRVY) %>%
   #   unique(),
   # by = c("station" = "stationid")) %>%
-  dplyr::mutate(year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
+  dplyr::mutate(SRVY = "NBS", 
+                year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
   dplyr::select(length, width, sex, #, file, unsexed, males, females, hauljoin, stratum, gis_station, #_mature, females_immature,
-                year, species_code, #SRVY, 
+                year, species_code, SRVY, 
                 clutch_size) %>%
   # dplyr::rename(length = width) %>%
   dplyr::mutate(sex_code = sex, 
