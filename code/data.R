@@ -602,6 +602,36 @@ stratum_info <- temp(yr = maxyr)
 # ORDER BY STRATUM
 
 
+# *** station_info ------------------------------------------------------------------
+
+# TOLEDO - has AA-10 not AA-21
+# station_info <- stations0 %>%
+#   dplyr::filter(stratum %in% reg_dat$survey.strata$Stratum) %>% 
+#   dplyr::left_join(x = ., 
+#                    y = stratum_info %>% 
+#                      dplyr::select(stratum, SRVY), 
+#                    by = "stratum") 
+
+station_info <- haul %>% #  
+  # dplyr::filter(year == maxyr) %>% 
+  dplyr::select(stationid, stratum, start_latitude, start_longitude) %>% 
+  dplyr::group_by(stationid, stratum) %>% 
+  dplyr::summarise(start_latitude = mean(start_latitude, na.rm = TRUE), 
+                   start_longitude = mean(start_longitude, na.rm = TRUE)) %>% 
+  dplyr::left_join(x = ., 
+                   y = stratum_info %>% 
+                     dplyr::select(stratum, SRVY), 
+                   by = "stratum") 
+
+station_info$reg <- NA
+station_info$reg[station_info$stationid %in% 
+                   c("CC-04", "CC-05", "CC-06", "CC-07", "CC-08", "CC-09", 
+                     "CC-10", "BB-04", "BB-05", "BB-06", "BB-07", "BB-08", 
+                     "BB-09", "BB-10", "AA-04", "AA-05", "AA-06", "AA-07", 
+                     "AA-08", "AA-10", "ZZ-04", "ZZ-05", "Y-04")] <- "Norton Sound"
+
+# *** stratum_info (survey area) reprise -------------------------------------------
+
 stratum_info <- 
   dplyr::left_join(
     x = stratum_info, 
@@ -633,33 +663,6 @@ stratum_info <-
     
 
 
-# *** station_info ------------------------------------------------------------------
-
-# TOLEDO - has AA-10 not AA-21
-# station_info <- stations0 %>%
-#   dplyr::filter(stratum %in% reg_dat$survey.strata$Stratum) %>% 
-#   dplyr::left_join(x = ., 
-#                    y = stratum_info %>% 
-#                      dplyr::select(stratum, SRVY), 
-#                    by = "stratum") 
-
-station_info <- haul %>% #  
-  # dplyr::filter(year == maxyr) %>% 
-  dplyr::select(stationid, stratum, start_latitude, start_longitude) %>% 
-  dplyr::group_by(stationid, stratum) %>% 
-  dplyr::summarise(start_latitude = mean(start_latitude, na.rm = TRUE), 
-                   start_longitude = mean(start_longitude, na.rm = TRUE)) %>% 
-  dplyr::left_join(x = ., 
-                   y = stratum_info %>% 
-                     dplyr::select(stratum, SRVY), 
-                   by = "stratum") 
-
-station_info$reg <- NA
-station_info$reg[station_info$stationid %in% 
-                   c("CC-04", "CC-05", "CC-06", "CC-07", "CC-08", "CC-09", 
-                     "CC-10", "BB-04", "BB-05", "BB-06", "BB-07", "BB-08", 
-                     "BB-09", "BB-10", "AA-04", "AA-05", "AA-06", "AA-07", 
-                     "AA-08", "AA-10", "ZZ-04", "ZZ-05", "Y-04")] <- "Norton Sound"
 
 # *** haul_cruises_vess_ + _maxyr + _compareyr -------------------------------------
 
