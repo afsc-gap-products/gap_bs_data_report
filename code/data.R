@@ -81,10 +81,10 @@ report_types <- list(
 
 
 # TOLEDO
-report_types$EBS$reg_dat$survey.strata$Stratum[
-  report_types$EBS$reg_dat$survey.strata$Stratum == 30]<-31
-report_types$NEBS$reg_dat$survey.strata$Stratum[
-  report_types$NEBS$reg_dat$survey.strata$Stratum == 30]<-31
+# report_types$EBS$reg_dat$survey.strata$Stratum[
+#   report_types$EBS$reg_dat$survey.strata$Stratum == 30]<-31
+# report_types$NEBS$reg_dat$survey.strata$Stratum[
+#   report_types$NEBS$reg_dat$survey.strata$Stratum == 30]<-31
 
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
@@ -449,92 +449,6 @@ report_spp <-
                 species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE))
 
 
-
-# *** stratum_info (survey area) -------------------------------------------
-
-temp <- function(yr) {
-  
-  # # unique  and sort are not necessary, just easier for troubleshooting
-  # if (sum(yr<unique(stratum0$year)) == 0) {
-  # # if (sum((yr - stratum0$year)<0 %in% TRUE) == 0) {
-  #   # if there are no stratum years greater than yr, use the most recent stratum year
-    strat_yr <- max(stratum0$year)
-  # } else {
-  #   # if the yr is less than the max stratum year, use the stratum yr next less
-  #   temp <- sort(unique(stratum0$year))
-  #   strat_yr <- temp[which((yr - temp)>-1)[length(which((yr - temp)>-1))]]
-  #   # strat_yr <- sort(unique(stratum0$year))[which.min((yr - sort(unique(stratum0$year)))[(yr - sort(unique(stratum0$year)))>=0])]
-  # }
-  # 
-  
-stratum_info <- stratum0 %>% 
-  dplyr::filter(
-    stratum %in% reg_dat$survey.strata$Stratum &
-      year == strat_yr) %>%
-  dplyr::mutate(depth = gsub(pattern = "> 1", 
-                             replacement = ">1", 
-                             x = description)) %>% 
-  dplyr::mutate(depth =
-                  gsub(pattern = "[a-zA-Z]+",
-                       replacement = "",
-                       x = sapply(X = strsplit(
-                         x = depth,
-                         split = " ",
-                         fixed = TRUE),
-                         function(x) x[1])
-                  )) %>% 
-  dplyr::select(-auditjoin, -portion) %>%
-  dplyr::mutate(SRVY = dplyr::case_when(
-    stratum %in% as.numeric(report_types$EBS$reg_dat$survey.strata$Stratum) ~ "EBS", 
-    stratum %in% as.numeric(report_types$NBS$reg_dat$survey.strata$Stratum) ~ "NBS" 
-  )) %>% 
-  dplyr::filter(SRVY %in% SRVY1) %>% 
-  dplyr::mutate(type = dplyr::case_when( 
-    SRVY == "NBS" ~ "Shelf",
-    depth %in% "<50" ~ "Inner Shelf", 
-    depth %in% c("50-100", ">50") ~ "Middle Shelf", 
-    depth %in% c("100-200", ">100") ~ "Outer Shelf"
-  )) %>% 
-  dplyr::mutate(area_km2 = area, 
-                area_ha = area/divkm2forha, 
-                area_nmi2 = area/divkm2fornmi2)
-
-  return(stratum_info)
-
-}
-
-stratum_info <- temp(yr = maxyr)
-
-#G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
-# ## year = 2019 is most up to date- not updated every year
-# strata_area <- sqlQuery(channel, "SELECT STRATUM, AREA
-# 
-# FROM RACEBASE.STRATUM
-# 
-# WHERE region = 'BS' AND
-# year = 2019 AND
-# stratum < 100 AND stratum != 70 AND
-# stratum != 71 AND stratum != 81
-# ORDER BY STRATUM;
-#                          ")
-
-
-# *** station_info ------------------------------------------------------------------
-
-station_info <- stations0 %>%
-  dplyr::filter(stratum %in% reg_dat$survey.strata$Stratum) %>% 
-  dplyr::left_join(x = ., 
-                   y = stratum_info %>% 
-                     dplyr::select(stratum, SRVY), 
-                   by = "stratum") 
-
-station_info$reg <- NA
-station_info$reg[station_info$stationid %in% 
-                   c("CC-04", "CC-05", "CC-06", "CC-07", "CC-08", "CC-09", 
-                     "CC-10", "BB-04", "BB-05", "BB-06", "BB-07", "BB-08", 
-                     "BB-09", "BB-10", "AA-04", "AA-05", "AA-06", "AA-07", 
-                     "AA-08", "AA-10", "ZZ-04", "ZZ-05", "Y-04")] <- "Norton Sound"
-
 # *** cruises + maxyr  + compareyr -----------------------------------------------
 
 cruises <- v_cruises0 %>% 
@@ -620,7 +534,73 @@ if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
                     haul_type == 17)# crab retow == 17
 }
 
-# *** stratum_info (survey area) (reprise) -------------------------------------
+# *** stratum_info (survey area) -------------------------------------------
+
+temp <- function(yr) {
+  
+  # # unique  and sort are not necessary, just easier for troubleshooting
+  # if (sum(yr<unique(stratum0$year)) == 0) {
+  # # if (sum((yr - stratum0$year)<0 %in% TRUE) == 0) {
+  #   # if there are no stratum years greater than yr, use the most recent stratum year
+  strat_yr <- max(stratum0$year)
+  # } else {
+  #   # if the yr is less than the max stratum year, use the stratum yr next less
+  #   temp <- sort(unique(stratum0$year))
+  #   strat_yr <- temp[which((yr - temp)>-1)[length(which((yr - temp)>-1))]]
+  #   # strat_yr <- sort(unique(stratum0$year))[which.min((yr - sort(unique(stratum0$year)))[(yr - sort(unique(stratum0$year)))>=0])]
+  # }
+  # 
+  
+  stratum_info <- stratum0 %>% 
+    dplyr::filter(
+      stratum %in% reg_dat$survey.strata$Stratum &
+        year == strat_yr) %>%
+    dplyr::mutate(depth = gsub(pattern = "> 1", 
+                               replacement = ">1", 
+                               x = description)) %>% 
+    dplyr::mutate(depth =
+                    gsub(pattern = "[a-zA-Z]+",
+                         replacement = "",
+                         x = sapply(X = strsplit(
+                           x = depth,
+                           split = " ",
+                           fixed = TRUE),
+                           function(x) x[1])
+                    )) %>% 
+    dplyr::select(-auditjoin, -portion) %>%
+    dplyr::mutate(SRVY = dplyr::case_when(
+      stratum %in% as.numeric(report_types$EBS$reg_dat$survey.strata$Stratum) ~ "EBS", 
+      stratum %in% as.numeric(report_types$NBS$reg_dat$survey.strata$Stratum) ~ "NBS" 
+    )) %>% 
+    dplyr::filter(SRVY %in% SRVY1) %>% 
+    dplyr::mutate(type = dplyr::case_when( 
+      SRVY == "NBS" ~ "Shelf",
+      depth %in% "<50" ~ "Inner Shelf", 
+      depth %in% c("50-100", ">50") ~ "Middle Shelf", 
+      depth %in% c("100-200", ">100") ~ "Outer Shelf"
+    )) %>% 
+    dplyr::mutate(area_km2 = area, 
+                  area_ha = area/divkm2forha, 
+                  area_nmi2 = area/divkm2fornmi2)
+  
+  return(stratum_info)
+  
+}
+
+stratum_info <- temp(yr = maxyr)
+
+#G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
+# ## year = 2019 is most up to date- not updated every year
+# strata_area <- sqlQuery(channel, "SELECT STRATUM, AREA
+# 
+# FROM RACEBASE.STRATUM
+# 
+# WHERE region = 'BS' AND
+# year = 2019 AND
+# stratum < 100 AND stratum != 70 AND
+# stratum != 71 AND stratum != 81
+# ORDER BY STRATUM
+
 
 stratum_info <- 
   dplyr::left_join(
@@ -651,6 +631,35 @@ stratum_info <-
                        depth_max = max(bottom_depth, na.rm = TRUE)), 
     by = "stratum") 
     
+
+
+# *** station_info ------------------------------------------------------------------
+
+# TOLEDO - has AA-10 not AA-21
+# station_info <- stations0 %>%
+#   dplyr::filter(stratum %in% reg_dat$survey.strata$Stratum) %>% 
+#   dplyr::left_join(x = ., 
+#                    y = stratum_info %>% 
+#                      dplyr::select(stratum, SRVY), 
+#                    by = "stratum") 
+
+station_info <- haul %>% #  
+  # dplyr::filter(year == maxyr) %>% 
+  dplyr::select(stationid, stratum, start_latitude, start_longitude) %>% 
+  dplyr::group_by(stationid, stratum) %>% 
+  dplyr::summarise(start_latitude = mean(start_latitude, na.rm = TRUE), 
+                   start_longitude = mean(start_longitude, na.rm = TRUE)) %>% 
+  dplyr::left_join(x = ., 
+                   y = stratum_info %>% 
+                     dplyr::select(stratum, SRVY), 
+                   by = "stratum") 
+
+station_info$reg <- NA
+station_info$reg[station_info$stationid %in% 
+                   c("CC-04", "CC-05", "CC-06", "CC-07", "CC-08", "CC-09", 
+                     "CC-10", "BB-04", "BB-05", "BB-06", "BB-07", "BB-08", 
+                     "BB-09", "BB-10", "AA-04", "AA-05", "AA-06", "AA-07", 
+                     "AA-08", "AA-10", "ZZ-04", "ZZ-05", "Y-04")] <- "Norton Sound"
 
 # *** haul_cruises_vess_ + _maxyr + _compareyr -------------------------------------
 
