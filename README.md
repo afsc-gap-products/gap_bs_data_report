@@ -1,12 +1,32 @@
 # AFSC RACE GAP Bering Sea Survey Data Report
 
-Previously named `AFSCDataReport`
+Previously named `AFSCDataReport` and `GAP_BS_DataReport`
 
-Here are the basic files you need to create reproducible repeatable (e.g., annual) reports in R Markdown for AFSC Surveys! 
+> Code is always in development
 
-> Code is still in development
+> This document is for informational purposes only and does not necessarily represent the views or official position of the Department of Commerce, the National Oceanic and Atmospheric Administration, or the National Marine Fisheries Service. Not to be cited without permission from the authors.
 
-**Emily Markowitz** (Emily.Markowitz AT noaa.gov)
+## This code and the associated releases were used to develop the following reports: *
+
+### 2021 Bering Sea Data Report (in prep)
+
+Lyle Britt, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn, and Duane Stevenson
+
+### 2019 Bering Sea Data Report (in prep)
+
+Lyle Britt, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn, and Duane Stevenson
+
+### 2018 Bering Sea Data Report (in prep)
+
+Lyle Britt, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn, and Duane Stevenson
+
+<!-- [Release](https://github.com/EmilyMarkowitz-NOAA/GAP_NBS_CommunityReport/releases/tag/v2021), [Full Report](https://github.com/EmilyMarkowitz-NOAA/GAP_NBS_CommunityReport/raw/main/final_materials/2021_nbs_community_snapshot.pdf), [Full Report (Compressed)](https://github.com/EmilyMarkowitz-NOAA/GAP_NBS_CommunityReport/raw/main/final_materials/2021_nbs_community_snapshot_compressed.pdf) -->
+
+## This code is primarally maintained by: 
+
+**Emily Markowitz** (Emily.Markowitz AT noaa.gov; @EmilyMarkowitz-NOAA)
+
+**Liz Dawson** (Liz.Dawson AT noaa.gov; @liz-dawson-NOAA)
 
 Alaska Fisheries Science Center, 
 
@@ -15,7 +35,6 @@ National Marine Fisheries Service,
 National Oceanic and Atmospheric Administration,
 
 Seattle, WA 98195
-
 
 ## NOAA README
 
