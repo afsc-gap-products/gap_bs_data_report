@@ -1870,13 +1870,12 @@ table_biomass_change <- function(dat,
   #   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
   #                                     x = species_name, fixed = TRUE)) %>%
   table_raw <- dat %>% 
-    dplyr::filter(SRVY == "NBS") %>% 
+    dplyr::filter(year %in% yrs) %>%
     dplyr::select(year, species_name1, print_name,
-                  # type,  
                   biomass_mt) %>%
     ## creates a biomass column for each year
     tidyr::pivot_wider(
-      # id_cols = c("group", "species_name"),
+      id_cols = c("species_name1", "print_name"),
       names_from = "year",
       values_from = c("biomass_mt") )  %>%
     dplyr::ungroup()
