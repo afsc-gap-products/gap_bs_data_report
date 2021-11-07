@@ -949,6 +949,122 @@ species_content <- function(SURVEY000,
 # }
 
 
+add_report_spp <- function(spp_info, 
+                           spp_info_codes = "species_code", 
+                           report_spp, 
+                           report_spp_col, 
+                           report_spp_codes = "species_code", 
+                           lang = TRUE){
+  
+  temp <- report_spp %>% 
+    dplyr::select(-questions) 
+  
+  if (!lang) {
+    temp <- temp %>%
+      dplyr::select(-dplyr::starts_with("lang_"))
+  }
+  
+  temp <- temp %>% 
+    dplyr::rename(col = all_of(report_spp_col)) %>% 
+    dplyr::filter(col == TRUE & 
+                    !is.na(species_code)) %>% 
+    dplyr::arrange((order)) 
+  
+  # expand google spreadsheet
+  temp1<-data.frame()
+  temp$species_code1 <- temp$species_code
+  temp$species_code <- NULL
+  for (i in 1:nrow(temp)){
+    # if (grepl(pattern = "c(", x = report_spp$species_code[i], fixed = TRUE)) {
+    temp2 <- eval(expr = parse(text = temp$species_code1[i]))
+    # for (ii in 1:length(temp2)) {
+    # temp1<-temp[i,]
+    # temp1$species_code <- temp2[ii]
+    temp1<-rbind.data.frame(temp1, 
+                            cbind.data.frame(temp[i,], 
+                                             species_code = temp2))
+    # }
+  }
+  
+  temp1$species_code1 <- NULL
+  
+  # all -> other
+  temp <- unique(temp1$print_name)[grepl(pattern = "all ", 
+                                         x = unique(temp1$print_name), 
+                                         ignore.case = TRUE)]
+  for (i in 1:length(temp)) {
+    temp2 <- intersect(temp1$species_code[temp1$print_name == temp[i]], 
+                       temp1$species_code[temp1$print_name != temp[i]]) # find which are duplicates 
+    if (length(temp2)>0) {
+      # and delete them from "all "
+      temp1 <- temp1[!(temp1$species_code %in% temp2 &
+                         temp1$print_name == temp[i]),]
+      # and change "all " to "other "
+      temp1$print_name[temp1$print_name == temp[i]] <- 
+        gsub(pattern = "all ", 
+             replacement = "other ", 
+             x = temp1$print_name[temp1$print_name == temp[i]], 
+             ignore.case = TRUE)
+    }
+  }
+  
+  if (sum(temp1$species_code[(duplicated(temp1$species_code))])>0) warning("There are still duplicates in the species split ups!")
+  
+  temp0 <-  
+    dplyr::left_join(x = temp1 %>% 
+                       dplyr::select(-col), 
+                     y = spp_info %>% 
+                       dplyr::select(species_code, 
+                                     genus_taxon, species_taxon) %>% 
+                       unique(), 
+                     by = "species_code")  %>% 
+    dplyr::mutate(taxon = dplyr::case_when(
+      species_code <= 31550 ~ "fish", 
+      species_code >= 40001 ~ "invert")) %>% 
+    dplyr::mutate(temp = trimws(gsub(pattern = "NA", 
+                                     replacement = "", 
+                                     paste0(genus_taxon, " ", species_taxon)))) %>% 
+    dplyr::mutate(temp = ifelse(temp == " ", "", temp)) %>%
+    dplyr::mutate(species_name = dplyr::case_when(
+      group_sci == "BLANK" ~ "",
+      !is.na(group_sci) ~ group_sci, 
+      is.na(group_sci) ~ temp, 
+      TRUE ~ "other"
+    )) %>%
+    dplyr::mutate(temp = trimws(paste0(group_sci, " (", print_name, ")"))) %>%
+    dplyr::mutate(temp = ifelse(temp == "NA ", "", temp)) %>%
+    dplyr::mutate(group = dplyr::case_when(
+      is.na(group_sci) ~ temp, 
+      TRUE ~ "other"
+    )) %>%
+    # dplyr::select(file_name, print_name, species_name, 
+    #   # report_name_scientific, 
+    #   taxon, group, species_code, 
+    #   scientific_name_prev, 
+    #   dplyr::starts_with("lang_"), dplyr::starts_with("plot_")) %>%
+    # dplyr::filter(!grepl(pattern = "other ", x = group) & 
+    #                 !grepl(pattern = "egg ", x = group)) %>% 
+    dplyr::distinct() %>% 
+    dplyr::mutate(type = ifelse(
+      grepl(pattern = " ", x = species_name, fixed = TRUE),
+      # species_name == paste0(genus_taxon, " ", species_taxon),
+      "ital", NA)) %>%
+    dplyr::ungroup() %>% 
+    dplyr::mutate(species_name0 = species_name, 
+                  species_name1 = species_name, 
+                  species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
+                  species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
+                  species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE), 
+                  species_name = species_name0) %>% 
+    dplyr::select(-type, -temp, -species_name0, -genus_taxon, -species_taxon)
+  
+  return(temp0)
+}
+
+
+
+
+
 # Plotting ----------------------------
 
 

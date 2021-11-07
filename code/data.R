@@ -7,7 +7,7 @@
 #' Notes:                             # CHANGE
 #' ---
 
-# *** report types ---------------------------------------------------
+# Report types ---------------------------------------------------
 
 # When you select a region using get_base_layers(), the grid will be clipped to only include stations in the survey region.  I haven't added NBS functionality to get_base_layers() since we do both surveys in the same year, but there is an easy workaround (third block of code below).
 
@@ -24,12 +24,6 @@
 # nbs_grid <- full_ebs_layers$survey.grid %>% filter(STATIONID %in% akgfmaps::get_survey_stations(select.region = "nbs"))
 # ggplot() +
 #   geom_sf(data = nbs_grid)
-
-
-# dat_survreg <- data.frame(reg_shapefile = c("EBS_SHELF", "NBS_SHELF"), 
-#                            region_long = c("Eastern Bering Sea", "Northern Bering Sea"), 
-#                            region = c("EBS", "NBS"))
-
 report_types <- list(
   "EBS" = list(
     sectname = "EBS-BTS-Report", 
@@ -40,12 +34,13 @@ report_types <- list(
     SRVY00 = 143, # EBS
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.south"),
+    extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 63), 
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.south", 
       set.crs = "auto", 
       return.survey.grid = TRUE)#,
     # report_species = report_species_NEBS
-    ), 
+  ), 
   "NBS" = list(
     sectname = "NBS-BTS-Report", 
     SURVEY = "northern Bering Sea", 
@@ -55,12 +50,13 @@ report_types <- list(
     SRVY00 = 98,
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.north"),
+    extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68),
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.north", 
       set.crs = "auto", 
       return.survey.grid = TRUE)#,
     # report_species = report_species_NEBS
-    ), 
+  ), 
   "NEBS" = list(
     sectname = "NEBS-BTS-Report", 
     SURVEY = "northern and eastern Bering Sea",
@@ -71,12 +67,13 @@ report_types <- list(
                143), # EBS
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.all"),
+    extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68),
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.all", 
       set.crs = "auto", 
       return.survey.grid = TRUE)#,
     # report_species = report_species_NEBS
-    )
+  )
 )
 
 
@@ -89,13 +86,6 @@ report_types <- list(
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
-if(map.area %in% c("bs.south", "sebs")) {
-  extrap.box <- c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 63)
-} else if(map.area %in% c("bs.north", "nbs")) {
-  extrap.box <- c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68)
-} else if(map.area %in% c("bs.all", "ebs")) {
-  extrap.box <- c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68)
-}
 
 # Load data --------------------------------------------------------------------
 
@@ -124,7 +114,7 @@ if (googledrive_dl) {
   #                             type = "csv",
   #                             overwrite = TRUE,
   #                             path = paste0(dir_out_rawdata, "/0_species_local_names"))
-
+  
   # Spreadsheets
   a <- googledrive::drive_ls(path = id_googledrive, type = "spreadsheet")
   for (i in 1:nrow(a)){
@@ -169,15 +159,6 @@ for (i in 1:length(a)){
 
 df.ls<-list()
 
-# for (ii in 1:length(SRVY1)) {
-
-# a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "biomass"), 
-#               pattern = ".csv", 
-#               full.names = TRUE)
-# if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
-#   a <- a[grep(pattern = "_plusnw", x = a)]
-# }
-
 a<-list.files(path = paste0(dir_data, "/oracle/"), 
               pattern = paste0("biomass_"), 
               full.names = TRUE)
@@ -189,7 +170,8 @@ for (i in 1:length(a)){
     b$x1<-NULL
   }
   b$file <- a[i]
-  b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
+  temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
+  b$survey <- toupper(strsplit(x = temp, split = "_")[[1]][strsplit(x = temp, split = "_")[[1]] %in% c("nbs", "ebs")])
   df.ls[[i]]<-b
   names(df.ls)[i]<-a[i]
 }
@@ -215,29 +197,24 @@ biomass_compareyr<-biomass %>%
 
 df.ls<-list()
 
-# for (ii in 1:length(SRVY1)) {
+a<-list.files(path = paste0(dir_data, "/oracle/"),
+              pattern = paste0("cpue_"),
+              full.names = TRUE)
 
-  # a<-list.files(path = here::here("data", "surveydesign", SRVY1[ii], "CPUE"), full.names = TRUE)
-  # if (length(grep(pattern = "_plusnw", x = a, ignore.case = T)) > 0) {
-  #   a <- a[grep(pattern = "_plusnw", x = a)]
-  # }
-
-  a<-list.files(path = paste0(dir_data, "/oracle/"),
-                pattern = paste0("cpue_"),
-                full.names = TRUE)
-
-  for (i in 1:length(a)){
-    b <- read_csv(file = a[i])
-    b <- janitor::clean_names(b)
-    if (names(b)[1] %in% "x1"){
-      b$x1<-NULL
-    }
-    b$file <- a[i]
-    temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
-    b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
-    df.ls[[i]]<-b
-    names(df.ls)[i]<-a[i]
+for (i in 1:length(a)){
+  b <- read_csv(file = a[i])
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
   }
+  b$file <- a[i]
+  # temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
+  temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
+  b$survey <- toupper(strsplit(x = temp, split = "_")[[1]][strsplit(x = temp, split = "_")[[1]] %in% c("nbs", "ebs")])
+  # b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
+}
 # }
 
 cpue <- SameColNames(df.ls)  %>%
@@ -257,134 +234,15 @@ cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune sna
 
 # Wrangle Data -----------------------------------------------------------------
 
-
-# *** spp_info + spp_info_maxyr ------------------------------------------------
-
-# setdiff(unique(spp_info$species_code), 
-#         find_codes(x = spp_info,  
-#            str_not = c(" shells", "empty", "unsorted", "shab"#, " egg", "unid.", "compound"
-#                        ), 
-#            col_str_not = "common_name",
-#            col_out = "species_code"))
-
-spp_info <- 
-  dplyr::left_join(x = species0, 
-                   y = species_classification0, 
-                   by = "species_code") %>% 
-  dplyr::mutate(taxon = dplyr::case_when(
-    species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert")) %>% 
-  dplyr::mutate(group = case_when(
-    # added
-    species_code == 98105 ~ "sea onion_Boltenia@ovifera",  # added
-    species_code %in% 98200:98205 ~ "sea peach_Halocynthia@sp.", # added
-    species_code %in% 23010 ~ "eulachon_Thaleichthys@pacificus", # added
-    species_code %in% 23041 ~ "Pacific capelin_Mallotus@villosus", # added
-    species_code %in% 23055 ~ "rainbow smelt_Osmerus@mordax", # added
-    # previous
-    species_code == 69323 ~ "blue king crab",
-    species_code == 21368 ~ "shorthorn sculpin_Myoxocephalus@scorpius",
-    species_code == 10261 ~ "northern rock sole",
-    species_code == 10220 ~ "starry flounder",
-    species_code == 21110 ~ "Pacific herring",
-    species_code == 10140 ~ "Bering flounder",
-    species_code == 71884 ~ "northern Neptune whelk_Neptunea@heros", # "Neptune whelk_Neptunea@heros",
-    species_code == 21371 ~ "plain sculpin",
-    species_code == 81742 ~ "purple-orange sea star",
-    species_code == 10285 ~ "Alaska plaice",
-    species_code == 471 ~ "Alaska skate",
-    species_code == 10210 ~ "yellowfin sole",
-    species_code == 69322 ~ "red king crab",
-    species_code == 21735 ~ "saffron cod",
-    species_code == 10120 ~ "Pacific halibut",
-    species_code == 68580 ~ "snow crab",
-    species_code == 21725 ~ "Arctic cod",
-    species_code == 21921 ~ "Atka mackerel",
-    species_code == 68560 ~ "tanner crab",
-    species_code >= 66000 & species_code <= 67499 ~ "all shrimps_",
-    species_code >= 21740 & species_code <= 21741 ~ "walleye pollock",
-    species_code >= 21720 & species_code <= 21721 ~ "Pacific cod",
-    species_code >= 83020 & species_code <= 83022 ~ "basket starfish_Gorgonocephalus@eucnemis",
-    species_code >= 97000 & species_code <= 97120 ~ "brachiopods",
-    species_code >= 83000 & species_code <= 83701 ~ "brittle stars and sand dollars_",
-    species_code >= 82730 & species_code <= 82741 ~ "brittle stars and sand dollars_",
-    species_code >= 95000 & species_code <= 95199 ~ "bryozoans_Bryozoa",
-    species_code >= 70100 & species_code <= 70151 ~ "chitons",
-    species_code >= 74000 & species_code <= 75799 ~ "clams, mussels, scallops_Bivalvia",
-    species_code >= 41100 & species_code <= 41499 ~ "corals_Anthozoa",
-    species_code >= 44000 & species_code <= 44499 ~ "corals_Anthozoa",
-    species_code >= 44890 & species_code <= 44999 ~ "corals_Anthozoa",
-    species_code >= 24100 & species_code <= 24395 ~ "eelpouts_Zoarcidae",
-    species_code >= 99990 & species_code <= 99998 ~ "empty shells and debris",
-    species_code >= 69010 & species_code <= 69249 ~ "hermit crabs_Paguridae",
-    species_code >= 40060 & species_code <= 40999 ~ "jellyfishes_Scyphozoa",
-    species_code >= 22170 & species_code <= 22199 ~ "lumpsuckers",
-    species_code >= 78010 & species_code <= 78499 ~ "octopuses",
-    species_code >= 68000 & species_code <= 69009 ~ "other crabs_",
-    species_code >= 69201 & species_code <= 69549 ~ "other crabs_",
-    species_code >= 10000 & species_code <= 10399 ~ "other flatfishes_Pleuronectidae",
-    species_code >= 21300 & species_code <= 21499 ~ "other sculpins_Cottidae",
-    species_code >= 80000 & species_code <= 82499 ~ "other sea stars_Asteroidea",
-    species_code >= 71000 & species_code <= 73999 ~ "other snails_Gastropoda",
-    species_code >= 20000 & species_code <= 20099 ~ "poachers_Agonidae",
-    species_code >= 23800 & species_code <= 23870 ~ "pricklebacks_Stichaeidae",
-    species_code >= 23200 & species_code <= 23310 ~ "salmonids",
-    species_code >= 82730 & species_code <= 82740 ~ "sand dollar",
-    species_code >= 43000 & species_code <= 43999 ~ "sea anemones_Actiniaria",
-    species_code >= 85000 & species_code <= 85500 ~ "sea cucumbers_Holothuroidea",
-    species_code >= 82500 & species_code <= 82691 ~ "urchins_Strongylocentrotus@spp.", #"sea urchins_Strongylocentrotus@spp.",
-    # species_code >= 23000 & species_code <= 23071 ~ "smelts_Osmeridae", # removed so I could add specific smelt
-    species_code >= 22200 & species_code <= 22299 ~ "snailfishes_Liparidae",
-    species_code >= 91000 & species_code <= 91999 ~ "sponges",
-    species_code >= 98000 & species_code <= 99909 ~ "tunicates_Urochordata",
-    species_code >= 50000 & species_code <= 59999 ~ "miscellaneous worms_",
-    species_code >= 92000 & species_code <= 97499 ~ "miscellaneous worms_",
-    species_code >= 20300 & species_code <= 20399 ~ "wolffishes",
-    species_code >= 21900 & species_code <= 21935 ~ "greenlings",
-    species_code >= 21752 & species_code <= 21753 ~ "sticklebacks",
-    species_code >= 40010 & species_code <= 40050 ~ "hydroids",
-    species_code >= 20200 & species_code <= 20204 ~ "sand lances",
-    species_code >= 78502 & species_code <= 79001 ~ "squids",
-    species_code >= 79020 & species_code <= 79513 ~ "squids",
-    species_code >= 82750 & species_code <= 82775 ~ "sea lilies",
-    species_code == 474 | 401 | 402 | 403 | 421 | 436 ~ "skate egg cases",
-    species_code == 1 ~ "fish eggs",
-    
-    TRUE ~ "other"))
-
-spp_info$used_in_counts <- 
-  ifelse(spp_info$species_code %in% #10:99988, 
-           find_codes(x = spp_info,  
-                      str_not = c(" shells", "empty", "unsorted", "shab"
-                                  #, " egg", "unid.", "compound"
-                      ),
-                      col_str_not = "common_name",
-                      col_out = "species_code"), 
-         TRUE, FALSE)  # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
-
-temp <- spp_info[(!grepl(pattern = "@", x = spp_info$group, fixed = T) &
-                    !grepl(pattern = "_", x = spp_info$group, fixed = T)),]
-for (i in 1:length(unique(temp$group))) {
-  temp1 <- unique(temp$species_name[temp$group == unique(temp$group)[i]])
-  temp1 <- unique(gsub(pattern = " (juvenile)", replacement = "", x = temp1, fixed = TRUE))
-  if (length(temp1) == 1) {
-    spp_info$group[spp_info$group == unique(temp$group)[i]] <- 
-      paste0(unique(temp$group)[i], "_",
-             gsub(pattern = " ", replacement = "@", x = temp1, fixed = TRUE))
-  } 
-}
-
-# spp_info$common_name[spp_info$common_name %in% "shorthorn (=warty) sculpin"] <- "shorthorn sculpin"
-# spp_info$common_name[spp_info$species_name %in% "Neptunea heros"] <- "northern Neptune whelk"
-
-# species specifically caught in the survey year
-
-
-# *** report_spp ---------------------------------------------------------------
+# *** report_spp and spp_info ---------------------------------------------------------------
 
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
                               skip = 1) %>% 
-  dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", x = report_title), "datar_", "community_"))))
+  dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", 
+                                                  x = report_title), "datar_", "community_")))) # %>%
+# dplyr::filter(!grepl(pattern = "other ", x = group) &
+#!grepl(pattern = "all ", x = group) &
+# !grepl(pattern = "egg ", x = group))
 
 names(report_spp)[
   grepl(pattern = ifelse(grepl(pattern = "Highlights", 
@@ -398,56 +256,37 @@ names(report_spp)[
                                       x = report_title), "community_", "datar_"), 
                x = names(report_spp))])
 
-# expand google spreadsheet
-report_spp0<-data.frame()
-report_spp$species_code1 <- report_spp$species_code
-report_spp$species_code <- NA
-for (i in 1:nrow(report_spp)){
-  # if (grepl(pattern = "c(", x = report_spp$species_code[i], fixed = TRUE)) {
-  temp <- eval(expr = parse(text = report_spp$species_code1[i]))
-  for (ii in 1:length(temp)) {
-    temp1<-report_spp[i,]
-    temp1$species_code <- temp[ii]
-    report_spp0<-rbind.data.frame(report_spp0, temp1)
-  }
-  # } else {
-  #   report_spp0<-rbind.data.frame(report_spp0, report_spp[i,])
-  # }
-}
-# report_spp$species_code <- as.numeric(report_spp0$species_code)
+spp_info <- 
+  dplyr::left_join(x = species0, 
+                   y = species_classification0, 
+                   by = "species_code") %>% 
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert")) %>%
+  dplyr::mutate(used_in_counts = dplyr::if_else(species_code %in% #10:99988, 
+                                                  find_codes(x = .,  
+                                                             str_not = c(" shells", "empty", "unsorted", "shab"
+                                                                         #, " egg", "unid.", "compound"
+                                                             ),
+                                                             col_str_not = "common_name",
+                                                             col_out = "species_code"), 
+                                                TRUE, FALSE))   # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
 
-report_spp <-  
-  dplyr::left_join(x = report_spp0 %>% 
-                     dplyr::filter(!is.na(order)) %>% 
-                     dplyr::arrange((order))%>%
-                     dplyr::select(-common_name), 
-                   y = spp_info %>% 
-                     unique(), 
-                   by = "species_code") %>%
-  dplyr::mutate(species_code = species_code1) %>%
-  dplyr::select(#common_name,
-    file_name, print_name, #species_name, 
-    # report_name_scientific, 
-    taxon, group, species_code, 
-    scientific_name_prev, 
-    dplyr::starts_with("lang_"), dplyr::starts_with("plot_")) %>%
-  dplyr::filter(!grepl(pattern = "other ", x = group) & 
-                  !grepl(pattern = "egg ", x = group)) %>% 
-  dplyr::distinct() %>% 
-  dplyr::mutate(type = ifelse(
-    grepl(pattern = "@", x = (group), fixed = TRUE),
-    # species_name == paste0(genus_taxon, " ", species_taxon),
-    "ital", NA)) %>%
-  tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
-  dplyr::select(-extra) %>%
-  dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
-                                    x = species_name, fixed = TRUE)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(species_name0 = species_name, 
-                species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
-                species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
-                species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE))
 
+# report_spp <- add_report_spp(spp_info = spp_info, 
+#                              spp_info_codes = "species_code", 
+#                              report_spp = report_spp, 
+#                              report_spp_col = "table_bio_spp", 
+#                              report_spp_codes = "species_code")
+# 
+# 
+# spp_info <- dplyr::left_join(
+#   x = spp_info %>% 
+#     dplyr::select(-species_name), 
+#   y = report_spp %>% 
+#     dplyr::select(order, file_name, print_name, common_name1, group, group_sci, 
+#                   species_code, species_name, species_name1), 
+#   by = "species_code")
 
 # *** cruises + maxyr  + compareyr -----------------------------------------------
 
@@ -511,9 +350,9 @@ temp <- dplyr::left_join(
   dplyr::mutate(SRVY = dplyr::case_when(
     survey_definition_id %in% 143 ~ "NBS",
     survey_definition_id %in% 98 ~ "EBS" )) #%>%
-  # dplyr::filter(SRVY %in% SRVY1) # %>%
-  # dplyr::mutate(start_date_haul = 
-  #                 format(x = as.POSIXlt(x = start_time), format="%Y-%m-%d"))
+# dplyr::filter(SRVY %in% SRVY1) # %>%
+# dplyr::mutate(start_date_haul = 
+#                 format(x = as.POSIXlt(x = start_time), format="%Y-%m-%d"))
 
 haul <- temp %>% 
   dplyr::filter(abundance_haul == "Y" &
@@ -660,7 +499,7 @@ stratum_info <-
                        depth_min = min(bottom_depth, na.rm = TRUE), 
                        depth_max = max(bottom_depth, na.rm = TRUE)), 
     by = "stratum") 
-    
+
 
 
 
@@ -669,8 +508,8 @@ stratum_info <-
 temp <- function(cruises_, haul_){
   haul_cruises_vess_ <- 
     dplyr::left_join(x = cruises_ ,#%>% 
-                       # dplyr::rename(start_date_cruise = start_date, 
-                       #               end_date_cruise = end_date), 
+                     # dplyr::rename(start_date_cruise = start_date, 
+                     #               end_date_cruise = end_date), 
                      y = haul_ %>% 
                        dplyr::select(cruisejoin, hauljoin, stationid, stratum, haul, 
                                      gear_depth, duration, distance_fished, net_width, net_height,
@@ -788,12 +627,12 @@ temp <- function(cruises_, haul_, catch){
       by = c("cruisejoin")) %>% 
     dplyr::left_join(
       x= ., 
-    # dplyr::left_join(
-    #   x = cruises_, 
-    #   y = haul_, 
-    #   by = c("cruisejoin")) %>% 
-    # dplyr::left_join(
-    #   x = ., 
+      # dplyr::left_join(
+      #   x = cruises_, 
+      #   y = haul_, 
+      #   by = c("cruisejoin")) %>% 
+      # dplyr::left_join(
+      #   x = ., 
       y = catch %>% 
         dplyr::select(cruisejoin, hauljoin,
                       species_code, weight,
@@ -887,13 +726,12 @@ length_crab <- SameColNames(df.ls) %>%
 
 
 # Combine
+
 length_data <- SameColNames(list(
   "gf" = length_data %>% 
     dplyr::select(-catchjoin, -cruise, -cruisejoin, -region, -haul), 
   "crab" = length_crab))  %>% 
   dplyr::rename(SRVY = srvy)
-
-
 
 # *** length_type ----------------------------------------------------------
 
@@ -953,17 +791,6 @@ specimen_maxyr <-
     y = specimen0, 
     by = c("cruisejoin", "hauljoin")) %>% 
   dplyr::select(-region, cruisejoin, hauljoin)
-  # dplyr::filter(region == SRVY0) %>%
-  # dplyr::mutate(year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
-  # dplyr::mutate(SRVY = (substr(cruise, start = 5, stop = 6))) %>% 
-  # dplyr::mutate(SRVY = dplyr::case_when(
-  #   SRVY == "01" ~ "EBS", 
-  #   SRVY == "02" ~ "NBS" 
-  # ))
-
-# specimen_maxyr <- specimen %>% 
-#   dplyr::filter(SRVY %in% SRVY1 & 
-#                   year== maxyr)
 
 #***  Weighted bottom tempertures ------------------------
 
@@ -971,10 +798,10 @@ specimen_maxyr <-
 # temps_wt_avg_yr<-c()
 
 # for (i in 1:length(unique(haul$year))){
-  
-  # yr <- sort(unique(haul$year))[i]
 
-  # temp
+# yr <- sort(unique(haul$year))[i]
+
+# temp
 
 # ## weighted mean pt 1
 # temps_wt_avg_strat <- stratum_info %>% #temp_strat(maxyr) %>%
@@ -1044,14 +871,14 @@ temps_avg_yr <- coldpool:::cold_pool_index %>%
   dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE)) %>% 
   dplyr::mutate(st_mean = mean(st, na.rm = TRUE)) %>% 
   dplyr::mutate(SRVY = "EBS") %>%
-    dplyr::arrange(SRVY, year) %>%
-    dplyr::mutate(bt_above_mean = bt>bt_mean) %>%
-    dplyr::mutate(st_above_mean = st>st_mean) %>%
-    dplyr::mutate(case = dplyr::case_when(
-      ((st_above_mean + bt_above_mean)==2) ~ "both warmer",
-      ((st_above_mean + bt_above_mean)==0) ~ "both colder",
-      (st_above_mean == TRUE & bt_above_mean == FALSE) ~ "st warmer, bt colder",
-      (st_above_mean == FALSE & bt_above_mean == TRUE) ~ "bt warmer, st colder") )
+  dplyr::arrange(SRVY, year) %>%
+  dplyr::mutate(bt_above_mean = bt>bt_mean) %>%
+  dplyr::mutate(st_above_mean = st>st_mean) %>%
+  dplyr::mutate(case = dplyr::case_when(
+    ((st_above_mean + bt_above_mean)==2) ~ "both warmer",
+    ((st_above_mean + bt_above_mean)==0) ~ "both colder",
+    (st_above_mean == TRUE & bt_above_mean == FALSE) ~ "st warmer, bt colder",
+    (st_above_mean == FALSE & bt_above_mean == TRUE) ~ "bt warmer, st colder") )
 
 # calculate the nth year of case
 nthyr <- c()
@@ -1079,7 +906,7 @@ temps_avg_yr_maxyr <- temps_avg_yr %>%  # temps_avg_yr_longterm
 # which years should we look at?
 temps_avg_yr_abovebelow <- 
   cbind.data.frame(
-  "above" = temps_avg_yr %>% 
+    "above" = temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == TRUE) %>% 
       dplyr::ungroup() %>%
@@ -1087,14 +914,14 @@ temps_avg_yr_abovebelow <-
       dplyr::select(year) %>% 
       head(8) %>%
       unlist(), 
-  "below" = temps_avg_yr %>% 
-  dplyr::filter(SRVY == "EBS" & 
-                  bt_above_mean == FALSE) %>% 
-  dplyr::ungroup() %>%
-  dplyr::arrange(-year) %>% 
-  dplyr::select(year) %>% 
-  head(8) %>%
-  unlist())
+    "below" = temps_avg_yr %>% 
+      dplyr::filter(SRVY == "EBS" & 
+                      bt_above_mean == FALSE) %>% 
+      dplyr::ungroup() %>%
+      dplyr::arrange(-year) %>% 
+      dplyr::select(year) %>% 
+      head(8) %>%
+      unlist())
 
 temp <- coldpool:::ebs_bottom_temperature
 temp <- projectRaster(temp, crs = crs(reg_dat$akland))
@@ -1125,8 +952,22 @@ cold_pool_area <- temp %>%
                                levels=c("1 to 2\u00B0C", "0 to 1\u00B0C", "-1 to 0\u00B0C", "> -1\u00B0C"), 
                                ordered = TRUE))
 
-# *** Calculate Biomass -----------------------------------------------------------
+# *** Calculate Biomass and CPUE -----------------------------------------------------------
 
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "table_bio_spp", 
+                              report_spp_codes = "species_code")
+
+
+spp_info1 <- dplyr::left_join(
+  x = spp_info %>% 
+    dplyr::select(-species_name), 
+  y = report_spp1 %>% 
+    dplyr::select(order, file_name, print_name, common_name1, group, group_sci, 
+                  species_code, species_name, species_name1), 
+  by = "species_code")
 
 
 temp <- tidyr::crossing(
@@ -1137,10 +978,11 @@ temp <- tidyr::crossing(
       dplyr::filter(SRVY %in% c("NBS", "EBS"))  %>%
       dplyr::left_join(
         x = .,
-        y = spp_info %>%
-          dplyr::select(species_code, group),
+        y = spp_info1 %>% 
+          # dplyr::mutate(group = species_name) %>% 
+          dplyr::select(species_code, group, species_name, species_name1, print_name),
         by = "species_code"),
-    species_code, group)) %>%
+    species_code, species_name, species_name1, group, print_name)) %>%
   dplyr::left_join(
     x = .,
     y = catch_haul_cruises %>%
@@ -1149,7 +991,7 @@ temp <- tidyr::crossing(
     by = c("species_code", "hauljoin", "cruisejoin", "SRVY")) %>%
   #### a check for species with weights greater then 0
   ## sum catch weight (by groups) by station and join to haul table (again) to add on relevent haul data
-  dplyr::group_by(year, stationid, SRVY, #species_code,
+  dplyr::group_by(year, stationid, SRVY, species_name, species_name1, print_name, #species_code,
                   group, hauljoin, stratum, distance_fished, net_width) %>%
   dplyr::summarise(wt_kg_summed_by_station = sum(weight, na.rm = TRUE), # overwrite NAs in assign_group_zeros where data exists
                    num_summed_by_station = sum(number_fish, na.rm = TRUE)) %>% # overwrite NAs in
@@ -1167,34 +1009,35 @@ temp <- tidyr::crossing(
                    y = stratum_info %>%
                      dplyr::select(stratum, area),
                    by = 'stratum')  %>% 
-  dplyr::ungroup()#%>%
-
-
-cpue_biomass_station <- temp %>% 
-  # total biomass excluding empty shells and debris for each year
-  dplyr::filter(group != 'empty shells and debris')  %>%
-  dplyr::mutate(type = ifelse(
-    grepl(pattern = "@", x = (group), fixed = TRUE),
-    # species_name == paste0(genus_taxon, " ", species_taxon),
-    "ital", NA)) %>%
-  tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
-  dplyr::select(-extra) %>%
-  dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
-                                    x = species_name, fixed = TRUE)) %>% 
   dplyr::ungroup()
+
+
+
+cpue_biomass_station <- temp # %>%
+#   # total biomass excluding empty shells and debris for each year
+#   dplyr::filter(group != 'empty shells and debris')  %>%
+#   dplyr::mutate(type = ifelse(
+#     grepl(pattern = "@", x = (group), fixed = TRUE),
+#     # species_name == paste0(genus_taxon, " ", species_taxon),
+#     "ital", NA)) %>%
+#   tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
+#   dplyr::select(-extra) %>%
+#   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
+#                                     x = species_name, fixed = TRUE)) %>% 
+#   dplyr::ungroup()
 
 
 
 cpue_biomass_total <- temp %>%
   ## calculates mean CPUE (weight) by year, group, stratum, and area
   dplyr::ungroup() %>%
-  dplyr::group_by(year, group, stratum, area, SRVY) %>%
+  dplyr::group_by(year, group, species_name, species_name1, print_name, stratum, area, SRVY) %>%
   dplyr::summarise(CPUE_by_group_stratum = mean(cpue_kgha, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
   ## creates column for meanCPUE per group/stratum/year*area of stratum
   dplyr::mutate(mean_cpue_times_area = (CPUE_by_group_stratum * area)) %>%
   ## calculates sum of mean CPUE*area (over the 3 strata)
   dplyr::ungroup() %>%
-  dplyr::group_by(year, group, SRVY) %>%
+  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name) %>%
   dplyr::summarise(mean_CPUE_all_strata_times_area =
                      sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
   
@@ -1213,18 +1056,18 @@ cpue_biomass_total <- temp %>%
   dplyr::mutate(weighted_CPUE = (mean_CPUE_all_strata_times_area / total_area)) %>%
   ### uses WEIGHTED CPUEs to calculate biomass
   ## includes empty shells and debris
-  dplyr::group_by(year, group, SRVY) %>%
+  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name) %>%
   dplyr::mutate(biomass_mt = weighted_CPUE*(total_area*.1)) %>%
   # total biomass excluding empty shells and debris for each year
   dplyr::filter(group != 'empty shells and debris')  %>%
-  dplyr::mutate(type = ifelse(
-    grepl(pattern = "@", x = (group), fixed = TRUE),
-    # species_name == paste0(genus_taxon, " ", species_taxon),
-    "ital", NA)) %>%
-  tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
-  dplyr::select(-extra) %>%
-  dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
-                                    x = species_name, fixed = TRUE)) %>% 
+  # dplyr::mutate(type = ifelse(
+  #   grepl(pattern = "@", x = (group), fixed = TRUE),
+  #   # species_name == paste0(genus_taxon, " ", species_taxon),
+  #   "ital", NA)) %>%
+  # tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
+  # dplyr::select(-extra) %>%
+  # dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
+  #                                   x = species_name, fixed = TRUE)) %>% 
   dplyr::ungroup()
 
 
@@ -1243,7 +1086,8 @@ for (i in 1:length(a)){
     b$x1<-NULL
   }
   b$file <- a[i]
-  b$survey <- toupper(strsplit(x = a[i], split = "_")[[1]][strsplit(x = a[i], split = "_")[[1]] %in% tolower(SRVY1)])
+  temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
+  b$survey <- toupper(strsplit(x = temp, split = "_")[[1]][strsplit(x = temp, split = "_")[[1]] %in% c("nbs", "ebs")])
   df.ls[[i]]<-b
   names(df.ls)[i]<-a[i]
 }

@@ -10,12 +10,12 @@
 # START ------------------------------------------------------------------------
 
 # *** REPORT KNOWNS ------------------------------------------------------------
-report_title <- "Data Report" # Fake until I get a better idea of how to automaet something down the line
-
-workfaster <- TRUE # an attempt to satisfy limited patience
-refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
+report_title <- "Community Report" # Fake until I get a better idea of how to automate something down the line
+workfaster <- FALSE # an attempt to satisfy limited patience
+refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
+pres_img <- FALSE
 usePNGPDF <- "png"
 
 # maxyr <- 2016 # or the year of the report, for example
