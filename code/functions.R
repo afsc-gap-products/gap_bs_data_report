@@ -954,7 +954,8 @@ add_report_spp <- function(spp_info,
                            report_spp, 
                            report_spp_col, 
                            report_spp_codes = "species_code", 
-                           lang = TRUE){
+                           lang = TRUE, 
+                           expand = TRUE){
   
   temp <- report_spp %>% 
     dplyr::select(-questions) 
@@ -964,12 +965,20 @@ add_report_spp <- function(spp_info,
       dplyr::select(-dplyr::starts_with("lang_"))
   }
   
+  if (report_spp_col == "order") {
+    
+    report_spp_col <- "order1"
+    temp$order1<-NA
+    temp$order1[!is.na(temp$order)] <- TRUE
+    
+  }
+  
   temp <- temp %>% 
     dplyr::rename(col = all_of(report_spp_col)) %>% 
     dplyr::filter(col == TRUE & 
                     !is.na(species_code)) %>% 
     dplyr::arrange((order)) 
-  
+
   # expand google spreadsheet
   temp1<-data.frame()
   temp$species_code1 <- temp$species_code
@@ -987,28 +996,33 @@ add_report_spp <- function(spp_info,
   }
   
   temp1$species_code1 <- NULL
+  temp1 <- unique(temp1)
   
   # all -> other
   temp <- unique(temp1$print_name)[grepl(pattern = "all ", 
                                          x = unique(temp1$print_name), 
                                          ignore.case = TRUE)]
-  for (i in 1:length(temp)) {
-    temp2 <- intersect(temp1$species_code[temp1$print_name == temp[i]], 
-                       temp1$species_code[temp1$print_name != temp[i]]) # find which are duplicates 
-    if (length(temp2)>0) {
-      # and delete them from "all "
-      temp1 <- temp1[!(temp1$species_code %in% temp2 &
-                         temp1$print_name == temp[i]),]
-      # and change "all " to "other "
-      temp1$print_name[temp1$print_name == temp[i]] <- 
-        gsub(pattern = "all ", 
-             replacement = "other ", 
-             x = temp1$print_name[temp1$print_name == temp[i]], 
-             ignore.case = TRUE)
+  if (length(temp)>0) {
+    for (i in 1:length(temp)) {
+      temp2 <- intersect(temp1$species_code[temp1$print_name == temp[i]], 
+                         temp1$species_code[temp1$print_name != temp[i]]) # find which are duplicates 
+      if (length(temp2)>0) {
+        # and delete them from "all "
+        temp1 <- temp1[!(temp1$species_code %in% temp2 &
+                           temp1$print_name == temp[i]),]
+        # and change "all " to "other "
+        temp1$print_name[temp1$print_name == temp[i]] <- 
+          gsub(pattern = "all ", 
+               replacement = "other ", 
+               x = temp1$print_name[temp1$print_name == temp[i]], 
+               ignore.case = TRUE)
+      }
     }
   }
   
   if (sum(temp1$species_code[(duplicated(temp1$species_code))])>0) warning("There are still duplicates in the species split ups!")
+  
+  
   
   temp0 <-  
     dplyr::left_join(x = temp1 %>% 
@@ -1613,7 +1627,7 @@ legend_discrete_cbar <- function(
 #' @export
 #'
 #' @examples
-plot_size_comp <- function(sizecomp0,
+plot_sizecomp <- function(sizecomp0,
                            length_data0,
                            SRVY1, 
                            spp_code, 
@@ -1775,4 +1789,202 @@ tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, 
   p + geom_text(data = tags, aes_string(x = "x", y = "y", label = "label"), ..., hjust = hjust, 
                 vjust = vjust, fontface = fontface, family = family, inherit.aes = FALSE) 
 }
+
+# Tables -----------------------------------------------------------------------
+
+table_biomass_change <- function(dat, 
+                                 yrs, 
+                                 maxyr, 
+                                 compareyr, 
+                                 remove_all = TRUE) { 
+  
+  # temp <- tidyr::crossing(
+  #   haul_cruises_vess %>%
+  #     dplyr::filter(SRVY == "NBS"),
+  #   dplyr::distinct(
+  #     catch_haul_cruises %>%
+  #       dplyr::filter(SRVY == "NBS")  %>%
+  #       dplyr::left_join(
+  #         x = .,
+  #         y = spp_info %>%
+  #           dplyr::select(species_code, group),
+  #         by = "species_code"),
+  #     species_code, group)) %>%
+  #   dplyr::left_join(
+  #     x = .,
+  #     y = catch_haul_cruises %>%
+  #       dplyr::select("cruisejoin", "hauljoin", "cruisejoin", "species_code",
+  #                     "weight", "number_fish",
+  #       ),
+  #     by = c("species_code", "hauljoin", "cruisejoin")) %>%
+  #   #### a check for species with weights greater then 0
+  #   ## sum catch weight (by groups) by station and join to haul table (again) to add on relevent haul data
+  #   dplyr::group_by(year, stationid, #species_code,
+  #                   group, hauljoin, stratum, distance_fished, net_width) %>%
+  #   dplyr::summarise(wt_kg_summed_by_station = sum(weight, na.rm = TRUE), # overwrite NAs in assign_group_zeros where data exists
+  #                    num_summed_by_station = sum(number_fish, na.rm = TRUE)) %>% # overwrite NAs in
+  # 
+  #   ## checks catch_and_zeros table for species that are not in groups, if species are not grouped
+  #   #### add group to assign_groups table
+  #   ## calculates CPUE for each species group by station
+  #   mutate(effort = distance_fished * net_width/10) %>%
+  #   mutate(CPUE_weight_kgperhect = wt_kg_summed_by_station/effort) %>%
+  #   mutate(CPUE_number_perhect = ifelse(wt_kg_summed_by_station > 0 & num_summed_by_station == 0, NA,
+  #                                       (CPUE_number = num_summed_by_station/effort))) %>%
+  #   #### this is to check CPUEs by group, station and year against the SQL code
+  #   ## add area to CPUE table
+  #   dplyr::left_join(x = .,
+  #                    y = stratum_info %>%
+  #                      dplyr::select(stratum, area),
+  #                    by = 'stratum') #%>%
+  # 
+  # # calculates total area by adding up the unique area values (each strata has a different value)
+  # total_area <- sum(unique(temp$area))
+  # 
+  # table_raw <- temp %>%
+  #   ## calculates mean CPUE (weight) by year, group, stratum, and area
+  #   dplyr::ungroup() %>%
+  #   dplyr::group_by(year, group, stratum, area) %>%
+  #   dplyr::summarise(CPUE_by_group_stratum = mean(CPUE_weight_kgperhect, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  #   ## creates column for meanCPUE per group/stratum/year*area of stratum
+  #   dplyr::mutate(mean_cpue_times_area = (CPUE_by_group_stratum * area)) %>%
+  #   ## calculates sum of mean CPUE*area (over the 3 strata)
+  #   dplyr::ungroup() %>%
+  #   dplyr::group_by(year, group) %>%
+  #   dplyr::summarise(mean_CPUE_all_strata_times_area =
+  #                      sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  #   ## creates column with weighted CPUEs
+  #   dplyr::mutate(weighted_CPUE = (mean_CPUE_all_strata_times_area / total_area)) %>%
+  #   ### uses WEIGHTED CPUEs to calculate biomass
+  #   ## includes empty shells and debris
+  #   dplyr::group_by(year, group) %>%
+  #   dplyr::mutate(biomass_mt = weighted_CPUE*(total_area*.1)) %>%
+  #   # total biomass excluding empty shells and debris for each year
+  #   dplyr::filter(group != 'empty shells and debris')  %>%
+  #   dplyr::mutate(type = ifelse(
+  #     grepl(pattern = "@", x = (group), fixed = TRUE),
+  #     # species_name == paste0(genus_taxon, " ", species_taxon),
+  #     "ital", NA)) %>%
+  #   tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
+  #   dplyr::select(-extra) %>%
+  #   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
+  #                                     x = species_name, fixed = TRUE)) %>%
+  table_raw <- dat %>% 
+    dplyr::filter(SRVY == "NBS") %>% 
+    dplyr::select(year, species_name1, print_name,
+                  # type,  
+                  biomass_mt) %>%
+    ## creates a biomass column for each year
+    tidyr::pivot_wider(
+      # id_cols = c("group", "species_name"),
+      names_from = "year",
+      values_from = c("biomass_mt") )  %>%
+    dplyr::ungroup()
+  
+  ##  calculate percent change, seperate group (common name) and taxon, filter out groups
+  ## change symbols/percents to red text if negative 
+  temp <- expand.grid(yrs, yrs)
+  temp <- temp[temp$Var1 != temp$Var2,]
+  table_raw <- as.data.frame(table_raw)
+  for (i in 1:nrow(temp)) {
+    table_raw$change <- NMFSReports::pchange(
+      start = unlist(table_raw[,names(table_raw) == as.character(temp[i,1])]), 
+      end = unlist(table_raw[,names(table_raw) == as.character(temp[i,2])]), 
+      value_only = TRUE)
+    names(table_raw)[names(table_raw) == "change"] <- paste0("change_", temp[i,1], "_", temp[i,2]) 
+  }
+  table_raw$change <- table_raw[,paste0("change_", compareyr , "_", maxyr) ]
+  
+  table_raw <- table_raw %>%
+    dplyr::arrange(desc(change)) %>%
+    dplyr::filter(change != Inf #& 
+                  # !(group %in% c("greenlings", "sand lances", "salmonids", 
+                  #                "wolffishes", "chitons", "skate egg cases", "hydroids", 
+                  #                "sponges", "lumpsuckers", "octopuses", "Tanner crab"))
+    ) #%>% 
+  # dplyr::relocate(type, .after = last_col()) %>%
+  # dplyr::left_join(
+  #       x = ., 
+  #       y = spp_info %>% 
+  #         dplyr::select(group, taxon) %>% 
+  #         dplyr::mutate(group = as.character(unlist(lapply(strsplit(x = group, split = "_", fixed = TRUE), `[[`, 1)))) %>%
+  #         unique(), 
+  #       by = c("group" )) 
+  # dplyr::mutate(common_name = tolower(group)) %>% 
+  # dplyr::left_join(
+  #   x = ., 
+  #   y = spp_info %>% 
+  #     dplyr::select(taxon, common_name) %>% 
+  #     dplyr::mutate(common_name = tolower(common_name)), 
+  #   by = c("common_name")
+  # )
+  
+  # remove spp with all 0s
+  a<-Reduce(intersect, 
+            list(which(table_raw[,as.character(yrs)[1]]==0),
+                 which(table_raw[,as.character(yrs)[2]]==0),
+                 which(table_raw[,as.character(yrs)[3]]==0),
+                 which(table_raw[,as.character(yrs)[4]]==0)))
+  if (length(a)!=0) {
+    table_raw0 <- table_raw[-a,]
+  } else {
+    table_raw0<-table_raw
+  }
+  
+  table_print <- table_raw0 %>%
+    dplyr::select(#-type, -taxon, 
+      -starts_with("change_")) %>% #, -"SRVY") %>%
+    dplyr::mutate_if(is.numeric, round, 0) %>%
+    dplyr::mutate(change = paste0(prettyNum(change, big.mark=","), "%")) %>% 
+    dplyr::mutate(group = stringr::str_to_title(print_name)) 
+  
+  if (remove_all) {
+    table_print$group <- gsub(pattern = "All ", replacement = "", 
+                                   x = table_print$group, fixed = TRUE)
+  }
+  
+  table_print <- table_print %>% 
+    dplyr::mutate(spp = dplyr::case_when(
+      grepl(pattern = "sp.", x = species_name1, fixed = TRUE) ~ "sp.", 
+      grepl(pattern = "spp.", x = species_name1, fixed = TRUE) ~ "spp.", 
+      TRUE ~ "")) %>%
+    dplyr::mutate(
+      species_name = species_name1, 
+      species_name1 = 
+        gsub(pattern = " sp.", replacement = "", 
+             x = species_name1, fixed = TRUE), #) %>%
+      # dplyr::mutate( 
+      species_name1 =
+        gsub(pattern = " spp.", replacement = "",
+             x = species_name1, fixed = TRUE),#) %>%
+      # dplyr::mutate( 
+      species_name2 = dplyr::case_when(
+        !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), #) %>%
+      # dplyr::mutate( 
+      species_name1 = dplyr::case_when(
+        grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1))
+  
+  
+  
+  
+  table_print <- table_print %>%
+    flextable::flextable(data = ., col_keys = c("group", "dummy", as.character(yrs), "change")) %>%
+    compose(j = "dummy", 
+            value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
+    # flextable::italic(part = "body", 
+    #                   j = "species_name",
+    #                   i = (as.character(table_raw0$type) == "ital")) %>%
+    flextable::color(color = "red", 
+                     i = grepl(pattern = "-", x = as.character(table_raw0$change)), 
+                     j = which(names(table_print) == "change")) %>% 
+    flextable::set_header_labels(.,
+                                 group = "Common name",
+                                 species_name = "Taxon",
+                                 change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>%
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = .)
+  
+  return(list("table_print" = table_print, 
+              "table_raw" = table_raw))
+}
+
 

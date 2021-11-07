@@ -970,7 +970,7 @@ spp_info1 <- dplyr::left_join(
   by = "species_code")
 
 
-temp <- tidyr::crossing(
+cpue_biomass_station <- tidyr::crossing(
   haul_cruises_vess %>%
     dplyr::filter(SRVY %in% c("NBS", "EBS")),
   dplyr::distinct(
@@ -1005,15 +1005,17 @@ temp <- tidyr::crossing(
                             (cpue_no = num_summed_by_station/effort))) %>%
   #### this is to check CPUEs by group, station and year against the SQL code
   ## add area to CPUE table
+  dplyr::ungroup() %>% 
   dplyr::left_join(x = .,
                    y = stratum_info %>%
                      dplyr::select(stratum, area),
                    by = 'stratum')  %>% 
-  dplyr::ungroup()
-
-
-
-cpue_biomass_station <- temp # %>%
+  dplyr::left_join(x = ., 
+                   y = station_info, 
+                   by = c("stationid", "SRVY", "stratum")) %>% 
+  dplyr::rename(latitude = start_latitude, 
+                longitude = start_longitude) %>% 
+  dplyr::filter(!is.na(stationid))
 #   # total biomass excluding empty shells and debris for each year
 #   dplyr::filter(group != 'empty shells and debris')  %>%
 #   dplyr::mutate(type = ifelse(
@@ -1028,7 +1030,7 @@ cpue_biomass_station <- temp # %>%
 
 
 
-cpue_biomass_total <- temp %>%
+cpue_biomass_total <- cpue_biomass_station %>%
   ## calculates mean CPUE (weight) by year, group, stratum, and area
   dplyr::ungroup() %>%
   dplyr::group_by(year, group, species_name, species_name1, print_name, stratum, area, SRVY) %>%
