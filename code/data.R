@@ -460,7 +460,8 @@ station_info <- haul %>% #
   dplyr::left_join(x = ., 
                    y = stratum_info %>% 
                      dplyr::select(stratum, SRVY), 
-                   by = "stratum") 
+                   by = "stratum") %>% 
+  dplyr::mutate(in_maxyr = (stationid %in% haul_maxyr$stationid))
 
 station_info$reg <- NA
 station_info$reg[station_info$stationid %in% 
@@ -980,9 +981,9 @@ cpue_biomass_station <- tidyr::crossing(
         x = .,
         y = spp_info1 %>% 
           # dplyr::mutate(group = species_name) %>% 
-          dplyr::select(species_code, group, species_name, species_name1, print_name),
+          dplyr::select(species_code, group, species_name, species_name1, print_name, taxon),
         by = "species_code"),
-    species_code, species_name, species_name1, group, print_name)) %>%
+    species_code, species_name, species_name1, group, print_name, taxon)) %>%
   dplyr::left_join(
     x = .,
     y = catch_haul_cruises %>%
@@ -991,7 +992,7 @@ cpue_biomass_station <- tidyr::crossing(
     by = c("species_code", "hauljoin", "cruisejoin", "SRVY")) %>%
   #### a check for species with weights greater then 0
   ## sum catch weight (by groups) by station and join to haul table (again) to add on relevent haul data
-  dplyr::group_by(year, stationid, SRVY, species_name, species_name1, print_name, #species_code,
+  dplyr::group_by(year, stationid, SRVY, species_name, species_name1, print_name, taxon, #species_code,
                   group, hauljoin, stratum, distance_fished, net_width) %>%
   dplyr::summarise(wt_kg_summed_by_station = sum(weight, na.rm = TRUE), # overwrite NAs in assign_group_zeros where data exists
                    num_summed_by_station = sum(number_fish, na.rm = TRUE)) %>% # overwrite NAs in
@@ -1033,13 +1034,13 @@ cpue_biomass_station <- tidyr::crossing(
 cpue_biomass_total <- cpue_biomass_station %>%
   ## calculates mean CPUE (weight) by year, group, stratum, and area
   dplyr::ungroup() %>%
-  dplyr::group_by(year, group, species_name, species_name1, print_name, stratum, area, SRVY) %>%
+  dplyr::group_by(year, group, species_name, species_name1, print_name, stratum, area, SRVY, taxon) %>%
   dplyr::summarise(CPUE_by_group_stratum = mean(cpue_kgha, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
   ## creates column for meanCPUE per group/stratum/year*area of stratum
   dplyr::mutate(mean_cpue_times_area = (CPUE_by_group_stratum * area)) %>%
   ## calculates sum of mean CPUE*area (over the 3 strata)
   dplyr::ungroup() %>%
-  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name) %>%
+  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name, taxon) %>%
   dplyr::summarise(mean_CPUE_all_strata_times_area =
                      sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
   

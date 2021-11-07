@@ -1773,6 +1773,100 @@ tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, 
                 vjust = vjust, fontface = fontface, family = family, inherit.aes = FALSE) 
 }
 
+plot_survey_stations <- function(reg_dat, station_info, haul_cruises_maxyr) { 
+  
+  survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
+                      as.character(nmfspalette::nmfs_cols("medgray")))
+  
+  figure <- ggplot() +
+    geom_sf(data = reg_dat$bathymetry, color = "grey50") +
+    # geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50") +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey90",
+            alpha = 0.5) +
+    geom_sf(data = reg_dat$survey.area %>%
+              dplyr::mutate(SURVEY = dplyr::case_when(
+                SURVEY == "EBS_SHELF" ~ "EBS", 
+                SURVEY == "NBS_SHELF" ~ "NBS")), 
+            aes(color = SURVEY), 
+            fill = NA, 
+            size = 1.5,
+            show.legend = TRUE) +
+    stat_sf_coordinates(data = dplyr::left_join( x = reg_dat$survey.grid, 
+                                                 y = station_info, 
+                                                 by = c("STATIONID" = "stationid"))  %>% 
+                          dplyr::filter(in_maxyr == TRUE),
+                        mapping = aes(color = SRVY),
+                        shape = 16,
+                        size = 1.5, 
+                        show.legend = FALSE, 
+                        na.rm = TRUE) +
+    
+    scale_color_manual(
+      name = "", #"Survey Region",
+      values = c(survey_reg_col, 
+                 survey_reg_col),
+      breaks = c(rev(unique(station_info$SRVY)), 
+                 rev(unique(station_info$SRVY))), #TOLEDO rev
+      labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+                 rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long)))))  +
+    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    
+    coord_sf(xlim = reg_dat$plot.boundary$x, 
+             ylim = reg_dat$plot.boundary$y) +
+    scale_x_continuous(name = "Longitude", 
+                       breaks = reg_dat$lon.breaks) + 
+    scale_y_continuous(name = "Latitude", 
+                       breaks = reg_dat$lat.breaks) +
+    geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
+              aes(x = x, y = y, label = lab), 
+              size = 14, group = 99) + 
+    geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
+                    aes(x = x, y = y, label = lab), size = 5, angle = 40, 
+                    bg.color = "white", color = "black", group = 99) + 
+    geom_shadowtext(
+      data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+      aes(x = x, y = y, label = lab), 
+      bg.color = "white", color = "black", 
+      size = 2, group = 99) +
+    ggsn::scalebar(data = reg_dat$survey.grid, 
+                   location = "bottomright",
+                   dist = 100, 
+                   dist_unit = "km", 
+                   transform = FALSE, 
+                   st.dist = .02, 
+                   height = 0.02, 
+                   st.bottom = TRUE, 
+                   st.size = 3, 
+                   # transform = TRUE, 
+                   model = reg_dat$crs) +
+    #set legend position and vertical arrangement
+    theme(#plot.background = element_rect(fill = "white"), 
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      strip.background = element_rect(fill = "grey85", 
+                                      colour = "grey20"),
+      legend.spacing.y = unit(-0.35, "cm"),
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 7),
+      # strip.background = element_rect(color = NA, fill = NA, size = 0),
+      legend.background=element_blank(),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = c(.15, .22),
+      # legend.justification = c("right"),
+      legend.box.just = "left",
+      # legend.margin = margin(6, 6, 6, 6), 
+      legend.box = "vertical"
+    )
+  
+  return(figure)
+}
+
+
+
 # Tables -----------------------------------------------------------------------
 
 table_biomass_change <- function(dat, 
@@ -1854,11 +1948,11 @@ table_biomass_change <- function(dat,
   #                                     x = species_name, fixed = TRUE)) %>%
   table_raw <- dat %>% 
     dplyr::filter(year %in% yrs) %>%
-    dplyr::select(year, species_name1, print_name,
+    dplyr::select(year, species_name1, print_name,taxon,
                   biomass_mt) %>%
     ## creates a biomass column for each year
     tidyr::pivot_wider(
-      id_cols = c("species_name1", "print_name"),
+      id_cols = c("species_name1", "print_name", "taxon"),
       names_from = "year",
       values_from = c("biomass_mt") )  %>%
     dplyr::ungroup()
@@ -1914,7 +2008,7 @@ table_biomass_change <- function(dat,
   }
   
   table_print <- table_raw0 %>%
-    dplyr::select(#-type, -taxon, 
+    dplyr::select(-taxon, 
       -starts_with("change_")) %>% #, -"SRVY") %>%
     dplyr::mutate_if(is.numeric, round, 0) %>%
     dplyr::mutate(change = paste0(prettyNum(change, big.mark=","), "%")) %>% 
