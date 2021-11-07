@@ -6,7 +6,7 @@ Previously named `AFSCDataReport` and `GAP_BS_DataReport`
 
 > This document is for informational purposes only and does not necessarily represent the views or official position of the Department of Commerce, the National Oceanic and Atmospheric Administration, or the National Marine Fisheries Service. Not to be cited without permission from the authors.
 
-## This code and the associated releases were used to develop the following reports: *
+## This code and the associated releases were used to develop the following reports: 
 
 ### 2021 Bering Sea Data Report (in prep)
 
