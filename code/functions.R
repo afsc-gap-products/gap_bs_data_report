@@ -477,7 +477,7 @@ find_codes <- function(x, col = "common_name", str = NULL,
 
 species_table <- function(haul_spp, 
                           spp_print, 
-                          spp_sci,
+                          # spp_sci,
                           SURVEY000, 
                           SRVY000 = NA) {
   
@@ -534,7 +534,7 @@ species_text <- function(
   haul0, 
   biomass_cpue,
   length_maxyr0, 
-  spp_sci,
+  # spp_sci,
   spp_print, 
   spp_code, 
   SRVY000, 
@@ -557,7 +557,7 @@ species_text <- function(
     dplyr::filter(SRVY %in% SRVY000)    
   
   biomass_cpue_spp <- biomass_cpue %>%
-    dplyr::filter(species_name %in% spp_sci & 
+    dplyr::filter(print_name %in% spp_print & 
                     SRVY %in% SRVY000)
   
   str <- c()
@@ -769,7 +769,7 @@ species_content <- function(SURVEY000,
                             haul0, 
                             biomass_cpue,
                             length_maxyr0,
-                            spp_sci,
+                            # spp_sci,
                             spp_print, 
                             spp_code,
                             maxyr, 
@@ -793,7 +793,7 @@ species_content <- function(SURVEY000,
                     dplyr::filter(year == maxyr &
                                     species_code %in% spp_code), 
                   spp_print, 
-                  spp_sci,
+                  # spp_sci,
                   SURVEY000 = SURVEY000, 
                   SRVY000 = SRVY000) 
   
@@ -803,7 +803,7 @@ species_content <- function(SURVEY000,
                     dplyr::filter(year == compareyr &
                                     species_code %in% spp_code), 
                   spp_print, 
-                  spp_sci,
+                  # spp_sci,
                   SURVEY000 = SURVEY000,
                   SRVY000 = SRVY000) 
   
@@ -828,7 +828,7 @@ species_content <- function(SURVEY000,
     biomass_cpue,
     length_maxyr0, 
     table_spp_print = table_spp_maxyr$print, 
-    spp_sci,
+    # spp_sci,
     spp_print, 
     spp_code, 
     SRVY000, 
