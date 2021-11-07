@@ -1636,15 +1636,8 @@ plot_sizecomp <- function(sizecomp0,
                            print_n = FALSE){
   
   table_raw <- sizecomp0 %>%
-    # dplyr::filter(species_code %in% spp_code &
-    #                 SRVY %in% SRVY1) %>%
-    # dplyr::select(length, males, females, unsexed, year) %>%
-    # tidyr::pivot_longer(cols = c(males, females, unsexed),
-    #                     names_to = "sex", values_to = "pop") %>%
-    # dplyr::group_by(length, year, sex) %>%
-    # dplyr::summarise(pop = sum(pop, na.rm = TRUE)) %>%
     dplyr::mutate(sex = stringr::str_to_title(
-      gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) #%>%
+      gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) 
   
   table_raw$year <- factor(
     x = table_raw$year,
@@ -1670,17 +1663,7 @@ plot_sizecomp <- function(sizecomp0,
     pop_unit <- 1e6
     pop_unit_word <- " (millions)"
   }
-  
-  
-  
-  
-  
-  # pop_unit <- ifelse(grepl(x = NMFSReports::xunits(max(table_raw$pop)), 
-  #                          pattern = "million", 
-  #                          ignore.case = TRUE), 1e6, 1e3)
-  # 
-  # pop_unit_word <- ifelse(pop_unit == 1e06, "millions", "thousands")
-  
+
   # mm vs cm
   len_unit_word <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
                           #report_spp$taxon[jj] =="fish", 

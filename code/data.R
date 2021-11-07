@@ -1039,7 +1039,7 @@ cpue_biomass_total <- cpue_biomass_station %>%
   dplyr::mutate(mean_cpue_times_area = (CPUE_by_group_stratum * area)) %>%
   ## calculates sum of mean CPUE*area (over the 3 strata)
   dplyr::ungroup() %>%
-  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name, area) %>%
+  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name) %>%
   dplyr::summarise(mean_CPUE_all_strata_times_area =
                      sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
   
