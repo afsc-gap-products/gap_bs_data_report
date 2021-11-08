@@ -1773,45 +1773,179 @@ tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, 
                 vjust = vjust, fontface = fontface, family = family, inherit.aes = FALSE) 
 }
 
-plot_survey_stations <- function(reg_dat, station_info, haul_cruises_maxyr) { 
+plot_survey_stations <- function(reg_dat, 
+                                 station_info, 
+                                 haul_cruises_maxyr, 
+                                 station_grid = FALSE, 
+                                 stratum_no = FALSE, 
+                                 station_pts_srvy = TRUE, 
+                                 station_pts_vess = FALSE, 
+                                 crab_resample = FALSE) { 
   
-  survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
-                      as.character(nmfspalette::nmfs_cols("medgray")))
+  # survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
+  #                     as.character(nmfspalette::nmfs_cols("medgray")))
   
-  figure <- ggplot() +
-    geom_sf(data = reg_dat$bathymetry, color = "grey50") +
+  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
+  survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+  
+  figure <- ggplot() 
+  
+  
+  if (station_pts_vess) {
+    
+    if (crab_resample) {
+      
+      stdy <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
+      
+      figure <- figure  +
+        geom_sf(data = reg_dat$survey.grid %>% dplyr::filter(!is.na(study)),
+                mapping = aes(fill = study),
+                show.legend = TRUE,
+                color = "black",
+                na.rm = TRUE) +
+        scale_fill_manual(
+          name = "", #"Survey Vessels",
+          values = unique(reg_dat$survey.grid$study_col),
+          breaks = unique(reg_dat$survey.grid$study),
+          labels = unique(reg_dat$survey.grid$study_long),
+          na.value = "transparent")
+    }
+  }
+  
+  
+  figure <- figure  +
     # geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50") +
+    geom_sf(data = reg_dat$bathymetry, color = "grey50")   +
     geom_sf(data = reg_dat$graticule,
             color = "grey90",
-            alpha = 0.5) +
-    geom_sf(data = reg_dat$survey.area %>%
-              dplyr::mutate(SURVEY = dplyr::case_when(
-                SURVEY == "EBS_SHELF" ~ "EBS", 
-                SURVEY == "NBS_SHELF" ~ "NBS")), 
-            aes(color = SURVEY), 
-            fill = NA, 
-            size = 1.5,
-            show.legend = TRUE) +
-    stat_sf_coordinates(data = dplyr::left_join( x = reg_dat$survey.grid, 
-                                                 y = station_info, 
-                                                 by = c("STATIONID" = "stationid"))  %>% 
-                          dplyr::filter(in_maxyr == TRUE),
-                        mapping = aes(color = SRVY),
-                        shape = 16,
-                        size = 1.5, 
-                        show.legend = FALSE, 
-                        na.rm = TRUE) +
+            alpha = 0.5)
+  
+  
+  if (station_pts_vess) {
     
-    scale_color_manual(
-      name = "", #"Survey Region",
-      values = c(survey_reg_col, 
-                 survey_reg_col),
-      breaks = c(rev(unique(station_info$SRVY)), 
-                 rev(unique(station_info$SRVY))), #TOLEDO rev
-      labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
-                 rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long)))))  +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    vess <- reg_dat$survey.grid %>% dplyr::filter(!is.na(vessel_name))
     
+    figure <- figure  +
+      stat_sf_coordinates(data = vess,
+                          mapping = aes(color = vess_col, 
+                                        shape = vess_shape),
+                          size = 1.5, 
+                          show.legend = TRUE, 
+                          na.rm = TRUE) + 
+      geom_sf(data = reg_dat$survey.area %>%
+                dplyr::mutate(SURVEY = dplyr::case_when(
+                  SURVEY == "EBS_SHELF" ~ "EBS", 
+                  SURVEY == "NBS_SHELF" ~ "NBS")), 
+              aes(color = reg_dat$survey.area$SURVEY, 
+                  shape = reg_dat$survey.area$SURVEY), 
+              fill = NA, 
+              size = 1.5,
+              show.legend = TRUE)  +
+      
+      scale_color_manual(
+        name = " ", #"Survey Region",
+        values = c(alpha(colour = c(survey_reg_col), 0.7), 
+                   unique(vess$vess_col)),
+        breaks = c(rev(unique(reg_dat$survey.area$SURVEY)), 
+                   unique(vess$vess_col)), 
+        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+                   unique(vess$vessel_name)), 
+        na.value = "transparent")  +
+      
+      scale_shape_manual(
+        name = " ", #"Survey Vessels",
+        values = c("", "",
+                   unique(vess$vess_shape)),
+        breaks = c(unique(reg_dat$survey.area$SURVEY),
+                   unique(vess$vess_shape)),
+        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+                   unique(vess$vessel_name))) +
+      ggplot2::guides(
+        colour = guide_legend(
+          # order = 1,# survey regions
+          override.aes = list(fill = NA,
+                              # color = c(survey_reg_col, NA, NA),
+                              linetype = c(1,1,0,0),
+                              # shape = c(NA, NA, "A", "V"),
+                              size = 3)),
+        fill = guide_legend(
+          # order = 2,# survey regions
+          override.aes = list(
+            color = "black", 
+            linetype = c(1), 
+            shape = NA, 
+            size = .5)))
+  } else {
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.area %>%
+                dplyr::mutate(SURVEY = dplyr::case_when(
+                  SURVEY == "EBS_SHELF" ~ "EBS", 
+                  SURVEY == "NBS_SHELF" ~ "NBS")), 
+              aes(color = SURVEY), 
+              fill = NA, 
+              size = 1.5,
+              show.legend = TRUE) +
+      scale_color_manual(
+        name = "", #"Survey Region",
+        values = c(survey_reg_col,
+                   survey_reg_col),
+        breaks = c(rev(unique(station_info$SRVY)),
+                   rev(unique(station_info$SRVY))), #TOLEDO rev
+        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
+                   rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))) #+
+    # scale_color_manual(
+    #   name = " ", #"Survey Region",
+    #   values = c(alpha(colour = c(survey_reg_col), 0.7),
+    #              unique(vess$vess_col)),
+    #   breaks = c(rev(unique(reg_dat$survey.area$SURVEY)),
+    #              unique(vess$vess_col)),
+    #   labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
+    #              unique(vess$vessel_name)),
+    #   na.value = "transparent")
+  }
+  
+  figure <- figure +
+    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80")
+  
+  if (station_pts_srvy) {
+    figure <- figure +
+      stat_sf_coordinates(data = dplyr::left_join( x = reg_dat$survey.grid, 
+                                                   y = station_info, 
+                                                   by = c("STATIONID" = "stationid"))  %>% 
+                            dplyr::filter(in_maxyr == TRUE),
+                          mapping = aes(color = SRVY),
+                          shape = 16,
+                          size = 1.5, 
+                          show.legend = FALSE, 
+                          na.rm = TRUE)  
+  }
+  
+  if (stratum_no) {
+    figure <- figure +
+      geom_sf_text(data = reg_dat$survey.strata, 
+                   lineheight = 0.7,
+                   mapping = aes(label = reg_dat$survey.strata$Stratum),
+                   color = "black",
+                   size = 5,
+                   show.legend = FALSE)
+  }
+  
+  if (station_grid) {
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.grid, color = "grey20", fill = NA) +
+      geom_sf_text(data = reg_dat$survey.grid, 
+                   lineheight = 0.7,
+                   mapping = aes(label = gsub(x = STATIONID, 
+                                              replacement = "\n", 
+                                              pattern = "-")),
+                   color = "black",
+                   size = 1.3,
+                   show.legend = FALSE) #+
+    
+  }
+  
+  
+  figure <- figure +
     coord_sf(xlim = reg_dat$plot.boundary$x, 
              ylim = reg_dat$plot.boundary$y) +
     scale_x_continuous(name = "Longitude", 
@@ -1864,6 +1998,7 @@ plot_survey_stations <- function(reg_dat, station_info, haul_cruises_maxyr) {
   
   return(figure)
 }
+
 
 
 

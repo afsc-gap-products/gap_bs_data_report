@@ -1,13 +1,18 @@
 ---
-title: "`r report_title`"
-author: "`r report_authors`"
+title: "`r maxyr` Fisheries Survey: What did they find?"
+subtitle: "`r str `"
+author: 
+- affiliation: Resource Assessment & Conservation Engineering Division
+  description: Groundfish Assessment Program
+  email: Lyle.Britt@noaa.gov
+  name: Lyle Britt
 csl: "../cite/citestyle.csl"
 bibliography: "../cite/bibliography.bib"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: 
   powerpoint_presentation:
     reference_doc: styles_reference.pptx
-    df_print: kable
+    slide_level : 2
 ---
 
 ```{r setup, include=FALSE}
@@ -16,44 +21,365 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   message = FALSE,
-#   dev = "svg",
+  #   dev = "svg",
   fig.width = 12,
   fig.height = 12
   # fig.retina = 3
-  )
-```
-
-# Example of how to use this R Markdown document
-
-```{r ChunkName_NameMeAnythingAsLongAsItIsUnique}
-#Chunks are were we can write code for something later in the code. 
-
-
+)
 ```
 
 
+```{r prep_fig_info}
 
-# `r plot_list[[1]]$header `
+list_figures1 <- data.frame(nickname = 
+                              gsub(pattern = "_", replacement = " ", 
+                                   gsub(pattern = "fig_", replacement = "", x = names(list_figures), 
+                                        fixed = TRUE), fixed = TRUE), 
+                            header = as.character(lapply(list_figures, `[[`, 'header')), 
+                            filename = paste0(dir_out_figures, lapply(list_figures, `[[`, 'filename'), '.png'))
+
+list_figures1$title <- stringr::str_to_title(gsub(pattern = "idw ", replacement = "", x = 
+                                                    gsub(pattern = "size dist ", replacement = "", 
+                                                         x = list_figures1$nickname)))
+```
+
+
+```{r pre_biomass_data}
+
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                                spp_info_codes = "species_code", 
+                                report_spp = report_spp, 
+                                report_spp_col = "order", 
+                                report_spp_codes = "species_code", 
+                                lang = TRUE)
+
+temp <- data.frame(var2 = nbsyr[-length(nbsyr)],
+                   var1 = nbsyr[-1] )
+
+a<-table_biomass_change(dat = cpue_biomass_total, 
+                        yrs = nbsyr, 
+                        maxyr = maxyr, 
+                        compareyr = compareyr, 
+                        remove_all = TRUE) 
+
+table_raw <- a$table_raw %>% 
+  dplyr::select(Survey, print_name, 
+                dplyr::all_of(as.character(nbsyr)), 
+                dplyr::all_of(paste0("change_", as.character(temp$var2), "_", as.character(temp$var1)))) %>% 
+  dplyr::filter(print_name %in% unique(report_spp1$print_name)) %>% 
+    dplyr::mutate_if(is.numeric, round, 0) %>%
+    dplyr::mutate(dplyr::across(dplyr::starts_with("change"), 
+                                prettyNum, big.mark=",")) 
+
+# table_raw$SRVY[table_raw$SRVY == "EBS"] <- "SEBS"
+
+for (i in 1:nrow(temp)) {
+  table_raw[,as.character(temp$var1)[i]] <- 
+    paste0(unlist(table_raw[,as.character(temp$var1)[i]]), 
+           " (", 
+           unlist(table_raw[,paste0("change_", as.character(temp$var2[i]), "_", as.character(temp$var1[i]))]), 
+           "%)")
+}
+
+table_print <- table_raw %>% 
+  dplyr::select(-starts_with("change_")) %>%
+  dplyr::filter(tolower(print_name) %in% tolower(report_spp$print_name)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::arrange(desc(Survey)) %>%  
+  dplyr::arrange((print_name))  
+
+
+biomass_tab<-list()
+
+for (i in 1:length(unique(report_spp1$file_name))) {
+  
+  spp_print <- unique(report_spp1$print_name)[i]
+    
+   temp0 <- table_print %>%
+      dplyr::filter(tolower(print_name) == tolower(spp_print)) %>%
+      dplyr::select(-print_name)
+    
+  temp <- temp0 %>%
+      flextable::flextable(data = .)  %>%
+      # red
+      flextable::color(color = "red",
+                       i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[2])]), fixed = TRUE),
+                       j = as.character(nbsyr[2])) %>%
+      flextable::color(color = "red",
+                       i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[3])]), fixed = TRUE),
+                       j = as.character(nbsyr[3])) %>%
+      flextable::color(color = "red",
+                       i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[4])]), fixed = TRUE),
+                       j = as.character(nbsyr[4])) %>%
+      
+      # blue
+      flextable::color(color = "blue",
+                       i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[2])]), fixed = TRUE)),
+                       j = as.character(nbsyr[2])) %>%
+      flextable::color(color = "blue",
+                       i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[3])]), fixed = TRUE)),
+                       j = as.character(nbsyr[3])) %>%
+      flextable::color(color = "blue",
+                       i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[4])]), fixed = TRUE)),
+                       j = as.character(nbsyr[4])) %>%
+      
+      flextable::bold(x = ., bold = TRUE, part = "all") %>%
+      
+      flextable::set_header_labels(.,
+                                   Survey = "Biomass (mt)") %>%
+      NMFSReports::theme_flextable_nmfstm(
+        x = ., row_lines = TRUE, body_size = 15, header_size = 25, 
+        font = "Arial", pgwidth = 9)  
+
+  biomass_tab$temp <- temp
+  names(biomass_tab)[names(biomass_tab) == "temp"] <- spp_print
+}
+
+```
+
+```{r print_fig}
+insert <- c()
+for (i in 1:nrow(list_figures1)){
+  insert <- paste0(insert, 
+                     paste(paste0("## ", list_figures1$title[i], 
+                     "\n\n![*", list_figures1$header[i], "*](",
+                     list_figures1$filename[i], ")\n\n", collpase = ""),
+              sep = "", collapse = ""))
+}
+
+```
+
+`r insert `
 
 ```{r}
-print(plot_list[[1]]$plot)
+i<-0
 ```
 
-# `r table_list[[1]]$header `
+## `r names(biomass_tab)[i+1] `
 
-`r table_list[[1]]$print `
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
 
 
-# Slide 3
+## `r names(biomass_tab)[i+1] `
 
-:::::: {.columns}
-::: {.column}
- - Text 1.
- - Text 2. 
-:::
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
 
-::: {.column}
-![](../img/DeptOfCommerce.jpg){width=25%}
-:::
-::::::
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+## `r names(biomass_tab)[i+1] `
+
+```{r}
+i<-i+1
+biomass_tab[i][[1]]
+```
+
+
+```{r print_spp_img}
+insert <- c()
+for (i in 1:nrow(report_spp)){
+      insert <- paste0(insert, 
+                     paste(paste0("## ", stringr::str_to_sentence(report_spp$print_name[i]), 
+                     "\n\n![*", report_spp$print_name[i], "*](",
+                     paste0(dir_img, report_spp$file_name[i], ".png"), ")\n\n", collpase = ""),
+              sep = "", collapse = ""))
+}
+
+```
+
+`r insert `
+
+## Key species biomass changes (percent change from 2021)
+
+```{r print_biomass_table}
+a$table_print
+```
+
 

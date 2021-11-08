@@ -58,8 +58,6 @@ dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.co
 googledrive::drive_deauth()
 googledrive::drive_auth()
 1
-# dir_googledrive <- paste0("content_from_googledrive/", maxyr, " - ", SRVY, "/")
-id_googledrive <- (googledrive::drive_get(dir_googledrive)$id)
 
 # *** SOURCE SUPPORT SCRIPTS ---------------------------------------------------
 
@@ -75,7 +73,7 @@ source('./code/data.R')
 # *** REPORT TITLE -------------------------------------------------------------
 report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY),
                        ' continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
-report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
+report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, N. Charriere, S. Rohan, B. Prohaska, R. Haehn, and D. Stevenson'
 report_yr <- maxyr 
 
 
@@ -91,28 +89,39 @@ report_yr <- maxyr
 if (FALSE) {
   # cnt_chapt<-auto_counter(cnt_chapt)
   cnt_chapt_content<-"001"
-  filename0<-paste0(cnt_chapt, "_figtab_")
+  filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-  for (jj in 1:nrow(report_spp)) {
+  
+  report_spp1 <- add_report_spp(spp_info = spp_info, 
+                                spp_info_codes = "species_code", 
+                                report_spp = report_spp, 
+                                report_spp_col = "order", 
+                                report_spp_codes = "species_code", 
+                                lang = TRUE)
+  
+  
+  for (jj in 1:length(unique(report_spp1$file_name))) {
     
-    print(paste0(jj, " of ", nrow(report_spp)))
-    
+    print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
+    start_time <- Sys.time()
     # cnt_chapt<-auto_counter(cnt_chapt)
     # cnt_chapt_content<-"001"
-    filename00<-paste0(cnt_chapt, "_figtab_spp_")
+    filename00<-paste0(cnt_chapt, "_spp_")
     rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                       output_dir = dir_out_ref,
-                      output_file = paste0(filename00, cnt_chapt_content, "_Text_",
-                                           report_spp$file_name[jj],".docx"))
+                      output_file = paste0(filename00, cnt_chapt_content, "_", 
+                                           unique(report_spp1$file_name)[jj],".docx"))
+    end_time <- Sys.time()
+    print(paste0(end_time - start_time))
   }
+  
   # SAVE OTHER OUTPUTS -----------------------------------------------------------
-
+  
   save(list_figures,
        file=paste0(dir_out_figures, "/report_figures.rdata"))
-
+  
   save(list_tables,
        file=paste0(dir_out_tables, "/report_tables.rdata"))
   
@@ -167,22 +176,23 @@ rmarkdown::render(paste0(dir_code, "/05_results.Rmd"),
 
 
 # *** *** 06 - Results_spp ------------------------
-for (jj in 1:nrow(report_spp)) {
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "order", 
+                              report_spp_codes = "species_code", 
+                              lang = TRUE)
+
+for (jj in 1:length(unique(report_spp1$file_name))) {
   
-  # filename0<-paste0(cnt_chapt, "_Results_")
+  print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
+  
+  cnt_chapt_content<-auto_counter(cnt_chapt_content)
   rmarkdown::render(paste0(dir_code, "/06_results_spp.Rmd"),
                     output_dir = dir_out_chapters,
-                    output_file = paste0(filename0, cnt_chapt_content, "_Text_",
-                                         report_spp$file_name[jj],".docx"))
+                    output_file = paste0(filename00, cnt_chapt_content, "_", 
+                                         unique(report_spp1$file_name)[jj],".docx"))
 }
-
-# cnt_chapt<-auto_counter(cnt_chapt)
-# cnt_chapt_content<-"001"
-# filename0<-paste0(cnt_chapt, "_results_spp_")
-# rmarkdown::render(paste0(dir_code, "/06_results_spp.Rmd"),
-#                   output_dir = dir_out_chapters,
-#                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
 
 # *** *** 07 - Results_crabretow ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
@@ -221,6 +231,29 @@ rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
 
 
 # *** *** 11 - Presentation ------------------------
+
+# subtitle
+
+cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
+  dplyr::filter(SRVY %in% c("NBS", "EBS")) %>% 
+  dplyr::select("year", "survey_name", "vessel", "vessel_name", 
+                "vessel_ital", "SRVY", "SRVY_long", 
+                "start_date_cruise", "end_date_cruise", 
+                "start_date_haul", "end_date_haul") %>% 
+  unique() %>% 
+  group_by(year, survey_name, vessel, vessel_name, 
+           vessel_ital, SRVY, SRVY_long) %>% 
+  dplyr::summarise(start_date_cruise = min(start_date_cruise), 
+                   end_date_cruise = max(end_date_cruise), 
+                   start_date_haul = min(start_date_haul), 
+                   end_date_haul = max(end_date_haul)) %>% 
+  dplyr::arrange(start_date_cruise)
+
+str <- paste0(
+  format(min(cruises_maxyr0$start_date_haul), format = "%B %d"), 
+  " to ", 
+  format(max(cruises_maxyr0$end_date_haul), format = "%B %d, %Y") ) 
+
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_presentation_")

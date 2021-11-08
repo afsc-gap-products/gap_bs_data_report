@@ -89,31 +89,18 @@ for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
 # Load data --------------------------------------------------------------------
 
-
-# *** Load Documents Cold Pool GEOTiff -----------------------------------------
-
-# TOLEDO - waiting for coldpool package
-
-# The geoTIFF files will look like this. You can mask them using something like this:
-
-# proj_crs <-  "EPSG:3338"
-# 
-# sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs", set.crs = proj_crs)
-# 
-# temp_ste <- raster::raster(here::here("data", "coldpool", "ste_2021_gear_temperature.tif")) %>%
-#   akgfmaps::rasterize_and_mask(amask = sebs_layers$survey.area)
-# 
-# plot(temp_ste)
-
 # *** Load Documents from Google Drive -----------------------------------------
+
+id_googledrive <- googledrive::as_id(dir_googledrive)
+
 if (googledrive_dl) {
   
   # Species Covered
   # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
-  # googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
-  #                             type = "csv",
-  #                             overwrite = TRUE,
-  #                             path = paste0(dir_out_rawdata, "/0_species_local_names"))
+  googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
+                              type = "csv",
+                              overwrite = TRUE,
+                              path = paste0(dir_out_rawdata, "/0_species_local_names"))
   
   # Spreadsheets
   a <- googledrive::drive_ls(path = id_googledrive, type = "spreadsheet")
