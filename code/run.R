@@ -10,9 +10,9 @@
 # START ------------------------------------------------------------------------
 
 # *** REPORT KNOWNS ------------------------------------------------------------
-report_title <- "Community Report" # Fake until I get a better idea of how to automate something down the line
+report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
 workfaster <- FALSE # an attempt to satisfy limited patience
-refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
+refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
@@ -31,30 +31,34 @@ compareyr <- 2010
 SRVY<-"NEBS"
 ref_compareyr_ebs <- "@RN976"
 ref_compareyr_nbs <- "@RN909"
+dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
 # maxyr <- 2018 # NOTE RAPID RESPONCE
 # compareyr <- 2016
 # SRVY<-"NEBS"
 # ref_compareyr_ebs <- "@RN976" # CHANGE
 # ref_compareyr_nbs <- NA # CHANGE
+dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019 
 # compareyr <- 2017
 # SRVY<-"NEBS" 
 # crabretow <- TRUE
+dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
 # maxyr <- 2021
 # compareyr <- 2019
 # SRVY<-"NEBS" 
 # crabretow <- TRUE
 # study1530 <- TRUE
+dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
 1
-dir_googledrive <- paste0("content_from_googledrive/", maxyr, " - ", SRVY, "/")
+# dir_googledrive <- paste0("content_from_googledrive/", maxyr, " - ", SRVY, "/")
 id_googledrive <- (googledrive::drive_get(dir_googledrive)$id)
 
 # *** SOURCE SUPPORT SCRIPTS ---------------------------------------------------

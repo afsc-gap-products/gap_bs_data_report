@@ -1948,11 +1948,10 @@ table_biomass_change <- function(dat,
   #                                     x = species_name, fixed = TRUE)) %>%
   table_raw <- dat %>% 
     dplyr::filter(year %in% yrs) %>%
-    dplyr::select(year, species_name1, print_name,taxon,
-                  biomass_mt) %>%
+    dplyr::select(SRVY, year, print_name, species_name1, biomass_mt, taxon) %>%
     ## creates a biomass column for each year
     tidyr::pivot_wider(
-      id_cols = c("species_name1", "print_name", "taxon"),
+      id_cols = c("SRVY", "print_name", "species_name1", "taxon"),
       names_from = "year",
       values_from = c("biomass_mt") )  %>%
     dplyr::ungroup()
@@ -1972,28 +1971,9 @@ table_biomass_change <- function(dat,
   table_raw$change <- table_raw[,paste0("change_", compareyr , "_", maxyr) ]
   
   table_raw <- table_raw %>%
-    dplyr::arrange(desc(change)) %>%
-    dplyr::filter(change != Inf #& 
-                  # !(group %in% c("greenlings", "sand lances", "salmonids", 
-                  #                "wolffishes", "chitons", "skate egg cases", "hydroids", 
-                  #                "sponges", "lumpsuckers", "octopuses", "Tanner crab"))
-    ) #%>% 
-  # dplyr::relocate(type, .after = last_col()) %>%
-  # dplyr::left_join(
-  #       x = ., 
-  #       y = spp_info %>% 
-  #         dplyr::select(group, taxon) %>% 
-  #         dplyr::mutate(group = as.character(unlist(lapply(strsplit(x = group, split = "_", fixed = TRUE), `[[`, 1)))) %>%
-  #         unique(), 
-  #       by = c("group" )) 
-  # dplyr::mutate(common_name = tolower(group)) %>% 
-  # dplyr::left_join(
-  #   x = ., 
-  #   y = spp_info %>% 
-  #     dplyr::select(taxon, common_name) %>% 
-  #     dplyr::mutate(common_name = tolower(common_name)), 
-  #   by = c("common_name")
-  # )
+    dplyr::arrange(desc(SRVY), desc(change)) %>%
+    dplyr::filter(change != Inf) %>% 
+    dplyr::rename(Survey = SRVY)
   
   # remove spp with all 0s
   a<-Reduce(intersect, 
@@ -2008,15 +1988,14 @@ table_biomass_change <- function(dat,
   }
   
   table_print <- table_raw0 %>%
-    dplyr::select(-taxon, 
-      -starts_with("change_")) %>% #, -"SRVY") %>%
+    dplyr::select(-taxon, -starts_with("change_")) %>% 
     dplyr::mutate_if(is.numeric, round, 0) %>%
     dplyr::mutate(change = paste0(prettyNum(change, big.mark=","), "%")) %>% 
     dplyr::mutate(group = stringr::str_to_title(print_name)) 
   
   if (remove_all) {
     table_print$group <- gsub(pattern = "All ", replacement = "", 
-                                   x = table_print$group, fixed = TRUE)
+                              x = table_print$group, fixed = TRUE)
   }
   
   table_print <- table_print %>% 
@@ -2028,39 +2007,33 @@ table_biomass_change <- function(dat,
       species_name = species_name1, 
       species_name1 = 
         gsub(pattern = " sp.", replacement = "", 
-             x = species_name1, fixed = TRUE), #) %>%
-      # dplyr::mutate( 
+             x = species_name1, fixed = TRUE), 
       species_name1 =
         gsub(pattern = " spp.", replacement = "",
-             x = species_name1, fixed = TRUE),#) %>%
-      # dplyr::mutate( 
+             x = species_name1, fixed = TRUE),
       species_name2 = dplyr::case_when(
-        !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), #) %>%
-      # dplyr::mutate( 
+        !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), 
       species_name1 = dplyr::case_when(
-        grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1))
-  
-  
-  
+        grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1)) 
   
   table_print <- table_print %>%
-    flextable::flextable(data = ., col_keys = c("group", "dummy", as.character(yrs), "change")) %>%
+    flextable::flextable(data = ., col_keys = c(ifelse(length(unique(table_print$SRVY)) == 1, "", "Survey"), 
+                                                "group", "dummy", 
+                                                as.character(yrs), "change")) %>%
     compose(j = "dummy", 
             value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
-    # flextable::italic(part = "body", 
-    #                   j = "species_name",
-    #                   i = (as.character(table_raw0$type) == "ital")) %>%
     flextable::color(color = "red", 
                      i = grepl(pattern = "-", x = as.character(table_raw0$change)), 
                      j = which(names(table_print) == "change")) %>% 
     flextable::set_header_labels(.,
                                  group = "Common name",
-                                 species_name = "Taxon",
+                                 dummy = "Taxon",
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>%
     NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = .)
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw))
 }
+
 
 

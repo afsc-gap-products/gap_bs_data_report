@@ -1,0 +1,40 @@
+
+# SpeciesList<-list("Walleye Pollock" = SpCodeName.General$`Walleye Pollock`, 
+#                   'Pacific cod' = SpCodeName.General$`Pacific cod`,
+#                   "Yellowfin Sole" = SpCodeName.General$`Yellowfin Sole`, 
+#                   "Northern and Southern Rock Sole (grouped)" = c(SpCodeName.General$`Northern Rock Sole`, 
+#                                                                   SpCodeName.General$`Southern Rock Sole`), 
+#                   "Flathead Sole" = SpCodeName.General$`Flathead Sole`, 
+#                   "Bering Flounder" = SpCodeName.General$`Bering Flounder`, 
+#                   "Alaska Plaice" = SpCodeName.General$`Alaska Plaice`, 
+#                   "Greenland Turbot" = SpCodeName.General$`Greenland Turbot`, 
+#                   "Arrowtooth Flounder" = SpCodeName.General$`Arrowtooth Flounder`, 
+#                   "Kamchatka Flounder" = SpCodeName.General$`Kamchatka Flounder`, 
+#                   "Pacific Halibut" = SpCodeName.General$`Pacific Halibut`)
+
+# report_species<-data.frame(species = c("Walleye Pollock", 
+#                                        'Pacific cod', 
+#                                        "Yellowfin Sole", 
+#                                        "Northern and Southern Rock Sole (grouped)", 
+#                                        "Flathead Sole", 
+#                                        "Bering Flounder", 
+#                                        "Alaska Plaice", 
+#                                        "Greenland Turbot", 
+#                                        "Arrowtooth Flounder", 
+#                                        "Kamchatka Flounder", 
+#                                        "Pacific Halibut"), 
+#                            sci = c("Walleye Pollock", 
+#                                    'Pacific cod', 
+#                                    "Yellowfin Sole", 
+#                                    "Northern and Southern Rock Sole (grouped)", 
+#                                    "Flathead Sole", 
+#                                    "Bering Flounder", 
+#                                    "Alaska Plaice", 
+#                                    "Greenland Turbot", 
+#                                    "Arrowtooth Flounder", 
+#                                    "Kamchatka Flounder", 
+#                                    "Pacific Halibut"))
+
+#NBS
+# +     coord_sf(xlim = c(-400918.9,  513827.5), #map_layers$plot.boundary$x, 
+#                +              ylim = c(100000,  763800.8)) +#map_layers$plot.boundary$y) + 
