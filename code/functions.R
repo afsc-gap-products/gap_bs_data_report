@@ -1944,8 +1944,8 @@ plot_timeseries <- function(
   figure <- ggplot(mapping = aes(x = year, y = y, 
                                  color = SRVY_long1, group = SRVY_long1), 
                    data = table_raw) +
-    geom_line(size = 3) +
-    geom_point(size = 2) +
+    geom_line(size = 2) +
+    geom_point(size = 1) +
     geom_segment(data = table_raw_mean, 
                  # yintercept=y,
                  mapping = aes(x = minyr, xend = maxyr, y = y, yend = y, 

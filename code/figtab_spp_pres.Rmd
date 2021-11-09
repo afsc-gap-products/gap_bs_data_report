@@ -23,7 +23,7 @@ spp_plot_sizecomps <-
 #                            SRVY == "NBS") %>% 
 #            nrow() == 0, 
 #     FALSE, 
-    a$plot_sizecomp[1]#)
+    ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
 # 
 spp_plot_idw <-
 #   ifelse(cpue_biomass_station %>%
@@ -43,8 +43,11 @@ spp_plot_idw <-
 #     dplyr::filter(!is.na(latitude) & !is.na(longitude)) %>% 
 #            nrow() == 0, 
 #          FALSE, 
-         ifelse(sum(a$plot_idw[1], a$plot_idw_coldwarm[1], na.rm = TRUE)>0, TRUE, FALSE)
+         ifelse(sum(ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1]), 
+                    ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1]), 
+                    na.rm = TRUE)>0, TRUE, FALSE)
 ```
+
 
 ```{r}
 # find basic info about species
@@ -432,7 +435,7 @@ if (spp_plot_idw) {
     grid = "extrapolation.grid",
     extrap.box = extrap.box,
     key.title = paste0(str_to_title(spp_print), "\nRelative Abundance (kg/ha)"),
-    workfaster = TRUE,
+    workfaster = workfaster,
     SRVY = SRVY,
     nrow = ifelse(pres_img, 1, 2),
     set.breaks = "auto", 

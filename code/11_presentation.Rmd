@@ -6,7 +6,6 @@ author:
   description: Groundfish Assessment Program
   email: Lyle.Britt@noaa.gov
   name: Lyle Britt
-csl: "../cite/citestyle.csl"
 bibliography: "../cite/bibliography.bib"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: 
@@ -28,106 +27,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-
-
-
-```{r pre_biomass_data}
-
-report_spp1 <- add_report_spp(spp_info = spp_info, 
-                                spp_info_codes = "species_code", 
-                                report_spp = report_spp, 
-                                report_spp_col = "order", 
-                                report_spp_codes = "species_code", 
-                                lang = TRUE)
-
-temp <- data.frame(var2 = nbsyr[-length(nbsyr)],
-                   var1 = nbsyr[-1] )
-
-a<-table_biomass_change(dat = cpue_biomass_total, 
-                        yrs = nbsyr, 
-                        maxyr = maxyr, 
-                        compareyr = compareyr, 
-                        remove_all = TRUE, 
-                        font = "Arial") 
-
-table_raw <- a$table_raw %>% 
-  dplyr::select(Survey, print_name, 
-                dplyr::all_of(as.character(nbsyr)), 
-                dplyr::all_of(paste0("change_", as.character(temp$var2), "_", as.character(temp$var1)))) %>% 
-  dplyr::filter(print_name %in% unique(report_spp1$print_name)) %>% 
-    dplyr::mutate_if(is.numeric, round, 0) %>%
-    dplyr::mutate(dplyr::across(dplyr::starts_with("change"), 
-                                prettyNum, big.mark=",")) 
-
-# table_raw$SRVY[table_raw$SRVY == "EBS"] <- "SEBS"
-
-for (i in 1:nrow(temp)) {
-  table_raw[,as.character(temp$var1)[i]] <- 
-    paste0(unlist(table_raw[,as.character(temp$var1)[i]]), 
-           " (", 
-           unlist(table_raw[,paste0("change_", as.character(temp$var2[i]), "_", as.character(temp$var1[i]))]), 
-           "%)")
-}
-
-table_print <- table_raw %>% 
-  dplyr::select(-starts_with("change_")) %>%
-  dplyr::filter(tolower(print_name) %in% tolower(report_spp$print_name)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::arrange(desc(Survey)) %>%  
-  dplyr::arrange((print_name))  
-
-
-biomass_tab<-list()
-
-for (i in 1:length(unique(report_spp1$file_name))) {
-  
-  spp_print <- unique(report_spp1$print_name)[i]
-    
-   temp0 <- table_print %>%
-      dplyr::filter(tolower(print_name) == tolower(spp_print)) %>%
-      dplyr::select(-print_name)
-    
-  temp <- temp0 %>%
-      flextable::flextable(data = .)  %>%
-      # red
-      flextable::color(color = "red",
-                       i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[2])]), fixed = TRUE),
-                       j = as.character(nbsyr[2])) %>%
-      flextable::color(color = "red",
-                       i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[3])]), fixed = TRUE),
-                       j = as.character(nbsyr[3])) %>%
-      flextable::color(color = "red",
-                       i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[4])]), fixed = TRUE),
-                       j = as.character(nbsyr[4])) %>%
-      
-      # blue
-      flextable::color(color = "blue",
-                       i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[2])]), fixed = TRUE)),
-                       j = as.character(nbsyr[2])) %>%
-      flextable::color(color = "blue",
-                       i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[3])]), fixed = TRUE)),
-                       j = as.character(nbsyr[3])) %>%
-      flextable::color(color = "blue",
-                       i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[4])]), fixed = TRUE)),
-                       j = as.character(nbsyr[4])) %>%
-      
-      flextable::bold(x = ., bold = TRUE, part = "all") %>%
-      
-      flextable::set_header_labels(.,
-                                   Survey = "Biomass (mmt)") %>%
-      NMFSReports::theme_flextable_nmfstm(
-        x = ., row_lines = TRUE, body_size = 15, header_size = 25, 
-        font = "Arial", pgwidth = 9)  
-
-  biomass_tab$temp <- temp
-  names(biomass_tab)[names(biomass_tab) == "temp"] <- spp_print
-}
-
-```
+## Tables
 
 ```{r print_tab}
 
-list_tables1 <- data.frame(nickname = 
+list_tables1 <- data.frame(nickname0 = names(list_tables), 
+                           nickname = 
                               gsub(pattern = "_", replacement = " ", 
                                    gsub(pattern = "fig_", replacement = "", x = names(list_tables), 
                                         fixed = TRUE), fixed = TRUE), 
@@ -139,17 +44,158 @@ list_tables1$title <- stringr::str_to_title(gsub(pattern = "idw ", replacement =
                                                          x = list_tables1$nickname)))
 
 
-insert <- c()
-for (i in 1:nrow(list_tables1)){
-  insert <- paste0(insert, 
-                     paste(paste0("## ", list_tables1$title[i], 
-                     "\n\n![''](",
-                     list_tables1$filename[i], ")\n\n", collpase = ""),
-              sep = "", collapse = ""))
-}
+
+# insert <- c()
+# for (i in 1:nrow(list_tables1)){
+#   insert <- paste0(insert, 
+#                      paste(paste0("## ", list_tables1$title[i], 
+#                      "\n\n",
+#                      lapply(list_tables, `[[`, "print"),
+#                      "\n\n", collpase = ""),
+#               sep = "", collapse = ""))
+# }
+
+# lapply(list_tables, `[[`, "print")
+# <!-- `r insert ` -->
+
+
+# lapply(list_tables, `[[`, "print")
+
 
 ```
 
+
+
+```{r}
+i<-0
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
+
+## `r names(list_tables)[i+1] `
+
+```{r}
+i<-i+1
+list_tables[i][[1]]$print
+```
 
 
 ```{r print_fig}
@@ -180,226 +226,10 @@ for (i in 1:nrow(list_figures1)){
 `r insert `
 
 
-
-
-
-
-
-
-```{r}
-i<-0
-```
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
-## `r names(biomass_tab)[i+1] `
-
-```{r}
-i<-i+1
-biomass_tab[i][[1]]
-```
-
-
 ```{r print_spp_img}
 insert <- c()
-for (i in 1:nrow(report_spp)){
+aa<-report_spp1$file_name[report_spp1$plot_idw_coldwarm == TRUE | report_spp1$plot_idw == TRUE ]
+for (i in 1:length(unique( aa ))){
       insert <- paste0(insert, 
                      paste(paste0("## ", stringr::str_to_sentence(report_spp$print_name[i]), 
                      "\n\n![*", report_spp$print_name[i], "*](",
@@ -411,10 +241,5 @@ for (i in 1:nrow(report_spp)){
 
 `r insert `
 
-## Key species biomass changes (percent change from 2021)
-
-```{r print_biomass_table}
-a$table_print
-```
 
 
