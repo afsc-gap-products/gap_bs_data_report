@@ -29,19 +29,6 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r prep_fig_info}
-
-list_figures1 <- data.frame(nickname = 
-                              gsub(pattern = "_", replacement = " ", 
-                                   gsub(pattern = "fig_", replacement = "", x = names(list_figures), 
-                                        fixed = TRUE), fixed = TRUE), 
-                            header = as.character(lapply(list_figures, `[[`, 'header')), 
-                            filename = paste0(dir_out_figures, lapply(list_figures, `[[`, 'filename'), '.png'))
-
-list_figures1$title <- stringr::str_to_title(gsub(pattern = "idw ", replacement = "", x = 
-                                                    gsub(pattern = "size dist ", replacement = "", 
-                                                         x = list_figures1$nickname)))
-```
 
 
 ```{r pre_biomass_data}
@@ -138,13 +125,52 @@ for (i in 1:length(unique(report_spp1$file_name))) {
 
 ```
 
+```{r print_tab}
+
+list_tables1 <- data.frame(nickname = 
+                              gsub(pattern = "_", replacement = " ", 
+                                   gsub(pattern = "fig_", replacement = "", x = names(list_tables), 
+                                        fixed = TRUE), fixed = TRUE), 
+                            header = as.character(lapply(list_tables, `[[`, 'header')), 
+                            filename = paste0(dir_out_figures, lapply(list_tables, `[[`, 'filename'), '.png'))
+
+list_tables1$title <- stringr::str_to_title(gsub(pattern = "idw ", replacement = "", x = 
+                                                    gsub(pattern = "size dist ", replacement = "", 
+                                                         x = list_tables1$nickname)))
+
+
+insert <- c()
+for (i in 1:nrow(list_tables1)){
+  insert <- paste0(insert, 
+                     paste(paste0("## ", list_tables1$title[i], 
+                     "\n\n![''](",
+                     list_tables1$filename[i], ")\n\n", collpase = ""),
+              sep = "", collapse = ""))
+}
+
+```
+
+
 
 ```{r print_fig}
+
+list_figures1 <- data.frame(nickname = 
+                              gsub(pattern = "_", replacement = " ", 
+                                   gsub(pattern = "fig_", replacement = "", x = names(list_figures), 
+                                        fixed = TRUE), fixed = TRUE), 
+                            header = as.character(lapply(list_figures, `[[`, 'header')), 
+                            filename = paste0(dir_out_figures, lapply(list_figures, `[[`, 'filename'), '.png'))
+
+list_figures1$title <- stringr::str_to_title(gsub(pattern = "idw ", replacement = "", x = 
+                                                    gsub(pattern = "size dist ", replacement = "", 
+                                                         x = list_figures1$nickname)))
+
+
 insert <- c()
 for (i in 1:nrow(list_figures1)){
   insert <- paste0(insert, 
                      paste(paste0("## ", list_figures1$title[i], 
-                     "\n\n![*", list_figures1$header[i], "*](",
+                     "\n\n![''](",
                      list_figures1$filename[i], ")\n\n", collpase = ""),
               sep = "", collapse = ""))
 }
@@ -152,6 +178,13 @@ for (i in 1:nrow(list_figures1)){
 ```
 
 `r insert `
+
+
+
+
+
+
+
 
 ```{r}
 i<-0
