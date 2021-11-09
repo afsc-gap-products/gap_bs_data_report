@@ -329,6 +329,46 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ```
 
 
+## fig_vessels
+
+```{r fig_vessels}
+header <- paste0("Photographs of the *F/V Vesteraalen* (left) and *F/V Alaska Knight* (right).")
+alttext <- paste0("Photographs of the fishing vessels *Vesteraalen* (left) and *Alaska Knight* (right), which were chartered for the ",maxyr," survey.")
+nickname <- "fig_vessels"
+height <- 2.5
+width <- 6
+
+# Select data and make plot
+p1 <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "94_vesterhaalen.png")), 
+                      scale = 0.9 )
+
+p2 <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "163_alaskaknight.png")), 
+                      scale = 0.9 )
+
+figure <- cowplot::plot_grid(p1, p2,  
+                             ncol = 2, rel_heights = c(0.1, 1))
+
+# save yo' stuff and do a lot of behind the scenes work
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```
+
 # History
 
 No figures or tables. 
@@ -490,7 +530,9 @@ l <- length_maxyr %>%
 
 a <- specimen_maxyr %>% 
   dplyr::select("SRVY", species_code) %>% 
-  dplyr::group_by("SRVY" = SRVY, species_code) %>% # also type?
+  dplyr::group_by("SRVY" = SRVY, species_code) %>% 
+  # also specimen_sample_type? 1 = otoliths, 
+  # specimen_subsample_method 1=random, 2 = stratified?
   dplyr::summarise(age = as.numeric(n())) %>% 
   dplyr::ungroup() #%>% 
 # dplyr::mutate(age = xunits(age, val_under_x_words = 0))
@@ -592,7 +634,7 @@ nickname0 <- "tab_special_projects"
 footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
 newobj <- TRUE
 
-temp <- readr::read_csv(paste0(dir_out_rawdata, "/0_special_projects.csv"))
+temp <- readr::read_csv(paste0(dir_out_rawdata, "/0_special_projects.csv"), skip = 1)
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
@@ -631,38 +673,43 @@ list_tables[nickname][[1]]$res <- res <- paste0("
   
 }
 
-# temp <- temp %>% 
-#   # dplyr::filter(!is.na(age_determination_method)) %>% # TOLEDO - is this how I get otolith samples?
-#   dplyr::group_by(SRVY) %>% 
-#   dplyr::summarise(n = length(all_of(SRVY))) 
-# 
-# list_tables[length(list_tables)]$res <- res <- paste0("
-# ###### 
-# 
-# ",res,"
-# 
-# ")
-
 ```
 
 
 # Results
 
-## fig_temp_weight_mean
 
-> change header
+## fig_mean_temperature
 
-```{r fig_temp_weight_mean}
-nickname <- "fig_temp_weight_mean"
-header <- paste0("Average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the eastern Bering Sea (EBS) shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and northern Bering Sea (NBS) shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
+> prev: fig_temp_weight_mean
 
-height <- 3
+```{r fig_mean_temperature}
+nickname <- "fig_mean_temperature"
+header <- paste0("Average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the EBS shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
+alttext <- paste0("Graph showing average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the EBS shelf (left) based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf (right) based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed horizontal lines represent the time series mean.")
+# header <- paste0("Time series of mean survey surface and near-bottom temperatures in the EBS weighted by stratum based on expendable bathythermograph casts or digital dataloggers attached to the headrope during the EBS bottom trawl surveys from 1982 to ", maxyr, ". The 1982-1987 means (triangles). The dashed lines represent the grand stratum-area weighted mean water temperatures for 1982-", maxyr, ".")
+# nickname <- "fig_temp_weight_mean"
+# header <- paste0("Average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the eastern Bering Sea (EBS) shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and northern Bering Sea (NBS) shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
+
+height <- dim(readPNG(paste0(dir_img, "average_temperature.png")))[1]/300 # 4
+width <- dim(readPNG(paste0(dir_img, "average_temperature.png")))[2]/300 # 6
 
 # https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/average_temperature.png
 
+# get the most updated file, just in case
+a <- url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/average_temperature.png?token=ASDSFQFRRFKSYHOBYF4WWJ3BP4O5O", 
+                "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/average_temperature.png?token=ASDSFQFYZNMG4X3DZDLXZT3BRH5VO")
+if (length(a)>0 ) {
+  figure <- 
+    cowplot::ggdraw() +
+    cowplot::draw_image(a)
+} else {
+# https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/stacked_temperature.png?raw=true
 figure <- 
   cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, "average_temperature.png")) )
+}
+
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -683,6 +730,137 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ```
 
 
+## fig_cold_pool_area
+
+> Figure header from 2019: Figure 4. Mean summer surface and bottom temperatures for the 38-year times series from the EBS shelf bottom trawl survey (A) and the cumulative proportion of EBS shelf area covered by each one-degree bottom isotherm range (B).
+
+```{r fig_cold_pool_area}
+# header <- paste0("Percentage of the EBS shelf from 1982–",maxyr," bottom area that is occupied by the cold pool in one degree Celsius increments.")
+header <- paste0("Graph showing annual cold pool extent in the EBS, based on observations from the EBS bottom trawl survey. Extent of the cold pool is shown in proportion to the total southern EBS shelf survey area. Shading denotes bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
+alttext <- paste0("Cold pool extent in the EBS, as measured using observations from the EBS bottom trawl survey. Extent of the cold pool in proportion to the total EBS shelf survey area from 1982–",maxyr,". Shading denotes bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
+footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
+nickname <- "fig_cold_pool_area"
+# alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
+height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[1]/300 # 4
+width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[2]/300 # 6
+
+# get the most updated file, just in case
+a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
+                "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQFPHFWX5FHJQBIY7PLBRKQIS")
+if (length(a)>0 ) {
+  figure <- 
+    cowplot::ggdraw() +
+    cowplot::draw_image(a)
+} else {
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")) )
+}
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```
+
+
+## fig_cold_pool_area
+
+> Figure header from 2019: Figure 4. Mean summer surface and bottom temperatures for the 38-year times series from the EBS shelf bottom trawl survey (A) and the cumulative proportion of EBS shelf area covered by each one-degree bottom isotherm range (B).
+
+```{r fig_cold_pool_area}
+# header <- paste0("Percentage of the EBS shelf from 1982–",maxyr," bottom area that is occupied by the cold pool in one degree Celsius increments.")
+header <- paste0("Graph showing annual cold pool extent in the EBS, based on observations from the EBS bottom trawl survey. Extent of the cold pool is shown in proportion to the total southern EBS shelf survey area. Shading denotes bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
+alttext <- paste0("Cold pool extent in the EBS, as measured using observations from the EBS bottom trawl survey. Extent of the cold pool in proportion to the total EBS shelf survey area from 1982–",maxyr,". Shading denotes bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
+footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
+nickname <- "fig_cold_pool_area"
+# alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
+height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[1]/300 # 4
+width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[2]/300 # 6
+# table_raw <- cold_pool_area
+# 
+# # Plot
+# figure <- ggplot(table_raw, aes(x=year, y=perc, group=label, fill=label)) + 
+#     geom_area() +
+#   # scale_fill_nmfs(palette = "secondary", discrete = TRUE) +
+#   scale_fill_viridis_d(
+#     option = "mako", 
+#     begin = .15, 
+#     end = .9,
+#     direction = -1
+#     ) +
+#   guides(fill=guide_legend(title="Percentage of\nEBS shelf area\n\n")) +
+#   # xlab("Year") +
+#   scale_x_discrete(
+#     name = "Year",
+#                      breaks = seq(from = min(table_raw$year), 
+#                                   to = max(table_raw$year), by = 5)) +
+#   ylab("Percent") +
+#   ylim(0, 100)  +
+#   #set legend position and vertical arrangement
+#   theme(
+#     panel.background = element_rect(fill = "white",
+#                                     colour = NA),
+#     panel.border = element_rect(fill = NA,
+#                                 colour = "grey20"),
+#     strip.background = element_rect(fill = "grey85",
+#                                     colour = "grey20"),
+#     legend.spacing.y = unit(-0.35, "cm"),
+#     axis.text = element_text(size = 12),
+#     axis.title = element_text(size = 15),
+#     legend.title = element_text(size = 15),
+#     legend.text = element_text(size = 12),
+#     legend.background = element_rect(colour = "transparent", fill = "transparent"),
+#     legend.key = element_rect(colour = "transparent",
+#                               fill = "transparent"),
+#     legend.position = c(.15, .80),
+#     legend.box.just = "left",
+#     legend.box = "vertical"
+#   )
+
+# get the most updated file, just in case
+a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
+                "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQFPHFWX5FHJQBIY7PLBRKQIS")
+if (length(a)>0 ) {
+  figure <- 
+    cowplot::ggdraw() +
+    cowplot::draw_image(a)
+} else {
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")) )
+}
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```
+
 ## fig_idw_surftemp_maxyr
 
 > Summer bottom temperatures in the eastern Bering Sea continental shelf survey area, calculated from interpolation of temperature data from summer bottom trawl surveys conducted by AFSC/RACE/GAP. To load this data set, it is necessary to first load the coldpool package or raster and sp packages. Raster layers were interpolated using ordinary kriging with Matern covariance doi: 10.1007/978-1-4612-1494-6(Stein, 1999).
@@ -696,78 +874,112 @@ header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
 nickname <- "fig_idw_surftemp_maxyr"
 
-temp <- raster::subset(x = coldpool:::ebs_surface_temperature, 
-                       subset = paste0("ste_",maxyr,"_surface_temperature")) 
-temp <- projectRaster(temp, crs = crs(reg_dat$akland))
-temp_spdf <- as(temp, "SpatialPixelsDataFrame")
-temp_df <- as.data.frame(temp_spdf)
-colnames(temp_df) <- c("value", "x", "y")
+# temp <- raster::subset(x = coldpool:::ebs_surface_temperature, 
+#                        subset = paste0("ste_",maxyr,"_surface_temperature")) 
+# temp <- projectRaster(temp, crs = crs(reg_dat$akland))
+# temp_spdf <- as(temp, "SpatialPixelsDataFrame")
+# temp_df <- as.data.frame(temp_spdf)
+# colnames(temp_df) <- c("value", "x", "y")
+# 
+# figure <- ggplot() +  
+#   geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+#   geom_tile(data=temp_df, aes(x=x, y=y, fill=value))  + 
+#   scale_fill_viridis_c(#option = "plasma", 
+#     na.value = "transparent", 
+#     breaks = seq(from = -2, to = 20, by = 2),
+#     labels = seq(from = -2, to = 20, by = 2)#,
+#     # alpha = 0.75
+#   ) + 
+#   guides(fill=guide_legend(title="Surface\nTemperature (°C)\n\n")) +
+#   geom_sf(data = reg_dat$bathymetry, color = "grey50") +
+#   geom_sf(data = reg_dat$graticule,
+#           color = "grey90",
+#           alpha = 0.5) +
+#   geom_sf(data = reg_dat$survey.area, 
+#           color = "black", 
+#           fill = NA, 
+#           size = 1) +
+#   scale_x_continuous(name = "Longitude", 
+#                      breaks = reg_dat$lon.breaks) + 
+#   scale_y_continuous(name = "Latitude", 
+#                      breaks = reg_dat$lat.breaks) +
+#   coord_sf(xlim = reg_dat$plot.boundary$x, 
+#            ylim = reg_dat$plot.boundary$y) +
+#   geom_text(data = subset(reg_dat$place.labels, type == "mainland"),
+#             aes(x = x, y = y, label = lab),
+#             size = 14, group = 99) +
+#   geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"),
+#                   aes(x = x, y = y, label = lab), size = 5, angle = 40,
+#                   bg.color = "white", color = "black", group = 99) +
+#   geom_shadowtext(
+#     data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+#     aes(x = x, y = y, label = lab),
+#     bg.color = "white", color = "black",
+#     size = 2, group = 99) +
+#   
+#   ggsn::scalebar(data = reg_dat$survey.grid,
+#                  location = "bottomright",
+#                  dist = 100,
+#                  dist_unit = "km",
+#                  transform = FALSE,
+#                  st.dist = .02,
+#                  height = 0.02,
+#                  st.bottom = TRUE,
+#                  st.size = 3,
+#                  # transform = TRUE,
+#                  model = reg_dat$crs) +
+#   #set legend position and vertical arrangement
+#   theme(
+#     panel.background = element_rect(fill = "white", 
+#                                     colour = NA), 
+#     panel.border = element_rect(fill = NA, 
+#                                 colour = "grey20"), 
+#     strip.background = element_rect(fill = "grey85", 
+#                                     colour = "grey20"),
+#     legend.spacing.y = unit(-0.35, "cm"),
+#     legend.title = element_text(size = 9),
+#     legend.text = element_text(size = 7),
+#     legend.background = element_rect(colour = "transparent", fill = "transparent"),
+#     legend.key = element_rect(colour = "transparent", 
+#                               fill = "transparent"),
+#     legend.position = c(.15, .22),
+#     legend.box.just = "left",
+#     legend.box = "vertical"
+#   )
+# 
+# # save yo' stuff and do a lot of behind the scenes work
+# # alt: this does the same thing as calling "child = " in the chunk header
+# res <- knitr::knit_child(
+#   text = knitr::knit_expand(
+#     file = system.file("rmd/_child_save_fig.Rmd", 
+#                        package = "NMFSReports")), 
+#   quiet = TRUE
+# )
+# 
+# list_figures[nickname][[1]]$res <- res <- paste0("
+# ###### 
+# 
+# ",res,"
+# 
+# ")
 
-figure <- ggplot() +  
-  geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-  geom_tile(data=temp_df, aes(x=x, y=y, fill=value))  + 
-  scale_fill_viridis_c(#option = "plasma", 
-    na.value = "transparent", 
-    breaks = seq(from = -2, to = 20, by = 2),
-    labels = seq(from = -2, to = 20, by = 2)#,
-    # alpha = 0.75
-  ) + 
-  guides(fill=guide_legend(title="Surface\nTemperature (°C)\n\n")) +
-  geom_sf(data = reg_dat$bathymetry, color = "grey50") +
-  geom_sf(data = reg_dat$graticule,
-          color = "grey90",
-          alpha = 0.5) +
-  geom_sf(data = reg_dat$survey.area, 
-          color = "black", 
-          fill = NA, 
-          size = 1) +
-  scale_x_continuous(name = "Longitude", 
-                     breaks = reg_dat$lon.breaks) + 
-  scale_y_continuous(name = "Latitude", 
-                     breaks = reg_dat$lat.breaks) +
-  coord_sf(xlim = reg_dat$plot.boundary$x, 
-           ylim = reg_dat$plot.boundary$y) +
-  geom_text(data = subset(reg_dat$place.labels, type == "mainland"),
-            aes(x = x, y = y, label = lab),
-            size = 14, group = 99) +
-  geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"),
-                  aes(x = x, y = y, label = lab), size = 5, angle = 40,
-                  bg.color = "white", color = "black", group = 99) +
-  geom_shadowtext(
-    data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
-    aes(x = x, y = y, label = lab),
-    bg.color = "white", color = "black",
-    size = 2, group = 99) +
-  
-  ggsn::scalebar(data = reg_dat$survey.grid,
-                 location = "bottomright",
-                 dist = 100,
-                 dist_unit = "km",
-                 transform = FALSE,
-                 st.dist = .02,
-                 height = 0.02,
-                 st.bottom = TRUE,
-                 st.size = 3,
-                 # transform = TRUE,
-                 model = reg_dat$crs) +
-  #set legend position and vertical arrangement
-  theme(
-    panel.background = element_rect(fill = "white", 
-                                    colour = NA), 
-    panel.border = element_rect(fill = NA, 
-                                colour = "grey20"), 
-    strip.background = element_rect(fill = "grey85", 
-                                    colour = "grey20"),
-    legend.spacing.y = unit(-0.35, "cm"),
-    legend.title = element_text(size = 9),
-    legend.text = element_text(size = 7),
-    legend.background = element_rect(colour = "transparent", fill = "transparent"),
-    legend.key = element_rect(colour = "transparent", 
-                              fill = "transparent"),
-    legend.position = c(.15, .22),
-    legend.box.just = "left",
-    legend.box = "vertical"
-  )
+# nickname <- "fig_st_all_nebs_surveys"
+height <- 7
+width <- 6
+
+# header <- paste0("Map showing surface temperatures (°C) in the NBS and EBS during the ",
+#                  NMFSReports::text_list(nbsyr),
+#                  " surveys, which are the years when the survey included the full NBS shelf.")
+
+
+  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+                                subset = paste0("ebs_ste_", maxyr, "_surface_temperature"))
+  figure <- plot_temps_facet(
+    rasterbrick = rasterbrick, 
+    key.title = expression(bold("Surface Temperature (°C)")), 
+    reg_dat = reg_dat, 
+    colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+    viridis_palette_option = "H") 
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -797,40 +1009,40 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 nickname <- "fig_bt_all_nebs_surveys"
 
 for (i in 1:2) { # two cases, above and below
-  
+
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
   TF <- ifelse(i==1, FALSE, TRUE)
   case <- ifelse(i==1, "below", "above")
   year <- sort(temps_avg_yr_abovebelow[,case])
-  
+
   header <- paste0("Contour maps of the near-bottom temperatures from the ",
                    NMFSReports::text_list(year),
                    " Bering Sea shelf bottom trawl surveys, years when the survey mean bottom temperature was ",
                    case,
                    " the long-term stratum area-weighted mean.")
   nickname <- paste0(nickname0, case)
-  
+
   rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
                                 subset = paste0("ste_", year, "_gear_temperature"))
 figure <- plot_temps_facet(
-    rasterbrick = rasterbrick, 
-    key.title = expression(bold("Bottom Temperature (°C)")), 
-    reg_dat = reg_dat, 
+    rasterbrick = rasterbrick,
+    key.title = expression(bold("Bottom Temperature (°C)")),
+    reg_dat = reg_dat,
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-    viridis_palette_option = "H") 
-  
+    viridis_palette_option = "H")
+
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
   res <- knitr::knit_child(
     text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_fig.Rmd", 
-                         package = "NMFSReports")), 
+      file = system.file("rmd/_child_save_fig.Rmd",
+                         package = "NMFSReports")),
     quiet = TRUE
   )
-  
+
   list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
+######
 
 ",res,"
 
@@ -839,20 +1051,25 @@ figure <- plot_temps_facet(
 
 ```
 
-## fig_cold_pool_area (EBS)
+## fig_bt_all_nebs_surveys
 
-### math for summed area is funky! TOLEDO! help!
+```{r fig_bt_all_nebs_surveys}
+nickname <- "fig_bt_all_nebs_surveys"
+height <- 7
+width <- 6
 
-```{r fig_cold_pool_area}
-header <- paste0("Cold pool extent in the eastern Bering Sea (EBS), as measured using observations from the EBS bottom trawl survey. Extent of the cold pool in proportion to the total EBS shelf survey area from 1982–",maxyr,". Shading denotes bottom temperatures ≤ 2°C, ≤ 1°C, ≤ 0°C, and ≤ -1°C.")
-footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
-nickname <- "fig_cold_pool_area"
-height = 3
+header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
+                 NMFSReports::text_list(nbsyr),
+                 " surveys, which are the years when the survey included the full NBS shelf.")
 
-# https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/stacked_temperature.png?raw=true
-figure <- 
-  cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature.png")) )
+rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+                                subset = paste0("ebs_ste_", nbsyr, "_gear_temperature"))
+figure <- plot_temps_facet(
+    rasterbrick = rasterbrick, 
+    key.title = expression(bold("Bottom Temperature (°C)")), 
+    reg_dat = reg_dat, 
+    colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+    viridis_palette_option = "H") 
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -871,6 +1088,51 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ")
 
 ```
+
+
+## fig_st_all_nebs_surveys
+
+
+```{r fig_st_all_nebs_surveys}
+nickname <- "fig_st_all_nebs_surveys"
+height <- 7
+width <- 6
+
+header <- paste0("Map showing surface temperatures (°C) in the NBS and EBS during the ",
+                 NMFSReports::text_list(nbsyr),
+                 " surveys, which are the years when the survey included the full NBS shelf.")
+
+
+  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+                                subset = paste0("ebs_ste_", nbsyr, "_surface_temperature"))
+  figure <- plot_temps_facet(
+    rasterbrick = rasterbrick, 
+    key.title = expression(bold("Surface Temperature (°C)")), 
+    reg_dat = reg_dat, 
+    colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+    viridis_palette_option = "H") 
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```
+
+
+
+
 
 ## tab_species_composition
 

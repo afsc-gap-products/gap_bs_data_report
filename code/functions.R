@@ -2008,7 +2008,8 @@ table_biomass_change <- function(dat,
                                  yrs, 
                                  maxyr, 
                                  compareyr, 
-                                 remove_all = TRUE) { 
+                                 remove_all = TRUE, 
+                                 font = "Times New Roman") { 
   
   # temp <- tidyr::crossing(
   #   haul_cruises_vess %>%
@@ -2164,7 +2165,7 @@ table_biomass_change <- function(dat,
                                  group = "Common name",
                                  dummy = "Taxon",
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>%
-    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = .)
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = ., font = font)
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw))
