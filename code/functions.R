@@ -2011,7 +2011,7 @@ plot_timeseries <- function(
     #                       begin = .2,
     #                       end = .6,
     #                       na.value = "transparent") %>%
-    scale_color_manual(values = pcol, breaks = table_raw$SRVY_long1)
+    scale_color_manual(values = pcol, breaks = unique(table_raw$SRVY_long1))
   
   if (!is.na(anno)) {
     figure <- figure +
@@ -2574,9 +2574,11 @@ table_change_pres <- function(dat,
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw, 
-              "unt" = paste0(y_long,
-                             ifelse(trimws(unit_wrd) == "", "", paste0(" ",trimws(unit_wrd)))),
-              "unit" = paste0(y_long, 
-                            ifelse(trimws(unit_word) == "", "", paste0(" ",trimws(unit_word))))))
+              "unt" = paste0(#y_long,
+                             # ifelse(trimws(unit_wrd) == "", "", paste0(" ",
+                                                                       trimws(unit_wrd)), #)),
+              "unit" = paste0(#y_long, 
+                            # ifelse(trimws(unit_word) == "", "", paste0(" ",
+                trimws(unit_word))))#))
   
 }

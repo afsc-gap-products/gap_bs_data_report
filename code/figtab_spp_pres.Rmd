@@ -141,7 +141,7 @@ a <- table_change_pres(dat = bio,
 # a$table_raw <- a$table_raw %>% 
 #   dplyr::mutate(dplyr::across(starts_with("change_"), gsub, pattern = "-", replace = "+"))
 
-header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "**/n", 
+header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "**\n", 
                                         unlist(a$table_raw[grep(pattern = as.character(maxyr), 
                                                                 x = names(a$table_raw))[1]]), 
                                         " ", a$unt, "\n", 
@@ -152,6 +152,7 @@ header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "
                                         unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
                                                                 x = names(a$table_raw))[1]]), 
                                         " ", a$unt, ")\n\n"), sep = "\n\n\n")
+header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
 
 nickname <- paste0("fig_biomass_", spp_file)
 
@@ -159,7 +160,7 @@ nickname <- paste0("fig_biomass_", spp_file)
 figure <- plot_timeseries(dat = bio, 
                           unit = "metric tons", 
                           unt = "mt", 
-                          y_long = "Biomass", 
+                          y_long = "biomass", 
                           spp_print = spp_print)
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -259,6 +260,7 @@ header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "
                                         unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
                                                                 x = names(a$table_raw))[1]]), 
                                         " ", a$unt, ")\n\n"), sep = "\n\n\n")
+header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
 
 
 nickname <- paste0("fig_abund_", spp_file)
@@ -266,7 +268,7 @@ nickname <- paste0("fig_abund_", spp_file)
 figure <- plot_timeseries(dat = pop, 
                           unit = "", 
                           unt = "", 
-                          y_long = "Abundance", 
+                          y_long = "abundance", 
                           spp_print = spp_print)
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
