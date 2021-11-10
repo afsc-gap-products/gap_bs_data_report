@@ -170,7 +170,30 @@ biomass <- SameColNames(df.ls)  %>%
   dplyr::rename(SRVY = survey) %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert"))
+    species_code >= 40001 ~ "invert")) %>% 
+  dplyr::filter(!is.na(species_code)) %>% 
+# modify for spp
+  dplyr::filter(!(year < 1996 & common_name == "northern rock sole" )) %>% # 10263 NRS
+  dplyr::filter(!(year < 2000 & common_name == "Bering skate" ))  #%>% 
+  # dplyr::group_by(species_code) %>% 
+  # dplyr::mutate(meanpop_spp = mean(pop, na.rm = TRUE), 
+  #               meanbio_spp = mean(pop, na.rm = TRUE)) %>% 
+  # dplyr::ungroup() %>% 
+  # dplyr::group_by(species_code, year) %>% 
+  # dplyr::mutate(varpop = sqrt(sum(population - meanpop_spp)/(catcount-1)), # from 1 SD to Standard Error
+  #               varbio = sqrt(sum(biomass - meanbio_spp)/(catcount-1)))  %>% # from 1 SD to Standard Error
+  # dplyr::ungroup() %>% 
+  # dplyr::mutate(upperp = population+varpop, 
+  #               lowerp = population-varpop, 
+  #               upperb = biomass+varbio, 
+  #               lowerb = biomass-varbio) 
+
+# dplyr::mutate(varpop =  sqrt(varpop)/sqrt(catcount), # from 1 SD to Standard Error
+#               upperp = population+varpop,
+#               lowerp = population-varpop,
+#               varbio =  sqrt(varbio)/sqrt(catcount), # from 1 SD to Standard Error
+#               upperb = biomass+varbio,
+#               lowerb = biomass-varbio)
 
 
 biomass_maxyr<-biomass %>%

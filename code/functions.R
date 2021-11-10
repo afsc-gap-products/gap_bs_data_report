@@ -355,23 +355,23 @@ find_units <- function(unit = "", unt = "", dat){
   if (max_val<1e3) {
     divby <- 1
     unit_word <- paste0(" (", x, ")")
-    unit_wrd <- paste0(" ", x_)
+    unit_wrd <- paste0("", x_)
   } else if (max_val<1e6) {
     divby <- 1e3
-    unit_word <- paste0(" (thousand ",x,")" )
-    unit_wrd <- paste0(" thou.", x_)
+    unit_word <- paste0(" (thousand",x,")" )
+    unit_wrd <- paste0("K", x_)
   } else if (grepl(pattern = "million", x = max_val1)) {
     divby <- 1e6
     unit_word <- paste0(" (million",x,")")
-    unit_wrd <- paste0(" m", x_)
+    unit_wrd <- paste0("M", x_)
   } else if (grepl(pattern = "billion", x = max_val1)) {
     divby <- 1e9
     unit_word <- paste0(" (billion",x,")")
-    unit_wrd <- paste0(" b", x_)
+    unit_wrd <- paste0("B", x_)
   } else if (grepl(pattern = "trillion", x = max_val1)) {
     divby <- 1e12
     unit_word <- paste0(" (trillion",x,")")
-    unit_wrd <- paste0(" t", x_)
+    unit_wrd <- paste0("T", x_)
   }
   
   return(list("divby" = divby, 
@@ -1418,7 +1418,8 @@ plot_temps_facet <- function(rasterbrick,
                              reg_dat, 
                              colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
                              dist_unit = "nm", # nautical miles
-                             viridis_palette_option = "H") {
+                             viridis_palette_option = "H", 
+                             row = 2) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -1438,7 +1439,7 @@ plot_temps_facet <- function(rasterbrick,
   figure <- ggplot() +
     geom_tile(data=temp_df, aes(x=x, y=y, fill=cut(value, breaks = colorbar_breaks)))  +
     facet_wrap( ~ year, 
-                nrow = ifelse(length(names(rasterbrick))>=4, 2, 1)) +
+                nrow = row) +
     coord_equal() +
     scale_fill_manual(values = fig_palette) +
     geom_sf(data = reg_dat$survey.strata,
@@ -1784,13 +1785,15 @@ plot_sizecomp <- function(sizecomp0,
       guides(fill=guide_legend(title="")) +
       scale_y_continuous(name = paste0("Population",pop_unit_word), 
                          breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
-      scale_x_continuous(
-        name = paste0(str_to_sentence(spp_print), "\n",type," (", len_unit_word, ")"),
-        limits = c(ifelse(min(table_raw$length) > 20, min(table_raw$length), 0), 
-                   max(table_raw$length)),
-        breaks = seq(from = 0,
-                     to = max(table_raw$length), 
-                     by = len_unit_axis))  +
+      scale_x_continuous(name = paste0(str_to_sentence(spp_print), "\n",type," (", len_unit_word, ")"), 
+                         breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
+      # scale_x_continuous(
+      #   name = paste0(str_to_sentence(spp_print), "\n",type," (", len_unit_word, ")"),
+      #   limits = c(ifelse(min(table_raw$length) > 20, min(table_raw$length), 0), 
+      #              max(table_raw$length)),
+      #   breaks = seq(from = 0,
+      #                to = max(table_raw$length), 
+      #                by = len_unit_axis))  +
       facet_grid(year ~ .,
                  scales = "free_x") + 
       # coord_capped_cart(bottom='both', left='both', xlim=c(0,max(table_raw$length))) +
@@ -1844,6 +1847,24 @@ plot_sizecomp <- function(sizecomp0,
                    pop = 0), 
         table_raw1)
     }
+    
+    table_raw1 <- table_raw1 %>% 
+      dplyr::arrange(desc(year)) #%>% 
+      # dplyr::mutate(
+      #   year = as.numeric(paste(table_raw$year)), 
+      #   year =  factor(
+      # x = year,
+      # levels = as.character(sort(unique(year), decreasing = TRUE)),
+      # labels = as.character(sort(unique(year), decreasing = TRUE)),
+      # ordered = TRUE))
+
+    table_raw1$year <- as.numeric(paste(table_raw1$year))
+    table_raw1$year <- factor(
+  x = table_raw1$year,
+  levels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
+  labels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
+  ordered = TRUE)
+    
     
     figure <- ggplot(data = table_raw1, 
                      mapping = aes(x = length, 
@@ -1910,6 +1931,7 @@ plot_timeseries <- function(
   spp_print = ""){
   
   table_raw <- dat
+  pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
   
   # find appropriate units
   a<-find_units(unit, unt, dat = table_raw$y)
@@ -1920,32 +1942,57 @@ plot_timeseries <- function(
   table_raw <- table_raw %>%
     dplyr::mutate(y = y/divby, 
                   upper = upper/divby, 
-                  lower = lower/divby, 
-                  uppervar = (y-var)/divby, 
-                  lowervar = (y+var)/divby)
+                  lower = lower/divby)#, 
+                  # uppervar = (y-var)/divby, 
+                  # lowervar = (y+var)/divby)
   
   table_raw_mean <- table_raw %>% 
-    dplyr::group_by(SRVY_long) %>% 
+    dplyr::group_by(SRVY_long, SRVY) %>% 
     dplyr::summarise(y = mean(y, na.rm = TRUE), 
                      minyr = min(year, na.rm = TRUE), 
                      maxyr = max(year, na.rm = TRUE)) %>% 
     dplyr::mutate(SRVY_long1 = paste0(SRVY_long, #"\n
                                       " (mean = ", 
                                       formatC(x = y, digits = 1, big.mark = ",", format = "f"), 
-                                      unit_wrd, ")"))
+                                      unit_wrd, ")"), 
+                  yy = y*divby) %>% 
+    dplyr::filter(yy>100) # if there is too little data, don't bother plotting
+  
+  anno<-NA
+  temp<-setdiff(x = unique(table_raw$SRVY), 
+                y = unique(table_raw_mean$SRVY))
+  if (length(temp) != 0) {
+    # Reduce(intersect, 
+    #        list(unique(table_raw$SRVY), 
+    #             (unique(table_raw_mean$SRVY))))
+    # setdiff(x = unique(table_raw$SRVY), 
+    #         y = unique(table_raw_mean$SRVY))
+    anno <- paste0("Data for this species in the\n", 
+                   temp, 
+                   " is too limited to plot.")
+    
+    which(unique(table_raw$SRVY)==temp)
+    
+    
+    pcol_anno <- pcol[which(unique(table_raw$SRVY)==temp)]
+    pcol <- pcol[which(unique(table_raw$SRVY)!=temp)]
+  }
   
   table_raw <- 
     dplyr::left_join(
       x = table_raw, 
       y = table_raw_mean %>% 
         dplyr::select(SRVY_long, SRVY_long1), 
-      by = "SRVY_long")
+      by = "SRVY_long") %>% 
+    dplyr::filter(SRVY %in% table_raw_mean$SRVY)
+  
+  
   
   figure <- ggplot(mapping = aes(x = year, y = y, 
                                  color = SRVY_long1, group = SRVY_long1), 
                    data = table_raw) +
-    geom_line(size = 2) +
-    geom_point(size = 1) +
+    geom_line(size = 1) +
+    geom_point(size = 1.5) +
     geom_segment(data = table_raw_mean, 
                  # yintercept=y,
                  mapping = aes(x = minyr, xend = maxyr, y = y, yend = y, 
@@ -1959,11 +2006,24 @@ plot_timeseries <- function(
     geom_errorbar(aes(ymin=lower, ymax=upper),
                   width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
                   position=position_dodge(0.05)) +
-    scale_color_viridis_d(direction = -1, 
-                          option = "mako",
-                          begin = .2,
-                          end = .6,
-                          na.value = "transparent")  +
+    # scale_color_viridis_d(direction = -1,
+    #                       option = "mako",
+    #                       begin = .2,
+    #                       end = .6,
+    #                       na.value = "transparent") %>%
+    scale_color_manual(values = pcol, breaks = table_raw$SRVY_long1)
+  
+  if (!is.na(anno)) {
+    figure <- figure +
+      ggplot2::geom_text(x = Inf, y = -Inf, 
+                         hjust = 1.2, vjust = -.3, 
+                         label = anno, show.legend = FALSE, 
+                         size = 4, fontface = "italic",
+                         color = pcol_anno)
+  }
+  
+  
+  figure <- figure +
     guides(color=guide_legend(title="")) +
     xlab("Year") +
     scale_y_continuous(name = paste0(spp_print, "\n", y_long,unit_word), 
@@ -2445,21 +2505,23 @@ table_change_pres <- function(dat,
                   dplyr::all_of(as.character(nbsyr)), 
                   dplyr::all_of(paste0("change_", as.character(temp$var2), "_", as.character(temp$var1)))) %>% 
     dplyr::filter(print_name %in% unique(report_spp1$print_name)) %>% 
-    dplyr::mutate_if(is.numeric, formatC, digits = 0, format = "f", big.mark = ",") %>%
+    dplyr::mutate_if(is.numeric, formatC, digits = 1, format = "f", big.mark = ",") %>%
     dplyr::mutate(dplyr::across(dplyr::starts_with("change"), 
                                 prettyNum, big.mark=",")) 
   
   # table_raw$SRVY[table_raw$SRVY == "EBS"] <- "SEBS"
   
+  table_print<-table_raw
+  
   for (i in 1:nrow(temp)) {
-    table_raw[,as.character(temp$var1)[i]] <- 
-      paste0(unlist(table_raw[,as.character(temp$var1)[i]]), 
+    table_print[,as.character(temp$var1)[i]] <- 
+      paste0(unlist(table_print[,as.character(temp$var1)[i]]), 
              " (", 
-             unlist(table_raw[,paste0("change_", as.character(temp$var2[i]), "_", as.character(temp$var1[i]))]), 
+             unlist(table_print[,paste0("change_", as.character(temp$var2[i]), "_", as.character(temp$var1[i]))]), 
              "%)")
   }
   
-  table_print <- table_raw %>% 
+  table_print <- table_print %>% 
     dplyr::select(-starts_with("change_")) %>%
     dplyr::filter(tolower(print_name) %in% tolower(report_spp$print_name)) %>% 
     dplyr::ungroup() %>% 
@@ -2505,11 +2567,16 @@ table_change_pres <- function(dat,
     
     flextable::set_header_labels(.,
                                  Survey = paste0(y_long, 
-                                                 ifelse(trimws(unit_word) == "", "", paste0(" ",trimws(unit_word))))) %>%
+                                                 ifelse(trimws(unit_wrd) == "", "", paste0(" ",trimws(unit_wrd))))) %>%
     NMFSReports::theme_flextable_nmfstm(
       x = ., row_lines = TRUE, body_size = 15, header_size = 25, 
       font = "Arial", pgwidth = 9)  
   
-  return(table_print)
+  return(list("table_print" = table_print, 
+              "table_raw" = table_raw, 
+              "unt" = paste0(y_long,
+                             ifelse(trimws(unit_wrd) == "", "", paste0(" ",trimws(unit_wrd)))),
+              "unit" = paste0(y_long, 
+                            ifelse(trimws(unit_word) == "", "", paste0(" ",trimws(unit_word))))))
   
 }

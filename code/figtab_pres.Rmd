@@ -22,6 +22,38 @@ width <- 6
 height <- 6
 
 
+figure <- plot_survey_stations(reg_dat, 
+                               station_info, 
+                               haul_cruises_maxyr, 
+                               station_grid = TRUE, 
+                               station_pts_srvy = FALSE)
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+```
+
+## fig_sample_vess
+
+```{r fig_sample_vess}
+header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined in the dark gray line are the NBS stations that were sampled in ",maxyr,". The dots within each area indicate each station location.") # TOLEDO
+nickname <- "fig_sample_vess"
+width <- 6
+height <- 6
+
+
 figure <- plot_survey_stations(reg_dat, station_info, haul_cruises_maxyr)
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -93,7 +125,7 @@ figure <- plot_survey_stations(reg_dat = reg_dat0,
                                stratum_no = TRUE, 
                                station_pts_srvy = FALSE, 
                                station_pts_vess = TRUE, 
-                               crab_resample = crab_resample) # defined in data.r
+                               crab_resample = FALSE) # defined in data.r
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -269,7 +301,6 @@ table_print <- flextable::flextable(table_print) %>%
     flextable::valign(valign = "top") %>%
     flextable::bold(x = ., 
                       i = c((nrow(table_print)-1), nrow(table_print))) %>% 
-  
     NMFSReports::theme_flextable_nmfstm(x = ., 
                         font = "Arial") 
   
@@ -297,13 +328,31 @@ nickname <- paste0("tab_age_samples")
 header <- paste0("Otoliths collected during the ", maxyr, 
                    " Northern and Eastern Bering shelf bottom trawl survey.")
 
-table_raw <- readr::read_csv(paste0(dir_out_rawdata, "/0_otolith_collections.csv"), skip = 1) %>% 
-  dplyr::select(-SRVY) %>%
+
+
+table_raw <- specimen_maxyr %>% 
+  dplyr::select(SRVY, specimen_subsample_method, species_code) %>% 
+  dplyr::filter(specimen_subsample_method %in% c(19, 6)) %>% 
+  dplyr::mutate(sample_type = dplyr::case_when(
+    specimen_subsample_method == 19 ~ "Random/Haul",
+    specimen_subsample_method == 6 ~ "Stratified cm/sex/area" )) %>%
+  dplyr::left_join(x = ., 
+                   y = spp_info %>% 
+                     dplyr::select(species_code, common_name), 
+                   by = "species_code") %>% 
+  dplyr::group_by(sample_type, common_name, SRVY) %>% 
+  dplyr::summarise(ages = n()) %>% 
+  tidyr::pivot_wider(id_cols = c("sample_type", "common_name"), 
+                     values_from = "ages", 
+                     names_from = "SRVY") %>%
+# table_raw <- readr::read_csv(paste0(dir_out_rawdata, "/0_otolith_collections.csv"), skip = 1) %>% 
+  # dplyr::select(-SRVY) %>%
   dplyr::arrange((EBS)) %>%
   dplyr::arrange(sample_type) %>% 
   mutate_at('EBS', as.numeric) %>% 
   mutate_at('NBS', as.numeric) %>% 
-  dplyr::relocate(sample_type)
+  dplyr::relocate(sample_type) %>% 
+  dplyr::rename("Common name" = "common_name")
   # dplyr::rename(" " = sample_type)
 
 table_print <- table_raw %>%
@@ -317,6 +366,9 @@ table_print <- table_print %>%
   flextable::as_grouped_data(x = ., groups = c("sample_type")) %>% 
   flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(sample_type) ) %>%
+  flextable::padding(x = ., 
+                     j = 1, i = ~ is.na(sample_type), 
+                     padding.left = 20) %>%
   NMFSReports::theme_flextable_nmfstm(x = ., 
                         font = "Arial") 
 
@@ -337,6 +389,57 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ```
 
+
+## tab_special_projects
+
+```{r tab_special_projects}
+
+nickname <- paste0("tab_special_projects") 
+header <- ""
+
+table_raw <- readr::read_csv(paste0(dir_out_rawdata, "/0_special_projects.csv"), skip = 1) %>% 
+  dplyr::mutate(nickname = 
+                  if_else((tolower(SRVY) == "both" | is.na(SRVY)), 
+                          paste0(nickname), 
+                          paste0(SRVY, " ", nickname))) %>% 
+  dplyr::select(group, nickname) %>% 
+  dplyr::arrange(nickname) %>% 
+  dplyr::arrange(group)  %>%
+  dplyr::ungroup() %>% 
+  dplyr::rename("Special Projects" = nickname)
+  
+
+table_print <- table_raw %>% 
+  flextable::as_grouped_data(x = ., groups = c("group"), columns = NULL) %>% 
+  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+  flextable::bold(x = ., j = 1, i = ~ !is.na(group) ) %>%
+  flextable::padding(x = ., 
+                     j = 1, i = ~ is.na(group), 
+                     padding.left = 20) %>%
+  # flextable::compose(
+  #   i = ~ !is.na(group), # when var_group not NA
+  #   j = " ", # on column "var"
+  #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
+  # hline(i = ~ !is.na(group), border = officer::fp_border() ) %>%
+  NMFSReports::theme_flextable_nmfstm(x = ., row_lines = FALSE, 
+                        font = "Arial") 
+
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_tables[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```
 
 ## fig_mean_temperature
 
@@ -404,17 +507,17 @@ height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[
 width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[2]/300 # 6
 
 # get the most updated file, just in case
-a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
-                "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQFPHFWX5FHJQBIY7PLBRKQIS")
-if (length(a)>0 ) {
-  figure <- 
-    cowplot::ggdraw() +
-    cowplot::draw_image(a)
-} else {
+# a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
+#                 "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQFPHFWX5FHJQBIY7PLBRKQIS")
+# if (length(a)>0 ) {
+#   figure <- 
+#     cowplot::ggdraw() +
+#     cowplot::draw_image(a)
+# } else {
 figure <- 
   cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")) )
-}
+# }
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -442,8 +545,8 @@ header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
 nickname <- "fig_idw_surftemp_maxyr"
 
-height <- 7
-width <- 6
+  height <- 4
+  width <- 9
 
 # header <- paste0("Map showing surface temperatures (°C) in the NBS and EBS during the ",
 #                  NMFSReports::text_list(nbsyr),
@@ -457,7 +560,8 @@ width <- 6
     key.title = expression(bold("Surface Temperature (°C)")), 
     reg_dat = reg_dat, 
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-    viridis_palette_option = "H") 
+    viridis_palette_option = "H", 
+    row = 1) 
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -481,8 +585,8 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ```{r fig_bt_all_nebs_surveys}
 nickname <- "fig_bt_all_nebs_surveys"
-height <- 7
-width <- 6
+  height <- 4
+  width <- 9
 
 header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
                  NMFSReports::text_list(nbsyr),
@@ -495,7 +599,8 @@ figure <- plot_temps_facet(
     key.title = expression(bold("Bottom Temperature (°C)")), 
     reg_dat = reg_dat, 
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-    viridis_palette_option = "H") 
+    viridis_palette_option = "H", 
+    row = 1) 
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
