@@ -141,18 +141,18 @@ a <- table_change_pres(dat = bio,
 # a$table_raw <- a$table_raw %>% 
 #   dplyr::mutate(dplyr::across(starts_with("change_"), gsub, pattern = "-", replace = "+"))
 
-header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "**\n", 
+header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "** ", 
                                         unlist(a$table_raw[grep(pattern = as.character(maxyr), 
                                                                 x = names(a$table_raw))[1]]), 
-                                        " ", a$unt, "\n", 
+                                        " ", a$unt, " ", 
                                         unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
                                                                 x = names(a$table_raw))]), 
                                         "% from ", max(nbsyr[nbsyr != maxyr]), 
                                         " (", 
                                         unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
                                                                 x = names(a$table_raw))[1]]), 
-                                        " ", a$unt, ")\n\n"), sep = "\n\n\n")
-header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
+                                        " ", a$unt, ")"))
+# header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
 
 nickname <- paste0("fig_biomass_", spp_file)
 
@@ -244,18 +244,32 @@ table_print <- table_change_pres(dat = pop,
                                  unt = "", 
                                  y_long = y_long)
 
-header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "**/n", 
+# header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "**/n", 
+#                                         unlist(a$table_raw[grep(pattern = as.character(maxyr), 
+#                                                                 x = names(a$table_raw))[1]]), 
+#                                         " ", a$unt, "\n", 
+#                                         unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
+#                                                                 x = names(a$table_raw))]), 
+#                                         "% from ", max(nbsyr[nbsyr != maxyr]), 
+#                                         " (", 
+#                                         unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
+#                                                                 x = names(a$table_raw))[1]]), 
+#                                         " ", a$unt, ")\n\n"), sep = "\n\n\n")
+# header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
+
+
+header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "** ", 
                                         unlist(a$table_raw[grep(pattern = as.character(maxyr), 
                                                                 x = names(a$table_raw))[1]]), 
-                                        " ", a$unt, "\n", 
+                                        " ", a$unt, " ", 
                                         unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
                                                                 x = names(a$table_raw))]), 
                                         "% from ", max(nbsyr[nbsyr != maxyr]), 
                                         " (", 
                                         unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
                                                                 x = names(a$table_raw))[1]]), 
-                                        " ", a$unt, ")\n\n"), sep = "\n\n\n")
-header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
+                                        " ", a$unt, ")"))
+# header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
 
 
 nickname <- paste0("fig_abund_", spp_file)
@@ -327,6 +341,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 
 ```{r fig_sizecomp_nbs_}
+
 if (spp_plot_sizecomps) {
   
   height <- 6
@@ -360,7 +375,7 @@ if (spp_plot_sizecomps) {
     length_data0 = length_data0, 
     SRVY1 = "NBS",
     spp_code = spp_code,
-    spp_print = spp_print, 
+    spp_print = paste0("NBS ", spp_print), 
     type = type, 
     print_n = FALSE)
   
@@ -380,6 +395,7 @@ if (spp_plot_sizecomps) {
 
 ")
 }
+
 ```
 
 ## fig_sizecomp_ebs_[spp]
@@ -416,7 +432,7 @@ if (spp_plot_sizecomps) {
     length_data0 = length_data0, 
     SRVY1 = "EBS",
     spp_code = spp_code,
-    spp_print = spp_print, 
+    spp_print = paste0("EBS ", spp_print), 
     type = type, 
     print_n = FALSE, 
     ridgeline = TRUE)

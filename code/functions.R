@@ -1783,7 +1783,7 @@ plot_sizecomp <- function(sizecomp0,
                            end = .6,
                            na.value = "transparent") +
       guides(fill=guide_legend(title="")) +
-      scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\npopulation",pop_unit_word), 
+      scale_y_continuous(name = paste0(spp_print, "\npopulation",pop_unit_word), 
                          breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
       scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
                          breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
@@ -1873,7 +1873,7 @@ plot_sizecomp <- function(sizecomp0,
                                    height = pop/mean(pop, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
       scale_fill_viridis_c(name = length, option = "G") +
-      ylab(paste0(stringr::str_to_sentence(spp_print), "\npopulation across years")) +
+      ylab(paste0(spp_print, "\npopulation across years")) +
       xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word, ")"))) +
       # theme_ridges() +
       theme(legend.position = "none", 
@@ -2026,7 +2026,7 @@ plot_timeseries <- function(
   figure <- figure +
     guides(color=guide_legend(title="")) +
     xlab("Year") +
-    scale_y_continuous(name = stringr::str_to_sentence(paste0(spp_print, "\n", y_long,unit_word)), 
+    scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
                        breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1))))) + 
     guides(color = guide_legend(nrow = 2)) +
     theme(
