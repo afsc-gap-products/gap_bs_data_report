@@ -249,7 +249,7 @@ if (FALSE) {
                                 lang = TRUE)
   
   
-  for (jj in 1:length(unique(report_spp1$file_name))) {
+  for (jj in 11:length(unique(report_spp1$file_name))) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
     start_time <- Sys.time()

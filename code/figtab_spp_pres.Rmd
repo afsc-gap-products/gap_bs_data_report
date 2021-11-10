@@ -236,7 +236,7 @@ width <- 5
 
 y_long <- "Abundance"
 
-table_print <- table_change_pres(dat = pop, 
+a <- table_change_pres(dat = pop, 
                                  yrs = nbsyr, 
                                  maxyr = maxyr, 
                                  compareyr = compareyr, 
@@ -342,6 +342,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ```{r fig_sizecomp_nbs_}
 
+
 if (spp_plot_sizecomps) {
   
   height <- 6
@@ -358,7 +359,9 @@ if (spp_plot_sizecomps) {
   sizecomp0 <- sizec %>% 
     dplyr::filter(species_code %in% spp_code &
                     SRVY %in% "NBS" & 
-                    year %in% nbsyr)    
+                    year %in% nbsyr)  
+  
+  if (nrow(sizecomp0) != 0) {
   
   
   # get size unit/type
@@ -394,6 +397,7 @@ if (spp_plot_sizecomps) {
 ",res,"
 
 ")
+  }
 }
 
 ```
@@ -416,7 +420,8 @@ if (spp_plot_sizecomps) {
   sizecomp0 <- sizec %>% 
     dplyr::filter(species_code %in% spp_code &
                     SRVY %in% "EBS")    
-  
+    if (nrow(sizecomp0) != 0) {
+
   
   # get size unit/type
   if (tolower(spp_print) %in% c("red king crab", "blue king crab")) {
@@ -452,6 +457,7 @@ if (spp_plot_sizecomps) {
 ",res,"
 
 ")
+    }
 }
 ```
 
