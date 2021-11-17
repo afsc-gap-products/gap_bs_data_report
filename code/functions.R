@@ -344,35 +344,43 @@ url_exists <- function(x, non_2xx_return_value = FALSE, quiet = FALSE,...) {
 # ) %>% dplyr::tbl_df() %>% print()
 
 
-find_units <- function(unit = "", unt = "", dat){
+find_units <- function(unit = "", unt = "", dat, divby = NULL){
+  
   x <- ifelse(unit == "", "s", paste0(" ", unit))
   x_ <- ifelse(unt =="", "", unt)
   # find appropriate units
   
-  max_val <- max(dat, na.rm = TRUE)
-  max_val1 <- xunits(max_val, words = TRUE)
-  
-  if (max_val<1e3) {
-    divby <- 1
-    unit_word <- paste0(" (", x, ")")
-    unit_wrd <- paste0("", x_)
-  } else if (max_val<1e6) {
-    divby <- 1e3
-    unit_word <- paste0(" (thousand",x,")" )
-    unit_wrd <- paste0("K", x_)
-  } else if (grepl(pattern = "million", x = max_val1)) {
-    divby <- 1e6
-    unit_word <- paste0(" (million",x,")")
-    unit_wrd <- paste0("M", x_)
-  } else if (grepl(pattern = "billion", x = max_val1)) {
-    divby <- 1e9
-    unit_word <- paste0(" (billion",x,")")
-    unit_wrd <- paste0("B", x_)
-  } else if (grepl(pattern = "trillion", x = max_val1)) {
-    divby <- 1e12
-    unit_word <- paste0(" (trillion",x,")")
-    unit_wrd <- paste0("T", x_)
+  if (is.null(divby)) {
+    max_val <- max(dat, na.rm = TRUE)
+    max_val1 <- xunits(max_val, words = TRUE)
+  } else {
+    max_val <- divby
+    max_val1 <- xunits(divby, words = TRUE)
   }
+  
+  
+    if (max_val<1e3) {
+      divby <- 1
+      unit_word <- paste0(" (", x, ")")
+      unit_wrd <- paste0("", x_)
+    } else if (max_val<1e6) {
+      divby <- 1e3
+      unit_word <- paste0(" (thousand",x,")" )
+      unit_wrd <- paste0("K", x_)
+    } else if (grepl(pattern = "million", x = max_val1)) {
+      divby <- 1e6
+      unit_word <- paste0(" (million",x,")")
+      unit_wrd <- paste0("M", x_)
+    } else if (grepl(pattern = "billion", x = max_val1)) {
+      divby <- 1e9
+      unit_word <- paste0(" (billion",x,")")
+      unit_wrd <- paste0("B", x_)
+    } else if (grepl(pattern = "trillion", x = max_val1)) {
+      divby <- 1e12
+      unit_word <- paste0(" (trillion",x,")")
+      unit_wrd <- paste0("T", x_)
+    }
+    
   
   return(list("divby" = divby, 
               "unit_word" = unit_word, 
@@ -2089,7 +2097,7 @@ plot_survey_stations <- function(reg_dat,
   figure <- ggplot() 
   
   
-  if (station_pts_vess) {
+  # if (station_pts_vess) {
     
     if (crab_resample) {
       
@@ -2108,7 +2116,7 @@ plot_survey_stations <- function(reg_dat,
           labels = unique(reg_dat$survey.grid$study_long),
           na.value = "transparent")
     }
-  }
+  # }
   
   
   figure <- figure  +
@@ -2303,11 +2311,11 @@ plot_survey_stations <- function(reg_dat,
 # Tables -----------------------------------------------------------------------
 
 table_change <- function(dat, 
-                                 yrs, 
-                                 maxyr, 
-                                 compareyr, 
-                                 remove_all = TRUE, 
-                                 font = "Times New Roman") { 
+                         yrs, 
+                         maxyr, 
+                         compareyr, 
+                         remove_all = TRUE, 
+                         font = "Times New Roman") { 
   
   # temp <- tidyr::crossing(
   #   haul_cruises_vess %>%
@@ -2478,34 +2486,36 @@ table_change_pres <- function(dat,
                               font = "Arial", 
                               unit = "", 
                               unt = "", 
-                              y_long = "") {
+                              y_long = "", 
+                              divby = NULL, 
+                              digits = 1) {
   
   temp <- data.frame(var2 = yrs[-length(yrs)],
                      var1 = yrs[-1] )
   
   table_raw <- dat
   
-  a<-find_units(unit, unt, dat = table_raw$y)
-  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-  
+    a<-find_units(unit = unit, unt = unt, dat = table_raw$y, divby = divby)
+    for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+    
   table_raw <- table_raw %>% 
     dplyr::select(SRVY, year, y, print_name, species_name1, taxon) %>%
     dplyr::mutate(y = y/divby)
   
   
   a<-table_change(dat = table_raw, 
-                  yrs = nbsyr, 
+                  yrs = yrs, 
                   maxyr = maxyr, 
                   compareyr = compareyr, 
-                  remove_all = TRUE, 
-                  font = "Arial") 
+                  remove_all = remove_all, 
+                  font = font) 
   
   table_raw <- a$table_raw %>% 
     dplyr::select(Survey, print_name, 
                   dplyr::all_of(as.character(nbsyr)), 
                   dplyr::all_of(paste0("change_", as.character(temp$var2), "_", as.character(temp$var1)))) %>% 
     dplyr::filter(print_name %in% unique(report_spp1$print_name)) %>% 
-    dplyr::mutate_if(is.numeric, formatC, digits = 1, format = "f", big.mark = ",") %>%
+    dplyr::mutate_if(is.numeric, formatC, digits = digits, format = "f", big.mark = ",") %>%
     dplyr::mutate(dplyr::across(dplyr::starts_with("change"), 
                                 prettyNum, big.mark=",")) 
   

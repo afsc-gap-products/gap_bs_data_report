@@ -473,67 +473,67 @@ if (spp_plot_idw) {
   height <- 4
   width <- 9
   
-  # table_raw <- table_print <- data.frame(
-  #   x = 1,
-  #   y = 1,
-  #   label = "This is a placeholder")
-  # 
-  # figure <- ggplot(data = table_raw,
-  #                  mapping = aes(x = x, y = y))
+  table_raw <- table_print <- data.frame(
+    x = 1,
+    y = 1,
+    label = "This is a placeholder")
+
+  figure <- ggplot(data = table_raw,
+                   mapping = aes(x = x, y = y))
   
   
-  table_raw <- cpue %>% 
-    dplyr::select(year, stationid, #hauljoin,
-                  SRVY, cpue_kgha, species_code, 
-                  latitude, longitude)  %>% 
-    dplyr::left_join(x = ., 
-                     y = report_spp1 %>% 
-                       dplyr::select(print_name, species_code, species_name1), 
-                     by = "species_code") %>% 
-    dplyr::filter(print_name == spp_print) %>% 
-    # dplyr::rename(y = cpue_kgha) %>% 
-    dplyr::left_join(x = . , 
-                     y = haul_cruises_maxyr %>% 
-                       dplyr::select(SRVY, SRVY_long),
-                     by = "SRVY") %>% 
-    dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) %>%
-    dplyr::filter(!is.na(cpue_kgha),
-                  # tolower(species_name) %in% tolower(report_spp1$species_name[jj]) &
-                  year %in% nbsyr) %>%
-    dplyr::arrange(-year) %>%
-    dplyr::filter(!is.na(latitude) & !is.na(longitude)) %>%
-    dplyr::ungroup()
-  
-  
-  
-  # table_raw <- cpue_biomass_station %>%
-  #   dplyr::ungroup() %>%
+  # table_raw <- cpue %>%
   #   dplyr::select(year, stationid, #hauljoin,
-  #                 SRVY, cpue_kgha,
-  #                 group, species_name,
-  #                 latitude, longitude) %>%
+  #                 SRVY, cpue_kgha, species_code,
+  #                 latitude, longitude)  %>%
+  #   dplyr::left_join(x = .,
+  #                    y = report_spp1 %>%
+  #                      dplyr::select(print_name, species_code, species_name1),
+  #                    by = "species_code") %>%
+  #   dplyr::filter(print_name == spp_print) %>%
+  #   # dplyr::rename(y = cpue_kgha) %>%
+  #   dplyr::left_join(x = . ,
+  #                    y = haul_cruises_maxyr %>%
+  #                      dplyr::select(SRVY, SRVY_long),
+  #                    by = "SRVY") %>%
+  #   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) %>%
   #   dplyr::filter(!is.na(cpue_kgha),
-  #                 tolower(species_name) %in% tolower(report_spp1$species_name[jj]) &
+  #                 # tolower(species_name) %in% tolower(report_spp1$species_name[jj]) &
   #                 year %in% nbsyr) %>%
   #   dplyr::arrange(-year) %>%
-  #   dplyr::filter(!is.na(latitude) & !is.na(longitude))
-  
-  
-  figure <- plot_idw_xbyx(
-    yrs = nbsyr,
-    dat = table_raw,
-    cruises = cruises,
-    lat = "latitude",
-    lon = "longitude",
-    var = "cpue_kgha",
-    grid = "extrapolation.grid",
-    extrap.box = extrap.box,
-    key.title = paste0(str_to_title(spp_print), "\nRelative Abundance (kg/ha)"),
-    workfaster = TRUE,
-    SRVY = SRVY,
-    nrow = 1,
-    set.breaks = "auto", 
-    plot_coldpool = FALSE)
+  #   dplyr::filter(!is.na(latitude) & !is.na(longitude)) %>%
+  #   dplyr::ungroup()
+  # 
+  # 
+  # 
+  # # table_raw <- cpue_biomass_station %>%
+  # #   dplyr::ungroup() %>%
+  # #   dplyr::select(year, stationid, #hauljoin,
+  # #                 SRVY, cpue_kgha,
+  # #                 group, species_name,
+  # #                 latitude, longitude) %>%
+  # #   dplyr::filter(!is.na(cpue_kgha),
+  # #                 tolower(species_name) %in% tolower(report_spp1$species_name[jj]) &
+  # #                 year %in% nbsyr) %>%
+  # #   dplyr::arrange(-year) %>%
+  # #   dplyr::filter(!is.na(latitude) & !is.na(longitude))
+  # 
+  # 
+  # figure <- plot_idw_xbyx(
+  #   yrs = nbsyr,
+  #   dat = table_raw,
+  #   cruises = cruises,
+  #   lat = "latitude",
+  #   lon = "longitude",
+  #   var = "cpue_kgha",
+  #   grid = "extrapolation.grid",
+  #   extrap.box = extrap.box,
+  #   key.title = paste0(str_to_title(spp_print), "\nRelative Abundance (kg/ha)"),
+  #   workfaster = TRUE,
+  #   SRVY = SRVY,
+  #   nrow = 1,
+  #   set.breaks = "auto",
+  #   plot_coldpool = FALSE)
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header

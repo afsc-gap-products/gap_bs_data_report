@@ -379,8 +379,17 @@ crab_resample <- FALSE
 if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
   crab_resample <- TRUE
   haul_maxyr_crabretow <- haul0 %>%
-    dplyr::filter(cruise %in% c(201701, 201702)  &
-                    haul_type == 17)# crab retow == 17
+    dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
+    dplyr::filter(haul_type == 17) # crab retow == 17
+}
+
+# 15/30
+tow1530 <- FALSE
+if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 20) >0) {
+  tow1530 <- TRUE
+  haul_maxyr_tow1530 <- haul0 %>%
+    dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
+    dplyr::filter(haul_type == 20) 
 }
 
 # *** stratum_info (survey area) -------------------------------------------

@@ -234,6 +234,14 @@ rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
 # *** *** *** - Figures and Tables ------------------------
 # - run figures and tables before each chapter so everything works smoothly
 if (FALSE) {
+  
+    report_spp1 <- add_report_spp(spp_info = spp_info, 
+                                spp_info_codes = "species_code", 
+                                report_spp = report_spp, 
+                                report_spp_col = "order", 
+                                report_spp_codes = "species_code", 
+                                lang = TRUE)
+  
   # cnt_chapt<-auto_counter(cnt_chapt)
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
@@ -241,15 +249,10 @@ if (FALSE) {
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-  report_spp1 <- add_report_spp(spp_info = spp_info, 
-                                spp_info_codes = "species_code", 
-                                report_spp = report_spp, 
-                                report_spp_col = "order", 
-                                report_spp_codes = "species_code", 
-                                lang = TRUE)
+
   
   
-  for (jj in 11:length(unique(report_spp1$file_name))) {
+  for (jj in 1:length(unique(report_spp1$file_name))) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
     start_time <- Sys.time()
