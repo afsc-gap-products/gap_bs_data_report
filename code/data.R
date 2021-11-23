@@ -353,6 +353,7 @@ temp <- dplyr::left_join(
   by = "cruisejoin") %>%  
   dplyr::mutate(year = as.numeric(substr(x = start_time, 1,4))) %>% 
   dplyr::filter(year <= maxyr &
+                  # abundance_haul == "Y", 
                   performance >= 0 &
                   !(is.null(stationid)) &
                   survey_definition_id %in% SRVY00) %>% 
@@ -550,7 +551,8 @@ temp <- function(cruises_, haul_){
                      by = "vessel") %>% 
     dplyr::rename(length_ft = length) %>% 
     dplyr::mutate(length_m = round(length_ft/3.28084, 
-                                   digits = 1)) 
+                                   digits = 1)) %>% 
+    dplyr::ungroup()
 }
 
 haul_cruises_vess <- temp(cruises, haul) 
@@ -643,7 +645,7 @@ temp <- function(cruises_, haul_, catch){
                       bottom_depth, gear_temperature, surface_temperature, 
                       "duration", "distance_fished" ,"net_width" ,"net_measured", "net_height"), 
       y = cruises_ %>% 
-        dplyr::select(cruisejoin, survey_name, SRVY, year),  
+        dplyr::select(cruisejoin, survey_name, SRVY, year, cruise),  
       by = c("cruisejoin")) %>% 
     dplyr::left_join(
       x= ., 
@@ -667,29 +669,69 @@ catch_haul_cruises_maxyr <- temp(cruises_maxyr, haul_maxyr, catch)
 catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr, catch)
 
 spp_info_maxyr <- spp_info %>% 
-  dplyr::filter(species_code %in% unique(catch_haul_cruises_maxyr$species_code))
+  dplyr::filter(species_code %in% 
+                  unique(catch_haul_cruises_maxyr$species_code))
 
 
 # *** length ---------------------------------------------------------------
 
-length_data <- 
-  dplyr::left_join(
-    x = haul %>% 
-      dplyr::select(cruisejoin, hauljoin, stationid, stratum), 
-    y = cruises %>% 
-      dplyr::select(cruisejoin, survey_name, SRVY),  
-    by = c("cruisejoin")) %>% 
-  dplyr::left_join(
-    x= ., 
-    y = length0,
-    by = c("cruisejoin", "hauljoin")) %>% 
-  dplyr::select(-auditjoin) %>% 
+length_data <- v_extract_final_lengths0 %>%
   dplyr::mutate(sex_code = sex, 
                 sex = dplyr::case_when(
-                  sex_code == 1 ~ "males", 
-                  sex_code == 2 ~ "females", 
-                  sex_code == 3 ~ "unsexed")) %>% 
-  dplyr::mutate(year = substr(x = cruise, start = 1, stop = 4))
+                  sex_code == 1 ~ "Males", 
+                  sex_code == 2 ~ "Females", 
+                  sex_code == 3 ~ "Unsexed"), 
+                taxon = dplyr::case_when(
+                  species_code <= 31550 ~ "fish", 
+                  species_code >= 40001 ~ "invert")) %>%
+  dplyr::left_join(
+    x = ., 
+    y = haul %>%   # should exclude special project and bad tows
+      dplyr::select(haul, cruise, vessel, stationid, abundance_haul, haul_type, SRVY, year) %>%
+      dplyr::distinct(),
+    by = c("haul", "cruise", "vessel")) %>% 
+  dplyr::filter(
+    abundance_haul == "Y" &
+      haul_type == 3 &
+      # cruise == 202102 &
+      region == SRVY0) %>% # Remove special project tows
+  dplyr::select(-region, -abundance_haul, -haul_type, -sample_type, -cruise) %>%
+  dplyr::group_by(sex, sex_code, length, year,  species_code, SRVY, taxon, length_type) %>%
+  dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) # Total for each species
+  # dplyr::select(species_code, total_lengths) 
+
+
+# length_data <- 
+#   # dplyr::left_join(
+#   #   x = haul %>% 
+#   #     dplyr::select(cruisejoin, hauljoin, stationid, stratum, haul, cruise), 
+#   #   y = cruises %>% 
+#   #     dplyr::select(cruisejoin, survey_name, SRVY),  
+#   #   by = c("cruisejoin")) %>% 
+#   dplyr::left_join(
+#     x= haul0 %>% # should exclude special project and bad tows
+#       dplyr::select(haul, cruise)  %>% 
+#       dplyr::filter(region == SRVY0) %>%
+#       dplyr::mutate(SRVY = dplyr::case_when(
+#         survey_definition_id %in% 143 ~ "NBS",
+#         survey_definition_id %in% 98 ~ "EBS" )) %>% 
+#       dplyr::mutate(year = substr(x = cruise, start = 1, stop = 4)) %>% 
+#     # x= haul %>% # should exclude special project and bad tows
+#     #   dplyr::select(haul, cruise, year, SRVY) %>% 
+#       dplyr::distinct(), 
+#     y = v_extract_final_lengths0 %>% 
+#       dplyr::filter(region == SRVY0) %>% 
+#       dplyr::select(-vessel),
+#     by = c("haul", "cruise")) %>% 
+#   # dplyr::select(-vessel, -survey_name, -cruisejoin, -hauljoin) %>%
+#   dplyr::mutate(sex_code = sex, 
+#                 sex = dplyr::case_when(
+#                   sex_code == 1 ~ "Males", 
+#                   sex_code == 2 ~ "Females", 
+#                   sex_code == 3 ~ "Unsexed"), 
+#                 taxon = dplyr::case_when(
+#                   species_code <= 31550 ~ "fish", 
+#                   species_code >= 40001 ~ "invert"), )
 
 
 # load crab data
@@ -734,7 +776,7 @@ length_crab <- SameColNames(df.ls) %>%
                 frequency = 1) %>%
   dplyr::select(-width) %>% 
   dplyr::filter(!is.na(length)) %>% 
-  dplyr::group_by(sex, length, year, species_code, SRVY) %>%
+  dplyr::group_by(sex, sex_code, length, year, species_code, SRVY) %>%
   dplyr::summarise(frequency = n()) %>% 
   dplyr::ungroup() %>%
   dplyr::mutate(
@@ -742,16 +784,24 @@ length_crab <- SameColNames(df.ls) %>%
       species_code <= 31550 ~ "fish", 
       species_code >= 40001 ~ "invert"), 
     #length = length/10,  # cm
-    length_type = NA)
-
+    length_type = dplyr::case_when(
+      species_code %in% c(69322, 69323) ~ 20,
+      species_code %in% 68580 ~ 21)) 
 
 # Combine
 
 length_data <- SameColNames(list(
-  "gf" = length_data %>% 
-    dplyr::select(-catchjoin, -cruise, -cruisejoin, -region, -haul), 
+  "gf" = length_data,# %>% 
+    # dplyr::select(#-catchjoin, -cruisejoin, -survey_name, -stratum, -hauljoin, -stationid, -vessel, 
+    #               -cruise, -region, -haul, -sample_type), 
   "crab" = length_crab))  %>% 
-  dplyr::rename(SRVY = srvy)
+  dplyr::rename(SRVY = srvy) %>% 
+  # dplyr::select(-cruise, -haul)
+  dplyr::left_join(x = .,
+                   y = species0 %>% 
+                     dplyr::select(species_code, common_name),
+                   by = "species_code") %>% 
+  ungroup()
 
 # *** length_type ----------------------------------------------------------
 
@@ -792,7 +842,19 @@ length_type$sentancefrag <- c("fork lengths",
                               "modal lengths",
                               "frequency of lengths estimated using size composition proportions from adjacent hauls with similar catch composition")
 
-length_data <-  dplyr::left_join(length_data, length_type, by = c("length_type" = "length_type_id"))
+
+length_type <- rbind.data.frame(length_type, 
+                                data.frame("length_type_id" = c(20, 21), 
+                                           "name" = c("carapace lengths", "carapace widths"), 
+                                           "description" = c(NA, NA), 
+                                           "active" = c(NA, NA), 
+                                           "sentancefrag" = c("carapace lengths", # king crabs
+                                                              "carapace widths"))) # snow crabs
+
+
+length_data <-  dplyr::left_join(x = length_data, 
+                                 y = length_type, 
+                                 by = c("length_type" = "length_type_id"))
 
 length_maxyr <- length_data %>% 
   dplyr::filter(year == maxyr) 

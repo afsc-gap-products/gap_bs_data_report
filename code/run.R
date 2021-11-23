@@ -86,6 +86,14 @@ report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, N. Charriere, S. Roh
 
 # *** *** Figures and Tables ------------------------
 # - run figures and tables before each chapter so everything works smoothly
+  
+  report_spp1 <- add_report_spp(spp_info = spp_info, 
+                                spp_info_codes = "species_code", 
+                                report_spp = report_spp, 
+                                report_spp_col = "order", 
+                                report_spp_codes = "species_code", 
+                                lang = FALSE)
+
 if (FALSE) {
   # cnt_chapt<-auto_counter(cnt_chapt)
   cnt_chapt_content<-"001"
@@ -93,14 +101,7 @@ if (FALSE) {
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-  
-  report_spp1 <- add_report_spp(spp_info = spp_info, 
-                                spp_info_codes = "species_code", 
-                                report_spp = report_spp, 
-                                report_spp_col = "order", 
-                                report_spp_codes = "species_code", 
-                                lang = TRUE)
-  
+
   
   for (jj in 1:length(unique(report_spp1$file_name))) {
     
@@ -186,6 +187,7 @@ for (jj in 1:length(unique(report_spp1$file_name))) {
   print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
   
   cnt_chapt_content<-auto_counter(cnt_chapt_content)
+  filename00<-paste0(cnt_chapt, "_spp_")
   rmarkdown::render(paste0(dir_code, "/06_results_spp.Rmd"),
                     output_dir = dir_out_chapters,
                     output_file = paste0(filename00, cnt_chapt_content, "_", 

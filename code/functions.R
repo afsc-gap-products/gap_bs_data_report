@@ -1142,7 +1142,7 @@ add_report_spp <- function(spp_info,
 #' @param grid "continuous.grid" or "extrapolation.grid"
 #' @set.breaks Suggested. Vector of break points to use for plotting. Feeds the akgfmaps::make_idw_map.  function. 
 #' @extrap.box Optional. Vector specifying the dimensions of the extrapolation grid. Elements of the vector should be named to specify the minimum and maximum x and y values c(xmn, xmx, ymn, ymx). If not provided, region will be used to set the extrapolation area. Feeds the akgfmaps::make_idw_map. 
-#' @param workfaster TRUE/FALSE. Cuts down work if TRUE. 
+#' @param workfaster TRUE/FALSE. Cuts down resolution so figure will render faster if TRUE. 
 #' @param nrow How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
 #'
 #' @return
@@ -1156,7 +1156,7 @@ plot_idw_xbyx <- function(
   lat = "latitude",
   lon = "longitude",
   var = "cpue_kgha",
-  key.title, 
+  key.title = "", 
   grid = "extrapolation.grid",
   extrap.box, 
   set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
@@ -1281,30 +1281,10 @@ plot_idw_xbyx <- function(
       }
     }
     
-    # # london = data.frame(lon = -0.1, lat = 51.5) %>%
-    # #   st_as_sf(coords = c("lon", "lat"))
-    # # london_geo = st_set_crs(london, 4326)
-    # # st_is_longlat(london_geo)
-    # #https://geocompr.robinlovelace.net/reproj-geo-data.html
-    # bt_year_df <- #cbind.data.frame(bt_year_df,
-    #                               bt_year_df %>%
-    #   st_as_sf(coords = c("x", "y"))#)
-    # bt_year_df = st_set_crs(bt_year_df, as.character(crs(coldpool:::nbs_ebs_bottom_temperature)))
-    # bt_year_df = cbind.data.frame(bt_year_df,
-    #                             st_transform(bt_year_df,
-    #                                          as.character(crs(reg_dat$bathymetry))
-    #                                          # st_crs(stars_list)
-    #                                          ) %>%
-    #   st_coordinates() %>%
-    #   data.frame())
-    
     figure <- figure +
       ggplot2::geom_tile(data = bt_year_df %>%
                            dplyr::filter(temperature <= temp_break) %>% 
-                           dplyr::rename(new_dim = year#, 
-                                         # x = X, 
-                                         # y = Y
-                                         ),
+                           dplyr::rename(new_dim = year),
                          aes(x = x,
                              y = y, 
                              group = new_dim),
@@ -1545,7 +1525,6 @@ plot_temps_facet <- function(rasterbrick,
 #' @param palette Character vector indicating the name of the RColorBrewer palette to use. Alternatively, can pass a vector of colors to the colors argument.
 #' @param colors A vector of colors
 #' @export
-
 legend_discrete_cbar <- function(
   breaks, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
   palette = "Greys", #
@@ -1735,7 +1714,7 @@ legend_discrete_cbar <- function(
 #'
 #' @examples
 plot_sizecomp <- function(sizecomp0,
-                          length_data0,
+                          length_data0 = NULL,
                           SRVY1, 
                           spp_code, 
                           spp_print, 
@@ -1858,20 +1837,20 @@ plot_sizecomp <- function(sizecomp0,
     
     table_raw1 <- table_raw1 %>% 
       dplyr::arrange(desc(year)) #%>% 
-      # dplyr::mutate(
-      #   year = as.numeric(paste(table_raw$year)), 
-      #   year =  factor(
-      # x = year,
-      # levels = as.character(sort(unique(year), decreasing = TRUE)),
-      # labels = as.character(sort(unique(year), decreasing = TRUE)),
-      # ordered = TRUE))
-
+    # dplyr::mutate(
+    #   year = as.numeric(paste(table_raw$year)), 
+    #   year =  factor(
+    # x = year,
+    # levels = as.character(sort(unique(year), decreasing = TRUE)),
+    # labels = as.character(sort(unique(year), decreasing = TRUE)),
+    # ordered = TRUE))
+    
     table_raw1$year <- as.numeric(paste(table_raw1$year))
     table_raw1$year <- factor(
-  x = table_raw1$year,
-  levels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
-  labels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
-  ordered = TRUE)
+      x = table_raw1$year,
+      levels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
+      labels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
+      ordered = TRUE)
     
     
     figure <- ggplot(data = table_raw1, 
@@ -1951,8 +1930,8 @@ plot_timeseries <- function(
     dplyr::mutate(y = y/divby, 
                   upper = upper/divby, 
                   lower = lower/divby)#, 
-                  # uppervar = (y-var)/divby, 
-                  # lowervar = (y+var)/divby)
+  # uppervar = (y-var)/divby, 
+  # lowervar = (y+var)/divby)
   
   table_raw_mean <- table_raw %>% 
     dplyr::group_by(SRVY_long, SRVY) %>% 
@@ -2086,7 +2065,7 @@ plot_survey_stations <- function(reg_dat,
                                  stratum_no = FALSE, 
                                  station_pts_srvy = TRUE, 
                                  station_pts_vess = FALSE, 
-                                 crab_resample = FALSE) { 
+                                 study = FALSE) { 
   
   # survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
   #                     as.character(nmfspalette::nmfs_cols("medgray")))
@@ -2098,30 +2077,36 @@ plot_survey_stations <- function(reg_dat,
   
   
   # if (station_pts_vess) {
+  
+  if (study) {
     
-    if (crab_resample) {
-      
-      stdy <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
-      
-      figure <- figure  +
-        geom_sf(data = reg_dat$survey.grid %>% dplyr::filter(!is.na(study)),
-                mapping = aes(fill = study),
-                show.legend = TRUE,
-                color = "black",
-                na.rm = TRUE) +
-        scale_fill_manual(
-          name = "", #"Survey Vessels",
-          values = unique(reg_dat$survey.grid$study_col),
-          breaks = unique(reg_dat$survey.grid$study),
-          labels = unique(reg_dat$survey.grid$study_long),
-          na.value = "transparent")
-    }
+    stdy <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
+    
+    figure <- figure  +
+      geom_sf(data = reg_dat$survey.grid %>% dplyr::filter(!is.na(study)),
+              mapping = aes(fill = study),
+              show.legend = TRUE,
+              color = "black",
+              size = 1, 
+              na.rm = TRUE) +
+      scale_fill_manual(
+        name = "", #"Survey Vessels",
+        values = unique(reg_dat$survey.grid$study_col),
+        breaks = unique(reg_dat$survey.grid$study),
+        labels = unique(reg_dat$survey.grid$study_long),
+        na.value = "transparent")
+  }
   # }
   
+  if (stratum_no) {
+    figure <- figure  +
+      geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50")
+  } else {
+    figure <- figure  +
+      geom_sf(data = reg_dat$bathymetry, color = "grey50")    
+  }
   
   figure <- figure  +
-    # geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50") +
-    geom_sf(data = reg_dat$bathymetry, color = "grey50")   +
     geom_sf(data = reg_dat$graticule,
             color = "grey90",
             alpha = 0.5)
@@ -2495,9 +2480,9 @@ table_change_pres <- function(dat,
   
   table_raw <- dat
   
-    a<-find_units(unit = unit, unt = unt, dat = table_raw$y, divby = divby)
-    for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-    
+  a<-find_units(unit = unit, unt = unt, dat = table_raw$y, divby = divby)
+  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  
   table_raw <- table_raw %>% 
     dplyr::select(SRVY, year, y, print_name, species_name1, taxon) %>%
     dplyr::mutate(y = y/divby)
@@ -2585,10 +2570,11 @@ table_change_pres <- function(dat,
   return(list("table_print" = table_print, 
               "table_raw" = table_raw, 
               "unt" = paste0(#y_long,
-                             # ifelse(trimws(unit_wrd) == "", "", paste0(" ",
-                                                                       trimws(unit_wrd)), #)),
+                # ifelse(trimws(unit_wrd) == "", "", paste0(" ",
+                trimws(unit_wrd)), #)),
               "unit" = paste0(#y_long, 
-                            # ifelse(trimws(unit_word) == "", "", paste0(" ",
+                # ifelse(trimws(unit_word) == "", "", paste0(" ",
                 trimws(unit_word))))#))
   
 }
+

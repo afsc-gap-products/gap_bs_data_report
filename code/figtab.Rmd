@@ -81,7 +81,6 @@ reg_dat0$survey.grid <-
                      dplyr::rename(STATIONID = stationid), 
                    by = ("STATIONID"))
 
-if (crab_resample == TRUE) {
   
   reg_dat0$survey.grid <- dplyr::left_join(
     x = reg_dat0$survey.grid, 
@@ -94,19 +93,28 @@ if (crab_resample == TRUE) {
       dplyr::rename(STATIONID = stationid) %>% 
       unique(), 
     by = ("STATIONID")) 
-}
 
 # vess <- survey.grid0 %>% dplyr::filter(!is.na(vessel_name))
 
 
-figure <- plot_survey_stations(reg_dat = reg_dat0, 
-                               station_info, 
-                               haul_cruises_maxyr, 
-                               station_grid = FALSE, 
-                               stratum_no = TRUE, 
-                               station_pts_srvy = FALSE, 
-                               station_pts_vess = TRUE, 
-                               crab_resample = crab_resample) # defined in data.r
+# figure <- plot_survey_stations(reg_dat = reg_dat0, 
+#                                station_info, 
+#                                haul_cruises_maxyr, 
+#                                station_grid = FALSE, 
+#                                stratum_no = TRUE, 
+#                                station_pts_srvy = FALSE, 
+#                                station_pts_vess = TRUE, 
+#                                crab_resample = FALSE) # defined in data.r
+
+  figure <- plot_survey_stations(
+    reg_dat = reg_dat0, 
+    station_info, 
+    haul_cruises_maxyr, 
+    station_grid = FALSE, 
+    stratum_no = TRUE, 
+    station_pts_srvy = FALSE, 
+    station_pts_vess = TRUE, 
+    study = TRUE) # defined in data.r
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -124,6 +132,70 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ")
 
+```
+
+
+## fig_sampled_survey_1530
+
+```{r fig_sampled_survey_1530}
+if (tow1530 == TRUE) {
+# header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)," continental shelf bottom trawl surveys.")
+nickname <- "fig_sampled_survey_1530"
+header <- ""
+width <- 6
+height <- 6
+
+reg_dat0 <- reg_dat
+reg_dat0$survey.grid <- 
+  dplyr::left_join(x = reg_dat0$survey.grid, 
+                   y = dplyr::left_join(x = haul_maxyr, 
+                                        y = vessel_info) %>% 
+                     dplyr::select(stationid, vessel_name, vess_shape) %>%
+                     dplyr::mutate(vess_col = dplyr::case_when(
+                       (vess_shape == vessel_info$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"), 
+                       (vess_shape == vessel_info$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray"))) %>% 
+                     dplyr::rename(STATIONID = stationid), 
+                   by = ("STATIONID"))
+
+  
+  reg_dat0$survey.grid <- dplyr::left_join(
+    x = reg_dat0$survey.grid, 
+    y = haul_maxyr_tow1530 %>% 
+      dplyr::mutate(study = "tow1530", 
+                    study_col = nmfspalette::nmfs_cols("medgray"),
+                    study = "tow1530", 
+                    study_long = "15/30 minute tows") %>% 
+      dplyr::select(stationid, study, study_col, study_long) %>%
+      dplyr::rename(STATIONID = stationid) %>% 
+      unique(), 
+    by = ("STATIONID")) 
+
+
+figure <- plot_survey_stations(reg_dat = reg_dat0, 
+                               station_info, 
+                               haul_cruises_maxyr, 
+                               station_grid = FALSE, 
+                               stratum_no = FALSE, 
+                               station_pts_srvy = TRUE, 
+                               station_pts_vess = FALSE, 
+                               study = TRUE) # defined in data.r
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+}
 ```
 
 
@@ -525,8 +597,7 @@ l <- length_maxyr %>%
   dplyr::select("SRVY", species_code) %>% 
   dplyr::group_by("SRVY" = SRVY, species_code) %>% # also type?
   dplyr::summarise(length = as.numeric(n())) %>% 
-  dplyr::ungroup()  #%>% 
-# dplyr::mutate(length = xunits(length, val_under_x_words = 0))
+  dplyr::ungroup()  
 
 a <- specimen_maxyr %>% 
   dplyr::select("SRVY", species_code) %>% 
@@ -535,9 +606,41 @@ a <- specimen_maxyr %>%
   # specimen_subsample_method 1=random, 2 = stratified?
   dplyr::summarise(age = as.numeric(n())) %>% 
   dplyr::ungroup() #%>% 
-# dplyr::mutate(age = xunits(age, val_under_x_words = 0))
 
-# Select data and make plot
+  table_raw0 <- 
+    dplyr::full_join(x = l, y = a) %>% 
+    dplyr::mutate(stomach = as.numeric(NA)) %>% # TOLEDO - placeholder
+    dplyr::mutate(pathobio = as.numeric(NA)) %>% # TOLEDO - placeholder 
+    dplyr::left_join(x = ., 
+                     y = report_spp1 %>% 
+                       dplyr::select(species_code,  print_name, order) %>% 
+                       dplyr::rename(common_name = print_name), 
+                     by = "species_code") %>% 
+    dplyr::select(-species_code) %>%
+    dplyr::group_by(SRVY, common_name, order) %>% 
+    dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
+    dplyr::arrange(SRVY, order) 
+
+  table_raw0$common_name[is.na(table_raw0$common_name)] <- "other" # TOLEDO
+  
+  table_raw0 <- 
+    dplyr::bind_rows(table_raw0, 
+                     table_raw0 %>% 
+                       dplyr::group_by(SRVY) %>% 
+                       dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
+                       # dplyr::summarise(
+                       #   length = sum(length, na.rm = TRUE),
+                       #   age = sum(age, na.rm = TRUE), 
+                       #   stomach = sum(stomach, na.rm = TRUE), 
+                       #   pathobio = sum(pathobio, na.rm = TRUE)) %>% 
+                       dplyr::mutate(order = max(report_spp1$order)+1) %>% 
+                       dplyr::mutate(common_name = "Total") # %>% 
+                       # dplyr::left_join(x = ., y = temp)
+                       ) %>% 
+    dplyr::relocate(SRVY, common_name, length, age) %>% 
+    dplyr::arrange(order) %>% 
+    dplyr::select(-order) %>% 
+    dplyr::mutate_if(is.numeric, formatC, digits = 0, format = "f", big.mark = ",")
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
@@ -549,48 +652,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                    haul_cruises_maxyr$SRVY_long[i],
                    " shelf bottom trawl survey.")
   
-  table_raw <- 
-    dplyr::full_join(x = l, y = a) %>% 
-    dplyr::mutate(stomach = as.numeric(NA)) %>% # TOLEDO - placeholder
-    dplyr::mutate(pathobio = as.numeric(NA)) %>% # TOLEDO - placeholder 
-    dplyr::left_join(x = ., 
-                     y = spp_info %>% dplyr::select(species_code,  common_name), 
-                     by = "species_code") %>% 
-    dplyr::select(-species_code)  %>% 
-    dplyr::arrange(SRVY, desc(length), desc(age), desc(stomach), desc(pathobio)) %>% 
-    dplyr::mutate(order = 1:length(age))
-  
-  # to make sure that "total" rows are at the bottom
-  # there has got to be a better way, but now I am v. over it, lol. I have accepted my fate. 
-  temp <- table_raw %>% 
-    dplyr::select(SRVY) %>% 
-    dplyr::group_by("SRVY" = SRVY) %>% # also type?
-    dplyr::summarise(order1 = (row_number()==n())) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::mutate(order = (row_number()+0.5)) %>% 
-    dplyr::filter(order1 == TRUE) %>% 
-    dplyr::select(-order1)
-  
-  table_raw <- 
-    dplyr::bind_rows(table_raw, 
-                     table_raw %>% 
-                       dplyr::group_by(SRVY) %>% 
-                       dplyr::summarise(
-                         length = sum(length, na.rm = TRUE),
-                         age = sum(age, na.rm = TRUE), 
-                         stomach = sum(stomach, na.rm = TRUE), 
-                         pathobio = sum(pathobio, na.rm = TRUE)) %>% 
-                       dplyr::mutate(common_name = "Total") %>% 
-                       dplyr::left_join(x = ., y = temp)) %>% 
-    dplyr::relocate(SRVY, common_name, length, age, stomach, pathobio) %>% 
-    dplyr::arrange(order) %>% 
-    dplyr::select(-order)
-  
-  table_print <- table_raw %>% 
-    dplyr::mutate(length = xunits(length, val_under_x_words = -1)) %>%
-    dplyr::mutate(age = xunits(age, val_under_x_words = -1)) %>% 
-    dplyr::mutate(stomach = xunits(stomach, val_under_x_words = -1)) %>%
-    dplyr::mutate(pathobio = xunits(pathobio, val_under_x_words = -1))
+  table_print <- table_raw <- table_raw0
   
   table_print[is.na(table_print)]<- "-"
   
@@ -629,32 +691,70 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ## tab_special_projects
 
+> are blank special project titles not to be included?
+
+
 ```{r tab_special_projects}
 nickname0 <- "tab_special_projects" 
-footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
+# footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
+
+places <- data.frame(matrix(data = c("AFSC", 
+                            "Alaska Fisheries Science Cener", 
+                            "ADF&G", "Alaska Department of Fish & Game", 
+                            "FMA", 
+                            "Fisheries Monitoring & Assessment Division", 
+                            "IPHC", 
+                            "International Pacific Halibut Commission", 
+                            "NWFSC", 
+                            "Northwest Fiseries Science Center", 
+                            "PMEL", 
+                            "Pacific Marine Environmental Laboratory", 
+                            "RACE", 
+                            "Resource Assessment & Conservation Engineering Division", 
+                            "REFM", 
+                            "Resource Ecology & Fisheries Management Division", 
+                            "TSMRI", 
+                            "Ted Stevens Marine Research Institute.", 
+                            "UAF", 
+                            "University of Alaska Fairbanks", 
+                            "MML", 
+                            "Marine Mammal Laboratory",
+                            "UW", 
+                            "University of Washington"), 
+                            ncol = 2, 
+                            byrow = TRUE)) 
+names(places) <- c("agency", "agency_long")
+
 newobj <- TRUE
 
-temp <- readr::read_csv(paste0(dir_out_rawdata, "/0_special_projects.csv"), skip = 1)
+temp <- readr::read_csv(paste0(dir_out_rawdata, "/0_special_projects.csv"), skip = 1) %>% 
+  dplyr::select(SRVY, `Project Title`, `Principal investigator`, Agency) %>% 
+  dplyr::filter(!is.na(`Project Title`)) %>% 
+  dplyr::arrange(desc(SRVY))
 
-for (i in 1:nrow(haul_cruises_maxyr)) {
-  if (nrow(haul_cruises_maxyr)>1) {
-    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
-    newobj <- ifelse(i==1, TRUE, FALSE)
-  }
-  nickname <- paste0(nickname0, "_", haul_cruises_maxyr$SRVY[i]) 
+# for (i in 1:nrow(haul_cruises_maxyr)) {
+#   if (nrow(haul_cruises_maxyr)>1) {
+#     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+#     newobj <- ifelse(i==1, TRUE, FALSE)
+#   }
+  # nickname <- paste0(nickname0, "_", haul_cruises_maxyr$SRVY[i]) 
   header <- paste0("Special projects and collections undertaken during the ",
                    maxyr, " ", 
-                   haul_cruises_maxyr$SRVY_long[i], 
+                   # haul_cruises_maxyr$SRVY_long[i], 
                    "shelf bottom trawl survey by principal investigator and agency.")
   
-  table_raw<-temp %>% 
-    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-    dplyr::select(-SRVY)
+  table_raw <- temp #%>% 
+    # dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+    # dplyr::select(-SRVY)
+  
+  temp1 <- places[places$agency %in% unique(table_raw$Agency), ]
+  footnote0 <- paste(paste(temp1$agency, " - ", temp1$agency_long, sep = ""), collapse = "; ")
   
   table_print <- table_raw %>% 
     flextable::flextable(.) %>% 
     theme_flextable_nmfstm() %>% 
-    flextable::footnote(x = ., value = as_paragraph(footnote0), part = "header", j = 3) 
+    flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
+    flextable::footnote(x = ., value = as_paragraph(footnote0), part = "header", j = "Agency") 
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -671,7 +771,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ")
   
-}
+# }
 
 ```
 
@@ -697,18 +797,18 @@ width <- dim(readPNG(paste0(dir_img, "average_temperature.png")))[2]/300 # 6
 # https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/average_temperature.png
 
 # get the most updated file, just in case
-a <- url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/average_temperature.png?token=ASDSFQFRRFKSYHOBYF4WWJ3BP4O5O", 
-                "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/average_temperature.png?token=ASDSFQFYZNMG4X3DZDLXZT3BRH5VO")
-if (length(a)>0 ) {
-  figure <- 
-    cowplot::ggdraw() +
-    cowplot::draw_image(a)
-} else {
+# a <- url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/average_temperature.png?token=ASDSFQFRRFKSYHOBYF4WWJ3BP4O5O", 
+#                 "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/average_temperature.png?token=ASDSFQFYZNMG4X3DZDLXZT3BRH5VO")
+# if (length(a)>0 ) {
+#   figure <- 
+#     cowplot::ggdraw() +
+#     cowplot::draw_image(a)
+# } else {
 # https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/stacked_temperature.png?raw=true
 figure <- 
   cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, "average_temperature.png")) )
-}
+# }
 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -745,17 +845,17 @@ height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[
 width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[2]/300 # 6
 
 # get the most updated file, just in case
-a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
-                "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQFPHFWX5FHJQBIY7PLBRKQIS")
-if (length(a)>0 ) {
-  figure <- 
-    cowplot::ggdraw() +
-    cowplot::draw_image(a)
-} else {
+# a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
+#                 "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQFPHFWX5FHJQBIY7PLBRKQIS")
+# if (length(a)>0 ) {
+#   figure <- 
+#     cowplot::ggdraw() +
+#     cowplot::draw_image(a)
+# } else {
 figure <- 
   cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")) )
-}
+# }
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -776,92 +876,8 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ```
 
 
-## fig_cold_pool_area
 
-> Figure header from 2019: Figure 4. Mean summer surface and bottom temperatures for the 38-year times series from the EBS shelf bottom trawl survey (A) and the cumulative proportion of EBS shelf area covered by each one-degree bottom isotherm range (B).
-
-```{r fig_cold_pool_area}
-# header <- paste0("Percentage of the EBS shelf from 1982–",maxyr," bottom area that is occupied by the cold pool in one degree Celsius increments.")
-header <- paste0("Graph showing annual cold pool extent in the EBS, based on observations from the EBS bottom trawl survey. Extent of the cold pool is shown in proportion to the total southern EBS shelf survey area. Shading denotes bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
-alttext <- paste0("Cold pool extent in the EBS, as measured using observations from the EBS bottom trawl survey. Extent of the cold pool in proportion to the total EBS shelf survey area from 1982–",maxyr,". Shading denotes bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
-footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
-nickname <- "fig_cold_pool_area"
-# alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
-height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[1]/300 # 4
-width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[2]/300 # 6
-# table_raw <- cold_pool_area
-# 
-# # Plot
-# figure <- ggplot(table_raw, aes(x=year, y=perc, group=label, fill=label)) + 
-#     geom_area() +
-#   # scale_fill_nmfs(palette = "secondary", discrete = TRUE) +
-#   scale_fill_viridis_d(
-#     option = "mako", 
-#     begin = .15, 
-#     end = .9,
-#     direction = -1
-#     ) +
-#   guides(fill=guide_legend(title="Percentage of\nEBS shelf area\n\n")) +
-#   # xlab("Year") +
-#   scale_x_discrete(
-#     name = "Year",
-#                      breaks = seq(from = min(table_raw$year), 
-#                                   to = max(table_raw$year), by = 5)) +
-#   ylab("Percent") +
-#   ylim(0, 100)  +
-#   #set legend position and vertical arrangement
-#   theme(
-#     panel.background = element_rect(fill = "white",
-#                                     colour = NA),
-#     panel.border = element_rect(fill = NA,
-#                                 colour = "grey20"),
-#     strip.background = element_rect(fill = "grey85",
-#                                     colour = "grey20"),
-#     legend.spacing.y = unit(-0.35, "cm"),
-#     axis.text = element_text(size = 12),
-#     axis.title = element_text(size = 15),
-#     legend.title = element_text(size = 15),
-#     legend.text = element_text(size = 12),
-#     legend.background = element_rect(colour = "transparent", fill = "transparent"),
-#     legend.key = element_rect(colour = "transparent",
-#                               fill = "transparent"),
-#     legend.position = c(.15, .80),
-#     legend.box.just = "left",
-#     legend.box = "vertical"
-#   )
-
-# get the most updated file, just in case
-a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
-                "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQFPHFWX5FHJQBIY7PLBRKQIS")
-if (length(a)>0 ) {
-  figure <- 
-    cowplot::ggdraw() +
-    cowplot::draw_image(a)
-} else {
-figure <- 
-  cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")) )
-}
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_fig.Rmd", 
-                       package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
-
-",res,"
-
-")
-
-```
-
-## fig_idw_surftemp_maxyr
+## fig_surftemp_maxyr
 
 > Summer bottom temperatures in the eastern Bering Sea continental shelf survey area, calculated from interpolation of temperature data from summer bottom trawl surveys conducted by AFSC/RACE/GAP. To load this data set, it is necessary to first load the coldpool package or raster and sp packages. Raster layers were interpolated using ordinary kriging with Matern covariance doi: 10.1007/978-1-4612-1494-6(Stein, 1999).
 
@@ -869,10 +885,10 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 > still need nbs
 
-```{r fig_idw_surftemp_maxyr}
+```{r fig_surftemp_maxyr}
 header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
-nickname <- "fig_idw_surftemp_maxyr"
+nickname <- "fig_surftemp_maxyr"
 
 # temp <- raster::subset(x = coldpool:::ebs_surface_temperature, 
 #                        subset = paste0("ste_",maxyr,"_surface_temperature")) 
@@ -999,14 +1015,13 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ```
 
-## fig_idw_bottemp_longterm_mean_ (above and below)
 ## fig_bt_all_nebs_surveys
 
 > need to figure out how to plot whole NBS
 
-```{r fig_idw_bottemp_longterm_mean_}
+```{r fig_bt_all_nebs_surveys_}
 # nickname0 <- "fig_idw_bottemp_longterm_mean_"
-nickname <- "fig_bt_all_nebs_surveys"
+nickname0 <- "fig_bt_all_nebs_surveys_"
 
 for (i in 1:2) { # two cases, above and below
 
@@ -1132,8 +1147,6 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 
 
-
-
 ## tab_species_composition
 
 ```{r tab_species_composition}
@@ -1147,7 +1160,7 @@ temp0 <-
                    y = station_info, 
                    by = c("stationid", "SRVY", "stratum")) %>%
   dplyr::group_by(species_code, SRVY) %>% 
-  dplyr::summarise(lat = max(latitude)) %>% 
+  dplyr::summarise(lat = max(start_latitude)) %>% 
   tidyr::pivot_wider(data = ., id_cols = species_code, names_from = SRVY, 
                      values_from = lat, values_fill = NA) %>% 
   dplyr::left_join(x = ., 
@@ -1286,7 +1299,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ## tab_biomass_est_fish_ (EBS and NBS)
 
-###  waiting for actual data from rebecca
+> waiting for actual data from rebecca
 
 ```{r tab_biomass_est_fish_}
 
@@ -1479,140 +1492,265 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ```{r tab_biomass_compareyr_maxyr_percchange}
 
-nickname0 <- "tab_biomass_compareyr_maxyr_percchange_"
+# nickname0 <- "tab_biomass_compareyr_maxyr_percchange_"
+# 
+# # Select data and make plot
+# table_raw <- rbind.data.frame(biomass_maxyr, biomass_compareyr) %>% 
+#   dplyr::left_join(x = ., 
+#                    y = spp_info %>% 
+#                      dplyr::select(used_in_counts, species_code),
+#                    by = "species_code") %>%
+#   dplyr::filter(stratum == 999 &
+#                   used_in_counts == TRUE &
+#                   !is.na(common_name) &
+#                   !(grepl(pattern = " egg", x = common_name, fixed = T)) & 
+#                   !(grepl(pattern = " sp.", x = common_name, fixed = T)) & 
+#                   !(grepl(pattern = " unid.", x = common_name, fixed = T))) %>% 
+#   dplyr::select(year, taxon, biomass, SRVY, species_code, common_name) %>% 
+#   unique()  %>% 
+#   dplyr::left_join(
+#     x = ., 
+#     y = rbind.data.frame(biomass_maxyr, biomass_compareyr) %>% 
+#       dplyr::select(species_code, catcount, year, SRVY) %>% 
+#       unique() %>% 
+#       dplyr::group_by(species_code, SRVY) %>% 
+#       dplyr::summarise(catcount = sum(catcount, na.rm = TRUE)), 
+#     by = c("species_code", "SRVY")) %>%
+#   dplyr::filter(catcount > 49) %>% 
+#   tidyr::pivot_wider(names_from = year, 
+#                      # id_cols = species_code, 
+#                      values_fill = NA,
+#                      values_from = biomass, 
+#                      names_prefix = "b_") 
+# 
+# table_raw$pchange <- NMFSReports::pchange(start = unlist(table_raw[,paste0("b_", compareyr)]), 
+#                                           end = unlist(table_raw[,paste0("b_", maxyr)]), 
+#                                           value_only = TRUE)
+# table_raw <- table_raw %>%
+#   dplyr::filter(!is.infinite(pchange) &
+#                   !is.na(pchange) &
+#                   pchange != 0) %>% 
+#   dplyr::arrange(-pchange, b_2017, common_name) %>% 
+#   dplyr::relocate(common_name, paste0("b_", compareyr), paste0("b_", maxyr), 
+#                   pchange, taxon, SRVY, species_code, catcount)
+# 
+# table_raw1 <- table_raw
+# 
+# for (i in 1:nrow(haul_cruises_maxyr)) {
+#   if (nrow(haul_cruises_maxyr)>1) {
+#     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+#     newobj <- ifelse(i==1, TRUE, FALSE)
+#   }
+#   header <- paste0("Total estimated biomass in metric tons (t) and the percent change from the ",compareyr," and ",maxyr," ",haul_cruises_maxyr$SRVY[i]," (",haul_cruises_maxyr$SRVY_long[i],") bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
+#   
+#   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+#   
+#   table_raw <- table_raw1
+#   
+#   temp <- table_raw1 %>% 
+#     dplyr::select(-SRVY, -species_code, -catcount) 
+#   temp[,paste0("b_", compareyr)] <- round(x = temp[,paste0("b_", compareyr)], digits = 0)
+#   temp[,paste0("b_", maxyr)] <- round(x = temp[,paste0("b_", maxyr)], digits = 0)
+#   temp$pchange <- paste0(round(temp$pchange, digits = 0), "%")
+#   
+#   temp1 <- temp %>% 
+#     dplyr::filter(taxon == "fish") %>% 
+#     dplyr::select(-taxon) 
+#   temp2 <- temp %>% 
+#     dplyr::filter(taxon == "invert") %>% 
+#     dplyr::select(-taxon) 
+#   
+#   # make the same length so they can be bound together
+#   if (nrow(temp1)>nrow(temp2)) {
+#     temp0 <- data.frame(matrix(data = NA, 
+#                                nrow = (nrow(temp1)-nrow(temp2)),
+#                                ncol = ncol(temp2)))
+#     names(temp0) <- names(temp2)
+#     temp2 <- rbind.data.frame(temp2, temp0)
+#   } else {
+#     temp0 <- data.frame(matrix(data = NA, 
+#                                nrow = (nrow(temp2)-nrow(temp1)),
+#                                ncol = ncol(temp1)))
+#     names(temp0) <- names(temp1)
+#     temp1 <- rbind.data.frame(temp1, temp0)
+#   }
+#   
+#   names(temp1) <- paste0(names(temp1), "_")
+#   
+#   temp <-list(
+#     "common_name" = "taxon", 
+#     "common_name_" = "taxon", 
+#     "pchange" = "change", 
+#     "pchange" = "change", 
+#     "a" = compareyr,
+#     "b"  = maxyr, 
+#     "a1" = compareyr,
+#     "b1"  = maxyr)
+#   names(temp)[5:8] <- c(paste0("b_", compareyr, "_"), 
+#                         paste0("b_", maxyr, "_"), 
+#                         paste0("b_", compareyr), 
+#                         paste0("b_", maxyr))
+#   
+#   
+#   table_print <- 
+#     cbind.data.frame(temp2, 
+#                      # "" = "",
+#                      temp1) %>% 
+#     flextable::flextable(data = .)  %>%
+#     flextable::add_header_row(top = TRUE, 
+#                               values = c("Invertebrate", 
+#                                          "Biomass (t)", 
+#                                          "%", 
+#                                          "Fish", 
+#                                          "Biomass (t)", 
+#                                          "%"), 
+#                               colwidths = c(1,2,1,1,2,1)) %>% 
+#     flextable::align(i = 1, align = "center", part = "header")  %>%  
+#     flextable::set_header_labels(., values = temp) %>%
+#     NMFSReports::theme_flextable_nmfstm(row_lines = FALSE)  %>% 
+#     flextable::vline(x = ., j = 4, part = "all")
+#   
+#   # save yo' stuff and do a lot of behind the scenes work
+#   # alt: this does the same thing as calling "child = " in the chunk header
+#   res <- knitr::knit_child(
+#     text = knitr::knit_expand(
+#       file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+#     quiet = TRUE
+#   )
+#   
+# list_tables[nickname][[1]]$res <- res <- paste0("
+# ###### 
+# 
+# ",res,"
+# 
+# ")
+#   
+# } 
 
-# Select data and make plot
-table_raw <- rbind.data.frame(biomass_maxyr, biomass_compareyr) %>% 
-  dplyr::left_join(x = ., 
-                   y = spp_info %>% 
-                     dplyr::select(used_in_counts, species_code),
-                   by = "species_code") %>%
-  dplyr::filter(stratum == 999 &
-                  used_in_counts == TRUE &
-                  !is.na(common_name) &
-                  !(grepl(pattern = " egg", x = common_name, fixed = T)) & 
-                  !(grepl(pattern = " sp.", x = common_name, fixed = T)) & 
-                  !(grepl(pattern = " unid.", x = common_name, fixed = T))) %>% 
-  dplyr::select(year, taxon, biomass, SRVY, species_code, common_name) %>% 
-  unique()  %>% 
-  dplyr::left_join(
-    x = ., 
-    y = rbind.data.frame(biomass_maxyr, biomass_compareyr) %>% 
-      dplyr::select(species_code, catcount, year, SRVY) %>% 
-      unique() %>% 
-      dplyr::group_by(species_code, SRVY) %>% 
-      dplyr::summarise(catcount = sum(catcount, na.rm = TRUE)), 
-    by = c("species_code", "SRVY")) %>%
-  dplyr::filter(catcount > 49) %>% 
-  tidyr::pivot_wider(names_from = year, 
-                     # id_cols = species_code, 
-                     values_fill = NA,
-                     values_from = biomass, 
-                     names_prefix = "b_") 
+```
+## tab_majortaxa_pchange
 
-table_raw$pchange <- NMFSReports::pchange(start = unlist(table_raw[,paste0("b_", compareyr)]), 
-                                          end = unlist(table_raw[,paste0("b_", maxyr)]), 
-                                          value_only = TRUE)
-table_raw <- table_raw %>%
-  dplyr::filter(!is.infinite(pchange) &
-                  !is.na(pchange) &
-                  pchange != 0) %>% 
-  dplyr::arrange(-pchange, b_2017, common_name) %>% 
-  dplyr::relocate(common_name, paste0("b_", compareyr), paste0("b_", maxyr), 
-                  pchange, taxon, SRVY, species_code, catcount)
+> fix decimals for change and biomass of each year
 
-table_raw1 <- table_raw
+```{r tab_majortaxa_pchange}
 
-for (i in 1:nrow(haul_cruises_maxyr)) {
-  if (nrow(haul_cruises_maxyr)>1) {
-    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
-    newobj <- ifelse(i==1, TRUE, FALSE)
-  }
-  header <- paste0("Total estimated biomass in metric tons (t) and the percent change from the ",compareyr," and ",maxyr," ",haul_cruises_maxyr$SRVY[i]," (",haul_cruises_maxyr$SRVY_long[i],") bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
+nickname <- "tab_majortaxa_pchange" 
+yrs <- nbsyr
+# header <- paste0("Major taxa sampled in the NBS bottom trawl survey for ",NMFSReports::text_list(nbsyr),", and the percentage change in biomass (metric tons) from ",compareyr," to ",maxyr," in descending order of percent (%) change.")
+
+header <- paste0("Total estimated biomass in metric tons (t) and the percent change from the ",compareyr," and ",maxyr," NBS (northern Bering Sea) bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
+
+a<-table_change(dat = cpue_biomass_total %>% 
+                          dplyr::filter(SRVY == "NBS") %>%
+                  dplyr::rename(y = biomass_mt), 
+                        yrs = nbsyr, 
+                        maxyr = maxyr, 
+                        compareyr = compareyr, 
+                        remove_all = TRUE) 
+
+table_raw <- a$table_raw %>% 
+  dplyr::select(-"Survey", -starts_with("change_"), -ends_with(as.character(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])))  
   
-  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
-  
-  table_raw <- table_raw1
-  
-  temp <- table_raw1 %>% 
-    dplyr::select(-SRVY, -species_code, -catcount) 
-  temp[,paste0("b_", compareyr)] <- round(x = temp[,paste0("b_", compareyr)], digits = 0)
-  temp[,paste0("b_", maxyr)] <- round(x = temp[,paste0("b_", maxyr)], digits = 0)
-  temp$pchange <- paste0(round(temp$pchange, digits = 0), "%")
-  
-  temp1 <- temp %>% 
-    dplyr::filter(taxon == "fish") %>% 
-    dplyr::select(-taxon) 
-  temp2 <- temp %>% 
-    dplyr::filter(taxon == "invert") %>% 
-    dplyr::select(-taxon) 
-  
-  # make the same length so they can be bound together
-  if (nrow(temp1)>nrow(temp2)) {
-    temp0 <- data.frame(matrix(data = NA, 
-                               nrow = (nrow(temp1)-nrow(temp2)),
-                               ncol = ncol(temp2)))
-    names(temp0) <- names(temp2)
-    temp2 <- rbind.data.frame(temp2, temp0)
+# table_print <- a$table_print
+
+temp1 <- table_raw %>% 
+  dplyr::filter(taxon == "fish")
+
+temp2 <- table_raw %>% 
+  dplyr::filter(taxon == "invert") 
+
+
+  if (nrow(temp1)>nrow(temp2)){
+    temp2 <- temp2 %>% 
+      dplyr::bind_rows(., 
+                       data.frame(common_name = rep_len(NA, (nrow(temp1)-nrow(temp2)))))
   } else {
-    temp0 <- data.frame(matrix(data = NA, 
-                               nrow = (nrow(temp2)-nrow(temp1)),
-                               ncol = ncol(temp1)))
-    names(temp0) <- names(temp1)
-    temp1 <- rbind.data.frame(temp1, temp0)
+    temp1 <- temp1 %>% 
+      dplyr::bind_rows(., 
+                       data.frame(common_name = rep_len(NA, (nrow(temp2)-nrow(temp1)))#, 
+                                  # report_name_scientific = NA, 
+                                  # above_60 = FALSE
+                                  ))
   }
   
-  names(temp1) <- paste0(names(temp1), "_")
+  names(temp1) <- paste0(names(temp1), " ")
   
-  temp <-list(
-    "common_name" = "taxon", 
-    "common_name_" = "taxon", 
-    "pchange" = "change", 
-    "pchange" = "change", 
-    "a" = compareyr,
-    "b"  = maxyr, 
-    "a1" = compareyr,
-    "b1"  = maxyr)
-  names(temp)[5:8] <- c(paste0("b_", compareyr, "_"), 
-                        paste0("b_", maxyr, "_"), 
-                        paste0("b_", compareyr), 
-                        paste0("b_", maxyr))
+  table_raw <- dplyr::bind_cols(temp1, temp2) %>% 
+    dplyr::select(-dplyr::starts_with("taxon"))
+
+
+  table_print <- dplyr::bind_cols(temp1, temp2) %>%
+    # dplyr::select(-taxon) %>% 
+    dplyr::mutate(across(starts_with("change"), formatC, big.mark=",", digits = 1, format = "f")) %>%
+    # dplyr::select(-taxon) %>% 
+    dplyr::mutate(across(starts_with("change"), paste0, "%")) %>%
+    dplyr::mutate(across(where(is.numeric), formatC, big.mark=",", digits = 0, format = "f")) %>%
+    # dplyr::mutate(change = paste0(prettyNum(change, big.mark=","), "%")) %>% 
+    dplyr::mutate(group = stringr::str_to_title(print_name)) 
   
+  if (TRUE) { # remove_all
+    table_print$group <- gsub(pattern = "All ", replacement = "", 
+                              x = table_print$group, fixed = TRUE)
+  }
   
-  table_print <- 
-    cbind.data.frame(temp2, 
-                     # "" = "",
-                     temp1) %>% 
-    flextable::flextable(data = .)  %>%
-    flextable::add_header_row(top = TRUE, 
-                              values = c("Invertebrate", 
-                                         "Biomass (t)", 
-                                         "%", 
-                                         "Fish", 
-                                         "Biomass (t)", 
-                                         "%"), 
-                              colwidths = c(1,2,1,1,2,1)) %>% 
-    flextable::align(i = 1, align = "center", part = "header")  %>%  
-    flextable::set_header_labels(., values = temp) %>%
-    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE)  %>% 
-    flextable::vline(x = ., j = 4, part = "all")
+  table_print <- table_print %>% 
+    dplyr::mutate(spp = dplyr::case_when(
+      grepl(pattern = "sp.", x = species_name1, fixed = TRUE) ~ "sp.", 
+      grepl(pattern = "spp.", x = species_name1, fixed = TRUE) ~ "spp.", 
+      TRUE ~ "")) %>%
+    dplyr::mutate(
+      species_name = species_name1, 
+      species_name1 = 
+        gsub(pattern = " sp.", replacement = "", 
+             x = species_name1, fixed = TRUE), 
+      species_name1 =
+        gsub(pattern = " spp.", replacement = "",
+             x = species_name1, fixed = TRUE),
+      species_name2 = dplyr::case_when(
+        !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), 
+      species_name1 = dplyr::case_when(
+        grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1)) %>% 
+    dplyr::rename("Fish taxon" = "print_name ", 
+                  "Invertebrate taxon" = print_name)
   
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-    quiet = TRUE
-  )
-  
+  table_print <- table_print %>%
+    flextable::flextable(data = ., 
+                         col_keys = c(ifelse(length(unique(table_print$SRVY)) == 1, "", "Survey"), 
+                                                "Fish taxon", #"dummy", 
+                                                as.character(yrs), "change", 
+                                      "Invertebrate taxon", #"dummy_", 
+                                                paste0(yrs, " "), "change ")) %>%
+    # compose(j = "dummy", 
+    #         value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
+    flextable::color(color = "red", 
+                     i = grepl(pattern = "-", x = as.character(table_print$change)), 
+                     j = "change") %>% 
+    flextable::color(color = "red", 
+                     i = grepl(pattern = "-", x = as.character(table_print[, "change "])), 
+                     j = "change ") %>% 
+    flextable::set_header_labels(.,
+                                 # group = "Common name",
+                                 # dummy = "Taxon",
+                                 "change " = paste0("Change (", maxyr, ", ", compareyr, ")" ), 
+                                 change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = .)  %>% 
+    flextable::vline(x = ., part = "all", j = 7)
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_tab.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
 list_tables[nickname][[1]]$res <- res <- paste0("
 ###### 
 
 ",res,"
 
 ")
-  
-} 
 
 ```
 

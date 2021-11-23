@@ -18,32 +18,37 @@ locations<-c(
   "HAEHNR.biomass_ebs_plusnw_safe", 
   "HAEHNR.biomass_ebs_plusnw", 
   "HAEHNR.biomass_ebs_plusnw_grouped", 
-  #CPUE
+  
+  # CPUE
   "HAEHNR.cpue_nbs", 
   "HAEHNR.cpue_ebs_plusnw", 
   "HAEHNR.cpue_ebs_plusnw_grouped",
-  # Size Comps
+  
+  # Size Comps - the extrapolated size distribions of each fish
   "HAEHNR.sizecomp_nbs_stratum", 
   "HAEHNR.sizecomp_ebs_plusnw_stratum", 
-  "HAEHNR.sizecomp_ebs_plusnw_stratum_grouped",
+  # "HAEHNR.sizecomp_ebs_plusnw_stratum_grouped",
+  
   #General Tables of data
   "RACEBASE.CATCH", 
   # "RACEBASE.HAULS", 
   "RACEBASE.HAUL", 
   "RACE_DATA.V_CRUISES",
-  "RACEBASE.LENGTH", 
+  "RACE_DATA.V_EXTRACT_FINAL_LENGTHS", # the number of fish physically by hand lengthed (not extrapolated)
+  # "RACEBASE.LENGTH", 
   "RACEBASE.SPECIMEN", 
   "RACEBASE.STRATUM", 
   # "RACEBASE.STATIONS", 
   "RACEBASE.SPECIES", 
   "RACEBASE.SPECIES_CLASSIFICATION", 
-  "RACE_DATA.RACE_SPECIES_CODES", 
-  "RACE_DATA.VESSELS", 
-  "RACE_DATA.TAXONOMIC_RANKS", 
-  "RACE_DATA.SPECIES_TAXONOMIC", 
-  # ADFG
-  "RACEBASE.LENGTH_ADFG", 
-  "RACEBASE.SPECIMEN_ADFG")
+  # "RACE_DATA.RACE_SPECIES_CODES", 
+  "RACE_DATA.VESSELS"#, 
+  # "RACE_DATA.TAXONOMIC_RANKS", 
+  # "RACE_DATA.SPECIES_TAXONOMIC"#, 
+  # # ADFG
+  # "RACEBASE.LENGTH_ADFG", 
+  # "RACEBASE.SPECIMEN_ADFG"
+  )
 
 
 #sinks the data into connection as text file
