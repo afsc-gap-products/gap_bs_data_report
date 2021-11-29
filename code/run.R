@@ -11,7 +11,7 @@
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
-workfaster <- FALSE # an attempt to satisfy limited patience
+workfaster <- TRUE # an attempt to satisfy limited patience
 refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
@@ -126,7 +126,7 @@ if (FALSE) {
   
 }
 
-load(file = paste0(dir_out_tables, "/report_figures.rdata"))
+load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
 # *** *** 01 - Abstract ------------------------

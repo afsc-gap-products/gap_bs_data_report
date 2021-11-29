@@ -23,7 +23,7 @@ spp_plot_sizecomps <-
 #                            SRVY == "NBS") %>% 
 #            nrow() == 0, 
 #     FALSE, 
-    a$plot_sizecomps[1]#)
+    a$plot_sizecomp[1]#)
 # 
 spp_plot_idw <-
 #   ifelse(cpue_biomass_station %>%
@@ -43,31 +43,33 @@ spp_plot_idw <-
 #     dplyr::filter(!is.na(latitude) & !is.na(longitude)) %>% 
 #            nrow() == 0, 
 #          FALSE, 
-         a$plot_idw[1]#)
+         ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
+
+plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+
+text_spp <- a$text_spp[1]
+table_cpue <- a$table_cpue[1]
+table_bio_portion <- a$table_bio_portion[1]
+table_bio_spp <- a$table_bio_spp[1]
+
 ```
 
-## fig_idw_bottemp_[spp]_[above and below]
+## fig_idw_cpue_[spp]_[above and below]
 
-> thoughts on set.breaks rounding?
-> need to figure out NBS issue
+```{r fig_idw_cpue_[spp]_[above and below]}
 
-```{r fig_idw_bottemp_}
-nickname0 <- paste0("fig_idw_bottemp_", spp_file, "_")
+if (plot_idw_coldwarm){
+nickname0 <- paste0("fig_idw_cpue_", spp_file, "_")
 
-  table_raw0 <- cpue %>%
+table_raw0 <- cpue %>%
       dplyr::filter(!is.na(cpue_kgha)) %>% 
-      dplyr::arrange(-year) %>% 
-    dplyr::filter(common_name %in% spp_common & 
+      dplyr::arrange(desc(year)) %>% 
+    dplyr::filter(species_code %in% spp_code & 
+    # dplyr::filter(common_name %in% spp_common & 
                     year %in% unlist(temps_avg_yr_abovebelow))
   
-  # set.breaks <- quantile(table_raw0$cpue_kgha, probs = c(0, .25, .5, .75, .95))
-  # set.breaks <- round(set.breaks, digits = ifelse(max(set.breaks)>100, 0, 1))
-  set.breaks <- quantile(table_raw0$cpue_kgha, probs = c(0, .95))
-    set.breaks <- plyr::round_any(x = set.breaks, 
-                                  accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
-                                  f = ceiling)
-    set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
-
+set.breaks <- set_breaks(dat = table_raw0, 
+                         var = "cpue_kgha")
 
 for (i in 1:2) { # two cases, above and below
   subobj <- TRUE
@@ -75,8 +77,8 @@ for (i in 1:2) { # two cases, above and below
   TF <- ifelse(i==1, FALSE, TRUE)
   case <- ifelse(i==1, "below", "above")
   
-  header <- paste0("Contour maps of ",spp_common," (*",spp_sci,
-                   "*) distribution and relative abundance (kg/ha) from the ",
+  header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                   " distribution and relative biomass (kg/ha) from the ",
                    NMFSReports::text_list(sort(temps_avg_yr_abovebelow[,case])),
                    " Bering Sea shelf bottom trawl surveys, which were years when the survey mean bottom temperature was ",
                    case,
@@ -93,12 +95,13 @@ for (i in 1:2) { # two cases, above and below
     lat = "latitude",
     lon = "longitude",
     var = "cpue_kgha",
-    grid = "continuous.grid",
+    grid = "extrapolation.grid",
     extrap.box = extrap.box,
-    key.title = "Relative Abundance (kg/ha)",
+    key.title = "Relative Biomass (kg/ha)",
     workfaster = workfaster,
     SRVY = SRVY, 
-    set.breaks = set.breaks)
+    set.breaks = set.breaks, 
+    nrow = 2)
   
   # figure <- plot(1,1)
 
@@ -117,22 +120,290 @@ list_figures[nickname][[1]][[1]]$res <- res <- paste0("
 ",res,"
 
 ")
-
+}
 }
 
 ```
 
+## fig_idw_cpue_[spp]
 
-## tab_cpue_biomass_[spp]
+```{r fig_idw_cpue_[spp]}
+
+if (spp_plot_idw){
+nickname0 <- paste0("fig_idw_cpue_", spp_file)
+
+table_raw0 <- cpue %>%
+      dplyr::filter(!is.na(cpue_kgha)) %>% 
+      dplyr::arrange(desc(year)) %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    year %in% c(maxyr, compareyr))
+
+  
+  header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                   " distribution and relative biomass (kg/ha) from the during the ",
+                   compareyr," (left) and ",maxyr,
+                   " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
+  
+  figure <- plot_idw_xbyx(
+    yrs = c(maxyr, compareyr),
+    dat = table_raw,
+    cruises = cruises,
+    lat = "latitude",
+    lon = "longitude",
+    var = "cpue_kgha",
+    grid = "extrapolation.grid",
+    extrap.box = extrap.box,
+    key.title = "Relative Biomass (kg/ha)",
+    workfaster = workfaster,
+    SRVY = SRVY, 
+    set.breaks = set.breaks, 
+    nrow = 2)
+  
+  # figure <- plot(1,1)
+
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_figures[nickname][[1]][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+}
+
+```
+
+## fig_sizecomp_nbs_[spp]
+
+
+```{r fig_sizecomp_nbs_}
+if (spp_plot_sizecomps) {
+  
+  height <- 6
+  width <- 3
+  header <- paste0("Total abundance-at-length and mean length of ",
+                   spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                   " by sex (males, females, unsexed) and for all sexes combined comparing the ",
+                   compareyr," and ",maxyr,
+                   " EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
+  
+  nickname <- paste0("fig_sizecomp_nbs_", spp_file)
+  
+  length_data0 <- length_data %>%
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% "NBS" & 
+                    year %in% nbsyr)
+  
+
+  
+  # if (nrow(sizecomp0) != 0) {
+
+  type <- unique(length_data0$sentancefrag)
+
+  
+  fig1 <- plot_sizecomp(
+    sizecomp0 = sizecomp %>%
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% c("NBS", "EBS") &
+                    year %in% nbsyr),
+    spp_code = spp_code,
+    spp_print = paste0(spp_print),
+    type = type,
+    print_n = FALSE)
+  
+  # fig1 <- plot_sizecomp(
+  #   sizecomp0 = sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% "NBS" & 
+  #                   year %in% nbsyr),
+  #   spp_code = spp_code,
+  #   spp_print = paste0("NBS ", spp_print), 
+  #   type = type, 
+  #   print_n = FALSE)
+  # 
+  # fig2 <- plot_sizecomp(
+  #   sizecomp0 =  sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% "EBS" & 
+  #                   year %in% nbsyr),
+  #   spp_code = spp_code,
+  #   spp_print = paste0("EBS ", spp_print), 
+  #   type = type, 
+  #   print_n = FALSE)
+  # 
+  # fig3 <- plot_sizecomp(
+  #   sizecomp0 =  sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% c("NBS", "EBS") & 
+  #                   year %in% nbsyr),
+  #   spp_code = spp_code,
+  #   spp_print = paste0("EBS and NBS ", spp_print), 
+  #   type = type, 
+  #   print_n = FALSE)
+  
+  sizecomp0 <- sizecomp %>% 
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% "EBS")  
+  
+    if (nrow(sizecomp0) != 0) {
+
+    type <- unique(length_data0$sentancefrag)  # get size unit/type
+  
+  fig2 <- plot_sizecomp(
+    sizecomp0 = sizecomp %>% 
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% "EBS"),
+    length_data0 = length_data0, 
+    spp_code = spp_code,
+    spp_print = paste0("EBS ", spp_print), 
+    type = type, 
+    print_n = FALSE, 
+    ridgeline = TRUE)
+  }  
+
+  figure <- ggpubr::ggarrange(fig2, fig1, 
+          labels = c("A", "B"), nrow = 1)#, widths = c(2,1))
+  
+  
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+}
+```
+
+
+
+## tab_cpue_wt_biomass_[spp]
 
 ```{r tab_majortaxa_pchange}
-nickname <- paste0("tab_cpue_biomass_", spp_file) 
-header <- "Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for walleye pollock (Gadus chalcogrammus) by stratum for the 2017 eastern and northern Bering Sea bottom trawl surveys. Differences in sums of estimates and totals are due to rounding."
+nickname <- paste0("tab_cpue_biomass_pop_", spp_file) 
 
-table_raw <- table_print <- data.frame(
-  x = 1, 
-  y = 1, 
-  label = "This is a placeholder")
+for (i in 1:2) {
+    subobj <- ifelse(i==1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+
+    
+    if (i == 1){ # CPUE (WT/HA) and BIOMASS
+      
+header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," eastern and northern Bering Sea bottom trawl surveys. Differences in sums of estimates and totals are due to rounding.")
+
+table_raw <- biomass_strat %>% 
+  dplyr::filter(year == maxyr &
+                  species_code %in% spp_code) %>% 
+  dplyr::select(SRVY, stratum, meanwgtcpue, varmnwgtcpue, biomass, varbio, upperb, lowerb, 
+                haulcount, catcount, numcount, lencount, meanwgtcpue, degreefwgt, catcount) %>% 
+  dplyr::mutate(stratum = as.character(stratum)) %>%
+  dplyr::arrange(stratum) %>% 
+  dplyr::arrange(SRVY) %>% 
+  dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
+
+varbio0<-find_units(unit = "", unt = "", table_raw$varbio)
+varmnwgtcpue0<-find_units(unit = "", unt = "", table_raw$varmnwgtcpue)
+meanwgtcpue0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$meanwgtcpue)
+biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass)
+
+table_print <- table_raw %>% 
+  dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>% 
+  dplyr::mutate(varmnwgtcpue = varmnwgtcpue/varmnwgtcpue0$divby) %>% 
+  dplyr::mutate(biomass = biomass/biomass0$divby) %>% 
+  dplyr::mutate(varbio = varbio/varbio0$divby) %>% 
+  dplyr::mutate(across(is.double & ends_with("count"), formatC, big.mark=",", digits = 0, format = "f")) %>%
+  dplyr::mutate(across(is.double & !(ends_with("count")), formatC, big.mark=",", digits = 1, format = "f")) %>% 
+  flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
+  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+  flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+  flextable::bold(x = ., #j = "stratum", 
+                  i = ~ (stratum == "Total") ) %>%
+  flextable::padding(x = ., 
+                     j = 1, i = ~ is.na(SRVY), 
+                     padding.left = 20) %>%
+  flextable::set_header_labels(., 
+                               stratum = "Stratum", 
+                               meanwgtcpue = paste0("Mean CPUE", meanwgtcpue0$unit_word), 
+                               varmnwgtcpue = paste0("SD CPUE", varmnwgtcpue0$unit_word), 
+                               biomass = paste0("Estimated Biomass", biomass0$unit_word), 
+                               varbio = paste0("SD Biomass", varbio0$unit_word), 
+                               upperb = "95% LCL", 
+                               lowerb = "95% UCL", 
+                haulcount = "Total hauls", 
+                catcount = "Hauls with weights", 
+                numcount = "Hauls with counts", 
+                lencount = "Hauls with lengths") %>% 
+  # flextable::merge_v(j = "Region") %>%
+  flextable::valign(valign = "top") %>%
+  theme_flextable_nmfstm(row_lines = FALSE)
+
+} else { # CPUE No/HA and POPULATION
+  
+header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population (millions) with standard deviation and 95%lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," eastern and northern Bering Sea bottom trawl survey. Differences in sums of estimates and totals are due to rounding.")
+
+table_raw <- biomass_strat %>% 
+  dplyr::filter(year == maxyr &
+                  species_code %in% spp_code) %>% 
+  dplyr::select(SRVY, stratum, meannumcpue, varmnnumcpue, population, varpop, upperp, lowerp, 
+                haulcount, catcount, numcount, lencount, meanwgtcpue, degreefwgt, catcount) %>% 
+  dplyr::mutate(stratum = as.character(stratum)) %>%
+  dplyr::arrange(stratum) %>% 
+  dplyr::arrange(SRVY) %>% 
+  dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
+
+varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue)
+meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue)
+population0 <- find_units(unit = "", unt = "", table_raw$population)
+varpop0 <- find_units(unit = "", unt = "", table_raw$varpop)
+
+table_print <- table_raw %>% 
+  dplyr::mutate(meannumcpue = meannumcpue/meannumcpue0$divby) %>% 
+  dplyr::mutate(varmnnumcpue = varmnnumcpue/varmnnumcpue0$divby) %>% 
+  dplyr::mutate(population = population/population0$divby) %>% 
+  dplyr::mutate(varpop = varpop/varpop0$divby) %>% 
+  dplyr::mutate(across(is.double & ends_with("count"), formatC, big.mark=",", digits = 0, format = "f")) %>%
+  dplyr::mutate(across(is.double & !(ends_with("count")), formatC, big.mark=",", digits = 1, format = "f")) %>% 
+  flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
+  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+  flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+  flextable::bold(x = ., #j = "stratum", 
+                  i = ~ (stratum == "Total") ) %>%
+  flextable::padding(x = ., 
+                     j = 1, i = ~ is.na(SRVY), 
+                     padding.left = 20) %>%
+  flextable::set_header_labels(., 
+                               stratum = "Stratum", 
+                               meannumcpue = paste0("Mean CPUE", meannumcpue0$unit_word), 
+                               varmnnumcpue = paste0("SD CPUE", varmnnumcpue0$unit_word), 
+                               population = paste0("Estimated Biomass", population0$unit_word), 
+                               varpop = paste0("SD Biomass", varpop0$unit_word), 
+                               upperp = "95% LCL", 
+                               lowerp = "95% UCL", 
+                haulcount = "Total hauls", 
+                catcount = "Hauls with weights", 
+                numcount = "Hauls with counts", 
+                lencount = "Hauls with lengths") %>% 
+  # flextable::merge_v(j = "Region") %>%
+  flextable::valign(valign = "top") %>%
+  theme_flextable_nmfstm(row_lines = FALSE)
+}
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -148,5 +419,5 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 ",res,"
 
 ")
-
+}
 ```

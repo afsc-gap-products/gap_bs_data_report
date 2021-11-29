@@ -165,8 +165,8 @@ for (i in 1:length(a)){
 # }
 
 biomass <- SameColNames(df.ls)  %>%
-  dplyr::filter(year <= maxyr &
-                  stratum == 999) %>% 
+  dplyr::filter(year <= maxyr #& stratum == 999
+                ) %>% 
   dplyr::rename(SRVY = survey) %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
@@ -195,6 +195,11 @@ biomass <- SameColNames(df.ls)  %>%
 #               upperb = biomass+varbio,
 #               lowerb = biomass-varbio)
 
+
+biomass_strat <- biomass
+
+biomass <- biomass %>%
+  dplyr::filter(stratum == 999)
 
 biomass_maxyr<-biomass %>%
   dplyr::filter(year == maxyr)
@@ -240,7 +245,7 @@ cpue_maxyr <- cpue %>%
 cpue_compareyr<- cpue %>%
   dplyr::filter(year == compareyr[1])
 
-cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune snail"
+cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whelk"
 
 # Wrangle Data -----------------------------------------------------------------
 
@@ -783,20 +788,16 @@ length_crab <- SameColNames(df.ls) %>%
     taxon = dplyr::case_when(
       species_code <= 31550 ~ "fish", 
       species_code >= 40001 ~ "invert"), 
-    #length = length/10,  # cm
     length_type = dplyr::case_when(
-      species_code %in% c(69322, 69323) ~ 20,
-      species_code %in% 68580 ~ 21)) 
+      species_code %in% c(69322, 69323) ~ 7,
+      species_code %in% 68580 ~ 8)) 
 
 # Combine
 
 length_data <- SameColNames(list(
-  "gf" = length_data,# %>% 
-    # dplyr::select(#-catchjoin, -cruisejoin, -survey_name, -stratum, -hauljoin, -stationid, -vessel, 
-    #               -cruise, -region, -haul, -sample_type), 
+  "gf" = length_data, 
   "crab" = length_crab))  %>% 
   dplyr::rename(SRVY = srvy) %>% 
-  # dplyr::select(-cruise, -haul)
   dplyr::left_join(x = .,
                    y = species0 %>% 
                      dplyr::select(species_code, common_name),
@@ -831,7 +832,7 @@ length_type$sentancefrag <- c("fork lengths",
                               "lengths from mideye to hypural plate",
                               "total lengths",
                               "snout to second dorsal lengths",
-                              "lengths of carapace from back of right eye socket to the end of the carapace",
+                              "carapace lengths",
                               "carapace widths",
                               "head lengths",
                               "snout to anal fin origin lengths",
@@ -841,16 +842,6 @@ length_type$sentancefrag <- c("fork lengths",
                               "outer tip of rostrum to end of telson lengths",
                               "modal lengths",
                               "frequency of lengths estimated using size composition proportions from adjacent hauls with similar catch composition")
-
-
-length_type <- rbind.data.frame(length_type, 
-                                data.frame("length_type_id" = c(20, 21), 
-                                           "name" = c("carapace lengths", "carapace widths"), 
-                                           "description" = c(NA, NA), 
-                                           "active" = c(NA, NA), 
-                                           "sentancefrag" = c("carapace lengths", # king crabs
-                                                              "carapace widths"))) # snow crabs
-
 
 length_data <-  dplyr::left_join(x = length_data, 
                                  y = length_type, 

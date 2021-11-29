@@ -346,38 +346,48 @@ url_exists <- function(x, non_2xx_return_value = FALSE, quiet = FALSE,...) {
 
 find_units <- function(unit = "", unt = "", dat, divby = NULL){
   
-  x <- ifelse(unit == "", "s", paste0(" ", unit))
+  # x <- ifelse(unit == "", "s", paste0(" ", unit))
+  x <- unit#ifelse(unit != "", paste0(" ", unit), unit)
   x_ <- ifelse(unt =="", "", unt)
+  
   # find appropriate units
   
   if (is.null(divby)) {
-    max_val <- max(dat, na.rm = TRUE)
-    max_val1 <- xunits(max_val, words = TRUE)
+    min_val <- min(dat, na.rm = TRUE)
+    min_val1 <- xunits(min_val, words = TRUE)
   } else {
-    max_val <- divby
-    max_val1 <- xunits(divby, words = TRUE)
+    min_val <- divby
+    min_val1 <- xunits(divby, words = TRUE)
   }
   
   
-    if (max_val<1e3) {
+    if (min_val<1e3) {
       divby <- 1
-      unit_word <- paste0(" (", x, ")")
+      unit_word <- ifelse(unit == "", "", paste0(" (", x, ")"))
       unit_wrd <- paste0("", x_)
-    } else if (max_val<1e6) {
+    } else if (min_val<1e6) {
       divby <- 1e3
-      unit_word <- paste0(" (thousand",x,")" )
+      unit_word <- paste0(" (thousand",
+                          ifelse(unit == "", "s", paste0(" ", unit)),
+                          ")" )
       unit_wrd <- paste0("K", x_)
-    } else if (grepl(pattern = "million", x = max_val1)) {
+    } else if (grepl(pattern = "million", x = min_val1)) {
       divby <- 1e6
-      unit_word <- paste0(" (million",x,")")
+      unit_word <- paste0(" (million",
+                          ifelse(unit == "", "s", paste0(" ", unit)),
+                          ")")
       unit_wrd <- paste0("M", x_)
-    } else if (grepl(pattern = "billion", x = max_val1)) {
+    } else if (grepl(pattern = "billion", x = min_val1)) {
       divby <- 1e9
-      unit_word <- paste0(" (billion",x,")")
+      unit_word <- paste0(" (billion",
+                          ifelse(unit == "", "s", paste0(" ", unit)),
+                          ")")
       unit_wrd <- paste0("B", x_)
-    } else if (grepl(pattern = "trillion", x = max_val1)) {
+    } else if (grepl(pattern = "trillion", x = min_val1)) {
       divby <- 1e12
-      unit_word <- paste0(" (trillion",x,")")
+      unit_word <- paste0(" (trillion",
+                          ifelse(unit == "", "s", paste0(" ", unit)),
+                          ")")
       unit_wrd <- paste0("T", x_)
     }
     
@@ -1130,6 +1140,34 @@ add_report_spp <- function(spp_info,
 # https://github.com/trevorld/gridpattern
 
 
+set_breaks <- function(dat, var) {
+  set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
+                                          n = 5, style = "jenks")$brks
+  set.breaks <- c()
+  
+  for (i in 1:length(set.breaks0)) {
+    
+    if (i == length(set.breaks0)) {
+      set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)# #round(set.breaks0[i], digits = 0))
+    } else if (i == 1) {
+      set.breaks<-c(set.breaks, 0)
+    } else {    
+      set.breaks <- c(set.breaks, 
+                      plyr::round_any(x = set.breaks0[i], 
+                                      accuracy = ifelse(max(set.breaks0[i])>300, 100, 
+                                                        ifelse(max(set.breaks0[i])>100, 50, 
+                                                               ifelse(max(set.breaks0[i])>20, 10, 
+                                                                      1))), 
+                                      f = ceiling))    
+    }
+  }
+  set.breaks <- unique(set.breaks)
+  
+  return(set.breaks)
+}
+
+
+
 #' Plot IDW maps in x by x facet_wraps
 #'
 #' @param yrs The years, as a vector, that subplots should be created for
@@ -1169,29 +1207,30 @@ plot_idw_xbyx <- function(
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
-  if(set.breaks =="auto") {
-    
-    set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
-                                            n = 5, style = "jenks")$brks
-    set.breaks <- c()
-    
-    for (i in 1:length(set.breaks0)) {
+  if (set.breaks[1] =="auto") {
+    set.breaks <- set_breaks(dat, var)
       
-      if (i == length(set.breaks0)) {
-        set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)# #round(set.breaks0[i], digits = 0))
-      } else if (i == 1) {
-        set.breaks<-c(set.breaks, 0)
-      } else {    
-        set.breaks <- c(set.breaks, 
-                        plyr::round_any(x = set.breaks0[i], 
-                                        accuracy = ifelse(max(set.breaks0[i])>300, 100, 
-                                                          ifelse(max(set.breaks0[i])>100, 50, 
-                                                                 ifelse(max(set.breaks0[i])>20, 10, 
-                                                                        1))), 
-                                        f = ceiling))    
-      }
-    }
-    set.breaks <- unique(set.breaks)
+    # set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
+    #                                         n = 5, style = "jenks")$brks
+    # set.breaks <- c()
+    # 
+    # for (i in 1:length(set.breaks0)) {
+    #   
+    #   if (i == length(set.breaks0)) {
+    #     set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)# #round(set.breaks0[i], digits = 0))
+    #   } else if (i == 1) {
+    #     set.breaks<-c(set.breaks, 0)
+    #   } else {    
+    #     set.breaks <- c(set.breaks, 
+    #                     plyr::round_any(x = set.breaks0[i], 
+    #                                     accuracy = ifelse(max(set.breaks0[i])>300, 100, 
+    #                                                       ifelse(max(set.breaks0[i])>100, 50, 
+    #                                                              ifelse(max(set.breaks0[i])>20, 10, 
+    #                                                                     1))), 
+    #                                     f = ceiling))    
+    #   }
+    # }
+    # set.breaks <- unique(set.breaks)
   }
   # if(set.breaks =="auto"){
   #   set.breaks <- quantile(as.numeric(unlist(dat[dat$year %in% yrs,var])), probs = c(0, .95))
@@ -1703,7 +1742,6 @@ legend_discrete_cbar <- function(
 #'
 #' @param sizecomp0 data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
 #' @param length_data0 data.frame of sampled lengths
-#' @param SRVY1 "NBS", "EBS", or c("NBS", "EBS")
 #' @param spp_code numeric. 
 #' @param spp_print string. 
 #' @param print_n TRUE/FALSE. Default = FALSE. Will print n = number of the species counted. 
@@ -1715,7 +1753,6 @@ legend_discrete_cbar <- function(
 #' @examples
 plot_sizecomp <- function(sizecomp0,
                           length_data0 = NULL,
-                          SRVY1, 
                           spp_code, 
                           spp_print, 
                           type = "length", 
@@ -1757,33 +1794,50 @@ plot_sizecomp <- function(sizecomp0,
                           ifelse(max(table_raw$length)-min(table_raw$length)>45, 10, 5))
   
   # figure 
-  if (!ridgeline) {
+  if (!ridgeline) { # facet plot
     
-    figure <- ggplot(data = table_raw,
-                     mapping = aes(x = length,
-                                   y = pop,
-                                   fill = sex))+
-      geom_bar(position="stack", stat="identity", na.rm = TRUE) +
-      scale_fill_viridis_d(direction = -1, 
-                           option = "mako",
-                           begin = .2,
-                           end = .6,
-                           na.value = "transparent") +
-      guides(fill=guide_legend(title="")) +
-      scale_y_continuous(name = paste0(spp_print, "\npopulation",pop_unit_word), 
-                         breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
-      scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
-                         breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
-      # scale_x_continuous(
-      #   name = paste0(str_to_sentence(spp_print), "\n",type," (", len_unit_word, ")"),
-      #   limits = c(ifelse(min(table_raw$length) > 20, min(table_raw$length), 0), 
-      #              max(table_raw$length)),
-      #   breaks = seq(from = 0,
-      #                to = max(table_raw$length), 
-      #                by = len_unit_axis))  +
-      facet_grid(year ~ .,
-                 scales = "free_x") + 
-      # coord_capped_cart(bottom='both', left='both', xlim=c(0,max(table_raw$length))) +
+    # if (length(unique(table_raw$SRVY))>1) {
+      
+      figure <- ggplot(data = table_raw,
+                       mapping = aes(x = length,
+                                     y = pop,
+                                     group = SRVY,
+                                     fill = sex)) +
+        geom_bar(position="stack", stat="identity", na.rm = TRUE) +
+        scale_fill_viridis_d(direction = -1, 
+                             option = "mako",
+                             begin = .2,
+                             end = .6,
+                             na.value = "transparent") +
+        guides(fill=guide_legend(title="")) +
+        scale_y_continuous(name = paste0(spp_print, "\npopulation",pop_unit_word), 
+                           breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
+        scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
+                           breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
+        facet_grid(year ~ SRVY,
+                   scales = "free_x") 
+      
+    # } else {
+    # 
+    # figure <- ggplot(data = table_raw,
+    #                  mapping = aes(x = length,
+    #                                y = pop,
+    #                                fill = sex))+
+    #   geom_bar(position="stack", stat="identity", na.rm = TRUE) +
+    #   scale_fill_viridis_d(direction = -1, 
+    #                        option = "mako",
+    #                        begin = .2,
+    #                        end = .6,
+    #                        na.value = "transparent") +
+    #   guides(fill=guide_legend(title="")) +
+    #   scale_y_continuous(name = paste0(spp_print, "\npopulation",pop_unit_word), 
+    #                      breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
+    #   scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
+    #                      breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
+    #   facet_grid(year ~ .,
+    #              scales = "free_x")  
+    # }
+    figure <- figure +
       guides(
         fill = guide_legend(title.position = "top", 
                             label.position = "bottom",
@@ -1791,27 +1845,16 @@ plot_sizecomp <- function(sizecomp0,
                             nrow = 1
         )) +
       theme(
-        # axis.line=element_line(),
-        panel.background = element_rect(fill = "white"),
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.major.x = element_line(colour = "grey95"),
+        panel.grid.major.x = element_blank(),
         panel.border = element_rect(fill = NA,
                                     colour = "grey20"),
-        strip.background = element_blank(),
-        strip.text = element_text(size = 12, face = "bold"),
-        legend.title = element_blank(), #element_text(size = 15),
+        legend.title = element_blank(), 
         legend.text = element_text(size = 10),
         legend.background = element_rect(colour = "transparent", 
                                          fill = "transparent"),
         legend.key = element_rect(colour = "transparent",
                                   fill = "transparent"),
-        axis.title = element_text(size = 12, face = "bold"),
-        axis.text = element_text(size = 12),
         legend.position="bottom",
-        # legend.box.just = "left",
-        # legend.key.width = unit(.5, "in"),
         legend.box = "horizontal"
       )
     
@@ -1862,27 +1905,24 @@ plot_sizecomp <- function(sizecomp0,
       scale_fill_viridis_c(name = length, option = "G") +
       ylab(paste0(spp_print, "\npopulation across years")) +
       xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word, ")"))) +
-      # theme_ridges() +
       theme(legend.position = "none", 
-            panel.background = element_rect(fill = "white"),
-            panel.grid.major.y = element_line(colour = "grey80"),
-            panel.grid.minor.y = element_blank(),
-            panel.grid.minor.x = element_blank(),
-            panel.grid.major.x = element_line(colour = "grey80"),
-            # panel.border = element_rect(fill = NA,
-            #                             colour = "grey20"),
-            strip.background = element_blank(),
-            strip.text = element_text(size = 12, face = "bold"),
-            legend.key = element_rect(colour = "transparent",
-                                      fill = "transparent"),
-            axis.title = element_text(size = 14, face = "bold"),
-            axis.text = element_text(size = 12),
-            legend.box = "horizontal"
-      )
+            panel.grid.major.x = element_line(colour = "grey80"))
   }
   
+figure <- figure + 
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid.major.y = element_line(colour = "grey80"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_text(size = 12, face = "bold"),
+        legend.key = element_rect(colour = "transparent",
+                                  fill = "transparent"),
+        axis.title = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 12))
   
-  if (print_n) {
+  
+  if (print_n & !is.null(length_data0)) {
     
     dat_text  <- data.frame(
       label = paste0(c("# measured: ", rep_len(x = "", length.out = (length(unique(length_data0$year))-1))),   
