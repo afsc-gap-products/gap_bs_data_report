@@ -1358,10 +1358,10 @@ plot_idw_xbyx <- function(
                    dist = 150,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = .04,
+                   st.dist = .03,
                    height = 0.02,
                    st.bottom = TRUE,
-                   st.size = 3,
+                   st.size = 2,
                    model = reg_dat$crs) 
   
   if (grid == "continuous.grid") {
@@ -1405,7 +1405,7 @@ plot_idw_xbyx <- function(
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
-      axis.text = element_text(size = 9),
+      axis.text = element_text(size = 8),
       
       strip.background = element_blank(), 
       strip.text = element_text(size = 12, face = "bold"), 
@@ -1776,7 +1776,7 @@ plot_sizecomp <- function(sizecomp0,
     ordered = TRUE)
   
   # find appropriate units
-  a<-find_units(unit = "", unt = "", dat = table_raw$pop)
+  a<-find_units(unit = "", unt = "", dat = max(table_raw$pop))
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
   pop_unit <- divby
   pop_unit_word <- unit_word
@@ -1794,7 +1794,7 @@ plot_sizecomp <- function(sizecomp0,
                           ifelse(max(table_raw$length)-min(table_raw$length)>45, 10, 5))
   
   # figure 
-  if (!ridgeline) { # facet plot
+  if (!ridgeline) { # facet plot without ridgeline
     
     # if (length(unique(table_raw$SRVY))>1) {
       
@@ -1810,7 +1810,8 @@ plot_sizecomp <- function(sizecomp0,
                              end = .6,
                              na.value = "transparent") +
         guides(fill=guide_legend(title="")) +
-        scale_y_continuous(name = paste0(spp_print, "\npopulation",pop_unit_word), 
+        scale_y_continuous(name = paste0(spp_print, #"\n
+                                         " population",pop_unit_word), 
                            breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
         scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
                            breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
@@ -1903,7 +1904,8 @@ plot_sizecomp <- function(sizecomp0,
                                    height = pop/mean(pop, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
       scale_fill_viridis_c(name = length, option = "G") +
-      ylab(paste0(spp_print, "\npopulation across years")) +
+      ylab(paste0(spp_print, #"\n
+                  " population across years")) +
       xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word, ")"))) +
       theme(legend.position = "none", 
             panel.grid.major.x = element_line(colour = "grey80"))
@@ -1918,8 +1920,8 @@ figure <- figure +
         strip.text = element_text(size = 12, face = "bold"),
         legend.key = element_rect(colour = "transparent",
                                   fill = "transparent"),
-        axis.title = element_text(size = 12, face = "bold"),
-        axis.text = element_text(size = 12))
+        axis.title = element_text(size = 10, face = "bold"),
+        axis.text = element_text(size = 10))
   
   
   if (print_n & !is.null(length_data0)) {
