@@ -24,7 +24,7 @@ locations<-c(
   "HAEHNR.cpue_ebs_plusnw", 
   "HAEHNR.cpue_ebs_plusnw_grouped",
   
-  # Size Comps - the extrapolated size distribions of each fish
+  # Size Comps - the extrapolated size distributions of each fish
   "HAEHNR.sizecomp_nbs_stratum", 
   "HAEHNR.sizecomp_ebs_plusnw_stratum", 
   # "HAEHNR.sizecomp_ebs_plusnw_stratum_grouped",
@@ -34,7 +34,7 @@ locations<-c(
   # "RACEBASE.HAULS", 
   "RACEBASE.HAUL", 
   "RACE_DATA.V_CRUISES",
-  "RACE_DATA.V_EXTRACT_FINAL_LENGTHS", # the number of fish physically by hand lengthed (not extrapolated)
+  "RACE_DATA.V_EXTRACT_FINAL_LENGTHS", # the number of fish physically by hand lengthed (not extrapolated into sizecomp)
   # "RACEBASE.LENGTH", 
   "RACEBASE.SPECIMEN", 
   "RACEBASE.STRATUM", 

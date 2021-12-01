@@ -2107,7 +2107,8 @@ plot_survey_stations <- function(reg_dat,
                                  stratum_no = FALSE, 
                                  station_pts_srvy = TRUE, 
                                  station_pts_vess = FALSE, 
-                                 study = FALSE) { 
+                                 study = FALSE, 
+                                 dist_unit = "nm") { 
   
   # survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
   #                     as.character(nmfspalette::nmfs_cols("medgray")))
@@ -2129,7 +2130,8 @@ plot_survey_stations <- function(reg_dat,
               mapping = aes(fill = study),
               show.legend = TRUE,
               color = "black",
-              size = 1, 
+              size = .5, 
+              alpha = .5,
               na.rm = TRUE) +
       scale_fill_manual(
         name = "", #"Survey Vessels",
@@ -2208,7 +2210,7 @@ plot_survey_stations <- function(reg_dat,
             linetype = c(1), 
             shape = NA, 
             size = .5)))
-  } else {
+  } else { # station_pts_vess == FALSE
     figure <- figure +
       geom_sf(data = reg_dat$survey.area %>%
                 dplyr::mutate(SURVEY = dplyr::case_when(
@@ -2296,17 +2298,27 @@ plot_survey_stations <- function(reg_dat,
       aes(x = x, y = y, label = lab), 
       bg.color = "white", color = "black", 
       size = 2, group = 99) +
-    ggsn::scalebar(data = reg_dat$survey.grid, 
-                   location = "bottomright",
-                   dist = 100, 
-                   dist_unit = "km", 
-                   transform = FALSE, 
-                   st.dist = .02, 
-                   height = 0.02, 
-                   st.bottom = TRUE, 
-                   st.size = 3, 
-                   # transform = TRUE, 
-                   model = reg_dat$crs) +
+    ggsn::scalebar(data = reg_dat$survey.grid,
+                   location = "bottomleft",
+                   dist = 150,
+                   dist_unit = dist_unit,
+                   transform = FALSE,
+                   st.dist = .03,
+                   height = 0.02,
+                   st.bottom = TRUE,
+                   st.size = 2,
+                   model = reg_dat$crs) + 
+    # ggsn::scalebar(data = reg_dat$survey.grid, 
+    #                location = "bottomright",
+    #                dist = 100, 
+    #                dist_unit = "km", 
+    #                transform = FALSE, 
+    #                st.dist = .02, 
+    #                height = 0.02, 
+    #                st.bottom = TRUE, 
+    #                st.size = 3, 
+    #                # transform = TRUE, 
+    #                model = reg_dat$crs) +
     #set legend position and vertical arrangement
     theme(#plot.background = element_rect(fill = "white"), 
       panel.background = element_rect(fill = "white", 

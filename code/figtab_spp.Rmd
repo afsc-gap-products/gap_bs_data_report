@@ -8,7 +8,9 @@ csl: "../cite/citestyle.csl"
 bibliography: "../cite/bibliography.bib"
 ---
 
-```{r}
+## vars
+
+```{r vars}
 a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[jj], ]
 
 spp_sci <- a$species_name[1]
@@ -51,6 +53,79 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
 # table_bio_portion <- a$table_bio_portion[1]
 # table_bio_spp <- a$table_bio_spp[1]
+
+```
+
+## data_wrangle
+
+```{r data_wrangle}
+# find basic info about species
+haul0 <- catch_haul_cruises %>% 
+  dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
+                "bottom_depth", "gear_temperature" ,"surface_temperature", 
+                "survey_name", "SRVY", "year", "species_code", 
+                "weight", "number_fish", "hauljoin")
+
+haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea"] <- "southeastern Bering Sea"
+
+# Biomass
+bio <- biomass %>%
+  dplyr::filter(stratum == 999) %>% 
+  dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass, taxon) %>% 
+  dplyr::left_join(x = ., 
+                   y = report_spp1 %>% 
+                     dplyr::select(print_name, species_code, species_name1), 
+                   by = "species_code") %>% 
+  dplyr::filter(print_name == spp_print) %>% 
+  dplyr::rename(y = biomass, 
+                lower = lowerb, 
+                upper = upperb, 
+                var = varbio) %>% 
+  dplyr::left_join(x = . , 
+                   y = haul_cruises_maxyr %>% 
+                     dplyr::select(SRVY, SRVY_long),
+                   by = "SRVY") %>% 
+  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
+
+
+# Abundance
+pop <- biomass %>%
+  dplyr::filter(stratum == 999) %>% 
+  dplyr::select(SRVY, year, species_code, upperp, lowerp, varpop, population, taxon) %>% 
+  dplyr::left_join(x = ., 
+                   y = report_spp1 %>% 
+                     dplyr::select(print_name, species_code, species_name1), 
+                   by = "species_code") %>% 
+  dplyr::filter(print_name == spp_print) %>% 
+  dplyr::rename(y = population, 
+                lower = lowerp, 
+                upper = upperp, 
+                var = varpop) %>% 
+  dplyr::left_join(x = . , 
+                   y = haul_cruises_maxyr %>% 
+                     dplyr::select(SRVY, SRVY_long),
+                   by = "SRVY") %>% 
+  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
+
+# # Lengths
+# lengths <- length_data %>% 
+#   dplyr::filter(species_code %in% spp_code) %>% 
+#   dplyr::select(SRVY, species_code, frequency, sex, length,
+#                 sample_type, length_type, name, year, 
+#                 sentancefrag)
+# 
+# # Size Comps
+# sizec <- sizecomp %>% 
+#   dplyr::left_join(x = ., 
+#                    y = report_spp1 %>% 
+#                      dplyr::select(print_name, species_code, species_name1), 
+#                    by = "species_code") %>% 
+#   dplyr::filter(print_name == spp_print) %>% 
+#   dplyr::left_join(x = . , 
+#                    y = haul_cruises_maxyr %>% 
+#                      dplyr::select(SRVY, SRVY_long),
+#                    by = "SRVY") %>% 
+#   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
 
 ```
 
@@ -203,18 +278,25 @@ if (spp_plot_sizecomps) {
                     # SRVY %in% "NBS" & 
                     # year %in% nbsyr)
   
-
-  
-  # if (nrow(sizecomp0) != 0) {
-
   type <- unique(length_data0$sentancefrag)
 
-  
-  fig1 <- plot_sizecomp(
-    sizecomp0 = sizecomp %>%
+  sizecomp0 <- dplyr::bind_rows(
+    sizecomp %>%
     dplyr::filter(species_code %in% spp_code &
                     SRVY %in% c("NBS", "EBS") &
-                    year %in% nbsyr),
+                    year %in% nbsyr), 
+    sizecomp %>%
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% c("NBS", "EBS") &
+                    year %in% nbsyr) %>% 
+      dplyr::group_by(year, taxon, species_code, sex, pop) %>% 
+      dplyr::summarise(length) %>% 
+      dplyr::mutate(SRVY = "EBS + NBS")) %>% 
+    dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS + NBS"), ordered = TRUE))
+
+  
+  figure <- plot_sizecomp(
+    sizecomp0 = sizecomp0,
     spp_code = spp_code,
     spp_print = paste0(spp_print),
     type = type,
@@ -249,29 +331,29 @@ if (spp_plot_sizecomps) {
   #   spp_print = paste0("EBS and NBS ", spp_print), 
   #   type = type, 
   #   print_n = FALSE)
-  
-  sizecomp0 <- sizecomp %>% 
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% "EBS")  
-  
-    if (nrow(sizecomp0) != 0) {
-
-    type <- unique(length_data0$sentancefrag)  # get size unit/type
-  
-  fig2 <- plot_sizecomp(
-    sizecomp0 = sizecomp %>% 
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% "EBS"),
-    length_data0 = length_data0, 
-    spp_code = spp_code,
-    spp_print = paste0("EBS ", spp_print), 
-    type = type, 
-    print_n = FALSE, 
-    ridgeline = TRUE)
-  }  
-
-  figure <- ggpubr::ggarrange(fig2, fig1, 
-          labels = c("A", "B"), nrow = 1)#, widths = c(2,1))
+  # 
+  # sizecomp0 <- sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% "EBS")  
+  # 
+  #   if (nrow(sizecomp0) != 0) {
+  # 
+  #   type <- unique(length_data0$sentancefrag)  # get size unit/type
+  # 
+  # fig2 <- plot_sizecomp(
+  #   sizecomp0 = sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% "EBS"),
+  #   length_data0 = length_data0, 
+  #   spp_code = spp_code,
+  #   spp_print = paste0("EBS ", spp_print), 
+  #   type = type, 
+  #   print_n = FALSE, 
+  #   ridgeline = TRUE)
+  # }  
+# 
+#   figure <- ggpubr::ggarrange(fig2, fig1, 
+#           labels = c("A", "B"), nrow = 1)#, widths = c(2,1))
   
   
   
@@ -294,6 +376,69 @@ if (spp_plot_sizecomps) {
 }
 ```
 
+
+## fig_timeseries_
+
+```{r, fig_timeseries_}
+# nickname <- paste0("fig_timeseries_", spp_file)
+# header <- "Timeseries of biomass and abundance." # TOLEDO
+# height <- 9
+# width <- 6
+# 
+# #Biomass
+# y_long <- "Biomass"
+# a <- table_change_pres(dat = bio, 
+#                        yrs = nbsyr, 
+#                        maxyr = maxyr, 
+#                        compareyr = compareyr, 
+#                        unit = "metric tons", 
+#                        unt = "mt", 
+#                        y_long = y_long, 
+#                        digits = 2)
+# 
+# fig1 <- plot_timeseries(dat = bio, 
+#                           unit = "metric tons", 
+#                           unt = "mt", 
+#                           y_long = "biomass", 
+#                           spp_print = spp_print)
+# # Abundance
+# y_long <- "Abundance"
+# a <- table_change_pres(dat = pop, 
+#                                  yrs = nbsyr, 
+#                                  maxyr = maxyr, 
+#                                  compareyr = compareyr, 
+#                                  unit = "", 
+#                                  unt = "", 
+#                                  y_long = y_long, 
+#                        digits = 2)
+# 
+# fig2 <- plot_timeseries(dat = pop, 
+#                           unit = "", 
+#                           unt = "", 
+#                           y_long = "abundance", 
+#                           spp_print = spp_print)
+# 
+# figure <- ggpubr::ggarrange(fig1, fig2, 
+#           labels = c("A", "B"), nrow = 2)#, widths = c(2,1))
+# 
+# 
+# # save yo' stuff and do a lot of behind the scenes work
+# # alt: this does the same thing as calling "child = " in the chunk header
+# res <- knitr::knit_child(
+#   text = knitr::knit_expand(
+#     file = system.file("rmd/_child_save_fig.Rmd", 
+#                        package = "NMFSReports")), 
+#   quiet = TRUE
+# )
+# 
+# list_figures[nickname][[1]]$res <- res <- paste0("
+# ###### 
+# 
+# ",res,"
+# 
+# ")
+
+```
 
 
 ## tab_cpue_biomass_pop_[spp]
