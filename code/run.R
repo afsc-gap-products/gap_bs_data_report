@@ -43,14 +43,11 @@ dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.co
 # maxyr <- 2019 
 # compareyr <- 2017
 # SRVY<-"NEBS" 
-# crabretow <- TRUE
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
 maxyr <- 2021
 compareyr <- 2019
 SRVY<-"NEBS"
-# crabretow <- TRUE
-# study1530 <- TRUE
 dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
@@ -199,15 +196,6 @@ cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_results_crabretow_")
 rmarkdown::render(paste0(dir_code, "/07_results_crabretow.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-
-# *** *** 08 - Results_15-30study ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_results_15-30study_")
-rmarkdown::render(paste0(dir_code, "/08_results_15-30study.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
