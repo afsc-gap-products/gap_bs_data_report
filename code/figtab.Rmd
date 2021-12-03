@@ -582,7 +582,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ```
 
-## tab_specimen_samples
+## tab_specimen_samples_
 
 > How do I know "Stomach samples collected for arrowtooth flounder and Kamchatka flounder were combined."? 
 
@@ -592,36 +592,53 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 > I did not get the 2017 numbers in the report...
 
-```{r tab_specimen_samples}
-nickname0 <- paste0("tab_specimen_samples") 
+```{r tab_specimen_samples_}
+nickname0 <- paste0("tab_specimen_samples_") 
 
+# length data - from oracle
 l <- length_maxyr %>% 
   dplyr::select("SRVY", species_code) %>% 
   dplyr::group_by("SRVY" = SRVY, species_code) %>% # also type?
   dplyr::summarise(length = as.numeric(n())) %>% 
   dplyr::ungroup()  
 
+# age oto data - from oracle
 a <- specimen_maxyr %>% 
   dplyr::select("SRVY", species_code) %>% 
   dplyr::group_by("SRVY" = SRVY, species_code) %>% 
+  dplyr::filter(!is.na(species_code)) %>%
   # also specimen_sample_type? 1 = otoliths, 
   # specimen_subsample_method 1=random, 2 = stratified?
   dplyr::summarise(age = as.numeric(n())) %>% 
   dplyr::ungroup() #%>% 
 
+# other collections not in oracle
+temp <- readr::read_csv(paste0(dir_out_rawdata, "/0_other_field_collections.csv"), skip = 1) %>%
+  dplyr::filter(year == maxyr) %>% 
+  dplyr::select(SRVY, print_name, dplyr::starts_with("count_")) %>% 
+  dplyr::select(where(~sum(!is.na(.x)) > 0)) 
+names(temp) <- gsub(pattern = "count_", replacement = "", x = names(temp))
+
+# Combine
 table_raw0 <- 
-  dplyr::full_join(x = l, y = a) %>% 
-  dplyr::mutate(stomach = as.numeric(NA)) %>% # TOLEDO - placeholder
-  dplyr::mutate(pathobio = as.numeric(NA)) %>% # TOLEDO - placeholder 
+  dplyr::full_join(x = l, y = a, 
+                   by = c("SRVY", "species_code")) %>% 
   dplyr::left_join(x = ., 
-                   y = report_spp1 %>% 
-                     dplyr::select(species_code,  print_name, order) %>% 
-                     dplyr::rename(common_name = print_name), 
+                   y = spp_info %>% 
+                     dplyr::mutate(common_name = dplyr::case_when(
+                                     is.na(common_name) ~ report_name_scientific, 
+                                     common_name == "shorthorn (=warty) sculpin" ~ "shorthorn sculpin", 
+                                     TRUE ~ common_name)) %>% 
+                     dplyr::select(species_code, common_name), 
                    by = "species_code") %>% 
-  dplyr::select(-species_code) %>%
-  dplyr::group_by(SRVY, common_name, order) %>% 
+  dplyr::full_join(x = ., 
+                   y = temp, 
+                   by = c("common_name" = "print_name", "SRVY")) %>% 
+  dplyr::select(-species_code) %>% 
+  # dplyr::rename(common_name = print_name) %>%
+  dplyr::group_by(SRVY, common_name) %>% 
   dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
-  dplyr::arrange(SRVY, order) 
+  dplyr::arrange(SRVY, common_name) 
 
 table_raw0$common_name[is.na(table_raw0$common_name)] <- "other" # TOLEDO
 
@@ -635,38 +652,48 @@ table_raw0 <-
                      #   age = sum(age, na.rm = TRUE), 
                      #   stomach = sum(stomach, na.rm = TRUE), 
                      #   pathobio = sum(pathobio, na.rm = TRUE)) %>% 
-                     dplyr::mutate(order = max(report_spp1$order)+1) %>% 
+                     # dplyr::mutate(order = max(report_spp1$order)+1) %>% 
                      dplyr::mutate(common_name = "Total") # %>% 
                    # dplyr::left_join(x = ., y = temp)
   ) %>% 
   dplyr::relocate(SRVY, common_name, length, age) %>% 
-  dplyr::arrange(order) %>% 
-  dplyr::select(-order) %>% 
-  dplyr::mutate_if(is.numeric, formatC, digits = 0, format = "f", big.mark = ",")
+  # dplyr::arrange(order) %>% 
+  # dplyr::select(-order) %>% 
+  dplyr::mutate(across(where(is.numeric), 
+                       formatC, big.mark=",", digits = 0, format = "f")) %>% 
+  data.frame()
+
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
     newobj <- ifelse(i==1, TRUE, FALSE)
   }
-  nickname <- paste0(nickname0, "_", haul_cruises_maxyr$SRVY[i]) 
+  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
                    haul_cruises_maxyr$SRVY_long[i],
                    " shelf bottom trawl survey.")
   
   table_print <- table_raw <- table_raw0
   
-  table_print[is.na(table_print)]<- "-"
+  table_raw <- table_raw0 %>% 
+    dplyr::ungroup() %>% 
+      dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+      dplyr::select(-"SRVY") 
+  table_raw[is.na(table_raw) | table_raw == "0"] <- "-"
+  names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
+    stringr::str_to_sentence(gsub(pattern = "_",
+                                replacement = " ", 
+                                x = names(table_raw)[!(names(table_raw) %in% 
+                                                         c("SRVY", "common_name"))], 
+                                fixed = TRUE))
   
-  table_print <- flextable::flextable(table_print %>% 
-                                        dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-                                        dplyr::select(-SRVY)) %>%
-    flextable::set_header_labels(.,
+  table_print <- table_raw %>% 
+  flextable::flextable(data = .) %>%
+    flextable::set_header_labels(x = .,
                                  common_name = haul_cruises_maxyr$SRVY[i],
-                                 length = "Length\nmeasurements",
-                                 age = "Age\nmeasurements",
-                                 stomach = "Stomachs\ncollected",
-                                 pathobio = "Pathobiology\nsamples"
+                                 Length = "Length\nmeasurements",
+                                 Age = "Age\nmeasurements"
     ) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
@@ -689,6 +716,90 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
 }
 
+```
+
+## tab_oto_collection_scheme_
+
+```{r tab_oto_collection_scheme_}
+
+nickname0 <- paste0("tab_oto_collection_scheme_") 
+
+ table_raw0 <- readr::read_csv(paste0(dir_out_rawdata, "/0_collection_scheme.csv"), skip = 1) %>% 
+   dplyr::filter(year == maxyr & !is.na(oto_target)) %>% 
+  dplyr::select(SRVY, print_name, species_code, oto_target, oto_rules, oto_samp_type) %>% 
+  dplyr::left_join(
+    x = ., 
+    y = report_spp1 %>% 
+      dplyr::select(print_name, species_name1, order) %>% 
+      dplyr::rename(species_name = species_name1) %>% 
+      dplyr::distinct(), 
+    by = "print_name") %>% 
+  dplyr::arrange(order) %>% 
+  dplyr::arrange(oto_samp_type) %>% 
+  dplyr::arrange(SRVY) %>% 
+   dplyr::select(-order, -species_code) %>% 
+   dplyr::relocate(SRVY, print_name, species_name, oto_samp_type, oto_target, oto_rules)
+  
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  if (nrow(haul_cruises_maxyr)>1) {
+    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+  }
+  header <- paste0("Otolith collection scheme during the ", 
+                   maxyr, " ", 
+                   haul_cruises_maxyr$SRVY_long[i], " (", 
+                   haul_cruises_maxyr$SRVY[i], ")",
+                   " shelf bottom trawl survey.")
+  
+  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+    
+    table_raw <- table_raw0 %>% 
+      dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+      dplyr::select(-SRVY)
+    
+table_print <- table_raw %>% 
+  flextable::as_grouped_data(x = ., groups = c(#"SRVY", 
+                                               "oto_samp_type"), 
+                             columns = NULL) %>% 
+  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+  flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>%
+  flextable::italic(x = ., j = "species_name") %>% 
+  # flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+  flextable::padding(x = ., 
+                     j = 1, i = ~ #is.na(SRVY) & 
+                       is.na(oto_samp_type), # TOLEDO
+                     padding.left = 20) %>%
+  # flextable::padding(x = ., 
+  #                    j = 1, i = ~ is.na(oto_samp_type), 
+  #                    padding.left = 20) %>%
+      flextable::set_header_labels(.,
+                                 print_name = "Common name", 
+                                 species_name = "Scientific name", 
+                                 oto_rules = "Collect when \u2265 n individuals caught in each haul",
+                                 oto_target = "Target collection number per haul") %>%
+  # flextable::compose(
+  #   i = ~ !is.na(group), # when var_group not NA
+  #   j = " ", # on column "var"
+  #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
+  # hline(i = ~ !is.na(SRVY), border = officer::fp_border() ) %>%
+  NMFSReports::theme_flextable_nmfstm(x = ., row_lines = FALSE) 
+
+    
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_tables[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+}
 ```
 
 ## tab_special_projects
@@ -1100,39 +1211,39 @@ for (i in 1:2) { # two cases, above and below
 
 ## fig_bt_all_nebs_surveys
 
-```{r fig_bt_all_nebs_surveys}
-nickname <- "fig_bt_all_nebs_surveys"
-height <- 7
-width <- 6
-
-header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
-                 NMFSReports::text_list(nbsyr),
-                 " surveys, which are the years when the survey included the full NBS shelf.")
-
-rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
-                              subset = paste0("ebs_ste_", nbsyr, "_gear_temperature"))
-figure <- plot_temps_facet(
-  rasterbrick = rasterbrick, 
-  key.title = expression(bold("Bottom Temperature (°C)")), 
-  reg_dat = reg_dat, 
-  colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-  viridis_palette_option = "H") 
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_fig.Rmd", 
-                       package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
-
-",res,"
-
-")
+```{r fig_bt_all_nebs_surveys1}
+# nickname <- "fig_bt_all_nebs_surveys"
+# height <- 7
+# width <- 6
+# 
+# header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
+#                  NMFSReports::text_list(nbsyr),
+#                  " surveys, which are the years when the survey included the full NBS shelf.")
+# 
+# rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+#                               subset = paste0("ebs_ste_", nbsyr, "_gear_temperature"))
+# figure <- plot_temps_facet(
+#   rasterbrick = rasterbrick, 
+#   key.title = expression(bold("Bottom Temperature (°C)")), 
+#   reg_dat = reg_dat, 
+#   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+#   viridis_palette_option = "H") 
+# 
+# # save yo' stuff and do a lot of behind the scenes work
+# # alt: this does the same thing as calling "child = " in the chunk header
+# res <- knitr::knit_child(
+#   text = knitr::knit_expand(
+#     file = system.file("rmd/_child_save_fig.Rmd", 
+#                        package = "NMFSReports")), 
+#   quiet = TRUE
+# )
+# 
+# list_figures[nickname][[1]]$res <- res <- paste0("
+# ###### 
+# 
+# ",res,"
+# 
+# ")
 
 ```
 
@@ -1338,11 +1449,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 nickname0 <- "tab_biomass_est_fish_"
 
 # Select data and make plot
-temp <- cpue_biomass_station %>% 
-  
-  
-  
-  
+# temp <- cpue_biomass_station %>% 
   
   # TOLEDO - dummy data
   temp <- cbind.data.frame(taxon_group = c("A", "A", "C", "B", "B", "B"), 
@@ -1861,9 +1968,9 @@ for (i in 1:2) {
       dplyr::mutate(upperb = upperb/biomass0$divby) %>% 
       dplyr::mutate(lowerb = lowerb/biomass0$divby) %>% 
       dplyr::mutate(varbio = varbio/varbio0$divby) %>% 
-      dplyr::mutate(across(is.double & ends_with("cpue"), 
+      dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                            formatC, big.mark=",", digits = 2, format = "f")) %>% 
-      dplyr::mutate(across(is.double & !ends_with("cpue"),# & ends_with("count"), 
+      dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
                            formatC, big.mark=",", digits = 0, format = "f")) %>%
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(
@@ -1911,9 +2018,9 @@ for (i in 1:2) {
       dplyr::mutate(upperp = upperp/population0$divby) %>% 
       dplyr::mutate(lowerp = lowerp/population0$divby) %>% 
       dplyr::mutate(varpop = varpop/varpop0$divby) %>% 
-      dplyr::mutate(across(is.double & ends_with("cpue"), 
+      dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                            formatC, big.mark=",", digits = 2, format = "f")) %>% 
-      dplyr::mutate(across(is.double & !ends_with("cpue"),# & ends_with("count"), 
+      dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
                            formatC, big.mark=",", digits = 0, format = "f")) %>%
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(

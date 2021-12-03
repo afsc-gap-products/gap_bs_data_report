@@ -242,28 +242,17 @@ Standard sampling procedures used in RACE Bering Sea assessment surveys are desc
 
 Samples were collected by trawling near the center of each grid square (or grid circle, in the case of high-density strata) for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If a station was not considered trawlable due to obstructions visible on the depth sounder, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage or contained debris such as discarded crab pots which caused visible changes in net mensuration were redeployed to obtain a successful sample.
 
-Catches estimated to be less than approximately 1,150 kg (2,500 lbs) were entirely sorted and enumerated, while larger catches were weighed in aggregate and subsampled before sorting. After sorting subsampled catches, individual species were weighed and counted in aggregate, and these weights and numbers were then expanded arithmetically to the total catch. Fishes and invertebrates were identified and sorted to the lowest taxonomic level practicable. 
-
-> is the same still true for halibut in 2021? OR does it req more desc?
+Catches estimated to be less than approximately 1,200 kg (2,650 lbs) were entirely sorted and enumerated, while larger catches were weighed in aggregate and subsampled before sorting. After sorting subsampled catches, individual species were weighed and counted in aggregate, and these weights and numbers were then expanded arithmetically to the total catch. Fishes and invertebrates were identified and sorted to the lowest taxonomic level practicable. 
 
 Catch weights and numbers by species or species group were either estimated directly when subsampled, or estimated by extrapolating the proportion in the subsample to that of the entire catch weight. All Pacific halibut (*Hippoglossus stenolepis*) and commercial crab species were weighed and enumerated from each catch. Other selected species including Greenland turbot, large skates, Pacific cod, sculpins, sharks, and octopus were also completely sorted from the catch in most cases.
 
-> "maximum of about 300 specimens" ??? More like 100-150?
+Random samples of selected fish species (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_EBS", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" and ", crossref(list_obj = list_tables, nickname = "tab_specimen_samples_NBS", sublist = "number")), "")`) were further processed to obtain length measurements. The number of fish in a random length sample for a species was dependent on the size range of that species in the haul, up to a maximum of about 300 specimens. For each fish in a length sample, sex was determined and then the fork or total length was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture, `r ifelse(maxyr > 2020, "in all years other than 2021,", "")` 50% were randomly selected to receive a preopercule tag, after which the halibut were immediately returned to the sea in an effort to reduce mortality; weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
 
-> Courcelles 2012 was 2011 in my search? Also, should this my updated in 2021 considering absence of IHPC and how poorly that algo worked???
+`r list_table$tab_specimen_samples_EBS$res `
 
-> Not done int 2021: "50% were randomly selected to receive a preopercule tag,"
+`r ifelse(SRVY == "NEBS", tab_specimen_samples_NBS, "") `
 
-Random samples of selected fish species (Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`) were further processed to obtain length measurements. The number of fish in a random length sample for a species was dependent on the size range of that species in the haul, up to a maximum of about 300 specimens. For each fish in a length sample, sex was determined and then the fork or total length was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture, 50% were randomly selected to receive a preopercule tag, after which the halibut were immediately returned to the sea in an effort to reduce mortality; weights of all Pacific halibut were estimated using an IPHC length-weight regression (RN895).
-
-
-> How do I know "Stomach samples collected for arrowtooth flounder and Kamchatka flounder were combined."? 
-
-> what are pathobiology samples?
-
-> how do I select for otolith samples, e.g., not L-W?
-
-> I did not get the 2017 numbers in the report...
+> for next paragraph, use 0_oto_collections from general folder
 
 ```{r}
 temp <- specimen_maxyr %>% 
@@ -273,23 +262,16 @@ temp <- specimen_maxyr %>%
   dplyr::summarise(n = length(all_of(SRVY)))   
 ```
 
+Sagittal otoliths were collected in the field from `r NMFSReports::text_list(paste0(temp$n, " fish species in the ", temp$SRVY))` (Tables 
+`r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_EBS", sublist = "number")`
+`r ifelse(SRVY == "NEBS", paste0(", ", crossref(list_obj = list_tables, nickname = "tab_specimen_samples_NBS", sublist = "number")), "")`
+`r ifelse(SRVY == "NEBS", ", "," and")` `r crossref(list_obj = list_tables, nickname = "tab_oto_collections_EBS", sublist = "number")`
+`r ifelse(SRVY == "NEBS", paste0(", and ", crossref(list_obj = list_tables, nickname = "tab_oto_collections_NBS", sublist = "number")), "")`) and brought to the AFSC to be processed for age determination. Depending on fish species, a length-stratified or a random sampling method was used for collecting otolith pairs in `r ifelse(SRVY == "NEBS", "the NBS and ", "")`two different EBS regions (southeast and northwest; Table `r crossref(list_obj = list_tables, nickname = "tab_oto_collections_EBS", sublist = "number")`
+`r ifelse(SRVY == "NEBS", paste0(" and ", crossref(list_obj = list_tables, nickname = "tab_oto_collections_NBS", sublist = "number")), "")`). Otoliths were preserved in 50% glycerol-thymol solution. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, the survey area was also divided into low- and high-density strata based on historical density and an isobath of approximately 70 m.  
 
-> Where can I automate "up to 20 random specimens of each Arctic cod (*Boreogadus saida*) and saffron cod (*Eleginus gracilis*)" from?
+`r list_table$tab_oto_collection_scheme_EBS$res `
 
-> Where can I automate "For the other species, individual fish weights and lengths were collected from each fish from which age structures were taken' from? - this doesn't have numbers, but should it?
-
-> way to automate this? What boats, surveys, and IHPC involvement: "Pacific halibut otoliths were only collected aboard the FV Vesteraalen during the `r SRVY ` survey and aboard the FV Alaska Knight during the NBS Rapid Response survey by the IPHC and were dried and stored without preservatives. "
-
-Sagittal otoliths were collected in the field from `r NMFSReports::text_list(paste0(temp$n, " fish species in the ", temp$SRVY)) ` (Table `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_EBS", sublist = "number")` `r paste0(" and ", crossref(list_obj = list_tables, nickname = "tab_specimen_samples_NBS", sublist = "number"))`) and brought to the AFSC to be processed for age determination. In addition, up to `20 random specimens of each Arctic cod (*Boreogadus saida*) and saffron cod (*Eleginus gracilis*)` were sampled from selected catch samples in which they were present, placed in plastic bags and frozen for otolith extraction and age determination at the AFSC. `For the other species, individual fish weights and lengths were collected from each fish from which age structures were taken`. `Pacific halibut otoliths were only collected aboard the FV Vesteraalen during the EBS survey and aboard the FV Alaska Knight during the NBS Rapid Response survey by the IPHC and were dried and stored without preservatives`. Otoliths for all other groundfishes were preserved in 50% glycerol-thymol solution.
-
-> where can I automate this whole paragraph from? Google drive for the poster?
-
-Depending on fish species, a length-stratified or a random sampling method was used for collecting otolith pairs in three different regions that included the southeast EBS, the northwest EBS, and the NBS. In the southeast and northwest EBS, length-stratified samples were collected from `Alaska plaice (*Pleuronectes quadrituberculatus*; 3/sex/cm/region), yellowfin sole (Limanda aspera, 5/sex/cm/region), northern rock sole (Lepidopsetta polyxystra, 3/sex/cm/region), Greenland turbot (Reinhardtius hippoglossoides; 3 cm/sex/region), yellow Irish lord (Hemilepidotus jordani, 3/sex/cm/region), and Kamchatka flounder (Atheresthes evermanni; 2/cm/sex/region)` and a random sample of otoliths were collected from `Pacific cod (Gadus macrocephalus, four otolith pairs per station)`. Also within the two `r SRVY ` regions, random collections of up to three otolith pairs per station were taken from `flathead sole (Hippoglossoides elassodon) and arrowtooth flounder (*A. stomias*)`. Sampling for `walleye pollock (G. chalcogrammus) otoliths was done randomly in the two EBS and NBS regions at each station in which the total number of walleye pollock in a catch sample was greater than 19. The survey area was also divided into low- and high-density strata based on historical density and an isobath of approximately 70 m. Five pairs of otoliths were collected in the high-density stratum and three in low-density stratum. Additionally, if juvenile walleye pollock (< 20 cm) were present in a sample, one additional pair of otoliths was taken from a randomly selected juvenile.`
-
-`r list_table$tab_specimen_samples_EBS$res `
-
-`r ifelse(SRVY == "NEBS", tab_specimen_samples_NBS, "") `
-
+`r ifelse(SRVY == "NEBS", tab_oto_collection_scheme_NBS, "") `
 
 ## Catch Data Analysis
 
@@ -297,7 +279,7 @@ Trawl survey catch data were used to derive design-based estimates of biomass, p
 
 Mean catch per unit effort (CPUE) values for each species were calculated in kilograms per hectare (1 ha = 10,000 m^2^) and number of fish per hectare for each stratum; area swept (hectares) was computed as the distance towed multiplied by the mean net width [@RN889; @RN910]. Mean CPUE values were calculated for individual strata and for the overall survey area. Design-based biomass and population estimates were derived for each stratum by multiplying the stratum mean CPUE by the stratum area. Stratum totals were then summed to produce estimates for each of the strata and for the total survey area in the `r SRVY `. 
 
-For size composition estimates, the proportion of fish at each centimeter length interval (from subsamples at each station), weighted by CPUE (number of fish/ha), was expanded to the stratum population. Stratum abundance-at-length estimates were summed for the total estimated size composition for the overall survey area in both the `r SRVY `.
+For size composition estimates, the proportion of fish at each centimeter length interval (from subsamples at each station), weighted by CPUE (number of fish/ha), was expanded to the stratum population. Stratum abundance-at-length estimates were summed for the total estimated size composition for the overall survey area in the `r NMFSReports::text_list(paste0(SRVY1))`.
 
 > which year is appropriate and what citation can I use, assuming it hasn't come out yet? "2018 NPFMC Stock Assessment and Fishery Evaluation Report for the Groundfish Resources of the Bering Sea/Aleutian Islands Region [@RN918]"
 

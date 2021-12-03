@@ -30,7 +30,7 @@ nbs_insert <- ifelse(SRVY == "NEBS",
                              NMFSReports::numbers2words_th(
                                haul_cruises_maxyr %>% 
                                  dplyr::filter(SRVY == "NBS") %>%
-                                 dplyr::select(yrofsurvey )),
+                                 dplyr::select(yrofsurvey)),
                              " time since 2010 that the NBS survey was done. The expanded study area covered the entire Bering Sea continental shelf (hereafter referred to as the “NEBS”) from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
                              # EBS
                              "The study area covered the southeastern Bering Sea continental shelf from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and to approximately the latitude of St. Matthew Island (60° 50' N).")
@@ -54,14 +54,12 @@ if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_complet
 
 From `r temp$start_mo_long` to `r temp$end_mo_long` `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center’s Resource Assessment and Conservation Engineering Division conducted its `r temp$yrofsurvey ``r temp$stndth ` annual `r SURVEY ` (`r SRVY `) continental shelf bottom trawl survey of groundfish and invertebrate fauna. `r nbs_insert` `r CapFirst(NMFSReports::numbers2words(nrow(vessel_info)))` stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$vessel_ital)) `, were chartered to sample the `r SRVY `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations centered within a stratified systematic grid consisting of a total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_avail, " stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. `r temp_insert `. 
 
-> need weighted temperature by bottom area script from rebecca
-
 ```{r}
 # long term mean --------------------------------
-temp0 <- temps_wt_avg_yr_longterm
+temp0 <- temps_avg_yr
 
 
-if (sum(temps_wt_avg_yr$SRVY == "NBS") <= 6 |   # TOLEDO - may do NBS in the future when there are more years?
+if (sum(temps_avg_yr$SRVY == "NBS") <= 6 |   # TOLEDO - may do NBS in the future when there are more years?
     sum(temp0$SRVY == "NBS") == 0) { #this year has NBS data, too
 temp0 <- temp0 %>% 
   dplyr::filter(SRVY == "EBS")
@@ -120,33 +118,13 @@ temp_insert <- paste0(temp_insert1,
                       temp_insert2)
 
 ```
-
 `r temp_insert` 
 
-
-```{r}
-
-# TOLEDO
-# define stanzas by defining years of consequative cold and warm years
-
-# Using the long-term time series of bottom temperatures from the EBS shelf survey as reference, the years `r NMFSReports::text_list(sort(temps_avg_yr_abovebelow$below)) ` were colder than average ("cold stanza") and the years `r NMFSReports::text_list(sort(temps_avg_yr_abovebelow$above)) ` were warmer than average ("warm stanza"). 
-
-
-# temp <- temps_avg_yr %>% 
-#       dplyr::filter(SRVY == "EBS" #& bt_above_mean == TRUE
-#                     ) %>% 
-#   dplyr::select(year, bt_above_mean)
-# 
-# for (i in 1:nrow(temp)) {
-#   
-# }
-
-
-```
+For the fifth consecutive year, average surface (7.6°C) and bottom (4.2 °C) water temperatures for the EBS shelf were well above the long-term means from 1982 to 2018 for the surface (6.6°C) and for the bottom (2.5°C). 
 
 > below from NBS report, to replace above
 
-Bottom temperature is a major environmental driver that can affect the distribution of fishes, crabs, and other invertebrates on the shelf (Figures `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')` and `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). Using the long-term time series of bottom temperatures from the EBS shelf survey as reference, the years 2006-2013 were colder than average ("cold stanza") and the years 2002-2005 and 2014-2019 were warmer than average ("warm stanza"). During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series (1982–`r maxyr`) of the annual EBS shelf bottom trawl survey, mean summer bottom temperatures were variable, ranging from `r round(min(temps_avg_yr$bt), digits = 1)`°C (`r round(c2f(min(temps_avg_yr$bt)), digits = 1)`°F) to `r round(max(temps_avg_yr$bt), digits = 1)`°C (`r round(c2f(max(temps_avg_yr$bt)), digits = 1)`°F), with a grand mean for all years of `r round(temps_avg_yr$bt_mean[1], digits = 1)`°C  (`r round(c2f(temps_avg_yr$bt_mean[1]), digits = 1)`°F) (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`).
+Bottom temperature is a major environmental driver that can affect the distribution of fishes, crabs, and other invertebrates on the shelf (Figures `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')` and `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). Using the long-term time series of bottom temperatures from the EBS shelf survey as reference, the years 2006-2013 were colder than average ("cold stanza") and the years 2002-2005 and 2014-2019 were warmer than average ("warm stanza"). During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series (1982–`r maxyr`) of the annual EBS shelf bottom trawl survey, mean summer bottom temperatures were variable, ranging from `r round(min(temps_avg_yr$bt), digits = 1)`°C to `r round(max(temps_avg_yr$bt), digits = 1)`°C, with a grand mean for all years of `r round(temps_avg_yr$bt_mean[1], digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`).
 
 
 
@@ -220,7 +198,6 @@ nbs_insert <- paste0(
 insert <- readtext2(file = paste0(dir_out_rawdata, "/0_abstract_conclusion.docx"), 
                     refcontent = refcontent)
 ```
-
 
 
 `r nbs_insert ``r insert`

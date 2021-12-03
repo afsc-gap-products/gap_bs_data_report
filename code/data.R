@@ -103,7 +103,8 @@ if (googledrive_dl) {
                               path = paste0(dir_out_rawdata, "/0_species_local_names"))
   
   # Spreadsheets
-  a <- googledrive::drive_ls(path = id_googledrive, type = "spreadsheet")
+  # https://drive.google.com/drive/folders/1Vbe_mH5tlnE6eheuiSVAFEnsTJvdQGD_?usp=sharing
+  a <- googledrive::drive_ls(path = googledrive::as_id("1Vbe_mH5tlnE6eheuiSVAFEnsTJvdQGD_"), type = "spreadsheet")
   for (i in 1:nrow(a)){
     googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
                                 type = "csv", 

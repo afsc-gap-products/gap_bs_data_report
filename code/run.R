@@ -24,6 +24,7 @@ usePNGPDF <- "png"
 # SRVY<-"EBS"
 # ref_compareyr_ebs <- "@RN976" # temp
 # ref_compareyr_nbs <- "@RN909" # temp
+# ref_maxyr_npfmc <- "@RN909" # temp
 
 # maxyr <- 2017 # or the year of the report, for example
 # compareyr <- 2010
@@ -31,6 +32,7 @@ usePNGPDF <- "png"
 # SRVY<-"NEBS"
 ref_compareyr_ebs <- "@RN976"
 ref_compareyr_nbs <- "@RN909"
+ref_maxyr_npfmc <- "@RN909" # temp
 dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
 # maxyr <- 2018 # NOTE RAPID RESPONCE
@@ -38,11 +40,15 @@ dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.co
 # SRVY<-"NEBS"
 # ref_compareyr_ebs <- "@RN976" # CHANGE
 # ref_compareyr_nbs <- NA # CHANGE
+# ref_maxyr_npfmc <- "@RN909" # temp
 # dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019 
 # compareyr <- 2017
 # SRVY<-"NEBS" 
+# ref_compareyr_ebs <- "@RN976" # CHANGE
+# ref_compareyr_nbs <- NA # CHANGE
+# ref_maxyr_npfmc <- "@RN909" # temp
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
 maxyr <- 2021
