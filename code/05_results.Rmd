@@ -24,34 +24,34 @@ A total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_complete
 ## Ocean Conditions
 
 ```{r}
-temp <- dplyr::left_join(x = temps_wt_avg_yr %>% 
+temp <- dplyr::left_join(x = temps_avg_yr %>% 
   dplyr::filter(year %in% c(maxyr)), 
-  y = temps_wt_avg_yr %>% 
+  y = temps_avg_yr %>% 
   dplyr::filter(year %in% c(maxyr-1)) %>% 
     dplyr::select(SRVY, bt_wt, st_wt) %>% 
-    dplyr::rename(bt_wt_1 = bt_wt,
-                  st_wt_1 = st_wt),
+    dplyr::rename(bt_1 = bt_wt,
+                  st_1 = st_wt),
   by = "SRVY") %>% 
-  dplyr::mutate(bt_wt_1_diff = (bt_wt_1 - bt_wt)) %>% 
-  dplyr::mutate(st_wt_1_diff = (st_wt_1 - st_wt)) %>% 
-  dplyr::mutate(bt_wt_mean_diff = (bt_wt_mean - bt_wt)) %>% 
-  dplyr::mutate(st_wt_mean_diff = (st_wt_mean - st_wt)) %>% 
-  dplyr::filter(!is.na(bt_wt_1))
+  dplyr::mutate(bt_1_diff = (bt_1 - bt_wt)) %>% 
+  dplyr::mutate(st_1_diff = (st_1 - st_wt)) %>% 
+  dplyr::mutate(bt_mean_diff = (bt_mean - bt_wt)) %>% 
+  dplyr::mutate(st_mean_diff = (st_mean - st_wt)) %>% 
+  dplyr::filter(!is.na(bt_1))
 
-temp <- temps_wt_avg_strat %>% 
+temp <- temps_avg_strat %>% 
   dplyr::filter(year == maxyr)
 
 
-st_mean_maxyr <- temps_wt_avg_yr_longterm$st_wt[temps_wt_avg_yr_longterm$SRVY == "EBS"]
-st_mean_maxyr_1 <- temps_wt_avg_yr$st_wt[temps_wt_avg_yr$year == (maxyr-1) & temps_wt_avg_yr$SRVY == "EBS"]
-st_mean_longterm <- temps_wt_avg_yr$st_wt[temps_wt_avg_yr$year == (maxyr-1) & temps_wt_avg_yr$SRVY == "EBS"]
+st_mean_maxyr <- temps_avg_yr_longterm$st_wt[temps_avg_yr_longterm$SRVY == "EBS"]
+st_mean_maxyr_1 <- temps_avg_yr$st_wt[temps_avg_yr$year == (maxyr-1) & temps_avg_yr$SRVY == "EBS"]
+st_mean_longterm <- temps_avg_yr$st_wt[temps_avg_yr$year == (maxyr-1) & temps_avg_yr$SRVY == "EBS"]
 ```
 
-> so different!!! Sea surface temperatures recorded during the `r maxyr ` `r SRVY` survey ranged from `r round(x = min(temp$st_wt_stratum), digits = 1)`° to `r round(x = max(temp$st_wt_stratum), digits = 1)`°C --> should it be `r `round(x = min(haul$surface_temperature, na.rm = TRUE), digits = 1)` ???
+> so different!!! Sea surface temperatures recorded during the `r maxyr ` `r SRVY` survey ranged from `r round(x = min(temp$st_stratum), digits = 1)`° to `r round(x = max(temp$st_stratum), digits = 1)`°C --> should it be `r `round(x = min(haul$surface_temperature, na.rm = TRUE), digits = 1)` ???
 
 > how to automate "In the EBS south of 60° N, surface temperatures increased from east to west across the shelf, and in the NBS they were generally higher and above 10°C in Norton Sound"
 
-Sea surface temperatures recorded during the `r maxyr ` `r SRVY` survey ranged from `r round(x = min(haul$surface_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul$surface_temperature, na.rm = TRUE), digits = 1)`°C and bottom temperatures ranged from `r round(x = min(haul$gear_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul$gear_temperature, na.rm = TRUE), digits = 1)`°C. The stratum-area weighted mean sea surface temperature for the EBS alone was `r round(x = st_mean_maxyr, digits = 1)`°C, which was `r round(x = st_mean_maxyr_1-st_mean_maxyr, digits = 1)`°C `r ifelse((st_mean_maxyr_1-st_mean_maxyr)>0, "lower", "higher")` than `r maxyr-1` (`r round(x = st_mean_maxyr_1, digits = 1)`°C) and `r round(x = st_mean_longterm-st_mean_maxyr, digits = 1)`°C `r ifelse((st_mean_longterm-st_mean_maxyr)>0, "lower", "higher")` the time-series mean (`r round(x = st_mean_longterm, digits = 1)`°C) (Figure `r crossref(list_obj = list_figures, nickname = 'fig_temp_weight_mean', sublist = 'number')`). In the EBS south of 60° N, surface temperatures increased from east to west across the shelf, and in the NBS they were generally higher and above 10°C in Norton Sound (Figure `r crossref(list_obj = list_figures, nickname = 'fig_idw_surftemp_maxyr', sublist = 'number')`).
+Sea surface temperatures recorded during the `r maxyr ` `r SRVY` survey ranged from `r round(x = min(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`°C and bottom temperatures ranged from `r round(x = min(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`°C. The mean sea surface temperature for the EBS was `r round(x = temps_avg_yr$st[temps_avg_yr$year == maxyr], digits = 1)`°C, which was `r round(x = temps_avg_yr$st[temps_avg_yr$year == max(temps_avg_yr$year[temps_avg_yr$year != maxyr])] - temps_avg_yr$st[temps_avg_yr$year == maxyr], digits = 1)`°C `r ifelse((temps_avg_yr$st[temps_avg_yr$year == max(temps_avg_yr$year[temps_avg_yr$year != maxyr])] < temps_avg_yr$st[temps_avg_yr$year == maxyr]), "lower", "higher")` than `r maxyr-1` (`r round(x = st_mean_maxyr_1, digits = 1)`°C) and `r round(x = st_mean_longterm-st_mean_maxyr, digits = 1)`°C `r ifelse((st_mean_longterm-st_mean_maxyr)>0, "lower", "higher")` the time-series mean (`r round(x = st_mean_longterm, digits = 1)`°C) (Figure `r crossref(list_obj = list_figures, nickname = 'fig_temp_weight_mean', sublist = 'number')`). In the EBS south of 60° N, surface temperatures increased from east to west across the shelf, and in the NBS they were generally higher and above 10°C in Norton Sound (Figure `r crossref(list_obj = list_figures, nickname = 'fig_idw_surftemp_maxyr', sublist = 'number')`).
 
 `r list_figure$fig_temp_weight_mean$res `
 

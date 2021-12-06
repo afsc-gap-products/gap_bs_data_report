@@ -584,14 +584,6 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ## tab_specimen_samples_
 
-> How do I know "Stomach samples collected for arrowtooth flounder and Kamchatka flounder were combined."? 
-
-> what are pathobiology samples?
-
-> how do I select for otolith samples, e.g., not L-W?
-
-> I did not get the 2017 numbers in the report...
-
 ```{r tab_specimen_samples_}
 nickname0 <- paste0("tab_specimen_samples_") 
 
@@ -613,7 +605,9 @@ a <- specimen_maxyr %>%
   dplyr::ungroup() #%>% 
 
 # other collections not in oracle
-temp <- readr::read_csv(paste0(dir_out_rawdata, "/0_other_field_collections.csv"), skip = 1) %>%
+temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_other_field_collections.xlsx"), 
+                         sheet = "Sheet1", 
+                         skip = 1) %>%
   dplyr::filter(year == maxyr) %>% 
   dplyr::select(SRVY, print_name, dplyr::starts_with("count_")) %>% 
   dplyr::select(where(~sum(!is.na(.x)) > 0)) 
@@ -724,7 +718,10 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 nickname0 <- paste0("tab_oto_collection_scheme_") 
 
- table_raw0 <- readr::read_csv(paste0(dir_out_rawdata, "/0_collection_scheme.csv"), skip = 1) %>% 
+
+table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_scheme.xlsx"), 
+                         sheet = "Sheet1", 
+                         skip = 1) %>% 
    dplyr::filter(year == maxyr & !is.na(oto_target)) %>% 
   dplyr::select(SRVY, print_name, species_code, oto_target, oto_rules, oto_samp_type) %>% 
   dplyr::left_join(
@@ -802,47 +799,88 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 }
 ```
 
+
+## tab_stomach_collection_scheme
+
+```{r tab_stomach_collection_scheme}
+
+nickname <- paste0("tab_stomach_collection_scheme") 
+  
+header <- paste0("Stomach collection scheme during the ", 
+                   maxyr, " ", 
+                   NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " (", 
+                   haul_cruises_maxyr$SRVY, ")")),
+                   " shelf bottom trawl survey.")
+  
+table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_scheme.xlsx"), 
+                         sheet = "Sheet1", 
+                         skip = 1) %>% 
+   dplyr::filter(year == maxyr & !is.na(stomach_target)) %>% 
+  dplyr::select(SRVY, print_name, species_code, stomach_target) %>% 
+  dplyr::left_join(
+    x = ., 
+    y = report_spp1 %>% 
+      dplyr::select(print_name, species_name1, order) %>% 
+      dplyr::rename(species_name = species_name1) %>% 
+      dplyr::distinct(), 
+    by = "print_name") %>% 
+  dplyr::arrange(order) %>% 
+  dplyr::arrange(stomach_target) %>% 
+  dplyr::arrange(SRVY) %>% 
+   dplyr::select(-order, -species_code) %>% 
+   dplyr::relocate(SRVY, print_name, species_name, stomach_target) %>% 
+  dplyr::mutate(stomach_target = round(as.numeric(stomach_target), digits = 0)) %>% 
+  tidyr::pivot_wider(data = ., id_cols = c("print_name", "species_name"), names_from = "SRVY", values_from = "stomach_target")
+
+    
+table_print <- flextable::flextable(table_raw) %>% 
+  flextable::italic(x = ., j = "species_name") %>% 
+      flextable::set_header_labels(.,
+                                 print_name = "Common name", 
+                                 species_name = "Scientific name", 
+                                 stomach_target = "Target collection number per survey") %>%
+  NMFSReports::theme_flextable_nmfstm(x = ., row_lines = FALSE) 
+
+    
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+list_tables[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```
+
 ## tab_special_projects
 
 > are blank special project titles not to be included?
 
 
 ```{r tab_special_projects}
-nickname0 <- "tab_special_projects" 
+nickname <- "tab_special_projects" 
 # footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
 
-places <- data.frame(matrix(data = c("AFSC", 
-                                     "Alaska Fisheries Science Cener", 
-                                     "ADF&G", "Alaska Department of Fish & Game", 
-                                     "FMA", 
-                                     "Fisheries Monitoring & Assessment Division", 
-                                     "IPHC", 
-                                     "International Pacific Halibut Commission", 
-                                     "NWFSC", 
-                                     "Northwest Fiseries Science Center", 
-                                     "PMEL", 
-                                     "Pacific Marine Environmental Laboratory", 
-                                     "RACE", 
-                                     "Resource Assessment & Conservation Engineering Division", 
-                                     "REFM", 
-                                     "Resource Ecology & Fisheries Management Division", 
-                                     "TSMRI", 
-                                     "Ted Stevens Marine Research Institute.", 
-                                     "UAF", 
-                                     "University of Alaska Fairbanks", 
-                                     "MML", 
-                                     "Marine Mammal Laboratory",
-                                     "UW", 
-                                     "University of Washington"), 
-                            ncol = 2, 
-                            byrow = TRUE)) 
-names(places) <- c("agency", "agency_long")
+
+places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
+                         sheet = "affiliations", 
+                         skip = 1)
 
 newobj <- TRUE
 
-temp <- readr::read_csv(paste0(dir_out_rawdata, "/0_special_projects.csv"), skip = 1) %>% 
+temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
+                         sheet = "projects", 
+                         skip = 1) %>% 
   dplyr::select(SRVY, `Project Title`, `Principal investigator`, Agency) %>% 
-  dplyr::filter(!is.na(`Project Title`)) %>% 
+  dplyr::filter(!is.na(`Project Title`) & 
+                  year == maxyr) %>% 
   dplyr::arrange(desc(SRVY))
 
 # for (i in 1:nrow(haul_cruises_maxyr)) {
@@ -860,12 +898,17 @@ table_raw <- temp #%>%
 # dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
 # dplyr::select(-SRVY)
 
-temp1 <- places[places$agency %in% unique(table_raw$Agency), ]
-footnote0 <- paste(paste(temp1$agency, " - ", temp1$agency_long, sep = ""), collapse = "; ")
-
-table_print <- table_raw %>% 
-  flextable::flextable(.) %>% 
-  theme_flextable_nmfstm() %>% 
+temp1 <- places[places$Agency %in% unique(table_raw$Agency), ]
+footnote0 <- paste(paste(temp1$Agency, " - ", temp1$agency_long, sep = ""), collapse = "; ")
+  
+table_print <- table_raw %>%
+    flextable::as_grouped_data(groups = c("SRVY"), columns = NULL) %>% 
+    flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
+  flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+  flextable::padding(x = ., 
+                     j = 1, i = ~ is.na(SRVY), 
+                     padding.left = 20) %>%
+  theme_flextable_nmfstm(row_lines = FALSE) %>% 
   flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
   flextable::footnote(x = ., value = as_paragraph(footnote0), part = "header", j = "Agency") 
 
@@ -1135,17 +1178,17 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ```
 
-## fig_bt_all_nebs_surveys
+## fig_bt_timeseries_
 
 > need to figure out how to plot whole NBS
 
-```{r fig_bt_all_nebs_surveys_}
+```{r fig_bt_timeseries_}
 # nickname0 <- "fig_idw_bottemp_longterm_mean_"
-nickname0 <- "fig_bt_all_nebs_surveys_"
+nickname0 <- "fig_bt_timeseries_"
 
 for (i in 1:2) { # two cases, above and below
   
-  hieght <- 5
+  hieght <- 3
   width <- 6
   
   subobj <- TRUE
@@ -1208,46 +1251,6 @@ for (i in 1:2) { # two cases, above and below
 }
 
 ```
-
-## fig_bt_all_nebs_surveys
-
-```{r fig_bt_all_nebs_surveys1}
-# nickname <- "fig_bt_all_nebs_surveys"
-# height <- 7
-# width <- 6
-# 
-# header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
-#                  NMFSReports::text_list(nbsyr),
-#                  " surveys, which are the years when the survey included the full NBS shelf.")
-# 
-# rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
-#                               subset = paste0("ebs_ste_", nbsyr, "_gear_temperature"))
-# figure <- plot_temps_facet(
-#   rasterbrick = rasterbrick, 
-#   key.title = expression(bold("Bottom Temperature (°C)")), 
-#   reg_dat = reg_dat, 
-#   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-#   viridis_palette_option = "H") 
-# 
-# # save yo' stuff and do a lot of behind the scenes work
-# # alt: this does the same thing as calling "child = " in the chunk header
-# res <- knitr::knit_child(
-#   text = knitr::knit_expand(
-#     file = system.file("rmd/_child_save_fig.Rmd", 
-#                        package = "NMFSReports")), 
-#   quiet = TRUE
-# )
-# 
-# list_figures[nickname][[1]]$res <- res <- paste0("
-# ###### 
-# 
-# ",res,"
-# 
-# ")
-
-```
-
-
 ## fig_st_all_nebs_surveys
 
 
@@ -1287,8 +1290,6 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ")
 
 ```
-
-
 
 ## tab_species_composition
 

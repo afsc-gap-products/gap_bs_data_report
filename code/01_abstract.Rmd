@@ -54,16 +54,18 @@ if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_complet
 
 From `r temp$start_mo_long` to `r temp$end_mo_long` `r maxyr`, the National Marine Fisheries Service’s Alaska Fisheries Science Center’s Resource Assessment and Conservation Engineering Division conducted its `r temp$yrofsurvey ``r temp$stndth ` annual `r SURVEY ` (`r SRVY `) continental shelf bottom trawl survey of groundfish and invertebrate fauna. `r nbs_insert` `r CapFirst(NMFSReports::numbers2words(nrow(vessel_info)))` stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$vessel_ital)) `, were chartered to sample the `r SRVY `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations centered within a stratified systematic grid consisting of a total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_avail, " stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition of the catch was determined, and length distributions and age structure samples were collected from ecologically and commercially important species. `r temp_insert `. 
 
+
+## Seafloor Bottom Temperature
+
 ```{r}
 # long term mean --------------------------------
 temp0 <- temps_avg_yr
-
 
 if (sum(temps_avg_yr$SRVY == "NBS") <= 6 |   # TOLEDO - may do NBS in the future when there are more years?
     sum(temp0$SRVY == "NBS") == 0) { #this year has NBS data, too
 temp0 <- temp0 %>% 
   dplyr::filter(SRVY == "EBS")
-temp_insert2 <- paste0("NBS weighted mean surface and bottom temperatures were not calculated because the NBS has only been surveyed ",
+temp_insert2 <- paste0("NBS mean surface and bottom temperatures were not calculated because the NBS has only been surveyed ",
                         numbers2words(x = haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY %in% "NBS"]),
                         " times since ",
                         haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY %in% "NBS"],". ")
@@ -73,10 +75,11 @@ temp_insert2 <- paste0("NBS weighted mean surface and bottom temperatures were n
 
 temp_insert1 <- ""
 # warmer than previous year/how many consecutive years?
-for (i in 1:nrow(temp0)){
+# temp<-temp0
+for (i in 1:length(unique(temp0$SRVY))){
   
   temp <- temp0 %>% 
-  dplyr::filter(SRVY == temp$SRVY[i])
+    dplyr::filter(year == maxyr)
     
   if (sum(temp$nthyr > 1)>(nrow(temp)-1)) { # 
     temp_insert1 <- paste0(temp_insert1, 
@@ -90,20 +93,20 @@ for (i in 1:nrow(temp0)){
   # were both sst and bt both warmer/colder?
   if (grepl(pattern = "both", x = temp$case)) { # they were both...
     temp_insert1 <- paste0(temp_insert1, "In ", maxyr,", both the mean surface (",
-                           round(x = temp$st_wt, digits = 1),
+                           round(x = temp$st, digits = 1),
                            "°C) and bottom (",
-                           round(x = temp$bt_wt, digits = 1),
+                           round(x = temp$bt, digits = 1),
                            "°C) water temperatures were ", 
                            ifelse(grepl(pattern = "warm", x = temp$case), "warmer", "colder"))
   } else { # they were not both...
     temp_insert1 <- paste0(temp_insert1, "In ", maxyr,", the surface (",
-                           round(x = temp$st_wt, digits = 1),
+                           round(x = temp$st, digits = 1),
                            "°C) were ",
-                         ifelse(temp$st_wt_above_mean, "warmer", "colder"),
+                         ifelse(temp$st_mean, "warmer", "colder"),
                          " and bottom (",
-                           round(x = temp$bt_wt, digits = 1),
+                           round(x = temp$bt, digits = 1),
                            "°C) water temperatures were ", 
-                         ifelse(temp$bt_wt_above_mean, "warmer", "colder"))
+                         ifelse(temp$bt_mean, "warmer", "colder"))
   }
 }
 
@@ -111,24 +114,13 @@ temp_insert <- paste0(temp_insert1,
                        " than the survey long term (",
                          haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY %in% temp$SRVY],"-",(maxyr-1), 
                        ") averages of ",
-                       round(x = mean(temp$st_wt_mean, na.rm = T), digits = 1),
+                       round(x = mean(temp$st_mean, na.rm = T), digits = 1),
                        "°C for the surface and ",
-                       round(x = mean(temp$bt_wt_mean, na.rm = T), digits = 1),
+                       round(x = mean(temp$bt_mean, na.rm = T), digits = 1),
                        "°C for the bottom. ", 
                       temp_insert2)
 
-```
-`r temp_insert` 
 
-For the fifth consecutive year, average surface (7.6°C) and bottom (4.2 °C) water temperatures for the EBS shelf were well above the long-term means from 1982 to 2018 for the surface (6.6°C) and for the bottom (2.5°C). 
-
-> below from NBS report, to replace above
-
-Bottom temperature is a major environmental driver that can affect the distribution of fishes, crabs, and other invertebrates on the shelf (Figures `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')` and `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). Using the long-term time series of bottom temperatures from the EBS shelf survey as reference, the years 2006-2013 were colder than average ("cold stanza") and the years 2002-2005 and 2014-2019 were warmer than average ("warm stanza"). During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series (1982–`r maxyr`) of the annual EBS shelf bottom trawl survey, mean summer bottom temperatures were variable, ranging from `r round(min(temps_avg_yr$bt), digits = 1)`°C to `r round(max(temps_avg_yr$bt), digits = 1)`°C, with a grand mean for all years of `r round(temps_avg_yr$bt_mean[1], digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`).
-
-
-
-```{r}
 # Species counts -------------------------------------
   temp <- spp_info_maxyr %>% 
     dplyr::filter(used_in_counts == TRUE) 
@@ -140,9 +132,9 @@ Bottom temperature is a major environmental driver that can affect the distribut
 ```
 
 
-In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified. `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera of fish were observed in the data, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms across `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
+`r temp_insert` In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified. `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera of fish were observed in the data, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms across `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
 
-The distribution and relative abundance of `r xunits(sum(length(report_species$fish1), length(report_species$fish2), length(report_species$fish3)))` different fish species and `r xunits(sum(length(report_species$invert1), length(report_species$invert3)))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr ` and `r maxyr` `r SRVY` shelf bottom trawl surveys. For the more common fish species, there are also plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r SRVY` surveys. Tables provide estimates of bottom trawl survey biomass for most fishes and invertebrates, as well as estimates of population size for the most common fishes. Appendices provide station data, summarized catch data by station, listings of taxa, and detailed analyses of abundance and biological data of the sampled populations. 
+The distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))` different fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr ` and `r maxyr` `r SRVY` shelf bottom trawl surveys. For the more common fish species, there are also plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r SRVY` surveys. Tables provide estimates of bottom trawl survey biomass for most fishes and invertebrates, as well as estimates of population size for the most common fishes. Appendices provide station data, summarized catch data by station, listings of taxa, and detailed analyses of abundance and biological data of the sampled populations. 
 
 
 Survey results presented herein include abundance estimates for fishes and invertebrates, geographic distributions and abundance-at-length of the more common fish species, and summary surface and bottom temperature data during the summer survey period. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data of the sampled populations.
@@ -154,38 +146,7 @@ Survey results presented herein include abundance estimates for fishes and inver
 
 ```{r}
 
-if (
-  # NMFSReports::pchange(start = sum(biomass_compareyr$biomass),
-  #                        end = sum(biomass_maxyr$biomass),
-  #                        value_only = TRUE)>10 & # if there is a greater than X% difference
-    SRVY == "NEBS") {
-
-  # dat_biomass_compspp <- 
-  #   dplyr::left_join(
-  #   x = biomass_maxyr %>%
-  #     dplyr::select(biomass, SRVY, species_name, species_code, fish, invert) %>%
-  #     dplyr::group_by(SRVY, species_name, species_code, fish, invert) %>%
-  #     dplyr::summarise(biomass_maxyr = sum(biomass, na.rm=T)),
-  #   y = biomass_compareyr %>%
-  #     dplyr::select(biomass, SRVY, species_name, species_code, fish, invert) %>%
-  #     dplyr::group_by(SRVY, species_name, species_code, fish, invert) %>%
-  #     dplyr::summarise(biomass_compareyr = sum(biomass, na.rm=T))) %>%
-  #   dplyr::mutate(diff = (biomass_maxyr - biomass_compareyr)) %>%
-  #   # dplyr::mutate(absdiff = abs(diff)) %>%
-  #   dplyr::mutate(pchange = diff/biomass_compareyr) %>%
-  #   # dplyr::mutate(abspchange = abs(pchange)) %>%
-  #   dplyr::arrange(desc(abs(diff), abs(pchange))) %>%
-  #   dplyr::filter(!is.na(species_name) &
-  #                   !(pchange %in% c(0,-1,NaN,NA, Inf,-Inf)))
-  # 
-  #   dat_biomass_compspp_notfish1 <- dat_biomass_compspp %>%
-  #     dplyr::filter(invert == TRUE)
-  #   inc <- sum(dat_biomass_compspp_notfish1$pchange > 0)
-  #   dec <- inc-nrow(dat_biomass_compspp_notfish1)
-  # 
-  # 
-  #   dat_biomass_compspp_fish <- dat_biomass_compspp %>%
-  #     dplyr::filter(fish == TRUE)
+if (SRVY == "NEBS") {
 
 nbs_insert <- paste0(
   "Between ", compareyr, " and ", maxyr, "the total CPUE values for many of the animals in the NBS shifted from being low in ", compareyr, " to being much higher in ", maxyr, ". The total estimated animal biomass in the NBS increased from ", xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == "NBS"])) ," t in ", compareyr, " to ", xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == "NBS"]))," t in ", maxyr)

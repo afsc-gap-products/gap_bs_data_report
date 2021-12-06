@@ -107,14 +107,11 @@ if (FALSE) {
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
   
   for (jj in 1:length(unique(report_spp1$file_name))) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
     start_time <- Sys.time()
-    # cnt_chapt<-auto_counter(cnt_chapt)
-    # cnt_chapt_content<-"001"
     filename00<-paste0(cnt_chapt, "_spp_")
     rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                       output_dir = dir_out_ref,
@@ -153,13 +150,12 @@ rmarkdown::render(paste0(dir_code, "/02_introduction.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 03 - History ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_history_")
-rmarkdown::render(paste0(dir_code, "/03_history.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+# # *** *** 03 - History ------------------------
+# cnt_chapt<-auto_counter(cnt_chapt)
+# filename0<-paste0(cnt_chapt, "_history_")
+# rmarkdown::render(paste0(dir_code, "/03_history.Rmd"),
+#                   output_dir = dir_out_chapters,
+#                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
 # *** *** 04 - Methods ------------------------
