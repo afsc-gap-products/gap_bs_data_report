@@ -258,10 +258,8 @@ Random samples of selected fish species (Table`r ifelse(SRVY == "NEBS", "s", "")
 
 `r ifelse(SRVY == "NEBS", list_tables$tab_specimen_samples_NBS$res, "") `
 
-
 ```{r}
 temp <- specimen_maxyr %>% 
-  # dplyr::filter(!is.na(age_determination_method)) %>% # TOLEDO - is this how I get otolith samples?
   dplyr::group_by(SRVY = all_of(SRVY)) %>% 
   dplyr::summarise(species_code_n = unique(species_code)) %>% 
   dplyr::summarise(n = length(all_of(SRVY)))   
@@ -279,13 +277,11 @@ Sagittal otoliths were collected in the field from `r NMFSReports::text_list(pas
 
 `r ifelse(SRVY == "NEBS", list_tables$tab_oto_collection_scheme_NBS$res, "") `
 
-> # TOLEDO - Liz fill out the rest of this paragraph!  
-
 ```{r}
 temp <- NMFSReports::crossref(list_obj = list_tables, nickname = "tab_stomach_collection_scheme", sublist = "raw")  
 ```
 
-Stomachs were collected in the field from `r nrow(temp)` fish species (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_stomach_collection_scheme", sublist = "number") `). Stomachs were preserved in the field in 10% formalin. Arrowtooth flounder and Kamchatka flounder (*[insert spp name]*) stomachs were collected together as one genus because they represent the same ecological niche. 
+Stomachs were collected in the field from `r nrow(temp)` fish species (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_stomach_collection_scheme", sublist = "number") `). Stomachs were preserved in the field in 10% formalin. Arrowtooth flounder and Kamchatka flounder (*Atheresthes spp.*) stomachs were collected together as one genus because they represent the same ecological niche. 
 
 `r list_tables$tab_stomach_collection_scheme$res `
 
