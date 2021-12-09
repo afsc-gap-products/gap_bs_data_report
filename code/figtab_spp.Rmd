@@ -257,10 +257,10 @@ if (spp_plot_idw){
 
 ```
 
-## fig_sizecomp_nbs_[spp]
+## fig_sizecomp_[spp]
 
 
-```{r fig_sizecomp_nbs_}
+```{r fig_sizecomp_}
 if (spp_plot_sizecomps) {
   
   height <- 6
@@ -271,7 +271,7 @@ if (spp_plot_sizecomps) {
                    compareyr," and ",maxyr,
                    " EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
   
-  nickname <- paste0("fig_sizecomp_nbs_", spp_file)
+  nickname <- paste0("fig_sizecomp_", spp_file)
   
   length_data0 <- length_data %>%
     dplyr::filter(species_code %in% spp_code)# &
@@ -441,10 +441,10 @@ if (spp_plot_sizecomps) {
 ```
 
 
-## tab_estimates_maxyr_[spp]
+## tab_estimates_maxyr_[spp]_[wt or num]
 
 ```{r tab_estimates_maxyr_}
-nickname <- paste0("tab_estimates_maxyr_", spp_file) 
+nickname0 <- paste0("tab_estimates_maxyr_", spp_file, "_") 
 
 
 temp <- biomass_strat %>% 
@@ -466,7 +466,7 @@ for (i in 1:2) {
   newobj <- ifelse(i==1, TRUE, FALSE)
   
   if (i == 1){ # CPUE (WT/HA) and BIOMASS
-    
+    nickname <- paste0(nickname0, "wt")
     header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",
                      spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")),
                      " by stratum for the ",maxyr," ",                     
@@ -526,7 +526,7 @@ for (i in 1:2) {
       theme_flextable_nmfstm(row_lines = FALSE)
     
   } else { # CPUE No/HA and POPULATION
-    
+    nickname <- paste0(nickname0, "num")
     header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95%lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
                      NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, 
                                                    " shelf (", 

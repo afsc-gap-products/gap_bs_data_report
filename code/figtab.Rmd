@@ -651,10 +651,8 @@ table_raw0 <-
                    # dplyr::left_join(x = ., y = temp)
   ) %>% 
   dplyr::relocate(SRVY, common_name, length, age) %>% 
-  # dplyr::arrange(order) %>% 
-  # dplyr::select(-order) %>% 
-  dplyr::mutate(across(where(is.numeric), 
-                       formatC, big.mark=",", digits = 0, format = "f")) %>% 
+  dplyr::rename("length_measurements" = length,
+                "otolith_age_structure_measurements" = age) %>%
   data.frame()
 
 
@@ -668,26 +666,32 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                    haul_cruises_maxyr$SRVY_long[i],
                    " shelf bottom trawl survey.")
   
-  table_print <- table_raw <- table_raw0
-  
   table_raw <- table_raw0 %>% 
-    dplyr::ungroup() %>% 
-      dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-      dplyr::select(-"SRVY") 
-  table_raw[is.na(table_raw) | table_raw == "0"] <- "-"
-  names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
+    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i])
+  
+    names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
     stringr::str_to_sentence(gsub(pattern = "_",
                                 replacement = " ", 
                                 x = names(table_raw)[!(names(table_raw) %in% 
                                                          c("SRVY", "common_name"))], 
                                 fixed = TRUE))
   
+  
   table_print <- table_raw %>% 
+    dplyr::mutate(across(where(is.numeric), 
+                       formatC, big.mark=",", digits = 0, format = "f")) %>% 
+    dplyr::ungroup() %>% 
+      dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+      dplyr::select(-"SRVY") 
+  table_print[is.na(table_print) | table_print == "0"] <- "-"
+
+  
+  table_print <- table_print %>% 
   flextable::flextable(data = .) %>%
     flextable::set_header_labels(x = .,
-                                 common_name = haul_cruises_maxyr$SRVY[i],
-                                 Length = "Length\nmeasurements",
-                                 Age = "Age\nmeasurements"
+                                 common_name = haul_cruises_maxyr$SRVY[i]#,
+                                 # Length = "Length\nmeasurements",
+                                 # Age = "Age structure (otolith)\nmeasurements"
     ) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
@@ -829,9 +833,10 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_sc
   dplyr::arrange(SRVY) %>% 
    dplyr::select(-order, -species_code) %>% 
    dplyr::relocate(SRVY, print_name, species_name, stomach_target) %>% 
-  dplyr::mutate(stomach_target = round(as.numeric(stomach_target), digits = 0)) %>% 
+  dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0))) %>% 
   tidyr::pivot_wider(data = ., id_cols = c("print_name", "species_name"), names_from = "SRVY", values_from = "stomach_target")
 
+  table_raw[is.na(table_raw)] <- "-"
     
 table_print <- flextable::flextable(table_raw) %>% 
   flextable::italic(x = ., j = "species_name") %>% 
@@ -863,12 +868,8 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 > are blank special project titles not to be included?
 
-
 ```{r tab_special_projects}
 nickname <- "tab_special_projects" 
-# footnote0 <-"AFSC-Alaska Fisheries Science Cener; ADF&G - Alaska Department of Fish & Game; FMA-Fisheries Monitoring & Assessment Division; IPHC-International Pacific Halibut Commission; NWFSC-Northwest Fiseries Science Center; PMEL-Pacific Marine Environmental Laboratory; RACE-Resource Assessment & Conservation Engineering Division; REFM-Resource Ecology & Fisheries Management Division; TSMRI-Ted Stevens Marine Research Institute."
-
-
 places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
                          sheet = "affiliations", 
                          skip = 1)
@@ -877,10 +878,10 @@ newobj <- TRUE
 
 temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
                          sheet = "projects", 
-                         skip = 1) %>% 
-  dplyr::select(SRVY, `Project Title`, `Principal investigator`, Agency) %>% 
+                         skip = 1)  %>% 
   dplyr::filter(!is.na(`Project Title`) & 
                   year == maxyr) %>% 
+  dplyr::select(SRVY, `Project Title`, `Principal investigator`, Agency) %>% 
   dplyr::arrange(desc(SRVY))
 
 # for (i in 1:nrow(haul_cruises_maxyr)) {
@@ -1178,7 +1179,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ```
 
-## fig_bt_timeseries_
+## fig_bt_timeseries_[above or below]
 
 > need to figure out how to plot whole NBS
 
@@ -1294,6 +1295,9 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ## tab_species_composition
 
 ```{r tab_species_composition}
+
+if (SRVY == "NEBS"){
+
 nickname <- "tab_species_composition" 
 footnote0 <- "Taxa in bold only documented north of 60° N latitude."
 
@@ -1324,7 +1328,7 @@ temp0 <-
   dplyr::mutate(above_60 = ifelse(is.na(above_60), FALSE, TRUE)) 
 
 
-if (SRVY == "NEBS"){
+# if (SRVY == "NEBS"){
   
   header <- paste0("List of fish taxa from survey catches exclusive to the ",
                    NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
@@ -1392,36 +1396,35 @@ if (SRVY == "NEBS"){
     theme_flextable_nmfstm(row_lines = FALSE) %>%
     flextable::vline(x = ., j = 2, part = "all")
   
-} else if (SRVY == "EBS") {
-  
-  header <- paste0("List of fish taxa from survey catches in the ",
-                   NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
-                                                 haul_cruises_maxyr$SRVY, ")")),".")
-  
-  table_raw <- temp0
-  
-  # table_raw <- temp0 %>% 
-  #   dplyr::filter(!is.na(EBS)) %>% 
-  #   dplyr::select(-NBS, -EBS)
-  
-  table_print <- table_raw %>% 
-    dplyr::select(-above_60) %>%
-    flextable::flextable(data = .) %>% 
-    flextable::italic(x = ., 
-                      j = c(2)) %>%
-    flextable::bold(x = ., 
-                    i = which(table_raw$above_60),
-                    j = 1:2) %>%  
-    flextable::footnote(x = ., part = "header", i = 1, j = 1, 
-                        value = as_paragraph(footnote0)) %>%
-    add_header_row(x = ., 
-                   values = c("Present in EBS"),
-                   colwidths = c(2)) %>% 
-    flextable::set_header_labels(., 
-                                 common_name = "Common name",
-                                 report_name_scientific = "Scientific name"
-    ) %>% 
-    theme_flextable_nmfstm(row_lines = FALSE)
+# } else if (SRVY == "EBS") {
+#   
+#   header <- paste0("List of fish taxa from survey catches in the ",
+#                    NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
+#                                                  haul_cruises_maxyr$SRVY, ")")),".")
+#   
+#   table_raw <- temp0
+#   
+#   # table_raw <- temp0 %>% 
+#   #   dplyr::filter(!is.na(EBS)) %>% 
+#   #   dplyr::select(-NBS, -EBS)
+#   
+#   table_print <- table_raw %>% 
+#     dplyr::select(-above_60) %>%
+#     flextable::flextable(data = .) %>% 
+#     flextable::italic(x = ., 
+#                       j = c(2)) %>%
+#     flextable::bold(x = ., 
+#                     i = which(table_raw$above_60),
+#                     j = 1:2) %>%  
+#     flextable::footnote(x = ., part = "header", i = 1, j = 1, 
+#                         value = as_paragraph(footnote0)) %>%
+#     add_header_row(x = ., 
+#                    values = c("Present in EBS"),
+#                    colwidths = c(2)) %>% 
+#     flextable::set_header_labels(., 
+#                                  common_name = "Common name",
+#                                  report_name_scientific = "Scientific name") %>% 
+#     theme_flextable_nmfstm(row_lines = FALSE)
 }
 
 # save yo' stuff and do a lot of behind the scenes work

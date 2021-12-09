@@ -1,11 +1,11 @@
-#' ---
+#' ---------------------------------------------
 #' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
 #' author: 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
 #' purpose: Run Scripts and R Markdown Files
 #' start date: 2021-09-01
 #' date modified: 2021-09-01                                          # CHANGE
 #' Notes:                                                               # CHANGE
-#' ---
+#' ---------------------------------------------
 
 # START ------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
 workfaster <- TRUE # an attempt to satisfy limited patience
 refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
-googledrive_dl <- TRUE # redownload google drive tables and docs?
+googledrive_dl <- FALSE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
 usePNGPDF <- "png"

@@ -381,6 +381,8 @@ haul_maxyr <- haul %>%
 haul_compareyr <- haul %>% 
   dplyr::filter(year == compareyr[1])
 
+lastyr <- max(haul$year[haul$year != maxyr])
+
 # Crab retows?
 crab_resample <- FALSE
 if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
