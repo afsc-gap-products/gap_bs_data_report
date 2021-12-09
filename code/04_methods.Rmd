@@ -259,10 +259,21 @@ Random samples of selected fish species (Table`r ifelse(SRVY == "NEBS", "s", "")
 `r ifelse(SRVY == "NEBS", list_tables$tab_specimen_samples_NBS$res, "") `
 
 ```{r}
-temp <- specimen_maxyr %>% 
-  dplyr::group_by(SRVY = all_of(SRVY)) %>% 
-  dplyr::summarise(species_code_n = unique(species_code)) %>% 
-  dplyr::summarise(n = length(all_of(SRVY)))   
+# wrong in 2021 because includes artic and saffron cod, which were special projects
+# temp <- specimen_maxyr %>% 
+#   dplyr::group_by(SRVY = all_of(SRVY)) %>% 
+#   dplyr::summarise(species_code_n = unique(species_code)) %>% 
+#   dplyr::summarise(n = length(all_of(SRVY)))   
+
+temp <- dplyr::bind_rows(
+    list_tables$tab_oto_collection_scheme_EBS$raw %>% 
+      dplyr::mutate(SRVY = "EBS"), 
+    list_tables$tab_oto_collection_scheme_NBS$raw %>% 
+      dplyr::mutate(SRVY = "NBS")) %>% 
+  dplyr::select(SRVY, species_name) %>% 
+  dplyr::group_by(SRVY) %>% 
+  dplyr::summarise(species_code_n = unique(species_name)) %>% 
+  dplyr::summarise(n = length(all_of(SRVY))) 
 
 ```
 

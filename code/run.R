@@ -13,7 +13,7 @@
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
 workfaster <- TRUE # an attempt to satisfy limited patience
 refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
-googledrive_dl <- FALSE # redownload google drive tables and docs?
+googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
 usePNGPDF <- "png"
@@ -148,14 +148,6 @@ filename0<-paste0(cnt_chapt, "_introduction_")
 rmarkdown::render(paste0(dir_code, "/02_introduction.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-
-# # *** *** 03 - History ------------------------
-# cnt_chapt<-auto_counter(cnt_chapt)
-# filename0<-paste0(cnt_chapt, "_history_")
-# rmarkdown::render(paste0(dir_code, "/03_history.Rmd"),
-#                   output_dir = dir_out_chapters,
-#                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
 # *** *** 04 - Methods ------------------------
