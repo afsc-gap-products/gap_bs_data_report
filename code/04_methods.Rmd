@@ -15,8 +15,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 ## Survey Area and Sampling Design 
 
-> also true for NBS, right? "37.04 × 37.04 km (20 × 20 nautical mile)"
-
 > edited this down a bit and put the following in the introduction "To simplify the results and discussion from here forward, the terms “EBS” and “NBS” will be used to refer specifically to either the eastern or northern Bering Sea bottom trawl survey area, respectively, and “NEBS” will be used when referring to the combined EBS and NBS survey areas." 
 
 The standardized annual bottom trawl survey of the EBS `r ifelse(SRVY == "NEBS", "and NBS are", " is")` based on a systematic design with `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_avail, " in the ", haul_cruises_maxyr$SRVY))` fixed sampling stations at the center of 37.04 × 37.04 km (20 × 20 nautical mile) grid squares (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). In waters surrounding St. Matthew Island and the Pribilof Islands, high-density “corner stations” are sampled to better assess local blue king crab concentrations (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). `r ifelse(SRVY == "NEBS", paste0("The ", maxyr, " NBS survey was a northward extension of the EBS systematic design consisting of stations bounded by the U.S.-Russian Maritime Boundary, the Bering Strait, and Norton Sound.") , "")` The results reported herein include data analyses for both the `r NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY))`. 
@@ -32,7 +30,7 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 
 `r list_figures$fig_trawl_gear$res `
 
-> How do I calculate "net mensuration system failed to record data for six tows"?
+> How do I calculate "net mensuration system failed to record data for six tows"? # TOLEDO 
 
 ```{r}
 str_ebs <- "the net mensuration system failed to record data for six tows on the FV Vesteraalen and nine tows on the FV Alaska Knight"
@@ -40,59 +38,101 @@ str_ebs <- "the net mensuration system failed to record data for six tows on the
 str_nbs <- "it failed for two tows on each vessel"
 ```
 
-During the EBS survey, `r str_ebs `, and for the NBS survey `r str_nbs `. To estimate these missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921:
+
+> I changed the equation format... is that... ok? Easier to code and more official looking? # TOLEDO! 
+
+During the EBS survey, `r str_ebs `, and for the NBS survey `r str_nbs `. To estimate these missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height, and $s$ is the scope, below inversed.
+
+$$ w = {s}^{-1} + h + \frac{h}{s} $$
 
 ```{r eq_mean_net_width}
-equation = "Net width ∼ Inverse scope + Height + Inverse scope * Height"
-nickname = "eq_mean_net_width"
-header = "Equation to relate mean net width with the inverse scope (m) and mean net height (m)."
-alttext = "To estimate these missing net width values, the mgcv package in R (Wood 2004) was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921."
+# equation = "{Net width} ∼ {Inverse scope} + {Height} + {Inverse scope} * {Height}"
+# nickname = "eq_mean_net_width"
+# header = "Equation to relate mean net width with the inverse scope (m) and mean net height (m)."
+# alttext = "To estimate these missing net width values, the mgcv package in R (Wood 2004) was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921."
+# 
+# res <- knitr::knit_child(
+#   text = knitr::knit_expand(
+#     file = system.file("rmd/_child_save_eq.Rmd", package = "NMFSReports") ),
+#   quiet = TRUE
+# )
+# 
+# assign(value = res, x = nickname)
 
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_eq.Rmd", package = "NMFSReports") ), 
-  quiet = TRUE
-)
-
-assign(value = res, x = nickname)
+# `r eq_mean_net_width `
 
 ```
 
-`r eq_mean_net_width `
 
-> are these calculated each year, and if so, where do I get these values from? Also, would they be shared if there were no estimates? is n = number of successful hauls? (that doesnt seems right?)
+```{r}
+str <- c()
+temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_vessel_equations.xlsx"), 
+                         sheet = "Sheet1", 
+                         skip = 1) %>% 
+   dplyr::filter(SRVY == SRVY1) %>% 
+  dplyr::left_join(x = ., 
+                   y = vessel_info %>% 
+                     dplyr::select(vessel, vessel_ital), 
+                   by = "vessel") %>% 
+  dplyr::left_join(x = ., 
+                y = haul_maxyr %>% 
+                                # dplyr::filter(vessel == vess & SRVY %in% SRVY1) %>% 
+                                dplyr::select(SRVY, haul, vessel) %>% 
+                                dplyr::distinct() %>% 
+                                dplyr::group_by(SRVY, vessel) %>% 
+                                dplyr::summarize(n = n()), 
+                by = c("vessel", "SRVY")) %>% 
+  dplyr::arrange(vessel_name)
 
-For the FV Alaska Knight, both predictor variables and their interaction were significant (P < 0.001). The resulting regression equations by survey were as follows:
+for (i in 1:length(unique(haul_maxyr$vessel))){
+  
+  vess <- unique(haul_maxyr$vessel)[i]
+  
+  temp0 <- temp %>% 
+    dplyr::filter(vessel == vess)
+  
+  str <- paste0(str, 
+                paste0("For the ", temp0$vessel_ital[1], ", "))
+  
+  # if NBS and EBS
+  if (length(SRVY1) > 1) {
+    str <- paste0(str, 
+             ifelse(length(unique(temp0$sig_fragment)) == 1, 
+                                paste0(temp0$sig_fragment[1], " in both the ",
+                                       NMFSReports::text_list(SRVY1)), 
+                                paste0(NMFSReports::text_list(temp0$sig_fragment, 
+                                                              " in the ", SRVY1))))
+  } else { # if EBS only
+        str <- paste0(str, temp$sig_fragment, " in the EBS")
+  }
+  
+  str <- paste0(str, 
+                ". The resulting regression equations ",
+                ifelse(SRVY == "NEBS", "by survey", "in the EBS"),
+                " were as follows:
 
-EBS (n = 160):
+", 
+NMFSReports::text_list(paste0(temp0$SRVY, " (n = ", temp0$n, "):
+  $$",temp0$eq, "$$
+  
+  ")))
+}
 
-  Net width (m) = 27.372 – 1424.464 * Inverse scope – 3.659 * Net height + 451.441 * Inverse scope * Height
+```
 
-NBS (n = 86): 
+`r str`
 
-  Net width (m) = 25.421 – 853.054 * Inverse scope – 2.617 * Net height + 144.714 * Inverse scope * Height
-
-For the FV Vesteraalen, inverse scope and net height were significant (P < 0.001) but not their interaction term. The resulting regression equations by survey were as follows:
-
-EBS (n = 224): 
-
-  Net width (m) = 22.642 – 355.689 * Inverse scope – 1.619 * Net height
-
-NBS (n = 54):
-
-  Net width (m) = 21.023 – 320.270 * Inverse scope – 1.312 * Net height.
+> How do I calculate "These equations were subsequently used to estimate the respective net spread values for the 19 tows with missing net width values."? # TOLEDO 
 
 These equations were subsequently used to estimate the respective net spread values for the 19 tows with missing net width values.
 
 Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station and averaged for the tow duration. Average bottom depth was calculated by adding the average net height to the average depth of the headrope.
 
-> How to incorporate: "In 2018, the net mensuration system failed to record data for only one tow on the FV Alaska Knight during the `r SRVY ` shelf survey. Net mensuration data was successfully collected for all tows during the NBS survey. Area swept calculations for the one tow that was missing net mensuration data was estimated using other tows in similar depths."
-
-> note: typo in haul data:   dplyr::mutate(depth = gsub(pattern = "> 1", replacement = ">1", x = description)) %>% 
-
 ## EBS Sampling Logistics and Stratification Scheme
 
 ```{r}
+# note: typo in haul data:   dplyr::mutate(depth = gsub(pattern = "> 1", replacement = ">1", x = description)) %>%  # TOLEDO - nancy fix?
+
 date_format<- "%B %d, %Y"
 str <- c()
 

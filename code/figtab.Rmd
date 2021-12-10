@@ -13,10 +13,6 @@ bibliography: "../cite/bibliography.bib"
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
-# Abstract
-
-No figures or tables. 
-
 # Introduction
 
 ## fig_sample_grid
@@ -641,7 +637,9 @@ table_print <- table_raw %>%
                      j = 1, i = ~ is.na(SRVY), 
                      padding.left = 20) %>%
   theme_flextable_nmfstm(row_lines = FALSE) %>% 
-  flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
+  flextable::width(x = ., j = "Agency", width = 1) %>% 
+  flextable::width(x = ., j = "Principal investigator", width = 1.5) %>% 
+  # flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
   flextable::footnote(x = ., value = as_paragraph(footnote0), part = "header", j = "Agency") 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -868,9 +866,6 @@ width = 5
 # 
 # ")
 
-# nickname <- "fig_st_all_nebs_surveys"
-height <- 7
-width <- 6
 
 # header <- paste0("Map showing surface temperatures (°C) in the NBS and EBS during the ",
 #                  NMFSReports::text_list(nbsyr),
@@ -1030,61 +1025,56 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 if (SRVY == "NEBS"){
 
 nickname <- "tab_species_composition" 
-footnote0 <- "Taxa in bold only documented north of 60° N latitude."
-
-# Select data and make plot
-temp0 <-
-  dplyr::left_join(x = catch_haul_cruises_maxyr %>% 
-                     dplyr::select(species_code, SRVY, "stationid", "SRVY", "stratum"), 
-                   y = station_info, 
-                   by = c("stationid", "SRVY", "stratum")) %>%
-  dplyr::group_by(species_code, SRVY) %>% 
-  dplyr::summarise(lat = max(start_latitude)) %>% 
-  tidyr::pivot_wider(data = ., id_cols = species_code, names_from = SRVY, 
-                     values_from = lat, values_fill = NA) %>% 
-  dplyr::left_join(x = ., 
-                   y = spp_info) %>% 
-  # dplyr::mutate(fish = (species_code <= 31550)) %>%
-  dplyr::filter(taxon == "fish") %>% 
-  dplyr::select(species_code, report_name_scientific, all_of(SRVY1)) %>% 
-  dplyr::left_join(x = .,
-                   y = species0) %>%
-  dplyr::ungroup() %>% 
-  dplyr::select(common_name, report_name_scientific, all_of(SRVY1), -species_code ) %>% 
-  dplyr::filter(!grepl(x = common_name, pattern = " unid.", fixed = TRUE)) %>% 
-  dplyr::filter(!grepl(x = common_name, pattern = " egg", fixed = TRUE)) %>% 
-  dplyr::filter(!is.na(common_name)) %>% 
-  dplyr::arrange(common_name) %>% 
-  dplyr::mutate(above_60 = (EBS >= 60 | NBS >= 60)) %>%
-  dplyr::mutate(above_60 = ifelse(is.na(above_60), FALSE, TRUE)) 
-
-
-# if (SRVY == "NEBS"){
-  
-  header <- paste0("List of fish taxa from survey catches exclusive to the ",
+header <- paste0("List of fish taxa from survey catches exclusive to the ",
                    NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
-                                                 haul_cruises_maxyr$SRVY, ")")),".")
-  
-  # Select data and make plot
-  table_raw <- temp0 %>% 
-    dplyr::mutate(where = dplyr::case_when(
+                                                 haul_cruises_maxyr$SRVY, ")")),". Taxa in bold only documented north of 60°N latitude. ")
+# Select data and make plot
+table_raw <- catch_haul_cruises_maxyr %>% 
+                     dplyr::select(species_code, SRVY, 
+                                   "SRVY", start_latitude) %>% 
+  dplyr::group_by(species_code, SRVY) %>% 
+  dplyr::summarise(lat_max = max(start_latitude, na.rm = TRUE), 
+                   lat_min = min(start_latitude, na.rm = TRUE)) %>% 
+    dplyr::mutate(above_60 = (lat_max >= 60 & lat_min >= 60)) %>%
+  tidyr::pivot_wider(data = ., 
+                     id_cols = species_code, 
+                     names_from = SRVY, 
+                     values_from = c(above_60),#, lat_min, lat_max), 
+                     values_fill = NA) %>% 
+  dplyr::mutate(where = dplyr::case_when(
       !is.na(EBS) & !is.na(NBS) ~ "Present in EBS and NBS", 
       is.na(NBS) & !is.na(EBS)~ "Present in EBS but absent in NBS", 
       is.na(EBS) & !is.na(NBS) ~ "Present in NBS but absent in EBS")) %>% 
-    dplyr::select(-NBS, -EBS)
+  dplyr::left_join(x = ., 
+                   y = spp_info, #%>% 
+                     # dplyr::rename(common_name = print_name), 
+                   by = "species_code") %>% 
+  dplyr::filter(taxon == "fish") %>% 
+  dplyr::ungroup() %>% 
+  dplyr::select(species_code, common_name, report_name_scientific, all_of(SRVY1), where) %>% 
+  dplyr::filter(!grepl(x = common_name, pattern = " unid.", fixed = TRUE)) %>%
+  dplyr::filter(!grepl(x = common_name, pattern = " egg", fixed = TRUE)) %>%
+  dplyr::filter(!is.na(common_name)) %>%
+  dplyr::arrange(common_name)
+
   
-  temp1 <- table_raw %>% 
+  temp <- table_raw %>% 
+    dplyr::select(-species_code)
+
+  temp1 <- temp %>% 
     dplyr::filter(where == "Present in EBS but absent in NBS" & 
                     !is.na(common_name)) %>% 
-    dplyr::select(-where) 
+    dplyr::select(-where, -NBS) %>% 
+    dplyr::rename(above_60 = EBS)
   
-  temp2 <- table_raw %>% 
+  temp2 <- temp %>% 
     dplyr::filter(where == "Present in NBS but absent in EBS" & 
                     !is.na(common_name)) %>% 
-    dplyr::select(-where) 
+    dplyr::select(-where, -EBS) %>% 
+    dplyr::rename(above_60 = NBS)
   
   # make the same length so they can be bound together
-  if (nrow(temp1)>nrow(temp2)){
+  if (nrow(temp1)>nrow(temp2)) {
     temp2 <- temp2 %>% 
       dplyr::bind_rows(., 
                        data.frame(common_name = rep_len(NA, (nrow(temp1)-nrow(temp2))), 
@@ -1100,9 +1090,9 @@ temp0 <-
   
   names(temp1) <- paste0(names(temp1), "_")
   
-  table_raw <- dplyr::bind_cols(temp1, temp2)
+  temp <- dplyr::bind_cols(temp1, temp2)
   
-  table_print <- table_raw %>%
+  table_print <- temp %>%
     dplyr::select(-above_60, -above_60_) %>%
     flextable::flextable(data = .) %>%
     flextable::italic(x = .,
@@ -1113,8 +1103,8 @@ temp0 <-
     flextable::bold(x = .,
                     i = which(temp2$above_60),
                     j = 3:4) %>%
-    flextable::footnote(x = ., part = "header", i = 1, j = 1,
-                        value = as_paragraph(footnote0)) %>%
+    # flextable::footnote(x = ., part = "header", i = 1, j = 1,
+    #                     value = as_paragraph(footnote0)) %>%
     add_header_row(x = .,
                    values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
                    colwidths = c(2, 2)) %>%

@@ -63,8 +63,8 @@ temp <- cold_pool_area %>%
                    freq = sum(freq, na.rm = T)) %>% 
   dplyr::mutate(area_km2 = (perc/100) * 
                   sum(stratum_info %>% 
-                             dplyr::filter(SRVY == "EBS") %>% 
-                             dplyr::select(area_km2), na.rm = TRUE)) %>%
+                        dplyr::filter(SRVY == "EBS") %>% 
+                        dplyr::select(area_km2), na.rm = TRUE)) %>%
   dplyr::arrange((perc)) %>% 
   dplyr::mutate(rank = 1:nrow(.)) %>% 
   dplyr::arrange(desc(year))
@@ -94,26 +94,26 @@ temp <- function(cols){
   ctaxa <- c()
   a <- report_spp1
   a$taxon[a$taxon == "invert" & grepl(pattern = "crab", x = a$print_name)] <- "crab"
-    
+  
   for (i in 1:length(cols)){
     
     col <- cols[i]
     temp <- dplyr::bind_rows(
       crossref(list_obj = list_tables, 
-                     nickname = "tab_specimen_samples_EBS", sublist = "raw")[[1]], 
+               nickname = "tab_specimen_samples_EBS", sublist = "raw")[[1]], 
       crossref(list_obj = list_tables, 
-                      nickname = "tab_specimen_samples_NBS", sublist = "raw")[[1]])
+               nickname = "tab_specimen_samples_NBS", sublist = "raw")[[1]])
     temp <- temp[temp[,col]!=0,]
     
     nspec <- c(nspec, 
-                  xunits(sum(temp[temp$common_name == "Total", 
-                                  names(temp) %in% col]))) # how many specimen
+               xunits(sum(temp[temp$common_name == "Total", 
+                               names(temp) %in% col]))) # how many specimen
     ntaxa <- c(ntaxa, 
-                xunits(length(unique(temp$common_name)[unique(temp$common_name) != "Total"]))) # number of taxa
-
+               xunits(length(unique(temp$common_name)[unique(temp$common_name) != "Total"]))) # number of taxa
+    
     ctaxa <- c(ctaxa,
-                NMFSReports::text_list(unique(a$taxon[a$print_name %in% 
-                                                        unique(temp$common_name)])) )
+               NMFSReports::text_list(unique(a$taxon[a$print_name %in% 
+                                                       unique(temp$common_name)])) )
   }
   
   return(list("col" = tolower(cols), 
@@ -123,7 +123,7 @@ temp <- function(cols){
 }
 
 cols <- names(crossref(list_obj = list_tables, 
-                   nickname = "tab_specimen_samples_EBS", sublist = "raw")[[1]])
+                       nickname = "tab_specimen_samples_EBS", sublist = "raw")[[1]])
 cols <- cols[!(cols %in% c("common_name", "SRVY"))]
 
 # "", "stomachs collected"	count_pathobiology_samples	count_fecundity_and_maturity_(ovaries)_samples
@@ -212,42 +212,74 @@ During the `r SRVY` (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_o
 ```
 
 ```{r}
-  temp <- spp_info_maxyr %>% 
-    dplyr::filter(used_in_counts == TRUE) 
-  
-  fish_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "fish" & 
-                                                     !(grepl(pattern = " sp.", x = temp$report_name_scientific, fixed = T)) & 
-                                                     !(grepl(pattern = " unid.", x = temp$report_name_scientific, fixed = T))])))
-  
-  
-  
-  
-  temp0 <- list_tables$tab_species_composition$raw
-  
-  nbs_insert <- paste0("The EBS had a total of ",
-                   xunits(length(unique(catch_haul_cruises_maxyr$species_code[
-                     catch_haul_cruises_maxyr$species_code <= 31550 & 
-                       catch_haul_cruises_maxyr$SRVY == "EBS"]))) ,
-                   " fish species, ", 
-                   xunits(nrow(temp0[temp0$EBS != NA,])), 
-                   " of which did not occur in the NBS (Table ",
-                   crossref(list_obj = list_tables, 
-                            nickname = "tab_species_composition", 
-                            sublist = "number"),
-                   "). In comparison, the NBS had ",
-                   xunits(length(unique(catch_haul_cruises_maxyr$species_code[
-                     catch_haul_cruises_maxyr$species_code <= 31550 & 
-                       catch_haul_cruises_maxyr$SRVY == "NBS"]))) ,
-                   " total fish species, ", 
-                   xunits(nrow(temp0[temp0$NBS != NA, ])), 
-                   " of which did not occur in the EBS (Table ", 
-                   crossref(list_obj = list_tables, 
-                            nickname = "tab_species_composition", 
-                            sublist = "number"), ").  
-                   Seven of the ", 
-                   xunits(nrow(temp0[temp0$NBS != NA, ])), 
-                   " species observed in the NBS during ",maxyr," (Table 4) are only documented north of 60° N, which are generally corroborated in @RN912. Four flatfish species that were present in the EBS were absent from the NBS including arrowtooth flounder, butter sole (Isopsetta isolepis), rex sole (Glyptocephalus zachirus) and southern rock sole (Table 4). One flatfish species, the Arctic flounder (Liopsetta glacialis), was only present in the NBS.")
+temp <- spp_info_maxyr %>% 
+  dplyr::filter(used_in_counts == TRUE) 
 
+fish_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "fish" & 
+                                                              !(grepl(pattern = " sp.", x = temp$report_name_scientific, fixed = T)) & 
+                                                              !(grepl(pattern = " unid.", x = temp$report_name_scientific, fixed = T))])))
+
+
+temp0 <- list_tables$tab_species_composition$raw %>% 
+  dplyr::left_join(x = ., 
+                   y = report_spp1 %>% 
+                     dplyr::select(species_code, order_taxon, species_name), 
+                   by = c("species_code"))
+
+
+nbs_insert <- paste0("The EBS had a total of ",
+                     xunits(nrow(temp0[!is.na(temp0$EBS),])),
+                     " fish species, ", 
+                     xunits(nrow(temp0[temp0$where == 
+                                         "Present in EBS but absent in NBS",])), 
+                     " of which did not occur in the NBS (Table ",
+                     crossref(list_obj = list_tables, 
+                              nickname = "tab_species_composition", 
+                              sublist = "number"),
+                     "). In comparison, the NBS had ",
+                     xunits(nrow(temp0[!is.na(temp0$NBS),])),
+                     " total fish species, ", 
+                     xunits(nrow(temp0[temp0$where == 
+                                         "Present in NBS but absent in EBS",])), 
+                     " of which did not occur in the EBS (Table ", 
+                     crossref(list_obj = list_tables, 
+                              nickname = "tab_species_composition", 
+                              sublist = "number"), ").  
+                   ",
+                   xunits(nrow(temp0[temp0$where == 
+                                       "Present in NBS but absent in EBS" & 
+                                       temp0$NBS == TRUE,])),
+                   " of the ", 
+                   xunits(nrow(temp0[temp0$where == 
+                                       "Present in NBS but absent in EBS",])), 
+                   " species observed in the NBS during ",maxyr," (Table ", 
+                   crossref(list_obj = list_tables, 
+                            nickname = "tab_species_composition", 
+                            sublist = "number"), ") are only documented north of 60° N, which are generally corroborated in @RN912. ")
+
+# flatfish
+temp1 <- temp0[temp0$order_taxon %in% c("Pleuronectiformes"), ]
+temp2 <- temp1 %>% 
+  dplyr::group_by(where) %>% 
+  dplyr::summarise(n = n()) %>% 
+  dplyr::mutate(where = paste0(tolower(substr(x = where, start = 1, stop = 1)), 
+                               substr(x = where, start = 2, stop = nchar(where))))
+
+nbs_insert <- paste0(nbs_insert, 
+                     
+                     NMFSReports::text_list(
+                       paste0(xunits(temp2$n), 
+                              " flatfish species that were ", 
+                              temp2$where, " included ",
+                              NMFSReports::text_list(
+                                paste0(temp1$common_name[temp1$where %in% temp2$where], 
+                                       " (", 
+                                       temp1$species_name[temp1$where %in% temp2$where],
+                                       ")")))),
+                     " (Table ", 
+                     crossref(list_obj = list_tables, 
+                              nickname = "tab_species_composition", 
+                              sublist = "number"), ").")
 
 ```
 
@@ -331,7 +363,7 @@ temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientifi
 > Not sure how to automate this...?
 
 The lower fish biomass in the NBS is consistent with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936]. The relative abundance of flatfishes and gadids were high in both the `r SRVY ` and NBS, but the species comprising each taxonomic group and their proportion of the total biomass were different between the two areas. In the `r SRVY `, there were 15 different flatfish species that together comprised almost half of the total fish biomass (48%) with yellowfin sole (22%) and northern rock sole (11%) having the greatest proportions. This contrasted with the NBS where there were twelve flatfish species with yellowfin sole (15%) and Alaska plaice (12%) making up a majority of the total fish biomass. Four flatfish species that were present in the `r SRVY ` were absent from catches in the NBS including arrowtooth flounder, butter sole (*Isopsetta isolepis*), rex sole (*Glyptocephalus zachirus*) and southern rock sole (Table `r crossref(list_obj = list_tables, nickname = "tab_species_composition", sublist = "number") `). One flatfish species, the Arctic flounder (Liopsetta glacialis), was only present in the NBS.
-	
+
 Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
 
 `r list_table$tab_biomass_compareyr_maxyr_percchange_EBS$res `
