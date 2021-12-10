@@ -136,82 +136,7 @@ During the `r SRVY` (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_o
 ## Species Composition
 
 ```{r}
-# temp <- dplyr::left_join(
-#   x = list_tables$tab_species_composition$raw, 
-#   y = species_classification0, 
-#   by = "report_name_scientific")
-#   
-# temp_insert <- paste0(
-#   "The ", SRVY ,
-#   " had a total of ", xunits(nrow(temp))," fish species, ", 
-#   xunits(length(temp$where[temp$where == 
-#                                      "Present in EBS but absent in NBS"])),
-#   " of which did not occur in the NBS. In comparison, the NBS had ",
-#   xunits(length(temp$where[temp$where %in% 
-#                                      c("Present in EBS and NBS", 
-#                                        "Present in NBS but absent in EBS")])), 
-#   " total fish species (in ",
-#   xunits(length(unique(temp$family_taxon[temp$where %in% 
-#                                      c("Present in EBS and NBS", 
-#                                        "Present in NBS but absent in EBS")]))),
-#   " families), ",
-#   xunits(length(temp$where[temp$where %in% 
-#                                      c("Present in NBS but absent in EBS")])),
-#   " of which did not occur in the EBS (Table ", 
-#   crossref(list_obj = list_tables, 
-#            nickname = "tab_species_composition", 
-#            sublist = "number") ,
-#   "). ",
-#   xunits(nrow(temp[temp$where %in% 
-#                              c("Present in NBS but absent in EBS") & 
-#                              temp$above_60 == TRUE, ])), 
-#   " of the ",
-#   xunits(length(temp$where[temp$where %in% 
-#                                      c("Present in NBS but absent in EBS")])),
-#   " species only occurring in the NBS (Table ", 
-#   crossref(list_obj = list_tables, 
-#            nickname = "tab_species_composition", 
-#            sublist = "number") ,
-#   ") have only been documented north of 60°N [@RN912]. ",
-#   xunits(length(temp$common_name[
-#         temp$where == "Present in EBS but absent in NBS" & 
-#         temp$order_taxon %in% c("Pleuronectiformes")])),
-#   " flatfish species that were present in the EBS were absent from the NBS including ",
-#   NMFSReports::text_list(
-#     paste0(
-#       temp$common_name[
-#         temp$where == "Present in EBS but absent in NBS" & 
-#         temp$order_taxon %in% c("Pleuronectiformes")], 
-#            " (*", 
-#       temp$report_name_scientific[
-#         temp$where == "Present in EBS but absent in NBS" & 
-#         temp$order_taxon %in% c("Pleuronectiformes")], 
-#            "*)")),
-#   " (Table ", 
-#   crossref(list_obj = list_tables, 
-#            nickname = "tab_species_composition",
-#            sublist = "number"), "). ", 
-#   ifelse(length(temp$common_name[
-#         temp$where == "Present in NBS but absent in EBS" & 
-#         temp$order_taxon %in% c("Pleuronectiformes")]) > 0, 
-#     paste0(NMFSReports::text_list(paste0(
-#     CapFirst(xunits(length(temp$common_name[
-#         temp$where == "Present in NBS but absent in EBS" & 
-#         temp$order_taxon %in% c("Pleuronectiformes")]))), 
-#     " flatfish species, the ",
-#       temp$common_name[
-#         temp$where == "Present in NBS but absent in EBS" & 
-#         temp$order_taxon %in% c("Pleuronectiformes")], 
-#            " (*", 
-#       temp$report_name_scientific[
-#         temp$where == "Present in NBS but absent in EBS" & 
-#         temp$order_taxon %in% c("Pleuronectiformes")], 
-#            "*)")),
-#     ", was only present in the NBS."), "") )
-
-```
-
-```{r}
+# No. fish spp
 temp <- spp_info_maxyr %>% 
   dplyr::filter(used_in_counts == TRUE) 
 
@@ -222,12 +147,12 @@ fish_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "fish"
 
 temp0 <- list_tables$tab_species_composition$raw %>% 
   dplyr::left_join(x = ., 
-                   y = report_spp1 %>% 
+                   y = spp_info %>% 
                      dplyr::select(species_code, order_taxon, species_name), 
                    by = c("species_code"))
 
 
-nbs_insert <- paste0("The EBS had a total of ",
+insert <- paste0("The EBS had a total of ",
                      xunits(nrow(temp0[!is.na(temp0$EBS),])),
                      " fish species, ", 
                      xunits(nrow(temp0[temp0$where == 
@@ -244,8 +169,7 @@ nbs_insert <- paste0("The EBS had a total of ",
                      " of which did not occur in the EBS (Table ", 
                      crossref(list_obj = list_tables, 
                               nickname = "tab_species_composition", 
-                              sublist = "number"), ").  
-                   ",
+                              sublist = "number"), "). ",
                    xunits(nrow(temp0[temp0$where == 
                                        "Present in NBS but absent in EBS" & 
                                        temp0$NBS == TRUE,])),
@@ -260,22 +184,33 @@ nbs_insert <- paste0("The EBS had a total of ",
 # flatfish
 temp1 <- temp0[temp0$order_taxon %in% c("Pleuronectiformes"), ]
 temp2 <- temp1 %>% 
+  dplyr::filter(where != "Present in EBS and NBS") %>% 
   dplyr::group_by(where) %>% 
   dplyr::summarise(n = n()) %>% 
   dplyr::mutate(where = paste0(tolower(substr(x = where, start = 1, stop = 1)), 
-                               substr(x = where, start = 2, stop = nchar(where))))
+                               substr(x = where, start = 2, stop = nchar(where))), 
+                including = NA)
+for (i in 1:nrow(temp2)) {
+  temp2$including[i] <- 
+    NMFSReports::text_list(
+      paste0(
+        temp1$common_name[grepl(pattern = temp2$where[i], 
+                                x = temp1$where, 
+                                ignore.case = TRUE)], 
+        " (*", 
+        temp1$species_name[grepl(pattern = temp2$where[i], 
+                                 x = temp1$where, 
+                                 ignore.case = TRUE)],
+        "*)"))
+}
 
-nbs_insert <- paste0(nbs_insert, 
+insert <- paste0(insert, "In ", maxyr, " ", 
                      
                      NMFSReports::text_list(
                        paste0(xunits(temp2$n), 
                               " flatfish species that were ", 
-                              temp2$where, " included ",
-                              NMFSReports::text_list(
-                                paste0(temp1$common_name[temp1$where %in% temp2$where], 
-                                       " (", 
-                                       temp1$species_name[temp1$where %in% temp2$where],
-                                       ")")))),
+                              temp2$where, " including ",
+                              temp2$including )),
                      " (Table ", 
                      crossref(list_obj = list_tables, 
                               nickname = "tab_species_composition", 
@@ -283,21 +218,32 @@ nbs_insert <- paste0(nbs_insert,
 
 ```
 
-In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, representing `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera were identified from catch samples taken in the combined EBS (Appendix B1) and NBS (Appendix B2) survey areas. `r nbs_insert`
+In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, representing `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera were identified from catch samples taken in the combined EBS (Appendix B1) and NBS (Appendix B2) survey areas. `r insert`
 
 
+```{r}
+# No. fish spp
+temp <- spp_info_maxyr %>% 
+  dplyr::filter(used_in_counts == TRUE) 
 
-> table 6 not auto!
+invert_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert" & 
+                                                              !(grepl(pattern = " sp.", x = temp$report_name_scientific, fixed = T)) & 
+                                                              !(grepl(pattern = " unid.", x = temp$report_name_scientific, fixed = T))])))
+```
 
-A total of `r length(unique(spp_info_maxyr$report_name_scientific[spp_info_maxyr$taxon == "fish"])) ` fish species representing `r length(unique(spp_info_maxyr$family_taxon[spp_info_maxyr$taxon == "fish"]))` families and `r length(unique(spp_info_maxyr$genus_taxon[spp_info_maxyr$taxon == "fish"])) ` genera were identified in the survey catches from the `r NMFSReports::text_list(haul_cruises_maxyr$SRVY)` (Appendix B, Table 6). `r `temp_insert`
+> deal with appendicies # TOLEDO
 
-`r list_table$tab_species_composition$res `
+> left off here!
 
-`r list_table$tab_biomass_est_fish_EBS$res `
+A total of `r invert_sp ` different invertebrate taxa representing `r xunits(length(unique(temp$phylum_taxon[temp$taxon == "invert"])))` phyla were identified in the combined catch samples taken from the EBS (Appendix B3)`r ifelse(SRVY == "NEBS", " and NBS (Appendix B4)", "")`. The EBS had a total of `r xunits(length(unique(catch_haul_cruises$species_code[catch_haul_cruises$SRVY == "EBS"])))` taxa of which 154 were identified to the species level, and the NBS had a total of `r xunits(length(unique(catch_haul_cruises$species_code[catch_haul_cruises$SRVY == "NBS"])))` taxa of which 111 were identified to the species level. The remaining 40% of invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
 
-`r ifelse(SRVY == "NEBS", list_table$tab_biomass_est_fish_NBS$res, "") `
+`r list_tables$tab_species_composition$res `
 
-`r list_table$tab_biomass_est_invert_EBS$res `
+`r list_tables$tab_biomass_est_fish_EBS$res `
+
+`r ifelse(SRVY == "NEBS", list_tables$tab_biomass_est_fish_NBS$res, "") `
+
+`r list_tables$tab_biomass_est_invert_EBS$res `
 
 `r ifelse(SRVY == "NEBS", tab_biomass_est_invert_NBS, "") `
 
@@ -319,8 +265,8 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
   temp1 <- cpue_maxyr %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-    dplyr::select(cpue_kgha, species_code, fish, invert) %>%
-    dplyr::group_by(species_code, fish, invert) %>% 
+    dplyr::select(cpue_kgha, species_code, taxon) %>%
+    dplyr::group_by(species_code, taxon) %>% 
     dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>%
     dplyr::arrange(-cpue_kgha) %>% 
     dplyr::ungroup()
@@ -330,18 +276,18 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     data.frame(
       SRVY = haul_cruises_maxyr$SRVY[i], 
       fish = temp1 %>% 
-        dplyr::filter(fish == TRUE) %>%
+        dplyr::filter(taxon == "fish") %>%
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric(), 
       invert = temp1 %>% 
-        dplyr::filter(invert == TRUE) %>%
+        dplyr::filter(taxon == "invert") %>%
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric(), 
       all = temp1 %>% 
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric(), 
       topfish = temp1 %>% 
-        dplyr::filter(fish == TRUE) %>%
+        dplyr::filter(taxon == "fish") %>%
         head(12) %>%
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric()))
@@ -366,9 +312,9 @@ The lower fish biomass in the NBS is consistent with results of a broader analys
 
 Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
 
-`r list_table$tab_biomass_compareyr_maxyr_percchange_EBS$res `
+`r list_tables$tab_biomass_compareyr_maxyr_percchange_EBS$res `
 
-`r ifelse(SRVY == "NEBS", list_table$tab_biomass_compareyr_maxyr_percchange_NBS$res, "") `
+`r ifelse(SRVY == "NEBS", list_tables$tab_biomass_compareyr_maxyr_percchange_NBS$res, "") `
 
 ## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups
 
@@ -376,9 +322,8 @@ Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million me
 
 Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number. Major species presented include walleye pollock (Figures 7-8 and Table `crossref(list_obj = list_tables, nickname = "tab_biomass_compareyr_maxyr_percchange", sublist = "number")`), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. 
 
+`r list_tables$tab_biomass_compareyr_maxyr_percchange$res `
 
-`r list_table$tab_biomass_compareyr_maxyr_percchange$res `
-
-## Summary of Results for Selected Major `r haul_cruises_maxyr$SRVY_long` Fish Fauna
+## Summary of Results for Selected Major `r NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)` Fish Fauna
 
 
