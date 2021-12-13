@@ -2456,12 +2456,29 @@ table_change <- function(dat,
     dplyr::filter(change != Inf) %>% 
     dplyr::rename(Survey = SRVY)
   
+  
   # remove spp with all 0s
+  if (length(yrs) == 4) {
   a<-Reduce(intersect, 
             list(which(table_raw[,as.character(yrs)[1]]==0),
                  which(table_raw[,as.character(yrs)[2]]==0),
                  which(table_raw[,as.character(yrs)[3]]==0),
                  which(table_raw[,as.character(yrs)[4]]==0)))
+  } else if (length(yrs) == 3) {
+    a<-Reduce(intersect, 
+              list(which(table_raw[,as.character(yrs)[1]]==0),
+                   which(table_raw[,as.character(yrs)[2]]==0),
+                   which(table_raw[,as.character(yrs)[3]]==0)))
+  } else if (length(yrs) == 2) {
+    a<-Reduce(intersect, 
+              list(which(table_raw[,as.character(yrs)[1]]==0),
+                   which(table_raw[,as.character(yrs)[2]]==0)))
+  } else {
+    a<-Reduce(intersect, 
+              list(which(table_raw[,as.character(yrs)[1]]==0)))
+  }
+  
+  
   if (length(a)!=0) {
     table_raw0 <- table_raw[-a,]
   } else {

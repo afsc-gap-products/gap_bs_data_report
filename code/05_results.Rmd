@@ -54,7 +54,7 @@ During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-y
 
 The size of the cold pool each summer depends on sea ice coverage from the previous winter, the timing of its retreat during the spring and early summer as well as other oceanographic and meteorological conditions [@RN941]. During the coldest years, sea ice extended farther south and lasted later into spring resulting in cold pools that extended farther south down the middle domain into Bristol Bay and near the Alaska Peninsula (Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_timeseries_below', sublist = 'number')` and `r crossref(list_obj = list_figures, nickname = 'fig_bt_timeseries_above', sublist = 'number')`). Interannual variability in the dynamics of seasonal ice is a major environmental driver on the Bering Sea shelf [@RN930; @RN931; @RN932] that can change recruitment and migration patterns and cause major distributional shifts in groundfishes and crabs [@RN905; @RN913; @RN977]. 
 
-> # TOLEDO Automate ranges for warm and cold stanzas 
+> Automate ranges for warm and cold stanzas #TOLEDO 
 
 ```{r}
 temp <- cold_pool_area %>% 
@@ -218,8 +218,9 @@ insert <- paste0(insert, "In ", maxyr, " ",
 
 ```
 
-In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, representing `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera were identified from catch samples taken in the combined EBS (Appendix B1) and NBS (Appendix B2) survey areas. `r insert`
+> DUANE: NBS is effectively defacto above 60N, so is the bolding of any value here? If noting historical species distributions... why and should we drive the point home in the text more? # TOLEDO
 
+In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, representing `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera were identified from catch samples taken in the combined EBS (Appendix B1) and NBS (Appendix B2) survey areas. `r insert`
 
 ```{r}
 # No. fish spp
@@ -231,13 +232,33 @@ invert_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "inv
                                                               !(grepl(pattern = " unid.", x = temp$report_name_scientific, fixed = T))])))
 ```
 
+`r list_tables$tab_species_composition$res `
+
 > deal with appendicies # TOLEDO
 
-> left off here!
+```{r}
+temp <- dplyr::left_join(x = catch_haul_cruises, 
+                         y = spp_info, 
+                         by = "species_code") %>% 
+  dplyr::filter(taxon == "invert") %>% 
+  dplyr::select(species_code, species_taxon, phylum_taxon, taxon, SRVY) %>% 
+  dplyr::distinct()
 
-A total of `r invert_sp ` different invertebrate taxa representing `r xunits(length(unique(temp$phylum_taxon[temp$taxon == "invert"])))` phyla were identified in the combined catch samples taken from the EBS (Appendix B3)`r ifelse(SRVY == "NEBS", " and NBS (Appendix B4)", "")`. The EBS had a total of `r xunits(length(unique(catch_haul_cruises$species_code[catch_haul_cruises$SRVY == "EBS"])))` taxa of which 154 were identified to the species level, and the NBS had a total of `r xunits(length(unique(catch_haul_cruises$species_code[catch_haul_cruises$SRVY == "NBS"])))` taxa of which 111 were identified to the species level. The remaining 40% of invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
+temp0 <- dplyr::full_join(
+  x = temp %>% 
+                      dplyr::filter(!is.na(species_taxon)) %>% 
+                      dplyr::group_by(SRVY) %>% 
+                      dplyr::summarise(species_taxon = n()),
+  y = temp %>% 
+                      dplyr::filter(!is.na(species_code)) %>% 
+                      dplyr::group_by(SRVY) %>% 
+                      dplyr::summarise(species_code = n()), 
+  by = "SRVY") %>% 
+  dplyr::mutate(perc = round(((species_code - species_taxon)/species_code)*100, digits = 2))
 
-`r list_tables$tab_species_composition$res `
+```
+
+A total of `r invert_sp ` different invertebrate taxa representing `r xunits(length(unique(temp$phylum_taxon[temp$taxon == "invert"])))` phyla were identified in the combined catch samples taken from the EBS (Appendix B3)`r ifelse(SRVY == "NEBS", " and NBS (Appendix B4)", "")`. In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining of invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
 
 `r list_tables$tab_biomass_est_fish_EBS$res `
 
@@ -245,7 +266,7 @@ A total of `r invert_sp ` different invertebrate taxa representing `r xunits(len
 
 `r list_tables$tab_biomass_est_invert_EBS$res `
 
-`r ifelse(SRVY == "NEBS", tab_biomass_est_invert_NBS, "") `
+`r ifelse(SRVY == "NEBS", list_tables$tab_biomass_est_invert_NBS$res, "") `
 
 
 > All species are idenfitied using and logged in AFSC's databases as *Eschmeyer's Ctaglog of Fishes* (CITATION Eschmeyer) and *An Annotated Checklist of the Marine Macroinvertebrates of Alaska* (CITATION: Drumm). 
@@ -308,21 +329,22 @@ temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientifi
 
 > Not sure how to automate this...?
 
-The lower fish biomass in the NBS is consistent with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936]. The relative abundance of flatfishes and gadids were high in both the `r SRVY ` and NBS, but the species comprising each taxonomic group and their proportion of the total biomass were different between the two areas. In the `r SRVY `, there were 15 different flatfish species that together comprised almost half of the total fish biomass (48%) with yellowfin sole (22%) and northern rock sole (11%) having the greatest proportions. This contrasted with the NBS where there were twelve flatfish species with yellowfin sole (15%) and Alaska plaice (12%) making up a majority of the total fish biomass. Four flatfish species that were present in the `r SRVY ` were absent from catches in the NBS including arrowtooth flounder, butter sole (*Isopsetta isolepis*), rex sole (*Glyptocephalus zachirus*) and southern rock sole (Table `r crossref(list_obj = list_tables, nickname = "tab_species_composition", sublist = "number") `). One flatfish species, the Arctic flounder (Liopsetta glacialis), was only present in the NBS.
+`The lower fish biomass in the NBS is consistent with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936]. The relative abundance of flatfishes and gadids were high in the` `r NMFSReports::text_list(SRVY) `, but the species comprising each taxonomic group and their proportion of the total biomass were different between the two areas. In the `r SRVY `, there were 15 different flatfish species that together comprised almost half of the total fish biomass (48%) with yellowfin sole (22%) and northern rock sole (11%) having the greatest proportions. This contrasted with the NBS where there were twelve flatfish species with yellowfin sole (15%) and Alaska plaice (12%) making up a majority of the total fish biomass. 
 
-Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
+Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
 
-`r list_tables$tab_biomass_compareyr_maxyr_percchange_EBS$res `
-
-`r ifelse(SRVY == "NEBS", list_tables$tab_biomass_compareyr_maxyr_percchange_NBS$res, "") `
+`r list_tables$tab_majortaxa_pchange$res `
 
 ## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups
 
 Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. In the EBS, the proportion of fishes (75%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")`) was three times higher than invertebrates (25%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`). This trend was similarly true in the NBS where the proportion of fishes (63%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number")`) was greater than invertebrates (37%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`). Pleuronectids dominated the fish biomass in both the EBS (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")` and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`) and 25% in the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`).
 
-Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number. Major species presented include walleye pollock (Figures 7-8 and Table `crossref(list_obj = list_tables, nickname = "tab_biomass_compareyr_maxyr_percchange", sublist = "number")`), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. 
+Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number (Table `r crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_EBS", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" and ", crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_NBS", sublist = "number")), "")`). Major species presented include walleye pollock (Figures 7-8 and Table 7a, b), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. 
 
-`r list_tables$tab_biomass_compareyr_maxyr_percchange$res `
+`r list_tables$tab_estimates_maxyr_spp_EBS$res `
+
+`r ifelse(SRVY == "NEBS", list_tables$tab_estimates_maxyr_spp_NBS$res, "") `
+
 
 ## Summary of Results for Selected Major `r NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)` Fish Fauna
 

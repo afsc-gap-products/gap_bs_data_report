@@ -31,7 +31,7 @@ locations<-c(
   
   #General Tables of data
   "RACEBASE.CATCH", 
-  # "RACEBASE.HAULS", 
+  "RACE_DATA.HAULS", # For vessel net mens. codes
   "RACEBASE.HAUL", 
   "RACE_DATA.V_CRUISES",
   "RACE_DATA.V_EXTRACT_FINAL_LENGTHS", # the number of fish physically by hand lengthed (not extrapolated into sizecomp)

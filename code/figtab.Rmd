@@ -77,7 +77,7 @@ reg_dat0$survey.grid <-
                      dplyr::rename(STATIONID = stationid), 
                    by = ("STATIONID"))
 
-
+if (crab_resample == TRUE){
 reg_dat0$survey.grid <- dplyr::left_join(
   x = reg_dat0$survey.grid, 
   y = haul_maxyr_crabretow %>% 
@@ -89,7 +89,7 @@ reg_dat0$survey.grid <- dplyr::left_join(
     dplyr::rename(STATIONID = stationid) %>% 
     unique(), 
   by = ("STATIONID")) 
-
+}
 # vess <- survey.grid0 %>% dplyr::filter(!is.na(vessel_name))
 
 
@@ -110,7 +110,7 @@ figure <- plot_survey_stations(
   stratum_no = TRUE, 
   station_pts_srvy = FALSE, 
   station_pts_vess = TRUE, 
-  study = TRUE) # defined in data.r
+  study = crab_resample) # defined in data.r
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -181,7 +181,7 @@ header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used 
 footnote<- NA
 nickname <- "fig_trawl_gear"
 alttext <- paste0(header)
-height = 9
+height = 7
 width = 6
 
 # Select data and make plot
@@ -420,6 +420,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  # Length = "Length\nmeasurements",
                                  # Age = "Age structure (otolith)\nmeasurements"
     ) %>%
+      flextable::width(x = ., width = 1.5) %>% 
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
     theme_flextable_nmfstm(x = .)
@@ -497,6 +498,9 @@ table_print <- table_raw %>%
                      j = 1, i = ~ #is.na(SRVY) & 
                        is.na(oto_samp_type), # TOLEDO
                      padding.left = 20) %>%
+    flextable::width(x = ., j = "print_name", width = 3) %>% 
+  flextable::width(x = ., j = "species_name", width = 3) %>% 
+  flextable::width(x = ., j = "oto_target", width = 1) %>% 
   # flextable::padding(x = ., 
   #                    j = 1, i = ~ is.na(oto_samp_type), 
   #                    padding.left = 20) %>%
@@ -510,7 +514,7 @@ table_print <- table_raw %>%
   #   j = " ", # on column "var"
   #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
   # hline(i = ~ !is.na(SRVY), border = officer::fp_border() ) %>%
-  NMFSReports::theme_flextable_nmfstm(x = ., row_lines = FALSE) 
+  NMFSReports::theme_flextable_nmfstm(x = ., row_lines = TRUE) 
 
     
   # save yo' stuff and do a lot of behind the scenes work
@@ -571,7 +575,7 @@ table_print <- flextable::flextable(table_raw) %>%
                                  print_name = "Common name", 
                                  species_name = "Scientific name", 
                                  stomach_target = "Target collection number per survey") %>%
-  NMFSReports::theme_flextable_nmfstm(x = ., row_lines = FALSE) 
+  NMFSReports::theme_flextable_nmfstm(x = ., row_lines = TRUE) 
 
     
   # save yo' stuff and do a lot of behind the scenes work
@@ -636,7 +640,7 @@ table_print <- table_raw %>%
   flextable::padding(x = ., 
                      j = 1, i = ~ is.na(SRVY), 
                      padding.left = 20) %>%
-  theme_flextable_nmfstm(row_lines = FALSE) %>% 
+  theme_flextable_nmfstm(row_lines = TRUE) %>% 
   flextable::width(x = ., j = "Agency", width = 1) %>% 
   flextable::width(x = ., j = "Principal investigator", width = 1.5) %>% 
   # flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
@@ -1503,7 +1507,6 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 ## tab_majortaxa_pchange
 
 ```{r tab_majortaxa_pchange}
-
 nickname <- "tab_majortaxa_pchange" 
 yrs <- nbsyr
 # header <- paste0("Major taxa sampled in the NBS bottom trawl survey for ",NMFSReports::text_list(nbsyr),", and the percentage change in biomass (metric tons) from ",compareyr," to ",maxyr," in descending order of percent (%) change.")
@@ -1631,13 +1634,12 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 ```
 
 
-## tab_estimates_maxyr_spp
+## tab_estimates_maxyr_spp_
 
 > can I remove the total hauls column and add it to the header, instead? 
 
-```{r tab_estimates_maxyr_spp}
-nickname <- paste0("tab_estimates_maxyr_spp") 
-
+```{r tab_estimates_maxyr_spp_}
+nickname0 <- paste0("tab_estimates_maxyr_spp_") 
 
 temp <- biomass %>% 
   dplyr::filter(year == maxyr) %>% 
@@ -1660,11 +1662,18 @@ temp <- biomass %>%
   dplyr::select(-species_code, -order, -taxon) %>% 
   dplyr::relocate(print_name)
 
-for (i in 1:2) {
-  subobj <- ifelse(i==1, TRUE, FALSE)
-  newobj <- ifelse(i==1, TRUE, FALSE)
-  
-  
+# for (i in 1:2) {
+#   subobj <- ifelse(i==1, TRUE, FALSE)
+#   newobj <- ifelse(i==1, TRUE, FALSE)
+
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  if (nrow(haul_cruises_maxyr)>1) {
+    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+  }
+  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+
+
   if (i == 1){ # CPUE (WT/HA) and BIOMASS
     
     header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for other common groundfish species for the ",
