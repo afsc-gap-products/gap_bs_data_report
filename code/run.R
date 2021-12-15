@@ -176,7 +176,7 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_codes = "species_code", 
                               lang = TRUE)
 
-for (jj in 4:length(unique(report_spp1$file_name))) {
+for (jj in 5:length(unique(report_spp1$file_name))) {
   
   print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
   
