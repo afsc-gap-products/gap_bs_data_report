@@ -105,8 +105,8 @@ pop <- biomass %>%
 
 if (plot_idw_coldwarm){
   nickname0 <- paste0("fig_idw_cpue_", spp_file, "_")
-  hieght <- 10
-  width <- 6
+  hieght <- 6
+  width <- 6.5
   table_raw0 <- cpue %>%
     dplyr::filter(!is.na(cpue_kgha)) %>% 
     dplyr::arrange(desc(year)) %>% 
@@ -159,13 +159,15 @@ if (plot_idw_coldwarm){
                            package = "NMFSReports")), 
       quiet = TRUE
     )
-    
-    list_figures[nickname][[1]][[1]]$res <- res <- paste0("
+
+list_figures[nickname][[1]]$res <- res <- paste0("
 ###### 
 
 ",res,"
 
 ")
+        
+        
   }
 }
 
@@ -178,7 +180,7 @@ if (plot_idw_coldwarm){
 if (spp_plot_idw){
   nickname <- paste0("fig_idw_cpue_", spp_file)
   hieght <- 6
-  width <- 6
+  width <- 6.5
   table_raw <- cpue %>%
     dplyr::filter(!is.na(cpue_kgha)) %>% 
     dplyr::filter(species_code %in% spp_code & 
@@ -215,12 +217,13 @@ if (spp_plot_idw){
     quiet = TRUE
   )
   
-  list_figures[nickname][[1]][[1]]$res <- res <- paste0("
+list_figures[nickname][[1]]$res <- res <- paste0("
 ###### 
 
 ",res,"
 
 ")
+
 }
 
 ```
@@ -230,15 +233,18 @@ if (spp_plot_idw){
 > need to think bout this for EBS-only. in 2016, included stratum-specific values
 
 ```{r fig_sizecomp_[spp]}
-if (spp_plot_sizecomps) {
+if (spp_plot_sizecomp) {
   
   height <- 6
   width <- ifelse(SRVY == "NEBS", 6, 4)
   header <- paste0("Total abundance-at-length and mean length of ",
-                   spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                   spp_print, ifelse(is.na(spp_sci), "", 
+                                     paste0(" (",spp_sci,")")), 
                    " by sex (males, females, unsexed) and for all sexes combined comparing the ",
                    compareyr," and ",maxyr,
-                   " EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
+                   NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " (", 
+                   haul_cruises_maxyr$SRVY, ")"))
+                   " bottom trawl surveys.")
   
   nickname <- paste0("fig_sizecomp_", spp_file)
   
@@ -339,12 +345,13 @@ if (spp_plot_sizecomps) {
     quiet = TRUE
   )
   
-  list_figures[nickname][[1]]$res <- res <- paste0("
+list_figures[nickname][[1]]$res <- res <- paste0("
 ###### 
 
 ",res,"
 
 ")
+   
   
 }
 ```
@@ -410,7 +417,7 @@ if (spp_plot_sizecomps) {
 # ",res,"
 # 
 # ")
-
+   
 ```
 
 ## tab_estimates_maxyr_[spp]_[wt or num]
@@ -564,7 +571,7 @@ for (i in 1:2) {
     quiet = TRUE
   )
   
-  list_tables[nickname][[1]]$res <- res <- paste0("
+list_tables[nickname][[1]]$res <- res <- paste0("
 ###### 
 
 ",res,"

@@ -79,7 +79,7 @@ source('./code/data.R')
 # *** REPORT TITLE -------------------------------------------------------------
 report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY),
                        ' continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
-report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, N. Charriere, S. Rohan, B. Prohaska, R. Haehn, and D. Stevenson'
+report_authors <- 'D. Stevenson, E. H. Markowitz, E. J. Dawson, N. Charriere, B. Prohaska, S. Rohan, and L. Britt'
 # report_yr <- maxyr 
 
 
@@ -176,7 +176,7 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_codes = "species_code", 
                               lang = TRUE)
 
-for (jj in 5:length(unique(report_spp1$file_name))) {
+for (jj in 2:length(unique(report_spp1$file_name))) {
   
   print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
   
@@ -189,21 +189,21 @@ for (jj in 5:length(unique(report_spp1$file_name))) {
 }
 
 # *** *** 07 - Results_crabretow ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_results_crabretow_")
-rmarkdown::render(paste0(dir_code, "/07_results_crabretow.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+# cnt_chapt<-auto_counter(cnt_chapt)
+# cnt_chapt_content<-"001"
+# filename0<-paste0(cnt_chapt, "_results_crabretow_")
+# rmarkdown::render(paste0(dir_code, "/07_results_crabretow.Rmd"),
+#                   output_dir = dir_out_chapters,
+#                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
 # *** *** 09 - Results_discussion ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_results_discussion_")
-rmarkdown::render(paste0(dir_code, "/09_results_discussion.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+# cnt_chapt<-auto_counter(cnt_chapt)
+# cnt_chapt_content<-"001"
+# filename0<-paste0(cnt_chapt, "_results_discussion_")
+# rmarkdown::render(paste0(dir_code, "/09_results_discussion.Rmd"),
+#                   output_dir = dir_out_chapters,
+#                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
 # *** *** 10 - Endmatter ------------------------
