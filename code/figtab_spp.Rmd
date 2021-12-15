@@ -259,12 +259,13 @@ if (spp_plot_idw){
 
 ## fig_sizecomp_[spp]
 
+> need to think bout this for EBS-only. in 2016, included stratum-specific values
 
 ```{r fig_sizecomp_}
 if (spp_plot_sizecomps) {
   
   height <- 6
-  width <- 6
+  width <- ifelse(SRVY == "NEBS", 6, 4)
   header <- paste0("Total abundance-at-length and mean length of ",
                    spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                    " by sex (males, females, unsexed) and for all sexes combined comparing the ",
@@ -274,26 +275,30 @@ if (spp_plot_sizecomps) {
   nickname <- paste0("fig_sizecomp_", spp_file)
   
   length_data0 <- length_data %>%
-    dplyr::filter(species_code %in% spp_code)# &
+    dplyr::filter(species_code %in% spp_code &
+                      SRVY %in% SRVY1)# &
   # SRVY %in% "NBS" & 
   # year %in% nbsyr)
   
   type <- unique(length_data0$sentancefrag)
   
+  sizecomp0 <- sizecomp %>%
+      dplyr::filter(species_code %in% spp_code &
+                      SRVY %in% SRVY1 &
+                      year %in% nbsyr)
+  
+  if (SRVY == "NEBS") {
   sizecomp0 <- dplyr::bind_rows(
+    sizecomp0, 
     sizecomp %>%
       dplyr::filter(species_code %in% spp_code &
-                      SRVY %in% c("NBS", "EBS") &
-                      year %in% nbsyr), 
-    sizecomp %>%
-      dplyr::filter(species_code %in% spp_code &
-                      SRVY %in% c("NBS", "EBS") &
+                      SRVY %in% SRVY &
                       year %in% nbsyr) %>% 
       dplyr::group_by(year, taxon, species_code, sex, pop) %>% 
       dplyr::summarise(length) %>% 
       dplyr::mutate(SRVY = "EBS + NBS")) %>% 
     dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS + NBS"), ordered = TRUE))
-  
+  }
   
   figure <- plot_sizecomp(
     sizecomp0 = sizecomp0,

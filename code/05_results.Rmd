@@ -42,13 +42,13 @@ a <- summary(lm(haul_maxyr$surface_temperature ~ haul_maxyr$start_longitude))
 temp3 <- ifelse(a$coefficients[2]<0 & a$coefficients[8] <= 0.05, "surface temperatures increased from east to west across the shelf, and ", "")
 ```
 
-Sea surface temperatures recorded during the `r maxyr` `r SRVY` survey ranged from `r round(x = min(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`°C and bottom temperatures ranged from `r round(x = min(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`°C. The mean sea surface temperature for the EBS in `r maxyr` was `r round(x = temp$st, digits = 1)`°C, which was `r round(x = temp$st_diff, digits = 1)`°C `r ifelse((temp$st_diff > 0), "lower", "higher")` than `r lastyr` (`r round(x = temp$st_1, digits = 1)`°C) and `r round(x = temp$st_mean_diff, digits = 1)`°C `r ifelse((temp$st_mean_diff > 0), "lower", "higher")` than the time-series mean (`r round(x = temp$st_mean, digits = 1)`°C) (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`, `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`, and `r crossref(list_obj = list_figures, nickname = 'fig_surftemp_maxyr', sublist = 'number')`). `r ifelse(SRVY == "NEBS", paste0("In the EBS south of 60° N, ", temp3,"an average of ", round(x = mean(temp2$surface_temperature), digits = 1),"°C was observed in the NBS's Norton Sound (Figure ", crossref(list_obj = list_figures, nickname = 'fig_surftemp_maxyr', sublist = 'number'), ")."), "")`
+Sea surface temperatures recorded during the `r maxyr` `r SRVY` survey ranged from `r round(x = min(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`°C and bottom temperatures ranged from `r round(x = min(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`°C. The mean sea surface temperature for the EBS in `r maxyr` was `r round(x = temp$st, digits = 1)`°C, which was `r round(x = temp$st_diff, digits = 1)`°C `r ifelse((temp$st_diff > 0), "lower", "higher")` than `r lastyr` (`r round(x = temp$st_1, digits = 1)`°C) and `r round(x = temp$st_mean_diff, digits = 1)`°C `r ifelse((temp$st_mean_diff > 0), "lower", "higher")` than the time-series mean (`r round(x = temp$st_mean, digits = 1)`°C) (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`, `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`, and `r crossref(list_obj = list_figures, nickname = 'fig_st_maxyr', sublist = 'number')`). `r ifelse(SRVY == "NEBS", paste0("In the EBS south of 60° N, ", temp3,"an average of ", round(x = mean(temp2$surface_temperature), digits = 1),"°C was observed in the NBS's Norton Sound (Figure ", crossref(list_obj = list_figures, nickname = 'fig_st_maxyr', sublist = 'number'), ")."), "")`
 
 `r list_figures$fig_mean_temperature$res `
 
 `r list_figures$fig_cold_pool_area$res `
 
-`r list_figures$fig_surftemp_maxyr$res `
+`r list_figures$fig_st_maxyr$res `
 
 During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-year time series (`r haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY == "EBS"] `–`r maxyr`) of the annual EBS shelf bottom trawl survey, mean summer bottom temperatures were highly variable, ranging from a low of `r round(x = min(temps_avg_yr$bt), digits = 1)`°C to a high of `r round(x = max(temps_avg_yr$bt), digits = 1)`°C, with a grand mean for all years of `r round(x = min(temps_avg_yr$bt_mean[1]), digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`). The mean survey bottom temperature for the EBS in `r maxyr` was `r round(x = (temps_avg_yr_maxyr$bt), digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`), which was `r round(x = abs(temp$bt_mean_diff), digits = 1) `°C `r ifelse(temps_avg_yr_maxyr$bt_above_mean, "warmer", "colder")` than than the time-series mean.
 
@@ -88,21 +88,28 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_cold_pool_description.doc
 ## Survey Data and Specimen Collections 
 
 ```{r}
-temp <- function(cols){
+temp <- function(cols, SRVY){
   nspec <- c()
   ntaxa <- c()
   ctaxa <- c()
   a <- report_spp1
-  a$taxon[a$taxon == "invert" & grepl(pattern = "crab", x = a$print_name)] <- "crab"
+  a$taxon[a$taxon == "invert" & 
+            grepl(pattern = "crab", x = a$print_name)] <- "crab"
   
   for (i in 1:length(cols)){
     
     col <- cols[i]
-    temp <- dplyr::bind_rows(
-      crossref(list_obj = list_tables, 
-               nickname = "tab_specimen_samples_EBS", sublist = "raw")[[1]], 
-      crossref(list_obj = list_tables, 
-               nickname = "tab_specimen_samples_NBS", sublist = "raw")[[1]])
+    if (SRVY == "NEBS") {
+      temp <- dplyr::bind_rows(
+        crossref(list_obj = list_tables, 
+                 nickname = "tab_specimen_samples_EBS", sublist = "raw")[[1]], 
+        crossref(list_obj = list_tables, 
+                 nickname = "tab_specimen_samples_NBS", sublist = "raw")[[1]])      
+    } else {
+    temp <- crossref(list_obj = list_tables, 
+                 nickname = "tab_specimen_samples_EBS", sublist = "raw")[[1]]      
+    }
+
     temp <- temp[temp[,col]!=0,]
     
     nspec <- c(nspec, 
@@ -128,14 +135,19 @@ cols <- cols[!(cols %in% c("common_name", "SRVY"))]
 
 # "", "stomachs collected"	count_pathobiology_samples	count_fecundity_and_maturity_(ovaries)_samples
 
-str <- paste0("A total of ", NMFSReports::text_list(paste0(temp(cols)$nspec, " ", temp(cols)$col, " were collected from ", temp(cols)$ntaxa, " ", temp(cols)$ctaxa, ifelse(temp(cols)$ntaxa==1, " taxon", " taxa"))), ". ")
+temp <- temp(cols, SRVY)
+
+str <- paste0("A total of ", NMFSReports::text_list(paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, ifelse(temp$ntaxa==1, " taxon", " taxa"))), ". ")
 
 ```
+
 During the `r SRVY` (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_EBS", sublist = "number") ``r ifelse(SRVY == "NEBS", paste0(" and ", crossref(list_obj = list_tables, nickname = "tab_specimen_samples_NBS", sublist = "number")), "")`) trawl survey`r ifelse(SRVY == "NEBS", "s", "")` many samples were collected. `r str` Other special collections are listed in table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`. 
 
 ## Species Composition
 
 ```{r}
+insert <- ""
+
 # No. fish spp
 temp <- spp_info_maxyr %>% 
   dplyr::filter(used_in_counts == TRUE) 
@@ -145,7 +157,9 @@ fish_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "fish"
                                                               !(grepl(pattern = " unid.", x = temp$report_name_scientific, fixed = T))])))
 
 
-temp0 <- list_tables$tab_species_composition$raw %>% 
+if (SRVY == "NEBS") {
+
+  temp0 <- list_tables$tab_species_composition$raw %>% 
   dplyr::left_join(x = ., 
                    y = spp_info %>% 
                      dplyr::select(species_code, order_taxon, species_name), 
@@ -215,10 +229,8 @@ insert <- paste0(insert, "In ", maxyr, " ",
                      crossref(list_obj = list_tables, 
                               nickname = "tab_species_composition", 
                               sublist = "number"), ").")
-
+}
 ```
-
-> DUANE: NBS is effectively defacto above 60N, so is the bolding of any value here? If noting historical species distributions... why and should we drive the point home in the text more? # TOLEDO
 
 In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, representing `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera were identified from catch samples taken in the combined EBS (Appendix B1) and NBS (Appendix B2) survey areas. `r insert`
 
@@ -331,13 +343,20 @@ temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientifi
 
 `The lower fish biomass in the NBS is consistent with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936]. The relative abundance of flatfishes and gadids were high in the` `r NMFSReports::text_list(SRVY) `, but the species comprising each taxonomic group and their proportion of the total biomass were different between the two areas. In the `r SRVY `, there were 15 different flatfish species that together comprised almost half of the total fish biomass (48%) with yellowfin sole (22%) and northern rock sole (11%) having the greatest proportions. This contrasted with the NBS where there were twelve flatfish species with yellowfin sole (15%) and Alaska plaice (12%) making up a majority of the total fish biomass. 
 
-Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
+Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure `r ifelse(SRVY == "NEBS", crossref(list_obj = list_figures, nickname = "tab_majortaxa_pchange_NBS", sublist = "number"), "") `). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
 
-`r list_tables$tab_majortaxa_pchange$res `
+`r list_tables$tab_majortaxa_pchange_EBS$res `
+
+`r ifelse(SRVY == "NEBS", list_tables$tab_majortaxa_pchange_NBS$res, "") `
 
 ## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups
 
-Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. In the EBS, the proportion of fishes (75%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")`) was three times higher than invertebrates (25%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`). This trend was similarly true in the NBS where the proportion of fishes (63%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number")`) was greater than invertebrates (37%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`). Pleuronectids dominated the fish biomass in both the EBS (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")` and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`) and 25% in the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`).
+Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. In the EBS, the proportion of fishes (75%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")`) was three times higher than invertebrates (25%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`). 
+
+```{r}
+# This trend was similarly true in the NBS where the proportion of fishes (63%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number")`) was greater than invertebrates (37%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`). Pleuronectids dominated the fish biomass in both the EBS (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")` and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`) and 25% in the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`).
+```
+
 
 Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number (Table `r crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_EBS", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" and ", crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_NBS", sublist = "number")), "")`). Major species presented include walleye pollock (Figures 7-8 and Table 7a, b), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. 
 

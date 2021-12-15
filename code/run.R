@@ -35,28 +35,28 @@ ref_compareyr_nbs <- "@RN909"
 # ref_maxyr_npfmc <- "@NPFMC2016" # temp
 # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-# maxyr <- 2018 # NOTE RAPID RESPONCE
-# compareyr <- 2016
+maxyr <- 2018 # NOTE RAPID RESPONCE
+compareyr <- 2016
+SRVY<-"EBS"
+ref_compareyr_ebs <- "@RN976" # CHANGE
+ref_compareyr_nbs <- NA # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2017" # temp
+# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+
+# maxyr <- 2019
+# compareyr <- 2017
 # SRVY<-"NEBS"
 # ref_compareyr_ebs <- "@RN976" # CHANGE
 # ref_compareyr_nbs <- NA # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2017" # temp
-# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+# ref_maxyr_npfmc <- "@NPFMC2018" # temp
+# dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-maxyr <- 2019
-compareyr <- 2017
+maxyr <- 2021
+compareyr <- 2019
 SRVY<-"NEBS"
 ref_compareyr_ebs <- "@RN976" # CHANGE
-ref_compareyr_nbs <- NA # CHANGE
-ref_maxyr_npfmc <- "@NPFMC2018" # temp
-dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
-
-# maxyr <- 2021
-# compareyr <- 2019
-# SRVY<-"NEBS"
-# ref_compareyr_ebs <- "@RN976" # CHANGE
 ref_compareyr_nbs <- "@RN976" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2019" # temp
+ref_maxyr_npfmc <- "@NPFMC2019" # temp
 dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
@@ -93,7 +93,7 @@ report_authors <- 'L. Britt, E. H. Markowitz, E. J. Dawson, N. Charriere, S. Roh
 # *** *** Figures and Tables ------------------------
 # - run figures and tables before each chapter so everything works smoothly
   
-  report_spp1 <- add_report_spp(spp_info = spp_info, 
+report_spp1 <- add_report_spp(spp_info = spp_info, 
                                 spp_info_codes = "species_code", 
                                 report_spp = report_spp, 
                                 report_spp_col = "order", 

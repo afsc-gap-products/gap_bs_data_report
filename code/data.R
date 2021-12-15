@@ -31,7 +31,7 @@ report_types <- list(
     map.area = "bs.south", 
     SRVY1 = "EBS", 
     SRVY0 = "BS", # in Oracle
-    SRVY00 = 143, # EBS
+    SRVY00 = 98, # EBS
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.south"),
     extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 63), 
@@ -47,7 +47,7 @@ report_types <- list(
     map.area = "bs.north", 
     SRVY1 = "NBS", 
     SRVY0 = "BS", # in Oracle
-    SRVY00 = 98,
+    SRVY00 = 143,
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.north"),
     extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68),
@@ -344,11 +344,6 @@ cruises_compareyr <- cruises %>%
     year == compareyr[1] & 
       survey_definition_id %in% SRVY00)
 
-nbsyr <- sort(cruises %>% 
-                dplyr::filter(SRVY == "NBS") %>% 
-                dplyr::select(year) %>% 
-                unique() %>% 
-                unlist())
 
 # *** haul + maxyr ---------------------------------------------------------------------
 
@@ -381,7 +376,7 @@ haul_maxyr <- haul %>%
 haul_compareyr <- haul %>% 
   dplyr::filter(year == compareyr[1])
 
-lastyr <- max(haul$year[haul$year != maxyr])
+# *** Other var (survey additions, *yrs, etc. ----------------------------------
 
 # Crab retows?
 crab_resample <- FALSE
@@ -400,6 +395,18 @@ if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 20) >0) {
     dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
     dplyr::filter(haul_type == 20) 
 }
+
+if (SRVY == "NEBS") {
+  nbsyr <- sort(cruises %>% 
+                  dplyr::filter(SRVY == "NBS") %>% 
+                  dplyr::select(year) %>% 
+                  unique() %>% 
+                  unlist())
+} else {
+  nbsyr <- sort(unique(haul$year), decreasing = TRUE)[1:4]
+}
+
+lastyr <- max(haul$year[haul$year != maxyr])
 
 # *** stratum_info (survey area) -------------------------------------------
 
@@ -938,14 +945,26 @@ specimen_maxyr <-
 #     (st_wt_above_mean == TRUE & bt_wt_above_mean == FALSE) ~ "st warmer, bt colder",
 #     (st_wt_above_mean == FALSE & bt_wt_above_mean == TRUE) ~ "bt warmer, st colder") ) 
 
+# averge temp without maxyr
+temp <- coldpool:::cold_pool_index %>% 
+  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>% 
+  dplyr::rename(bt = MEAN_GEAR_TEMPERATURE, 
+                st = MEAN_SURFACE_TEMPERATURE) %>% 
+  dplyr::filter(YEAR < maxyr) %>% 
+  janitor::clean_names() %>% 
+  dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE)) %>% 
+  dplyr::mutate(st_mean = mean(st, na.rm = TRUE))
+
 temps_avg_yr <- coldpool:::cold_pool_index %>% 
   dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>% 
   dplyr::rename(bt = MEAN_GEAR_TEMPERATURE, 
                 st = MEAN_SURFACE_TEMPERATURE) %>% 
   dplyr::filter(YEAR <= maxyr) %>% 
   janitor::clean_names() %>% 
-  dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE)) %>% 
-  dplyr::mutate(st_mean = mean(st, na.rm = TRUE)) %>% 
+  dplyr::mutate(bt_mean = temp$bt[1]) %>% 
+  dplyr::mutate(st_mean = temp$st[1]) %>% 
+  dplyr::mutate(bt_mean_maxyr = mean(bt, na.rm = TRUE)) %>% 
+  dplyr::mutate(st_mean_maxyr = mean(st, na.rm = TRUE)) %>% 
   dplyr::mutate(SRVY = "EBS") %>%
   dplyr::arrange(SRVY, year) %>%
   dplyr::mutate(bt_above_mean = bt>bt_mean) %>%

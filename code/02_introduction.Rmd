@@ -40,14 +40,14 @@ if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
     unlist()
   surv_insert2 <- paste0(surv_insert2,
                          'NBS has only been conducted in ',NMFSReports::text_list(temp2),' [@RN909]. ')
-  if (maxyr >= 2018 & maxyr > 2021) {
+  if (maxyr >= 2018 & maxyr >= 2021) {
       surv_insert2 <- paste0(surv_insert2,
-  'In 2018, the "Northern Bering Sea Rapid Response" (NBS) survey was conducted for the first time in response to warmer than average seafloor water temperatures and changes in historical fish and invertebrate distribution patterns observed during the NBS survey [@RN909]. The NBS standardized 20 x 20 nautical mile (nmi) sampling grid and survey station plan implemented in 2010 and 2017 was reduced in scope and resolution for 2018 to a 30 x 30 nmi grid and the survey extent was reduced by eliminating sampling in Norton Sound and near the Alaska coastline from near Nome, AK south towards Nunivak Island, AK (Figure ', crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number"),' and ',crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number"),').') 
+  'In 2018, the "Northern Bering Sea Rapid Response" (NBS) survey was conducted for the first time in response to warmer than average seafloor water temperatures and changes in historical fish and invertebrate distribution patterns observed during the NBS survey [@RN909]. The NBS standardized 20 x 20 nautical mile (nmi) sampling grid and survey station plan implemented in 2010 and 2017 was reduced in scope and resolution for 2018 to a 30 x 30 nmi grid and the survey extent was reduced by eliminating sampling in Norton Sound and near the Alaska coastline from near Nome, AK south towards Nunivak Island, AK (Figures ', crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number"),' and ',crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number"),').') 
       
-      haul_cruises_maxyr %>% 
-        dplyr::filter(SRVY %in% "NBS")
-      
-      length(unique(haul_cruises_maxyr$stationid[haul_cruises_maxyr$SRVY %in% "NBS"]))
+      # haul_cruises_maxyr %>% 
+      #   dplyr::filter(SRVY %in% "NBS")
+      # 
+      # length(unique(haul_cruises_maxyr$s[haul_cruises_maxyr$SRVY %in% "NBS"]))
       
     if (maxyr == 2018) {
       surv_insert2 <- paste0(surv_insert2,
@@ -71,17 +71,15 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_introduction.docx"),
 
 These bottom trawl surveys are mission critical to the AFSC because the results are critical to managing fisheries resources, monitoring the ecosystem, and providing a valuable data time-series for doing basic fisheries research. Fishery-independent abundance estimates and other biological and oceanographic information from Bering Sea bottom trawl surveys are used by the AFSC, North Pacific Fishery Management Council (NPFMC) and the Alaska Department of Fish and Game (ADF&G) to manage groundfish and crab stocks and to do ecosystem forecast modeling that are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act. 
 
-
-> **Moved the below paragraph from history section**
-
-In this document, we will compare the `r NMFSReports::text_list(x = paste0(maxyr, " ", haul_cruises_maxyr$SRVY, " survey results with those from the ", haul_cruises_maxyr$compareyr, " ", haul_cruises_maxyr$SRVY, " survey [", haul_cruises_maxyr$compareyr_ref, "]"))`. `r ifelse(SRVY == "NEBS", paste0("To simplify the results and discussion from here forward, the terms “EBS” and “NBS” will be used to refer specifically to either the eastern or northern Bering Sea bottom trawl survey area, respectively, and “NEBS” will be used when referring to the combined EBS and NBS survey areas. The combined ", maxyr, ' NEBS survey will be compared with the ', min(haul_cruises_maxyr$compareyr) ," NEBS survey [", haul_cruises_maxyr$compareyr_ref[haul_cruises_maxyr$SRVY == "NBS"], "]."), "")` For survey results referenced from previous surveys herein, the reader should refer to the AFSC Technical Memoranda cited here.
+In this document, we will compare the 
+`r NMFSReports::text_list(x = paste0(maxyr, " ", haul_cruises_maxyr$SRVY, " survey results with those from the ", haul_cruises_maxyr$compareyr, " ", haul_cruises_maxyr$SRVY, " survey [", haul_cruises_maxyr$compareyr_ref, "]"))`. 
+`r ifelse(SRVY == "NEBS", paste0("To simplify the results and discussion from here forward, the terms “EBS” and “NBS” will be used to refer specifically to either the eastern or northern Bering Sea bottom trawl survey area, respectively, and “NEBS” will be used when referring to the combined EBS and NBS survey areas. The combined ", maxyr, ' NEBS survey will be compared with the ', min(haul_cruises_maxyr$compareyr) ," NEBS survey [", haul_cruises_maxyr$compareyr_ref[haul_cruises_maxyr$SRVY == "NBS"], "]."), "")` For survey results referenced from previous surveys herein, the reader should refer to the AFSC Technical Memoranda cited here.
 
 Good management of fisheries resources and a healthy ecosystem are especially important to the Alaska Native communities as a way of life and to the tens of thousands of people who are employed by the Alaska fishing industry that generates billions of dollars for the U.S. economy.
 
 `r list_figures$fig_sample_grid$res `
 
 `r list_figures$fig_sampled_survey_stations$res `
-
 
 ## History of Bering Sea Bottom Trawl Surveys
 

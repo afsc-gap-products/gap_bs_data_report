@@ -57,6 +57,8 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 > Do I show stations missed?
 
+> issue with V in 2018
+
 ```{r fig_sampled_survey_stations}
 # header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)," continental shelf bottom trawl surveys.")
 nickname <- "fig_sampled_survey_stations"
@@ -181,8 +183,8 @@ header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used 
 footnote<- NA
 nickname <- "fig_trawl_gear"
 alttext <- paste0(header)
-height = 7
-width = 6
+height = 6
+width = 5
 
 # Select data and make plot
 figure <- 
@@ -278,6 +280,7 @@ table_print <- flextable::flextable(table_raw) %>%
   #   formatters = list(val ~ as.character("km"), pow ~ as.character("2") ),
   #   fprops = list(pow = fp_text(vertical.align = "superscript", font.size = 8))
   #   ) %>% 
+  flextable::width(x = ., j = "stratum", width = 3) %>% 
   flextable::set_header_labels(., 
                                Region = "",
                                stratum = "Stratum",
@@ -421,6 +424,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  # Age = "Age structure (otolith)\nmeasurements"
     ) %>%
       flextable::width(x = ., width = 1.5) %>% 
+      flextable::width(x = ., j = 1, width = 3) %>% 
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
     theme_flextable_nmfstm(x = .)
@@ -498,8 +502,8 @@ table_print <- table_raw %>%
                      j = 1, i = ~ #is.na(SRVY) & 
                        is.na(oto_samp_type), # TOLEDO
                      padding.left = 20) %>%
-    flextable::width(x = ., j = "print_name", width = 3) %>% 
-  flextable::width(x = ., j = "species_name", width = 3) %>% 
+  flextable::width(x = ., j = "print_name", width = 3) %>% 
+  flextable::width(x = ., j = "species_name", width = 3.5) %>% 
   flextable::width(x = ., j = "oto_target", width = 1) %>% 
   # flextable::padding(x = ., 
   #                    j = 1, i = ~ is.na(oto_samp_type), 
@@ -643,6 +647,7 @@ table_print <- table_raw %>%
   theme_flextable_nmfstm(row_lines = TRUE) %>% 
   flextable::width(x = ., j = "Agency", width = 1) %>% 
   flextable::width(x = ., j = "Principal investigator", width = 1.5) %>% 
+    flextable::width(x = ., j = "Principal investigator", width = 5.5) %>% 
   # flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
   flextable::footnote(x = ., value = as_paragraph(footnote0), part = "header", j = "Agency") 
 
@@ -731,8 +736,8 @@ alttext <- paste0("Cold pool extent in the EBS, as measured using observations f
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_cold_pool_area"
 # alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
-height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[1]/300 # 4
-width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[2]/300 # 6
+height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[1]/300/2 # 4
+width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label.png")))[2]/300/2 # 6
 
 # get the most updated file, just in case
 # a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
@@ -767,7 +772,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 
 
-## fig_surftemp_maxyr
+## fig_st_maxyr
 
 > Summer bottom temperatures in the eastern Bering Sea continental shelf survey area, calculated from interpolation of temperature data from summer bottom trawl surveys conducted by AFSC/RACE/GAP. To load this data set, it is necessary to first load the coldpool package or raster and sp packages. Raster layers were interpolated using ordinary kriging with Matern covariance doi: 10.1007/978-1-4612-1494-6(Stein, 1999).
 
@@ -775,12 +780,12 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 > still need nbs
 
-```{r fig_surftemp_maxyr}
+```{r fig_st_maxyr}
 header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
-nickname <- "fig_surftemp_maxyr"
-hieght = 5
-width = 5
+nickname <- "fig_st_maxyr"
+hieght <- 6
+width <- 5
 # temp <- raster::subset(x = coldpool:::ebs_surface_temperature, 
 #                        subset = paste0("ste_",maxyr,"_surface_temperature")) 
 # temp <- projectRaster(temp, crs = crs(reg_dat$akland))
@@ -919,7 +924,7 @@ nickname0 <- "fig_bt_timeseries_"
 
 for (i in 1:2) { # two cases, above and below
   
-  hieght <- 3
+  hieght <- 4
   width <- 6
   
   subobj <- TRUE
@@ -927,8 +932,6 @@ for (i in 1:2) { # two cases, above and below
   TF <- ifelse(i==1, FALSE, TRUE)
   case <- ifelse(i==1, "below", "above")
   year <- sort(temps_avg_yr_abovebelow[,case])
-  
-  
   
   header <- paste0("Contour maps of the near-bottom temperatures from the ",
                    NMFSReports::text_list(year),
@@ -986,6 +989,9 @@ for (i in 1:2) { # two cases, above and below
 
 
 ```{r fig_st_all_nebs_surveys}
+
+if (SRVY == "NEBS") {
+
 nickname <- "fig_st_all_nebs_surveys"
 height <- 7
 width <- 6
@@ -1019,7 +1025,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ",res,"
 
 ")
-
+}
 ```
 
 ## tab_species_composition
@@ -1031,14 +1037,16 @@ if (SRVY == "NEBS"){
 nickname <- "tab_species_composition" 
 header <- paste0("List of fish taxa from survey catches exclusive to the ",
                    NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
-                                                 haul_cruises_maxyr$SRVY, ")")),". Taxa in bold only documented north of 60°N latitude. ")
+                                                 haul_cruises_maxyr$SRVY, ")")),". ")
+# Taxa in bold only documented north of 60°N latitude. 
+
 # Select data and make plot
 table_raw <- catch_haul_cruises_maxyr %>% 
                      dplyr::select(species_code, SRVY, 
                                    "SRVY", start_latitude) %>% 
   dplyr::group_by(species_code, SRVY) %>% 
-  dplyr::summarise(lat_max = max(start_latitude, na.rm = TRUE), 
-                   lat_min = min(start_latitude, na.rm = TRUE)) %>% 
+  dplyr::summarise(lat_max = max(start_latitude, na.rm = TRUE),
+                   lat_min = min(start_latitude, na.rm = TRUE)) %>%
     dplyr::mutate(above_60 = (lat_max >= 60 & lat_min >= 60)) %>%
   tidyr::pivot_wider(data = ., 
                      id_cols = species_code, 
@@ -1101,12 +1109,12 @@ table_raw <- catch_haul_cruises_maxyr %>%
     flextable::flextable(data = .) %>%
     flextable::italic(x = .,
                       j = c(2,4)) %>%
-    flextable::bold(x = .,
-                    i = which(temp1$above_60_),
-                    j = 1:2) %>%
-    flextable::bold(x = .,
-                    i = which(temp2$above_60),
-                    j = 3:4) %>%
+    # flextable::bold(x = .,
+    #                 i = which(temp1$above_60_),
+    #                 j = 1:2) %>%
+    # flextable::bold(x = .,
+    #                 i = which(temp2$above_60),
+    #                 j = 3:4) %>%
     # flextable::footnote(x = ., part = "header", i = 1, j = 1,
     #                     value = as_paragraph(footnote0)) %>%
     add_header_row(x = .,
@@ -1120,37 +1128,6 @@ table_raw <- catch_haul_cruises_maxyr %>%
     ) %>%
     theme_flextable_nmfstm(row_lines = FALSE) %>%
     flextable::vline(x = ., j = 2, part = "all")
-  
-# } else if (SRVY == "EBS") {
-#   
-#   header <- paste0("List of fish taxa from survey catches in the ",
-#                    NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
-#                                                  haul_cruises_maxyr$SRVY, ")")),".")
-#   
-#   table_raw <- temp0
-#   
-#   # table_raw <- temp0 %>% 
-#   #   dplyr::filter(!is.na(EBS)) %>% 
-#   #   dplyr::select(-NBS, -EBS)
-#   
-#   table_print <- table_raw %>% 
-#     dplyr::select(-above_60) %>%
-#     flextable::flextable(data = .) %>% 
-#     flextable::italic(x = ., 
-#                       j = c(2)) %>%
-#     flextable::bold(x = ., 
-#                     i = which(table_raw$above_60),
-#                     j = 1:2) %>%  
-#     flextable::footnote(x = ., part = "header", i = 1, j = 1, 
-#                         value = as_paragraph(footnote0)) %>%
-#     add_header_row(x = ., 
-#                    values = c("Present in EBS"),
-#                    colwidths = c(2)) %>% 
-#     flextable::set_header_labels(., 
-#                                  common_name = "Common name",
-#                                  report_name_scientific = "Scientific name") %>% 
-#     theme_flextable_nmfstm(row_lines = FALSE)
-}
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -1166,7 +1143,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 ",res,"
 
 ")
-
+}
 ```
 
 ## tab_biomass_est_fish_ (EBS and NBS)
@@ -1504,14 +1481,28 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 ```
 
 
-## tab_majortaxa_pchange
+## tab_majortaxa_pchange_
 
-```{r tab_majortaxa_pchange}
-nickname <- "tab_majortaxa_pchange" 
+```{r tab_majortaxa_pchange_}
+
+nickname0 <- "tab_majortaxa_pchange_" 
 yrs <- nbsyr
 # header <- paste0("Major taxa sampled in the NBS bottom trawl survey for ",NMFSReports::text_list(nbsyr),", and the percentage change in biomass (metric tons) from ",compareyr," to ",maxyr," in descending order of percent (%) change.")
 
-header <- paste0("Total estimated biomass in metric tons (t) and the percent change from the ",compareyr," and ",maxyr," NBS (northern Bering Sea) bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  if (nrow(haul_cruises_maxyr)>1) {
+    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    newobj <- ifelse(i==1, TRUE, FALSE)
+  }
+  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+
+header <- paste0(
+  "Total estimated biomass in metric tons (t) and the percent change from the ",
+                 compareyr," and ",maxyr," ", 
+                 haul_cruises_maxyr$SRVY_long, 
+                 " shelf (", 
+                 haul_cruises_maxyr$SRVY, 
+                 ") bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
 
 a<-table_change(dat = cpue_biomass_total %>% 
                   dplyr::filter(SRVY == "NBS") %>%
@@ -1630,7 +1621,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 ",res,"
 
 ")
-
+}
 ```
 
 
@@ -1705,7 +1696,14 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
       dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                            formatC, big.mark=",", digits = 2, format = "f")) %>% 
       dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
-                           formatC, big.mark=",", digits = 0, format = "f")) %>%
+                           formatC, big.mark=",", digits = 0, format = "f")) 
+    
+    if (SRVY == "EBS") {
+      table_print <- table_print %>% 
+        dplyr::select(-SRVY)
+    }
+    
+    table_print <- table_print %>%
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(
         x = ., 
@@ -1755,7 +1753,14 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
       dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                            formatC, big.mark=",", digits = 2, format = "f")) %>% 
       dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
-                           formatC, big.mark=",", digits = 0, format = "f")) %>%
+                           formatC, big.mark=",", digits = 0, format = "f")) 
+    
+    if (SRVY == "EBS") {
+      table_print <- table_print %>% 
+        dplyr::select(-SRVY)
+    }
+    
+    table_print <- table_print %>%
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(
         x = ., 

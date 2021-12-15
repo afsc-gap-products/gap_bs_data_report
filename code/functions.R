@@ -593,7 +593,8 @@ species_text <- function(
   spp_code, 
   SRVY000, 
   maxyr, 
-  compareyr) {
+  compareyr, 
+  biomass_cpue_tab_name) {
   
   haul_maxyr0 <- haul0 %>% 
     dplyr::filter(SRVY %in% SRVY000 &
@@ -784,8 +785,8 @@ ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 In ",maxyr,", ",spp_print," comprised ",
 xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)/
              temp2$biomass[temp2$year == maxyr])*100)," (", 
-xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
-NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
+xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table",ifelse(length(SRVY000)>1, "s", "")," ",
+NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
 ") of the ",
 ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 " survey biomass. ",
@@ -793,11 +794,13 @@ ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 "Previously in ",compareyr,", ",spp_print," comprised ",
 xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
              temp2$biomass[temp2$year == compareyr])*100)," (", 
-xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table ",
-NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange", sublist = "number"),
+xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table",ifelse(length(SRVY000)>1, "s", "")," ",
+NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
 ") of the ",
 ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 " survey biomass. ")
+    
+    
     
     # comprising 12% (520,029 mt; Table 1) of the total NBS survey area biomass - YFS
     # In 2019, snow crab comprised 4% (167,124 mt, Table 1) of the NBS survey biomass... In 2017, snow crab comprised 5% (223,216 mt) of the NBS survey biomass
@@ -827,7 +830,8 @@ species_content <- function(SURVEY000,
                             spp_print, 
                             spp_code,
                             maxyr, 
-                            compareyr) {
+                            compareyr, 
+                            biomass_cpue_tab_name = "tab_majortaxa_pchange") {
   
   
   # Data work up
@@ -887,7 +891,8 @@ species_content <- function(SURVEY000,
     spp_code, 
     SRVY000, 
     maxyr, 
-    compareyr)
+    compareyr, 
+    biomass_cpue_tab_name)
   
   return(list("table_spp" = table_spp, 
               "text_spp" = text_spp))
@@ -2113,11 +2118,11 @@ plot_survey_stations <- function(reg_dat,
   # survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
   #                     as.character(nmfspalette::nmfs_cols("medgray")))
   
+  
   survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
   survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
   
   figure <- ggplot() 
-  
   
   # if (station_pts_vess) {
   
@@ -2200,7 +2205,10 @@ plot_survey_stations <- function(reg_dat,
           # order = 1,# survey regions
           override.aes = list(fill = NA,
                               # color = c(survey_reg_col, NA, NA),
-                              linetype = c(1,1,0,0),
+                              linetype = c(
+                                rep_len(x = 1, 
+                                        length.out = length(unique(haul_cruises_maxyr$SRVY))), 
+                                0, 0), # c(1,1,0,0),
                               # shape = c(NA, NA, "A", "V"),
                               size = 3)),
         fill = guide_legend(

@@ -15,8 +15,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 ## Survey Area and Sampling Design 
 
-> edited this down a bit and put the following in the introduction "To simplify the results and discussion from here forward, the terms “EBS” and “NBS” will be used to refer specifically to either the eastern or northern Bering Sea bottom trawl survey area, respectively, and “NEBS” will be used when referring to the combined EBS and NBS survey areas." 
-
 The standardized annual bottom trawl survey of the EBS `r ifelse(SRVY == "NEBS", "and NBS are", " is")` based on a systematic design with `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_avail, " in the ", haul_cruises_maxyr$SRVY))` fixed sampling stations at the center of 37.04 × 37.04 km (20 × 20 nautical mile) grid squares (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). In waters surrounding St. Matthew Island and the Pribilof Islands, high-density “corner stations” are sampled to better assess local blue king crab concentrations (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). `r ifelse(SRVY == "NEBS", paste0("The ", maxyr, " NBS survey was a northward extension of the EBS systematic design consisting of stations bounded by the U.S.-Russian Maritime Boundary, the Bering Strait, and Norton Sound.") , "")` The results reported herein include data analyses for both the `r NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY))`. 
 
 ## Survey Vessels and Sampling Gear
@@ -29,9 +27,7 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 
 `r list_figures$fig_trawl_gear$res `
 
-
 > Should we limit to 3 decimal places for eq?
-
 
 ```{r}
 # equation = "{Net width} ∼ {Inverse scope} + {Height} + {Inverse scope} * {Height}"
@@ -49,11 +45,30 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 
 # `r eq_mean_net_width `
 
+
+# hauls <- #hauls0 %>% 
+#   dplyr::left_join(
+#   x = hauls0 %>% 
+#     dplyr::select(!starts_with("edit_")), 
+#   y = cruises %>% 
+#     dplyr::select(cruisejoin, survey_definition_id), 
+#   by = "cruisejoin") %>%  
+#   dplyr::mutate(year = as.numeric(substr(x = start_time, 1,4))) %>% 
+#   dplyr::filter(year <= maxyr &
+#                   # abundance_haul == "Y", 
+#                   performance >= 0 &
+#                   !(is.null(stationid)) &
+#                   survey_definition_id %in% SRVY00) %>% 
+#   dplyr::select(-auditjoin) %>%  
+#   dplyr::mutate(SRVY = dplyr::case_when(
+#     survey_definition_id %in% 143 ~ "NBS",
+#     survey_definition_id %in% 98 ~ "EBS" ))
+
 temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_vessel_equations.xlsx"), 
                          sheet = "Sheet1", 
                          skip = 1) %>% 
    dplyr::filter(SRVY %in% SRVY1 & # "EBS" & 
-                   year == maxyr) # 2018
+                   year == maxyr) # 2018 #
 if (sum(!is.na(temp$vessel)) == nrow(temp)) {
 temp <- temp %>% 
   dplyr::left_join(x = ., 
@@ -82,7 +97,8 @@ if (sum(!is.na(temp$vessel)) == nrow(temp)) {
 
   for (i in 1:length(unique(temp$SRVY))){
     temp0 <- temp %>% 
-      dplyr::filter(!is.na(N))
+      dplyr::filter(!is.na(N) & 
+                      SRVY == unique(temp$SRVY)[i])
   str <- paste0(str, 
                 "In the ",unique(temp$SRVY)[i],
                 ", the net mensuration system failed to record data for ", 
@@ -96,9 +112,6 @@ $$ w \\sim {s}^{-1} + h + \\frac{h}{s} $$
 ")
 }
 ```
-
-> DUANE: I changed the equation format... is that... ok? Easier to code and more official looking? # TOLEDO! 
-
 `r str `
 
 ```{r}
@@ -110,7 +123,7 @@ for (i in 1:length(unique(haul_maxyr$vessel))){
   vess <- unique(haul_maxyr$vessel)[i]
   
   temp0 <- temp %>% 
-    dplyr::filter(vessel == vess)
+    dplyr::filter(vessel == vess) 
   
   str <- paste0(str, 
                 paste0("For the ", temp0$vessel_ital[1], ", "))
@@ -242,12 +255,10 @@ str <- data.frame(str = str,
 ```
 
 
-The `r text_list(vessel_info$vessel_ital)` conducted the standard EBS shelf survey charters beginning in Dutch Harbor, Alaska, beginning in eastern Bristol Bay and proceeding westward to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `). The progression from east to west was established in response to movements of yellowfin sole and perhaps other species, which may be migrating eastward during the course of the survey [@RN928]. In the EBS, the `r str$str[str$SRVY == "EBS"]` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `).
-
-`r list_figures$fig_sampled_survey_stations$res `
+The `r text_list(vessel_info$vessel_ital)` conducted the standard EBS shelf survey charters beginning in Dutch Harbor, Alaska, beginning in eastern Bristol Bay and proceeding westward to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `). The progression from east to west was established in response to movements of yellowfin sole and perhaps other species, which may be migrating eastward during the course of the survey [@RN928]. In the EBS, `r str$str[str$SRVY == "EBS"]` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `).
 
 ```{r}
-  temp0 <- crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "raw")[[1]]
+temp0 <- crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "raw")[[1]]
 
 temp <- temp0 %>% 
   dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -281,7 +292,7 @@ if (SRVY == "NEBS") {
   nbs_insert <- paste0(
     "After the completion of the EBS shelf survey, both vessels transitioned into sampling survey stations in the southwest corner of the NBS survey region. In the NBS shelf survey, ", 
     str$str[str$SRVY == "NBS"], 
-    ". After the NBS suvey was completed, both vessels returned to Dutch Harbor for offloading. The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50-m isobath (Figure ", crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number"),
+    ". After the NBS survey was completed, both vessels returned to Dutch Harbor for offloading. The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50-m isobath (Figure ", crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number"),
     "). Sampling density was ", 
     # Sampling density was 1,367 km2 /station for Stratum 70, 1,475 km2 /station for Stratum 71, 1,370 km2 /station for Stratum 81, 
     NMFSReports::text_list(paste0(xunits(temp$density), " km^2^/station for Stratum ", temp$stratum)), 
@@ -320,11 +331,17 @@ Random samples of selected fish species (Table`r ifelse(SRVY == "NEBS", "s", "")
 #   dplyr::summarise(species_code_n = unique(species_code)) %>% 
 #   dplyr::summarise(n = length(all_of(SRVY)))   
 
-temp <- dplyr::bind_rows(
+if (SRVY == "NEBS") {
+  temp <- dplyr::bind_rows(
     list_tables$tab_oto_collection_scheme_EBS$raw %>% 
       dplyr::mutate(SRVY = "EBS"), 
     list_tables$tab_oto_collection_scheme_NBS$raw %>% 
-      dplyr::mutate(SRVY = "NBS")) %>% 
+      dplyr::mutate(SRVY = "NBS"))
+} else {
+  temp <- list_tables$tab_oto_collection_scheme_EBS$raw %>% 
+      dplyr::mutate(SRVY = "EBS")
+}
+ temp <- temp %>% 
   dplyr::select(SRVY, species_name) %>% 
   dplyr::group_by(SRVY) %>% 
   dplyr::summarise(species_code_n = unique(species_name)) %>% 
