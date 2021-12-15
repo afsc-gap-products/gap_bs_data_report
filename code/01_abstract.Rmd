@@ -138,23 +138,30 @@ The distribution and relative abundance of `r xunits(length(unique(report_spp1$o
 Survey results presented herein include abundance estimates for fishes and invertebrates, geographic distributions and abundance-at-length of the more common fish species, and summary surface and bottom temperature data during the summer survey period. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data of the sampled populations.
 
 ```{r}
-
+nbs_insert <- ""
 if (SRVY == "NEBS") {
 
+  change <- c(list_tables$tab_majortaxa_pchange_NBS$raw$`change `, 
+    list_tables$tab_majortaxa_pchange_NBS$raw$change)
+  case <- sum(change>0, na.rm = TRUE) > sum(change<=0, na.rm = TRUE)
+  
 nbs_insert <- paste0(
-  "Between ", compareyr, " and ", maxyr, "the total CPUE values for many of the animals in the NBS shifted from being low in ", compareyr, " to being much higher in ", maxyr, ". The total estimated animal biomass in the NBS increased from ", xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == "NBS"])) ," t in ", compareyr, " to ", xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == "NBS"]))," t in ", maxyr)
-
-} else {
-  nbs_insert <- ""
+  "Between ", compareyr, " and ", maxyr, 
+  " the total CPUE values for many of the animals in the NBS shifted from being ",
+  ifelse(case, "lower", "higher")," in ", compareyr, " than in ", maxyr, 
+  ". The total estimated animal biomass in the NBS increased from ", 
+  xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == "NBS"])) ,
+  " t in ", compareyr, " to ", 
+  xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == "NBS"])),
+  " t in ", maxyr)
 }
+
 
 # insert <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
 insert <- readtext2(file = paste0(dir_out_rawdata, "/0_abstract_conclusion.docx"), 
                     refcontent = refcontent)
 ```
 
-
 `r nbs_insert `. `r insert`
-
 
 
