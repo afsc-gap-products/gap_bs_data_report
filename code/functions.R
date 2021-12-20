@@ -1211,7 +1211,9 @@ plot_idw_xbyx <- function(
   plot_coldpool = FALSE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
+  figure <- ggplot()
   
+  if (nrow(dat) != 0) {
   if (set.breaks[1] =="auto") {
     set.breaks <- set_breaks(dat, var)
       
@@ -1297,8 +1299,9 @@ plot_idw_xbyx <- function(
   names(stars_list) = "value"
   
   
-  figure <- ggplot() +
+  figure <- figure +
     geom_stars(data = stars_list, na.rm = TRUE) 
+  } 
   
   if (plot_coldpool) {
     
@@ -1337,9 +1340,20 @@ plot_idw_xbyx <- function(
     
   }  
   
+  if (nrow(dat) != 0) {
   figure <- figure +
     facet_wrap( ~ new_dim, nrow = nrow) +
-    coord_equal() +
+    coord_equal() 
+  } else {
+    grid <- ""
+    figure <- figure +
+      ggplot2::geom_text(mapping = aes(x = mean(reg_dat$lon.breaks), 
+                                       y = mean(reg_dat$lat.breaks), 
+                                       label = "No data was available\nfor this species in this\nregion for this year."), 
+                         fontface="bold")
+  }
+  
+  figure <- figure + 
     geom_sf(data = reg_dat$survey.strata,
             color = "grey50",
             size = 0.1,
