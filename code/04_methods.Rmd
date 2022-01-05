@@ -27,10 +27,11 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 
 `r list_figures$fig_trawl_gear$res `
 
-> Should we limit to 3 decimal places for eq?
 
 ```{r}
-# equation = "{Net width} ∼ {Inverse scope} + {Height} + {Inverse scope} * {Height}"
+# > Should we limit to 3 decimal places for eq?
+
+  # equation = "{Net width} ∼ {Inverse scope} + {Height} + {Inverse scope} * {Height}"
 # nickname = "eq_mean_net_width"
 # header = "Equation to relate mean net width with the inverse scope (m) and mean net height (m)."
 # alttext = "To estimate these missing net width values, the mgcv package in R (Wood 2004) was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921."
@@ -64,10 +65,10 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 #     survey_definition_id %in% 143 ~ "NBS",
 #     survey_definition_id %in% 98 ~ "EBS" ))
 
-temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_vessel_equations.xlsx"), 
-                         sheet = "Sheet1", 
-                         skip = 1) %>% 
-   dplyr::filter(SRVY %in% SRVY1 & # "EBS" & 
+temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_vessel_equations.xlsx"),
+                         sheet = "Sheet1",
+                         skip = 1) %>%
+   dplyr::filter(SRVY %in% SRVY1 & # "EBS" &
                    year == maxyr) # 2018 #
 if (sum(!is.na(temp$vessel)) == nrow(temp)) {
 temp <- temp %>% 
@@ -112,57 +113,57 @@ $$ w \\sim {s}^{-1} + h + \\frac{h}{s} $$
 ")
 }
 ```
+
 `r str `
 
 ```{r}
-str <- c()
-# if equations were estimated
-if (sum(!is.na(temp$vessel)) == nrow(temp)) {
-for (i in 1:length(unique(haul_maxyr$vessel))){
-  
-  vess <- unique(haul_maxyr$vessel)[i]
-  
-  temp0 <- temp %>% 
-    dplyr::filter(vessel == vess) 
-  
-  str <- paste0(str, 
-                paste0("For the ", temp0$vessel_ital[1], ", "))
-  
-  # if NBS and EBS
-  if (length(SRVY1) > 1) {
-    str <- paste0(str, 
-             ifelse(length(unique(temp0$sig_fragment)) == 1, 
-                                paste0(temp0$sig_fragment[1], " in both the ",
-                                       NMFSReports::text_list(SRVY1)), 
-                                paste0(NMFSReports::text_list(temp0$sig_fragment, 
-                                                              " in the ", SRVY1))))
-  } else { # if EBS only
-        str <- paste0(str, temp$sig_fragment, " in the EBS")
-  }
-  
-  str <- paste0(str, 
-                ". The resulting regression equations ",
-                ifelse(SRVY == "NEBS", "by survey", "in the EBS"),
-                " were as follows:
-
-", 
-NMFSReports::text_list(paste0(temp0$SRVY, " (n = ", temp0$Y, "):
-  $$",temp0$eq, "$$
-  
-  "), sep = ""))
-  
-  str <- paste0(str, 
-                "These equations were subsequently used to estimate the respective net spread values for the ", 
-                xunits(sum(temp$N, na.rm = TRUE)),
-                " tows with missing net width values. ")
-}
-} else { # if equations were NOT estimated
-  str <- paste0("In ", maxyr ,", ", temp$sig_fragment)
-}
-
+# str <- c()
+# # if equations were estimated
+# if (sum(!is.na(temp$vessel)) == nrow(temp)) {
+# for (i in 1:length(unique(haul_maxyr$vessel))){
+#   
+#   vess <- unique(haul_maxyr$vessel)[i]
+#   
+#   temp0 <- temp %>% 
+#     dplyr::filter(vessel == vess) 
+#   
+#   str <- paste0(str, 
+#                 paste0("For the ", temp0$vessel_ital[1], ", "))
+#   
+#   # if NBS and EBS
+#   if (length(SRVY1) > 1) {
+#     str <- paste0(str, 
+#              ifelse(length(unique(temp0$sig_fragment)) == 1, 
+#                                 paste0(temp0$sig_fragment[1], " in both the ",
+#                                        NMFSReports::text_list(SRVY1)), 
+#                                 paste0(NMFSReports::text_list(temp0$sig_fragment, 
+#                                                               " in the ", SRVY1))))
+#   } else { # if EBS only
+#         str <- paste0(str, temp$sig_fragment, " in the EBS")
+#   }
+#   
+#   str <- paste0(str, 
+#                 ". The resulting regression equations ",
+#                 ifelse(SRVY == "NEBS", "by survey", "in the EBS"),
+#                 " were as follows:
+# 
+# ", 
+# NMFSReports::text_list(paste0(temp0$SRVY, " (n = ", temp0$Y, "):
+#   $$",temp0$eq, "$$
+#   
+#   "), sep = ""))
+#   
+#   str <- paste0(str, 
+#                 "These equations were subsequently used to estimate the respective net spread values for the ", 
+#                 xunits(sum(temp$N, na.rm = TRUE)),
+#                 " tows with missing net width values. ")
+# }
+# } else { # if equations were NOT estimated
+#   str <- paste0("In ", maxyr ,", ", temp$sig_fragment)
+# }
 ```
 
-`r str`
+<!-- `r str` -->
 
 Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station and averaged for the tow duration. Average bottom depth was calculated by adding the average net height to the average depth of the headrope.
 
@@ -258,7 +259,7 @@ str <- data.frame(str = str,
 The `r text_list(vessel_info$vessel_ital)` conducted the standard EBS shelf survey charters beginning in Dutch Harbor, Alaska, beginning in eastern Bristol Bay and proceeding westward to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `). The progression from east to west was established in response to movements of yellowfin sole and perhaps other species, which may be migrating eastward during the course of the survey [@RN928]. In the EBS, `r str$str[str$SRVY == "EBS"]` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `).
 
 ```{r}
-temp0 <- crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "raw")[[1]]
+temp0 <- list_tables$tab_stratum_areas$raw
 
 temp <- temp0 %>% 
   dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -278,7 +279,7 @@ nbs_insert <- ""
 
 if (SRVY == "NEBS") {
   
-  temp0 <- crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "raw")[[1]]
+  temp0 <- list_tables$tab_stratum_areas$raw
   
   temp <- temp0 %>% 
     dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -381,9 +382,7 @@ Except for Pacific halibut, otolith samples collected during the survey were rea
 ## Additional Research Projects
 
 ```{r}
-temp <- crossref(list_obj = list_tables, 
-                 nickname = "tab_special_projects", 
-                 sublist = "raw")[[1]] %>% 
+temp <- list_tables$tab_special_projects$raw %>% 
   dplyr::group_by(SRVY) %>% 
   dplyr::summarise(n = length(all_of(SRVY))) %>% 
   dplyr::mutate(SRVY = dplyr::case_when(

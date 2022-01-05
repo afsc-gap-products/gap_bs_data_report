@@ -101,7 +101,6 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                                 lang = FALSE)
 
 if (FALSE) {
-  # cnt_chapt<-auto_counter(cnt_chapt)
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),

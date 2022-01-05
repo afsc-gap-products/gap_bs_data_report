@@ -2180,21 +2180,23 @@ plot_survey_stations <- function(reg_dat,
     vess <- reg_dat$survey.grid %>% dplyr::filter(!is.na(vessel_name))
     
     figure <- figure  +
+      geom_sf(data = reg_dat$survey.area,# %>%
+                # dplyr::mutate(SURVEY = dplyr::case_when(
+                #   SURVEY == "EBS_SHELF" ~ "EBS",
+                #   SURVEY == "NBS_SHELF" ~ "NBS")),
+              aes(color = reg_dat$survey.area$SURVEY, 
+                  shape = reg_dat$survey.area$SURVEY
+                  ), 
+              fill = NA, 
+              size = 1.5,
+              show.legend = TRUE) +
       stat_sf_coordinates(data = vess,
                           mapping = aes(color = vess_col, 
                                         shape = vess_shape),
                           size = 1.5, 
                           show.legend = TRUE, 
                           na.rm = TRUE) + 
-      geom_sf(data = reg_dat$survey.area %>%
-                dplyr::mutate(SURVEY = dplyr::case_when(
-                  SURVEY == "EBS_SHELF" ~ "EBS", 
-                  SURVEY == "NBS_SHELF" ~ "NBS")), 
-              aes(color = reg_dat$survey.area$SURVEY, 
-                  shape = reg_dat$survey.area$SURVEY), 
-              fill = NA, 
-              size = 1.5,
-              show.legend = TRUE)  +
+
       
       scale_color_manual(
         name = " ", #"Survey Region",
@@ -2208,7 +2210,7 @@ plot_survey_stations <- function(reg_dat,
       
       scale_shape_manual(
         name = " ", #"Survey Vessels",
-        values = c("", "",
+        values = c(rep_len(x = "", length.out = length(unique(reg_dat$survey.area$SURVEY))),
                    unique(vess$vess_shape)),
         breaks = c(unique(reg_dat$survey.area$SURVEY),
                    unique(vess$vess_shape)),
