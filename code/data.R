@@ -1125,15 +1125,18 @@ cpue_biomass_station <- tidyr::crossing(
 
 
 
-cpue_biomass_total <- cpue_biomass_station %>%
+cpue_biomass_stratum <- cpue_biomass_station %>%
   ## calculates mean CPUE (weight) by year, group, stratum, and area
   dplyr::ungroup() %>%
-  dplyr::group_by(year, group, species_name, species_name1, print_name, stratum, area, SRVY, taxon) %>%
-  dplyr::summarise(CPUE_by_group_stratum = mean(cpue_kgha, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  dplyr::group_by(year, group, species_name, species_name1, print_name, 
+                  stratum, area, SRVY, taxon) %>%
+  dplyr::summarise(cpue_by_group_stratum = mean(cpue_kgha, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
   ## creates column for meanCPUE per group/stratum/year*area of stratum
-  dplyr::mutate(mean_cpue_times_area = (CPUE_by_group_stratum * area)) %>%
+  dplyr::mutate(mean_cpue_times_area = (cpue_by_group_stratum * area)) %>%
   ## calculates sum of mean CPUE*area (over the 3 strata)
-  dplyr::ungroup() %>%
+  dplyr::ungroup() 
+
+cpue_biomass_total <- cpue_biomass_stratum %>%
   dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name, taxon) %>%
   dplyr::summarise(mean_CPUE_all_strata_times_area =
                      sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?

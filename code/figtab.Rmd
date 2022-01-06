@@ -1154,7 +1154,19 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 nickname0 <- "tab_biomass_est_fish_"
 
 # Select data and make plot
-# temp <- cpue_biomass_station %>% 
+temp <- biomass_strat %>%
+  dplyr::filter(year == maxyr &
+                  SRVY %in% SRVY1 & 
+                  taxon == "fish") %>% 
+  dplyr::select(species_code, species_name, stratum, biomass, varbio) %>% 
+  dplyr::mutate(taxon_group = round(rnorm(n = nrow(.), mean = 2, sd = 1), digits = 0), 
+                taxon = paste0(species_name, "(", species_name, ")"), 
+                prop = NA) %>% 
+  dplyr::rename(c95 = varbio)
+
+# by stratum
+temp1 <- temp %>% 
+  dplyr::select(stratum, taxon_group, taxon, biomass) 
   
   # TOLEDO - dummy data
   temp <- cbind.data.frame(taxon_group = c("A", "A", "C", "B", "B", "B"), 

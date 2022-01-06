@@ -51,13 +51,13 @@ dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.co
 # ref_maxyr_npfmc <- "@NPFMC2018" # temp
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-# maxyr <- 2021
-# compareyr <- 2019
-# SRVY<-"NEBS"
-# ref_compareyr_ebs <- "@RN976" # CHANGE
-# ref_compareyr_nbs <- "@RN976" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2019" # temp
-# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+maxyr <- 2021
+compareyr <- 2019
+SRVY<-"NEBS"
+ref_compareyr_ebs <- "@RN976" # CHANGE
+ref_compareyr_nbs <- "@RN976" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2019" # temp
+dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 
