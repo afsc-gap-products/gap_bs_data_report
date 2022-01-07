@@ -55,9 +55,9 @@ list_figures[nickname][[1]]$res <- res #<- paste0("
 
 ### How do I know what stations were retowed?
 
-> Do I show stations missed?
+### Do I show stations missed?
 
-> issue with V in 2018
+### issue with V in 2018
 
 ```{r fig_sampled_survey_stations}
 # header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)," continental shelf bottom trawl surveys.")
@@ -213,7 +213,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ### should density use stations_completed or stations_avail?
 
-> superscripts
+### superscripts
 
 
 ```{r tab_stratum_areas}
@@ -425,6 +425,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     ) %>%
       flextable::width(x = ., width = 1.5) %>% 
       flextable::width(x = ., j = 1, width = 3) %>% 
+      flextable::bold(x = ., i = which(table_print$common_name == "Total")) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
     theme_flextable_nmfstm(x = .)
@@ -675,7 +676,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ## fig_mean_temperature
 
-> prev: fig_temp_weight_mean
+### prev: fig_temp_weight_mean
 
 ```{r fig_mean_temperature}
 nickname <- "fig_mean_temperature"
@@ -726,7 +727,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ## fig_cold_pool_area
 
-> Figure header from 2019: Figure 4. Mean summer surface and bottom temperatures for the 38-year times series from the EBS shelf bottom trawl survey (A) and the cumulative proportion of EBS shelf area covered by each one-degree bottom isotherm range (B).
+### Figure header from 2019: Figure 4. Mean summer surface and bottom temperatures for the 38-year times series from the EBS shelf bottom trawl survey (A) and the cumulative proportion of EBS shelf area covered by each one-degree bottom isotherm range (B).
 
 ```{r fig_cold_pool_area}
 # header <- paste0("Percentage of the EBS shelf from 1982–",maxyr," bottom area that is occupied by the cold pool in one degree Celsius increments.")
@@ -773,111 +774,13 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ## fig_st_maxyr
 
-> Summer bottom temperatures in the eastern Bering Sea continental shelf survey area, calculated from interpolation of temperature data from summer bottom trawl surveys conducted by AFSC/RACE/GAP. To load this data set, it is necessary to first load the coldpool package or raster and sp packages. Raster layers were interpolated using ordinary kriging with Matern covariance doi: 10.1007/978-1-4612-1494-6(Stein, 1999).
-
-> Rasters of summer bottom temperature in the eastern Bering Sea at 5-km resolution
-
-> still need nbs
-
 ```{r fig_st_maxyr}
 header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
 nickname <- "fig_st_maxyr"
-hieght <- 7
+hieght <- 8
 width <- 6
-# temp <- raster::subset(x = coldpool:::ebs_surface_temperature, 
-#                        subset = paste0("ste_",maxyr,"_surface_temperature")) 
-# temp <- projectRaster(temp, crs = crs(reg_dat$akland))
-# temp_spdf <- as(temp, "SpatialPixelsDataFrame")
-# temp_df <- as.data.frame(temp_spdf)
-# colnames(temp_df) <- c("value", "x", "y")
-# 
-# figure <- ggplot() +  
-#   geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-#   geom_tile(data=temp_df, aes(x=x, y=y, fill=value))  + 
-#   scale_fill_viridis_c(#option = "plasma", 
-#     na.value = "transparent", 
-#     breaks = seq(from = -2, to = 20, by = 2),
-#     labels = seq(from = -2, to = 20, by = 2)#,
-#     # alpha = 0.75
-#   ) + 
-#   guides(fill=guide_legend(title="Surface\nTemperature (°C)\n\n")) +
-#   geom_sf(data = reg_dat$bathymetry, color = "grey50") +
-#   geom_sf(data = reg_dat$graticule,
-#           color = "grey90",
-#           alpha = 0.5) +
-#   geom_sf(data = reg_dat$survey.area, 
-#           color = "black", 
-#           fill = NA, 
-#           size = 1) +
-#   scale_x_continuous(name = "Longitude", 
-#                      breaks = reg_dat$lon.breaks) + 
-#   scale_y_continuous(name = "Latitude", 
-#                      breaks = reg_dat$lat.breaks) +
-#   coord_sf(xlim = reg_dat$plot.boundary$x, 
-#            ylim = reg_dat$plot.boundary$y) +
-#   geom_text(data = subset(reg_dat$place.labels, type == "mainland"),
-#             aes(x = x, y = y, label = lab),
-#             size = 14, group = 99) +
-#   geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"),
-#                   aes(x = x, y = y, label = lab), size = 5, angle = 40,
-#                   bg.color = "white", color = "black", group = 99) +
-#   geom_shadowtext(
-#     data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
-#     aes(x = x, y = y, label = lab),
-#     bg.color = "white", color = "black",
-#     size = 2, group = 99) +
-#   
-#   ggsn::scalebar(data = reg_dat$survey.grid,
-#                  location = "bottomright",
-#                  dist = 100,
-#                  dist_unit = "km",
-#                  transform = FALSE,
-#                  st.dist = .02,
-#                  height = 0.02,
-#                  st.bottom = TRUE,
-#                  st.size = 3,
-#                  # transform = TRUE,
-#                  model = reg_dat$crs) +
-#   #set legend position and vertical arrangement
-#   theme(
-#     panel.background = element_rect(fill = "white", 
-#                                     colour = NA), 
-#     panel.border = element_rect(fill = NA, 
-#                                 colour = "grey20"), 
-#     strip.background = element_rect(fill = "grey85", 
-#                                     colour = "grey20"),
-#     legend.spacing.y = unit(-0.35, "cm"),
-#     legend.title = element_text(size = 9),
-#     legend.text = element_text(size = 7),
-#     legend.background = element_rect(colour = "transparent", fill = "transparent"),
-#     legend.key = element_rect(colour = "transparent", 
-#                               fill = "transparent"),
-#     legend.position = c(.15, .22),
-#     legend.box.just = "left",
-#     legend.box = "vertical"
-#   )
-# 
-# # save yo' stuff and do a lot of behind the scenes work
-# # alt: this does the same thing as calling "child = " in the chunk header
-# res <- knitr::knit_child(
-#   text = knitr::knit_expand(
-#     file = system.file("rmd/_child_save_fig.Rmd", 
-#                        package = "NMFSReports")), 
-#   quiet = TRUE
-# )
-# 
-# list_figures[nickname][[1]]$res <- res <- paste0("
-# 
-# 
-# ",res,"
-# 
-# ")
 
-
-# header <- paste0("Map showing surface temperatures (°C) in the NBS and EBS during the ",
-#                  NMFSReports::text_list(nbsyr),
-#                  " surveys, which are the years when the survey included the full NBS shelf.")
 
 # EBS + NBS years
 if (sum(grepl(pattern = maxyr, x = names(coldpool:::nbs_ebs_surface_temperature)))>0){
@@ -915,7 +818,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ## fig_bt_timeseries_[above or below]
 
-> need to figure out how to plot whole NBS
+### need to figure out how to plot whole NBS
 
 ```{r fig_bt_timeseries_}
 # nickname0 <- "fig_idw_bottemp_longterm_mean_"
@@ -923,8 +826,8 @@ nickname0 <- "fig_bt_timeseries_"
 
 for (i in 1:2) { # two cases, above and below
   
-  hieght <- 6
-  width <- 6.5
+  hieght <- 8
+  width <- 6
   
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
@@ -984,6 +887,8 @@ for (i in 1:2) { # two cases, above and below
 }
 
 ```
+
+
 ## fig_st_all_nebs_surveys
 
 
@@ -1147,26 +1052,26 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ## tab_biomass_est_fish_ (EBS and NBS)
 
-> waiting for actual data from rebecca
+### waiting for actual data from rebecca
 
 ```{r tab_biomass_est_fish_}
 
 nickname0 <- "tab_biomass_est_fish_"
 
-# Select data and make plot
-temp <- biomass_strat %>%
-  dplyr::filter(year == maxyr &
-                  SRVY %in% SRVY1 & 
-                  taxon == "fish") %>% 
-  dplyr::select(species_code, species_name, stratum, biomass, varbio) %>% 
-  dplyr::mutate(taxon_group = round(rnorm(n = nrow(.), mean = 2, sd = 1), digits = 0), 
-                taxon = paste0(species_name, "(", species_name, ")"), 
-                prop = NA) %>% 
-  dplyr::rename(c95 = varbio)
-
-# by stratum
-temp1 <- temp %>% 
-  dplyr::select(stratum, taxon_group, taxon, biomass) 
+# # Select data and make plot
+# temp <- biomass_strat %>%
+#   dplyr::filter(year == maxyr &
+#                   SRVY %in% SRVY1 & 
+#                   taxon == "fish") %>% 
+#   dplyr::select(species_code, species_name, stratum, biomass, varbio) %>% 
+#   dplyr::mutate(taxon_group = round(rnorm(n = nrow(.), mean = 2, sd = 1), digits = 0), 
+#                 taxon = paste0(species_name, "(", species_name, ")"), 
+#                 prop = NA) %>% 
+#   dplyr::rename(c95 = varbio)
+# 
+# # by stratum
+# temp1 <- temp %>% 
+#   dplyr::select(stratum, taxon_group, taxon, biomass) 
   
   # TOLEDO - dummy data
   temp <- cbind.data.frame(taxon_group = c("A", "A", "C", "B", "B", "B"), 
@@ -1609,10 +1514,10 @@ table_print <- table_print %>%
   flextable::color(color = "red", 
                    i = grepl(pattern = "-", x = as.character(table_print[, "change "])), 
                    j = "change ") %>% 
-  flextable::width(x = ., j = "Fish taxon", width = 2.5) %>% 
-  flextable::width(x = ., j = "Invertebrate taxon", width = 2.5) %>% 
-  flextable::width(x = ., j = "change ", width = 1) %>% 
-  flextable::width(x = ., j = "change", width = 1) %>% 
+  flextable::width(x = ., j = "Fish taxon", width = 1.5) %>% 
+  flextable::width(x = ., j = "Invertebrate taxon", width = 1.5) %>% 
+  flextable::width(x = ., j = "change ", width = .5) %>% 
+  flextable::width(x = ., j = "change", width = .5) %>% 
   flextable::set_header_labels(.,
                                # group = "Common name",
                                # dummy = "Taxon",
@@ -1642,7 +1547,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ## tab_estimates_maxyr_spp_
 
-> can I remove the total hauls column and add it to the header, instead? 
+### can I remove the total hauls column and add it to the header, instead? 
 
 ```{r tab_estimates_maxyr_spp_}
 nickname0 <- paste0("tab_estimates_maxyr_spp_") 

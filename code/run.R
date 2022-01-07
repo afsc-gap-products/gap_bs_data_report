@@ -51,13 +51,13 @@ dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.co
 # ref_maxyr_npfmc <- "@NPFMC2018" # temp
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-maxyr <- 2021
-compareyr <- 2019
-SRVY<-"NEBS"
-ref_compareyr_ebs <- "@RN976" # CHANGE
+# maxyr <- 2021
+# compareyr <- 2019
+# SRVY<-"NEBS"
+# ref_compareyr_ebs <- "@RN976" # CHANGE
 ref_compareyr_nbs <- "@RN976" # CHANGE
-ref_maxyr_npfmc <- "@NPFMC2019" # temp
-dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+# ref_maxyr_npfmc <- "@NPFMC2019" # temp
+# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 
@@ -101,13 +101,15 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                                 lang = FALSE)
 
 if (FALSE) {
+  #General figures
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-  for (jj in 1:length(unique(report_spp1$file_name))) {
+  # Species figures
+  for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))])) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
     start_time <- Sys.time()
@@ -120,6 +122,16 @@ if (FALSE) {
     print(paste0(end_time - start_time))
   }
   
+  # Appendix
+  if (FALSE) {
+    cnt_chapt_content<-"001"
+    filename0<-paste0(cnt_chapt, "_")
+    rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
+                      output_dir = dir_out_ref,
+                      output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+  }
+  
+  # Save
   save(list_figures,
        file=paste0(dir_out_figures, "/report_figures.rdata"))
   
@@ -175,9 +187,9 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_codes = "species_code", 
                               lang = TRUE)
 
-for (jj in 1:length(unique(report_spp1$file_name))) {
+for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))])) {
   
-  print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
+  print(paste0(jj, " of ", length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))]), ": ", unique(report_spp1$file_name)[jj]))
   
   cnt_chapt_content<-auto_counter(cnt_chapt_content)
   filename00<-paste0(cnt_chapt, "_spp_")
@@ -196,13 +208,13 @@ for (jj in 1:length(unique(report_spp1$file_name))) {
 #                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 09 - Results_discussion ------------------------
-# cnt_chapt<-auto_counter(cnt_chapt)
-# cnt_chapt_content<-"001"
-# filename0<-paste0(cnt_chapt, "_results_discussion_")
-# rmarkdown::render(paste0(dir_code, "/09_results_discussion.Rmd"),
-#                   output_dir = dir_out_chapters,
-#                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+# *** *** 09 - Appendix ------------------------
+cnt_chapt<-auto_counter(cnt_chapt)
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_appendix_")
+rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
+                  output_dir = dir_out_chapters,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
 # *** *** 10 - Endmatter ------------------------

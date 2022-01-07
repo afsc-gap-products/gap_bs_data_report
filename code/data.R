@@ -655,9 +655,10 @@ temp <- function(cruises_, haul_, catch){
   catch_haul_cruises_<-
     dplyr::left_join(
       x = haul_ %>% 
-        dplyr::select(cruisejoin, hauljoin, stationid, stratum, haul,
+        dplyr::select(cruisejoin, hauljoin, stationid, stratum, haul, start_time, 
                       start_latitude, start_longitude, 
-                      bottom_depth, gear_temperature, surface_temperature, 
+                      end_latitude, end_longitude, 
+                      bottom_depth, gear_temperature, surface_temperature, performance, 
                       "duration", "distance_fished" ,"net_width" ,"net_measured", "net_height"), 
       y = cruises_ %>% 
         dplyr::select(cruisejoin, survey_name, SRVY, year, cruise),  
