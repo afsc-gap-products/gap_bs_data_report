@@ -90,7 +90,7 @@ report_authors <- 'D. Stevenson, E. H. Markowitz, E. J. Dawson, N. Charriere, B.
 # https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/test_rmds.R
 # https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/render%20dev%20report%20with%20errors.R
 
-# *** *** Figures and Tables ------------------------
+# *** Figures and Tables ------------------------
 # - run figures and tables before each chapter so everything works smoothly
   
 report_spp1 <- add_report_spp(spp_info = spp_info, 
@@ -101,14 +101,14 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                                 lang = FALSE)
 
 if (FALSE) {
-  #General figures
+  # *** *** General figures --------------------------------------------
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-  # Species figures
+  # *** *** Species figures --------------------------------------------
   for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))])) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
@@ -122,16 +122,14 @@ if (FALSE) {
     print(paste0(end_time - start_time))
   }
   
-  # Appendix
-  if (FALSE) {
-    cnt_chapt_content<-"001"
+  # *** *** Appendix --------------------------------------------
     filename0<-paste0(cnt_chapt, "_")
     rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                       output_dir = dir_out_ref,
                       output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-  }
   
-  # Save
+  
+  # *** *** Save --------------------------------------------
   save(list_figures,
        file=paste0(dir_out_figures, "/report_figures.rdata"))
   
@@ -143,7 +141,7 @@ if (FALSE) {
 load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
-# *** *** 01 - Abstract ------------------------
+# *** 01 - Abstract ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_abstract_")
@@ -152,7 +150,7 @@ rmarkdown::render(paste0(dir_code, "/01_abstract.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 02 - Introduction ------------------------
+# *** 02 - Introduction ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_introduction_")
@@ -161,7 +159,7 @@ rmarkdown::render(paste0(dir_code, "/02_introduction.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 04 - Methods ------------------------
+# *** 04 - Methods ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_methods_")
@@ -170,7 +168,7 @@ rmarkdown::render(paste0(dir_code, "/04_methods.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 05 - Results ------------------------
+# *** 05 - Results ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_results_")
@@ -179,7 +177,7 @@ rmarkdown::render(paste0(dir_code, "/05_results.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 06 - Results_spp ------------------------
+# *** 06 - Results_spp ------------------------
 report_spp1 <- add_report_spp(spp_info = spp_info, 
                               spp_info_codes = "species_code", 
                               report_spp = report_spp, 
@@ -199,7 +197,7 @@ for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file
                                          unique(report_spp1$file_name)[jj],".docx"))
 }
 
-# *** *** 07 - Results_crabretow ------------------------
+# *** 07 - Results_crabretow ------------------------
 # cnt_chapt<-auto_counter(cnt_chapt)
 # cnt_chapt_content<-"001"
 # filename0<-paste0(cnt_chapt, "_results_crabretow_")
@@ -208,7 +206,7 @@ for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file
 #                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 09 - Appendix ------------------------
+# *** 09 - Appendix ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_appendix_")
@@ -217,7 +215,7 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 10 - Endmatter ------------------------
+# *** 10 - Endmatter ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_endmatter_")
@@ -226,10 +224,10 @@ rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** *** 11 - Presentation ------------------------
+# *** 11 - Presentation ------------------------
 
 
-# *** *** *** - Figures and Tables ------------------------
+# *** *** - Figures and Tables ------------------------
 # - run figures and tables before each chapter so everything works smoothly
 if (FALSE) {
   
