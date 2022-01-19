@@ -687,8 +687,11 @@ alttext <- paste0("Graph showing average summer surface (green triangles) and bo
 # header <- paste0("Average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the eastern Bering Sea (EBS) shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and northern Bering Sea (NBS) shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
 
 #_",maxyr,"
-height <- dim(readPNG(paste0(dir_img, "average_temperature.png")))[1]/300 # 4
-width <- dim(readPNG(paste0(dir_img, "average_temperature.png")))[2]/300 # 6
+# height <- dim(readPNG(paste0(dir_img, "average_temperature.png")))[1]/300 # 4
+# width <- dim(readPNG(paste0(dir_img, "average_temperature.png")))[2]/300 # 6
+
+width = 6
+height = 3
 
 # https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/average_temperature.png
 
@@ -701,11 +704,83 @@ width <- dim(readPNG(paste0(dir_img, "average_temperature.png")))[2]/300 # 6
 #     cowplot::draw_image(a)
 # } else {
 # https://github.com/sean-rohan-NOAA/coldpool/blob/main/plots/stacked_temperature.png?raw=true
-figure <- 
-  cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "average_temperature.png")) )
+# figure <- 
+#   cowplot::ggdraw() +
+#   cowplot::draw_image(readPNG(paste0(dir_img, "average_temperature.png")) )
 # }
 
+sebs_temperatures <- coldpool:::cold_pool_index %>%
+    dplyr::filter(YEAR <= maxyr) %>%
+  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
+  dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
+                Surface = MEAN_SURFACE_TEMPERATURE) %>%
+  dplyr::mutate(group = YEAR < 2020,
+                region = "Eastern Bering Sea (summer BT survey)") %>%
+  reshape2::melt(id.vars = c("YEAR", "group", "region"))
+
+nbs_temperatures <- coldpool:::nbs_mean_temperature %>%
+    dplyr::filter(YEAR <= maxyr) %>%
+  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
+  dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
+                Surface = MEAN_SURFACE_TEMPERATURE) %>%
+  dplyr::mutate(group = YEAR,
+                region = "Northern Bering Sea (summer BT survey)") %>%
+  reshape2::melt(id.vars = c("YEAR", "group", "region"))
+
+all_temperatures <- dplyr::bind_rows(sebs_temperatures,
+                                     nbs_temperatures)
+
+sebs_sst_mean <- mean(sebs_temperatures$value[sebs_temperatures$variable == "Surface"])
+sebs_bt_mean <- mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"])
+nbs_sst_mean <- mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"])
+nbs_bt_mean <- mean(nbs_temperatures$value[nbs_temperatures$variable == "Bottom"])
+
+color_sst <- "darkgreen"
+color_bt <- "darkblue"
+
+ebs_mean_temp_df <- data.frame(region = c(rep("Eastern Bering Sea (summer BT survey)", 2),
+                                          rep("Northern Bering Sea (summer BT survey)", 2)),
+                               variable = rep(c("Bottom", "Surface"), 2),
+                               value = c(sebs_bt_mean,
+                                         sebs_sst_mean,
+                                         nbs_bt_mean,
+                                         nbs_sst_mean))
+
+figure <- ggplot(data = all_temperatures,
+                                   mapping = aes(x = YEAR,
+                                                 y = value,
+                                                 color = variable,
+                                                 shape = variable, 
+                                                 group = paste0(group, variable))) +
+  geom_point(size = rel(2)) +
+  geom_line() +
+  geom_hline(data = ebs_mean_temp_df,
+             aes(yintercept = value,
+             color = variable),
+             linetype = 2) +
+  scale_color_manual(values = c(color_bt, color_sst)) +
+  scale_y_continuous(name = expression(bold("Average Temperature"~(degree*C))), 
+                     limits = c(0,11.2),
+                     breaks = seq(0,12,2),
+                     expand = c(0,0)) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(1980,2020,10)) +
+  facet_wrap(~region, scales = "free") +
+  theme_bw() +
+  theme(axis.title = element_text(color = "black", face = "bold"),
+        axis.text = element_text(color = "black"),
+        axis.ticks = element_line(color = "black"),
+        panel.border = element_rect(color = "black", fill = NA),
+        panel.background = element_rect(color = "black", fill = NA),
+        panel.grid = element_blank(),
+        legend.title = element_blank(),
+        legend.position = "bottom",
+        strip.text = element_text(size = 9,
+                                  color = "white",
+                                  face = "bold",
+                                  margin = margin(0.5, 0, 0.5, 0, "mm")),
+        strip.background = element_rect(fill = "#0055a4",
+                                        color = NA))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -737,9 +812,10 @@ alttext <- paste0("Cold pool extent in the EBS, as measured using observations f
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_cold_pool_area"
 # alttext <- paste0(header, " Purple is the percentage area < -1°C, blue is the percentage area < 1°C, green is the percentage area < 1°C, and yellow is the percentage area < 2°C. Celsius increments.")
-height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label_",maxyr,".png")))[1]/300/2 # 4
-width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label_",maxyr,".png")))[2]/300/2 # 6
-
+# height <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label_",maxyr,".png")))[1]/300/2 # 4
+# width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label_",maxyr,".png")))[2]/300/2 # 6
+height = 4
+width = 6
 # get the most updated file, just in case
 # a<-  url_exists("https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQHEDQ5TQT45TR7ZDALBP4OWS", 
 #                 "https://raw.githubusercontent.com/sean-rohan-NOAA/coldpool/main/plots/stacked_temperature_simple_label.png?token=ASDSFQFPHFWX5FHJQBIY7PLBRKQIS")
@@ -748,10 +824,58 @@ width <- dim(readPNG(paste0(dir_img, "stacked_temperature_simple_label_",maxyr,"
 #     cowplot::ggdraw() +
 #     cowplot::draw_image(a)
 # } else {
-figure <- 
-  cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature_simple_label_",maxyr,".png")) )
+# figure <- 
+#   cowplot::ggdraw() +
+#   cowplot::draw_image(readPNG(paste0(dir_img, "stacked_temperature_simple_label_",maxyr,".png")) )
 # }
+
+sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs",
+                                         set.crs = coldpool:::ebs_proj_crs)
+
+area_df <- coldpool:::cold_pool_index %>%
+  dplyr::filter(YEAR <= maxyr) %>%
+  dplyr::mutate(lteminus1 = AREA_LTEMINUS1_KM2,
+                lte0 = AREA_LTE0_KM2 - AREA_LTEMINUS1_KM2,
+                lte1 = AREA_LTE1_KM2 - AREA_LTE0_KM2,
+                lte2 = AREA_LTE2_KM2 - AREA_LTE1_KM2) %>%
+  dplyr::select(YEAR, lteminus1, lte0, lte1, lte2) %>%
+  reshape2::melt(id.vars = "YEAR") %>%
+  dplyr::mutate(variable = factor(variable, 
+                                  levels = c( "lte2", "lte1", "lte0", "lteminus1"),
+                                  labels = c("\u22642 \u00b0C", "\u22641 \u00b0C", "\u22640 \u00b0C", "\u2264-1 \u00b0C")),
+                proportion = value/sebs_layers$survey.area$AREA_KM2)
+
+figure <- ggplot() + 
+  geom_area(data = area_df %>%
+              dplyr::filter(YEAR < 2020),
+            mapping = aes(x = YEAR,
+                  y = proportion,
+                fill = variable)) +
+  geom_point(data = area_df %>%
+              dplyr::filter(YEAR == 2021),
+            mapping = aes(x = YEAR,
+                y = proportion,
+                fill = variable),
+            shape = 21,
+            size = rel(3)) +
+  scale_fill_manual(name = "Temperature", 
+                    values = cpa_palette) +
+  scale_y_continuous(name = "Proportion of EBS Shelf Survey Area",
+                     limits = c(0, 1),
+                     expand = c(0, 0),
+                     breaks = seq(0,1,0.1)) +
+  scale_x_continuous(name = "Year", 
+                     limits = c(1982, maxyr + 0.5),
+                     expand = c(0, 0),
+                     breaks = seq(1982, maxyr, 4)) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        axis.title = element_text(face = "bold"),
+        axis.ticks = element_line(color = "black"),
+        panel.border = element_rect(color = "black", fill = NA),
+        panel.background = element_rect(color = "black", fill = NA),
+        legend.position = c(0.2, 0.8),
+        legend.title = element_blank())
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -1051,37 +1175,234 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 }
 ```
 
-## tab_biomass_est_fish_ (EBS and NBS)
+## tab_biomass_est_PREP
+
+```{r tab_biomass_est_PREP}
+# for tech memo table: calculate biomass for fish and invert taxa in table 7
+# Created by: Rebecca Haehn
+# Contact: rebecca.haehn@noaa.gov
+# Created: 13 January 2022
+# script modifed from biomass script for stock assessments
+# Modified: 
+
+# fiter to EBS only data by innerjoin (catch and haul) --------------------
+
+## to test this I filtered for YEAR = 2017 in the haul data, row count matches prebiocatch table in Oracle (after running legacy ebs_plusnw script) **do not run with filter to get match
+## 
+## the filter removes empty banacles, empty bivalve/gastropod shell, invert egg unid, unsorted catch and debris, Polychaete tubes, and unsorted shab 
+
+# create zeros table for CPUE calculation ---------------------------------
+# zeros table so every haul/vessel/year combination includes a row for every species caught (combine)
+z <- catch_haul_cruises_maxyr %>%
+  tidyr::complete(species_code, nesting(#cruise, 
+                                 haul, #vessel, 
+                                 year, hauljoin, stratum, stationid, distance_fished, net_width)) %>%
+  dplyr::select(cruise, hauljoin, haul, #vessel, 
+         year, species_code, weight, number_fish, stratum, stationid, distance_fished, net_width) %>%
+  tidyr::replace_na(list(weight = 0, number_fish = 0))
+
+catch_ebs_with_zeros <- 
+  dplyr::full_join(x = catch_haul_cruises_maxyr, 
+                   y = z, 
+                   by = c("cruise", "hauljoin", "haul", #"vessel", 
+                          "year", "species_code", "stratum", "stationid", 
+                          "distance_fished", "net_width")) %>%
+  dplyr::select(-weight.y, -number_fish.y, -gear_depth, # -abundance_haul, 
+                -duration, -net_height) %>%
+  dplyr::arrange(year, haul, species_code #,VESSEL
+                 ) %>%
+  dplyr::rename(weight_kg = weight.x, number_fish = number_fish.x) %>%
+  tidyr::replace_na(list(weight_kg = 0, number_fish = 0))
+
+# calculate CPUE (mean CPUE by strata) ----------------------------------------------------------
+cpue_ebs_by_stratum <- catch_ebs_with_zeros %>%
+  dplyr::mutate(effort = distance_fished * net_width/10,
+         cpue_weight_kgperhect = weight_kg/effort) %>%
+  dplyr::arrange(stratum, species_code) %>%
+  dplyr::group_by(species_code, year, stratum) %>%
+  dplyr::summarise(cpue_avg_by_stratum = mean(cpue_weight_kgperhect))
+
+# import and join stratum areas -------------------------------------------
+cpue_ebs_by_stratum <-
+  dplyr::left_join(x = cpue_ebs_by_stratum,
+            y = stratum_info %>%
+              dplyr::select(stratum, area),
+            by = c("stratum")) %>%
+  dplyr::mutate(total_area = sum(unique(area)))
+
+# biomass -----------------------------------------------------------------
+
+# ## CANNOT use biomass_*** tables bc they don't contain the info for all species (ie: no poachers, blennies, lumpsuckers, eelpouts, etc.)
+
+biomass_ebs_by_stratum <- cpue_ebs_by_stratum %>%
+  mutate(biomass_mt = cpue_avg_by_stratum * (area * 0.1))  %>%
+  dplyr::mutate(strata = dplyr::case_when(
+    stratum == 31 | stratum == 32 ~ 30,
+    stratum == 41 | stratum == 42 | stratum == 43 ~ 40,
+    stratum == 61 | stratum == 62 ~ 60, 
+    TRUE ~ as.numeric(stratum)))
+
+## this global command disengages scientific notation of numbers
+# options(scipen = 999)
+
+
+# tables ------------------------------------------------------------------
+
+temp <- function(dat){
+  
+  dat <- dat  %>% 
+    tidyr::separate(
+      col = group0, 
+      into = c("group", "taxon"), 
+      sep = "_", remove = FALSE)
+  
+  ## find estiated total biomass by stratum for group complexes (e.g., groups with more than one line)
+  biomass_group_totals <- dat %>%
+    dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
+    dplyr:: group_by(strata, group) %>%
+    dplyr::summarise(biomass_mt = sum(biomass_mt)) %>% 
+    dplyr::mutate(taxon = paste0("Total ", group))
+  
+  # find estimated total biomass for all stratum for all taxon
+  biomass_totals <- dat %>%
+    dplyr:: group_by(group, taxon) %>%
+    dplyr::summarise(biomass_mt = sum(biomass_mt)) %>% 
+    dplyr::mutate(strata = 999)
+  
+  biomass_group_strata <- dat %>%
+    dplyr::group_by(strata, group, taxon) %>%
+    dplyr::summarise(biomass_mt = sum(biomass_mt))
+  
+  out <- dplyr::bind_rows(biomass_group_strata, 
+                                biomass_totals, 
+                                biomass_group_totals) %>% 
+    tidyr::pivot_wider(id_cols = c("group", "taxon"), 
+                       names_from = "strata", 
+                       values_from = "biomass_mt") %>% 
+    dplyr::arrange(group, taxon)  %>% 
+    dplyr::ungroup() %>%
+    dplyr::mutate(CI95 = 0, 
+                  a = "±", 
+                  prop = `999`/sum(biomass_totals$`999`, na.rm=TRUE)) %>% 
+    dplyr::relocate(group, taxon, `999`, a, CI95, prop)
+  
+  return(out)
+  
+}
+
+  temp1 <- function(table_raw, strat) {
+  
+  table_raw <- table_raw %>% 
+    dplyr::select("group", "taxon", "999", "a", "CI95", "prop", 
+                  all_of(strat))
+  
+  # xx <- 1:nrow(table_raw)
+  # xx[!grepl(pattern = "Total ", x = table_raw$taxon)] <- NA
+  # xx_group <- as.numeric(factor(x = table_raw$group, 
+  #                               labels = 1:length(unique(table_raw$group)),
+  #                               levels = unique(table_raw$group),
+  #                               ordered = FALSE))
+  # whichtobold <- xx + xx_group
+  # whichtobold <- whichtobold[!is.na(whichtobold)]
+  
+  table_print <- table_raw %>% 
+    dplyr::mutate(prop = ifelse(prop < 0.0001, "<0.0001", 
+                                as.character(round(x = prop, digits = 4))), 
+                  CI95 = paste0(round(x = CI95, digits = 0), "%") )  %>% 
+    dplyr::mutate(across(where(is.numeric), 
+                       formatC, big.mark=",", digits = 0, format = "f"))
+    
+  
+  table_print <- table_print %>%
+    flextable::as_grouped_data(groups = c("group"), columns = NULL) %>% 
+    # groups = #names(table(xx_group))[table(xx_group)>1]) %>%
+    flextable::flextable(data = .)  %>%
+    flextable::add_header_row(top = TRUE, 
+                              values = c("Taxon", 
+                                         "Estimated total biomass (t) and 95% confidence", 
+                                         "Proportion of total animal biomass", 
+                                         "Estimated biomass by stratum (t)"), 
+                              colwidths = c(2,3,1,length(strat))) %>% 
+    flextable::align(i = 1, align = "center", part = "header")  %>%  
+    flextable::footnote(x = ., part = "header", i = 1, j = 5, 
+                        value = as_paragraph(footnote0)) %>%
+    # flextable::bold(x = ., part = "body", i = whichtobold) %>% 
+    # flextable::bold(x = ., i = ~ (grep(pattern = "Total ", x = taxon) )) %>%
+    flextable::set_header_labels(.,
+                                 "group" = "", 
+                                 "taxon" = "", 
+                                 "999" = "", 
+                                 "CI95" = "", 
+                                 "a" = "", 
+                                 "prop" = "") %>%
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE) 
+  
+  return("table_raw" = table_raw, 
+         "table_print" = table_print)
+  
+  }
+
+```
+
+### tab_biomass_est_fish_ (EBS and NBS)
 
 ```{r tab_biomass_est_fish_}
 
 nickname0 <- "tab_biomass_est_fish_"
 
 # # Select data and make plot
-# temp <- biomass_strat %>%
-#   dplyr::filter(year == maxyr &
-#                   SRVY %in% SRVY1 & 
-#                   taxon == "fish") %>% 
-#   dplyr::select(species_code, species_name, stratum, biomass, varbio) %>% 
-#   dplyr::mutate(taxon_group = round(rnorm(n = nrow(.), mean = 2, sd = 1), digits = 0), 
-#                 taxon = paste0(species_name, "(", species_name, ")"), 
-#                 prop = NA) %>% 
-#   dplyr::rename(c95 = varbio)
-# 
-# # by stratum
-# temp1 <- temp %>% 
-#   dplyr::select(stratum, taxon_group, taxon, biomass) 
-  
-  # TOLEDO - dummy data
-  temp <- cbind.data.frame(taxon_group = c("A", "A", "C", "B", "B", "B"), 
-                           taxon = letters[1:6],
-                           head(airquality), 
-                           head(airquality), 
-                           head(airquality)[,3:5])
-temp$taxon[c(2, 6)] <- paste0("Total ", temp$taxon[c(2, 6)])
-names(temp) <- c("taxon_group", "taxon", "biomass", "a", "c95", "prop", 
-                 "10", "20", "30", "40", "50", "60", "82", "90", "70", "71", "81")
-temp$a <- "±"
+# place species codes into groups and major species
+fish_groups <- biomass_ebs_by_stratum %>%
+  dplyr::filter(species_code < 35000) %>% # species codes greater than 35000 are invertebrates
+  dplyr::mutate(group0 = case_when(
+    species_code == 471 ~ "Raidae (skates)_Alaska skate",
+    species_code >= 401 & 
+      species_code <= 495 & 
+      species_code != 471 ~ "Raidae (skates)_other skates",
+    species_code == 10210 ~ "Pleuronectidae (flatfishes)_yellowfin sole",
+    species_code == 10261 ~ "Pleuronectidae (flatfishes)_northern rock sole",
+    species_code == 10130 ~ "Pleuronectidae (flatfishes)_flathead sole",
+    species_code == 10140 ~ "Pleuronectidae (flatfishes)_Bering flounder",
+    species_code == 10285 ~ "Pleuronectidae (flatfishes)_Alaska plaice",
+    species_code == 10110 ~ "Pleuronectidae (flatfishes)_arrowtooth flounder",
+    species_code == 10112 ~ "Pleuronectidae (flatfishes)_Kamchatka flounder",
+    species_code == 10115 ~ "Pleuronectidae (flatfishes)_Greenland turbot",
+    species_code == 10120 ~ "Pleuronectidae (flatfishes)_Pacific halibut",
+    species_code >= 10041 & species_code <= 10295 & 
+      species_code != 10210 &
+      species_code != 10261 &
+      species_code != 10130 &
+      species_code != 10140 &
+      species_code != 10285 &
+      species_code != 10110 &
+      species_code != 10112 &
+      species_code != 10115 &
+      species_code != 10120 ~ "Pleuronectidae (flatfishes)_other flatfish",
+    species_code >= 21740 & species_code <= 21741 ~ "Gadidae (cods)_walleye pollock",
+    species_code >= 21720 & species_code <= 21721 ~ "Gadidae (cods)_Pacific cod",
+    species_code >= 21710 & 
+      species_code <= 21737 &
+      species_code != 21740 &
+      species_code != 21741 &
+      species_code != 21720 &
+      species_code != 21721 ~ "Gadidae (cods)_other cods",
+    species_code >= 20000 & species_code <= 20075 ~ "Agonidae (poachers)",
+    species_code >= 21300 & species_code <= 21447 ~ "Cottidae (sculpins)",
+    species_code >= 21900 & species_code <= 21935 ~ "Hexagrammidae (greenlings)",
+    species_code >= 22170 & species_code <= 22199 ~ "Cyclopteridae (lumpsuckers)",
+    species_code >= 22200 & species_code <= 22286 ~ "Liparidae (snailfishes)",
+    species_code >= 23000 & species_code <= 23099 ~ "Osmeridae (smelts)",
+    species_code >= 23800 & species_code <= 23870 ~ "Stichaeidae (blennies)", 
+    species_code >= 24100 & species_code <= 24395 ~ "Zoarcidae (eelpouts)",
+    species_code == 30060 ~ "Scorpaenidae (rockfish)_Pacific ocean perch",
+    species_code >= 30000 & species_code <= 31550 & 
+      species_code != 30060 ~ "other rockfish",
+    TRUE ~ "other fish"))
+
+table_raw <- temp(dat = fish_groups)
+
+##find the 37kg that belong in other skate that is currently in other fish 
+## answer:skate egg cases are included in the skate biomass     
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
@@ -1095,50 +1416,17 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   
-  
-  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", NMFSReports::xunits(sum(temp$biomass, na.rm = TRUE))," t.")
-  
   if (haul_cruises_maxyr$SRVY[i] == "EBS"){
     strat <- c("10", "20", "30", "40", "50", "60", "82", "90")
   } else {
     strat <- c("70", "71", "81")
   }
   
-  table_raw <- temp %>% 
-    dplyr::select("taxon_group", "taxon", "biomass", "a", "c95", "prop", 
-                  all_of(strat))
+  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", NMFSReports::xunits(sum(biomass_ebs_by_stratum$biomass_mt[biomass_ebs_by_stratum$stratum %in% strat], na.rm = TRUE))," t.")
   
-  xx <- 1:nrow(table_raw)
-  xx[!grepl(pattern = "Total ", x = table_raw$taxon)] <- NA
-  xx_group <- as.numeric(factor(x = table_raw$taxon_group, 
-                                labels = 1:length(unique(table_raw$taxon_group)),
-                                levels = unique(table_raw$taxon_group),
-                                ordered = FALSE))
-  whichtobold <- xx + xx_group
-  whichtobold <- whichtobold[!is.na(whichtobold)]
-  
-  table_print <- table_raw %>%
-    flextable::as_grouped_data(groups = c("taxon_group"), columns = NULL) %>% 
-    # groups = #names(table(xx_group))[table(xx_group)>1]) %>%
-    flextable::flextable(data = .)  %>%
-    flextable::add_header_row(top = TRUE, 
-                              values = c("Taxon", 
-                                         "Estimated total biomass (t) and 95% confidence", 
-                                         "Proportion of total animal biomass", 
-                                         "Estimated biomass by stratum (t)"), 
-                              colwidths = c(2,3,1,length(strat))) %>% 
-    flextable::align(i = 1, align = "center", part = "header")  %>%  
-    flextable::footnote(x = ., part = "header", i = 1, j = 5, 
-                        value = as_paragraph(footnote0)) %>%
-    flextable::bold(x = ., part = "body", i = whichtobold) %>% 
-    flextable::set_header_labels(.,
-                                 "taxon_group" = "", 
-                                 "taxon" = "", 
-                                 "biomass" = "", 
-                                 "c95" = "", 
-                                 "a" = "", 
-                                 "prop" = "") %>%
-    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE) 
+  a <- temp1(table_raw, strat)
+  table_raw <- a$table_raw
+  table_print <- a$table_print
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -1159,25 +1447,47 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 ```
 
-## tab_biomass_est_invert_ (EBS and NBS)
+### tab_biomass_est_invert_ (EBS and NBS)
 
-### waiting for actual data from rebecca
+#### waiting for actual data from rebecca
 
 ```{r tab_biomass_est_invert_}
 
 nickname0 <- "tab_biomass_est_invert_"
 
-# Select data and make plot
-# TOLEDO - dummy data
-temp <- cbind.data.frame(taxon_group = c("A", "A", "C", "B", "B", "B"), 
-                         taxon = letters[1:6],
-                         head(airquality), 
-                         head(airquality), 
-                         head(airquality)[,3:5])
-temp$taxon[c(2, 6)] <- paste0("Total ", temp$taxon[c(2, 6)])
-names(temp) <- c("taxon_group", "taxon", "biomass", "a", "c95", "prop", 
-                 "10", "20", "30", "40", "50", "60", "82", "90", "70", "71", "81")
-temp$a <- "±"
+
+invert_groups <- biomass_ebs_by_stratum %>%
+  dplyr::filter(species_code >= 40000 & 
+                  species_code <= 99991) %>% # groups greater than 99991 are empty shells, empty barnacles
+  dplyr::mutate(group0 = dplyr::case_when(
+    species_code >= 68000 & species_code <= 69549 ~ "Crustacea_crabs",
+    species_code >= 66000 & species_code <= 67499 ~ "Crustacea_shrimps",
+    species_code >= 60000 & species_code <= 65999 ~ "Crustacea_other crustaceans",
+    species_code >= 67500 & species_code <=	67999 ~ "Crustacea_other crustaceans",
+    species_code >= 69550	& species_code <= 69999 ~ "Crustacea_other crustaceans",
+    species_code >= 71000 & species_code <= 73999 ~ "Mollusca_Gastropoda (snails)",
+    species_code >= 74000 & species_code <= 75799 ~ "Mollusca_Pelecypoda (bivalves)",
+    species_code >= 78500 & species_code <= 79600 ~ "Mollusca_squids",
+    species_code >= 78010 & species_code <= 78499 ~ "Mollusca_octopuses",
+    species_code >= 70000	& species_code <= 70999	~ "Mollusca_other mollusks",
+    species_code >= 78000 & species_code <=	78009 ~ "Mollusca_other mollusks",
+    species_code >= 80000	& species_code <= 82499 ~ "Echinodermata_Asteroidea (sea stars)",
+    species_code >= 83000	& species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
+    species_code >= 83800 & species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
+    species_code >= 82500	& species_code <= 82749 ~ "Echinodermata_Echinoidea (sea urchins)",
+    species_code >= 85000 & species_code <= 85999 ~ "Echinodermata_Holothuroidea (sea cucumbers)",
+    species_code >= 98000	& species_code <= 99909 ~ "Ascidiacea",
+    species_code >= 91000 & species_code <=	91999 ~ "Porifera (sponges)",
+    species_code >= 40000	& species_code <= 44999 ~ "Coelenterata",
+    species_code >= 45000	& species_code <= 59999 ~ "other invertebrates",
+    species_code >= 92000	& species_code <= 97999 ~ "other invertebrates",
+    species_code >= 99990 & species_code <=	99992 ~ "other invertebrates",
+    species_code >= 77011 & species_code <= 77012 ~ "other invertebrates",
+    species_code == 99987 ~ "Porifera (sponges)",
+    TRUE ~ "find my group"))
+
+
+table_raw <- temp(dat = invert_groups)
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
@@ -1192,49 +1502,17 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   
   
-  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", NMFSReports::xunits(sum(temp$biomass, na.rm = TRUE))," t.")
-  
   if (haul_cruises_maxyr$SRVY[i] == "EBS"){
     strat <- c("10", "20", "30", "40", "50", "60", "82", "90")
   } else {
     strat <- c("70", "71", "81")
   }
   
-  table_raw <- temp %>% 
-    dplyr::select("taxon_group", "taxon", "biomass", "a", "c95", "prop", 
-                  all_of(strat))
+  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", NMFSReports::xunits(sum(biomass_ebs_by_stratum$biomass_mt[biomass_ebs_by_stratum$stratum %in% strat], na.rm = TRUE))," t.")
   
-  xx <- 1:nrow(table_raw)
-  xx[!grepl(pattern = "Total ", x = table_raw$taxon)] <- NA
-  xx_group <- as.numeric(factor(x = table_raw$taxon_group, 
-                                labels = 1:length(unique(table_raw$taxon_group)),
-                                levels = unique(table_raw$taxon_group),
-                                ordered = FALSE))
-  whichtobold <- xx + xx_group
-  whichtobold <- whichtobold[!is.na(whichtobold)]
-  
-  table_print <- table_raw %>%
-    flextable::as_grouped_data(groups = c("taxon_group"), columns = NULL) %>% 
-    # groups = #names(table(xx_group))[table(xx_group)>1]) %>%
-    flextable::flextable(data = .)  %>%
-    flextable::add_header_row(top = TRUE, 
-                              values = c("Taxon", 
-                                         "Estimated total biomass (t) and 95% confidence", 
-                                         "Proportion of total animal biomass", 
-                                         "Estimated biomass by stratum (t)"), 
-                              colwidths = c(2,3,1,length(strat))) %>% 
-    flextable::align(i = 1, align = "center", part = "header")  %>%  
-    flextable::footnote(x = ., part = "header", i = 1, j = 5, 
-                        value = as_paragraph(footnote0)) %>%
-    flextable::bold(x = ., part = "body", i = whichtobold) %>% 
-    flextable::set_header_labels(.,
-                                 "taxon_group" = "", 
-                                 "taxon" = "", 
-                                 "biomass" = "", 
-                                 "c95" = "", 
-                                 "a" = "", 
-                                 "prop" = "") %>%
-    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE) 
+  a <- temp1(table_raw, strat)
+  table_raw <- a$table_raw
+  table_print <- a$table_print
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
