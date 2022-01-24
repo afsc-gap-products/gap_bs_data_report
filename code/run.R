@@ -20,28 +20,27 @@ usePNGPDF <- "png"
 
 # maxyr <- 2016 # or the year of the report, for example
 # compareyr <- 2015
-# # compareyr_nbs <- 2010 #will this always be the same?
 # SRVY<-"EBS"
 # ref_compareyr_ebs <- "@RN976" # temp
 # ref_compareyr_nbs <- "@RN909" # temp
 # ref_maxyr_npfmc <- "@NPFMC2015" # temp
 
-# maxyr <- 2017 # or the year of the report, for example
-# compareyr <- 2010
-# # compareyr_nbs <- 2010 #will this always be the same?
+maxyr <- 2017 # or the year of the report, for example
+compareyr <- 2010
 # SRVY<-"NEBS"
-# ref_compareyr_ebs <- "@RN976"
+SRVY<-"NEBS"
+ref_compareyr_ebs <- "@RN976"
 ref_compareyr_nbs <- "@RN909"
-# ref_maxyr_npfmc <- "@NPFMC2016" # temp
-# dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
+ref_maxyr_npfmc <- "@NPFMC2016" # temp
+dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-maxyr <- 2018 # NOTE RAPID RESPONCE
-compareyr <- 2016
-SRVY<-"EBS"
-ref_compareyr_ebs <- "@RN976" # CHANGE
+# maxyr <- 2018 # NOTE RAPID RESPONCE
+# compareyr <- 2016
+# SRVY<-"EBS"
+# ref_compareyr_ebs <- "@RN976" # CHANGE
 # ref_compareyr_nbs <- NA # CHANGE
-ref_maxyr_npfmc <- "@NPFMC2017" # temp
-dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+# ref_maxyr_npfmc <- "@NPFMC2017" # temp
+# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019
 # compareyr <- 2017
@@ -49,15 +48,15 @@ dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.co
 # ref_compareyr_ebs <- "@RN976" # CHANGE
 # ref_compareyr_nbs <- NA # CHANGE
 # ref_maxyr_npfmc <- "@NPFMC2018" # temp
-# dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
+# dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-# maxyr <- 2021
-# compareyr <- 2019
-# SRVY<-"NEBS"
-# ref_compareyr_ebs <- "@RN976" # CHANGE
+maxyr <- 2021
+compareyr <- 2019
+SRVY<-"NEBS"
+ref_compareyr_ebs <- "@RN976" # CHANGE
 ref_compareyr_nbs <- "@RN976" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2019" # temp
-# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+ref_maxyr_npfmc <- "@NPFMC2019" # temp
+dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 
@@ -141,11 +140,16 @@ if (FALSE) {
 load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
+
+# rmarkdown::render(input = "./notforgit/test.Rmd",
+#                   output_dir = dir_out_chapters,
+#                   output_file = "test.docx")
+
 # *** 01 - Abstract ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_abstract_")
-rmarkdown::render(paste0(dir_code, "/01_abstract.Rmd"),
+rmarkdown::render(input = paste0(dir_code, "/01_abstract.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 

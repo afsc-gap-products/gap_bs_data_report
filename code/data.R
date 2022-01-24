@@ -681,7 +681,9 @@ temp <- function(cruises_, haul_, catch){
 
 catch_haul_cruises <- temp(cruises, haul, catch)
 
-catch_haul_cruises_maxyr <- temp(cruises_maxyr, haul_maxyr, catch)
+catch_haul_cruises_maxyr <- temp(cruises_ = cruises_maxyr, 
+                                 haul_ = haul_maxyr, 
+                                 catch = catch)
 
 catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr, catch)
 
