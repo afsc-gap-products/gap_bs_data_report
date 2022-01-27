@@ -21,6 +21,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 ```{r tab_hauls_catch_}
 nickname0 <- "tab_hauls_catch_" 
+cnt_tables <- 0
 
 temp <- tidyr::crossing(vessel_info %>% 
                         dplyr::select(vessel_name, vessel_ital), 
@@ -32,6 +33,7 @@ for (i in 1:nrow(temp)) {
     subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
     newobj <- ifelse(i==1, TRUE, FALSE)
   }
+  cnt_pre <- "Appendix A"
   nickname <- paste0(nickname0, 
                      temp$SRVY[i], 
                      "_",  
@@ -133,6 +135,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ```{r tab_taxa_encountered_}
 nickname0 <- "tab_taxa_encountered_" 
+cnt_tables <- 0
 
 temp <- tidyr::crossing(haul_cruises_maxyr %>% 
                         dplyr::select(SRVY_long, SRVY), 
@@ -144,6 +147,7 @@ for (i in 1:nrow(temp)) {
     subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
     newobj <- ifelse(i==1, TRUE, FALSE)
   }
+  cnt_pre <- "Appendix C"
   nickname <- paste0(nickname0, 
                      temp$SRVY[i], 
                      "_",  
@@ -277,6 +281,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ```{r tab_principal_fish_}
 nickname0 <- "tab_principal_fish_" 
+cnt_tables <- 0
 
 temp <- tidyr::crossing(haul_cruises_maxyr %>% 
                         dplyr::select(SRVY_long, SRVY), 
@@ -295,6 +300,9 @@ for (i in 1:nrow(temp)) {
     subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
     newobj <- ifelse(i==1, TRUE, FALSE)
   }
+  cnt_pre <- "Appendix C"
+  print(temp$file_name[i])
+  
   nickname <- paste0(nickname0, 
                      temp$SRVY[i], 
                      "_",  
@@ -308,7 +316,11 @@ for (i in 1:nrow(temp)) {
     
   table_raw <- sizecomp_maxyr %>% 
         dplyr::filter(species_code %in% spp_code &
-                      SRVY == temp$SRVY[i]) %>% 
+                      SRVY == temp$SRVY[i]) 
+  
+  if (nrow(table_raw) != 0) { 
+  
+  table_raw <- table_raw %>% 
     dplyr::select(length, pop, sex) %>%
     tidyr::pivot_wider(data = ., id_cols = length, 
                        names_from = sex, 
@@ -348,16 +360,17 @@ table_print <- table_raw %>%
 # alt: this does the same thing as calling "child = " in the chunk header
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
   quiet = TRUE
 )
 
 list_tables[nickname][[1]]$res <- res <- paste0("
 
-                                                
+
 ",res,"
 
 ")
+  }
 }
 
 ```

@@ -246,8 +246,6 @@ invert_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "inv
 
 `r list_tables$tab_species_composition$res `
 
-> deal with appendicies # TOLEDO
-
 ```{r}
 temp <- dplyr::left_join(x = catch_haul_cruises, 
                          y = spp_info, 
@@ -272,6 +270,193 @@ temp0 <- dplyr::full_join(
 
 A total of `r invert_sp ` different invertebrate taxa representing `r xunits(length(unique(temp$phylum_taxon[temp$taxon == "invert"])))` phyla were identified in the combined catch samples taken from the EBS (Appendix B3)`r ifelse(SRVY == "NEBS", " and NBS (Appendix B4)", "")`. In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining of invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
 
+> All species are idenfitied using and logged in AFSC's databases as *Eschmeyer's Ctaglog of Fishes* (CITATION Eschmeyer) and *An Annotated Checklist of the Marine Macroinvertebrates of Alaska* (CITATION: Drumm). 
+
+## Biomass of Major Taxa and Taxonomic Groups
+
+> #TOLEDO finish this section for EBS-only reports
+
+```{r}
+temp <- data.frame()
+
+for (i in 1:length(SRVY1)) {
+
+  temp1 <- list_tables[names(list_tables) ==
+                         paste0("tab_biomass_est_fish_", SRVY1[i])][[1]]$raw %>%
+      dplyr::mutate(SRVY = SRVY1[i]) %>%
+    dplyr::filter(grepl(pattern = "Total ", x = group, ignore.case = TRUE )) %>% 
+    dplyr::select(SRVY, group, `999`) 
+
+  temp <- dplyr::bind_rows(temp, temp1)
+}
+
+temp <- left_join(
+  x = temp, 
+  y = stratum_info %>% 
+    dplyr::group_by(SRVY) %>% 
+    dplyr::summarise(area = sum(area, na.rm = TRUE)), 
+  by = "SRVY") %>% 
+  dplyr::mutate(prop = `999`/area)
+
+if (SRVY == "NEBS") { # TOLEDO
+  str0 <- paste0("Total demersal animal biomass for the EBS was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. ")
+}
+
+str0 <- paste0(str0, 
+               "In the EBS, the proportion of fishes (75%; Table ", 
+               crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number"), 
+               ") was three times higher than invertebrates (25%; Table ", 
+               crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number"),
+               "). ")
+               
+               if (SRVY == "NEBS") { # TOLEDO
+ 
+               # ifelse(SRVY == "NEBS",
+                      str0 <- paste0(str0, 
+               paste0(ifelse(temp$prop[temp$SRVY=="EBS"]>temp$prop[temp$SRVY=="NBS"], 
+                                    "The lower fish biomass in the NBS than in the EBS is consistent", 
+                                    "The higher fish biomass in the NBS than in the EBS is inconsistent"), 
+                             " with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936].", 
+                             "") ) 
+}
+```
+
+`r str0 `
+
+```{r}
+if (SRVY == "NEBS") {
+  
+  #temp1
+temp1 <- data.frame()
+for (i in 1:length(SRVY1)) {
+
+  temp1 <- list_tables[names(list_tables) ==
+                         paste0("tab_biomass_est_fish_", SRVY1[i])][[1]]$raw %>%
+      dplyr::mutate(SRVY = SRVY1[i]) %>%
+    dplyr::filter(is.na(taxon) |
+                    grepl(pattern = "Total ", x = taxon, ignore.case = TRUE )) %>% 
+    dplyr::filter(!grepl(pattern = "Total ", x = group, ignore.case = TRUE ) &
+                    !grepl(pattern = "Other ", x = group, ignore.case = TRUE )) %>% 
+    dplyr::select(SRVY, group, `999`, prop) %>% 
+    dplyr::arrange(-prop) %>% 
+    dplyr::mutate(order = 1:nrow(.)) %>% 
+                      dplyr::bind_rows(temp1, .)
+  }
+
+temp1 <- temp1 %>% 
+  tidyr::pivot_wider(id_cols = c("group"), 
+                     names_from = "SRVY", 
+                     values_from = c("999", "prop", "order")) %>%
+  dplyr::mutate(same =ifelse(order_EBS == order_NBS, TRUE, FALSE))
+
+# temp2
+    temp2 <- data.frame()
+
+for (i in 1:length(SRVY1)) {
+
+  temp2 <- list_tables[names(list_tables) ==
+                         paste0("tab_biomass_est_fish_", SRVY1[i])][[1]]$raw %>%
+      dplyr::mutate(SRVY = SRVY1[i]) %>%
+    dplyr::filter(group %in% temp$group[1:2] & 
+                    !grepl(pattern = "Total ", x = taxon, ignore.case = TRUE )) %>% 
+    dplyr::select(SRVY, group, taxon, `999`, prop) %>% 
+    dplyr::arrange(-prop) %>% 
+    dplyr::mutate(order = 1:nrow(.)) %>% 
+                      dplyr::bind_rows(temp2, .)
+}
+    
+    temp2 <- temp2 %>% 
+  tidyr::pivot_wider(id_cols = c("group", "taxon"), 
+                     names_from = "SRVY", 
+                     values_from = c("999", "prop", "order")) %>%
+  dplyr::mutate(same =ifelse(order_EBS == order_NBS, TRUE, FALSE)) %>% 
+      dplyr::left_join(
+        x = ., 
+        y = spp_info_maxyr %>% 
+          dplyr::select(species_name, common_name), 
+        by = c("taxon" = "common_name")
+      )
+    
+    # temp3: top 3 spp in each group
+    temp3 <- data.frame()
+    temp0 <- tidyr::crossing(group = unique(temp2$group), 
+                             SRVY = SRVY1) %>% 
+      dplyr::arrange(SRVY, group) %>% 
+      dplyr::mutate(str0 = NA)
+    
+    for (i in 1:nrow(temp0)) {
+      temp3 <- temp2 %>% 
+        dplyr::rename(prop = paste0("prop_", temp0$SRVY[i]), 
+                      order = paste0("order_", temp0$SRVY[i])) %>%
+        dplyr::filter(#order %in% c(1:3) & 
+          group == temp0$group[i]) %>% 
+        head(3) %>%
+        dplyr::mutate(prop = paste0(round(x = prop*100, digits = 1), "%"), 
+                      SRVY = temp0$SRVY[i]) %>%
+        dplyr::arrange(order) %>% 
+        dplyr::select(SRVY, group, taxon, species_name, prop) %>% 
+        dplyr::filter(prop != "0%")
+        # dplyr::bind_rows(temp3, .)
+      
+      if (nrow(temp3)>1){
+        temp0$str0[temp0$SRVY == temp0$SRVY[i] & temp0$group == temp0$group[i]] <- 
+          NMFSReports::text_list(paste0(temp3$taxon, " (*", temp3$species_name, 
+                                        "*; ",temp3$prop,")"))
+        temp0$group0 <- unlist(regmatches(temp0$group, 
+                                  gregexpr("(?<=\\().*?(?=\\))", 
+                                           temp0$group, perl=T)))
+      }
+    }
+    
+    temp0$str0 <- gsub(pattern = "*NA*; ", replacement = "", x = temp0$str0, fixed = TRUE)
+    temp0$str0 <- gsub(pattern = "  ", replacement = " ", x = temp0$str0, fixed = TRUE)
+    
+    temp3 <- c()
+for (i in 1:length(SRVY1)){
+    temp3 <- paste0(temp3, 
+               paste0("In the ", SRVY1[i], " ", 
+                    NMFSReports::text_list(paste0(
+                      temp0$group0[temp0$SRVY == SRVY1[i]], 
+                    " comprised of ", 
+                    temp0$str0[temp0$SRVY == SRVY1[i]])), 
+                          " (", 
+                  NMFSReports::crossref(list_obj = list_tables, sublist = "number", 
+                                        nickname = "tab_biomass_est_fish_EBS"), 
+                  " and ", 
+                  NMFSReports::crossref(list_obj = list_tables, sublist = "number", 
+                                        nickname = "tab_biomass_est_fish_NBS"), 
+                  "). "))
+}
+    
+    str0 <- paste0(
+      "The biomass of ",
+      NMFSReports::text_list(temp1$group[1:2]),
+      " were the greatest in both the EBS (",
+      NMFSReports::text_list(
+        paste0(round(x = temp1$prop_EBS[1:2]*100, digits = 1), "%")), 
+      " of the total biomass, respectively) and NBS (",
+      NMFSReports::text_list(
+        paste0(round(x = temp1$prop_NBS[1:2]*100, digits = 1), "%")), 
+        " of the total biomass, respectively; ", 
+                  NMFSReports::crossref(list_obj = list_tables, sublist = "number", nickname = "tab_biomass_est_fish_EBS"), 
+                  " and ", 
+                  NMFSReports::crossref(list_obj = list_tables, sublist = "number", nickname = "tab_biomass_est_fish_NBS"), "). ", 
+      temp3)
+
+
+                  # In the EBS, there were 15 different flatfish species that together comprised almost half of the total fish biomass (48%) with yellowfin sole (22%) and northern rock sole (11%) having the greatest proportions. This contrasted with the NBS where there were twelve flatfish species with yellowfin sole (15%) and Alaska plaice (12%) making up a majority of the total fish biomass. 
+    
+    # redundant - species composition
+    # Four flatfish species that were present in the EBS were absent from catches in the NBS including arrowtooth flounder, butter sole (Isopsetta isolepis), rex sole (Glyptocephalus zachirus) and southern rock sole (Table 4). One flatfish species, the Arctic flounder (Liopsetta glacialis), was only present in the NBS.
+
+}
+
+```
+
+`r str0 ` The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure `r ifelse(SRVY == "NEBS", crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number"), "") `). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught, see `r `crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" (EBS) and ", crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number"), " (NBS)"), "") `.
+
+<!-- Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the EBS compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the EBS middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the EBS, saffron cod (Eleginus gracilis), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 (EBS) and Appendix B2 (NBS). -->
+
 `r list_tables$tab_biomass_est_fish_EBS$res `
 
 `r ifelse(SRVY == "NEBS", list_tables$tab_biomass_est_fish_NBS$res, "") `
@@ -280,26 +465,28 @@ A total of `r invert_sp ` different invertebrate taxa representing `r xunits(len
 
 `r ifelse(SRVY == "NEBS", list_tables$tab_biomass_est_invert_NBS$res, "") `
 
-> All species are idenfitied using and logged in AFSC's databases as *Eschmeyer's Ctaglog of Fishes* (CITATION Eschmeyer) and *An Annotated Checklist of the Marine Macroinvertebrates of Alaska* (CITATION: Drumm). 
+`r list_tables$tab_majortaxa_pchange_EBS$res `
 
-## Relative Abundance
+`r ifelse(SRVY == "NEBS", list_tables$tab_majortaxa_pchange_NBS$res, "") `
 
-> why 12?
+<!-- ## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups -->
 
-> missing data from invert EBS?
+## Relative Biomass and Abundance Catch per Unit Effort
 
-> waiting for new data from rebecca
+> Why 12? changed it to 10 because it felt more natural
+
+> shouldnt we use kg/km2
 
 ```{r}
-temp <- data.frame()
 
+temp <- data.frame()
 for (i in 1:nrow(haul_cruises_maxyr)) {
   
   temp1 <- cpue_maxyr %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
     dplyr::select(cpue_kgha, species_code, taxon) %>%
     dplyr::group_by(species_code, taxon) %>% 
-    dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>%
+    dplyr::summarise(cpue_kgha = sum(cpue_kgha, na.rm = TRUE)) %>%
     dplyr::arrange(-cpue_kgha) %>% 
     dplyr::ungroup()
   
@@ -307,52 +494,67 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     temp,
     data.frame(
       SRVY = haul_cruises_maxyr$SRVY[i], 
-      fish = temp1 %>% 
+      fish = temp1 %>% # sum of all fish
         dplyr::filter(taxon == "fish") %>%
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric(), 
-      invert = temp1 %>% 
+      invert = temp1 %>% # sum of all invert
         dplyr::filter(taxon == "invert") %>%
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric(), 
-      all = temp1 %>% 
+      all = temp1 %>% # sum of all taxon ever
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric(), 
-      topfish = temp1 %>% 
+      topfish = temp1 %>% # sum of the top 12 fish
         dplyr::filter(taxon == "fish") %>%
         head(12) %>%
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric()))
 }  
-
 temp <- temp %>% 
   dplyr::mutate(top_fish = paste0(round(x = (temp$topfish/temp$fish)*100, digits = 0), "%"), 
                 top_all = paste0(round(x = (temp$topfish/temp$all)*100, digits = 0), "%"), 
                 across(where(is.numeric), format, digits = 0, trim = F, big.mark = ",", scientific = F))
-
 # temp[,1:4]<-NMFSReports::mod_number(x = temp[,1:4], comma_seperator = T, digits = 0)
-
 temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientific = F)
 
-# The top 12 fish taxa in the EBS accounted for 73% (243 kg/ha) of total catch CPUE (335 kg/ha) and 97% of total fish CPUE (252 kg/ha), compared with the NBS where the top 12 fish taxa accounted for only 61% (140 kg/ha) of the total catch CPUE (228 kg/ha) and 98% of total fish CPUE (143 kg/ha). 
 
+# top12 <- data.frame()
+# top12_tot <- data.frame()
+# 
+# for (i in 1:length(SRVY1)) {
+#   
+#   top12_ <- list_tables[names(list_tables) == 
+#                          paste0("tab_biomass_est_fish_", SRVY1[i])][[1]]$raw %>% 
+#       dplyr::mutate(SRVY = SRVY1[i]) %>% 
+#   dplyr::select(SRVY, group, taxon, prop, `999`) %>% 
+#   dplyr::filter(!grepl(pattern = "Total ", x = group, ignore.case = TRUE) & 
+#                   !grepl(pattern = "Total ", x = group, ignore.case = TRUE) & 
+#                   !grepl(pattern = "Total ", x = taxon, ignore.case = TRUE) & 
+#                   !grepl(pattern = "Other ", x = taxon, ignore.case = TRUE)) %>%
+#   dplyr::group_by(SRVY) %>%
+#   dplyr::arrange(SRVY, -prop) %>% 
+#   dplyr::mutate(prop_cumsum = cumsum(prop*100), 
+#                 taxon = ifelse(is.na(taxon), group, taxon)) %>% 
+#   head(10) 
+#   
+#   top12 <- dplyr::bind_rows(top12, top12_)
+# 
+# top12_tot_ <- top12 %>% 
+#   dplyr::group_by(SRVY) %>%
+#   dplyr::summarise(perc = formatC(x = sum(prop, na.rm = TRUE)*100, 
+#                                   digits = 1, big.mark = ",", format = "f"), 
+#                    bio = formatC(x = sum(`999`, na.rm = TRUE), digits = 0, 
+#                                  big.mark = ",", format = "f"))
+# 
+#   top12_tot <- dplyr::bind_rows(top12_tot, top12_tot_)
+# 
+# }
 ```
 
-`r NMFSReports::text_list(paste0("Of the top 12 fish taxa in the ",temp$SRVY," accounted for ",temp$top_all," (",temp$topfish," kg/ha) of total catch CPUE (",temp$all," kg/ha) and ",temp$top_fish," of total fish CPUE (",temp$fish," kg/ha)")) `
+<!-- The top 12 fish taxa in the EBS accounted for 73% (243 kg/ha) of total catch CPUE (335 kg/ha) and 97% of total fish CPUE (252 kg/ha), compared with the NBS where the top 12 fish taxa accounted for only 61% (140 kg/ha) of the total catch CPUE (228 kg/ha) and 98% of total fish CPUE (143 kg/ha). -->
 
-> Not sure how to automate this...?
-
-`The lower fish biomass in the NBS is consistent with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936]. The relative abundance of flatfishes and gadids were high in the` `r NMFSReports::text_list(SRVY) `, but the species comprising each taxonomic group and their proportion of the total biomass were different between the two areas. In the `r SRVY `, there were 15 different flatfish species that together comprised almost half of the total fish biomass (48%) with yellowfin sole (22%) and northern rock sole (11%) having the greatest proportions. This contrasted with the NBS where there were twelve flatfish species with yellowfin sole (15%) and Alaska plaice (12%) making up a majority of the total fish biomass. 
-
-Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the `r SRVY ` compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure `r ifelse(SRVY == "NEBS", crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_NBS", sublist = "number"), "") `). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 ( `r SRVY `) and Appendix B2 (NBS).
-
-`r list_tables$tab_majortaxa_pchange_EBS$res `
-
-`r ifelse(SRVY == "NEBS", list_tables$tab_majortaxa_pchange_NBS$res, "") `
-
-## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups
-
-Total demersal animal biomass for the `r SRVY ` was estimated at 16.5 million metric tons (t) and for the NBS at 4.6 million t. In the EBS, the proportion of fishes (75%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")`) was three times higher than invertebrates (25%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`). 
+`r NMFSReports::text_list(paste0("Of the top 10 fish taxa in the ",temp$SRVY," accounted for ",temp$top_all," (",temp$topfish," kg/ha) of total catch CPUE (",temp$all," kg/ha) and ",temp$top_fish," of total fish CPUE (",temp$fish," kg/ha)")) `
 
 ```{r}
 # This trend was similarly true in the NBS where the proportion of fishes (63%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number")`) was greater than invertebrates (37%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`). Pleuronectids dominated the fish biomass in both the EBS (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")` and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`) and 25% in the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`).
@@ -368,7 +570,7 @@ Survey results for major fish fauna are presented in maps of geographic distribu
 
 Total biomass and population size were estimated for an additional 24 fish species that were common in either the `r SRVY ` and NBS or both (Tables 18 to 19). For each of the 24 species, there is a corresponding map showing the geographic distribution and relative abundance (Figures 29 to 53). 
 
-#### Spatial Distribution of Selected Invertebrates
+## Spatial Distribution of Selected Invertebrates
 
 > from 2018
 

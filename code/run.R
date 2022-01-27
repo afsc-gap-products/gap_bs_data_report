@@ -127,7 +127,6 @@ if (FALSE) {
                       output_dir = dir_out_ref,
                       output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-  
   # *** *** Save --------------------------------------------
   save(list_figures,
        file=paste0(dir_out_figures, "/report_figures.rdata"))
