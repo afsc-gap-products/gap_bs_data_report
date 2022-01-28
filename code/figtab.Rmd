@@ -989,7 +989,7 @@ for (i in 1:2) { # two cases, above and below
                    NMFSReports::text_list(year),
                    " Bering Sea shelf bottom trawl surveys, years when the survey mean bottom temperature was ",
                    case,
-                   " the long-term stratum area-weighted mean.")
+                   " the long-term mean.")
   nickname <- paste0(nickname0, case)
   
   # Just EBS
@@ -1034,7 +1034,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ",res,"
 
 ")
-
+}
 ```
 
 
@@ -1203,94 +1203,6 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 ## tab_biomass_est_PREP
 
 ```{r tab_biomass_est_PREP}
-# for tech memo table: calculate biomass for fish and invert taxa in table 7
-# Created by: Rebecca Haehn
-# Contact: rebecca.haehn@noaa.gov
-# Created: 13 January 2022
-# script modifed from biomass script for stock assessments
-# Modified: 
-
-# fiter to EBS only data by innerjoin (catch and haul) --------------------
-
-## to test this I filtered for YEAR = 2017 in the haul data, row count matches prebiocatch table in Oracle (after running legacy ebs_plusnw script) **do not run with filter to get match
-## 
-## the filter removes empty banacles, empty bivalve/gastropod shell, invert egg unid, unsorted catch and debris, Polychaete tubes, and unsorted shab 
-
-# create zeros table for CPUE calculation ---------------------------------
-# zeros table so every haul/vessel/year combination includes a row for every species caught (combine)
-temp1 <- catch_haul_cruises_maxyr %>%
-  dplyr::filter(species_code < 99991)
-
-z <-  temp1 %>% 
-  tidyr::complete(species_code, 
-                  nesting(SRVY, cruise, haul, #vessel, 
-                                 year, hauljoin, stratum, stationid, distance_fished, net_width)) %>%
-  dplyr::select(SRVY, cruise, hauljoin, haul, #vessel, 
-         year, species_code, weight, number_fish, stratum, stationid, distance_fished, net_width) %>%
-  tidyr::replace_na(list(weight = 0, number_fish = 0))
-
-catch_with_zeros <- 
-  dplyr::full_join(x = temp1, 
-                   y = z, 
-                   by = c("SRVY", "cruise", "hauljoin", "haul", #"vessel", 
-                          "year", "species_code", "stratum", "stationid", 
-                          "distance_fished", "net_width")) %>%
-  dplyr::select(-weight.y, -number_fish.y, -gear_depth, # -abundance_haul, 
-                -duration, -net_height) %>%
-  dplyr::arrange(year, haul, species_code #,VESSEL
-                 ) %>%
-  dplyr::rename(weight_kg = weight.x, number_fish = number_fish.x) %>%
-  tidyr::replace_na(list(weight_kg = 0, number_fish = 0))
-
-# calculate CPUE (mean CPUE by strata) ----------------------------------------------------------
-cpue_by_stratum <- catch_with_zeros %>%
-  dplyr::mutate(effort = distance_fished * net_width/10,
-         cpue_weight_kgperhect = weight_kg/effort) %>%
-  dplyr::arrange(stratum, species_code) %>%
-  dplyr::group_by(SRVY, species_code, year, stratum) %>%
-  dplyr::summarise(cpue_avg_by_stratum = mean(cpue_weight_kgperhect))
-
-# import and join stratum areas -------------------------------------------
-cpue_by_stratum <-
-  dplyr::left_join(x = cpue_by_stratum,
-            y = stratum_info %>%
-              dplyr::select(stratum, area, SRVY),
-            by = c("SRVY", "stratum")) %>%
-  dplyr::mutate(total_area = sum(unique(area)))
-
-# biomass -----------------------------------------------------------------
-
-# ## CANNOT use biomass_*** tables bc they don't contain the info for all species (ie: no poachers, blennies, lumpsuckers, eelpouts, etc.)
-
-biomass_by_stratum <- cpue_by_stratum %>%
-  dplyr::mutate(biomass_mt = cpue_avg_by_stratum * (area * 0.1)) %>%
-  dplyr::mutate(strata = dplyr::case_when(
-    (stratum == 31 | stratum == 32) ~ 30,
-    (stratum == 41 | stratum == 42) | stratum == 43 ~ 40,
-    (stratum == 61 | stratum == 62) ~ 60, 
-    TRUE ~ as.numeric(stratum)))
-
-## this global command disengages scientific notation of numbers
-# options(scipen = 999)
-
-# total_biomass <- biomass_by_stratum %>%
-#   dplyr::filter((species_code >= 40000 |#& 
-#                   # species_code < 99991) |
-#                   species_code < 35000) 
-#   )
-# 
-# total_biomass <- sum(total_biomass$biomass_mt, na.rm = TRUE)
-
-total_biomass <- biomass_by_stratum %>%
-  dplyr::filter((species_code >= 40000 &
-                  species_code < 99991) |
-                  (species_code > 1 & 
-                     species_code < 35000)) %>% 
-  ungroup() %>%
-  dplyr::group_by(SRVY) %>% 
-  dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE))
-
-# total_biomass <- sum(total_biomass$biomass_mt, na.rm = TRUE)
 
 # tables ------------------------------------------------------------------
 
@@ -1456,10 +1368,10 @@ nickname0 <- "tab_biomass_est_fish_"
 fish_groups <- biomass_by_stratum %>%
   dplyr::filter(species_code < 35000) %>% # species codes greater than 35000 are invertebrates
   dplyr::mutate(group0 = case_when(
-    species_code == 471 ~ "Raidae (skates)_Alaska skate",
+    species_code == 471 ~ "Rajidae (skates)_Alaska skate",
     species_code >= 401 & 
       species_code <= 495 & 
-      species_code != 471 ~ "Raidae (skates)_other skates",
+      species_code != 471 ~ "Rajidae (skates)_other skates",
     species_code == 10210 ~ "Pleuronectidae (flatfishes)_yellowfin sole",
     species_code == 10261 ~ "Pleuronectidae (flatfishes)_northern rock sole",
     species_code == 10130 ~ "Pleuronectidae (flatfishes)_flathead sole",
@@ -1596,7 +1508,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     newobj <- ifelse(i==1, TRUE, FALSE)
   }
   
-  header <- paste0("Biomass estimates (t) for major fish species and groups taken during the ", 
+  header <- paste0("Biomass estimates (t) for major invertebrate species and groups taken during the ", 
                    maxyr, " ", 
                    haul_cruises_maxyr$SRVY_long[i],
                    " shelf bottom trawl survey.")

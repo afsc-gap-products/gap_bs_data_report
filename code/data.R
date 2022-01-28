@@ -1003,24 +1003,61 @@ temps_avg_yr_maxyr <- temps_avg_yr %>%  # temps_avg_yr_longterm
   dplyr::filter(year == maxyr)
 
 # which years should we look at?
-temps_avg_yr_abovebelow <- 
-  cbind.data.frame(
-    "above" = temps_avg_yr %>% 
+# temps_avg_yr_abovebelow <- 
+#   cbind.data.frame(
+#     "above" = temps_avg_yr %>% 
+#       dplyr::filter(SRVY == "EBS" & 
+#                       bt_above_mean == TRUE) %>% 
+#       dplyr::ungroup() %>%
+#       dplyr::arrange(-year) %>% 
+#       dplyr::select(year) %>% 
+#       head(8) %>%
+#       unlist(), 
+#     "below" = temps_avg_yr %>% 
+#       dplyr::filter(SRVY == "EBS" & 
+#                       bt_above_mean == FALSE) %>% 
+#       dplyr::ungroup() %>%
+#       dplyr::arrange(-year) %>% 
+#       dplyr::select(year) %>% 
+#       head(8) %>%
+#       unlist())
+
+
+temp1 <- temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
-                      bt_above_mean == TRUE) %>% 
+                      bt_above_mean == TRUE &
+                      year >= maxyr-16) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
-      head(8) %>%
-      unlist(), 
-    "below" = temps_avg_yr %>% 
+      unlist() %>% 
+  data.frame() 
+names(temp1) <- c("above")
+
+temp2 <- temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
-                      bt_above_mean == FALSE) %>% 
+                      bt_above_mean == FALSE &
+                      year >= maxyr-16) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
-      head(8) %>%
-      unlist())
+      unlist() %>% 
+  data.frame() 
+names(temp2) <- c("below")
+
+
+# make the same length so they can be bound together
+if (nrow(temp1)>nrow(temp2)) {
+  temp2 <- temp2 %>% 
+    dplyr::bind_rows(., 
+                     data.frame(below = rep_len(NA, (nrow(temp1)-nrow(temp2)))))
+} else {
+  temp1 <- temp1 %>% 
+    dplyr::bind_rows(., 
+                     data.frame(above = rep_len(NA, (nrow(temp2)-nrow(temp1)))))
+}
+
+temps_avg_yr_abovebelow <- dplyr::bind_cols(temp1, temp2)
 
 temp <- coldpool:::ebs_bottom_temperature
 temp <- projectRaster(temp, crs = crs(reg_dat$akland))
@@ -1286,4 +1323,92 @@ sizecomp_maxyr<-sizecomp %>%
 sizecomp_compareyr<-sizecomp %>%
   dplyr::filter(year == compareyr[1])
 
+## *** Total Biomass ---------------------------------------------------------------
+
+# for tech memo table: calculate biomass for fish and invert taxa in table 7
+# Created by: Rebecca Haehn
+# Contact: rebecca.haehn@noaa.gov
+# Created: 13 January 2022
+# script modifed from biomass script for stock assessments
+# Modified: 
+
+# fiter to EBS only data by innerjoin (catch and haul) --------------------
+
+## to test this I filtered for YEAR = 2017 in the haul data, row count matches prebiocatch table in Oracle (after running legacy ebs_plusnw script) **do not run with filter to get match
+## 
+## the filter removes empty banacles, empty bivalve/gastropod shell, invert egg unid, unsorted catch and debris, Polychaete tubes, and unsorted shab 
+
+# create zeros table for CPUE calculation ---------------------------------
+# zeros table so every haul/vessel/year combination includes a row for every species caught (combine)
+temp1 <- catch_haul_cruises_maxyr %>%
+  dplyr::filter(species_code < 99991)
+
+z <-  temp1 %>% 
+  tidyr::complete(species_code, 
+                  nesting(SRVY, cruise, haul, #vessel, 
+                          year, hauljoin, stratum, stationid, distance_fished, net_width)) %>%
+  dplyr::select(SRVY, cruise, hauljoin, haul, #vessel, 
+                year, species_code, weight, number_fish, stratum, stationid, distance_fished, net_width) %>%
+  tidyr::replace_na(list(weight = 0, number_fish = 0))
+
+catch_with_zeros <- 
+  dplyr::full_join(x = temp1, 
+                   y = z, 
+                   by = c("SRVY", "cruise", "hauljoin", "haul", #"vessel", 
+                          "year", "species_code", "stratum", "stationid", 
+                          "distance_fished", "net_width")) %>%
+  dplyr::select(-weight.y, -number_fish.y, -gear_depth, # -abundance_haul, 
+                -duration, -net_height) %>%
+  dplyr::arrange(year, haul, species_code #,VESSEL
+  ) %>%
+  dplyr::rename(weight_kg = weight.x, number_fish = number_fish.x) %>%
+  tidyr::replace_na(list(weight_kg = 0, number_fish = 0))
+
+# calculate CPUE (mean CPUE by strata) ----------------------------------------------------------
+cpue_by_stratum <- catch_with_zeros %>%
+  dplyr::mutate(effort = distance_fished * net_width/10,
+                cpue_weight_kgperhect = weight_kg/effort) %>%
+  dplyr::arrange(stratum, species_code) %>%
+  dplyr::group_by(SRVY, species_code, year, stratum) %>%
+  dplyr::summarise(cpue_avg_by_stratum = mean(cpue_weight_kgperhect))
+
+# import and join stratum areas -------------------------------------------
+cpue_by_stratum <-
+  dplyr::left_join(x = cpue_by_stratum,
+                   y = stratum_info %>%
+                     dplyr::select(stratum, area, SRVY),
+                   by = c("SRVY", "stratum")) %>%
+  dplyr::mutate(total_area = sum(unique(area)))
+
+# biomass -----------------------------------------------------------------
+
+# ## CANNOT use biomass_*** tables bc they don't contain the info for all species (ie: no poachers, blennies, lumpsuckers, eelpouts, etc.)
+
+biomass_by_stratum <- cpue_by_stratum %>%
+  dplyr::mutate(biomass_mt = cpue_avg_by_stratum * (area * 0.1)) %>%
+  dplyr::mutate(strata = dplyr::case_when(
+    (stratum == 31 | stratum == 32) ~ 30,
+    (stratum == 41 | stratum == 42) | stratum == 43 ~ 40,
+    (stratum == 61 | stratum == 62) ~ 60, 
+    TRUE ~ as.numeric(stratum)))
+
+## this global command disengages scientific notation of numbers
+# options(scipen = 999)
+
+# total_biomass <- biomass_by_stratum %>%
+#   dplyr::filter((species_code >= 40000 |#& 
+#                   # species_code < 99991) |
+#                   species_code < 35000) 
+#   )
+# 
+# total_biomass <- sum(total_biomass$biomass_mt, na.rm = TRUE)
+
+total_biomass <- biomass_by_stratum %>%
+  dplyr::filter((species_code >= 40000 &
+                   species_code < 99991) |
+                  (species_code > 1 & 
+                     species_code < 35000)) %>% 
+  ungroup() %>%
+  dplyr::group_by(SRVY) %>% 
+  dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE))
 

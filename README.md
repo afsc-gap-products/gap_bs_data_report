@@ -20,6 +20,10 @@ Lyle Britt, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Pr
 
 Lyle Britt, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn, and Duane Stevenson
 
+## This code and the associated releases were used to develop the following presentations: 
+
+[**Results from the Eastern & Northern Bering Sea Bottom Trawl 2021 Survey**, Nov 15 tot the North Pacific Fisheries Management Council](https://meetings.npfmc.org/CommentReview/DownloadFile?p=f48aa839-fdd1-4000-a556-2a3aa4521d8b.pdf&fileName=2021_EBSsurvey%20PRESENTATION.pdf)
+
 <!-- [Release](https://github.com/EmilyMarkowitz-NOAA/GAP_NBS_CommunityReport/releases/tag/v2021), [Full Report](https://github.com/EmilyMarkowitz-NOAA/GAP_NBS_CommunityReport/raw/main/final_materials/2021_nbs_community_snapshot.pdf), [Full Report (Compressed)](https://github.com/EmilyMarkowitz-NOAA/GAP_NBS_CommunityReport/raw/main/final_materials/2021_nbs_community_snapshot_compressed.pdf) -->
 
 ## This code is primarally maintained by: 

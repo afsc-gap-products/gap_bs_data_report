@@ -139,7 +139,6 @@ if (FALSE) {
 load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
-
 # rmarkdown::render(input = "./notforgit/test.Rmd",
 #                   output_dir = dir_out_chapters,
 #                   output_file = "test.docx")
