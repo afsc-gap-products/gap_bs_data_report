@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 # Results and Discussion
 
-A total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY, " stations")) ` were successfully sampled in `r maxyr` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number")`). Summarized haul and raw catch sample data for successfully trawled stations used in the analyses are listed in Appendixes `r NMFSReports::text_list(NMFSReports::crossref(list_tables, "tab_hauls_catch_", "number", exact = FALSE))` by vessel along with date, time, start and end positions, mean bottom depth, tow duration, distance fished over ground, mean net width, and trawl performance.
+A total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY, " stations")) ` were successfully sampled in `r maxyr` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number")`). Summarized haul and raw catch sample data for successfully trawled stations used in the analyses are listed in appendices `r NMFSReports::crossref(list_tables, "tab_hauls_catch_", "number", exact = FALSE)` by vessel along with date, time, start and end positions, mean bottom depth, tow duration, distance fished over ground, mean net width, and trawl performance.
 
 ## Ocean Conditions
 
@@ -181,17 +181,19 @@ if (SRVY == "NEBS") {
                    " of which did not occur in the EBS (Table ", 
                    crossref(list_obj = list_tables, 
                             nickname = "tab_species_composition", 
-                            sublist = "number"), "). ",
-                   xunits(nrow(temp0[temp0$where == 
-                                       "Present in NBS but absent in EBS" & 
-                                       temp0$NBS == TRUE,])),
-                   " of the ", 
-                   xunits(nrow(temp0[temp0$where == 
-                                       "Present in NBS but absent in EBS",])), 
-                   " species observed in the NBS during ",maxyr," (Table ", 
-                   crossref(list_obj = list_tables, 
-                            nickname = "tab_species_composition", 
-                            sublist = "number"), ") are only documented north of 60° N, which are generally corroborated in @RN912. ")
+                            sublist = "number"), "). "#,
+                   ## 21 of the 21 species observed in the NBS during 2021 (Table 6) are only documented north of 60° N, which are generally corroborated in Mecklenburg, Mecklenburg, and Thorsteinson (2002).
+                   # xunits(nrow(temp0[temp0$where == 
+                   #                     "Present in NBS but absent in EBS" & 
+                   #                     temp0$NBS == TRUE,])),
+                   # " of the ", 
+                   # xunits(nrow(temp0[temp0$where == 
+                   #                     "Present in NBS but absent in EBS",])), 
+                   # " species observed in the NBS during ",maxyr," (Table ", 
+                   # crossref(list_obj = list_tables, 
+                   #          nickname = "tab_species_composition", 
+                   #          sublist = "number"), ") are only documented north of 60° N, which are generally corroborated in @RN912. "
+                   )
   
   # flatfish
   temp1 <- temp0[temp0$order_taxon %in% c("Pleuronectiformes"), ]
@@ -230,7 +232,7 @@ if (SRVY == "NEBS") {
 }
 ```
 
-In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, representing `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera were identified from catch samples taken in `r ifelse(SRVY == "NEBS", "each", "the")` survey area (`r NMFSReports::text_list(NMFSReports::crossref(list_tables, "tab_taxa_encountered_", "number", exact = FALSE))`). `r insert`
+In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, representing `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera were identified from catch samples taken in `r ifelse(SRVY == "NEBS", "each", "the")` survey area (appendices `r NMFSReports::crossref(list_tables, "tab_taxa_encountered_", "number", exact = FALSE)`). `r insert`
 
 ```{r}
 # No. fish spp
@@ -242,7 +244,6 @@ invert_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "inv
                                                                 !(grepl(pattern = " unid.", x = temp$report_name_scientific, fixed = T))])))
 ```
 
-`r list_tables$tab_species_composition$res `
 
 ```{r}
 temp <- dplyr::left_join(x = catch_haul_cruises, 
@@ -266,9 +267,11 @@ temp0 <- dplyr::full_join(
 
 ```
 
-A total of `r invert_sp ` different invertebrate taxa representing `r xunits(length(unique(temp$phylum_taxon[temp$taxon == "invert"])))` phyla were identified in the combined catch samples taken from the EBS (`r NMFSReports::crossref(list_tables, "tab_taxa_encountered_EBS_invertebrate", "number")`)`r ifelse(SRVY == "NEBS", paste0(" and NBS (",NMFSReports::crossref(list_tables, "tab_taxa_encountered_NBS_invertebrate", "number"),")", ""))`. In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining of invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
+A total of `r invert_sp ` different invertebrate taxa representing `r xunits(length(unique(temp$phylum_taxon[temp$taxon == "invert"])))` phyla were identified in the combined catch samples taken (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
 
-All species are identified using and logged in AFSC’s databases as (Eschmeyer’s Catalog of Fishes)[https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes] which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016].
+All species are identified using and logged in AFSC’s databases as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016].
+
+`r list_tables$tab_species_composition$res `
 
 ## Total Biomass and Relative Biomass and Relative Abundance Catch per Unit Effort
 
@@ -309,15 +312,15 @@ temp1 <- left_join(
                 group = gsub(pattern = "Total ", replacement = "", x = group)) %>% 
   dplyr::filter(group == "fish")
 
-str0 <- paste0("Total demersal animal biomass for the ", 
+str0 <- paste0("The ", 
                NMFSReports::text_list(
+                 "total demersal animal biomass for the ", 
                  paste0(total_biomass$SRVY, 
                         " was estimated at ", 
                         NMFSReports::xunits(total_biomass$total), 
                         " metric tons (t)")), ". ", 
-               
-               NMFSReports::text_list(
-                 paste0("In the ", temp2$SRVY, 
+               "The ", NMFSReports::text_list(
+                 paste0(temp2$SRVY, 
                         " the proportion of fishes (", 
                         temp2$perc_fish, 
                         "; ", crossref(list_obj = list_tables, 
@@ -338,10 +341,10 @@ if (SRVY == "NEBS") {
                                "The lower fish biomass in the NBS than in the EBS is consistent", 
                                "The higher fish biomass in the NBS than in the EBS is inconsistent"), 
                         " with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936]", 
-                        crossref(list_obj = list_tables, 
+                        NMFSReports::text_list(crossref(list_obj = list_tables, 
                                        nickname = "tab_biomass_est_fish_", 
                                        sublist = "number", 
-                                 exact = FALSE),".", 
+                                 exact = FALSE)),".", 
                         "") ) 
 }
 ```
@@ -426,30 +429,31 @@ if (SRVY == "NEBS") {
     if (nrow(temp3)>1) {
       temp0$str0[temp0$SRVY == temp0$SRVY[i] & temp0$group == temp0$group[i]] <- 
         NMFSReports::text_list(paste0(temp3$taxon, " (*", temp3$species_name, 
-                                      "*; ",temp3$prop,")"))
-      temp0$group0 <- unlist(regmatches(temp0$group, 
-                                        gregexpr("(?<=\\().*?(?=\\))", 
+                                      "*, ",temp3$prop,")"))
+      temp0$group1 <- unlist(regmatches(temp0$group,
+                                        gregexpr(
+                                          "(?<=\\().*?(?=\\))", # everything within a (*)
                                                  temp0$group, perl=T)))
+      temp0$group0 <- unlist(lapply(strsplit(x = temp0$group, split = " ", fixed = TRUE), `[[`, 1))
+      # temp0$group0 <- temp$group
     }
   }
   
-  temp0$str0 <- gsub(pattern = "*NA*; ", replacement = "", x = temp0$str0, fixed = TRUE)
+  temp0$str0 <- gsub(pattern = "*NA*, ", replacement = "", x = temp0$str0, fixed = TRUE)
   temp0$str0 <- gsub(pattern = "  ", replacement = " ", x = temp0$str0, fixed = TRUE)
   
   temp3 <- c()
   for (i in 1:length(SRVY1)){
+    temp4 <- NMFSReports::text_list(paste0(
+                             temp0$group0[temp0$SRVY == SRVY1[i]], 
+                             " was majoritarily comprised of ", 
+                             temp0$str0[temp0$SRVY == SRVY1[i]]))
     temp3 <- paste0(temp3, 
                     paste0("In the ", SRVY1[i], " ", 
-                           NMFSReports::text_list(paste0(
-                             temp0$group0[temp0$SRVY == SRVY1[i]], 
-                             " comprised of ", 
-                             temp0$str0[temp0$SRVY == SRVY1[i]])), 
-                           " (", 
+                           substr(temp4, start = 1, stop = (nchar(temp4)-1)), # get rid of last ")" 
+                           "; ", 
                            NMFSReports::crossref(list_obj = list_tables, sublist = "number", 
-                                                 nickname = "tab_biomass_est_fish_EBS"), 
-                           " and ", 
-                           NMFSReports::crossref(list_obj = list_tables, sublist = "number", 
-                                                 nickname = "tab_biomass_est_fish_NBS"), 
+                                                 nickname = "tab_biomass_est_fish_", exact = FALSE), 
                            "). "))
   }
   
@@ -478,9 +482,17 @@ if (SRVY == "NEBS") {
 
 ```
 
-`r str0 ` The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure `r ifelse(SRVY == "NEBS", crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number"), "") `). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught, see `r crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" (EBS) and ", crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number"), " (NBS)"), "") `.
+`r str0 ` 
 
-<!-- Walleye pollock and Pacific cod together comprised 44% of the total fish biomass in the EBS compared to only 57% in the NBS. The abundance of walleye pollock was relatively high in the EBS middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7). Unlike the EBS, saffron cod (Eleginus gracilis), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught in each area, see Appendix B1 (EBS) and Appendix B2 (NBS). -->
+```{r}
+
+```
+
+> Still need to code: 
+
+The abundance of walleye pollock was relatively high in the NBS middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7b). Unlike the EBS, saffron cod (Eleginus gracilis), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught, see `r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_*_fish", sublist = "number", exact = FALSE)`.
+
+<!-- The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure `r ifelse(SRVY == "NEBS", crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number"), "") `). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught, see `r crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" (EBS) and ", crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number"), " (NBS)"), "") `. -->
 
 `r list_tables$tab_biomass_est_fish_EBS$res `
 
@@ -588,32 +600,104 @@ temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientifi
 # This trend was similarly true in the NBS where the proportion of fishes (63%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number")`) was greater than invertebrates (37%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`). Pleuronectids dominated the fish biomass in both the EBS (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")` and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`) and 25% in the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`).
 ```
 
-
-Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number (Table `r crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_EBS", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" and ", crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_NBS", sublist = "number")), "")`). Major species presented include walleye pollock (Figures 7-8 and Table 7a, b), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D (`r NMFSReports::text_list(NMFSReports::crossref(list_tables, "tab_principal_fish_", "number", exact = FALSE))`) contains population estimates by sex and size class for all 11 of these fish species. 
-
 > test
 
-`r NMFSReports::crossref(list_tables, "tab_estimates_maxyr_spp_", "number", exact = FALSE)`
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "res", exact = FALSE)`
 
 <!-- `r list_tables$tab_estimates_maxyr_spp_EBS$res ` -->
 
 <!-- `r ifelse(SRVY == "NEBS", list_tables$tab_estimates_maxyr_spp_NBS$res, "") ` -->
 
-Total biomass and population size were estimated for an additional 24 fish species that were common in either the `r SRVY ` and NBS or both (Tables 18 to 19). For each of the 24 species, there is a corresponding map showing the geographic distribution and relative abundance (Figures 29 to 53). 
 
-## Spatial Distribution of Selected Invertebrates
+## Summary of Results for Selected eastern Bering Sea and northern Bering Sea Fish and Invertebrate Fauna
 
-> from 2018
+> links may not be true for much longer
 
-Plots of the broad spatial distribution patterns for eight major invertebrates on the combined `r SRVY ` and NBS continental shelf are presented in Figures 54 to 61. The purple sea star, (Asterias amurensis), is common in the Bering and Chukchi Seas (Hamizaki et al. 2005, Feder et al. 2005) and it was the invertebrate taxon with the highest ranked catch rate by weight in both the `r SRVY ` and NBS. Catch rates for the purple sea star were highest in the middle shelf between the Pribilof Islands and Nunivak Island and along the inner shelf from Bristol Bay to the Bering Strait (Figure 61). 
+An interactive map of CPUE by species overlaid with temperature data for the `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys, as well as all for other AFSC bottom trawls surveys, can be found at https://www.afsc.noaa.gov/RACE/groundfish/survey_data/default.htm. The CPUE data with associated station information that includes position, surface and bottom temperatures, and bottom depth can be downloaded from https://www.fisheries.noaa.gov/alaska/commercial-fishing/alaska-groundfish-bottom-trawl-survey-data.
 
-Figures 54 to 57 show the shelf-wide distributions of the four major commercial crab species: blue king crab, red king crab, snow crab (Chionoecetes opilio), and Tanner crab (Chionoecetes bairdi). Commercial crab stocks are managed by the ADF&G with federal oversight by NMFS. For more detailed information on BT survey results for commercial crab refer to Chilton et al. (2011), and for the most recent modeling data on the status of these commercial crab stocks, refer to the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC. 
+### Spatial Distribution and Abundance, Size Compositions and Biomass and Population Estimates of Selected Fish
 
-> from 2017
+```{r}
+# major fish 
+temp0 <- report_spp1 %>% 
+  dplyr::filter(taxon == "fish" & 
+                  text_spp == TRUE) %>% 
+  dplyr::select(file_name, print_name) %>% 
+  dplyr::distinct()
 
-Plots of distribution for seven major invertebrate taxa are presented in Figures 55 to 61 including the purple sea star (Asterias amurensis), northern neptune snail (Neptunea heros), jellyfishes (Scyphozoa), red king crab (Paralithodes camtschaticus), blue king crab (P. platypus), snow crab (Chionoecetes opilio), and Tanner crab (C. bairdi). These last four plots are the major commercial crab species in Alaska. Commercial crab stocks are managed by the ADF&G with federal oversight by NMFS. For more detailed information on bottom trawl survey results for commercial crab refer to Lang et al. (2018), and for the most recent modeling data on the status of these commercial crab stocks, refer to the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC. 
+  # compile
+temp <- c()
+for (i in 1:nrow(temp0)) {
+  temp <- c(temp, 
+                 paste0(
+  temp0$print_name[i], " (Figures ", 
+  NMFSReports::crossref(list_obj = list_figures, 
+                        nickname = paste0("fig_idw_cpue_*_",temp0$file_name[i],"_*"), 
+                        sublist = "number", exact = FALSE),
+  " and Tables ",
+  NMFSReports::crossref(list_obj = list_tables, 
+                        nickname = paste0("tab_estimates_maxyr_*_",temp0$file_name[i],"_*"), 
+                        sublist = "number", exact = FALSE), 
+  ")"))
+}
+str0 <- NMFSReports::text_list(temp)
 
-An interactive map of CPUE by species overlaid with temperature data for the 2017 EBS and NBS surveys, as well as all for other AFSC bottom trawls surveys, can be found at https://www.afsc.noaa.gov/RACE/groundfish/survey_data/default.htm. The CPUE data with associated station information that includes position, surface and bottom temperatures, and bottom depth can be downloaded from https://www.fisheries.noaa.gov/alaska/commercial-fishing/alaska-groundfish-bottom-trawl-survey-data.
+# not major fish
+temp2 <- report_spp1 %>% 
+  dplyr::filter(taxon == "fish" &
+                  (isFALSE(text_spp) | is.na(text_spp))) %>% 
+  dplyr::select(file_name, print_name) %>% 
+  dplyr::distinct()
+
+```
+
+<!-- Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number (Table 10a and 10b). Major species presented include walleye pollock (Figures 7-8 and Table 7a, b), Pacific cod (Figures 9-10 and Table 8a, b), yellowfin sole (Figures 11-12 and Table 9a, b), northern rock sole (Figures 13-14 and Table 10a, b), flathead sole (Figures 15-16 and Table 11a, b), Bering flounder (Figures 17-18 and Table 12a, b), Alaska plaice (Figures 19-20 and Table 13a, b), Greenland turbot (Figures 21-22 and Table 14a, b), arrowtooth flounder (Figures 23-24 and Table 15a, b), Kamchatka flounder (Figures 25-26 and Table 16a, b), and Pacific halibut (Figures 27-28 and Table 17a, b). Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables 18-19, Figures 29-61). Appendix D contains population estimates by sex and size class for all 11 of these fish species. -->
+
+<!-- Total biomass and population size were estimated for an additional 24 fish species that were common in either the EBS and NBS or both (Tables 18 to 19). For each of the 24 species, there is a corresponding map showing the geographic distribution and relative abundance (Figures 29 to 53). -->
+
+Total biomass and population size were estimated for an additional `r nrow(temp2)` fish species that were common in the `r NMFSReports::text_list(SRVY1)` (Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "number", exact = FALSE) `). For each of the `r length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_", sublist = "number", exact = FALSE, text = FALSE))` species, there is a corresponding map showing the geographic distribution and relative abundance (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_", sublist = "number", exact = FALSE) `). 
+
+Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "number", exact = FALSE)`). Major species presented include `r str0`. Mean CPUE by weight and number and maps of geographic distribution for many other species are also included (Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "number", exact = FALSE)` and Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE)`). Appendices `r NMFSReports::crossref(list_tables, "tab_principal_fish_", "number", exact = FALSE)` contains population estimates by sex and size class for all `r nrow(temp0)` of these fish species. 
+
+### Spatial Distribution of Selected Invertebrates
+
+```{r}
+# invert 
+temp0 <- report_spp1 %>% 
+  dplyr::filter(taxon == "invert") %>% 
+  dplyr::select(file_name, print_name) %>% 
+  dplyr::distinct()
+
+  # compile
+temp <- c()
+for (i in 1:nrow(temp0)) {
+  temp <- c(temp, 
+                 paste0(
+  temp0$print_name[i], " (Figures ", 
+  NMFSReports::crossref(list_obj = list_figures, 
+                        nickname = paste0("fig_idw_cpue_*_",temp0$file_name[i],"_*"), 
+                        sublist = "number", exact = FALSE),
+  " and Tables ",
+  NMFSReports::crossref(list_obj = list_tables, 
+                        nickname = paste0("tab_estimates_maxyr_*_",temp0$file_name[i],"_*"), 
+                        sublist = "number", exact = FALSE), 
+  ")"))
+}
+str0 <- NMFSReports::text_list(temp)
+
+```
+
+<!-- Plots of the broad spatial distribution patterns for eight major invertebrates on the combined EBS and NBS continental shelf are presented in Figures 54 to 61.-->
+
+Plots of the broad spatial distribution patterns for `r length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE, text = FALSE)) ` major invertebrates on the combined EBS and NBS continental shelf are presented in Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE) `.
+
+> #TOLDEO: Liz find and add to bib file: Hamizaki et al. 2005, Feder et al. 2005
+
+> need to automate:
+
+The purple sea star, (Asterias amurensis), is common in the Bering and Chukchi Seas `(Hamizaki et al. 2005, Feder et al. 2005)` and it was the invertebrate taxon with the highest ranked catch rate by weight in both the EBS and NBS. Catch rates for the purple sea star were highest in the middle shelf between the Pribilof Islands and Nunivak Island and along the inner shelf from Bristol Bay to the Bering Strait (Figure 61).
+
+Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_*_crab", sublist = "number", exact = FALSE) ` show the shelf-wide distributions of the four major commercial crab species: blue king crab (*Paralithodes platypus*), red king crab (*Paralithodes camtschaticus*), snow crab (*Chionoecetes opilio*), and Tanner crab (*Chionoecetes bairdi*). Commercial crab stocks are managed by the ADF&G with federal oversight by NMFS. For more detailed information on bottom trawl survey results for commercial crab refer to @RNChilton2011 and @RN973, and for the most recent modeling data on the status of these commercial crab stocks, refer to the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC.
 
 ## Summary of Results for Selected `r NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)` Fish and Invertebrate Fauna
 

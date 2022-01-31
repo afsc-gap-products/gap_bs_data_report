@@ -29,11 +29,13 @@ temp <- tidyr::crossing(vessel_info %>%
                         dplyr::select(SRVY_long, SRVY))
 
 for (i in 1:nrow(temp)) {
-  if (nrow(temp)>1) {
-    subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
-    newobj <- ifelse(i==1, TRUE, FALSE)
-  }
-  cnt_pre <- "Appendix A"
+  # if (nrow(temp)>1) {
+  #   subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
+  #   newobj <- ifelse(i==1, TRUE, FALSE)
+  # }
+  cnt_pre <- "A"
+  newobj <- TRUE
+
   nickname <- paste0(nickname0, 
                      temp$SRVY[i], 
                      "_",  
@@ -122,6 +124,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 ",res,"
 
 ")
+
 }
 
 ```
@@ -143,11 +146,12 @@ temp <- tidyr::crossing(haul_cruises_maxyr %>%
                                    taxon0 = c("invert", "fish")))
 
 for (i in 1:nrow(temp)) {
-  if (nrow(temp)>1) {
-    subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
-    newobj <- ifelse(i==1, TRUE, FALSE)
-  }
-  cnt_pre <- "Appendix C"
+  # if (nrow(temp)>1) {
+  #   subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
+  #   newobj <- ifelse(i==1, TRUE, FALSE)
+  # }
+  newobj <- TRUE
+  cnt_pre <- "B"
   nickname <- paste0(nickname0, 
                      temp$SRVY[i], 
                      "_",  
@@ -286,21 +290,22 @@ cnt_tables <- 0
 temp <- tidyr::crossing(haul_cruises_maxyr %>% 
                         dplyr::select(SRVY_long, SRVY), 
                         report_spp1 %>% 
-                          dplyr::filter(taxon == "fish" & table_cpue == TRUE) %>% 
+                          dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
                           dplyr::select(file_name, print_name, common_name1, species_name, species_name1) %>% 
                           dplyr::distinct())
 
 temp0 <- report_spp1 %>% 
-                          dplyr::filter(taxon == "fish" & table_cpue == TRUE) %>% 
+                          dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
                           dplyr::select(file_name, species_code) %>% 
                           dplyr::distinct()
 
 for (i in 1:nrow(temp)) {
-  if (nrow(temp)>1) {
-    subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
-    newobj <- ifelse(i==1, TRUE, FALSE)
-  }
-  cnt_pre <- "Appendix C"
+  # if (nrow(temp)>1) {
+  #   subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
+  #   newobj <- ifelse(i==1, TRUE, FALSE)
+  # }
+  newobj <- TRUE
+  cnt_pre <- "C"
   print(temp$file_name[i])
   
   nickname <- paste0(nickname0, 

@@ -99,9 +99,11 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                                 report_spp_codes = "species_code", 
                                 lang = FALSE)
 
+cnt_chapt_content<-"001"
+options(font = "Arial")
+
 if (FALSE) {
   # *** *** General figures --------------------------------------------
-  cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                     output_dir = dir_out_ref,
