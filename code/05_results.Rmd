@@ -70,10 +70,6 @@ temp <- cold_pool_area %>%
 ```
 During the last `r length(unlist(temps_avg_yr_abovebelow)[!is.na(unlist(temps_avg_yr_abovebelow))])` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_timeseries_below', sublist = 'number')`), and `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_timeseries_above', sublist = 'number')`). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)[!is.na(unlist(temps_avg_yr_abovebelow))]))), "There was no survey in 2020 due to the COVID-19 pandemic. ", )`The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`), defined by the extent of bottom temperatures below 2°C. Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool in the EBS varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)] ` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)] `, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). In `r maxyr`, the cold pool covered `r round(temp$perc[temp$year == maxyr], digits = 1) `% of the EBS shelf survey area `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f") ` km^2^, which was the `r NMFSReports::numbers2words_th(temp$rank[temp$year == maxyr])` lowest areal coverage in the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year EBS shelf time series.
 
-`r list_figures$fig_bt_timeseries_below$res `
-
-`r list_figures$fig_bt_timeseries_above$res `
-
 
 ```{r}
 # insert <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
@@ -82,6 +78,10 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_cold_pool_description.doc
 ```
 
 `r insert`
+
+> still need to add nbs to some plots
+
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_bt_timeseries_", sublist = "res", exact = FALSE) `
 
 ## Survey Data and Specimen Collections 
 
@@ -236,16 +236,15 @@ In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, repr
 
 ```{r}
 # No. fish spp
-temp <- spp_info_maxyr %>% 
-  dplyr::filter(used_in_counts == TRUE) 
+temp <- spp_info_maxyr %>%
+  dplyr::filter(used_in_counts == TRUE)
 
-invert_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert" & 
-                                                                !(grepl(pattern = " sp.", x = temp$report_name_scientific, fixed = T)) & 
+invert_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert" &
+                                                                !(grepl(pattern = " sp.", x = temp$report_name_scientific, fixed = T)) &
                                                                 !(grepl(pattern = " unid.", x = temp$report_name_scientific, fixed = T))])))
-```
 
 
-```{r}
+# count spp
 temp <- dplyr::left_join(x = catch_haul_cruises, 
                          y = spp_info, 
                          by = "species_code") %>% 
@@ -340,11 +339,11 @@ if (SRVY == "NEBS") {
                  paste0(ifelse(temp1$prop[temp1$SRVY=="EBS"]>temp1$prop[temp1$SRVY=="NBS"], 
                                "The lower fish biomass in the NBS than in the EBS is consistent", 
                                "The higher fish biomass in the NBS than in the EBS is inconsistent"), 
-                        " with results of a broader analysis of all survey years showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf [@RN936]", 
+                        " with results of a broader analysis of all survey years in @RN936 showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf (Tables ", 
                         NMFSReports::text_list(crossref(list_obj = list_tables, 
                                        nickname = "tab_biomass_est_fish_", 
                                        sublist = "number", 
-                                 exact = FALSE)),".", 
+                                 exact = FALSE)),").", 
                         "") ) 
 }
 ```
@@ -488,30 +487,89 @@ if (SRVY == "NEBS") {
 
 ```
 
-> Still need to code: 
 
-The abundance of walleye pollock was relatively high in the NBS middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure 7b). Unlike the EBS, saffron cod (Eleginus gracilis), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught, see `r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_*_fish", sublist = "number", exact = FALSE)`.
+```{r}
 
-<!-- The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure `r ifelse(SRVY == "NEBS", crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number"), "") `). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught, see `r crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" (EBS) and ", crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number"), " (NBS)"), "") `. -->
+str0 <- paste0(
+               "There were noticeable changes in the benthic community of the ",
+               NMFSReports::text_list(SRVY1)," between ", compareyr," and ", maxyr,". ",)
 
-`r list_tables$tab_biomass_est_fish_EBS$res `
+for (i in 1:length(SRVY1)) {
+  
+  temp0 <- list_tables[names(list_tables) %in% paste0("tab_majortaxa_pchange_", SRVY1[i])][[1]]$raw
 
-`r ifelse(SRVY == "NEBS", list_tables$tab_biomass_est_fish_NBS$res, "") `
+  temp <- dplyr::bind_rows(
+    temp0 %>%
+      dplyr::rename("maxyr" = paste0(maxyr), 
+                    "compareyr" = paste0(compareyr)) %>%
+      dplyr::select(print_name, maxyr, compareyr, change),
+    temp0 %>%
+      dplyr::select(-print_name, -change) %>% 
+      dplyr::rename("maxyr" = paste0(maxyr, " "), 
+                    "compareyr" = paste0(compareyr, " "), 
+                    "print_name" = "print_name ", 
+                    "change" = "change ") %>%
+      dplyr::select(print_name, maxyr, compareyr, change)
+    ) %>% 
+    dplyr::filter(!is.na(change)) %>% 
+    dplyr::mutate(case = case_when(
+                      change>0 ~ "increased", 
+                      change<0 ~ "decreased")) %>% 
+    dplyr::arrange(-change)
+  
+  temp <-  
+    dplyr::bind_rows(
+      temp %>% 
+        dplyr::filter(case == "increased") %>% 
+        head(5), 
+      temp %>% 
+        dplyr::filter(case == "decreased") %>% 
+        tail(5)
+    )
 
-`r list_tables$tab_biomass_est_invert_EBS$res `
+  temp1 <- data.frame(maxyr = sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == SRVY1[i]]), 
+                      compareyr = sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == SRVY1[i]]))
+  
+  
+str0 <- paste0(str0, 
 
-`r ifelse(SRVY == "NEBS", list_tables$tab_biomass_est_invert_NBS$res, "") `
+               "The total estimated biomass in the ",SRVY1[i]," ", 
+               ifelse(temp1$compareyr<temp1$maxyr, "increased", "decreased"),
+               " from ",
+               NMFSReports::xunits(temp1$compareyr)," t in ", compareyr," to ",
+               NMFSReports::xunits(temp1$maxyr)," t in ", maxyr, ". ", 
 
-Between `r compareyr` and `r maxyr`, there were noticeable changes in the benthic community of the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_NBS", sublist = "number")`). 
-<!-- Total CPUE values for the NBS were lower than for the EBS in 2010 but shifted to higher than the EBS in 2017 [@RN936]. -->
-The total estimated biomass in the NBS increased from 3.0 million t in 2010 to 4.5 million t in 2017 driven primarily by increases in walleye pollock (1.3 million t) and Pacific cod (254 thousand t). Other taxa that significantly increased included jellyfishes (405%), sea urchins (233%), blue king crab (199%), shorthorn sculpin (185%), and northern rock sole (162%; Table 7). Large decreases in biomass were observed for Arctic cod (-90%), tunicates (-72%), smelts (-69%), basket seastars (-45%), brittle stars (-42%), corals (-32%), snow crab (-30%), Pacific halibut (-22%), saffron cod (-17%), and red king crab (-8%). Although there were large percentage increases in biomass for many invertebrate taxa, there was relatively little change in the combined total biomass of invertebrates (-0.2 million t) compared to 2010 (Table 6a).
+               # taxa increased
+               "Taxa that significantly increased included ", 
+               NMFSReports::text_list(paste0(temp$print_name[temp$case == "increased"],
+                                             " (", formatC(x = temp$change[temp$case == "increased"], 
+                                                           digits = 0, format = "f", big.mark = ","), "%)")), 
+               " (Table ",
+               NMFSReports::crossref(list_obj = list_tables, 
+                                     nickname = paste0("tab_majortaxa_pchange_", SRVY1[i]), sublist = "number"),
+               "). ",
+               # taxa decreased
+               "Large decreases in biomass were observed for ", 
+               NMFSReports::text_list(paste0(temp$print_name[temp$case == "decreased"],
+                                             " (", formatC(x = temp$change[temp$case == "decreased"], 
+                                                           digits = 0, format = "f", big.mark = ","), "%)")), 
+               " (Table ",
+               NMFSReports::crossref(list_obj = list_tables, 
+                                     nickname = paste0("tab_majortaxa_pchange_", SRVY1[i]), sublist = "number"),
+               "). "
+               # something else
+               # "Although there were large percentage increases in biomass for many invertebrate taxa, there was relatively little change in the combined total biomass of invertebrates (-0.2 million t) compared to 2010 (Table ",
+               # NMFSReports::crossref(list_obj = list_tables, 
+               #                       nickname = "tab_majortaxa_pchange_NBS", sublist = "number"),
+               # "). "
+               )
 
-`r list_tables$tab_majortaxa_pchange_EBS$res `
+}
+```
 
-`r ifelse(SRVY == "NEBS", list_tables$tab_majortaxa_pchange_NBS$res, "") `
+> took out the "driven by" because complicated to calculate and not as obvious in more recent years?
 
-<!-- ## Biomass, Abundance, Distribution, CPUE, and Size Composition of Principal Species and Species Groups -->
-
+`r str0`
 
 > Why 12? changed it to 10 because it felt more natural
 
@@ -547,7 +605,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
         as.numeric(), 
       topfish = temp1 %>% # sum of the top 12 fish
         dplyr::filter(taxon == "fish") %>%
-        head(12) %>%
+        head(10) %>%
         dplyr::summarise(cpue_kgha = sum(cpue_kgha)) %>% 
         as.numeric()))
 }  
@@ -596,18 +654,23 @@ temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientifi
 
 `r NMFSReports::text_list(paste0("Of the top 10 fish taxa in the ",temp$SRVY," accounted for ",temp$top_all," (",temp$topfish," kg/ha) of total catch CPUE (",temp$all," kg/ha) and ",temp$top_fish," of total fish CPUE (",temp$fish," kg/ha)")) `
 
+> Still need to code: 
+
+In addition to the discussion for the major fish species below, it is important to hihglight: Unlike the EBS, saffron cod (Eleginus gracilis), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught, see `r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_*_fish", sublist = "number", exact = FALSE)`.
+
+
 ```{r}
+# <!-- The abundance of walleye pollock was relatively high in the `r SRVY ` middle and outer shelf compared to the inner shelf and in the NBS where bottom depths are generally less than 50 m (Figure `r ifelse(SRVY == "NEBS", crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number"), "") `). Unlike the `r SRVY `, saffron cod (*Eleginus gracilis*), was among the 12 most abundant fish species in the NBS, and Arctic cod (*Boreogadus saida*) was the 18th most abundant. For a descending rank of all organisms caught, see `r crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number")``r ifelse(SRVY == "NEBS", paste0(" (EBS) and ", crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_EBS_fish", sublist = "number"), " (NBS)"), "") `. -->
+  
 # This trend was similarly true in the NBS where the proportion of fishes (63%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_NBS", sublist = "number")`) was greater than invertebrates (37%; Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`). Pleuronectids dominated the fish biomass in both the EBS (6.0 million t) and NBS (0.9 million t), and gadids were the second most abundant fish group in both areas. Walleye pollock were the most abundant gadid in both the `r SRVY ` and NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_fish_EBS", sublist = "number")` and 6a). Echinoderms and crustaceans were the major invertebrate taxa comprising 16% of the total animal biomass in the `r SRVY ` (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_EBS", sublist = "number")`) and 25% in the NBS (Table `r crossref(list_obj = list_tables, nickname = "tab_biomass_est_invert_NBS", sublist = "number")`).
 ```
 
-> test
+
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_biomass_est_", sublist = "res", exact = FALSE) `
+
+`r NMFSReports::crossreflist_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "res", exact = FALSE) `
 
 `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "res", exact = FALSE)`
-
-<!-- `r list_tables$tab_estimates_maxyr_spp_EBS$res ` -->
-
-<!-- `r ifelse(SRVY == "NEBS", list_tables$tab_estimates_maxyr_spp_NBS$res, "") ` -->
-
 
 ## Summary of Results for Selected eastern Bering Sea and northern Bering Sea Fish and Invertebrate Fauna
 
@@ -630,9 +693,13 @@ temp <- c()
 for (i in 1:nrow(temp0)) {
   temp <- c(temp, 
                  paste0(
-  temp0$print_name[i], " (Figures ", 
+  temp0$print_name[i], " (Figure",
+  ifelse(length(NMFSReports::crossref(list_obj = list_figures, 
+                      nickname = paste0("fig_idw_cpue_*_",temp0$file_name[i], "*"), 
+                      sublist = "number", exact = FALSE, text = FALSE))>1, "s", ""),
+  " ", 
   NMFSReports::crossref(list_obj = list_figures, 
-                        nickname = paste0("fig_idw_cpue_*_",temp0$file_name[i],"_*"), 
+                        nickname = paste0("fig_idw_cpue_*_",temp0$file_name[i], "*"), 
                         sublist = "number", exact = FALSE),
   " and Tables ",
   NMFSReports::crossref(list_obj = list_tables, 
@@ -668,23 +735,6 @@ temp0 <- report_spp1 %>%
   dplyr::select(file_name, print_name) %>% 
   dplyr::distinct()
 
-  # compile
-temp <- c()
-for (i in 1:nrow(temp0)) {
-  temp <- c(temp, 
-                 paste0(
-  temp0$print_name[i], " (Figures ", 
-  NMFSReports::crossref(list_obj = list_figures, 
-                        nickname = paste0("fig_idw_cpue_*_",temp0$file_name[i],"_*"), 
-                        sublist = "number", exact = FALSE),
-  " and Tables ",
-  NMFSReports::crossref(list_obj = list_tables, 
-                        nickname = paste0("tab_estimates_maxyr_*_",temp0$file_name[i],"_*"), 
-                        sublist = "number", exact = FALSE), 
-  ")"))
-}
-str0 <- NMFSReports::text_list(temp)
-
 ```
 
 <!-- Plots of the broad spatial distribution patterns for eight major invertebrates on the combined EBS and NBS continental shelf are presented in Figures 54 to 61.-->
@@ -695,12 +745,11 @@ Plots of the broad spatial distribution patterns for `r length(NMFSReports::cros
 
 > need to automate:
 
-The purple sea star, (Asterias amurensis), is common in the Bering and Chukchi Seas `(Hamizaki et al. 2005, Feder et al. 2005)` and it was the invertebrate taxon with the highest ranked catch rate by weight in both the EBS and NBS. Catch rates for the purple sea star were highest in the middle shelf between the Pribilof Islands and Nunivak Island and along the inner shelf from Bristol Bay to the Bering Strait (Figure 61).
+The purple sea star, (Asterias amurensis), is common in the Bering and Chukchi Seas `(Hamizaki et al. 2005, Feder et al. 2005)` and it was the invertebrate taxon with the highest ranked catch rate by weight in the `r NMFSReports::text_list(SRVY1)`. Catch rates for the purple sea star were highest in the middle shelf between the Pribilof Islands and Nunivak Island and along the inner shelf from Bristol Bay to the Bering Strait (Figure 61).
+
+> I made Tanner Crabs datar_table_bio_portion == TRUE and datar_plot_idw == TRUE like the other crabs - I think this is what it was supposed to be?
 
 Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_*_crab", sublist = "number", exact = FALSE) ` show the shelf-wide distributions of the four major commercial crab species: blue king crab (*Paralithodes platypus*), red king crab (*Paralithodes camtschaticus*), snow crab (*Chionoecetes opilio*), and Tanner crab (*Chionoecetes bairdi*). Commercial crab stocks are managed by the ADF&G with federal oversight by NMFS. For more detailed information on bottom trawl survey results for commercial crab refer to @RNChilton2011 and @RN973, and for the most recent modeling data on the status of these commercial crab stocks, refer to the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC.
 
 ## Summary of Results for Selected `r NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)` Fish and Invertebrate Fauna
-
-
-
 

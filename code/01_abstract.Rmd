@@ -157,7 +157,11 @@ nbs_insert <- paste0(
   "Between ", compareyr, " and ", maxyr, 
   " the total CPUE values for many of the animals in the NBS shifted from being ",
   ifelse(case, "lower", "higher")," in ", compareyr, " than in ", maxyr, 
-  ". The total estimated animal biomass in the NBS increased from ", 
+  ". The total estimated animal biomass in the NBS ",
+  ifelse(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == "NBS"]) < 
+           sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == "NBS"]), 
+         "increased", "decreased"),
+  " from ", 
   xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == "NBS"])) ,
   " t in ", compareyr, " to ", 
   xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == "NBS"])),

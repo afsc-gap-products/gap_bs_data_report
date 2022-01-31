@@ -90,7 +90,7 @@ temp<-species_content(
   biomass_cpue_tab_name = "tab_majortaxa_pchange_EBS")
 
 temp1<-temp$table_spp
-temp <- temp$text_spp
+temp <- paste0("*", temp$text_spp, "*")
 }
 ```
 
@@ -117,18 +117,17 @@ temp<-species_content(
   maxyr = maxyr, 
   compareyr = compareyr, 
   biomass_cpue_tab_name = "tab_majortaxa_pchange_NBS")
-temp1 <- temp$table_spp
-temp <- temp$text_spp
+temp1<-temp$table_spp
+temp <- paste0("*", temp$text_spp, "*")
 }
 }
 ```
 
-`r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "**Northeastern Bering SEa (NBS)**", ""), "")`
+`r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "**Northeastern Bering Sea (NBS)**", ""), "")`
 
 `r temp1`
 
 `r temp`
-
 
 ```{r nebs}
 temp <- ""
@@ -147,7 +146,7 @@ temp<-species_content(
   biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", 
                             "tab_majortaxa_pchange_NBS"))
 temp1<-temp$table_spp
-temp <- temp$text_spp
+temp <- paste0("*", temp$text_spp, "*")
 }
 
 ```
@@ -161,6 +160,79 @@ temp <- temp$text_spp
 ```{r insert_text}
 insert<-""
 if (text_spp) {
+  
+  # general coldpool figures
+  figure_coldpool_warm_stanza <- NMFSReports::crossref(
+    list_obj = list_figure, 
+    nickname = paste0("fig_bt_timeseries_above"), 
+    sublist = "number", 
+    exact = FALSE)
+  figure_coldpool_cold_stanza <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("fig_bt_timeseries_below"), 
+    sublist = "number")
+  figure_coldpool_both_stanza <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("fig_bt_timeseries_*"), 
+    sublist = "number", 
+    exact = FALSE)
+  
+  # General biomass table
+  table_bio_ebs <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_biomass_est_fish_EBS"), 
+    sublist = "number")
+  table_bio_nbs <- ""
+  if (SRVY == "NEBS"){
+  table_bio_nbs <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_biomass_est_fish_NBS"), 
+    sublist = "number")
+  }
+  
+  # Species specific
+  table_est_both <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "*"), 
+    sublist = "number", 
+    exact = FALSE)
+  table_est_wt <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "_wt"), 
+    sublist = "number")
+  table_est_num <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "_num"), 
+    sublist = "number")
+  
+  if (spp_plot_sizecomp) {
+    figure_sizecomp <- NMFSReports::crossref(
+      list_obj = list_figures, 
+      nickname = paste0("fig_sizecomp_fish_", spp_file), 
+      sublist = "number")
+    } 
+  
+  if (spp_plot_idw) {
+    figure_idw <- NMFSReports::crossref(
+      list_obj = list_figures, 
+      nickname = paste0("fig_idw_cpue_fish_", spp_file), 
+      sublist = "number")    
+  }
+ 
+  if (plot_idw_coldwarm) {
+      figure_idw_both_stanza <- NMFSReports::crossref(
+        list_obj = list_figures, 
+        nickname = paste0("fig_idw_cpue_fish_", spp_file, "*"), sublist = "number")
+      figure_idw_warm_stanza <- NMFSReports::crossref(
+        list_obj = list_figures, 
+        nickname = paste0("fig_idw_cpue_fish_", spp_file, "_above"), 
+        sublist = "number")
+      figure_idw_cold_stanza <- NMFSReports::crossref(
+        list_obj = list_figures, 
+        nickname = paste0("fig_idw_cpue_fish_", spp_file, "_below"), 
+        sublist = "number")
+  }
+
   insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
                     refcontent = refcontent)
 }
@@ -169,22 +241,9 @@ if (text_spp) {
 `r insert `
 
 `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
-<!-- substr(spp_file, 1, (nchar(spp_file)-1))) -->
-
-<!-- `r ifelse((spp_plot_idw | plot_idw_coldwarm), list_figures[paste0("fig_idw_cpue_*", spp_file)][[1]]$res, "") ` -->
-
-<!-- `r ifelse(plot_idw_coldwarm, list_figures[paste0("fig_idw_cpue_", spp_file, "_above")][[1]]$res, "") ` -->
-
-<!-- `r ifelse(plot_idw_coldwarm, list_figures[paste0("fig_idw_cpue_", spp_file, "_below")][[1]]$res, "") ` -->
 
 `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
 
-<!-- `r ifelse(spp_plot_sizecomp, list_figures[paste0("fig_sizecomp_", spp_file)][[1]]$res, "") ` -->
-
 `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("tab_estimates_maxyr_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
-
-<!-- `r list_tables[paste0("tab_estimates_maxyr_", spp_file, "_wt")][[1]]$res ` -->
-
-<!-- `r list_tables[paste0("tab_estimates_maxyr_", spp_file, "_num")][[1]]$res ` -->
 
 
