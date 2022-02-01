@@ -15,16 +15,16 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 # Introduction
 
 ```{r}
-surv_insert1 <- paste0(ifelse(length(haul_cruises_maxyr$SRVY_long)>1, xunits(length(haul_cruises_maxyr$SRVY_long)), "a"), 
+insert1 <- paste0(ifelse(length(haul_cruises_maxyr$SRVY_long)>1, xunits(length(haul_cruises_maxyr$SRVY_long)), "a"), 
        ' contiguous bottom trawl ', 
        ifelse(length(haul_cruises_maxyr$SRVY_long)>1, 'surveys', 'survey'),
        ' on the Bering Sea continental shelf: ', 
               text_list(paste0('the ',haul_cruises_maxyr$yrofsurvey ,haul_cruises_maxyr$stndth, ' "',haul_cruises_maxyr$SRVY_long,'" (',haul_cruises_maxyr$SRVY,') survey')), '. ')
 
-surv_insert2 <- ""
+insert2 <- ""
 if (sum(haul_cruises_maxyr$SRVY %in% "EBS")>0) {
-  surv_insert2 <- paste0(surv_insert2, 
-                         'EBS in an annual time series that began in 1982 [@RN976]. ')
+  insert2 <- paste0(insert2, 
+                         'The EBS survey has occured annually since 1982 and is the longest running timeseries for this kind of data in the region [@RN976]. ')
 }
 
 if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
@@ -35,13 +35,13 @@ if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
     unique() %>% 
     dplyr::select(year) %>% 
     unlist()
-  surv_insert2 <- paste0(surv_insert2,
-                         'NBS has only been conducted in ',NMFSReports::text_list(temp2),' [@RN909]. ')
+  insert2 <- paste0(insert2,
+                         'The NBS survey has only been conducted in ',NMFSReports::text_list(temp2),' [@RN909]. ')
 }
 
 ```
 
-In `r maxyr`, the National Marine Fisheries Service’s (NMFS) Resource Assessment and Conservation Engineering (RACE) Division of the Alaska Fisheries Science Center (AFSC) conducted `r surv_insert1`
+In `r maxyr`, the National Marine Fisheries Service’s (NMFS) Resource Assessment and Conservation Engineering (RACE) Division of the Alaska Fisheries Science Center (AFSC) conducted `r insert1`
 
 ```{r}
 # insert <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
@@ -49,7 +49,7 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_introduction.docx"),
                     refcontent = refcontent)
 ```
 
-`r surv_insert2` `r insert` 
+`r insert2` `r insert` 
 
 These bottom trawl surveys are mission critical to the AFSC because the results are critical to managing fisheries resources, monitoring the ecosystem, and providing a valuable data time-series for doing basic fisheries research. Fishery-independent abundance estimates and other biological and oceanographic information from Bering Sea bottom trawl surveys are used by the AFSC, North Pacific Fishery Management Council (NPFMC) and the Alaska Department of Fish and Game (ADF&G) to manage groundfish and crab stocks and to do ecosystem forecast modeling that are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act. 
 
@@ -57,7 +57,7 @@ In this document, we will compare the
 `r NMFSReports::text_list(x = paste0(maxyr, " ", haul_cruises_maxyr$SRVY, " survey results with those from the ", haul_cruises_maxyr$compareyr, " ", haul_cruises_maxyr$SRVY, " survey [", haul_cruises_maxyr$compareyr_ref, "]"))`. 
 `r ifelse(SRVY == "NEBS", paste0("To simplify the results and discussion from here forward, the terms “EBS” and “NBS” will be used to refer specifically to either the eastern or northern Bering Sea bottom trawl survey area, respectively, and “NEBS” will be used when referring to the combined EBS and NBS survey areas. The combined ", maxyr, ' NEBS survey will be compared with the ', min(haul_cruises_maxyr$compareyr) ," NEBS survey [", haul_cruises_maxyr$compareyr_ref[haul_cruises_maxyr$SRVY == "NBS"], "]."), "")` For survey results referenced from previous surveys herein, the reader should refer to the AFSC Technical Memoranda cited here.
 
-Good management of fisheries resources and a healthy ecosystem are especially important to the Alaska Native communities as a way of life and to the tens of thousands of people who are employed by the Alaska fishing industry that generates billions of dollars for the U.S. economy.
+Good management of fisheries resources and a healthy ecosystem are especially important to the Alaska Native communities as a way of life and to the tens of thousands of people who are employed by the Alaska fishing industry which generates billions of dollars for the U.S. economy.
 
 `r list_figures$fig_sample_grid$res `
 

@@ -483,16 +483,11 @@ if (SRVY == "NEBS") {
 
 `r str0 ` 
 
-```{r}
-
-```
-
 
 ```{r}
 
-str0 <- paste0(
-               "There were noticeable changes in the benthic community of the ",
-               NMFSReports::text_list(SRVY1)," between ", compareyr," and ", maxyr,". ",)
+str0 <- paste0("There were noticeable changes in the benthic community of the ",
+               NMFSReports::text_list(SRVY1)," between ", compareyr," and ", maxyr,". ")
 
 for (i in 1:length(SRVY1)) {
   
@@ -654,9 +649,42 @@ temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientifi
 
 `r NMFSReports::text_list(paste0("Of the top 10 fish taxa in the ",temp$SRVY," accounted for ",temp$top_all," (",temp$topfish," kg/ha) of total catch CPUE (",temp$all," kg/ha) and ",temp$top_fish," of total fish CPUE (",temp$fish," kg/ha)")) `
 
-> Still need to code: 
+```{r}
+# str0 <- ""
+# if (SRVY == "NEBS"){
+#   
+#   #NBS
+#   temp1 <- 
+#     list_tables$tab_majortaxa_pchange_NBS$raw %>% 
+#       dplyr::select(all_of("species_name1 "), all_of(paste0(maxyr, " "))) %>% 
+#       dplyr::mutate(SRVY = "NBS") %>% 
+#     dplyr::rename(biomass = paste0(maxyr, " "), 
+#                   name = "species_name1 ") %>% 
+#     dplyr::arrange(-biomass) %>%
+#     dplyr::mutate(order = 1:nrow(.))
+#   
+#   # EBS
+#   temp2 <- list_tables$tab_majortaxa_pchange_EBS$raw %>% 
+#       dplyr::select(all_of("species_name1 "), all_of(paste0(maxyr, " "))) %>% 
+#       dplyr::mutate(SRVY = "EBS") %>% 
+#       dplyr::rename(biomass = paste0(maxyr, " "), 
+#                   name = "species_name1 ") %>% 
+#       dplyr::arrange(-biomass) %>%
+#     dplyr::mutate(order = 1:nrow(.))
+# 
+#   temp3 <- temp1 %>% 
+#     dplyr::filter(name %in% c(temp2$name[1], temp1$name[1]))
+#   
+#   temp4 <- temp2 %>% 
+#     dplyr::filter(name %in% c(temp2$name[1], temp1$name[1]))
+#     
+#   str0 <- 
+# }
+# 
+# In addition to the discussion for the major fish species below, it is important to highlight: Unlike the EBS, saffron cod (Eleginus gracilis), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught, see `r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_*_fish", sublist = "number", exact = FALSE)`.
 
-In addition to the discussion for the major fish species below, it is important to hihglight: Unlike the EBS, saffron cod (Eleginus gracilis), was among the 12 most abundant fish species in the NBS, and Arctic cod (Boreogadus saida) was the 18th most abundant. For a descending rank of all organisms caught, see `r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_taxa_encountered_*_fish", sublist = "number", exact = FALSE)`.
+
+```
 
 
 ```{r}
@@ -668,7 +696,7 @@ In addition to the discussion for the major fish species below, it is important 
 
 `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_biomass_est_", sublist = "res", exact = FALSE) `
 
-`r NMFSReports::crossreflist_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "res", exact = FALSE) `
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "res", exact = FALSE) `
 
 `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "res", exact = FALSE)`
 

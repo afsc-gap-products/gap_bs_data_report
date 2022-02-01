@@ -108,7 +108,7 @@ table_print <- flextable::flextable(table_print) %>%
   flextable::bold(x = ., j = "row") %>% 
   flextable::set_header_labels(.,
                                  row = "") %>%
-  theme_flextable_nmfstm(font = "Arial", row_lines = FALSE, body_size = 9)
+  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 9)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -162,17 +162,18 @@ for (i in 1:nrow(temp)) {
                    maxyr, " ", temp$SRVY_long[i], 
                    " bottom trawl survey listed alphabetically by family.")
     
-  table_raw <- catch_haul_cruises_maxyr %>% 
+  table_raw <- 
+    dplyr::left_join(
+      x = catch_haul_cruises_maxyr %>% 
         dplyr::filter(year == maxyr &
                       SRVY == temp$SRVY[i]) %>% 
-    dplyr::select(stationid, start_latitude, start_longitude, bottom_depth, species_code) %>%
-    dplyr::left_join(
-      x = ., 
+        dplyr::select(stationid, start_latitude, start_longitude, bottom_depth, species_code), 
       y = spp_info %>% 
-        dplyr::select(ifelse(temp$taxon[i] == "fish", all_of("family_taxon"), all_of("phylum_taxon")), species_name, common_name,  taxon, species_code), 
+        dplyr::rename(taxon0 = ifelse(temp$taxon[i] == "fish", "family_taxon", "phylum_taxon")) %>%
+          dplyr::select(species_name, common_name, taxon, species_code, taxon0), 
       by = "species_code") %>% 
     dplyr::filter(taxon == temp$taxon0[i]) %>% 
-    dplyr::mutate(taxon = ifelse(temp$taxon[i] == "fish", family_taxon, phylum_taxon)) %>% 
+    dplyr::mutate(taxon = taxon0) %>% 
     dplyr::group_by(taxon, species_name, common_name ) %>% 
     dplyr::summarise(stations_n = n(),#count(stationid), 
                      depth_min = min(bottom_depth, na.rm = TRUE), 
@@ -248,16 +249,16 @@ table_print <- table_print %>%
                                species_name = "Scientific name",
                                common_name = "Common name",
                                stations_n = "Number stations present", 
-                               depth_min = "Min. depth", 
-                               depth_max = "Max. depth", 
-                               depth_mean = "Avg. depth", 
+                               depth_min = "Min.", 
+                               depth_max = "Max.", 
+                               depth_mean = "Avg.", 
                                lat_min = "Southern", 
                                lat_min = "Northern") %>%
       flextable::add_header_row(top = TRUE, 
                               values = c("", "Bottom depth (m)", "Latitude range"), 
                               colwidths = c(4,3,2)) %>% 
     flextable::align(i = 1, align = "center", part = "header")  %>%  
-  theme_flextable_nmfstm(font = "Arial", row_lines = FALSE, body_size = 9, header_size = 9)
+  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 9, header_size = 9)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -359,7 +360,7 @@ table_print <- table_raw %>%
                                cumprop = "Cumulative proportion") %>%
     flextable::align(i = 1, align = "center", part = "header")  %>%  
   flextable::bold(x = ., i = nrow(table_raw), part = "body") %>%
-  theme_flextable_nmfstm(font = "Arial", row_lines = FALSE, body_size = 9, header_size = 9)
+  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 9, header_size = 9)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
