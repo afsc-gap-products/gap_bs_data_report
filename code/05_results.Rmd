@@ -42,13 +42,13 @@ a <- summary(lm(haul_maxyr$surface_temperature ~ haul_maxyr$start_longitude))
 temp3 <- ifelse(a$coefficients[2]<0 & a$coefficients[8] <= 0.05, "surface temperatures increased from east to west across the shelf, and ", "")
 ```
 
-Sea surface temperatures recorded during the `r maxyr` `r SRVY` survey ranged from `r round(x = min(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`°C and bottom temperatures ranged from `r round(x = min(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`°C. The mean sea surface temperature for the EBS in `r maxyr` was `r round(x = temp$st, digits = 1)`°C, which was `r round(x = temp$st_diff, digits = 1)`°C `r ifelse((temp$st_diff > 0), "lower", "higher")` than `r lastyr` (`r round(x = temp$st_1, digits = 1)`°C) and `r round(x = temp$st_mean_diff, digits = 1)`°C `r ifelse((temp$st_mean_diff > 0), "lower", "higher")` than the time-series mean (`r round(x = temp$st_mean, digits = 1)`°C) (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`, `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`, and `r crossref(list_obj = list_figures, nickname = 'fig_st_maxyr', sublist = 'number')`). `r ifelse(SRVY == "NEBS", paste0("In the EBS south of 60° N, ", temp3,"an average of ", round(x = mean(temp2$surface_temperature), digits = 1),"°C was observed in the NBS's Norton Sound (Figure ", crossref(list_obj = list_figures, nickname = 'fig_st_maxyr', sublist = 'number'), ")."), "")`
+Sea surface temperatures recorded during the `r maxyr` `r SRVY` survey ranged from `r round(x = min(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$surface_temperature, na.rm = TRUE), digits = 1)`°C and bottom temperatures ranged from `r round(x = min(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`° to `r round(x = max(haul_maxyr$gear_temperature, na.rm = TRUE), digits = 1)`°C. The mean sea surface temperature for the EBS in `r maxyr` was `r round(x = temp$st, digits = 1)`°C, which was `r round(x = temp$st_diff*ifelse(temp$st_diff > 0, 1, -1), digits = 1)`°C `r ifelse((temp$st_diff > 0), "lower", "higher")` than `r lastyr` (`r round(x = temp$st_1, digits = 1)`°C) and `r round(x = temp$st_mean_diff*ifelse(temp$st_mean_diff > 0, 1, -1), digits = 1)`°C `r ifelse((temp$st_mean_diff > 0), "lower", "higher")` than the time-series mean (`r round(x = temp$st_mean, digits = 1)`°C) (Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = c('fig_mean_temperature', 'fig_cold_pool_area', 'fig_st_maxyr'), sublist = 'number')`). `r ifelse(SRVY == "NEBS", paste0("In the EBS south of 60° N, ", temp3,"an average of ", round(x = mean(temp2$surface_temperature), digits = 1),"°C was observed in the NBS's Norton Sound (Figure ", NMFSReports::crossref(list_obj = list_figures, nickname = 'fig_st_maxyr', sublist = 'number'), ")."), "")`
 
-`r list_figures$fig_mean_temperature$res `
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_mean_temperature", sublist = "res") `
 
-`r list_figures$fig_cold_pool_area$res `
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_cold_pool_area", sublist = "res") `
 
-`r list_figures$fig_st_maxyr$res `
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_st_maxyr", sublist = "res") `
 
 During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-year time series (`r haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY == "EBS"] `–`r maxyr`) of the annual EBS shelf bottom trawl survey, mean summer bottom temperatures were highly variable, ranging from a low of `r round(x = min(temps_avg_yr$bt), digits = 1)`°C to a high of `r round(x = max(temps_avg_yr$bt), digits = 1)`°C, with a grand mean for all years of `r round(x = min(temps_avg_yr$bt_mean[1]), digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`). The mean survey bottom temperature for the EBS in `r maxyr` was `r round(x = (temps_avg_yr_maxyr$bt), digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`), which was `r round(x = abs(temp$bt_mean_diff), digits = 1) `°C `r ifelse(temps_avg_yr_maxyr$bt_above_mean, "warmer", "colder")` than the time-series mean.
 
@@ -68,7 +68,8 @@ temp <- cold_pool_area %>%
   dplyr::arrange(desc(year))
 
 ```
-During the last `r length(unlist(temps_avg_yr_abovebelow)[!is.na(unlist(temps_avg_yr_abovebelow))])` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_timeseries_below', sublist = 'number')`), and `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_timeseries_above', sublist = 'number')`). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)[!is.na(unlist(temps_avg_yr_abovebelow))]))), "There was no survey in 2020 due to the COVID-19 pandemic. ", )`The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`), defined by the extent of bottom temperatures below 2°C. Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool in the EBS varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)] ` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)] `, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). In `r maxyr`, the cold pool covered `r round(temp$perc[temp$year == maxyr], digits = 1) `% of the EBS shelf survey area `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f") ` km^2^, which was the `r NMFSReports::numbers2words_th(temp$rank[temp$year == maxyr])` lowest areal coverage in the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year EBS shelf time series.
+
+During the last `r length(unlist(temps_avg_yr_abovebelow)[!is.na(unlist(temps_avg_yr_abovebelow))])` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_timeseries_below', sublist = 'number')`), and `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = 'fig_bt_timeseries_above', sublist = 'number')`). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)[!is.na(unlist(temps_avg_yr_abovebelow))]))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`), defined by the extent of bottom temperatures below 2°C. Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool in the EBS varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)] ` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)] `, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). In `r maxyr`, the cold pool covered `r round(temp$perc[temp$year == maxyr], digits = 1) `% of the EBS shelf survey area `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f") ` km^2^, which was the `r NMFSReports::numbers2words_th(temp$rank[temp$year == maxyr])` lowest areal coverage in the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year EBS shelf time series.
 
 
 ```{r}
@@ -82,6 +83,11 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_cold_pool_description.doc
 > still need to add nbs to some plots
 
 `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_bt_timeseries_", sublist = "res", exact = FALSE) `
+
+
+> need to cite this in the report (NEBS only)
+
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_st_all_nebs_", sublist = "res", exact = FALSE) `
 
 ## Survey Data and Specimen Collections 
 
@@ -139,7 +145,13 @@ str <- paste0("A total of ", NMFSReports::text_list(paste0(temp$nspec, " ", temp
 
 ```
 
-During the `r SRVY` (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_EBS", sublist = "number") ``r ifelse(SRVY == "NEBS", paste0(" and ", crossref(list_obj = list_tables, nickname = "tab_specimen_samples_NBS", sublist = "number")), "")`) trawl survey`r ifelse(SRVY == "NEBS", "s", "")` many samples were collected. `r str` Other special collections are listed in table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`. 
+During the `r SRVY` (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`) trawl survey`r ifelse(SRVY == "NEBS", "s", "")` many samples were collected. `r str` Other special collections are listed in table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`. 
+
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "res", exact = FALSE) `
+
+> this table doesn't seem to be cited anywhere? 
+
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_oto_collection_scheme_", sublist = "res", exact = FALSE) `
 
 ## Species Composition
 

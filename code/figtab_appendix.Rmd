@@ -61,10 +61,11 @@ for (i in 1:nrow(temp)) {
     tidyr::pivot_wider(names_from = print_name, 
                        values_from = weight, 
                        values_fill = "-") %>%
-    dplyr::mutate(start_time = format(x = as.POSIXlt(x = start_time), format = "%Y-%m-%d %H:%M:%S"))  %>%
+    dplyr::mutate(start_time = format(x = as.POSIXlt(x = start_time), format = "%Y-%m-%d"))  %>% # format = "%Y-%m-%d %H:%M:%S"
   dplyr::mutate(across(where(is.numeric), 
                        formatC, big.mark=",", digits = 1, format = "f")) %>% 
-    dplyr::rename("Start date and time" = start_time,
+    dplyr::rename("Start date"# and time" 
+                  = start_time,
                   "Haul number" = haul,
                   "Start latitude" = start_latitude,
                   "Start longitude" = start_longitude,
@@ -104,12 +105,35 @@ for (i in 1:nrow(temp)) {
   table_print <- table_print %>% 
     dplyr::relocate(row)
   
-table_print <- flextable::flextable(table_print) %>%
-  flextable::bold(x = ., j = "row") %>% 
-  flextable::set_header_labels(.,
-                                 row = "") %>%
-  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 9)
+  table_print0 <- list()
+  c_start <- 1
+  ncol_per_page <- 15 # how many columns should go on each page
+  for (ii in 1:ceiling(ncol(table_print)/ncol_per_page)) {
+    c_start <- c_start + 1
+    if (ii == ceiling(ncol(table_print)/ncol_per_page)) {
+      c_end <- ncol(table_print)
+    } else {
+      c_end <- c_start + ncol_per_page-1
+    }
+    table_print0$temp <- table_print[,c(1, c_start:c_end)] %>% 
+        flextable::flextable(data = .) %>%
+        flextable::bold(x = ., j = "row") %>% 
+        flextable::set_header_labels(., row = "") %>%
+        theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, 
+                               body_size = 8, pad = 0, spacing = 0.9)
+    names(table_print0)[names(table_print0) == "temp"] <- rep_len(x = " ", length.out = ii)
+    
+    # print(paste0(ii, ": ", c_start, "-", c_end))
+    c_start <- c_end
+  }
+# table_print <- flextable::flextable(table_print) %>%
+#   flextable::bold(x = ., j = "row") %>% 
+#   flextable::set_header_labels(.,
+#                                  row = "") %>%
+#   theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 8)
 
+  table_print <-table_print0
+  
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
 res <- knitr::knit_child(
@@ -118,12 +142,7 @@ res <- knitr::knit_child(
   quiet = TRUE
 )
 
-list_tables[nickname][[1]]$res <- res <- paste0("
-
-                                                
-",res,"
-
-")
+list_tables[nickname][[1]]$res <- res
 
 }
 
@@ -258,7 +277,7 @@ table_print <- table_print %>%
                               values = c("", "Bottom depth (m)", "Latitude range"), 
                               colwidths = c(4,3,2)) %>% 
     flextable::align(i = 1, align = "center", part = "header")  %>%  
-  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 9, header_size = 9)
+  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 8, header_size = 9)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -268,12 +287,7 @@ res <- knitr::knit_child(
   quiet = TRUE
 )
 
-list_tables[nickname][[1]]$res <- res <- paste0("
-
-                                                
-",res,"
-
-")
+list_tables[nickname][[1]]$res <- res
 }
 
 ```
@@ -360,7 +374,7 @@ table_print <- table_raw %>%
                                cumprop = "Cumulative proportion") %>%
     flextable::align(i = 1, align = "center", part = "header")  %>%  
   flextable::bold(x = ., i = nrow(table_raw), part = "body") %>%
-  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 9, header_size = 9)
+  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 8, header_size = 9)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -370,12 +384,7 @@ res <- knitr::knit_child(
   quiet = TRUE
 )
 
-list_tables[nickname][[1]]$res <- res <- paste0("
-
-
-",res,"
-
-")
+list_tables[nickname][[1]]$res <- res
   }
 }
 
