@@ -629,7 +629,7 @@ temp <- function(haul_cruises_vess_){
       x = ., 
       y = data.frame(
         SRVY = SRVY1,
-        compareyr_ref = c(ref_compareyr_ebs, if(exists("ref_compareyr_nbs")) {ref_compareyr_nbs} )), 
+        compareyr_ref = ref_compareyr), 
       by = "SRVY") %>%
     unique()
   
