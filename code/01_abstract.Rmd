@@ -39,7 +39,7 @@ nbs_str0 <- ifelse(SRVY == "NEBS",
                                haul_cruises_maxyr %>% 
                                  dplyr::filter(SRVY == "NBS") %>%
                                  dplyr::select(yrofsurvey)),
-                             " time since 2010 that the NBS survey was done. The expanded study area covered the entire Bering Sea continental shelf (hereafter referred to as the “NEBS”) from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
+                             " time since 2010 that the NBS shelf survey has been completed. The expanded study area covered the entire Bering Sea continental shelf (hereafter referred to as the “NEBS”) from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
                              # EBS
                              "The study area covered the southeastern Bering Sea continental shelf from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and to approximately the latitude of St. Matthew Island (60° 50' N).")
 
@@ -141,21 +141,19 @@ str0 <- paste0(str01,
 
 `r str0` In the `r SRVY`, a total of `r fish_sp ` species of fishes were identified, representing `r xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families and `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera of fish were observed in the data, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms across `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
 
-The distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))` different fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr ` and `r maxyr` `r SRVY` shelf bottom trawl surveys. For the more common fish species, there are also plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r SRVY` surveys. Tables provide estimates of bottom trawl survey biomass for most fishes and invertebrates, as well as estimates of population size for the most common fishes. Appendices provide station data, summarized catch data by station, listings of taxa, and detailed analyses of abundance and biological data of the sampled populations. 
-
-Survey results presented herein include abundance estimates for fishes and invertebrates, geographic distributions and abundance-at-length of the more common fish species, and summary surface and bottom temperature data during the summer survey period. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data of the sampled populations.
+The distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))` different fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr ` and `r maxyr` `r SRVY` shelf bottom trawl surveys. For the more common fish species, there are also plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r SRVY` surveys. Survey results presented herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, estimates of population size for the most common fishes, geographic distributions and abundance-at-length of the more common fish species, and summary surface and bottom temperature data during the summer survey period. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data of the sampled populations.
 
 ```{r}
-nbs_str0 <- ""
+str0 <- ""
 if (SRVY == "NEBS") {
 
   change <- c(list_tables$tab_majortaxa_pchange_NBS$raw$`change `, 
     list_tables$tab_majortaxa_pchange_NBS$raw$change)
   case <- sum(change>0, na.rm = TRUE) > sum(change<=0, na.rm = TRUE)
   
-nbs_str0 <- paste0(
+str0 <- paste0(
   "Between ", compareyr, " and ", maxyr, 
-  " the total CPUE values for many of the animals in the NBS shifted from being ",
+  ", the total CPUE values for many of the animals in the NBS shifted from being ",
   ifelse(case, "lower", "higher")," in ", compareyr, " than in ", maxyr, 
   ". The total estimated animal biomass in the NBS ",
   ifelse(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == "NBS"]) < 
@@ -166,16 +164,16 @@ nbs_str0 <- paste0(
   " t in ", compareyr, " to ", 
   xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == "NBS"])),
   " t in ", maxyr)
+
+str0 <- paste0(str0, ". ")
+
 }
 
-nbs_str0 <- paste0(nbs_str0, ". ")
-
-
 # str0 <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
-str0 <- readtext2(file = paste0(dir_out_rawdata, "/0_abstract_conclusion.docx"), 
+insert <- readtext2(file = paste0(dir_out_rawdata, "/0_abstract_conclusion.docx"), 
                     refcontent = refcontent)
 ```
 
-`r nbs_str0 ``r str0`
+`r str0 ``r insert`
 
 

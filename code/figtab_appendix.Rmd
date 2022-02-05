@@ -119,7 +119,7 @@ for (i in 1:nrow(temp)) {
   #       flextable::flextable(data = .) %>%
   #       flextable::bold(x = ., j = "row") %>% 
   #       flextable::set_header_labels(., row = "") %>%
-  #       theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, 
+  #       theme_flextable_nmfstm(font = font0, row_lines = FALSE, 
   #                              body_size = 8, pad = 0, spacing = 0.9)
   #   
   #   names(table_print0)[names(table_print0) == "temp"] <- paste0("sub_", ii)
@@ -134,7 +134,7 @@ for (i in 1:nrow(temp)) {
         # flextable::rotate(x = ., rotation = "btlr", align = "center", part = "all") %>% 
         flextable::bold(x = ., j = "row") %>% 
         flextable::set_header_labels(., row = "") %>%
-        theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, 
+        theme_flextable_nmfstm(font = font0, row_lines = FALSE, 
                                body_size = 8, pad = 0, spacing = 0.9)
   
 # save yo' stuff and do a lot of behind the scenes work
@@ -165,10 +165,10 @@ list_tables[nickname][[1]]$res <- res
 nickname0 <- "tab_taxa_encountered_" 
 cnt_tables <- 0
 
-temp <- tidyr::crossing(haul_cruises_maxyr %>% 
-                        dplyr::select(SRVY_long, SRVY), 
-                        data.frame(taxon = c("invertebrate", "fish"), 
-                                   taxon0 = c("invert", "fish")))
+temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
+                                   taxon0 = c("invert", "fish")), 
+                        haul_cruises_maxyr %>% 
+                        dplyr::select(SRVY_long, SRVY))
 
 for (i in 1:nrow(temp)) {
   # if (nrow(temp)>1) {
@@ -283,7 +283,7 @@ table_print <- table_print %>%
                               values = c("", "Bottom depth (m)", "Latitude range"), 
                               colwidths = c(4,3,2)) %>% 
     flextable::align(i = 1, align = "center", part = "header")  %>%  
-  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, 
+  theme_flextable_nmfstm(font = font0, row_lines = FALSE, 
                          body_size = 8, header_size = 9)
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -381,7 +381,7 @@ table_print <- table_raw %>%
                                cumprop = "Cumulative proportion") %>%
     flextable::align(i = 1, align = "center", part = "header")  %>%  
   flextable::bold(x = ., i = nrow(table_raw), part = "body") %>%
-  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, body_size = 8, header_size = 9)
+  theme_flextable_nmfstm(font = font0, row_lines = FALSE, body_size = 8, header_size = 9)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header

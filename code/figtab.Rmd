@@ -258,6 +258,8 @@ table_print <- flextable::flextable(table_raw) %>%
   #   fprops = list(pow = fp_text(vertical.align = "superscript", font.size = 8))
   #   ) %>% 
   flextable::width(x = ., j = "stratum", width = 3) %>% 
+  flextable::width(x = ., j = "Region", width = 3) %>% 
+  flextable::width(x = ., j = "density", width = 4) %>% 
   flextable::set_header_labels(., 
                                Region = "",
                                stratum = "Stratum",
@@ -267,7 +269,7 @@ table_print <- flextable::flextable(table_raw) %>%
   ) %>% 
   flextable::merge_v(j = "Region") %>%
   flextable::valign(valign = "top") %>%
-  theme_flextable_nmfstm(font = "Arial Narrow")
+  theme_flextable_nmfstm(font = font0)
 
 
 # table_raw_stratum_areas <- table_raw
@@ -400,7 +402,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
       flextable::bold(x = ., i = which(table_print$common_name == "Total")) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
-    theme_flextable_nmfstm(font = "Arial Narrow", x = .)
+    theme_flextable_nmfstm(font = font0, x = .)
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -466,10 +468,10 @@ table_print <- table_raw %>%
   flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>%
   # flextable::italic(x = ., j = "species_name") %>% 
   # flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-  flextable::padding(x = ., 
-                     j = 1, i = ~ #is.na(SRVY) & 
-                       is.na(oto_samp_type), # TOLEDO
-                     padding.left = 20) %>%
+  # flextable::padding(x = ., 
+  #                    j = 1, i = ~ #is.na(SRVY) & 
+  #                      is.na(oto_samp_type), # TOLEDO
+  #                    padding.left = 20) %>%
   flextable::width(x = ., j = "print_name", width = 4) %>% 
   # flextable::width(x = ., j = "species_name", width = 3.5) %>% 
   # flextable::width(x = ., j = "oto_target", width = 2) %>% 
@@ -486,7 +488,7 @@ table_print <- table_raw %>%
   #   j = " ", # on column "var"
   #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
   # hline(i = ~ !is.na(SRVY), border = officer::fp_border() ) %>%
-  NMFSReports::theme_flextable_nmfstm(font = "Arial Narrow", x = ., row_lines = TRUE) 
+  NMFSReports::theme_flextable_nmfstm(font = font0, x = ., row_lines = TRUE) 
 
     
   # save yo' stuff and do a lot of behind the scenes work
@@ -543,7 +545,7 @@ table_print <- flextable::flextable(table_raw %>%
                                  print_name = "Common name", 
                                  # species_name = "Scientific name", 
                                  stomach_target = "Target collection number per survey") %>%
-  NMFSReports::theme_flextable_nmfstm(font = "Arial Narrow", x = ., row_lines = TRUE) 
+  NMFSReports::theme_flextable_nmfstm(font = font0, x = ., row_lines = TRUE) 
 
     
   # save yo' stuff and do a lot of behind the scenes work
@@ -598,11 +600,11 @@ table_print <- table_raw %>%
     flextable::as_grouped_data(groups = c("SRVY"), columns = NULL) %>% 
     flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-  flextable::padding(x = ., 
-                     j = 1, i = ~ is.na(SRVY), 
-                     padding.left = 20) %>%
-  theme_flextable_nmfstm(font = "Arial Narrow", row_lines = TRUE) %>% 
-  # flextable::width(x = ., j = "Agency", width = 1) %>% 
+  # flextable::padding(x = ., 
+  #                    j = 1, i = ~ is.na(SRVY), 
+  #                    padding.left = 20) %>%
+  theme_flextable_nmfstm(font = font0, row_lines = TRUE) %>% 
+  flextable::width(x = ., j = "Agency", width = 1.5) %>%
   flextable::width(x = ., j = "Principal investigator", width = 1.5) %>%
     flextable::width(x = ., j = "Project Title", width = 4) %>% 
   # flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
@@ -1107,7 +1109,7 @@ table_raw <- catch_haul_cruises_maxyr %>%
                                  common_name = "Common name",
                                  report_name_scientific = "Scientific name"
     ) %>%
-    theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE) %>%
+    theme_flextable_nmfstm(font = font0, row_lines = FALSE) %>%
     flextable::vline(x = ., j = 2, part = "all")
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -1272,7 +1274,7 @@ temp1 <- function(table_raw, strat, total) {
                                  "CI95" = "", 
                                  "a" = "", 
                                  "prop" = "") %>%
-    NMFSReports::theme_flextable_nmfstm(font = "Arial Narrow", row_lines = TRUE) 
+    NMFSReports::theme_flextable_nmfstm(font = font0, row_lines = TRUE) 
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
@@ -1579,7 +1581,7 @@ list_tables[nickname][[1]]$res <- res
 #                               colwidths = c(1,2,1,1,2,1)) %>% 
 #     flextable::align(i = 1, align = "center", part = "header")  %>%  
 #     flextable::set_header_labels(., values = temp) %>%
-#     NMFSReports::theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE)  %>% 
+#     NMFSReports::theme_flextable_nmfstm(font = font0, row_lines = FALSE)  %>% 
 #     flextable::vline(x = ., j = 4, part = "all")
 #   
 #   # save yo' stuff and do a lot of behind the scenes work
@@ -1723,7 +1725,7 @@ table_print <- table_print %>%
                                # dummy = "Taxon",
                                "change " = paste0("Change (", maxyr, ", ", compareyr, ")" ), 
                                change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
-  NMFSReports::theme_flextable_nmfstm(font = "Arial Narrow", row_lines = FALSE, x = .)  %>% 
+  NMFSReports::theme_flextable_nmfstm(font = font0, row_lines = FALSE, x = .)  %>% 
   flextable::vline(x = ., part = "all", j = 7)
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -1774,10 +1776,8 @@ temp <- biomass %>%
 
 type <- c("wt", "num")
 for (i in 1:2) {
-  if (i==1) {
-    subobj <- TRUE
+    subobj <- TRUE # ifelse(i==1, TRUE, FALSE)
     newobj <- ifelse(i==1, TRUE, FALSE)
-  }
   
   nickname <- paste0(nickname0, type[i]) 
 
@@ -1838,7 +1838,7 @@ for (i in 1:2) {
       flextable::merge_v(x = ., target = "print_name", 
                          j = "print_name", part = "body") %>% 
       flextable::valign(valign = "top") %>%
-      theme_flextable_nmfstm(font = "Arial Narrow", row_lines = TRUE)
+      theme_flextable_nmfstm(font = font0, row_lines = TRUE)
     
   } else { # CPUE No/HA and POPULATION
     
@@ -1895,7 +1895,7 @@ for (i in 1:2) {
       flextable::merge_v(x = ., target = "print_name", 
                          j = "print_name", part = "body") %>% 
       flextable::valign(valign = "top") %>%
-      theme_flextable_nmfstm(font = "Arial Narrow", row_lines = TRUE)
+      theme_flextable_nmfstm(font = font0, row_lines = TRUE)
   }
   
   # save yo' stuff and do a lot of behind the scenes work
