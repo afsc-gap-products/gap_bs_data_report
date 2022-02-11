@@ -86,7 +86,7 @@ for (i in 1:length(locations)){
     a<-RODBC::sqlQuery(channel, paste0("SELECT * FROM ", locations[i]))
   }
   write.csv(x=a, 
-            paste0("./data/",
+            paste0("./data/oracle/",
                    tolower(strsplit(x = locations[i], 
                                     split = ".", 
                                     fixed = TRUE)[[1]][2]),
