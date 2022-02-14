@@ -43,12 +43,12 @@ ref_compareyr <- "@RN976" # CHANGE
 ref_maxyr_npfmc <- "@NPFMC2017" # temp
 dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
-# maxyr <- 2019
-# compareyr <- 2017
-# SRVY<-"NEBS"
-# ref_compareyr <- "@Lauth2019" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2018" # temp
-# dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
+maxyr <- 2019
+compareyr <- 2017
+SRVY<-"NEBS"
+ref_compareyr <- "@Lauth2019" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2018" # temp
+dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
 # maxyr <- 2021
 # compareyr <- 2019

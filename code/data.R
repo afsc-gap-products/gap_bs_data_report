@@ -583,7 +583,7 @@ vessel_info <-  haul_cruises_vess_maxyr %>%
                 "length_m", "length_ft", "vess_shape") %>% 
   unique()
 
-# *** haul_cruises_maxyr + _compareyr ------------------------------------------
+# *** haul_cruises + _maxyr + _compareyr ------------------------------------------
 
 temp <- function(haul_cruises_vess_){
   
