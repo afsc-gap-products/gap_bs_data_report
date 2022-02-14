@@ -127,6 +127,7 @@ if (googledrive_dl) {
 a<-list.files(path = here::here("data", "oracle"))
 a <- a[!(grepl(pattern = "biomass_", x = a)) & 
          !(grepl(pattern = "cpue_", x = a)) & 
+         !(grepl(pattern = "old", x = a)) & 
          !(grepl(pattern = "sizecomp_", x = a)) & 
          !(grepl(pattern = "_ADFG", x = a))]
 for (i in 1:length(a)){
