@@ -10,15 +10,15 @@ Previously named `AFSCDataReport` and `GAP_BS_DataReport`
 
 ### 2021 Bering Sea Data Report (in prep)
 
-Lyle Britt, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn, and Duane Stevenson
+Duane Stevenson, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn
 
 ### 2019 Bering Sea Data Report (in prep)
 
-Lyle Britt, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn, and Duane Stevenson
+Duane Stevenson, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn
 
 ### 2018 Bering Sea Data Report (in prep)
 
-Lyle Britt, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn, and Duane Stevenson
+Duane Stevenson, Emily Markowitz, Liz Dawson, Nicole Charriere, Sean Rohan, Bianca Prohaska, Rebecca Haehn
 
 ## This code and the associated releases were used to develop the following presentations: 
 

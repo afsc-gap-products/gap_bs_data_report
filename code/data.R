@@ -353,7 +353,8 @@ temp <- dplyr::left_join(
   y = cruises %>% 
     dplyr::select(cruisejoin, survey_definition_id), 
   by = "cruisejoin") %>%  
-  dplyr::mutate(year = as.numeric(substr(x = start_time, 1,4))) %>% 
+  dplyr::mutate(year = as.numeric(format(as.Date(haul0$start_time, 
+                                                 format="%m/%d/%Y"),"%Y"))) %>%
   dplyr::filter(year <= maxyr &
                   # abundance_haul == "Y", 
                   performance >= 0 &

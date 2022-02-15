@@ -29,22 +29,6 @@ temp <- tidyr::crossing(vessel_info %>%
                         dplyr::select(SRVY_long, SRVY))
 
 for (i in 1:nrow(temp)) {
-  # if (nrow(temp)>1) {
-  #   subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
-  #   newobj <- ifelse(i==1, TRUE, FALSE)
-  # }
-  cnt_pre <- "A"
-  newobj <- TRUE
-
-  nickname <- paste0(nickname0, 
-                     temp$SRVY[i], 
-                     "_",  
-                     gsub(pattern = " ", replacement = "", perl = TRUE, 
-                          x = gsub(pattern = "F/V ", replacement = "", 
-                                   x = temp$vessel_name[i], fixed = TRUE)))
-
-  header <- paste0("Haul and catch data for successfully completed tows by ", temp$vessel_ital[i]," during the ", maxyr, " ", temp$SRVY_long[i], " bottom trawl survey.")
-  
   table_raw <- catch_haul_cruises_maxyr %>% 
         dplyr::filter(year == maxyr &
                       SRVY == temp$SRVY[i]) %>%
@@ -61,10 +45,9 @@ for (i in 1:nrow(temp)) {
     tidyr::pivot_wider(names_from = print_name, 
                        values_from = weight, 
                        values_fill = "-") %>%
-    dplyr::mutate(start_time = format(x = as.POSIXlt(x = start_time), format = "%Y-%m-%d"))  %>% # format = "%Y-%m-%d %H:%M:%S"
   dplyr::mutate(across(where(is.numeric), 
                        formatC, big.mark=",", digits = 1, format = "f")) %>% 
-    dplyr::rename("Start date"# and time" 
+    dplyr::rename("Start date and time"# and time" 
                   = start_time,
                   "Haul number" = haul,
                   "Start latitude" = start_latitude,
@@ -75,7 +58,7 @@ for (i in 1:nrow(temp)) {
                   "Duration (_h__)" = duration,
                   "Distance fished _km__" = distance_fished,
                   "Net width _m__" = net_width,
-                  "Net measured____" = net_measured,
+                  "Net measured___" = net_measured,
                   "Performance" = performance) 
   
   table_raw <- data.frame(t(data.frame(table_raw)))
@@ -98,44 +81,49 @@ for (i in 1:nrow(temp)) {
     replacement = "(", 
     x = rownames(table_raw), fixed = TRUE)  
   
-  table_print <- table_raw
-  table_print$row <- rownames(table_raw) 
+  table_print1 <- table_raw
+  table_print1$row <- rownames(table_raw) 
   # table_raw <- table_raw[,1:15]
     
-  table_print <- table_print %>% 
+  table_print1 <- table_print1 %>% 
     dplyr::relocate(row)
   
-  table_print0 <- list()
   c_start <- 1
   ncol_per_page <- 14 # how many columns should go on each page
-  # for (ii in 1:ceiling(ncol(table_print)/ncol_per_page)) {
-  #   c_start <- c_start + 1
-  #   if (ii == ceiling(ncol(table_print)/ncol_per_page)) {
-  #     c_end <- ncol(table_print)
-  #   } else {
-  #     c_end <- c_start + ncol_per_page-1
-  #   }
-  #   table_print0$temp <- table_print[,c(1, c_start:c_end)] %>% 
-  #       flextable::flextable(data = .) %>%
-  #       flextable::bold(x = ., j = "row") %>% 
-  #       flextable::set_header_labels(., row = "") %>%
-  #       theme_flextable_nmfstm(font = font0, row_lines = FALSE, 
-  #                              body_size = 8, pad = 0, spacing = 0.9)
-  #   
-  #   names(table_print0)[names(table_print0) == "temp"] <- paste0("sub_", ii)
-  #   c_start <- c_end
-  # }
-  # 
-  # table_print <-table_print0
   
-  table_print <- #data.frame(t(
-    table_print[,c(1:15)] %>% 
+  for (ii in 1:ceiling(ncol(table_print1)/ncol_per_page)) {
+    cnt_pre <- "A"
+    subobj <- TRUE
+    newobj <- ifelse(ii == 1, TRUE, FALSE)
+    
+  nickname <- paste0(nickname0, 
+                     temp$SRVY[i], 
+                     "_",  
+                     gsub(pattern = " ", replacement = "", perl = TRUE, 
+                          x = gsub(pattern = "F/V ", replacement = "", 
+                                   x = temp$vessel_name[i], fixed = TRUE)), "_", i,
+                     "_", ii)
+    
+    c_start <- c_start + 1
+    if (ii == ceiling(ncol(table_print1)/ncol_per_page)) {
+      c_end <- ncol(table_print1)
+    } else {
+      c_end <- c_start + ncol_per_page-1
+    }
+    table_print <- table_print1[,c(1, c_start:c_end)] %>% 
         flextable::flextable(data = .) %>%
-        # flextable::rotate(x = ., rotation = "btlr", align = "center", part = "all") %>% 
-        flextable::bold(x = ., j = "row") %>% 
+        flextable::bold(x = ., j = "row") %>%
         flextable::set_header_labels(., row = "") %>%
-        theme_flextable_nmfstm(font = font0, row_lines = FALSE, 
+        theme_flextable_nmfstm(font = font0, row_lines = FALSE,
                                body_size = 8, pad = 0, spacing = 0.9)
+
+      header <- paste0("Haul and catch data for successfully completed tows by ", 
+                       temp$vessel_ital[i]," during the ", maxyr, " ", 
+                       temp$SRVY_long[i], 
+                       " bottom trawl survey. In this table shows stations ", 
+                       names(table_print1)[c_start], " thru ", 
+                       names(table_print1)[c_end], 
+                       " are shown. ")
   
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -148,10 +136,7 @@ res <- knitr::knit_child(
 list_tables[nickname][[1]]$res <- res
 
 }
-
-# for (iii in 1:length(aaa)) { 
-#   print(list_tables[[length(list_tables)]]$print[[iii]])
-# }
+}
 ```
 
 
