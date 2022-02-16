@@ -622,7 +622,7 @@ species_text <- function(
                 "Out of the total number of successful hauls (", 
                 length(unique(haul_maxyr0$hauljoin)), ") ",  
                 spp_print, 
-                " was found during ", 
+                " were found during ", 
                 length(unique(haul_maxyr_spp$hauljoin)), 
                 " hauls (", 
                 formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"), 
