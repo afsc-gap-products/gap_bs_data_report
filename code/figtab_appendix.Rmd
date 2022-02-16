@@ -28,10 +28,10 @@ temp <- tidyr::crossing(vessel_info %>%
                       haul_cruises_maxyr %>% 
                         dplyr::select(SRVY_long, SRVY))
 
-for (i in 1:nrow(temp)) {
+for (iii in 1:nrow(temp)) {
   table_raw <- catch_haul_cruises_maxyr %>% 
         dplyr::filter(year == maxyr &
-                      SRVY == temp$SRVY[i]) %>%
+                      SRVY == temp$SRVY[iii]) %>%
     dplyr::left_join(
       x = ., 
       y = report_spp1 %>% 
@@ -45,10 +45,11 @@ for (i in 1:nrow(temp)) {
     tidyr::pivot_wider(names_from = print_name, 
                        values_from = weight, 
                        values_fill = "-") %>%
+    tidyr::separate(data = ., col = start_time, into = c("Date", "Time"), sep = " ", remove = TRUE) %>% 
   dplyr::mutate(across(where(is.numeric), 
                        formatC, big.mark=",", digits = 1, format = "f")) %>% 
-    dplyr::rename("Start date and time"# and time" 
-                  = start_time,
+    dplyr::rename(#"Start date and time"# and time" 
+                  #= start_time,
                   "Haul number" = haul,
                   "Start latitude" = start_latitude,
                   "Start longitude" = start_longitude,
@@ -83,6 +84,7 @@ for (i in 1:nrow(temp)) {
   
   table_print1 <- table_raw
   table_print1$row <- rownames(table_raw) 
+  table_raw00 <- table_raw
   # table_raw <- table_raw[,1:15]
     
   table_print1 <- table_print1 %>% 
@@ -95,14 +97,15 @@ for (i in 1:nrow(temp)) {
     cnt_pre <- "A"
     subobj <- TRUE
     newobj <- ifelse(ii == 1, TRUE, FALSE)
+    table_raw <- table_raw00
     
   nickname <- paste0(nickname0, 
-                     temp$SRVY[i], 
+                     temp$SRVY[iii], 
                      "_",  
                      gsub(pattern = " ", replacement = "", perl = TRUE, 
                           x = gsub(pattern = "F/V ", replacement = "", 
-                                   x = temp$vessel_name[i], fixed = TRUE)), "_", i,
-                     "_", ii)
+                                   x = temp$vessel_name[iii], fixed = TRUE)), 
+                     "_", iii,"_", ii)
     
     c_start <- c_start + 1
     if (ii == ceiling(ncol(table_print1)/ncol_per_page)) {
@@ -118,13 +121,14 @@ for (i in 1:nrow(temp)) {
                                body_size = 8, pad = 0, spacing = 0.9)
 
       header <- paste0("Haul and catch data for successfully completed tows by ", 
-                       temp$vessel_ital[i]," during the ", maxyr, " ", 
-                       temp$SRVY_long[i], 
+                       temp$vessel_ital[iii]," during the ", maxyr, " ", 
+                       temp$SRVY_long[iii], 
                        " bottom trawl survey. In this table shows stations ", 
                        names(table_print1)[c_start], " thru ", 
                        names(table_print1)[c_end], 
                        " are shown. ")
-  
+      c_start <- c_start + c_end
+
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
 res <- knitr::knit_child(
