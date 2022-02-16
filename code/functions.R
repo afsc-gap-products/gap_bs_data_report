@@ -791,7 +791,7 @@ NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = 
 ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 " survey biomass. ",
 
-"Previously in ",compareyr,", ",spp_print," comprised ",
+"Previously, in ",compareyr,", ",spp_print," comprised ",
 xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
              temp2$biomass[temp2$year == compareyr])*100)," (", 
 xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table",ifelse(length(SRVY000)>1, "s", "")," ",
