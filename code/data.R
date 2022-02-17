@@ -553,6 +553,8 @@ temp <- function(cruises_, haul_){
                                      gear_depth, duration, distance_fished, net_width, net_height,
                                      #vessel, cruise,  #haul, 
                                      start_time) %>% 
+                       dplyr::mutate(start_time = (format(as.Date(start_time, 
+                                                                                                   format="%m/%d/%Y"),"%m/%d/%Y"))) %>%
                        dplyr::group_by(cruisejoin, hauljoin, stationid, stratum, haul, 
                                        gear_depth, duration, distance_fished, net_width, net_height) %>% 
                        dplyr::summarise(start_date_haul = min(start_time), 
