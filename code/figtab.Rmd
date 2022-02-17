@@ -124,8 +124,8 @@ list_figures[nickname][[1]]$res <- res
 ## fig_vessels
 
 ```{r fig_vessels}
-header <- paste0("Photographs of the *F/V Vesteraalen* (left) and *F/V Alaska Knight* (right).")
-alttext <- paste0("Photographs of the fishing vessels *Vesteraalen* (left) and *Alaska Knight* (right), which were chartered for the ",maxyr," survey.")
+header <- paste0("Photographs of the _F/V Vesteraalen_ (left) and _F/V Alaska Knight_ (right).")
+alttext <- paste0("Photographs of the fishing vessels _Vesteraalen_ (left) and _Alaska Knight_ (right), which were chartered for the ",maxyr," survey.")
 nickname <- "fig_vessels"
 height <- 2.5
 width <- 6.5
@@ -365,8 +365,8 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   }
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
-                   haul_cruises_maxyr$SRVY_long[i],
-                   " shelf bottom trawl survey.")
+                   haul_cruises_maxyr$SRVY[i],
+                   " Shelf Bottom Trawl Survey.")
   
   table_raw <- table_raw0 %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i])
@@ -448,9 +448,8 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   }
   header <- paste0("Otolith collection scheme during the ", 
                    maxyr, " ", 
-                   haul_cruises_maxyr$SRVY_long[i], " (", 
-                   haul_cruises_maxyr$SRVY[i], ")",
-                   " shelf bottom trawl survey.")
+                   haul_cruises_maxyr$SRVY[i],
+                   " Shelf Bottom Trawl Survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
     
@@ -510,9 +509,9 @@ nickname <- paste0("tab_stomach_collection_scheme")
   
 header <- paste0("Stomach collection scheme during the ", 
                    maxyr, " ", 
-                   NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " (", 
-                   haul_cruises_maxyr$SRVY, ")")),
-                   " shelf bottom trawl survey.")
+                   NMFSReports::text_list(paste0( 
+                   haul_cruises_maxyr$SRVY)),
+                   " Shelf Bottom Trawl Survey.")
   
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_scheme.xlsx"), 
                          sheet = "Sheet1", 
@@ -584,8 +583,8 @@ temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.x
 # nickname <- paste0(nickname0, "_", haul_cruises_maxyr$SRVY[i]) 
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
-                 # haul_cruises_maxyr$SRVY_long[i], 
-                 "shelf bottom trawl survey by principal investigator and agency.")
+                  haul_cruises_maxyr$SRVY[i], 
+                 "Shelf Bottom Trawl Survey by principal investigator and agency.")
 
 table_raw <- temp #%>% 
 # dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
@@ -633,8 +632,8 @@ prev: fig_temp_weight_mean
 # code orig from sean rohan's coldpool package! Jan 23 2021 
 
 nickname <- "fig_mean_temperature"
-header <- paste0("Average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the EBS shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
-alttext <- paste0("Graph showing average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the EBS shelf (left) based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf (right) based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed horizontal lines represent the time series mean.")
+header <- paste0("Average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
+alttext <- paste0("Graph showing average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf (left) based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf (right) based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed horizontal lines represent the time series mean.")
 # header <- paste0("Time series of mean survey surface and near-bottom temperatures in the EBS weighted by stratum based on expendable bathythermograph casts or digital dataloggers attached to the headrope during the EBS bottom trawl surveys from 1982 to ", maxyr, ". The 1982-1987 means (triangles). The dashed lines represent the grand stratum-area weighted mean water temperatures for 1982-", maxyr, ".")
 # nickname <- "fig_temp_weight_mean"
 # header <- paste0("Average summer surface (green triangles) and bottom (blue circles) temperatures (°C) on the eastern Bering Sea (EBS) shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and northern Bering Sea (NBS) shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
@@ -866,7 +865,7 @@ list_figures[nickname][[1]]$res <- res
 
 ```{r fig_st_maxyr}
 header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long)," shelf bottom trawl surveys.")
+                 NMFSReports::text_list(haul_cruises_maxyr$SRVY)," Shelf Bottom Trawl Surveys.")
 nickname <- "fig_st_maxyr"
 hieght <- 8
 width <- 6.5
@@ -920,8 +919,9 @@ for (i in 1:2) { # two cases, above and below
   year <- sort(temps_avg_yr_abovebelow[,case])
   
   header <- paste0("Contour maps of the near-bottom temperatures from the ",
-                   NMFSReports::text_list(year),
-                   " Bering Sea shelf bottom trawl surveys, years when the survey mean bottom temperature was ",
+                   NMFSReports::text_list(year)," ",
+                 NMFSReports::text_list(haul_cruises_maxyr$SRVY),
+                   " Shelf Bottom Trawl Surveys. In these years, the survey mean bottom temperature was ",
                    case,
                    " the long-term mean.")
   nickname <- paste0(nickname0, case)
@@ -1227,16 +1227,8 @@ temp1 <- function(table_raw, strat, total) {
                   all_of(strat))
   
       footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", 
-                      NMFSReports::xunits(total, words = FALSE), " t.")
-  
-  # xx <- 1:nrow(table_raw)
-  # xx[!grepl(pattern = "Total ", x = table_raw$taxon)] <- NA
-  # xx_group <- as.numeric(factor(x = table_raw$group, 
-  #                               labels = 1:length(unique(table_raw$group)),
-  #                               levels = unique(table_raw$group),
-  #                               ordered = FALSE))
-  # whichtobold <- xx + xx_group
-  # whichtobold <- whichtobold[!is.na(whichtobold)]
+                      NMFSReports::xunits(total, words = FALSE), " mt.")
+ 
   
   table_print <- table_raw %>% 
     dplyr::mutate(prop = ifelse(prop < 0.0001, "<0.0001", 
@@ -1253,9 +1245,9 @@ temp1 <- function(table_raw, strat, total) {
     flextable::merge_v(j = ~ group) %>%
     flextable::add_header_row(top = TRUE, 
                               values = c("Taxon", 
-                                         "Estimated total biomass (t) and 95% confidence", 
+                                         "Estimated total biomass (mt) and 95% confidence", 
                                          "Proportion of total animal biomass", 
-                                         "Estimated biomass by stratum (t)"), 
+                                         "Estimated biomass by stratum (mt)"), 
                               colwidths = c(2,3,1,length(strat))) %>% 
     flextable::align(i = 1, align = "center", part = "header")  %>%  
     flextable::footnote(x = ., part = "header", i = 1, j = 5, 
@@ -1343,10 +1335,10 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
     newobj <- ifelse(i==1, TRUE, FALSE)
   }
-  header <- paste0("Biomass estimates (t) for major fish species and groups taken during the ", 
+  header <- paste0("Biomass estimates (mt) for major fish species and groups taken during the ", 
                    maxyr, " ", 
-                   haul_cruises_maxyr$SRVY_long[i],
-                   " shelf bottom trawl survey.")
+                   haul_cruises_maxyr$SRVY[i],
+                   " Shelf Bottom Trawl Survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   
@@ -1424,10 +1416,10 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     newobj <- ifelse(i==1, TRUE, FALSE)
   }
   
-  header <- paste0("Biomass estimates (t) for major invertebrate species and groups taken during the ", 
+  header <- paste0("Biomass estimates (mt) for major invertebrate species and groups taken during the ", 
                    maxyr, " ", 
-                   haul_cruises_maxyr$SRVY_long[i],
-                   " shelf bottom trawl survey.")
+                   haul_cruises_maxyr$SRVY[i],
+                   " Shelf Bottom Trawl Survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
 
@@ -1511,7 +1503,7 @@ list_tables[nickname][[1]]$res <- res
 #     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
 #     newobj <- ifelse(i==1, TRUE, FALSE)
 #   }
-#   header <- paste0("Total estimated biomass in metric tons (t) and the percent change from the ",compareyr," and ",maxyr," ",haul_cruises_maxyr$SRVY[i]," (",haul_cruises_maxyr$SRVY_long[i],") bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
+#   header <- paste0("Total estimated biomass in metric tons (mt) and the percent change from the ",compareyr," and ",maxyr," ",haul_cruises_maxyr$SRVY[i]," (",haul_cruises_maxyr$SRVY_long[i],") bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
 #   
 #   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
 #   
@@ -1569,10 +1561,10 @@ list_tables[nickname][[1]]$res <- res
 #     flextable::flextable(data = .)  %>%
 #     flextable::add_header_row(top = TRUE, 
 #                               values = c("Invertebrate", 
-#                                          "Biomass (t)", 
+#                                          "Biomass (mt)", 
 #                                          "%", 
 #                                          "Fish", 
-#                                          "Biomass (t)", 
+#                                          "Biomass (mt)", 
 #                                          "%"), 
 #                               colwidths = c(1,2,1,1,2,1)) %>% 
 #     flextable::align(i = 1, align = "center", part = "header")  %>%  
@@ -1611,7 +1603,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
 
 header <- paste0(
-  "Total estimated biomass in metric tons (t) and the percent change from the ",
+  "Total estimated biomass in metric tons (mt) and the percent change from the ",
                  compareyr," and ",maxyr," ", 
                  haul_cruises_maxyr$SRVY_long[i], 
                  " shelf (", 
@@ -1779,7 +1771,7 @@ for (i in 1:2) {
 
   if (i == 1){ # CPUE (WT/HA) and BIOMASS
     
-    header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for other common groundfish species for the ",
+    header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (mt) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for other common groundfish species for the ",
                      maxyr," ",
                      NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, 
                                                    " shelf (", 
