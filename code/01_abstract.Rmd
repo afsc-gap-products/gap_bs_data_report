@@ -16,10 +16,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 ```{r}
 temp <- haul_cruises_maxyr %>%
-  dplyr::filter(SRVY == "EBS") %>% 
-  dplyr::mutate(start_mo_long = format(x = as.POSIXlt(x = (start_date_haul) ), format="%B"), 
-                end_mo_long = format(x = as.POSIXlt(x = (end_date_haul) ), format="%B")) #%>%
-  # dplyr::select(start_mo_long, end_mo_long)
+  dplyr::filter(SRVY == "EBS")
 
 nbs_str0 <- ifelse(SRVY == "NEBS", 
                       #NBS
@@ -35,12 +32,12 @@ nbs_str0 <- ifelse(SRVY == "NEBS",
 
 
 if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_completed) == 1) { # diff answers or only 1 srvy
-  str0 <- CapFirst(NMFSReports::text_list(
+  str0 <- NMFSReports::text_list(
     paste0(ifelse(haul_cruises_maxyr$stations_avail ==
-                    haul_cruises_maxyr$stations_completed, "all", "most"), 
+                    haul_cruises_maxyr$stations_completed, "All", "Most"), 
            " survey stations in the ", 
            haul_cruises_maxyr$SRVY, 
-           " were sampled successfully")))
+           " were sampled successfully"))
 } else { # answers both "Most" or "All"
   str0 <- paste0(unique(ifelse(haul_cruises_maxyr$stations_avail ==
                     haul_cruises_maxyr$stations_completed, "All", "Most")), 
