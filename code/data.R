@@ -113,12 +113,12 @@ if (googledrive_dl) {
   }
   
   # Word documents
-  a <- googledrive::drive_ls(path = id_googledrive, type = "document")
+  a <- googledrive::drive_ls(path = id_googledrive)
   for (i in 1:nrow(a)){
     googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
-                                type = "docx", 
+                                # type = "docx", 
                                 overwrite = TRUE, 
-                                path = paste0(dir_out_rawdata, "/", a$name[i]))
+                                path = paste0(dir_out_rawdata, "/", a$name[i], ".docx"))
   }
   
 }
@@ -545,23 +545,16 @@ stratum_info <-
 
 temp <- function(cruises_, haul_){
   haul_cruises_vess_ <- 
-    dplyr::left_join(x = cruises_ ,#%>% 
-                     # dplyr::rename(start_date_cruise = start_date, 
-                     #               end_date_cruise = end_date), 
+    dplyr::left_join(x = cruises_ ,
                      y = haul_ %>% 
                        dplyr::select(cruisejoin, hauljoin, stationid, stratum, haul, 
                                      gear_depth, duration, distance_fished, net_width, net_height,
-                                     #vessel, cruise,  #haul, 
                                      start_time) %>% 
-                       dplyr::mutate(start_time = (format(as.Date(start_time, 
-                                                                                                   format="%m/%d/%Y"),"%m/%d/%Y"))) %>%
                        dplyr::group_by(cruisejoin, hauljoin, stationid, stratum, haul, 
                                        gear_depth, duration, distance_fished, net_width, net_height) %>% 
-                       dplyr::summarise(start_date_haul = min(start_time), 
+                       dplyr::summarise(start_date_haul = min(start_time),
                                         end_date_haul = max(start_time), 
-                                        # cruisejoin = unique(cruisejoin),
-                                        # hauljoin = unique(hauljoin),
-                                        stations_completed = length(unique(stationid))), 
+                                        stations_completed = length(unique(stationid))),
                      by = c("cruisejoin")) %>% 
     dplyr::left_join(x = . , 
                      y = vessels0 %>%
@@ -576,7 +569,7 @@ temp <- function(cruises_, haul_){
 
 haul_cruises_vess <- temp(cruises, haul) 
 
-haul_cruises_vess_maxyr <- temp(cruises_maxyr, haul_maxyr) 
+haul_cruises_vess_maxyr <- temp(cruises_ = cruises_maxyr, haul_ = haul_maxyr) 
 
 haul_cruises_vess_compareyr <- temp(cruises_compareyr, haul_compareyr) 
 
@@ -594,8 +587,8 @@ temp <- function(haul_cruises_vess_){
   haul_cruises_ <- 
     dplyr::left_join(
       x = haul_cruises_vess_ %>% 
-        dplyr::select("year", "survey_name", "cruise", "SRVY_start" , 
-                      "survey_definition_id", "SRVY", "SRVY_long", #hauljoin, 
+        dplyr::select(year, survey_name, cruise, SRVY_start, 
+                      survey_definition_id, SRVY, SRVY_long, 
                       cruisejoin) %>%
         unique(), 
       y = haul_cruises_vess_ %>% 
@@ -607,7 +600,13 @@ temp <- function(haul_cruises_vess_){
                          start_date_haul = min(start_date_haul), 
                          end_date_haul = max(end_date_haul), 
                          start_date_cruise = min(start_date_cruise), 
-                         end_date_cruise = max(end_date_cruise)), 
+                         end_date_cruise = max(end_date_cruise)) %>% 
+        dplyr::mutate(start_mo_long = 
+                        format(x = as.Date(start_date_haul, "%m/%d/%Y"), 
+                               format="%B"), 
+                      end_mo_long = 
+                        format(x = as.Date(end_date_haul, "%m/%d/%Y"), 
+                               format="%B")),
       by = "cruise") %>% 
     dplyr::left_join(
       x = ., 
