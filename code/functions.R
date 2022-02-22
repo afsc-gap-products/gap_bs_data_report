@@ -732,7 +732,7 @@ ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                    compareyr, " experienced ",
                    NMFSReports::pchange(start = sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE),
                                         end = sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)), 
-                   " compared to ",metric_long," in ", 
+                   " when compared to ",metric_long," in ", 
                    tempyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,").")
     
     return(str0)
