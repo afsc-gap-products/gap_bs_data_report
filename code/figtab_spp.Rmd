@@ -426,6 +426,7 @@ temp <- biomass_strat %>%
 for (i in 1:2) {
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
+  table_raw <- table_print <- data.frame()
   
   if (i == 1){ # CPUE (WT/HA) and BIOMASS
     nickname <- paste0(nickname0, "wt")
@@ -445,6 +446,8 @@ for (i in 1:2) {
                     # haulcount, 
                     catcount, numcount, lencount) 
     
+    if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
+      
     meanwgtcpue0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$meanwgtcpue)    
     varmnwgtcpue0<-find_units(unit = "", unt = "", table_raw$varmnwgtcpue)
     biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass)
@@ -485,7 +488,7 @@ for (i in 1:2) {
       # flextable::merge_v(j = "Region") %>%
       flextable::valign(valign = "top") %>%
       theme_flextable_nmfstm(row_lines = FALSE)
-    
+    }
   } else { # CPUE No/HA and POPULATION
     nickname <- paste0(nickname0, "num")
     header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
@@ -503,6 +506,8 @@ for (i in 1:2) {
                     # haulcount, 
                     catcount, numcount, lencount)
     
+    if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
+      
     varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue)
     meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue)
     population0 <- find_units(unit = "", unt = "", table_raw$population)
@@ -543,6 +548,7 @@ for (i in 1:2) {
       # flextable::merge_v(j = "Region") %>%
       flextable::valign(valign = "top") %>%
       theme_flextable_nmfstm(row_lines = FALSE, font = font0)
+    }
   }
   
   # save yo' stuff and do a lot of behind the scenes work
