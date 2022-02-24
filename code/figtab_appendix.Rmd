@@ -85,19 +85,24 @@ for (iii in 1:nrow(temp)) {
   table_print1 <- table_raw
   table_print1$row <- rownames(table_raw) 
   table_raw00 <- table_raw
-  # table_raw <- table_raw[,1:15]
-    
+
   table_print1 <- table_print1 %>% 
     dplyr::relocate(row)
   
   c_start <- 1
   ncol_per_page <- 14 # how many columns should go on each page
   
-  for (ii in 1:ceiling(ncol(table_print1)/ncol_per_page)) {
+  comb <- data.frame(c_start = seq(from = 1, to = ncol(table_print1), by = ncol_per_page)+1,
+                     c_end = c(seq(from = ncol_per_page+1, to = ncol(table_print1), by = ncol_per_page), ncol(table_print1)))
+  
+  for (ii in 1:nrow(comb)) {
     cnt_pre <- "A"
     subobj <- TRUE
     newobj <- ifelse(ii == 1, TRUE, FALSE)
     table_raw <- table_raw00
+    
+    c_start <- comb$c_start[ii]
+    c_end <- comb$c_end[ii]
     
   nickname <- paste0(nickname0, 
                      temp$SRVY[iii], 
@@ -107,12 +112,6 @@ for (iii in 1:nrow(temp)) {
                                    x = temp$vessel_name[iii], fixed = TRUE)), 
                      "_", iii,"_", ii)
     
-    c_start <- c_start + 1
-    if (ii == ceiling(ncol(table_print1)/ncol_per_page)) {
-      c_end <- ncol(table_print1)
-    } else {
-      c_end <- c_start + ncol_per_page-1
-    }
     table_print <- table_print1[,c(1, c_start:c_end)] %>% 
         flextable::flextable(data = .) %>%
         flextable::bold(x = ., j = "row") %>%
@@ -127,13 +126,12 @@ for (iii in 1:nrow(temp)) {
                        names(table_print1)[c_start], " thru ", 
                        names(table_print1)[c_end], 
                        " are shown. ")
-      c_start <- c_start + c_end
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
   quiet = TRUE
 )
 
