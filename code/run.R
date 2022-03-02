@@ -36,12 +36,12 @@ font0 <- "Arial Narrow"
 # ref_maxyr_npfmc <- "@NPFMC2016" # temp
 # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-maxyr <- 2018 # NOTE RAPID RESPONCE
-compareyr <- 2016
-SRVY<-"EBS"
-ref_compareyr <- "@RN976" # CHANGE
-ref_maxyr_npfmc <- "@NPFMC2017" # temp
-dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+# maxyr <- 2018 # NOTE RAPID RESPONCE
+# compareyr <- 2016
+# SRVY<-"EBS"
+# ref_compareyr <- "@RN976" # CHANGE
+# ref_maxyr_npfmc <- "@NPFMC2017" # temp
+# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019
 # compareyr <- 2017
@@ -50,12 +50,12 @@ dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.co
 # ref_maxyr_npfmc <- "@NPFMC2018" # temp
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-# maxyr <- 2021
-# compareyr <- 2019
-# SRVY<-"NEBS"
-# ref_compareyr <- "@2019NEBSStevenson2022" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2019" # temp
-# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+maxyr <- 2021
+compareyr <- 2019
+SRVY<-"NEBS"
+ref_compareyr <- "@2019NEBSStevenson2022" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2019" # temp
+dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
 # compareyr <- 2021
@@ -193,6 +193,7 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_col = "order", 
                               report_spp_codes = "species_code", 
                               lang = TRUE)
+cnt_chapt<-auto_counter(cnt_chapt)
 
 for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))])) {
   
