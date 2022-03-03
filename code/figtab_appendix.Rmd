@@ -19,8 +19,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 ### time on the date is missing
 
-```{r tab_hauls_catch_}
-nickname0 <- "tab_hauls_catch_" 
+```{r tab_app_hauls_catch_}
+nickname0 <- "tab_app_hauls_catch_" 
 cnt_tables <- 0
 
 temp <- tidyr::crossing(vessel_info %>% 
@@ -90,7 +90,7 @@ for (iii in 1:nrow(temp)) {
     dplyr::relocate(row)
   
   c_start <- 1
-  ncol_per_page <- 14 # how many columns should go on each page
+  ncol_per_page <- 15 # how many columns should go on each page
   
   comb <- data.frame(c_start = seq(from = 1, to = ncol(table_print1), by = ncol_per_page)+1,
                      c_end = c(seq(from = ncol_per_page+1, to = ncol(table_print1), by = ncol_per_page), ncol(table_print1)))
@@ -136,7 +136,6 @@ res <- knitr::knit_child(
 )
 
 list_tables[nickname][[1]]$res <- res
-
 }
 }
 ```
@@ -148,8 +147,8 @@ list_tables[nickname][[1]]$res <- res
 
 ### get group to behave properly
 
-```{r tab_taxa_encountered_}
-nickname0 <- "tab_taxa_encountered_" 
+```{r tab_app_taxa_encountered_}
+nickname0 <- "tab_app_taxa_encountered_" 
 cnt_tables <- 0
 
 temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
@@ -158,10 +157,6 @@ temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"),
                         dplyr::select(SRVY_long, SRVY))
 
 for (i in 1:nrow(temp)) {
-  # if (nrow(temp)>1) {
-  #   subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
-  #   newobj <- ifelse(i==1, TRUE, FALSE)
-  # }
   newobj <- TRUE
   cnt_pre <- "B"
   nickname <- paste0(nickname0, 
@@ -292,8 +287,8 @@ list_tables[nickname][[1]]$res <- res
 
 ### 999 vs total?
 
-```{r tab_principal_fish_}
-nickname0 <- "tab_principal_fish_" 
+```{r tab_app_principal_fish_}
+nickname0 <- "tab_app_principal_fish_" 
 cnt_tables <- 0
 
 temp <- tidyr::crossing(haul_cruises_maxyr %>% 
@@ -309,10 +304,6 @@ temp0 <- report_spp1 %>%
                           dplyr::distinct()
 
 for (i in 1:nrow(temp)) {
-  # if (nrow(temp)>1) {
-  #   subobj <- ifelse(nrow(temp)>1, TRUE, FALSE)
-  #   newobj <- ifelse(i==1, TRUE, FALSE)
-  # }
   newobj <- TRUE
   cnt_pre <- "C"
   print(temp$file_name[i])

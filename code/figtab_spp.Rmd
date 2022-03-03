@@ -105,7 +105,7 @@ pop <- biomass %>%
 
 if (plot_idw_coldwarm){
   nickname0 <- paste0("fig_idw_cpue_",spp_taxon,"_", spp_file, "_")
-  hieght <- 10.5
+  height <- 10.5
   width <- 8
   table_raw0 <- cpue %>%
     dplyr::filter(!is.na(cpue_kgha)) %>% 
@@ -143,7 +143,8 @@ if (plot_idw_coldwarm){
       var = "cpue_kgha",
       grid = "extrapolation.grid",
       extrap.box = extrap.box,
-      key.title = "Relative Biomass (kg/ha)",
+      key.title = paste0(stringr::str_to_sentence(spp_print), "
+relative biomass (kg/ha)"),
       workfaster = workfaster,
       SRVY = SRVY, 
       set.breaks = set.breaks, 
@@ -196,7 +197,8 @@ if (spp_plot_idw){
     var = "cpue_kgha",
     grid = "extrapolation.grid",
     extrap.box = extrap.box,
-    key.title = "Relative Biomass (kg/ha)",
+      key.title = paste0(stringr::str_to_sentence(spp_print), "
+relative biomass (kg/ha)"),
     workfaster = workfaster,
     SRVY = SRVY, 
     set.breaks = set.breaks, 
@@ -265,7 +267,7 @@ if (spp_plot_sizecomp) {
   figure <- plot_sizecomp(
     sizecomp0 = sizecomp0,
     spp_code = spp_code,
-    spp_print = paste0(spp_print),
+    spp_print = stringr::str_to_sentence(spp_print),
     type = type,
     print_n = FALSE)
   
@@ -393,8 +395,8 @@ list_figures[nickname][[1]]$res <- res
 #   quiet = TRUE
 # )
 # 
-list_figures[nickname][[1]]$res <- res
-   
+# list_figures[nickname][[1]]$res <- res
+   # 
 ```
 
 ## tab_estimates_maxyr_[taxon]_[spp]_[wt or num]
@@ -465,7 +467,7 @@ for (i in 1:2) {
       dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
                            formatC, big.mark=",", digits = 0, format = "f")) %>%
       flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
-      flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+      flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE) %>% 
       flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
       flextable::bold(x = ., #j = "stratum", 
                       i = ~ (stratum == "Total") ) %>%
@@ -479,8 +481,8 @@ for (i in 1:2) {
         varmnwgtcpue = paste0("SD CPUE", varmnwgtcpue0$unit_word), 
         biomass = paste0("Estimated Biomass", biomass0$unit_word), 
         varbio = paste0("SD Biomass", varbio0$unit_word), 
-        upperp = paste0("95% LCL", biomass0$unit_word), 
-        lowerp = paste0("95% UCL", biomass0$unit_word), 
+        upperb = paste0("95% LCL", biomass0$unit_word), 
+        lowerb = paste0("95% UCL", biomass0$unit_word), 
         # haulcount = "Total hauls", 
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
