@@ -1088,44 +1088,52 @@ list_tables[nickname][[1]]$res <- res
 temp <- function(dat, total_biomass){
   
   dat <- dat  %>% 
+    ungroup() %>% 
     tidyr::separate(
       col = group0, 
       into = c("group", "taxon"), 
       sep = "_", 
-      remove = FALSE)
+      remove = FALSE) %>% 
+    dplyr::select(SRVY, strata, group, group0, taxon, biomass_mt, ci)
+
   
   ## find estimated total biomass by stratum for group complexes (e.g., groups with more than one line)
   biomass_group_totals <- dat %>%
     dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
     dplyr:: group_by(SRVY, strata, group) %>%
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
-    dplyr::mutate(taxon = paste0("Total ", group), 
+    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
+                     ci = sum(ci, na.rm = TRUE)) %>% 
+    dplyr::mutate(taxon = paste0("total ", tolower(group)), 
                   order = 3)
   
   biomass_group_totals_999 <- biomass_group_totals %>% 
     dplyr::group_by(SRVY, group, taxon, order) %>% 
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
+    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
+                     ci = sum(ci, na.rm = TRUE)) %>% 
     dplyr::mutate(strata = 999)
   
   # find estimated total biomass for all stratum for all taxon
   biomass_totals <- dat %>%
     dplyr:: group_by(SRVY, group, taxon) %>%
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
+    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
+                     ci = sum(ci, na.rm = TRUE)) %>% 
     dplyr::mutate(strata = 999, 
                   order = ifelse(grepl(pattern = "other ", x = taxon), 2, 1))
   
   biomass_group_strata <- dat %>%
-    dplyr::group_by(SRVY, strata, group, taxon) %>%
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
+    dplyr::group_by(SRVY, strata, group, taxon) %>% #, area, year) %>%
+    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
+                     ci = sum(ci, na.rm = TRUE)) %>% 
     dplyr::mutate(order = ifelse(grepl(pattern = "other ", x = taxon), 2, 1))
   
   biomass_all_spp_total <- 
     dplyr::bind_rows(biomass_group_strata, 
                      biomass_group_totals, 
                      biomass_totals) %>% 
-    dplyr::filter(!grepl(pattern = "Total ", x = taxon)) %>%
+    dplyr::filter(!grepl(pattern = "total ", x = taxon)) %>%
     dplyr::group_by(SRVY, strata) %>% 
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
+    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
+                     ci = sum(ci, na.rm = TRUE)) %>% 
     dplyr::mutate(order = 5, 
                   group = gsub(pattern = "Other ", 
                                replacement = "Total ", 
@@ -1149,30 +1157,32 @@ temp <- function(dat, total_biomass){
                           biomass_all_spp_total) %>% 
     tidyr::pivot_wider(id_cols = c("SRVY", "group", "taxon", "order"), 
                        names_from = "strata", 
-                       values_from = "biomass_mt")
+                       values_from = c("biomass_mt", "ci"))
   
-  out$order[grepl(pattern = "Other ", x = out$group)] <- 4
+  out$order[grepl(pattern = "other ", x = out$group)] <- 4
   
   out <- out %>% 
     dplyr::arrange(SRVY, group, order, taxon) %>% 
     # dplyr::select(-order) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() 
   
   out$order <- 1:nrow(out)
-  out$order[grepl(pattern = "Other ", x = out$group)] <- nrow(out)+1
-  out$order[grepl(pattern = "Total ", x = out$group)] <- nrow(out)+2
+  out$order[grepl(pattern = "other ", x = out$group)] <- nrow(out)+1
+  out$order[grepl(pattern = "total ", x = out$group)] <- nrow(out)+2
+  names(out) <- gsub(pattern = "biomass_mt_", replacement = "", x = names(out))
   
   out <- dplyr::left_join(
     x = out, 
     y = total_biomass, 
-    by = "SRVY")%>%
-    dplyr::mutate(CI95 = NA, 
+    by = "SRVY") %>% 
+    dplyr::mutate(CI95 = ci_999, 
+                  # `999` = biomass_mt_999,
                   a = "±", 
                   prop = `999`/total) %>% 
     dplyr::arrange(order) %>%
     dplyr::relocate(SRVY, group, taxon, `999`, a, CI95, prop) %>% 
-    dplyr::filter(999 != 0) %>% # TOLEDO 
-    dplyr::select(-order, -total)
+    dplyr::filter(`999` != 0) %>% # TOLEDO 
+    dplyr::select(-order, -total, -dplyr::starts_with("ci_"))
 
   return(out)
   
@@ -1191,8 +1201,8 @@ temp1 <- function(table_raw, strat, total) {
   table_print <- table_raw %>% 
     dplyr::mutate(prop = ifelse(prop < 0.0001, "<0.0001", 
                                 formatC(x = prop, digits = 4, 
-                                        format = "f", big.mark = ",")), 
-                  CI95 = paste0(round(x = CI95, digits = 0), "%") )  %>% 
+                                        format = "f", big.mark = ",")) ) %>% # , 
+                  # CI95 = formatC(x = CI95, digits = 0, format = "f", ) ) %>% 
     dplyr::mutate(across(where(is.numeric), 
                        formatC, big.mark=",", digits = 0, format = "f"))
     
@@ -1203,7 +1213,7 @@ temp1 <- function(table_raw, strat, total) {
     flextable::merge_v(j = ~ group) %>%
     flextable::add_header_row(top = TRUE, 
                               values = c("Taxon", 
-                                         "Estimated total biomass (mt) and 95% confidence", 
+                                         "Estimated total biomass (mt) and 95% confidence interval", 
                                          "Proportion of total animal biomass", 
                                          "Estimated biomass by stratum (mt)"), 
                               colwidths = c(2,3,1,length(strat))) %>% 
@@ -1212,7 +1222,7 @@ temp1 <- function(table_raw, strat, total) {
                         value = as_paragraph(footnote0)) %>%
     # flextable::bold(x = ., part = "body", i = whichtobold) %>% 
     # flextable::bold(x = ., i = ~ (grepl(pattern = "Total ", x = taxon) )) %>%
-    flextable::bold(x = ., i = ~ (grepl(pattern = "Total ", x = group) )) %>%
+    flextable::bold(x = ., i = ~ (grepl(pattern = "total ", x = group) )) %>%
     flextable::set_header_labels(.,
                                  "group" = "", 
                                  "taxon" = "", 
