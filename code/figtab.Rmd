@@ -198,23 +198,15 @@ header <- paste0("Stratum areas and sampling densities for the ",maxyr,
                  " ", SRVY ," bottom trawl survey.")
 nickname <- "tab_stratum_areas" 
 
-# Select data and make plot
-# strata_haul_count <- haul_maxyr %>% 
-#   dplyr::select(stratum, stationid) %>% 
-#   dplyr::group_by(stratum) %>% 
-#   dplyr::summarise(count(stratum)) %>% 
-#   dplyr::rename(stations_completed = "freq") %>% 
-#   dplyr::select(stratum, stations_completed)
-# 
-
 temp <- stratum_info %>% 
   dplyr::select(area, stations_completed, stratum, type,  SRVY)
 
 if (length(unique(station_info$SRVY))>1) {
   totals_sub <- stratum_info %>%
     dplyr::group_by(SRVY) %>%
-    dplyr::summarise(area = sum(area, na.rm = TRUE),
-                     stations_completed = sum(stations_completed, n.rm = TRUE)) %>%
+    dplyr::summarise(
+      area = sum(area, na.rm = TRUE),
+      stations_completed = sum(stations_completed, na.rm = TRUE)) %>%
     dplyr::mutate(stratum = "") %>%
     dplyr::mutate(type = "Total") %>% 
     dplyr::relocate(names(temp))
@@ -222,7 +214,7 @@ if (length(unique(station_info$SRVY))>1) {
 
 totals <- stratum_info %>% 
   dplyr::summarise(area = sum(area, na.rm = TRUE), 
-                   stations_completed = sum(stations_completed, n.rm = TRUE)) %>% 
+                   stations_completed = sum(stations_completed, na.rm = TRUE)) %>% 
   dplyr::mutate(stratum = "") %>% 
   dplyr::mutate(type = "Total") %>% 
   dplyr::mutate(SRVY = NMFSReports::text_list(SRVY1)) %>% 
@@ -291,11 +283,23 @@ list_tables[nickname][[1]]$res <- res
 nickname0 <- paste0("tab_specimen_samples_") 
 
 # length data - from oracle
-l <- length_maxyr %>% 
-  dplyr::select("SRVY", species_code) %>% 
-  dplyr::group_by("SRVY" = SRVY, species_code) %>% # also type?
-  dplyr::summarise(length = as.numeric(n())) %>% 
-  dplyr::ungroup()  
+l <- dplyr::bind_rows(
+  length_maxyr %>% 
+    dplyr::select(SRVY, common_name, frequency) %>% 
+    dplyr::mutate(common_name = gsub(pattern = " (juvenile)", replacement = "", x = common_name, fixed = TRUE)) %>% 
+    dplyr::left_join(
+      x = ., 
+      y = length_maxyr %>% 
+        dplyr::distinct(species_code, common_name), 
+      by = "common_name") %>% 
+    dplyr::group_by(SRVY, species_code) %>% # also type?
+    dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
+    dplyr::ungroup(), 
+  length_crab %>% 
+    dplyr::select(SRVY, species_code, frequency) %>% 
+    dplyr::group_by(SRVY, species_code) %>% # also type?
+    dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
+    dplyr::ungroup())
 
 # age oto data - from oracle
 a <- specimen_maxyr %>% 
@@ -1083,83 +1087,136 @@ list_tables[nickname][[1]]$res <- res
 
 ```{r tab_biomass_est_PREP}
 
-# tables ------------------------------------------------------------------
-
-temp <- function(dat, total_biomass){
+# temp <- function(dat0, total_biomass){
+temp <- function(exp0, maxyr, 
+                 biomass_by_stratum0, 
+                 catch_haul_cruises_maxyr0, 
+                 total_biomass0) {
   
-  dat <- dat  %>% 
+  confint <- function(num_hauls, bio_var) {
+    out <- qt(p = 0.025, df = num_hauls - 1, lower.tail = F) * sqrt(bio_var)
+    return(out)
+  }
+
+  dat <- eval(parse( 
+    text=gsub(pattern = "DATAFRAME", 
+              replacement = "biomass_by_stratum0", 
+              x = exp0) )) %>% 
     ungroup() %>% 
     tidyr::separate(
       col = group0, 
       into = c("group", "taxon"), 
       sep = "_", 
       remove = FALSE) %>% 
-    dplyr::select(SRVY, strata, group, group0, taxon, biomass_mt, ci)
+    dplyr::select(SRVY, strata, group, group0, taxon, biomass_mt, ci, num_hauls, bio_var)
 
-  
   ## find estimated total biomass by stratum for group complexes (e.g., groups with more than one line)
-  biomass_group_totals <- dat %>%
+  biomass_group_bystrat <- dat %>%
     dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
     dplyr:: group_by(SRVY, strata, group) %>%
     dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                     ci = sum(ci, na.rm = TRUE)) %>% 
-    dplyr::mutate(taxon = paste0("total ", tolower(group)), 
+                     bio_var = sum(bio_var, na.rm = TRUE), 
+                     num_hauls = sum(num_hauls, na.rm = TRUE)) %>% 
+    dplyr::mutate(ci = confint(num_hauls, bio_var), 
+                  taxon = paste0("total ", tolower(group)), 
                   order = 3)
   
-  biomass_group_totals_999 <- biomass_group_totals %>% 
-    dplyr::group_by(SRVY, group, taxon, order) %>% 
+  dat0 <- eval(parse( 
+      text=gsub(pattern = "DATAFRAME", 
+              replacement = "catch_haul_cruises_maxyr0", 
+              x = exp0) ))  %>% 
+    ungroup() %>% 
+    tidyr::separate(
+      col = group0, 
+      into = c("group", "taxon"), 
+      sep = "_", 
+      remove = FALSE) %>% 
+    dplyr::filter(year == maxyr) %>% 
+    dplyr::distinct(SRVY, stratum, stationid, group, # not strictly necessary, but helpful
+                    hauljoin, species_code) %>% 
+    dplyr::group_by(SRVY, group) %>% 
+    dplyr::summarise(num = n()) # the number of hauls the group was caught in for all strata
+  
+biomass_group_999 <- dat %>%  ## summarize by group to compare to prior years tech memo    
+  dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
+  dplyr::group_by(group, SRVY) %>%
+  dplyr::summarize(biomass_mt = sum(biomass_mt, na.rm = TRUE),
+                   bio_var = sum(bio_var, na.rm = TRUE)) %>%
+  dplyr::left_join(x = ., 
+                   y = dat0, 
+            by =  c("SRVY", "group")) %>%
+  dplyr::mutate(
+    num_hauls = ifelse(num == 1, 1, (num-1)), # ifelse require bc lumpsuckers only caught in 1 hauls (can't divide by 0)
+    ci = confint(num_hauls, bio_var), 
+    # up_ci_bio_tot = biomass_mt + ci,
+    # ci_percent = ((1-(biomass_mt/up_ci_bio_tot))*100), 
+    taxon = paste0("total ", tolower(group)), 
+    order = 3,
+    strata = 999)
+
+  biomass_spp_bystrata <- dat %>%
+    dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
+    dplyr:: group_by(SRVY, strata, group, taxon, num_hauls) %>%
     dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                     ci = sum(ci, na.rm = TRUE)) %>% 
-    dplyr::mutate(strata = 999)
+                     bio_var = sum(bio_var, na.rm = TRUE)#, 
+                     # num_hauls = sum(num_hauls, na.rm = TRUE)
+                     ) %>% 
+    dplyr::mutate(ci = confint(num_hauls, bio_var), 
+                  # taxon = paste0("total ", tolower(group)), 
+                  order = 1)
+
+  biomass_spp_999 <- dat %>%
+    dplyr::group_by(SRVY, group, taxon, num_hauls) %>%
+    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE),
+                     bio_var = sum(bio_var, na.rm = TRUE)) %>%
+    dplyr::mutate(
+      order = ifelse(grepl(pattern = "other ", x = taxon), 2, 1),
+      ci = confint(num_hauls, bio_var), 
+      strata = 999)
   
-  # find estimated total biomass for all stratum for all taxon
-  biomass_totals <- dat %>%
-    dplyr:: group_by(SRVY, group, taxon) %>%
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                     ci = sum(ci, na.rm = TRUE)) %>% 
-    dplyr::mutate(strata = 999, 
-                  order = ifelse(grepl(pattern = "other ", x = taxon), 2, 1))
   
-  biomass_group_strata <- dat %>%
-    dplyr::group_by(SRVY, strata, group, taxon) %>% #, area, year) %>%
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                     ci = sum(ci, na.rm = TRUE)) %>% 
-    dplyr::mutate(order = ifelse(grepl(pattern = "other ", x = taxon), 2, 1))
+  biomass_total_bystrata <- dat %>% # find estimated total biomass for all stratum for all taxon
+      dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
+      dplyr::group_by(SRVY, strata, num_hauls ) %>%
+      dplyr::summarize(biomass_mt = sum(biomass_mt, na.rm = TRUE),
+                       bio_var = sum(bio_var, na.rm = TRUE)) %>%
+      dplyr::mutate(
+        ci = confint(num_hauls, bio_var), 
+        # taxon = NA, 
+        group = "Total"
+        )
+    
+    
+  biomass_total_999 <- dat %>% # find estimated total biomass for all stratum for all taxon
+    dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
+    dplyr::group_by(SRVY) %>%
+    dplyr::summarize(biomass_mt = sum(biomass_mt, na.rm = TRUE),
+                     bio_var = sum(bio_var, na.rm = TRUE)) %>%
+    dplyr::left_join(x = ., 
+                     y = dat0 %>% 
+                       dplyr::group_by(SRVY) %>% 
+                       dplyr::summarise(num = sum(num, na.rm = TRUE)), 
+              by =  c("SRVY")) %>%
+    dplyr::mutate(
+      num_hauls = ifelse(num == 1, 1, (num-1)), # ifelse require bc lumpsuckers only caught in 1 hauls (can't divide by 0)
+      ci = confint(num_hauls, bio_var), 
+      taxon = NA, 
+      # order = ifelse(grepl(pattern = "other ", x = taxon), 2, 1),
+      strata = 999, 
+      group = "Total")
   
-  biomass_all_spp_total <- 
-    dplyr::bind_rows(biomass_group_strata, 
-                     biomass_group_totals, 
-                     biomass_totals) %>% 
-    dplyr::filter(!grepl(pattern = "total ", x = taxon)) %>%
-    dplyr::group_by(SRVY, strata) %>% 
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                     ci = sum(ci, na.rm = TRUE)) %>% 
-    dplyr::mutate(order = 5, 
-                  group = gsub(pattern = "Other ", 
-                               replacement = "Total ", 
-                               x = unique(biomass_group_strata$group[grepl(pattern = "Other ", 
-                                                    x = biomass_group_strata$group)])))
-  
-  # biomass_all_spp_total <- 
-  #   dplyr::bind_rows(biomass_group_strata, 
-  #                    biomass_group_totals, 
-  #                    biomass_totals) %>% 
-  #   dplyr::filter(!grepl(pattern = "Total ", x = taxon)) %>%
-  #   dplyr::group_by(SRVY, group, taxon, strata) %>% 
-  #   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
-  #   dplyr::mutate(order = 5, 
-  #                 taxon = paste0("Total ", taxon))
-  
-  out <- dplyr::bind_rows(biomass_group_strata, 
-                          biomass_group_totals, 
-                          biomass_group_totals_999, 
-                          biomass_totals, 
-                          biomass_all_spp_total) %>% 
+      
+  out <- dplyr::bind_rows(biomass_group_bystrata, 
+                          biomass_group_999, 
+                          biomass_spp_bystrata,
+                          # biomass_spp_999, 
+                          biomass_total_bystrata, 
+                          biomass_total_999) %>% 
     tidyr::pivot_wider(id_cols = c("SRVY", "group", "taxon", "order"), 
                        names_from = "strata", 
                        values_from = c("biomass_mt", "ci"))
   
-  out$order[grepl(pattern = "other ", x = out$group)] <- 4
+  out$order[grepl(pattern = "other ", x = out$group, ignore.case = TRUE)] <- 4
   
   out <- out %>% 
     dplyr::arrange(SRVY, group, order, taxon) %>% 
@@ -1167,8 +1224,8 @@ temp <- function(dat, total_biomass){
     dplyr::ungroup() 
   
   out$order <- 1:nrow(out)
-  out$order[grepl(pattern = "other ", x = out$group)] <- nrow(out)+1
-  out$order[grepl(pattern = "total ", x = out$group)] <- nrow(out)+2
+  out$order[grepl(pattern = "other ", x = out$group, ignore.case = TRUE)] <- nrow(out)+1
+  out$order[grepl(pattern = "total ", x = out$group, ignore.case = TRUE)] <- nrow(out)+2
   names(out) <- gsub(pattern = "biomass_mt_", replacement = "", x = names(out))
   
   out <- dplyr::left_join(
@@ -1246,8 +1303,7 @@ nickname0 <- "tab_biomass_est_fish_"
 
 # # Select data and make plot
 # place species codes into groups and major species
-fish_groups <- biomass_by_stratum %>%
-  dplyr::filter(species_code < 35000) %>% # species codes greater than 35000 are invertebrates
+exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes greater than 35000 are invertebrates
   dplyr::mutate(group0 = case_when(
     species_code == 471 ~ "Rajidae (skates)_Alaska skate",
     species_code >= 401 & 
@@ -1291,9 +1347,13 @@ fish_groups <- biomass_by_stratum %>%
     species_code == 30060 ~ "Scorpaenidae (rockfish)_Pacific ocean perch",
     species_code >= 30000 & species_code <= 31550 & 
       species_code != 30060 ~ "Scorpaenidae (rockfish)_other rockfish",
-    TRUE ~ "Other fish"))
+    TRUE ~ "Other fish"))')
 
-table_raw0 <- temp(dat = fish_groups, total_biomass = total_biomass)
+table_raw0 <- temp(exp0 = exp0, 
+                   maxyr = maxyr, 
+                   biomass_by_stratum0 = biomass_by_stratum, 
+                   catch_haul_cruises_maxyr0 = catch_haul_cruises_maxyr, 
+                   total_biomass0 = total_biomass)
 
 ##find the 37kg that belong in other skate that is currently in other fish 
 ## answer:skate egg cases are included in the skate biomass     
@@ -1345,8 +1405,9 @@ list_tables[nickname][[1]]$res <- res
 
 nickname0 <- "tab_biomass_est_invert_"
 
-invert_groups <- biomass_by_stratum %>%
-  dplyr::filter(species_code >= 40000 & 
+# # Select data and make plot
+# place species codes into groups and major species
+exp0 <- ('DATAFRAME %>% dplyr::filter(species_code >= 40000 & 
                   species_code < 99991) %>% # groups greater than 99991 are empty shells, empty barnacles
   dplyr::mutate(group0 = dplyr::case_when(
     species_code >= 68000 & species_code <= 69549 ~ "Crustacea_crabs",
@@ -1373,10 +1434,13 @@ invert_groups <- biomass_by_stratum %>%
     species_code >= 99990 & species_code <=	99992 ~ "Other invertebrates",
     species_code >= 77011 & species_code <= 77012 ~ "Other invertebrates",
     species_code == 99987 ~ "Porifera (sponges)",
-    TRUE ~ "find my group"))
+    TRUE ~ "find my group"))')
 
-
-table_raw0 <- temp(dat = invert_groups, total_biomass = total_biomass)
+table_raw0 <- temp(exp0 = exp0, 
+                   maxyr = maxyr, 
+                   biomass_by_stratum0 = biomass_by_stratum, 
+                   catch_haul_cruises_maxyr0 = catch_haul_cruises_maxyr, 
+                   total_biomass0 = total_biomass)
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {

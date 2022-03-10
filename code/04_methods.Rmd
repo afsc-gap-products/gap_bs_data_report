@@ -19,9 +19,9 @@ The standardized `r NMFSReports::text_list(SRVY0)` bottom trawl survey`r ifelse(
 
 ## Survey Vessels and Sampling Gear
 
-`r ifelse(nrow(vessel_info) == 1, "The vessel", "Both vessels") ` used for the `r maxyr` surveys are house-forward trawlers with stern ramps. The length overall of `r text_list(paste0("the ", vessel_info$vessel_ital, " is ", vessel_info$length_m, " m (", vessel_info$length_ft, " ft)") ) `. All fishing operations were conducted in rigorous compliance with national and regional protocols detailed in @RN933. The AFSC equipped each of the vessels with standard 83-112 eastern otter trawls, which have 25.3 m (83 ft) headropes and 34.1 m (112 ft) footropes (Figure `r crossref(list_obj = list_figures, nickname = "fig_trawl_gear", sublist = "number") `). These nets were attached to tail chains with 54.9 m (30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
+The `r maxyr` survey was conducted aboard the chartered commercial stern-trawlers `r NMFSReports::text_list(vessel_info$vessel_ital)`. `r ifelse(nrow(vessel_info) == 1, "The vessel", "Both vessels") ` used for the `r maxyr` surveys are house-forward trawlers with stern ramps. The length overall of `r text_list(paste0("the ", vessel_info$vessel_ital, " is ", vessel_info$length_m, " m (", vessel_info$length_ft, " ft)") ) `. All fishing operations were conducted in rigorous compliance with national and regional protocols detailed in @RN933. The AFSC equipped each of the vessels with standard 83-112 eastern otter trawls, which have 25.3 m (83 ft) headropes and 34.1 m (112 ft) footropes (Figure `r crossref(list_obj = list_figures, nickname = "fig_trawl_gear", sublist = "number") `). These nets were attached to tail chains with 54.9 m (30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
 
-The Marport Deep Sea Technologies Inc. net mensuration system was used during the deployment of each tow to record net spread and net height. Net spread was measured as the horizontal distance between two sensors attached immediately forward of the junction of the upper breastline and the dandyline, and net height was measured from the headrope to the seafloor. Mean net spread values for estimating area swept per tow were calculated according to methods described by @RN910.
+The Marport Deep Sea Technologies Inc. net mensuration system was used during the deployment of each tow to record net spread and net height. Net spread was measured as the horizontal distance between two sensors attached immediately forward of the junction of the upper breastline and the dandyline, and net height was measured from the headrope to the seafloor. Mean net spread values for estimating area swept per tow were calculated according to methods described by @RN910. A custom-made AFSC bottom contact sensor (accelerometer) attached to the center of the footrope was used to determine tow duration based on footrope contact with the seafloor. 
 
 Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station. Average bottom depth was calculated by adding the average net height to the average depth of the headrope. 
 
@@ -69,31 +69,26 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger 
 #                          skip = 1) %>%
 #    dplyr::filter(SRVY %in% SRVY1 & # "EBS" &
 #                    year == maxyr) # 2018 #
-if (sum(!is.na(temp$vessel)) == nrow(temp)) {
-temp <- #temp %>% 
+
+# if (sum(!is.na(temp$vessel)) == nrow(temp)) {
+temp <- 
   dplyr::left_join(#x = .,
-                   # y = 
-                     x = vessel_info %>% 
-                     dplyr::select(vessel, vessel_ital), 
-                   # by = "vessel") %>% 
-  # dplyr::left_join(x = ., 
-                y = haul_maxyr %>%
-                # y = haul %>% 
-                #   dplyr::filter(year == 2018) %>% 
-                                dplyr::select(SRVY, haul, vessel, net_measured) %>% 
-                                dplyr::distinct() %>% 
-                                dplyr::group_by(SRVY, vessel, net_measured) %>% 
-                                dplyr::summarize(n = n()) %>% 
-                  tidyr::pivot_wider(id_cols = c("vessel", "SRVY"),
-                                     names_from = "net_measured", 
-                                     values_from = "n"), 
-                by = c("vessel"#, "SRVY"
-                       )) %>% 
-  dplyr::arrange(vessel_name)
-}
+    x = vessel_info %>% 
+      dplyr::select(vessel, vessel_ital), 
+    y = haul_maxyr %>%
+      dplyr::select(SRVY, haul, vessel, net_measured) %>% 
+      dplyr::distinct() %>% 
+      dplyr::group_by(SRVY, vessel, net_measured) %>% 
+      dplyr::summarize(n = n()) %>% 
+      tidyr::pivot_wider(id_cols = c("vessel", "SRVY"),
+                         names_from = "net_measured", 
+                         values_from = "n"), 
+    by = c("vessel")) %>% 
+  dplyr::arrange(vessel_ital)
+# }
 
 
-str <- c()
+str0 <- c()
 # if equations were estimated
 if (sum(!is.na(temp$vessel)) == nrow(temp)) {
 
@@ -101,13 +96,13 @@ if (sum(!is.na(temp$vessel)) == nrow(temp)) {
     temp0 <- temp %>% 
       dplyr::filter(!is.na(N) & 
                       SRVY == unique(temp$SRVY)[i])
-  str <- paste0(str, 
+  str0 <- paste0(str0, 
                 "In the ",unique(temp$SRVY)[i],
                 ", the net mensuration system failed to record data for ", 
                 NMFSReports::text_list(paste0(xunits(temp0$N), " tows on the ", temp0$vessel_ital)), ". ")
   }
   
-  str <- paste0(str, "To estimate these missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), and $s$ is the scope, inversed, below.
+  str0 <- paste0(str0, "To estimate these missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), and $s$ is the scope, inversed, below.
 
 $$ w \\sim {s}^{-1} + h + \\frac{h}{s} $$
 
@@ -115,7 +110,7 @@ $$ w \\sim {s}^{-1} + h + \\frac{h}{s} $$
 }
 ```
 
-`r str `
+`r str0 `
 
 ```{r}
 # str <- c()
@@ -169,10 +164,9 @@ $$ w \\sim {s}^{-1} + h + \\frac{h}{s} $$
 ## EBS Sampling Logistics and Stratification Scheme
 
 ```{r}
-# note: typo in haul data:   dplyr::mutate(depth = gsub(pattern = "> 1", replacement = ">1", x = description)) %>%  # TOLEDO - nancy fix?
 
 date_format<- "%B %d, %Y"
-str <- c()
+str0 <- c()
 
 for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
   
@@ -186,10 +180,10 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
     unique() %>% 
     group_by(year, survey_name, vessel, vessel_name, 
              vessel_ital, SRVY, SRVY_long) %>% 
-    dplyr::summarise(start_date_cruise = min(start_date_cruise), 
-                     end_date_cruise = max(end_date_cruise), 
-                     start_date_haul = min(start_date_haul), 
-                     end_date_haul = max(end_date_haul))
+    dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise), format = "%m/%d/%Y"), 
+                     end_date_cruise = as.Date(max(end_date_cruise), format = "%m/%d/%Y"), 
+                     start_date_haul = as.Date(min(start_date_haul), format = "%m/%d/%Y"), 
+                     end_date_haul = as.Date(max(end_date_haul), format = "%m/%d/%Y")) 
   
   temp <- "" # paste0("of the ", srvy, ", which ")
   
@@ -234,23 +228,21 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
              length(unique(cruises_maxyr0$end_date_haul)) == 1) {
     # 4. vessels started on different dates and ended on the same dates
     temp <- paste0(temp, "the survey started ", 
-                   
                    NMFSReports::text_list(paste0("on ", 
                                                  format(cruises_maxyr0$start_date_haul, 
                                                         format = date_format) , 
                                                  " for the ", cruises_maxyr0$vessel_ital) ), 
                    " and ended for ", 
-                   
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
                           "the vessel", "both vessels"), 
                    " on ",
-                   format(unique(cruises_maxyr0$end_date_haul), 
+                   format((unique(cruises_maxyr0$end_date_haul)), 
                           format = date_format) )
   }
-  str = c(str, temp)
+  str0 = c(str0, temp)
 }
 
-str <- data.frame(str = str, 
+str0 <- data.frame(str = str0, 
                   SRVY = unique(cruises_maxyr$SRVY))
 ```
 

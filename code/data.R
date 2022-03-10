@@ -513,6 +513,7 @@ stratum_info <-
   dplyr::left_join(
     x = stratum_info, 
     y = haul_maxyr %>% 
+      dplyr::distinct(stratum, stationid, stationid) %>% 
       dplyr::select(stratum, stationid) %>% 
       dplyr::group_by(stratum) %>% 
       dplyr::summarise(count(stratum)) %>% 
@@ -1349,11 +1350,12 @@ temp1 <- catch_haul_cruises_maxyr %>%
 z <-  temp1 %>% 
   tidyr::complete(species_code, 
                   nesting(SRVY, cruise, haul, #vessel, 
-                          year, hauljoin, stratum, stationid, distance_fished, net_width)) %>%
+                          year, hauljoin, stratum, stationid, 
+                          distance_fished, net_width)) %>%
   dplyr::select(SRVY, cruise, hauljoin, haul, #vessel, 
-                year, species_code, weight, number_fish, stratum, stationid, distance_fished, net_width) %>%
+                year, species_code, weight, number_fish, stratum, 
+                stationid, distance_fished, net_width) %>%
   tidyr::replace_na(list(weight = 0, number_fish = 0))
-
 
 
 catch_with_zeros <- 
