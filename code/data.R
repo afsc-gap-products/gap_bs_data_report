@@ -91,6 +91,15 @@ for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
 # *** Load Documents from Google Drive -----------------------------------------
 
+
+# ssl_drive_id <- "1gJbb2qoqXMPFGwuk65b1HsazoMptLU6j"
+# as_dribble(as_id(ssl_drive_id)) %>% 
+#   drive_ls() %>% 
+#   group_nest(row_number()) %>% 
+#   pull(data) %>% 
+#   walk(~ drive_download(.x$id, path = here::here("spatial_data", "shp_files", .x$name)))
+
+
 id_googledrive <- googledrive::as_id(dir_googledrive)
 
 if (googledrive_dl) {
@@ -647,9 +656,16 @@ haul_cruises_compareyr <- temp(haul_cruises_vess_compareyr)
 
 # *** catch --------------------------------------------------------------------
 
-## assigns groups based on species code
-## 2 "other crab" groups because species codes 69010: 69200 are hermit crabs
-catch <-  catch0
+# ## there should only be one species_code observation per haul event, however
+# ## there are occassionally multiple (with unique catchjoins). 
+# ## I suspect that this is because a species_code was updated or changed, 
+# ## so we will need to sum those counts and weights
+
+catch <-  catch0 %>% 
+  dplyr::group_by(region, cruisejoin, hauljoin, vessel, haul, species_code) %>% 
+  dplyr::summarise(weight = sum(weight, na.rm = TRUE), 
+                   number_fish = sum(number_fish, na.rm = TRUE)) %>% 
+  dplyr::ungroup()
 
 
 # *** catch_haul_cruises_maxyr + maxyr-1-----------------------------------------------
@@ -679,8 +695,10 @@ temp <- function(cruises_, haul_, catch){
       y = catch %>% 
         dplyr::select(cruisejoin, hauljoin,
                       species_code, weight,
-                      number_fish, subsample_code), 
-      by = c("hauljoin", "cruisejoin")) 
+                      number_fish), # , subsample_code 
+      by = c("hauljoin", "cruisejoin"))
+  
+  return(catch_haul_cruises_)
 }
 
 catch_haul_cruises <- temp(cruises, haul, catch)
@@ -1329,6 +1347,8 @@ sizecomp_compareyr<-sizecomp %>%
 
 ## *** Total Biomass ---------------------------------------------------------------
 
+calc_cpue_bio <- function(catch_haul_cruises0){
+
 # for tech memo table: calculate biomass for fish and invert taxa in table 7
 # Created by: Rebecca Haehn
 # Contact: rebecca.haehn@noaa.gov
@@ -1344,30 +1364,38 @@ sizecomp_compareyr<-sizecomp %>%
 
 # *** *** create zeros table for CPUE calculation ---------------------------------
 # zeros table so every haul/vessel/year combination includes a row for every species caught (combine)
-temp1 <- catch_haul_cruises_maxyr %>%
-  dplyr::filter(species_code < 99991)
-
-z <-  temp1 %>% 
-  tidyr::complete(species_code, 
-                  nesting(SRVY, cruise, haul, #vessel, 
-                          year, hauljoin, stratum, stationid, 
-                          distance_fished, net_width)) %>%
-  dplyr::select(SRVY, cruise, hauljoin, haul, #vessel, 
-                year, species_code, weight, number_fish, stratum, 
-                stationid, distance_fished, net_width) %>%
-  tidyr::replace_na(list(weight = 0, number_fish = 0))
+  
+  temp1 <- catch_haul_cruises0 #%>% 
+    # dplyr::group_by(year, SRVY, cruisejoin, hauljoin, stationid, stratum, haul, cruise, 
+    #                 species_code, distance_fished, net_width) %>% 
+    # dplyr::summarise(weight = sum(weight, na.rm = TRUE), 
+    #                  number_fish = sum(number_fish, na.rm = TRUE))
+    
+  if (is.numeric(catch_haul_cruises0$species_code)) {
+    temp1 <- temp1 %>%
+      dplyr::filter(species_code < 99991)
+  }
+  
+  z <-  temp1 %>% 
+    tidyr::complete(species_code, 
+                    nesting(SRVY, cruise, haul, #vessel, 
+                            year, hauljoin, stratum, stationid, 
+                            distance_fished, net_width)) %>%
+    dplyr::select(SRVY, cruise, hauljoin, haul, #vessel, 
+                  year, species_code, weight, number_fish, stratum, 
+                  stationid, distance_fished, net_width) %>%
+    tidyr::replace_na(list(weight = 0, number_fish = 0))
 
 
 catch_with_zeros <- 
   dplyr::full_join(x = temp1, 
                    y = z, 
-                   by = c("SRVY", "cruise", "hauljoin", "haul", #"vessel", 
+                   by = c("SRVY", "cruise", "hauljoin", "haul", 
                           "year", "species_code", "stratum", "stationid", 
                           "distance_fished", "net_width")) %>%
-  dplyr::select(-weight.y, -number_fish.y, -gear_depth, # -abundance_haul, 
+  dplyr::select(-weight.y, -number_fish.y, -gear_depth, 
                 -duration, -net_height) %>%
-  dplyr::arrange(year, haul, species_code #,VESSEL
-  ) %>%
+  dplyr::arrange(year, haul, species_code) %>%
   dplyr::rename(weight_kg = weight.x, number_fish = number_fish.x) %>%
   tidyr::replace_na(list(weight_kg = 0, number_fish = 0))
 
@@ -1391,7 +1419,7 @@ cpue_by_stratum <- catch_with_zeros %>%
   dplyr::arrange(stratum, species_code) %>%
   dplyr::group_by(SRVY, species_code, year, stratum, area) %>%
   dplyr::summarise( 
-    cpue_kgha_strat = mean(cpue_kgha), #weight_kg/effort, 
+    cpue_kgha_strat = mean(cpue_kgha, na.rm = TRUE), #weight_kg/effort, 
     cpue_kgha_var = ifelse(n() <= 1, 0, var(cpue_kgha)/n()),
     num_hauls = n(),     # num_hauls = ifelse(num == 1, 1, (num-1)),
     total_area = sum(unique(area))) %>%
@@ -1406,7 +1434,7 @@ cpue_by_stratum <- catch_with_zeros %>%
 
 # ## CANNOT use biomass_*** tables bc they don't contain the info for all species (ie: no poachers, blennies, lumpsuckers, eelpouts, etc.)
 
-biomass_by_stratum <- cpue_by_stratum %>%
+biomass_by_stratum <- biomass_cpue_by_stratum <- cpue_by_stratum %>%
   dplyr::mutate(
     biomass_mt = cpue_kgha_strat * (area * 0.1), 
     bio_var = (area^2 * cpue_kgha_var/100), 
@@ -1424,4 +1452,13 @@ total_biomass <- biomass_by_stratum %>%
   ungroup() %>%
   dplyr::group_by(SRVY) %>% 
   dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE))
+
+return(list("biomass_cpue_by_stratum" = biomass_cpue_by_stratum, 
+            "total_biomass" = total_biomass))
+
+}
+
+a<-calc_cpue_bio(catch_haul_cruises0 = catch_haul_cruises_maxyr)
+biomass_cpue_by_stratum <- cpue_by_stratum <- biomass_by_stratum <- a$biomass_cpue_by_stratum
+total_biomass <- a$total_biomass
 

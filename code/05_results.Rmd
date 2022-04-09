@@ -546,9 +546,9 @@ if (SRVY == "NEBS") {
                            paste0("tab_biomass_est_fish_", SRVY1[i])][[1]]$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
       dplyr::filter(is.na(taxon) |
-                      grepl(pattern = "Total ", x = taxon, ignore.case = TRUE )) %>% 
-      dplyr::filter(!grepl(pattern = "Total ", x = group, ignore.case = TRUE ) &
-                      !grepl(pattern = "Other ", x = group, ignore.case = TRUE )) %>% 
+                      grepl(pattern = "Total", x = taxon, ignore.case = TRUE )) %>% 
+      dplyr::filter(!grepl(pattern = "Total", x = group, ignore.case = TRUE ) &
+                      !grepl(pattern = "Other", x = group, ignore.case = TRUE )) %>% 
       dplyr::select(SRVY, group, `999`, prop) %>% 
       dplyr::arrange(-prop) %>% 
       dplyr::mutate(order = 1:nrow(.)) %>% 
@@ -559,7 +559,7 @@ if (SRVY == "NEBS") {
     tidyr::pivot_wider(id_cols = c("group"), 
                        names_from = "SRVY", 
                        values_from = c("999", "prop", "order")) %>%
-    dplyr::mutate(same =ifelse(order_EBS == order_NBS, TRUE, FALSE))
+    dplyr::mutate(same = ifelse(order_EBS == order_NBS, TRUE, FALSE))
   
   # temp2
   temp2 <- data.frame()
@@ -586,8 +586,7 @@ if (SRVY == "NEBS") {
       x = ., 
       y = spp_info_maxyr %>% 
         dplyr::select(species_name, common_name), 
-      by = c("taxon" = "common_name")
-    )
+      by = c("taxon" = "common_name")  )
   
   # temp3: top 3 spp in each group
   temp3 <- data.frame()

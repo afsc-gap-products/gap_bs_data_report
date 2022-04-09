@@ -12,7 +12,7 @@
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
 workfaster <- TRUE # an attempt to satisfy limited patience
-refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
+refcontent <- F # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
@@ -34,7 +34,7 @@ SRVY<-"NEBS"
 ref_compareyr <- "@RN976"
 # ref_compareyr <- "@RN909"
 ref_maxyr_npfmc <- "@NPFMC2016" # temp
-dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
+# dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
 # maxyr <- 2018 # NOTE RAPID RESPONCE
 # compareyr <- 2016
@@ -50,12 +50,12 @@ dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.co
 # ref_maxyr_npfmc <- "@NPFMC2018" # temp
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-# maxyr <- 2021
-# compareyr <- 2019
-# SRVY<-"NEBS"
-# ref_compareyr <- "@2019NEBSStevenson2022" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2019" # temp
-# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+maxyr <- 2021
+compareyr <- 2019
+SRVY<-"NEBS"
+ref_compareyr <- "@2019NEBSStevenson2022" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2019" # temp
+dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
 # compareyr <- 2021
@@ -80,6 +80,8 @@ source('./code/functions.R')
 
 source('./code/data.R')
 
+# csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/american-fisheries-society.csl")
+# readr::write_lines(x = csl, file = "./cite/citestyle.csl")
 
 # *** REPORT TITLE -------------------------------------------------------------
 report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY),
@@ -97,13 +99,13 @@ report_authors <- 'D. Stevenson, E. H. Markowitz, E. J. Dawson, N. Charriere, B.
 
 # *** Figures and Tables ------------------------
 # - run figures and tables before each chapter so everything works smoothly
-  
+
 report_spp1 <- add_report_spp(spp_info = spp_info, 
-                                spp_info_codes = "species_code", 
-                                report_spp = report_spp, 
-                                report_spp_col = "order", 
-                                report_spp_codes = "species_code", 
-                                lang = FALSE)
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "order", 
+                              report_spp_codes = "species_code", 
+                              lang = FALSE)
 
 cnt_chapt_content<-"000"
 
@@ -129,10 +131,10 @@ if (FALSE) {
   }
   
   # *** *** Appendix --------------------------------------------
-    filename0<-paste0(cnt_chapt, "_")
-    rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
-                      output_dir = dir_out_ref,
-                      output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+  filename0<-paste0(cnt_chapt, "_")
+  rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
+                    output_dir = dir_out_ref,
+                    output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
   # *** *** Save --------------------------------------------
   save(list_figures,
@@ -241,7 +243,7 @@ rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
 # - run figures and tables before each chapter so everything works smoothly
 if (FALSE) {
   
-    report_spp1 <- add_report_spp(spp_info = spp_info, 
+  report_spp1 <- add_report_spp(spp_info = spp_info, 
                                 spp_info_codes = "species_code", 
                                 report_spp = report_spp, 
                                 report_spp_col = "order", 
@@ -255,7 +257,7 @@ if (FALSE) {
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-
+  
   
   
   for (jj in 1:length(unique(report_spp1$file_name))) {
