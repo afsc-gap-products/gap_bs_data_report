@@ -140,7 +140,8 @@ a <- a[!(grepl(pattern = "biomass_", x = a)) &
          !(grepl(pattern = "sizecomp_", x = a)) & 
          !(grepl(pattern = "_ADFG", x = a))]
 for (i in 1:length(a)){
-  b <- read_csv(file = paste0(here::here("data", "oracle", a[i])))
+  b <- readr::read_csv(file = paste0(here::here("data", "oracle", a[i])), 
+                       show_col_types = FALSE)
   b <- janitor::clean_names(b)
   if (names(b)[1] %in% "x1"){
     b$x1<-NULL
@@ -162,7 +163,7 @@ a<-list.files(path = paste0(dir_data, "/oracle/"),
               full.names = TRUE)
 
 for (i in 1:length(a)){
-  b <- read_csv(file = a[i])
+  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
   b <- janitor::clean_names(b)
   if (names(b)[1] %in% "x1"){
     b$x1<-NULL
@@ -228,7 +229,7 @@ a<-list.files(path = paste0(dir_data, "/oracle/"),
               full.names = TRUE)
 
 for (i in 1:length(a)){
-  b <- read_csv(file = a[i])
+  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
   b <- janitor::clean_names(b)
   if (names(b)[1] %in% "x1"){
     b$x1<-NULL
@@ -263,7 +264,7 @@ cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whe
 # *** report_spp and spp_info ---------------------------------------------------------------
 
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
-                              skip = 1) %>% 
+                              skip = 1, show_col_types = FALSE) %>% 
   dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", 
                                                   x = report_title), "datar_", "community_")))) # %>%
 # dplyr::filter(!grepl(pattern = "other ", x = group) &
@@ -775,36 +776,18 @@ length_data <- v_extract_final_lengths0 %>%
 #                   species_code >= 40001 ~ "invert"), )
 
 
-# load crab data
-df.ls<-list()
-a<-list.files(path = paste0(dir_data, "/crab/no_measured/"), 
-              # pattern = paste0("sizecomp_"), 
-              full.names = TRUE)
 
-for (i in 1:length(a)){
-  b <- read_csv(file = a[i])
-  b <- janitor::clean_names(b)
-  if (names(b)[1] %in% "x1"){
-    b$x1<-NULL
-  }
-  b$file <- a[i]
-  df.ls[[i]]<-b
-  names(df.ls)[i]<-a[i]
-}
-
-length_crab <- SameColNames(df.ls) %>% 
-  # dplyr::left_join(
-  #   x = SameColNames(df.ls),
-  # y = station_info %>%
-  #   dplyr::select(stationid, stratum, SRVY) %>%
-  #   unique(),
-  # by = c("station" = "stationid")) %>%
-  dplyr::mutate(SRVY = "NBS", 
-                year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
-  dplyr::select(length, width, sex, #, file, unsexed, males, females, hauljoin, stratum, gis_station, #_mature, females_immature,
-                year, species_code, SRVY, 
-                clutch_size) %>%
-  # dplyr::rename(length = width) %>%
+length_crab <- dplyr::bind_rows(
+  ebscrab0 %>%
+  # readr::read_csv(file = paste0(dir_data, "oracle/ebscrab.csv"), show_col_types = FALSE) %>%
+    dplyr::mutate(SRVY = "EBS"),
+  ebscrab_nbs0 %>%
+  # read_csv(file = paste0(dir_data, "oracle/ebscrab_nbs.csv"), show_col_types = FALSE) %>%
+    dplyr::mutate(SRVY = "NBS") ) %>%
+  janitor::clean_names(.) %>% 
+  dplyr::mutate(year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
+  dplyr::select(sex, length, width, year, species_code, srvy, clutch_size) %>%
+  dplyr::rename(SRVY = srvy) %>%
   dplyr::mutate(sex_code = sex, 
                 sex = dplyr::case_when(
                   sex == 1 ~ "Males",
@@ -812,7 +795,7 @@ length_crab <- SameColNames(df.ls) %>%
                   (clutch_size == 0 & sex == 2) ~ "Females (Immature)", 
                   (clutch_size >= 1 & sex == 2) ~ "Females (Mature)"), 
                 length = dplyr::case_when(
-                  species_code %in% c(68580) ~ width,  # "snow crab"
+                  species_code %in% c(68580, 68590) ~ width,  # "snow crab"
                   TRUE ~ length), 
                 frequency = 1) %>%
   dplyr::select(-width) %>% 
@@ -824,9 +807,64 @@ length_crab <- SameColNames(df.ls) %>%
     taxon = dplyr::case_when(
       species_code <= 31550 ~ "fish", 
       species_code >= 40001 ~ "invert"), 
-    length_type = dplyr::case_when(
-      species_code %in% c(69322, 69323) ~ 7,
-      species_code %in% 68580 ~ 8)) 
+    length_type = dplyr::case_when( # what are other crabs?
+      species_code %in% c(69322, 69323, 69400, 69401) ~ 7, # 7 Length of carapace from back of right eye socket to end of carapace
+      species_code %in% c(68580, 68590) ~ 8  # 8 Width of carapace 
+      ) )
+
+# # load crab data
+# df.ls<-list()
+# a<-list.files(path = paste0(dir_data, "/crab/no_measured/"), 
+#               # pattern = paste0("sizecomp_"), 
+#               full.names = TRUE)
+# 
+# for (i in 1:length(a)){
+#   b <- read_csv(file = a[i])
+#   b <- janitor::clean_names(b)
+#   if (names(b)[1] %in% "x1"){
+#     b$x1<-NULL
+#   }
+#   b$file <- a[i]
+#   df.ls[[i]]<-b
+#   names(df.ls)[i]<-a[i]
+# }
+# 
+# length_crab <- SameColNames(df.ls) %>% 
+#   # dplyr::left_join(
+#   #   x = SameColNames(df.ls),
+#   # y = station_info %>%
+#   #   dplyr::select(stationid, stratum, SRVY) %>%
+#   #   unique(),
+#   # by = c("station" = "stationid")) %>%
+#   dplyr::mutate(SRVY = "NBS", 
+#                 year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
+#   dplyr::select(length, width, sex, #, file, unsexed, males, females, hauljoin, stratum, gis_station, #_mature, females_immature,
+#                 year, species_code, SRVY, 
+#                 clutch_size) %>%
+#   # dplyr::rename(length = width) %>%
+#   dplyr::mutate(sex_code = sex, 
+#                 sex = dplyr::case_when(
+#                   sex == 1 ~ "Males",
+#                   sex == 0 ~ "Unsexed",
+#                   (clutch_size == 0 & sex == 2) ~ "Females (Immature)", 
+#                   (clutch_size >= 1 & sex == 2) ~ "Females (Mature)"), 
+#                 length = dplyr::case_when(
+#                   species_code %in% c(68580) ~ width,  # "snow crab"
+#                   TRUE ~ length), 
+#                 frequency = 1) %>%
+#   dplyr::select(-width) %>% 
+#   dplyr::filter(!is.na(length)) %>% 
+#   dplyr::group_by(sex, sex_code, length, year, species_code, SRVY) %>%
+#   dplyr::summarise(frequency = n()) %>% 
+#   dplyr::ungroup() %>%
+#   dplyr::mutate(
+#     taxon = dplyr::case_when(
+#       species_code <= 31550 ~ "fish", 
+#       species_code >= 40001 ~ "invert"), 
+#     length_type = dplyr::case_when( # what are other crabs?
+#       species_code %in% c(69322, 69323) ~ 7, # 7 Length of carapace from back of right eye socket to end of carapace
+#       species_code %in% 68580 ~ 8)) # 8 Width of carapace 
+
 
 # Combine
 
@@ -835,8 +873,8 @@ length_data <- SameColNames(list(
   "crab" = length_crab))  %>% 
   dplyr::rename(SRVY = srvy) %>% 
   dplyr::left_join(x = .,
-                   y = species0 %>% 
-                     dplyr::select(species_code, common_name),
+                   y = spp_info %>% 
+                     dplyr::select(species_code, common_name, species_name),
                    by = "species_code") %>% 
   ungroup()
 
@@ -1243,7 +1281,7 @@ a<-list.files(path = paste0(dir_data, "/oracle/"),
               full.names = TRUE)
 
 for (i in 1:length(a)){
-  b <- read_csv(file = a[i])
+  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
   b <- janitor::clean_names(b)
   if (names(b)[1] %in% "x1"){
     b$x1<-NULL
@@ -1276,7 +1314,7 @@ a<-list.files(path = paste0(dir_data, "/crab/sizecomp/"),
               full.names = TRUE)
 
 for (i in 1:length(a)){
-  b <- read_csv(file = a[i])
+  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
   b <- janitor::clean_names(b)
   if (names(b)[1] %in% "x1"){
     b$x1<-NULL
