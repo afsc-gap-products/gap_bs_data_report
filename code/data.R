@@ -742,52 +742,22 @@ length_data <- v_extract_final_lengths0 %>%
   dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) # Total for each species
   # dplyr::select(species_code, total_lengths) 
 
-
-# length_data <- 
-#   # dplyr::left_join(
-#   #   x = haul %>% 
-#   #     dplyr::select(cruisejoin, hauljoin, stationid, stratum, haul, cruise), 
-#   #   y = cruises %>% 
-#   #     dplyr::select(cruisejoin, survey_name, SRVY),  
-#   #   by = c("cruisejoin")) %>% 
-#   dplyr::left_join(
-#     x= haul0 %>% # should exclude special project and bad tows
-#       dplyr::select(haul, cruise)  %>% 
-#       dplyr::filter(region == SRVY0) %>%
-#       dplyr::mutate(SRVY = dplyr::case_when(
-#         survey_definition_id %in% 143 ~ "NBS",
-#         survey_definition_id %in% 98 ~ "EBS" )) %>% 
-#       dplyr::mutate(year = substr(x = cruise, start = 1, stop = 4)) %>% 
-#     # x= haul %>% # should exclude special project and bad tows
-#     #   dplyr::select(haul, cruise, year, SRVY) %>% 
-#       dplyr::distinct(), 
-#     y = v_extract_final_lengths0 %>% 
-#       dplyr::filter(region == SRVY0) %>% 
-#       dplyr::select(-vessel),
-#     by = c("haul", "cruise")) %>% 
-#   # dplyr::select(-vessel, -survey_name, -cruisejoin, -hauljoin) %>%
-#   dplyr::mutate(sex_code = sex, 
-#                 sex = dplyr::case_when(
-#                   sex_code == 1 ~ "Males", 
-#                   sex_code == 2 ~ "Females", 
-#                   sex_code == 3 ~ "Unsexed"), 
-#                 taxon = dplyr::case_when(
-#                   species_code <= 31550 ~ "fish", 
-#                   species_code >= 40001 ~ "invert"), )
-
-
-
 length_crab <- dplyr::bind_rows(
   ebscrab0 %>%
-  # readr::read_csv(file = paste0(dir_data, "oracle/ebscrab.csv"), show_col_types = FALSE) %>%
+    dplyr::filter(!(cruise %in% unique(ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
     dplyr::mutate(SRVY = "EBS"),
   ebscrab_nbs0 %>%
-  # read_csv(file = paste0(dir_data, "oracle/ebscrab_nbs.csv"), show_col_types = FALSE) %>%
-    dplyr::mutate(SRVY = "NBS") ) %>%
-  janitor::clean_names(.) %>% 
+    dplyr::mutate(SRVY = "NBS") ) %>% 
+  dplyr::left_join(
+    x = .,
+    y = haul %>% 
+      dplyr::select(SRVY, hauljoin, haul_type, abundance_haul, performance),
+    by = c("hauljoin", "SRVY")) %>%
+  dplyr::filter(
+    abundance_haul == "Y" &
+      performance >= 0 &
+      haul_type %in% c(3)) %>% # standard stations #17, # resample stations
   dplyr::mutate(year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
-  dplyr::select(sex, length, width, year, species_code, srvy, clutch_size) %>%
-  dplyr::rename(SRVY = srvy) %>%
   dplyr::mutate(sex_code = sex, 
                 sex = dplyr::case_when(
                   sex == 1 ~ "Males",
@@ -795,12 +765,12 @@ length_crab <- dplyr::bind_rows(
                   (clutch_size == 0 & sex == 2) ~ "Females (Immature)", 
                   (clutch_size >= 1 & sex == 2) ~ "Females (Mature)"), 
                 length = dplyr::case_when(
-                  species_code %in% c(68580, 68590) ~ width,  # "snow crab"
+                  species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
                   TRUE ~ length), 
                 frequency = 1) %>%
   dplyr::select(-width) %>% 
-  dplyr::filter(!is.na(length)) %>% 
-  dplyr::group_by(sex, sex_code, length, year, species_code, SRVY) %>%
+  dplyr::filter(!is.na(length) & length != 999 & !is.na(cruise)) %>% 
+  dplyr::group_by(year, species_code, SRVY, sex, sex_code, length) %>%
   dplyr::summarise(frequency = n()) %>% 
   dplyr::ungroup() %>%
   dplyr::mutate(
@@ -808,9 +778,25 @@ length_crab <- dplyr::bind_rows(
       species_code <= 31550 ~ "fish", 
       species_code >= 40001 ~ "invert"), 
     length_type = dplyr::case_when( # what are other crabs?
-      species_code %in% c(69322, 69323, 69400, 69401) ~ 7, # 7 Length of carapace from back of right eye socket to end of carapace
-      species_code %in% c(68580, 68590) ~ 8  # 8 Width of carapace 
-      ) )
+      species_code %in% c(68580, 68590, 68560) ~ 8,  # 8 Width of carapace 
+      TRUE ~ 7 # 7 Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
+    ) ) 
+
+# # Review
+# length_crab0 <- length_crab %>% 
+#   dplyr::filter(year == maxyr) %>% 
+#   dplyr::select(SRVY, species_code, frequency) %>% 
+#   dplyr::group_by(SRVY, species_code) %>% # also type?
+#   dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
+#   dplyr::ungroup() %>% 
+#   tidyr::pivot_wider(data = ., id_cols = "species_code", names_from = "SRVY", values_from = "length") %>%
+#   dplyr::left_join(
+#     x = ., 
+#     y = species0 %>% 
+#       dplyr::select(species_code, common_name, species_name), 
+#     by = "species_code") %>% 
+#   dplyr::mutate(species_code = as.factor(species_code)) %>% 
+#   dplyr::relocate(common_name, species_name, species_code, EBS, NBS) 
 
 # # load crab data
 # df.ls<-list()

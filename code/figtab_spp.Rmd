@@ -30,11 +30,11 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 
 ```{r data_wrangle}
 # find basic info about species
-haul0 <- catch_haul_cruises %>% 
-  dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
-                "bottom_depth", "gear_temperature" ,"surface_temperature", 
-                "survey_name", "SRVY", "year", "species_code", 
-                "weight", "number_fish", "hauljoin")
+# haul0 <- catch_haul_cruises %>% 
+#   dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
+#                 "bottom_depth", "gear_temperature" ,"surface_temperature", 
+#                 "survey_name", "SRVY", "year", "species_code", 
+#                 "weight", "number_fish", "hauljoin")
 
 haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea"] <- "southeastern Bering Sea"
 
@@ -249,7 +249,7 @@ if (spp_plot_sizecomp) {
   sizecomp0 <- sizecomp %>%
       dplyr::filter(species_code %in% spp_code &
                       SRVY %in% SRVY1 &
-                      year %in% nbsyr)
+                      year %in% c(compareyr, maxyr))
   
   if (SRVY == "NEBS") {
   sizecomp0 <- dplyr::bind_rows(
@@ -455,6 +455,19 @@ for (i in 1:2) {
     biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass)
     varbio0<-find_units(unit = "", unt = "", table_raw$varbio)
     
+        header <- paste0("Mean CPUE by weight",meanwgtcpue0$unit_word,
+                         " with standard deviation",varmnwgtcpue0$unit_word,
+                         ", and estimated biomass",biomass0$unit_word,
+                         " with standard deviation",varbio0$unit_word,
+                         " and 95% lower (LCL) and upper (UCL) confidence limits for ",
+                     spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")),
+                     " by stratum for the ",maxyr," ",
+                     NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY,
+                                                   " (",
+                                                   haul_cruises_maxyr$stations_completed,
+                                                   " stations completed)")),
+                     " Shelf Trawl Surveys. Differences in sums of estimates and totals are due to rounding.")
+    
     table_print <- table_raw %>% 
       dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>%
       dplyr::mutate(varmnwgtcpue = varmnwgtcpue/varmnwgtcpue0$divby) %>%
@@ -492,6 +505,9 @@ for (i in 1:2) {
       theme_flextable_nmfstm(row_lines = FALSE)
     }
   } else { # CPUE No/HA and POPULATION
+    
+    
+    
     nickname <- paste0(nickname0, "num")
     header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
                      NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, 
@@ -510,10 +526,22 @@ for (i in 1:2) {
     
     if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
       
-    varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue)
     meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue)
+    varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue)
     population0 <- find_units(unit = "", unt = "", table_raw$population)
     varpop0 <- find_units(unit = "", unt = "", table_raw$varpop)
+    
+        header <- paste0("Mean CPUE by number", meannumcpue0$unit_word,
+                         " with standard deviation", varmnnumcpue0$unit_word,
+                         " , and estimated population", population0$unit_word,
+                         "  with standard deviation", varpop0$unit_word,
+                         "  and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
+                     NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, 
+                                                   " shelf (", 
+                                                   haul_cruises_maxyr$SRVY, "; ",
+                                                   haul_cruises_maxyr$stations_completed,
+                                                   " stations completed)")),
+                     " trawl survey. Differences in sums of estimates and totals are due to rounding.")
     
     table_print <- table_raw %>% 
       dplyr::mutate(meannumcpue = meannumcpue/meannumcpue0$divby) %>%

@@ -1780,7 +1780,8 @@ plot_sizecomp <- function(sizecomp0,
   
   table_raw <- sizecomp0 %>%
     dplyr::mutate(sex = stringr::str_to_title(
-      gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) 
+      gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) %>% 
+    dplyr::arrange(year, SRVY, sex, length)
   
   table_raw$year <- factor(
     x = table_raw$year,
