@@ -11,7 +11,7 @@
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
-workfaster <- TRUE # an attempt to satisfy limited patience
+workfaster <- FALSE # an attempt to satisfy limited patience
 refcontent <- F # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
@@ -27,13 +27,13 @@ font0 <- "Arial Narrow"
 # ref_compareyr_nbs <- "@RN909" # temp
 # ref_maxyr_npfmc <- "@NPFMC2015" # temp
 
-maxyr <- 2017 # or the year of the report, for example
-compareyr <- 2010
+# maxyr <- 2017 # or the year of the report, for example
+# compareyr <- 2010
+# # SRVY<-"NEBS"
 # SRVY<-"NEBS"
-SRVY<-"NEBS"
-ref_compareyr <- "@RN976"
-# ref_compareyr <- "@RN909"
-ref_maxyr_npfmc <- "@NPFMC2016" # temp
+# ref_compareyr <- "@RN976"
+# # ref_compareyr <- "@RN909"
+# ref_maxyr_npfmc <- "@NPFMC2016" # temp
 # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
 # maxyr <- 2018 # NOTE RAPID RESPONCE
@@ -50,11 +50,11 @@ ref_maxyr_npfmc <- "@NPFMC2016" # temp
 # ref_maxyr_npfmc <- "@NPFMC2018" # temp
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-# maxyr <- 2021
-# compareyr <- 2019
-# SRVY<-"NEBS"
-# ref_compareyr <- "@2019NEBSStevenson2022" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2019" # temp
+maxyr <- 2021
+compareyr <- 2019
+SRVY<-"NEBS"
+ref_compareyr <- "@2019NEBSStevenson2022" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2019" # temp
 dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
@@ -137,7 +137,6 @@ if (FALSE) {
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
   # *** *** Save --------------------------------------------
-  list_figures
   save(list_figures,
        file=paste0(dir_out_figures, "/report_figures.rdata"))
   
