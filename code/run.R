@@ -11,7 +11,7 @@
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
-workfaster <- FALSE # an attempt to satisfy limited patience
+workfaster <- TRUE # an attempt to satisfy limited patience
 refcontent <- F # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
@@ -53,14 +53,14 @@ font0 <- "Arial Narrow"
 maxyr <- 2021
 compareyr <- 2019
 SRVY<-"NEBS"
-ref_compareyr <- "@2019NEBSStevenson2022" # CHANGE
+ref_compareyr <- "@2019NEBS2022" # CHANGE
 ref_maxyr_npfmc <- "@NPFMC2019" # temp
 dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
 # compareyr <- 2021
 # SRVY<-"NEBS"
-# ref_compareyr <- "@2021NEBSStevenson2022" # CHANGE
+# ref_compareyr <- "@2021NEBS2022" # CHANGE
 # ref_maxyr_npfmc <- "@NPFMC2021" # temp
 # dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
@@ -108,6 +108,9 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               lang = FALSE)
 
 cnt_chapt_content<-"000"
+
+full_page_portrait_width <- 6.5
+full_page_portrait_height <- 7
 
 if (FALSE) {
   # *** *** General figures --------------------------------------------

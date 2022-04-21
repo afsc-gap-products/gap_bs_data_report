@@ -24,16 +24,17 @@ nickname <- "fig_sample_grid"
 subobj <- FALSE
 
 # header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined in the dark gray line are the NBS stations that were sampled in ",maxyr,". The dots within each area indicate each station location.") # TOLEDO
-width <- 6.5
-height <- 6
 
+  height <- full_page_portrait_height # height <- 6
+  width <- full_page_portrait_width # width <- 6.5
 
 figure <- plot_survey_stations(reg_dat = reg_dat, 
                                station_info = station_info, 
                                haul_cruises_maxyr = haul_cruises_maxyr, 
                                station_grid = TRUE, 
                                stratum_no = FALSE, 
-                               station_pts_srvy = FALSE)
+                               station_pts_srvy = FALSE, 
+                               place_labels = FALSE)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -49,19 +50,14 @@ list_figures[nickname][[1]]$res <- res
 
 ## fig_sampled_survey_stations
 
-### How do I know what stations were retowed?
-
-### Do I show stations missed?
-
-### issue with V in 2018
-
 ```{r fig_sampled_survey_stations}
 # header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY)," continental shelf bottom trawl surveys.")
 nickname <- "fig_sampled_survey_stations"
 header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY)," continental shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), ". The map also depicts the stations sampled by each survey vessel and where, if any, Norton Sound crab resampling was done.")
 # header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined in the dark gray line are the NBS stations that were sampled in ",maxyr,". The dots within each area indicate each station location.") # TOLEDO
-width <- 6.5
-height <- 6
+
+  height <- full_page_portrait_height # height <- 6
+  width <- full_page_portrait_width # width <- 6.5
 
 reg_dat0 <- reg_dat
 reg_dat0$survey.grid <- 
@@ -130,8 +126,9 @@ list_figures[nickname][[1]]$res <- res
 header <- paste0("Photographs of the _F/V Vesteraalen_ (left) and _F/V Alaska Knight_ (right).")
 alttext <- paste0("Photographs of the fishing vessels _Vesteraalen_ (left) and _Alaska Knight_ (right), which were chartered for the ",maxyr," survey.")
 nickname <- "fig_vessels"
+
 height <- 2.5
-width <- 6.5
+width <- full_page_portrait_width # width <- 6.5
 
 # Select data and make plot
 p1 <- 
@@ -169,7 +166,7 @@ footnote<- NA
 nickname <- "fig_trawl_gear"
 alttext <- paste0(header)
 height = 8
-width <- 6.5
+width <- full_page_portrait_width # width <- 6.5
 
 # Select data and make plot
 figure <- 
@@ -395,7 +392,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::bold(x = ., i = which(table_print$common_name == "Total")) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
-    theme_flextable_nmfstm(font = font0, x = .)
+    theme_flextable_nmfstm(font = font0, x = .) 
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -473,14 +470,17 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::set_header_labels(.,
                                  print_name = "Common name", 
                                  # species_name = "Scientific name", 
-                                 oto_rules = "Collect when \u2265 n individuals caught in each haul",
+                                 oto_rules = "Collect when \u2265 n individuals\n caught in each haul",
                                  oto_target = "Target collection number per haul") %>%
     # flextable::compose(
     #   i = ~ !is.na(group), # when var_group not NA
     #   j = " ", # on column "var"
     #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
     # hline(i = ~ !is.na(SRVY), border = officer::fp_border() ) %>%
-    NMFSReports::theme_flextable_nmfstm(font = font0, x = ., row_lines = TRUE) 
+    NMFSReports::theme_flextable_nmfstm(font = font0, x = ., row_lines = TRUE)  %>%
+    flextable::padding(x = .,
+                       j = 1, i = ~ is.na(oto_samp_type),
+                       padding.left = 5)
   
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -592,16 +592,18 @@ table_print <- table_raw %>%
   flextable::as_grouped_data(groups = c("SRVY"), columns = NULL) %>% 
   flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-  # flextable::padding(x = ., 
-  #                    j = 1, i = ~ is.na(SRVY), 
-  #                    padding.left = 20) %>%
+
   theme_flextable_nmfstm(font = font0, row_lines = TRUE) %>% 
   flextable::width(x = ., j = "Agency", width = 1.5) %>%
   flextable::width(x = ., j = "Principal investigator", width = 1.5) %>%
   flextable::width(x = ., j = "Project Title", width = 4) %>% 
   # flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
-  flextable::footnote(x = ., value = as_paragraph(footnote0), part = "header", j = "Agency") 
-
+  flextable::footnote(x = ., value = as_paragraph(footnote0), 
+                      part = "header", j = "Agency")  %>%
+  flextable::padding(x = .,
+                     j = 1, i = ~ is.na(SRVY),
+                     padding.left = 5)
+    
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
 res <- knitr::knit_child(
@@ -630,8 +632,8 @@ nickname <- "fig_mean_temperature"
 header <- paste0("Average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
 alttext <- paste0("Graph showing average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf (left) based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf (right) based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed horizontal lines represent the time series mean.")
 
-width <- 6.5
 height = 3.5
+width <- full_page_portrait_width # 6.5
 
 sebs_temperatures <- coldpool:::cold_pool_index %>%
   dplyr::filter(YEAR <= maxyr) %>%
@@ -739,8 +741,8 @@ alttext <- paste0("Cold pool extent in the EBS, as measured using observations f
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_cold_pool_area"
 
-height = 4
-width <- 6.5
+height <- 4
+width <- full_page_portrait_width # 6.5
 
 sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs",
                                          set.crs = coldpool:::ebs_proj_crs)
@@ -852,18 +854,20 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
-## fig_bt_timeseries_[above or below]
+## fig_bt_temperature_ebs_[above or below]
 
 ### need to figure out how to plot whole NBS
 
-```{r fig_bt_timeseries_}
+```{r fig_bt_temperature_ebs_}
 # nickname0 <- "fig_idw_bottemp_longterm_mean_"
-nickname0 <- "fig_bt_timeseries_"
+nickname0 <- "fig_bt_temperature_ebs_"
 
 for (i in 1:2) { # two cases, above and below
   
-  height <- 10.5
-  width <- 8
+  # height <- 10.5
+  # width <- 8
+  height <- full_page_portrait_height # 7
+  width <- full_page_portrait_width # 6.5
   
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
@@ -884,29 +888,15 @@ for (i in 1:2) { # two cases, above and below
   rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
                                 subset = paste0("sebs_ste_", year, "_gear_temperature"))
   names(rasterbrick) <- gsub(pattern = "_", replacement = "", x = (gsub(x = names(rasterbrick), pattern = "[a-zA-Z]+", replacement = "")))
-  
-  #     if (length(nbsyr[nbsyr %in% year])>0) {
-  # # Both NBS and EBS
-  #   rasterbrick0 <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
-  #                               subset = paste0("ebs_ste_", nbsyr[nbsyr %in% year], "_gear_temperature"))
-  #   
-  #   names(rasterbrick0) <- gsub(pattern = "_", replacement = "", x = (gsub(x = names(rasterbrick0), pattern = "[a-zA-Z]+", replacement = "")))
-  #   
-  #   
-  #   # rasterbrick[!(names(rasterbrick) %in% paste0("X", nbsyr[nbsyr %in% year]))] <- rasterbrick0[names(rasterbrick0) %in% paste0("X", nbsyr[nbsyr %in% year])]
-  #   
-  #       rasterbrick$X2010 <- rasterbrick0$X2010
-  #   
-  #   }
-  
-  
+
   figure <- plot_temps_facet(
     rasterbrick = rasterbrick,
     key.title = expression(bold("Bottom Temperature (°C)")),
-    reg_dat = reg_dat,
+    reg_dat = report_types$EBS$reg_dat,
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
     viridis_palette_option = "H", 
-    row = ifelse(length(rasterbrick)>6, 3, 4))
+    row = ifelse(length(rasterbrick)>6, 3, 4), 
+    title0 = stringr::str_to_sentence(case))
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -922,20 +912,18 @@ for (i in 1:2) { # two cases, above and below
 }
 ```
 
+## fig_[st or bt]_temperature_nebs_surveys
 
-## fig_st_all_nebs_surveys
-
-
-```{r fig_st_all_nebs_surveys}
+```{r fig_[st or bt]_temperature_nebs_surveys}
 
 if (SRVY == "NEBS") {
   
   for (i in 1:2) { # two cases, above and below
   case <- ifelse(i==1, "bottom", "surface")
-  
-  nickname <- "fig_st_all_nebs_surveys"
-  height <- 7
-  width <- 6.5
+  nickname <- paste0("fig_",ifelse(i==1, "bt", "st"),"_temperature_nebs_surveys")
+
+  height <- full_page_portrait_height
+  width <- full_page_portrait_width
   
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
@@ -987,8 +975,10 @@ if (SRVY == "NEBS"){
   header <- paste0("List of fish taxa from survey catches exclusive to the ",
                    NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
                                                  haul_cruises_maxyr$SRVY, ")")),". ")
-  # Taxa in bold only documented north of 60°N latitude. 
   
+  height <- full_page_portrait_height # 7
+  width <- full_page_portrait_width # 6.5
+
   # Select data and make plot
   table_raw <- catch_haul_cruises_maxyr %>% 
     dplyr::select(species_code, SRVY, 

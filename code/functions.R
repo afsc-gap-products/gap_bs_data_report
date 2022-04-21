@@ -1465,7 +1465,8 @@ plot_temps_facet <- function(rasterbrick,
                              colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
                              dist_unit = "nm", # nautical miles
                              viridis_palette_option = "H", 
-                             row = 2) {
+                             row = 2, 
+                             title0 = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -1505,7 +1506,6 @@ plot_temps_facet <- function(rasterbrick,
                        breaks = reg_dat$lat.breaks) +
     coord_sf(xlim = reg_dat$plot.boundary$x, 
              ylim = reg_dat$plot.boundary$y)  +
-    
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
                    dist = 150,
@@ -1531,6 +1531,13 @@ plot_temps_facet <- function(rasterbrick,
       strip.text = element_text(size = 12, face = "bold"),
       legend.position = "none"
     )
+  
+  
+  
+  if (!is.null(title0)) {
+    figure <- figure +
+      ggplot2::ggtitle(label = title0)
+  }
   
   
   #   Turbo represents a tradeoff between interpretability and accessibility. If it seems like that won't be accessible because of how it's distributed (e.g., faxing), then by all means change it, because it doesn't have linear luminosity and chromaticity. For temperatures, I think it's pretty difficult to distinguish shades of blue. So if you're going to choose an alternative palette, I think it would be great if the cold pool is black (where < 0 is black; e.g., Which would be magma or inferno, whcih have a larger luminance gradient)
@@ -2128,7 +2135,8 @@ plot_survey_stations <- function(reg_dat,
                                  station_pts_srvy = TRUE, 
                                  station_pts_vess = FALSE, 
                                  study = FALSE, 
-                                 dist_unit = "nm") { 
+                                 dist_unit = "nm", 
+                                 place_labels = TRUE) { 
   
   # survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
   #                     as.character(nmfspalette::nmfs_cols("medgray")))
@@ -2312,17 +2320,17 @@ plot_survey_stations <- function(reg_dat,
                        breaks = reg_dat$lon.breaks) + 
     scale_y_continuous(name = "Latitude", 
                        breaks = reg_dat$lat.breaks) +
-    geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
-              aes(x = x, y = y, label = lab), 
-              size = 14, group = 99) + 
-    geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
-                    aes(x = x, y = y, label = lab), size = 5, angle = 40, 
-                    bg.color = "white", color = "black", group = 99) + 
-    geom_shadowtext(
-      data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
-      aes(x = x, y = y, label = lab), 
-      bg.color = "white", color = "black", 
-      size = 2, group = 99) +
+    # geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
+    #           aes(x = x, y = y, label = lab), 
+    #           size = 14, group = 99) + 
+    # geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
+    #                 aes(x = x, y = y, label = lab), size = 5, angle = 40, 
+    #                 bg.color = "white", color = "black", group = 99) + 
+    # geom_shadowtext(
+    #   data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+    #   aes(x = x, y = y, label = lab), 
+    #   bg.color = "white", color = "black", 
+    #   size = 2, group = 99) +
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
                    dist = 150,
@@ -2365,6 +2373,23 @@ plot_survey_stations <- function(reg_dat,
       # legend.margin = margin(6, 6, 6, 6), 
       legend.box = "vertical"
     )
+  
+  
+  
+  if (place_labels) {
+  figure <- figure +
+    geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
+              aes(x = x, y = y, label = lab), 
+              size = 14, group = 99) + 
+    geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
+                    aes(x = x, y = y, label = lab), size = 5, angle = 40, 
+                    bg.color = "white", color = "black", group = 99) + 
+    geom_shadowtext(
+      data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+      aes(x = x, y = y, label = lab), 
+      bg.color = "white", color = "black", 
+      size = 2, group = 99)
+  }
   
   return(figure)
 }
