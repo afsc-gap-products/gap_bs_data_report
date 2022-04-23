@@ -258,7 +258,8 @@ table_print <- flextable::flextable(
   ) %>% 
   flextable::merge_v(j = "Region") %>%
   flextable::valign(valign = "top") %>%
-  theme_flextable_nmfstm(font = font0)
+  flextable::bold(x = ., j = 1, i = ~ grepl(pattern = "Total", x = table_raw$Region) ) %>% #!is.na(Region) ) %>%
+  theme_flextable_nmfstm(x = ., font = font0) 
 
 
 # table_raw_stratum_areas <- table_raw
@@ -2016,8 +2017,8 @@ for (i in 1:2) {
         varmnwgtcpue = paste0("SD CPUE"), 
         biomass = paste0("Estimated Biomass", biomass0$unit_word), 
         varbio = paste0("SD Biomass", varbio0$unit_word), 
-        upperp = paste0("95% LCL", biomass0$unit_word), 
-        lowerp = paste0("95% UCL", biomass0$unit_word), 
+        upperb = paste0("95% LCL", biomass0$unit_word), 
+        lowerb = paste0("95% UCL", biomass0$unit_word), 
         # haulcount = "Total hauls", 
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
