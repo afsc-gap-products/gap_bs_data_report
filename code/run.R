@@ -111,6 +111,7 @@ cnt_chapt_content<-"000"
 
 full_page_portrait_width <- 6.5
 full_page_portrait_height <- 7
+full_page_landscape_width <- 9
 
 if (FALSE) {
   # *** *** General figures --------------------------------------------

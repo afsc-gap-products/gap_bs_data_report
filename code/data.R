@@ -176,8 +176,9 @@ for (i in 1:length(a)){
 }
 # }
 
-biomass <- SameColNames(df.ls)  %>%
-  dplyr::filter(year <= maxyr #& stratum == 999
+biomass_strat <- SameColNames(df.ls)  %>%
+  dplyr::filter(year <= maxyr  #& 
+                  # catcount != 0 #& stratum == 999
                 ) %>% 
   dplyr::rename(SRVY = survey) %>%
   dplyr::mutate(taxon = dplyr::case_when(
@@ -186,7 +187,8 @@ biomass <- SameColNames(df.ls)  %>%
   dplyr::filter(!is.na(species_code)) %>% 
 # modify for spp
   dplyr::filter(!(year < 1996 & common_name == "northern rock sole" )) %>% # 10263 NRS
-  dplyr::filter(!(year < 2000 & common_name == "Bering skate" ))  #%>% 
+  dplyr::filter(!(year < 2000 & common_name == "Bering skate" ))  %>% 
+  unique() #%>% 
   # dplyr::group_by(species_code) %>% 
   # dplyr::mutate(meanpop_spp = mean(pop, na.rm = TRUE), 
   #               meanbio_spp = mean(pop, na.rm = TRUE)) %>% 
@@ -207,10 +209,7 @@ biomass <- SameColNames(df.ls)  %>%
 #               upperb = biomass+varbio,
 #               lowerb = biomass-varbio)
 
-
-biomass_strat <- biomass
-
-biomass <- biomass %>%
+biomass <- biomass_strat %>%
   dplyr::filter(stratum == 999)
 
 biomass_maxyr<-biomass %>%

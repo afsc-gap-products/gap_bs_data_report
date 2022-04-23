@@ -14,7 +14,7 @@ PKG <- c(
   # For creating R Markdown Docs
   "knitr", # A general-purpose tool for dynamic report generation in R
   "rmarkdown", # R Markdown Document Conversion
-  
+  "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
   # File Management
   # "here", # For finding the root directory of your scripts and thus, find your files
   # "officer",

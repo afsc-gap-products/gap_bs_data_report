@@ -22,7 +22,8 @@ spp_taxon <- a$taxon[1]
 
 spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
-plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
 text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 ```
 
@@ -103,7 +104,7 @@ pop <- biomass %>%
 
 ```{r fig_idw_cpue_[taxon]_[spp]_[above and below]}
 
-if (plot_idw_coldwarm){
+if (spp_plot_idw_coldwarm){
   nickname0 <- paste0("fig_idw_cpue_",spp_taxon,"_", spp_file, "_")
   # height <- 10.5
   # width <- 8
@@ -413,6 +414,8 @@ list_figures[nickname][[1]]$res <- res
 ## tab_estimates_maxyr_[taxon]_[spp]_[wt or num]
 
 ```{r tab_estimates_maxyr_[taxon]_[spp]_[wt or num]}
+if (spp_table_cpue) {
+
 nickname0 <- paste0("tab_estimates_maxyr_", spp_taxon, "_", spp_file, "_") 
 
 temp <- biomass_strat %>% 
@@ -602,5 +605,6 @@ for (i in 1:2) {
   )
   
 list_tables[nickname][[1]]$res <- res
+}
 }
 ```

@@ -1,6 +1,6 @@
 ---
 output:
-  word_document:
+  officedown::rdocx_document: 
     pandoc_args: ["--metadata-file=header.yaml"]
     reference_docx: styles_reference.docx
     df_print: kable
@@ -22,7 +22,8 @@ spp_file <- a$file_name[1]
 
 spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
-plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+# spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
 text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 
 ```
@@ -228,7 +229,7 @@ if (text_spp) {
       sublist = "number")    
   }
  
-  if (plot_idw_coldwarm) {
+  if (spp_plot_idw_coldwarm) {
       figure_idw_both_stanza <- NMFSReports::crossref(
         list_obj = list_figures, 
         nickname = paste0("fig_idw_cpue_fish_", spp_file, "*"), sublist = "number")
@@ -253,5 +254,9 @@ if (text_spp) {
 
 `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
 
+<!---BLOCK_LANDSCAPE_START--->
+
 `r NMFSReports::crossref(list_obj = list_tables, nickname = paste0("tab_estimates_maxyr_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
+
+<!---BLOCK_LANDSCAPE_STOP--->
 
