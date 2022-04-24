@@ -1387,7 +1387,7 @@ plot_idw_xbyx <- function(
                  dist_unit = dist_unit,
                  transform = FALSE,
                  st.dist = ifelse(row > 2, 0.08, 0.04),
-                 height = ifelse(row > 2, 0.01, 0.02),
+                 height = ifelse(row > 2, 0.03, 0.02),
                  st.bottom = ifelse(row <= 4, FALSE, TRUE),
                  st.size = ifelse(row > 2, 1.5, 3),
                  model = reg_dat$crs) 
@@ -1438,7 +1438,7 @@ plot_idw_xbyx <- function(
       axis.text = element_text(size = 8),
       
       strip.background = element_blank(), 
-      strip.text = element_text(size = 12, face = "bold"), 
+      strip.text = element_text(size = 10, face = "bold"), 
       # legend.title = element_text(size = 12), #, vjust = .5, hjust = .3),
       legend.text = element_text(size = 10),
       legend.background = element_rect(colour = "transparent", 
@@ -1524,9 +1524,9 @@ plot_temps_facet <- function(rasterbrick,
                    dist_unit = dist_unit,
                    transform = FALSE,
                    st.dist = ifelse(row > 2, 0.08, 0.04),
-                   height = ifelse(row > 2, 0.01, 0.02),
-                   st.bottom = ifelse(row <= 4, FALSE, TRUE),
-                   st.size = ifelse(row > 2, 2, 3),
+                   height = ifelse(row > 2, 0.04, 0.02),
+                   st.bottom = ifelse(row <= 2, TRUE, FALSE),
+                   st.size = ifelse(row > 2, 2.5, 3), # 2.5
                    model = reg_dat$crs) +
     #set legend position and vertical arrangement
     guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
@@ -1539,8 +1539,9 @@ plot_temps_facet <- function(rasterbrick,
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
+      axis.text = element_text(size = 8),
       strip.background = element_blank(), 
-      strip.text = element_text(size = 8, face = "bold"),
+      strip.text = element_text(size = 10, face = "bold"),
       legend.position = "none"
     )
   
@@ -2217,8 +2218,6 @@ plot_survey_stations <- function(reg_dat,
                           size = 1.5, 
                           show.legend = TRUE, 
                           na.rm = TRUE) + 
-
-      
       scale_color_manual(
         name = " ", #"Survey Region",
         values = c(alpha(colour = c(survey_reg_col), 0.7), 
@@ -2247,7 +2246,7 @@ plot_survey_stations <- function(reg_dat,
                                         length.out = length(unique(haul_cruises_maxyr$SRVY))), 
                                 0, 0), # c(1,1,0,0),
                               # shape = c(NA, NA, "A", "V"),
-                              size = 3)),
+                              size = 4)),
         fill = guide_legend(
           # order = 2,# survey regions
           override.aes = list(
