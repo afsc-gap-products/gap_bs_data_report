@@ -106,11 +106,7 @@ pop <- biomass %>%
 
 if (spp_plot_idw_coldwarm){
   nickname0 <- paste0("fig_idw_cpue_",spp_taxon,"_", spp_file, "_")
-  # height <- 10.5
-  # width <- 8
-  height <- 5
-  # height <- full_page_portrait_height # 7
-  width <- full_page_portrait_width # 6.5
+
   
   table_raw0 <- cpue %>%
     dplyr::filter(!is.na(cpue_kgha)) %>% 
@@ -128,6 +124,9 @@ if (spp_plot_idw_coldwarm){
     TF <- ifelse(i==1, FALSE, TRUE)
     case <- ifelse(i==1, "below", "above")
     
+    height <- ifelse(length(temps_avg_yr_abovebelow[,case])>2, full_page_portrait_height, 5)
+    width <- full_page_portrait_width # 6.5
+
     header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                      " distribution and relative biomass (kg/ha) from the ",
                      NMFSReports::text_list(sort(temps_avg_yr_abovebelow[,case])),
@@ -525,7 +524,8 @@ for (i in 1:2) {
         lencount = "Hauls with lengths") %>% 
       # flextable::merge_v(j = "Region") %>%
       flextable::valign(valign = "top") %>%
-      theme_flextable_nmfstm(font0 = font0, row_lines = FALSE)
+      theme_flextable_nmfstm(font0 = font0, row_lines = FALSE, 
+                             pgwidth = full_page_landscape_width)
     }
   } else { # CPUE No/HA and POPULATION
     
@@ -601,7 +601,8 @@ for (i in 1:2) {
                                    lencount = "Hauls with lengths") %>% 
       # flextable::merge_v(j = "Region") %>%
       flextable::valign(valign = "top") %>%
-      theme_flextable_nmfstm(row_lines = FALSE, font = font0)
+      theme_flextable_nmfstm(row_lines = FALSE, font = font0, 
+                             pgwidth = full_page_landscape_width)
     }
   }
   

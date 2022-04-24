@@ -257,6 +257,7 @@ table_print <- flextable::flextable(
                                # density = "Sampling density\n(km2/Stations successfully sampled)"
   ) %>% 
   flextable::merge_v(j = "Region") %>%
+  flextable::merge_h_range(x = ., i = ~ stratum == "", j1 = "Region", j2 = "stratum", part = "body") %>%
   flextable::valign(valign = "top") %>%
   flextable::bold(x = ., j = 1, i = ~ grepl(pattern = "Total", x = table_raw$Region) ) %>% #!is.na(Region) ) %>%
   theme_flextable_nmfstm(x = ., font0 = font0) 
@@ -283,8 +284,8 @@ nickname0 <- paste0("tab_specimen_samples_")
 
 # length data - from oracle
 l <- length_maxyr %>% 
-    dplyr::select(SRVY, species_code, common_name, frequency) %>% 
-    dplyr::mutate(common_name = gsub(pattern = " (juvenile)", replacement = "", x = common_name, fixed = TRUE)) %>% 
+    dplyr::select(SRVY, species_code, frequency) %>% # common_name, 
+    # dplyr::mutate(common_name = gsub(pattern = " (juvenile)", replacement = "", x = common_name, fixed = TRUE)) %>% 
     dplyr::group_by(SRVY, species_code) %>% 
     dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
     dplyr::ungroup()
@@ -314,7 +315,9 @@ table_raw0 <-
                    by = c("SRVY", "species_code")) %>% 
   dplyr::left_join(x = ., 
                    y = spp_info %>% 
-                     dplyr::mutate(common_name = dplyr::case_when(
+                     dplyr::mutate(
+                       common_name = gsub(pattern = " (juvenile)", replacement = "", x = common_name, fixed = TRUE), 
+                       common_name = dplyr::case_when(
                        is.na(common_name) ~ report_name_scientific, 
                        common_name == "shorthorn (=warty) sculpin" ~ "shorthorn sculpin", 
                        TRUE ~ common_name)) %>% 
@@ -1441,7 +1444,8 @@ temp1 <- function(table_raw, strat, total) {
   table_print <- table_print %>%
     # flextable::as_grouped_data(groups = c("group"), columns = NULL) %>% 
     flextable::flextable(data = .)  %>%
-    flextable::merge_v(j = ~ group) %>%
+    flextable::merge_v(x = ., j = ~ group) %>%
+    flextable::merge_h_range(x = ., i = ~ is.na(taxon), j1 = "group", j2 = "taxon", part = "body") %>%
     flextable::add_header_row(top = TRUE, 
                               values = c("Taxon", 
                                          "Estimated total biomass (mt) and 95% confidence interval", 
@@ -1459,7 +1463,7 @@ temp1 <- function(table_raw, strat, total) {
                         value = as_paragraph(footnote0)) %>%
     # flextable::bold(x = ., part = "body", i = whichtobold) %>% 
     # flextable::bold(x = ., i = ~ (grepl(pattern = "Total ", x = taxon) )) %>%
-    flextable::bold(x = ., i = ~ (grepl(pattern = "total ", x = group) )) %>%
+    flextable::bold(x = ., i = ~ (grepl(pattern = "Total", x = group) )) %>%
     flextable::set_header_labels(.,
                                  "group" = "", 
                                  "taxon" = "", 
@@ -2102,7 +2106,7 @@ for (i in 1:2) {
       flextable::merge_v(x = ., target = "print_name", 
                          j = "print_name", part = "body") %>% 
       flextable::valign(valign = "top") %>%
-      theme_flextable_nmfstm(font0 = font0, row_lines = TRUE)
+      theme_flextable_nmfstm(font0 = font0, row_lines = TRUE, pgwidth = full_page_landscape_width)
   }
   
   # save yo' stuff and do a lot of behind the scenes work
