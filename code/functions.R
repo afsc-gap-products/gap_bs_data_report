@@ -1390,7 +1390,7 @@ plot_idw_xbyx <- function(
                  height = ifelse(row > 2, 0.01, 0.02),
                  st.bottom = ifelse(row <= 4, FALSE, TRUE),
                  st.size = ifelse(row > 2, 1.5, 3),
-                 model = reg_dat$crs) +
+                 model = reg_dat$crs) 
   
   
   

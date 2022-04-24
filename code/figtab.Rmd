@@ -895,7 +895,7 @@ for (i in 1:2) { # two cases, above and below
     reg_dat = report_types$EBS$reg_dat,
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
     viridis_palette_option = "H", 
-    row = ifelse(length(rasterbrick)>12, 3, 4), 
+    row = ifelse(length(year)>12, 3, 4), 
     title0 = stringr::str_to_sentence(case))
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -921,9 +921,6 @@ if (SRVY == "NEBS") {
   for (i in 1:2) { # two cases, above and below
   case <- ifelse(i==1, "bottom", "surface")
   nickname <- paste0("fig_",ifelse(i==1, "bt", "st"),"_temperature_nebs_surveys")
-
-  height <- full_page_portrait_height
-  width <- full_page_portrait_width
   
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
@@ -942,6 +939,9 @@ if (SRVY == "NEBS") {
     #                               subset = paste0("ebs_ste_", nbsyr, "_surface_temperature"))    
   }
   
+  height <- ifelse(length(nbsyr)>2, full_page_portrait_height, 5)
+  width <- full_page_portrait_width
+  
   figure <- plot_temps_facet(
     rasterbrick = rasterbrick, 
     key.title = ifelse(i==1, 
@@ -949,7 +949,7 @@ if (SRVY == "NEBS") {
                        expression(bold("Surface Temperature (°C)"))), 
     reg_dat = report_types$NEBS$reg_dat, 
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-    row = ifelse(length(rasterbrick)>=2, 1, 2), 
+    row = ifelse(length(nbsyr)>=2, 1, 2), 
     viridis_palette_option = "H") 
   
   # save yo' stuff and do a lot of behind the scenes work
