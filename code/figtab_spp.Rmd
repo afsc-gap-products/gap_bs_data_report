@@ -139,6 +139,15 @@ if (spp_plot_idw_coldwarm){
     table_raw <- table_raw0 %>% 
       dplyr::filter(year %in% temps_avg_yr_abovebelow[,case])
     
+    
+  if (length(year)<10) {
+  row <- 3
+  } else if (length(year)<6) {
+  row <- 2
+  # } else {
+  # row <- 4
+  }
+    
     figure <- plot_idw_xbyx(
       yrs = temps_avg_yr_abovebelow[,case],
       dat = table_raw,
@@ -153,7 +162,7 @@ relative biomass (kg/ha)"),
       workfaster = workfaster,
       SRVY = SRVY, 
       set.breaks = set.breaks, 
-      row = 3)
+      row = row)
     
 
   # save yo' stuff and do a lot of behind the scenes work
@@ -211,7 +220,7 @@ relative biomass (kg/ha)"),
     workfaster = workfaster,
     SRVY = SRVY, 
     set.breaks = set.breaks, 
-    nrow = 1)
+    row = 1)
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header

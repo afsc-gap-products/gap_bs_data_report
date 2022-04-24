@@ -1381,18 +1381,26 @@ plot_idw_xbyx <- function(
     #                st.bottom = TRUE,
     #                st.size = 2,
     #                model = reg_dat$crs) 
+  # ggsn::scalebar(data = reg_dat$survey.grid,
+  #                location = "bottomleft",
+  #                dist = 150,
+  #                dist_unit = dist_unit,
+  #                transform = FALSE,
+  #                st.dist = ifelse(row > 2, 0.08, 0.04),
+  #                height = ifelse(row > 2, 0.03, 0.02),
+  #                st.bottom = ifelse(row <= 4, FALSE, TRUE),
+  #                st.size = ifelse(row > 2, 1.5, 3),
+  #                model = reg_dat$crs) 
   ggsn::scalebar(data = reg_dat$survey.grid,
                  location = "bottomleft",
                  dist = 150,
                  dist_unit = dist_unit,
                  transform = FALSE,
                  st.dist = ifelse(row > 2, 0.08, 0.04),
-                 height = ifelse(row > 2, 0.03, 0.02),
-                 st.bottom = ifelse(row <= 4, FALSE, TRUE),
-                 st.size = ifelse(row > 2, 1.5, 3),
+                 height = ifelse(row > 2, 0.04, 0.02),
+                 st.bottom = ifelse(row <= 2, TRUE, FALSE),
+                 st.size = ifelse(row > 2, 2.5, 3), # 2.5
                  model = reg_dat$crs) 
-  
-  
   
   if (grid == "continuous.grid") {
     figure <- figure + 
@@ -2164,7 +2172,7 @@ plot_survey_stations <- function(reg_dat,
   
   if (study) {
     
-    stdy <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
+    study <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
     
     figure <- figure  +
       geom_sf(data = reg_dat$survey.grid %>% dplyr::filter(!is.na(study)),
@@ -2246,7 +2254,7 @@ plot_survey_stations <- function(reg_dat,
                                         length.out = length(unique(haul_cruises_maxyr$SRVY))), 
                                 0, 0), # c(1,1,0,0),
                               # shape = c(NA, NA, "A", "V"),
-                              size = 4)),
+                              size = 5)),
         fill = guide_legend(
           # order = 2,# survey regions
           override.aes = list(
@@ -2294,7 +2302,7 @@ plot_survey_stations <- function(reg_dat,
                             dplyr::filter(in_maxyr == TRUE),
                           mapping = aes(color = SRVY),
                           shape = 16,
-                          size = 1.5, 
+                          size = 1, 
                           show.legend = FALSE, 
                           na.rm = TRUE)  
   }
@@ -2318,7 +2326,7 @@ plot_survey_stations <- function(reg_dat,
                                               replacement = "\n", 
                                               pattern = "-")),
                    color = "black",
-                   size = 1.5,
+                   size = 2, # 1.5
                    show.legend = FALSE) #+
     
   }

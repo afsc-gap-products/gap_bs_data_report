@@ -1070,7 +1070,7 @@ temps_avg_yr_maxyr <- temps_avg_yr %>%  # temps_avg_yr_longterm
 temp1 <- temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == TRUE &
-                      year >= maxyr-12) %>% 
+                      year >= maxyr-16) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
@@ -1081,7 +1081,7 @@ names(temp1) <- c("above")
 temp2 <- temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == FALSE &
-                      year >= maxyr-12) %>% 
+                      year >= maxyr-16) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 

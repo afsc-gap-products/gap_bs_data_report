@@ -888,6 +888,14 @@ for (i in 1:2) { # two cases, above and below
   rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
                                 subset = paste0("sebs_ste_", year, "_gear_temperature"))
   names(rasterbrick) <- gsub(pattern = "_", replacement = "", x = (gsub(x = names(rasterbrick), pattern = "[a-zA-Z]+", replacement = "")))
+  
+  if (length(year)<10) {
+  row <- 3
+  } else if (length(year)<6) {
+  row <- 2
+  # } else {
+  # row <- 4
+  }
 
   figure <- plot_temps_facet(
     rasterbrick = rasterbrick,
@@ -895,7 +903,7 @@ for (i in 1:2) { # two cases, above and below
     reg_dat = report_types$EBS$reg_dat,
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
     viridis_palette_option = "H", 
-    row = ifelse(length(year)<10, 3, 4), 
+    row = row, # ifelse(length(year)<10, 3, 4), 
     title0 = stringr::str_to_sentence(case))
   
   # save yo' stuff and do a lot of behind the scenes work
