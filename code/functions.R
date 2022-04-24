@@ -1204,7 +1204,7 @@ plot_idw_xbyx <- function(
   extrap.box, 
   set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
   workfaster = FALSE, 
-  nrow = 2, 
+  row = 2, 
   SRVY, 
   dist_unit = "nm", # nautical miles
   col_viridis = "mako", 
@@ -1342,7 +1342,7 @@ plot_idw_xbyx <- function(
   
   if (nrow(dat) != 0) {
   figure <- figure +
-    facet_wrap( ~ new_dim, nrow = nrow) +
+    facet_wrap( ~ new_dim, nrow = row) +
     coord_equal() 
   } else {
     grid <- ""
@@ -1371,17 +1371,28 @@ plot_idw_xbyx <- function(
                        breaks = reg_dat$lat.breaks) +
     coord_sf(xlim = reg_dat$plot.boundary$x, 
              ylim = reg_dat$plot.boundary$y)  +
-    
-    ggsn::scalebar(data = reg_dat$survey.grid,
-                   location = "bottomleft",
-                   dist = 150,
-                   dist_unit = dist_unit,
-                   transform = FALSE,
-                   st.dist = .03,
-                   height = 0.02,
-                   st.bottom = TRUE,
-                   st.size = 2,
-                   model = reg_dat$crs) 
+    # ggsn::scalebar(data = reg_dat$survey.grid,
+    #                location = "bottomleft",
+    #                dist = 150,
+    #                dist_unit = dist_unit,
+    #                transform = FALSE,
+    #                st.dist = .03,
+    #                height = 0.02,
+    #                st.bottom = TRUE,
+    #                st.size = 2,
+    #                model = reg_dat$crs) 
+  ggsn::scalebar(data = reg_dat$survey.grid,
+                 location = "bottomleft",
+                 dist = 150,
+                 dist_unit = dist_unit,
+                 transform = FALSE,
+                 st.dist = ifelse(row > 2, 0.08, 0.04),
+                 height = ifelse(row > 2, 0.01, 0.02),
+                 st.bottom = ifelse(row <= 4, FALSE, TRUE),
+                 st.size = ifelse(row > 2, 1.5, 3),
+                 model = reg_dat$crs) +
+  
+  
   
   if (grid == "continuous.grid") {
     figure <- figure + 
@@ -1515,7 +1526,7 @@ plot_temps_facet <- function(rasterbrick,
                    st.dist = ifelse(row > 2, 0.08, 0.04),
                    height = ifelse(row > 2, 0.01, 0.02),
                    st.bottom = ifelse(row <= 4, FALSE, TRUE),
-                   st.size = ifelse(row > 2, 1.5, 3),
+                   st.size = ifelse(row > 2, 2, 3),
                    model = reg_dat$crs) +
     #set legend position and vertical arrangement
     guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
@@ -2198,7 +2209,7 @@ plot_survey_stations <- function(reg_dat,
                   shape = reg_dat$survey.area$SURVEY
                   ), 
               fill = NA, 
-              size = 1.5,
+              size = 2,
               show.legend = TRUE) +
       stat_sf_coordinates(data = vess,
                           mapping = aes(color = vess_col, 
