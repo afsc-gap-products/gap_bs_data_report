@@ -878,8 +878,7 @@ for (i in 1:2) { # two cases, above and below
   
   header <- paste0("Contour maps of the near-bottom temperatures from the ",
                    NMFSReports::text_list(year)," ", 
-                   "EBS",
-                   # NMFSReports::text_list(haul_cruises_maxyr$SRVY),
+                   "EBS", # NMFSReports::text_list(haul_cruises_maxyr$SRVY),
                    " Shelf Bottom Trawl Surveys. In these years, the survey mean bottom temperature was ",
                    case,
                    " the long term mean.")
@@ -896,7 +895,7 @@ for (i in 1:2) { # two cases, above and below
     reg_dat = report_types$EBS$reg_dat,
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
     viridis_palette_option = "H", 
-    row = ifelse(length(rasterbrick)>6, 3, 4), 
+    row = ifelse(length(rasterbrick)>12, 3, 4), 
     title0 = stringr::str_to_sentence(case))
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -950,6 +949,7 @@ if (SRVY == "NEBS") {
                        expression(bold("Surface Temperature (°C)"))), 
     reg_dat = report_types$NEBS$reg_dat, 
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+    row = ifelse(length(rasterbrick)>=2, 1, 2), 
     viridis_palette_option = "H") 
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -1429,7 +1429,6 @@ temp1 <- function(table_raw, strat, total) {
     # CI95 = formatC(x = CI95, digits = 0, format = "f", ) ) %>% 
     dplyr::mutate(across(where(is.numeric), 
                          formatC, big.mark=",", digits = 0, format = "f"))
-  
 
   table_print <- table_print %>%
     # flextable::as_grouped_data(groups = c("group"), columns = NULL) %>% 

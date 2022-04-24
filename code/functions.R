@@ -1484,7 +1484,8 @@ plot_temps_facet <- function(rasterbrick,
   fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
   
   figure <- ggplot() +
-    geom_tile(data=temp_df, aes(x=x, y=y, fill=cut(value, breaks = colorbar_breaks)))  +
+    geom_tile(data=temp_df, 
+              mapping = aes(x=x, y=y, fill=cut(value, breaks = colorbar_breaks)))  +
     facet_wrap( ~ year, 
                 nrow = row) +
     coord_equal() +
@@ -1511,10 +1512,10 @@ plot_temps_facet <- function(rasterbrick,
                    dist = 150,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = .04,
-                   height = 0.02,
-                   st.bottom = TRUE,
-                   st.size = 3,
+                   st.dist = ifelse(row > 2, 0.08, 0.04),
+                   height = ifelse(row > 2, 0.01, 0.02),
+                   st.bottom = ifelse(row <= 4, FALSE, TRUE),
+                   st.size = ifelse(row > 2, 1.5, 3),
                    model = reg_dat$crs) +
     #set legend position and vertical arrangement
     guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
@@ -1528,7 +1529,7 @@ plot_temps_facet <- function(rasterbrick,
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
       strip.background = element_blank(), 
-      strip.text = element_text(size = 12, face = "bold"),
+      strip.text = element_text(size = 8, face = "bold"),
       legend.position = "none"
     )
   
@@ -2307,7 +2308,7 @@ plot_survey_stations <- function(reg_dat,
                                               replacement = "\n", 
                                               pattern = "-")),
                    color = "black",
-                   size = 1.3,
+                   size = 1.5,
                    show.legend = FALSE) #+
     
   }

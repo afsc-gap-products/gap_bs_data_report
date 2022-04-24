@@ -34,7 +34,7 @@ report_types <- list(
     SRVY00 = 98, # EBS
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.south"),
-    extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 63), 
+    extrap.box = c(xmn = -180, xmx = -156, ymn = 54, ymx = 62), 
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.south", 
       set.crs = "auto", 
@@ -85,7 +85,6 @@ report_types <- list(
 
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-
 
 # Load data --------------------------------------------------------------------
 
@@ -1071,7 +1070,7 @@ temps_avg_yr_maxyr <- temps_avg_yr %>%  # temps_avg_yr_longterm
 temp1 <- temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == TRUE &
-                      year >= maxyr-16) %>% 
+                      year >= maxyr-12) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
@@ -1082,7 +1081,7 @@ names(temp1) <- c("above")
 temp2 <- temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == FALSE &
-                      year >= maxyr-16) %>% 
+                      year >= maxyr-12) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
