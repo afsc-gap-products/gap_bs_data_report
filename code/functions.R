@@ -2223,7 +2223,7 @@ plot_survey_stations <- function(reg_dat,
       stat_sf_coordinates(data = vess,
                           mapping = aes(color = vess_col, 
                                         shape = vess_shape),
-                          size = 1.5, 
+                          size = 2, 
                           show.legend = TRUE, 
                           na.rm = TRUE) + 
       scale_color_manual(
@@ -2254,7 +2254,7 @@ plot_survey_stations <- function(reg_dat,
                                         length.out = length(unique(haul_cruises_maxyr$SRVY))), 
                                 0, 0), # c(1,1,0,0),
                               # shape = c(NA, NA, "A", "V"),
-                              size = 5)),
+                              size = 6)),
         fill = guide_legend(
           # order = 2,# survey regions
           override.aes = list(
@@ -2302,7 +2302,7 @@ plot_survey_stations <- function(reg_dat,
                             dplyr::filter(in_maxyr == TRUE),
                           mapping = aes(color = SRVY),
                           shape = 16,
-                          size = 1, 
+                          size = .5, 
                           show.legend = FALSE, 
                           na.rm = TRUE)  
   }
@@ -2321,12 +2321,12 @@ plot_survey_stations <- function(reg_dat,
     figure <- figure +
       geom_sf(data = reg_dat$survey.grid, color = "grey20", fill = NA) +
       geom_sf_text(data = reg_dat$survey.grid, 
-                   lineheight = 0.7,
+                   lineheight = 0.5,
                    mapping = aes(label = gsub(x = STATIONID, 
                                               replacement = "\n", 
                                               pattern = "-")),
                    color = "black",
-                   size = 2, # 1.5
+                   size = 1.25, # 1.5
                    show.legend = FALSE) #+
     
   }
