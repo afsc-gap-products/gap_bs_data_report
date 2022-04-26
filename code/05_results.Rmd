@@ -166,7 +166,7 @@ cols <- cols[!(cols %in% c("common_name", "SRVY"))]
 
 temp <- temp0(cols, SRVY, a)
 
-str0 <- paste0("Specifically, a total of ", NMFSReports::text_list(sep=";", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, ifelse(temp$ntaxa==1, " taxon", " taxa"))), ". ")
+str0 <- paste0("Specifically, a total of ", NMFSReports::text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, ifelse(temp$ntaxa==1, " taxon", " taxa"))), ". ")
 
 ```
 
@@ -458,8 +458,9 @@ temp0 <- tidyr::crossing(SRVY = SRVY1, type = c("fish", "invert"))
 for (i in 1:nrow(temp0)) {
   temp <- list_tables[names(list_tables) ==
                         paste0("tab_biomass_est_",temp0$type[i],"_", temp0$SRVY[i])][[1]]$raw %>%
-    dplyr::mutate(SRVY = temp0$SRVY[i]) %>%
     dplyr::filter(grepl(pattern = "Total", x = group, ignore.case = TRUE )) %>% 
+    dplyr::mutate(SRVY = temp0$SRVY[i], 
+                  group = temp0$type[i]) %>%
     dplyr::select(SRVY, group, `999`) %>% 
     dplyr::bind_rows(temp, .)
 }
@@ -495,22 +496,52 @@ str0 <- paste0("The ",
                  total_biomass$SRVY, 
                         " was estimated at ", 
                         NMFSReports::xunits(total_biomass$total), 
-                        " metric tons (mt)")), ". ", 
-               "In the ", NMFSReports::text_list(
-                 paste0(temp2$SRVY, 
+                        " metric tons (mt)")), ". "#, 
+               # "In the " , 
+               # NMFSReports::text_list(
+               #   paste0(temp2$SRVY, 
+               #          ", the proportion of fishes (", 
+               #          temp2$perc_fish, 
+               #          "; Table ", crossref(list_obj = list_tables, 
+               #                         nickname = paste0("tab_biomass_est_fish_", temp2$SRVY), 
+               #                         sublist = "number"), 
+               #          ") was ", 
+               #          ifelse(temp2$prop_fish>temp2$prop_invert, "higher","lower"),
+               #          " than invertebrates (", 
+               #          temp2$perc_invert, 
+               #          "; Table ", 
+               #          crossref(list_obj = list_tables, 
+               #                         nickname = paste0("tab_biomass_est_invert_", temp2$SRVY), 
+               #                         sublist = "number"), 
+               #          ")")), 
+               # ". "
+               )
+
+str00 <- ""
+for (ii in 1:length(temp2$SRVY)) {
+  
+  str000 <- ifelse(ii != 1 & temp2$prop_fish[ii]>temp2$prop_invert[ii], "also ","")
+  
+str00 <- paste0(str00, 
+                ifelse(ii==2, " and in the ", "In the "), 
+               # NMFSReports::text_list(
+                 paste0(temp2$SRVY[ii], 
                         ", the proportion of fishes (", 
-                        temp2$perc_fish, 
+                        temp2$perc_fish[ii], 
                         "; Table ", crossref(list_obj = list_tables, 
-                                       nickname = paste0("tab_biomass_est_fish_", temp2$SRVY), 
+                                       nickname = paste0("tab_biomass_est_fish_", temp2$SRVY[ii]), 
                                        sublist = "number"), 
-                        ") was ", 
-                        ifelse(temp2$prop_fish>temp2$prop_invertebrates, "higher","lower"),
+                        ") was ", str000,  
+                        ifelse(temp2$prop_fish[ii]>temp2$prop_invert[ii], "higher","lower"),
                         " than invertebrates (", 
-                        temp2$perc_invertebrates, 
-                        "; Table ", crossref(list_obj = list_tables, 
-                                       nickname = paste0("tab_biomass_est_invert_", temp2$SRVY), 
+                        temp2$perc_invert[ii], 
+                        "; Table ", 
+                        crossref(list_obj = list_tables, 
+                                       nickname = paste0("tab_biomass_est_invert_", temp2$SRVY[ii]), 
                                        sublist = "number"), 
-                        ")")), ". ")
+                        ")"))#)
+}
+str0 <- paste0(str0, str00, ". ")
 
 if (SRVY == "NEBS") {
   str0 <- paste0(str0, 

@@ -2157,11 +2157,10 @@ plot_survey_stations <- function(reg_dat,
                                  station_pts_vess = FALSE, 
                                  study = FALSE, 
                                  dist_unit = "nm", 
-                                 place_labels = TRUE) { 
+                                 place_labels = TRUE) {
   
   # survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
   #                     as.character(nmfspalette::nmfs_cols("medgray")))
-  
   
   survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
   survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
@@ -2169,7 +2168,6 @@ plot_survey_stations <- function(reg_dat,
   figure <- ggplot() 
   
   # if (station_pts_vess) {
-  
   if (study) {
     
     study <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
@@ -2321,12 +2319,12 @@ plot_survey_stations <- function(reg_dat,
     figure <- figure +
       geom_sf(data = reg_dat$survey.grid, color = "grey20", fill = NA) +
       geom_sf_text(data = reg_dat$survey.grid, 
-                   lineheight = 0.5,
+                   lineheight = 0.7,
                    mapping = aes(label = gsub(x = STATIONID, 
                                               replacement = "\n", 
                                               pattern = "-")),
                    color = "black", 
-                   size = 1.5, # 1.5
+                   size = 1.5, 
                    show.legend = FALSE) #+
     
   }
@@ -2355,7 +2353,7 @@ plot_survey_stations <- function(reg_dat,
                    dist = 150,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = 0.04,
+                   st.dist = 0.02,
                    height = 0.02,
                    st.bottom = TRUE,
                    st.size = 3,

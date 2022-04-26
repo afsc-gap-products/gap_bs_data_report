@@ -260,7 +260,9 @@ table_print <- flextable::flextable(
   flextable::merge_h_range(x = ., i = ~ stratum == "", j1 = "Region", j2 = "stratum", part = "body") %>%
   flextable::valign(valign = "top") %>%
   flextable::bold(x = ., j = 1, i = ~ grepl(pattern = "Total", x = table_raw$Region) ) %>% #!is.na(Region) ) %>%
-  theme_flextable_nmfstm(x = ., font0 = font0) 
+  theme_flextable_nmfstm(x = ., 
+                         font0 = font0, 
+                         pgwidth = full_page_portrait_width) 
 
 
 # table_raw_stratum_areas <- table_raw
@@ -381,6 +383,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     dplyr::ungroup() %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
     dplyr::select(-"SRVY") 
+  
   table_print[is.na(table_print) | table_print == "0"] <- "-"
   
   
@@ -391,12 +394,14 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  # Length = "Length\nmeasurements",
                                  # Age = "Age structure (otolith)\nmeasurements"
     ) %>%
-    flextable::width(x = ., width = 1.5) %>% 
-    flextable::width(x = ., j = 1, width = 3) %>% 
+    flextable::width(x = ., width = .5, unit = "in") %>%
+    flextable::width(x = ., j = "common_name", width = 4, unit = "in") %>% 
     flextable::bold(x = ., i = which(table_print$common_name == "Total")) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
-    theme_flextable_nmfstm(font0 = font0, x = .) 
+    NMFSReports::theme_flextable_nmfstm(x = ., 
+                                        font0 = font0,
+                                        pgwidth = full_page_portrait_width) 
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -481,7 +486,10 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     #   j = " ", # on column "var"
     #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
     # hline(i = ~ !is.na(SRVY), border = officer::fp_border() ) %>%
-    NMFSReports::theme_flextable_nmfstm(font0 = font0, x = ., row_lines = TRUE)  %>%
+    NMFSReports::theme_flextable_nmfstm(x = ., 
+                                        font0 = font0, 
+                                        row_lines = TRUE, 
+                                        pgwidth = full_page_portrait_width)  %>%
     flextable::padding(x = .,
                        j = 1, i = ~ is.na(oto_samp_type),
                        padding.left = 5)
@@ -541,7 +549,10 @@ table_print <- flextable::flextable(table_raw %>%
                                print_name = "Common name", 
                                # species_name = "Scientific name", 
                                stomach_target = "Target collection number per survey") %>%
-  NMFSReports::theme_flextable_nmfstm(font0 = font0, x = ., row_lines = TRUE) 
+  NMFSReports::theme_flextable_nmfstm(x = ., 
+                                      font0 = font0, 
+                                      row_lines = TRUE, 
+                                      pgwidth = full_page_portrait_width) 
 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -596,13 +607,16 @@ table_print <- table_raw %>%
   flextable::as_grouped_data(groups = c("SRVY"), columns = NULL) %>% 
   flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-  flextable::width(x = ., j = "Agency", width = 1.5) %>%
-  flextable::width(x = ., j = "Principal investigator", width = 1.5) %>%
-  flextable::width(x = ., j = "Project Title", width = 4) %>% 
+  flextable::width(x = ., j = "Agency", width = 2, unit = "in") %>%
+  flextable::width(x = ., j = "Principal investigator", width = 3, unit = "in") %>%
+  flextable::width(x = ., j = "Project Title", width = 4, unit = "in") %>% 
   # flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
   flextable::footnote(x = ., value = as_paragraph(footnote0), 
                       part = "header", j = "Agency")  %>%
-  NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = TRUE) %>% 
+  NMFSReports::theme_flextable_nmfstm(x = ., 
+                                      font0 = font0, 
+                                      row_lines = TRUE, 
+                                      pgwidth = full_page_portrait_width) %>% 
   flextable::padding(x = .,
                      j = 1, i = ~ is.na(SRVY),
                      padding.left = 5)
@@ -866,9 +880,7 @@ list_figures[nickname][[1]]$res <- res
 nickname0 <- "fig_bt_temperature_ebs_"
 
 for (i in 1:2) { # two cases, above and below
-  
-  # height <- 10.5
-  # width <- 8
+
   height <- full_page_portrait_height # 7
   width <- full_page_portrait_width # 6.5
   
@@ -889,7 +901,9 @@ for (i in 1:2) { # two cases, above and below
   # Just EBS
   rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
                                 subset = paste0("sebs_ste_", year, "_gear_temperature"))
-  names(rasterbrick) <- gsub(pattern = "_", replacement = "", x = (gsub(x = names(rasterbrick), pattern = "[a-zA-Z]+", replacement = "")))
+  names(rasterbrick) <- gsub(pattern = "_", replacement = "", 
+                             x = (gsub(x = names(rasterbrick), 
+                                       pattern = "[a-zA-Z]+", replacement = "")))
   
   if (length(year)<10) {
   row <- 3
@@ -959,7 +973,7 @@ if (SRVY == "NEBS") {
                        expression(bold("Surface Temperature (°C)"))), 
     reg_dat = report_types$NEBS$reg_dat, 
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-    row = 2, #ifelse(length(nbsyr)>=2, 2, 1), 
+    row = ifelse(length(nbsyr)>2, 2, 1), 
     viridis_palette_option = "H") 
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -1076,7 +1090,10 @@ if (SRVY == "NEBS"){
                                  common_name = "Common name",
                                  report_name_scientific = "Scientific name"
     ) %>%
-    NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = FALSE) %>%
+    NMFSReports::theme_flextable_nmfstm(x = ., 
+                                        font0 = font0, 
+                                        row_lines = FALSE, 
+                                        pgwidth = full_page_portrait_width) %>%
     flextable::vline(x = ., j = 2, part = "all")
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -1458,7 +1475,7 @@ temp1 <- function(table_raw, strat, total) {
     flextable::width(x = ., j = c("999"), 
                      width = 1.5, unit = "in") %>%
     flextable::width(x = ., j = c("group"), 
-                     width = 1.5, unit = "in") %>%    
+                     width = 2, unit = "in") %>%    
     flextable::width(x = ., j = c("taxon"), 
                      width = 5, unit = "in") %>% 
     flextable::width(x = ., j = c("a"), 
@@ -1941,7 +1958,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  # dummy = "Taxon",
                                  "change " = paste0("Change (", maxyr, ", ", compareyr, ")" ), 
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
-    NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE, 
+    NMFSReports::theme_flextable_nmfstm(x = ., 
+                                        font0 = font0, 
+                                        row_lines = FALSE, 
                                         pgwidth = full_page_landscape_width) %>% 
     flextable::vline(x = ., part = "all", j = 5)
   
@@ -2055,7 +2074,9 @@ for (i in 1:2) {
       flextable::merge_v(x = ., target = "print_name", 
                          j = "print_name", part = "body") %>% 
       flextable::valign(valign = "top") %>%
-      NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, row_lines = TRUE, 
+      NMFSReports::theme_flextable_nmfstm(x = ., 
+                                          font0 = font0, 
+                                          row_lines = TRUE, 
                                           pgwidth = full_page_landscape_width)
     
   } else { # CPUE No/HA and POPULATION
@@ -2117,7 +2138,8 @@ for (i in 1:2) {
                          j = "print_name", 
                          part = "body") %>% 
       flextable::valign(valign = "top") %>%
-      NMFSReports::theme_flextable_nmfstm(font0 = font0, 
+      NMFSReports::theme_flextable_nmfstm(x = ., 
+                                          font0 = font0, 
                              row_lines = TRUE, 
                              pgwidth = full_page_landscape_width)
   }

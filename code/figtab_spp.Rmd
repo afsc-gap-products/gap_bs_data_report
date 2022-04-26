@@ -449,12 +449,17 @@ temp <- biomass_strat %>%
   dplyr::arrange(SRVY) %>% 
   dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
 
+if (sum(temp$population[temp$stratum == "Total"] %in% 0)>0) {
+  temp <- temp %>% 
+    dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & temp$biomass != 0])
+  
+}
+
 # for (i in 1:nrow(haul_cruises_maxyr)) {
 #   if (nrow(haul_cruises_maxyr)>1) {
 #     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
 #     newobj <- ifelse(i==1, TRUE, FALSE)
 #   }
-  
 
 for (i in 1:2) {
   subobj <- TRUE
@@ -481,10 +486,10 @@ for (i in 1:2) {
     
     if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
       
-    meanwgtcpue0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$meanwgtcpue)    
-    varmnwgtcpue0<-find_units(unit = "", unt = "", table_raw$varmnwgtcpue)
-    biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass)
-    varbio0<-find_units(unit = "", unt = "", table_raw$varbio)
+    meanwgtcpue0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$meanwgtcpue[table_raw$meanwgtcpue != 0])    
+    varmnwgtcpue0<-find_units(unit = "", unt = "", table_raw$varmnwgtcpue[table_raw$varmnwgtcpue != 0])
+    biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass[table_raw$biomass != 0])
+    varbio0<-find_units(unit = "", unt = "", table_raw$varbio[table_raw$varbio != 0])
     
         header <- paste0("Mean CPUE by weight",meanwgtcpue0$unit_word,
                          " with standard deviation",varmnwgtcpue0$unit_word,
@@ -498,6 +503,7 @@ for (i in 1:2) {
                                                    haul_cruises_maxyr$stations_completed,
                                                    " stations completed)")),
                      " Shelf Trawl Surveys. Differences in sums of estimates and totals are due to rounding.")
+    
     
     table_print <- table_raw %>% 
       dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>%
@@ -559,14 +565,14 @@ for (i in 1:2) {
     
     if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
       
-    meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue)
-    varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue)
-    population0 <- find_units(unit = "", unt = "", table_raw$population)
-    varpop0 <- find_units(unit = "", unt = "", table_raw$varpop)
+    meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue[table_raw$meannumcpue != 0])
+    varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue[table_raw$varmnnumcpue != 0])
+    population0 <- find_units(unit = "", unt = "", table_raw$population[table_raw$population != 0])
+    varpop0 <- find_units(unit = "", unt = "", table_raw$varpop[table_raw$varpop != 0])
     
         header <- paste0("Mean CPUE by number", meannumcpue0$unit_word,
                          " with standard deviation", varmnnumcpue0$unit_word,
-                         " , and estimated population", population0$unit_word,
+                         ", and estimated population", population0$unit_word,
                          "  with standard deviation", varpop0$unit_word,
                          "  and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, 
                          ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
