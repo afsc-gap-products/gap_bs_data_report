@@ -24,20 +24,20 @@ nickname0 <- "tab_app_hauls_catch_"
 cnt_tables <- 0
 
 temp <- tidyr::crossing(vessel_info %>% 
-                        dplyr::select(vessel_name, vessel_ital), 
-                      haul_cruises_maxyr %>% 
-                        dplyr::select(SRVY_long, SRVY))
+                          dplyr::select(vessel_name, vessel_ital), 
+                        haul_cruises_maxyr %>% 
+                          dplyr::select(SRVY_long, SRVY))
 
 for (iii in 1:nrow(temp)) {
   table_raw <- catch_haul_cruises_maxyr %>% 
-        dplyr::filter(year == maxyr &
-                      SRVY == temp$SRVY[iii]) %>%
+    dplyr::filter(year == maxyr &
+                    SRVY == temp$SRVY[iii]) %>%
     dplyr::left_join(
       x = ., 
       y = report_spp1 %>% 
         dplyr::select(species_code, species_name, print_name), 
       by = "species_code") %>% 
-  dplyr::filter(!is.na(print_name)) %>% 
+    dplyr::filter(!is.na(print_name)) %>% 
     dplyr::select(stationid, start_time, haul, start_latitude, start_longitude, end_latitude, end_longitude, bottom_depth, duration, distance_fished, net_width, net_measured, performance, weight, print_name) %>% 
     dplyr::group_by(stationid, start_time, haul, start_latitude, start_longitude, end_latitude, end_longitude, bottom_depth, duration, distance_fished, net_width, net_measured, performance, print_name) %>% 
     dplyr::summarise(weight = as.character(round(sum(weight, na.rm  = TRUE), 0))) %>% 
@@ -46,21 +46,21 @@ for (iii in 1:nrow(temp)) {
                        values_from = weight, 
                        values_fill = "-") %>%
     tidyr::separate(data = ., col = start_time, into = c("Date", "Time"), sep = " ", remove = TRUE) %>% 
-  dplyr::mutate(across(where(is.numeric), 
-                       formatC, big.mark=",", digits = 1, format = "f")) %>% 
+    dplyr::mutate(across(where(is.numeric), 
+                         formatC, big.mark=",", digits = 1, format = "f")) %>% 
     dplyr::rename(#"Start date and time"# and time" 
-                  #= start_time,
-                  "Haul number" = haul,
-                  "Start latitude" = start_latitude,
-                  "Start longitude" = start_longitude,
-                  "End latitude" = end_latitude,
-                  "End longitude" = end_longitude,
-                  "Bottom depth _m__" = bottom_depth,
-                  "Duration (_h__)" = duration,
-                  "Distance fished _km__" = distance_fished,
-                  "Net width _m__" = net_width,
-                  "Net measured___" = net_measured,
-                  "Performance" = performance) 
+      #= start_time,
+      "Haul number" = haul,
+      "Start latitude" = start_latitude,
+      "Start longitude" = start_longitude,
+      "End latitude" = end_latitude,
+      "End longitude" = end_longitude,
+      "Bottom depth _m__" = bottom_depth,
+      "Duration (_h__)" = duration,
+      "Distance fished _km__" = distance_fished,
+      "Net width _m__" = net_width,
+      "Net measured___" = net_measured,
+      "Performance" = performance) 
   
   table_raw <- data.frame(t(data.frame(table_raw)))
   names(table_raw) <- table_raw["stationid", ]
@@ -85,7 +85,7 @@ for (iii in 1:nrow(temp)) {
   table_print1 <- table_raw
   table_print1$row <- rownames(table_raw) 
   table_raw00 <- table_raw
-
+  
   table_print1 <- table_print1 %>% 
     dplyr::relocate(row)
   
@@ -104,40 +104,40 @@ for (iii in 1:nrow(temp)) {
     c_start <- comb$c_start[ii]
     c_end <- comb$c_end[ii]
     
-  nickname <- paste0(nickname0, 
-                     temp$SRVY[iii], 
-                     "_",  
-                     gsub(pattern = " ", replacement = "", perl = TRUE, 
-                          x = gsub(pattern = "F/V ", replacement = "", 
-                                   x = temp$vessel_name[iii], fixed = TRUE)), 
-                     "_", iii,"_", ii)
+    nickname <- paste0(nickname0, 
+                       temp$SRVY[iii], 
+                       "_",  
+                       gsub(pattern = " ", replacement = "", perl = TRUE, 
+                            x = gsub(pattern = "F/V ", replacement = "", 
+                                     x = temp$vessel_name[iii], fixed = TRUE)), 
+                       "_", iii,"_", ii)
     
     table_print <- table_print1[,c(1, c_start:c_end)] %>% 
-        flextable::flextable(data = .) %>%
-        flextable::bold(x = ., j = "row") %>%
-        flextable::set_header_labels(., row = "") %>%
-        NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE,
-                               body_size = 8, pad = 0, spacing = 0.9, 
-                               pgwidth = full_page_landscape_width)
-
-      header <- paste0("Haul and catch data for successfully completed tows by ", 
-                       temp$vessel_ital[iii]," during the ", maxyr, " ", 
-                       temp$SRVY_long[iii], 
-                       " bottom trawl survey. In this table shows stations ", 
-                       names(table_print1)[c_start], " thru ", 
-                       names(table_print1)[c_end], 
-                       " are shown. ")
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
-  quiet = TRUE
-)
-
-list_tables[nickname][[1]]$res <- res
-}
+      flextable::flextable(data = .) %>%
+      flextable::bold(x = ., j = "row") %>%
+      flextable::set_header_labels(., row = "") %>%
+      NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE,
+                                          body_size = 8, pad = 0, spacing = 0.9, 
+                                          pgwidth = full_page_landscape_width)
+    
+    header <- paste0("Haul and catch data for successfully completed tows by ", 
+                     temp$vessel_ital[iii]," during the ", maxyr, " ", 
+                     temp$SRVY_long[iii], 
+                     " bottom trawl survey. In this table shows stations ", 
+                     names(table_print1)[c_start], " through ", 
+                     names(table_print1)[c_end], 
+                     " are shown. ")
+    
+    # save yo' stuff and do a lot of behind the scenes work
+    # alt: this does the same thing as calling "child = " in the chunk header
+    res <- knitr::knit_child(
+      text = knitr::knit_expand(
+        file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
+      quiet = TRUE
+    )
+    
+    list_tables[nickname][[1]]$res <- res
+  }
 }
 ```
 
@@ -155,7 +155,7 @@ cnt_tables <- 0
 temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
                                    taxon0 = c("invert", "fish")), 
                         haul_cruises_maxyr %>% 
-                        dplyr::select(SRVY_long, SRVY))
+                          dplyr::select(SRVY_long, SRVY))
 
 for (i in 1:nrow(temp)) {
   newobj <- TRUE
@@ -164,21 +164,21 @@ for (i in 1:nrow(temp)) {
                      temp$SRVY[i], 
                      "_",  
                      temp$taxon[i])
-
+  
   header <- paste0(stringr::str_to_sentence(temp$taxon[i]), 
                    " taxa encountered during the ", 
                    maxyr, " ", temp$SRVY_long[i], 
                    " bottom trawl survey and listed alphabetically by family.")
-    
+  
   table_raw <- 
     dplyr::left_join(
       x = catch_haul_cruises_maxyr %>% 
         dplyr::filter(year == maxyr &
-                      SRVY == temp$SRVY[i]) %>% 
+                        SRVY == temp$SRVY[i]) %>% 
         dplyr::select(stationid, start_latitude, start_longitude, bottom_depth, species_code), 
       y = spp_info %>% 
         dplyr::rename(taxon0 = ifelse(temp$taxon[i] == "fish", "family_taxon", "phylum_taxon")) %>%
-          dplyr::select(species_name, common_name, taxon, species_code, taxon0), 
+        dplyr::select(species_name, common_name, taxon, species_code, taxon0), 
       by = "species_code") %>% 
     dplyr::filter(taxon == temp$taxon0[i]) %>% 
     dplyr::mutate(taxon = taxon0) %>% 
@@ -194,29 +194,29 @@ for (i in 1:nrow(temp)) {
     dplyr::arrange(taxon)  %>%
     dplyr::mutate(stations_n = formatC(stations_n, big.mark=",", digits = 0, format = "f"))  %>%
     dplyr::mutate(across(where(is.numeric), 
-                       formatC, big.mark=",", digits = 1, format = "f"))
-
+                         formatC, big.mark=",", digits = 1, format = "f"))
+  
   table_print <- table_raw %>% 
     dplyr::mutate(species_name1 = species_name) %>%
-  dplyr::mutate(spp = dplyr::case_when(
-    grepl(pattern = "sp.", x = species_name1, fixed = TRUE) ~ "sp.", 
-    grepl(pattern = "spp.", x = species_name1, fixed = TRUE) ~ "spp.", 
-    TRUE ~ "")) %>%
-  dplyr::mutate(
-    species_name = species_name1, 
-    species_name1 = 
-      gsub(pattern = " sp.", replacement = "", 
-           x = species_name1, fixed = TRUE), 
-    species_name1 =
-      gsub(pattern = " spp.", replacement = "",
-           x = species_name1, fixed = TRUE),
-    species_name2 = dplyr::case_when(
-      !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), 
-    species_name1 = dplyr::case_when(
-      grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1))
-
+    dplyr::mutate(spp = dplyr::case_when(
+      grepl(pattern = "sp.", x = species_name1, fixed = TRUE) ~ "sp.", 
+      grepl(pattern = "spp.", x = species_name1, fixed = TRUE) ~ "spp.", 
+      TRUE ~ "")) %>%
+    dplyr::mutate(
+      species_name = species_name1, 
+      species_name1 = 
+        gsub(pattern = " sp.", replacement = "", 
+             x = species_name1, fixed = TRUE), 
+      species_name1 =
+        gsub(pattern = " spp.", replacement = "",
+             x = species_name1, fixed = TRUE),
+      species_name2 = dplyr::case_when(
+        !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), 
+      species_name1 = dplyr::case_when(
+        grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1))
   
- 
+  
+  
   # table_print <- table_raw %>% 
   # flextable::as_grouped_data(x = ., groups = c(#"SRVY", 
   #                                              "oto_samp_type"), 
@@ -225,60 +225,65 @@ for (i in 1:nrow(temp)) {
   # flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>%
   # # flextable::italic(x = ., j = "species_name") %>% 
   # # flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-
   
   
-table_print <- table_print %>%
-  flextable::as_grouped_data(x = ., 
-                             # columns = c("species_name",
-                             #             "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max"),
-                             groups = c("taxon")) %>% 
-  flextable::flextable(data = ., #x = .,  
-                             col_keys = c("taxon" ,
-                               "species_name",
-                                         "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max")#,
-                       # hide_grouplabel = TRUE
-                       ) %>% 
-  flextable::compose(j = "species_name",
-          value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
-  # flextable::flextable(data = ., 
-  #                      col_keys = c("family_taxon" ,"species_name", 
-  #                                        "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max")) %>%
-  # flextable::padding(x = ., 
-  #                    j = 1, i = ~ 
-  #                      is.na(family_taxon), 
-  #                    padding.left = 20) %>%
-  # flextable::bold(x = ., j = 1, i = ~ !is.na(family_taxon) ) %>%
-  # flextable::width(x = ., j = "family_taxon", width = 1.5) %>% 
-  flextable::width(x = ., j = "species_name", width = 1) %>%
-  flextable::width(x = ., j = "common_name", width = 1) %>%
-  flextable::set_header_labels(.,
-                               taxon = ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
-                               species_name = "Scientific name",
-                               common_name = "Common name",
-                               stations_n = "Number stations present", 
-                               depth_min = "Min.", 
-                               depth_max = "Max.", 
-                               depth_mean = "Avg.", 
-                               lat_min = "Southern", 
-                               lat_min = "Northern") %>%
-      flextable::add_header_row(top = TRUE, 
+  
+  table_print <- table_print %>%
+    flextable::as_grouped_data(x = ., 
+                               # columns = c("species_name",
+                               #             "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max"),
+                               groups = c("taxon")) %>% 
+    flextable::flextable(data = ., #x = .,  
+                         col_keys = c("taxon" ,
+                                      "species_name",
+                                      "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max")#,
+                         # hide_grouplabel = TRUE
+    ) %>%
+    # ftExtra::span_header() %>% 
+    flextable::compose(j = "species_name",
+                       value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
+    # flextable::flextable(data = ., 
+    #                      col_keys = c("family_taxon" ,"species_name", 
+    #                                        "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max")) %>%
+    # flextable::padding(x = ., 
+    #                    j = 1, i = ~ 
+    #                      is.na(family_taxon), 
+    #                    padding.left = 20) %>%
+    # flextable::bold(x = ., j = 1, i = ~ !is.na(family_taxon) ) %>%
+    # flextable::width(x = ., j = "family_taxon", width = 1.5) %>% 
+    flextable::width(x = ., width = 1, unit = "in") %>%
+    flextable::width(x = ., j = "taxon", width = 0.5, unit = "in") %>%
+    flextable::merge_h_range(x = ., i = ~ taxon == "", j1 = "taxon", j2 = "species_name", part = "body") %>%
+    flextable::set_header_labels(., 
+                                 values = list(
+                                 taxon = ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
+                                 species_name = "Scientific name",
+                                 common_name = "Common name",
+                                 stations_n = "Number stations present", 
+                                 depth_min = "Min.", 
+                                 depth_max = "Max.", 
+                                 depth_mean = "Avg.", 
+                                 lat_max = "Southern", 
+                                 lat_min = "Northern")) %>%
+    flextable::add_header_row(x = ., 
+                              top = TRUE, 
                               values = c("", "Bottom depth (m)", "Latitude range"), 
                               colwidths = c(4,3,2)) %>% 
+    # flextable::add_header_lines(x = ., values = c("", "Bottom depth (m)", "Latitude range"), top = FALSE) %>%
     flextable::align(i = 1, align = "center", part = "header")  %>%  
-  theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE, 
-                         body_size = 8, header_size = 9, 
-                         pgwidth = full_page_landscape_width)
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-list_tables[nickname][[1]]$res <- res
+    theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE, 
+                           body_size = 8, header_size = 9, 
+                           pgwidth = full_page_landscape_width)
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_tables[nickname][[1]]$res <- res
 }
 
 ```
@@ -294,16 +299,16 @@ nickname0 <- "tab_app_principal_fish_"
 cnt_tables <- 0
 
 temp <- tidyr::crossing(haul_cruises_maxyr %>% 
-                        dplyr::select(SRVY_long, SRVY), 
+                          dplyr::select(SRVY_long, SRVY), 
                         report_spp1 %>% 
                           dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
                           dplyr::select(file_name, print_name, common_name1, species_name, species_name1) %>% 
                           dplyr::distinct())
 
 temp0 <- report_spp1 %>% 
-                          dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
-                          dplyr::select(file_name, species_code) %>% 
-                          dplyr::distinct()
+  dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
+  dplyr::select(file_name, species_code) %>% 
+  dplyr::distinct()
 
 for (i in 1:nrow(temp)) {
   newobj <- TRUE
@@ -320,60 +325,60 @@ for (i in 1:nrow(temp)) {
   header <- paste0("Population estimates by sex and size for ",temp$print_name[i]," (",temp$species_name[i],") from the ", 
                    maxyr, " ", temp$SRVY_long[i], 
                    " bottom trawl survey.")
-    
+  
   table_raw <- sizecomp_maxyr %>% 
-        dplyr::filter(species_code %in% spp_code &
-                      SRVY == temp$SRVY[i]) 
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY == temp$SRVY[i]) 
   
   if (nrow(table_raw) != 0) { 
-  
-  table_raw <- table_raw %>% 
-    dplyr::select(length, pop, sex) %>%
-    tidyr::pivot_wider(data = ., id_cols = length, 
-                       names_from = sex, 
-                       values_from = pop) %>%
-    dplyr::mutate(total = males + females + unsexed, 
-                  prop = total/sum(total, na.rm = TRUE), 
-                  cumprop = cumsum(prop)) %>%
-    dplyr::arrange(length)
-  
-  table_raw <- 
-    dplyr::bind_rows(table_raw %>% 
-                       dplyr::mutate(length = as.character(length)), 
-                     table_raw %>%
-                       dplyr::summarise(across(everything(), ~ sum(., is.na(.), 0))) %>% 
-                       dplyr::mutate(length = "Total", 
-                                     cumprop = 1))  %>%
-    dplyr::mutate(across((ends_with("prop")), 
-                       formatC, big.mark=",", digits = 4, format = "f")) %>%
-    dplyr::mutate(across(where(is.numeric), 
-                       formatC, big.mark=",", digits = 0, format = "f"))
-  
-table_print <- table_raw %>%
-  flextable::flextable(data = .) %>% 
-  flextable::set_header_labels(.,
-                               length = "Length (mm)",
-                               males = "Males",
-                               females = "Females",
-                               unsexed = "Unsexed", 
-                               total = "Total", 
-                               prop = "Proportion", 
-                               cumprop = "Cumulative proportion") %>%
-    flextable::align(i = 1, align = "center", part = "header")  %>%  
-  flextable::bold(x = ., i = nrow(table_raw), part = "body") %>%
-  theme_flextable_nmfstm(x = ., font0 = font0, 
-                         row_lines = FALSE, body_size = 8, header_size = 9, 
-                         pgwidth = full_page_landscape_width)
-
-# save yo' stuff and do a lot of behind the scenes work
-# alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
-  quiet = TRUE
-)
-
-list_tables[nickname][[1]]$res <- res
+    
+    table_raw <- table_raw %>% 
+      dplyr::select(length, pop, sex) %>%
+      tidyr::pivot_wider(data = ., id_cols = length, 
+                         names_from = sex, 
+                         values_from = pop) %>%
+      dplyr::mutate(total = males + females + unsexed, 
+                    prop = total/sum(total, na.rm = TRUE), 
+                    cumprop = cumsum(prop)) %>%
+      dplyr::arrange(length)
+    
+    table_raw <- 
+      dplyr::bind_rows(table_raw %>% 
+                         dplyr::mutate(length = as.character(length)), 
+                       table_raw %>%
+                         dplyr::summarise(across(everything(), ~ sum(., is.na(.), 0))) %>% 
+                         dplyr::mutate(length = "Total", 
+                                       cumprop = 1))  %>%
+      dplyr::mutate(across((ends_with("prop")), 
+                           formatC, big.mark=",", digits = 4, format = "f")) %>%
+      dplyr::mutate(across(where(is.numeric), 
+                           formatC, big.mark=",", digits = 0, format = "f"))
+    
+    table_print <- table_raw %>%
+      flextable::flextable(data = .) %>% 
+      flextable::set_header_labels(.,
+                                   length = "Length (mm)",
+                                   males = "Males",
+                                   females = "Females",
+                                   unsexed = "Unsexed", 
+                                   total = "Total", 
+                                   prop = "Proportion", 
+                                   cumprop = "Cumulative proportion") %>%
+      flextable::align(i = 1, align = "center", part = "header")  %>%  
+      flextable::bold(x = ., i = nrow(table_raw), part = "body") %>%
+      theme_flextable_nmfstm(x = ., font0 = font0, 
+                             row_lines = FALSE, body_size = 8, header_size = 9, 
+                             pgwidth = full_page_landscape_width)
+    
+    # save yo' stuff and do a lot of behind the scenes work
+    # alt: this does the same thing as calling "child = " in the chunk header
+    res <- knitr::knit_child(
+      text = knitr::knit_expand(
+        file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
+      quiet = TRUE
+    )
+    
+    list_tables[nickname][[1]]$res <- res
   }
 }
 

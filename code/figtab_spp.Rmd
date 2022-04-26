@@ -194,8 +194,8 @@ if (spp_plot_idw){
   width <- full_page_portrait_width # 6.5
   
   table_raw <- cpue %>%
-    dplyr::filter(!is.na(cpue_kgha)) %>% 
-    dplyr::filter(species_code %in% spp_code & 
+    dplyr::filter(!is.na(cpue_kgha) & 
+                    species_code %in% spp_code & 
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
   
@@ -205,6 +205,15 @@ if (spp_plot_idw){
                    compareyr," (left) and ",maxyr,
                    " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
   
+    set.breaks <- set_breaks(dat = table_raw, 
+                           var = "cpue_kgha")
+    
+  # only if both species re only found in prt of the region, chnge the extrp.box
+  extrap.box0 <- extrap.box
+  if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") {
+    extrap.box0 <- report_types[[unique(table_raw$SRVY)]]$extrap.box
+  }
+  
   figure <- plot_idw_xbyx(
     yrs = c(maxyr, compareyr),
     dat = table_raw,
@@ -213,8 +222,8 @@ if (spp_plot_idw){
     lon = "longitude",
     var = "cpue_kgha",
     grid = "extrapolation.grid",
-    extrap.box = extrap.box,
-      key.title = paste0(stringr::str_to_sentence(spp_print), "
+    extrap.box = extrap.box0,
+    key.title = paste0(stringr::str_to_sentence(spp_print), "
 relative biomass (kg/ha)"),
     workfaster = workfaster,
     SRVY = SRVY, 
@@ -266,26 +275,26 @@ if (spp_plot_sizecomp) {
   
   type <- unique(length_data0$sentancefrag)
   
-  sizecomp0 <- sizecomp %>%
+  table_raw <- sizecomp %>%
       dplyr::filter(species_code %in% spp_code &
                       SRVY %in% SRVY1 &
                       year %in% c(compareyr, maxyr))
   
-  if (SRVY == "NEBS") {
-  sizecomp0 <- dplyr::bind_rows(
-    sizecomp0, 
-    sizecomp %>%
+  if (SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
+  table_raw <- dplyr::bind_rows(
+    table_raw, 
+    table_raw %>%
       dplyr::filter(species_code %in% spp_code &
                       SRVY %in% SRVY &
                       year %in% nbsyr) %>% 
       dplyr::group_by(year, taxon, species_code, sex, pop) %>% 
       dplyr::summarise(length) %>% 
-      dplyr::mutate(SRVY = "EBS + NBS")) %>% 
-    dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS + NBS"), ordered = TRUE))
+      dplyr::mutate(SRVY = "EBS and NBS")) %>% 
+    dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE))
   }
   
   figure <- plot_sizecomp(
-    sizecomp0 = sizecomp0,
+    sizecomp0 = table_raw,
     spp_code = spp_code,
     spp_print = stringr::str_to_sentence(spp_print),
     type = type,
@@ -524,13 +533,14 @@ for (i in 1:2) {
         lencount = "Hauls with lengths") %>% 
       # flextable::merge_v(j = "Region") %>%
       flextable::valign(valign = "top") %>%
-      theme_flextable_nmfstm(font0 = font0, row_lines = FALSE, 
-                             pgwidth = full_page_landscape_width)
+      NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = FALSE, 
+                             pgwidth = full_page_landscape_width) %>% 
+  flextable::padding(x = .,
+                     j = 1, i = ~ is.na(SRVY),
+                     padding.left = 5)
     }
   } else { # CPUE No/HA and POPULATION
-    
-    
-    
+
     nickname <- paste0(nickname0, "num")
     header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
                      NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY_long, 
@@ -601,8 +611,11 @@ for (i in 1:2) {
                                    lencount = "Hauls with lengths") %>% 
       # flextable::merge_v(j = "Region") %>%
       flextable::valign(valign = "top") %>%
-      theme_flextable_nmfstm(row_lines = FALSE, font = font0, 
-                             pgwidth = full_page_landscape_width)
+      NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, font = font0, 
+                             pgwidth = full_page_landscape_width) %>% 
+  flextable::padding(x = .,
+                     j = 1, i = ~ is.na(SRVY),
+                     padding.left = 5)
     }
   }
   

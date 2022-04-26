@@ -220,30 +220,43 @@ biomass_compareyr<-biomass %>%
 
 ## *** Load CPUE Design Based Estimates ----------------------------------------------
 
-df.ls<-list()
-
-a<-list.files(path = paste0(dir_data, "/oracle/"),
-              pattern = paste0("cpue_"),
-              full.names = TRUE)
-
-for (i in 1:length(a)){
-  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
-  b <- janitor::clean_names(b)
-  if (names(b)[1] %in% "x1"){
-    b$x1<-NULL
-  }
-  b$file <- a[i]
-  # temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
-  temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
-  b$survey <- toupper(strsplit(x = temp, split = "_")[[1]][strsplit(x = temp, split = "_")[[1]] %in% c("nbs", "ebs")])
-  # b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
-  df.ls[[i]]<-b
-  names(df.ls)[i]<-a[i]
-}
+# df.ls<-list()
+# 
+# a<-list.files(path = paste0(dir_data, "/oracle/"),
+#               pattern = paste0("cpue_"),
+#               full.names = TRUE)
+# 
+# for (i in 1:length(a)){
+#   b <- readr::read_csv(file = a[i], show_col_types = FALSE)
+#   b <- janitor::clean_names(b)
+#   if (names(b)[1] %in% "x1"){
+#     b$x1<-NULL
+#   }
+#   b$file <- a[i]
+#   # temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
+#   temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
+#   b$survey <- toupper(strsplit(x = temp, split = "_")[[1]][strsplit(x = temp, split = "_")[[1]] %in% c("nbs", "ebs")])
+#   # b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
+#   df.ls[[i]]<-b
+#   names(df.ls)[i]<-a[i]
 # }
 
-cpue <- SameColNames(df.ls)  %>%
-  dplyr::rename(SRVY = survey) %>%
+temp <- readr::read_csv(file = paste0(dir_data, "/public/cpue_station.csv"), show_col_types = FALSE) %>% 
+  dplyr::select(year, vessel_id, srvy,  stratum, station, scientific_name,
+                species_code, longitude_dd, latitude_dd, #hauljoin,  
+                haul, 
+                cpue_noha, cpue_kgha, common_name#, area_fished_ha, taxon
+                ) %>% 
+  dplyr::rename(SRVY = srvy, 
+                latitude = latitude_dd, 
+                longitude = longitude_dd, 
+                vessel = vessel_id, 
+                stationid = station, 
+                species_name = scientific_name) %>% 
+  dplyr::filter(SRVY %in% SRVY1)
+
+cpue <- temp %>% #SameColNames(df.ls)  %>%
+  # dplyr::rename(SRVY = survey) %>%
   dplyr::filter(year <= maxyr) %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish",
@@ -1115,7 +1128,7 @@ colnames(temp) <- c(temp1, "latitude", "longitude")
 cold_pool_area <- temp %>% 
   tidyr::pivot_longer(values_to = "value", 
                       names_to = "year", 
-                      cols = temp1) %>% 
+                      cols = all_of(temp1)) %>% 
   dplyr::mutate(bin = cut(x = value, 
                           breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
   dplyr::group_by(year, bin) %>%

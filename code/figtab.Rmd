@@ -596,14 +596,13 @@ table_print <- table_raw %>%
   flextable::as_grouped_data(groups = c("SRVY"), columns = NULL) %>% 
   flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-
-  theme_flextable_nmfstm(font0 = font0, row_lines = TRUE) %>% 
   flextable::width(x = ., j = "Agency", width = 1.5) %>%
   flextable::width(x = ., j = "Principal investigator", width = 1.5) %>%
   flextable::width(x = ., j = "Project Title", width = 4) %>% 
   # flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
   flextable::footnote(x = ., value = as_paragraph(footnote0), 
                       part = "header", j = "Agency")  %>%
+  NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = TRUE) %>% 
   flextable::padding(x = .,
                      j = 1, i = ~ is.na(SRVY),
                      padding.left = 5)
@@ -960,7 +959,7 @@ if (SRVY == "NEBS") {
                        expression(bold("Surface Temperature (°C)"))), 
     reg_dat = report_types$NEBS$reg_dat, 
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-    row = ifelse(length(nbsyr)>=2, 1, 2), 
+    row = 2, #ifelse(length(nbsyr)>=2, 2, 1), 
     viridis_palette_option = "H") 
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -1068,7 +1067,7 @@ if (SRVY == "NEBS"){
     #                 j = 3:4) %>%
     # flextable::footnote(x = ., part = "header", i = 1, j = 1,
     #                     value = as_paragraph(footnote0)) %>%
-    add_header_row(x = .,
+    flextable::add_header_row(x = .,
                    values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
                    colwidths = c(2, 2)) %>%
     flextable::set_header_labels(.,
@@ -1077,7 +1076,7 @@ if (SRVY == "NEBS"){
                                  common_name = "Common name",
                                  report_name_scientific = "Scientific name"
     ) %>%
-    theme_flextable_nmfstm(font0 = font0, row_lines = FALSE) %>%
+    NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = FALSE) %>%
     flextable::vline(x = ., j = 2, part = "all")
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -1452,12 +1451,18 @@ temp1 <- function(table_raw, strat, total) {
                                          "Proportion of total animal biomass", 
                                          "Estimated biomass by stratum (mt)"), 
                               colwidths = c(2,3,1,length(strat))) %>% 
-    flextable::width(x = ., #j = c(999, strat), 
-                     width = 2, unit = "in") %>%
-    flextable::width(x = ., j = c("group", "taxon"), 
-                     width = 4, unit = "in") %>%    
+    # flextable::width(x = ., # j = c(999, strat), 
+    #                  width = 2.5, unit = "in") %>%
+    flextable::width(x = ., #j = c("999"), 
+                     width = 1.5, unit = "in") %>%
+    flextable::width(x = ., j = c("999"), 
+                     width = 1.5, unit = "in") %>%
+    flextable::width(x = ., j = c("group"), 
+                     width = 1.5, unit = "in") %>%    
+    flextable::width(x = ., j = c("taxon"), 
+                     width = 5, unit = "in") %>% 
     flextable::width(x = ., j = c("a"), 
-                     width = 0.5, unit = "in") %>%        
+                     width = 0.25, unit = "in") %>%        
     flextable::align(i = 1, align = "center", part = "header")  %>%  
     flextable::footnote(x = ., part = "header", i = 1, j = 5, 
                         value = as_paragraph(footnote0)) %>%
@@ -1937,7 +1942,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  "change " = paste0("Change (", maxyr, ", ", compareyr, ")" ), 
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
     NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE, 
-                                        pgwidth = full_page_landscape_width)  %>% 
+                                        pgwidth = full_page_landscape_width) %>% 
     flextable::vline(x = ., part = "all", j = 5)
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -2037,7 +2042,7 @@ for (i in 1:2) {
         SRVY = "Shelf area", 
         meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
         varmnwgtcpue = paste0("SD CPUE"), 
-        biomass = paste0("Estimated Biomass", biomass0$unit_word), 
+        biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
         varbio = paste0("SD Biomass", varbio0$unit_word), 
         upperb = paste0("95% LCL", biomass0$unit_word), 
         lowerb = paste0("95% UCL", biomass0$unit_word), 
@@ -2045,6 +2050,8 @@ for (i in 1:2) {
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
         lencount = "Hauls with lengths") %>% 
+      flextable::width(x = ., j = "print_name", width = 2.5) %>%
+      flextable::width(x = ., j = "SRVY", width = 0.5) %>%
       flextable::merge_v(x = ., target = "print_name", 
                          j = "print_name", part = "body") %>% 
       flextable::valign(valign = "top") %>%
@@ -2095,7 +2102,7 @@ for (i in 1:2) {
         SRVY = "Shelf area", 
         meannumcpue = paste0("Mean CPUE (no/ha)"), 
         varmnnumcpue = paste0("SD CPUE"), 
-        population = paste0("Estimated Population", population0$unit_word), 
+        population = paste0("Estimated\nPopulation", population0$unit_word), 
         varpop = paste0("SD Population", varpop0$unit_word), 
         upperp = paste0("95% LCL", population0$unit_word), 
         lowerp = paste0("95% UCL", population0$unit_word), 
@@ -2103,10 +2110,16 @@ for (i in 1:2) {
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
         lencount = "Hauls with lengths") %>% 
-      flextable::merge_v(x = ., target = "print_name", 
-                         j = "print_name", part = "body") %>% 
+      flextable::width(x = ., j = "print_name", width = 2.5) %>%
+      flextable::width(x = ., j = "SRVY", width = 0.5) %>%
+      flextable::merge_v(x = ., 
+                         target = "print_name", 
+                         j = "print_name", 
+                         part = "body") %>% 
       flextable::valign(valign = "top") %>%
-      theme_flextable_nmfstm(font0 = font0, row_lines = TRUE, pgwidth = full_page_landscape_width)
+      NMFSReports::theme_flextable_nmfstm(font0 = font0, 
+                             row_lines = TRUE, 
+                             pgwidth = full_page_landscape_width)
   }
   
   # save yo' stuff and do a lot of behind the scenes work

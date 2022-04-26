@@ -1250,19 +1250,19 @@ plot_idw_xbyx <- function(
   # Select data and make plot
   for (ii in length(yrs):1) {
     
-    region <- "bs.south"
-    if (SRVY == "NEBS"){
-      temp1 <- cruises %>%
-        dplyr::filter(year %in% yrs[ii]) %>%
-        dplyr::select(SRVY) %>%
-        unlist() %>%
-        unique()
-      region <- ifelse(sum(temp1 %in% "NBS")>0, "bs.all", "bs.south")
+    temp1 <- unique(table_raw$SRVY[table_raw$year == yrs[ii]])
+    region <- "bs.all"
+    if (length(temp1)==1) {
+      if (temp1 %in% c("EBS")) {
+        region <- "bs.south"
+      } else if (temp1 %in% c("NBS")) {
+        region <- "bs.north"
+      }
     }
     
     temp <- dat %>%
-      dplyr::filter(year == yrs[ii] # & cpue_kgha > 0
-      ) 
+      dplyr::filter(# cpue_kgha > 0 & 
+        year == yrs[ii]) 
     
     temp1 <- akgfmaps::make_idw_map(
       LATITUDE = as.numeric(unlist(temp[,lat])),
@@ -2325,8 +2325,8 @@ plot_survey_stations <- function(reg_dat,
                    mapping = aes(label = gsub(x = STATIONID, 
                                               replacement = "\n", 
                                               pattern = "-")),
-                   color = "black",
-                   size = 1.25, # 1.5
+                   color = "black", 
+                   size = 1.5, # 1.5
                    show.legend = FALSE) #+
     
   }
@@ -2355,11 +2355,12 @@ plot_survey_stations <- function(reg_dat,
                    dist = 150,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = .03,
+                   st.dist = 0.04,
                    height = 0.02,
                    st.bottom = TRUE,
-                   st.size = 2,
-                   model = reg_dat$crs) + 
+                   st.size = 3,
+                   model = reg_dat$crs) +
+
     # ggsn::scalebar(data = reg_dat$survey.grid, 
     #                location = "bottomright",
     #                dist = 100, 
