@@ -535,7 +535,7 @@ species_table <- function(haul_spp,
                           SURVEY000, 
                           SRVY000 = NA) {
   
-  header <- paste0("Summary of environmental variables that ", spp_print, " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
+  header <- paste0("Summary of environmental variables that ", spp_print, " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "EBS and NBS", paste0(" (", SRVY000, ")")))
   
   # Select data and make plot
   cols<-c("start_latitude", "start_longitude",  #"weight", "number_fish", 
