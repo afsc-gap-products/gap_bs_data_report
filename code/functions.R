@@ -535,7 +535,7 @@ species_table <- function(haul_spp,
                           SURVEY000, 
                           SRVY000 = NA) {
   
-  header <- paste0("Summary of environmental variables that ", spp_print, " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "EBS and NBS", paste0(" (", SRVY000, ")")))
+  header <- paste0("Summary of environmental variables that ", spp_print, " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
   
   # Select data and make plot
   cols<-c("start_latitude", "start_longitude",  #"weight", "number_fish", 
@@ -635,7 +635,7 @@ During the ", maxyr, " survey, ", spp_print, " were present at ",
 formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
         digits = 1, format = "f") , 
 "% of stations in the ", 
-ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "EBS and NBS", SRVY000), " (", 
+ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000), " (", 
 length(unique(haul_maxyr_spp$hauljoin)), " of ", 
 length(unique(haul_maxyr0$hauljoin)), 
 " stations). ")
@@ -682,7 +682,7 @@ The ",
 NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
 " of ", spp_print, 
 " measured during the ",maxyr," ",
-ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "EBS and NBS", SRVY000),
+ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 " survey were between ", 
 # NMFSReports::xunits(
 (min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
@@ -724,7 +724,7 @@ ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "EBS and NBS", SRVY000),
                    unit,"), ",spp_print," ",metric_long," in ", 
                    maxyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
                    unit,") in the ",
-                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "EBS and NBS", SRVY000)," experienced ",
+                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000)," experienced ",
                    NMFSReports::pchange(start = sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE),
                                         end = sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)) , 
                    # compare to the year before these
@@ -788,7 +788,7 @@ xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm =
 xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table",ifelse(length(SRVY000)>1, "s", "")," ",
 NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
 ") of the ",
-ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "EBS and NBS", SRVY000),
+ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 " survey biomass. ",
 
 "Previously, in ",compareyr,", ",spp_print," comprised ",
@@ -797,7 +797,7 @@ xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.
 xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table",ifelse(length(SRVY000)>1, "s", "")," ",
 NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
 ") of the ",
-ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "EBS and NBS", SRVY000),
+ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
 " survey biomass. ")
     
     
@@ -1398,9 +1398,10 @@ plot_idw_xbyx <- function(
                  transform = FALSE,
                  st.dist = ifelse(row > 2, 0.08, 0.04),
                  height = ifelse(row > 2, 0.04, 0.02),
-                 st.bottom = ifelse(row <= 2, TRUE, FALSE),
+                 st.bottom = FALSE, #ifelse(row <= 2, TRUE, FALSE),
                  st.size = ifelse(row > 2, 2.5, 3), # 2.5
                  model = reg_dat$crs) 
+  
   
   if (grid == "continuous.grid") {
     figure <- figure + 
