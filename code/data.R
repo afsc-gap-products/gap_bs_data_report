@@ -721,10 +721,23 @@ catch_haul_cruises_maxyr <- temp(cruises_ = cruises_maxyr,
 
 catch_haul_cruises_compareyr <- temp(cruises_compareyr, haul_compareyr, catch)
 
+# *** report_spp and spp_info part 2 ---------------------------------------------------------------
+
 spp_info_maxyr <- spp_info %>% 
   dplyr::filter(species_code %in% 
                   unique(catch_haul_cruises_maxyr$species_code))
 
+report_spp2 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "order", 
+                              report_spp_codes = "species_code", 
+                              lang = FALSE) %>% 
+  dplyr::filter((species_code %in% spp_info_maxyr$species_code)) 
+
+
+report_spp <- report_spp %>%
+  dplyr::filter(file_name %in% c(report_spp2$file_name, NA))
 
 # *** length ---------------------------------------------------------------
 

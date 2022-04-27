@@ -27,21 +27,21 @@ font0 <- "Arial Narrow"
 # ref_compareyr_nbs <- "@RN909" # temp
 # ref_maxyr_npfmc <- "@NPFMC2015" # temp
 
-maxyr <- 2017 # or the year of the report, for example
-compareyr <- 2010
+# maxyr <- 2017 # or the year of the report, for example
+# compareyr <- 2010
+# # SRVY<-"NEBS"
 # SRVY<-"NEBS"
-SRVY<-"NEBS"
-ref_compareyr <- "@RN976"
-# ref_compareyr <- "@RN909"
-ref_maxyr_npfmc <- "@NPFMC2016" # temp
-# dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
+# ref_compareyr <- "@RN976"
+# # ref_compareyr <- "@RN909"
+# ref_maxyr_npfmc <- "@NPFMC2016" # temp
+# # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-# maxyr <- 2018 # NOTE RAPID RESPONCE
-# compareyr <- 2016
-# SRVY<-"EBS"
-# ref_compareyr <- "@RN976" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2017" # temp
-# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+maxyr <- 2018 # NOTE RAPID RESPONCE
+compareyr <- 2016
+SRVY<-"EBS"
+ref_compareyr <- "@RN976" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2017" # temp
+dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019
 # compareyr <- 2017
@@ -55,7 +55,7 @@ ref_maxyr_npfmc <- "@NPFMC2016" # temp
 # SRVY<-"NEBS"
 # ref_compareyr <- "@2019NEBS2022" # CHANGE
 # ref_maxyr_npfmc <- "@NPFMC2019" # temp
-dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
 # compareyr <- 2021
