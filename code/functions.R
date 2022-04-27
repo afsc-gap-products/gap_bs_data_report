@@ -354,10 +354,10 @@ find_units <- function(unit = "", unt = "", dat, divby = NULL){
   
   if (is.null(divby)) {
     min_val <- min(dat, na.rm = TRUE)
-    min_val1 <- xunits(min_val, words = TRUE)
+    min_val1 <- NMFSReports::xunits(value = min_val, words = TRUE)
   } else {
     min_val <- divby
-    min_val1 <- xunits(divby, words = TRUE)
+    min_val1 <- NMFSReports::xunits(value = divby, words = TRUE)
   }
   
   
