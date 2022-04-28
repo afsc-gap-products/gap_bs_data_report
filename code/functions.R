@@ -360,7 +360,8 @@ find_units <- function(unit = "", unt = "", dat, divby = NULL){
     min_val1 <- NMFSReports::xunits(value = divby, words = TRUE)
   }
   
-  
+  # unit_word <- ""
+  # unit_wrd <- ""
     if (min_val<1e3) {
       divby <- 1
       unit_word <- ifelse(unit == "", "", paste0(" (", x, ")"))
