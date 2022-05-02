@@ -434,8 +434,17 @@ if (spp_table_cpue) {
   
   nickname0 <- paste0("tab_estimates_maxyr_", spp_taxon, "_", spp_file, "_") 
   
+  if (SRVY == "EBS") {
+    strat <- c("10", "20", "31", "32", "41", "42", "43", "50", "61", "62", "82", "90", 
+               "999")
+  } else if (SRVY == "NEBS"){
+    strat <- c("10", "20", "31", "32", "41", "42", "43", "50", "61", "62", "82", "90", 
+               "70", "71", "81", "999")
+  }
+  
   temp <- biomass_strat %>% 
     dplyr::filter(year == maxyr &
+                    stratum %in% strat &
                     species_code %in% spp_code) %>% 
     dplyr::select(SRVY, stratum, 
                   meanwgtcpue, varmnwgtcpue, 
@@ -447,11 +456,14 @@ if (spp_table_cpue) {
     dplyr::arrange(stratum) %>% 
     dplyr::arrange(SRVY) %>% 
     dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
+
+if (sum(temp$biomass[temp$stratum == "Total"] != 0) > 0) {
+
   
-  if (sum(temp$population[temp$stratum == "Total"] %in% 0)>0) {
+  if (sum(temp$biomass[temp$stratum == "Total"] %in% 0)>0) {
     temp <- temp %>% 
-      dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & temp$biomass != 0])
-    
+      dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
+                                        temp$biomass != 0])
   }
   
   # for (i in 1:nrow(haul_cruises_maxyr)) {
@@ -634,5 +646,5 @@ if (spp_table_cpue) {
     list_tables[nickname][[1]]$res <- res
   }
 }
-
+}
 ```
