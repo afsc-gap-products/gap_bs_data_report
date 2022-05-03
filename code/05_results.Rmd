@@ -97,7 +97,7 @@ temp <- cold_pool_area %>%
 
 During the last `r length(unlist(temps_avg_yr_abovebelow)[!is.na(unlist(temps_avg_yr_abovebelow))])` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')`), `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)[!is.na(unlist(temps_avg_yr_abovebelow))]))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`), which is defined by the extent of bottom temperatures below 2°C. Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool in the EBS varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)] ` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)] `, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f") ` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1) `%) of the EBS shelf survey area, which was the `r NMFSReports::numbers2words_th(temp$rank[temp$year == maxyr])` lowest areal coverage in the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year EBS shelf time series.
 
-The `r compareyr` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys provided a synoptic view of the spatial pattern of bottom temperatures across the entire `r SRVY` shelf, allowing comparisons of annual differences in demersal fauna distribution patterns and investigations of potential annual differences in fish migration pathways. Cold water in the middle of the EBS can restrict marine fauna from moving east-west across the shelf or north-south along the inner domain.
+The `r compareyr` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys provided a synoptic view of the spatial pattern of bottom temperatures across the entire `r NMFSReports::text_list(SRVY1)` shelf, allowing comparisons of annual differences in demersal fauna distribution patterns and investigations of potential annual differences in fish migration pathways. Cold water in the middle of the EBS can restrict marine fauna from moving east-west across the shelf or north-south along the inner domain.
 
 
 ```{r}
@@ -170,7 +170,7 @@ str0 <- paste0("Specifically, a total of ", NMFSReports::text_list(sep="; ", pas
 
 ```
 
-Many specimen samples were collected during the `r SRVY` shelf trawl survey (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`). `r str0` Other special collections are listed in table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`. 
+Many specimen samples were collected during the `r NMFSReports::text_list(SRVY1)` shelf trawl survey (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`). `r str0` Other special collections are listed in table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`. 
 
 ## Species Composition
 
@@ -313,7 +313,7 @@ insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 ```
 
-A total of `r xunits(temp1$species_code) ` different fish taxa representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r SRVY` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert `
+A total of `r xunits(temp1$species_code) ` different fish taxa representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert `
 
 ```{r}
 # if (SRVY == "NEBS") {
@@ -429,10 +429,11 @@ temp0 <- dplyr::full_join(
 
 temp1 <- dplyr::bind_cols(
   temp %>% 
-    dplyr::filter(!is.na(species_taxon)) %>% 
-    dplyr::select(species_taxon) %>% 
+    # dplyr::filter(!is.na(species_taxon)) %>%
+    dplyr::select(phylum_taxon, species_taxon) %>% 
     dplyr::distinct() %>% 
-    dplyr::summarise(species_taxon = n()),
+    dplyr::summarise(phylum_taxon = length(unique(phylum_taxon)), 
+                     species_taxon = length(unique(species_taxon))),
   temp %>% 
     dplyr::filter(!is.na(species_code)) %>% 
     dplyr::select(species_code) %>% 
@@ -442,7 +443,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-A total of `r xunits(temp1$species_code) ` different invertebrate taxa representing `r xunits(temp1$species_taxon)` phyla were identified during the `r maxyr` `r SRVY` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
+A total of `r xunits(temp1$species_code) ` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
 
 ```{r}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.

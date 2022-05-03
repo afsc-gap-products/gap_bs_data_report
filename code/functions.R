@@ -40,6 +40,7 @@ PKG <- c(
   "knitcitations", # devtools::install_github("cboettig/knitcitations")
   
   # other tidyverse
+  "plyr",
   "dplyr",
   "googledrive",
   "magrittr",

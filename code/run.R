@@ -11,7 +11,7 @@
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
-workfaster <- FALSE # an attempt to satisfy limited patience
+workfaster <- TRUE # an attempt to satisfy limited patience
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
