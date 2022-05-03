@@ -45,6 +45,30 @@ locations<-c(
   "HAEHNR.sizecomp_ebs_plusnw_stratum", 
   # "HAEHNR.sizecomp_ebs_plusnw_stratum_grouped",
   
+  # CRAB
+  "co_size1_cpuenum",
+  "co_size1_cpuewgt", 
+  "cb_size1_cpuenum",
+  "cb_size1_cpuewgt",
+  "rk_size1_cpuenum_leg1",
+  "rk_size1_cpuewgt_leg1",
+  "rk_size1_cpuenum_leg2",
+  "rk_size1_cpuewgt_leg2",
+  "rk_size1_cpuenum_leg3",
+  "rk_size1_cpuewgt_leg3",
+  "bk_size1_cpuenum",
+  "bk_size1_cpuewgt",
+  "co_size1_cpuenum_nbs",
+  "co_size1_cpuewgt_nbs",
+  "co_weight_mt_size1_union_nbs",
+  "co_num_size1_union_nbs",
+  "bk_size1_cpuenum_nbs",
+  "bk_size1_cpuewgt_nbs",
+  "bk_weight_mt_size1_union_nbs",
+  "bk_num_size1_union_nbs",
+  "rk_size1_cpuenum_nbs",
+  "rk_size1_cpuewgt_nbs",
+  
   #General Tables of data
   "RACEBASE.CATCH", 
   # "RACE_DATA.HAULS", # For vessel net mens. codes
