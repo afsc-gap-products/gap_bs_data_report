@@ -1501,7 +1501,7 @@ plot_temps_facet <- function(rasterbrick,
   temp_df <- temp_df %>% 
     tidyr::pivot_longer(values_to = "value", 
                         names_to = "year", 
-                        cols = temp1)
+                        cols = dplyr::all_of(temp1))
   
   fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
   
