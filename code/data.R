@@ -24,6 +24,8 @@
 # nbs_grid <- full_ebs_layers$survey.grid %>% filter(STATIONID %in% akgfmaps::get_survey_stations(select.region = "nbs"))
 # ggplot() +
 #   geom_sf(data = nbs_grid)
+
+
 report_types <- list(
   "EBS" = list(
     sectname = "EBS-BTS-Report", 
@@ -35,6 +37,8 @@ report_types <- list(
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.south"),
     extrap.box = c(xmn = -180, xmx = -156, ymn = 54, ymx = 62), 
+    strat0 = c("10", "20", "30", "31", "32", "40", "41", "42", "43", "50", "60", "61", "62", "82", "90", 
+               "999"),
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.south", 
       set.crs = "auto", 
@@ -51,6 +55,8 @@ report_types <- list(
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.north"),
     extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68),
+    strat0 = c("70", "71", "81", 
+               "999"), 
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.north", 
       set.crs = "auto", 
@@ -68,6 +74,9 @@ report_types <- list(
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.all"),
     extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68),
+    strat0 = c("10", "20", "30", "31", "32", "40", "41", "42", "43", "50", "60", "61", "62", "82", "90",
+               "70", "71", "81", 
+               "999"), 
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.all", 
       set.crs = "auto", 
