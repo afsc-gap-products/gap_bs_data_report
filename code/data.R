@@ -132,10 +132,12 @@ if (googledrive_dl) {
 }
 # *** Load Oracle Data -------------------------------------------------------------
 
-a<-list.files(path = here::here("data", "oracle"))
+a <-list.files(path = here::here("data", "oracle"))
 a <- a[!(grepl(pattern = "biomass_", x = a)) & 
          !(grepl(pattern = "cpue_", x = a)) & 
          !(grepl(pattern = "old", x = a)) & 
+         (grepl(pattern = ".", fixed = TRUE, x = a)) & 
+         !(grepl(pattern = ".txt", x = a)) & 
          !(grepl(pattern = "sizecomp_", x = a)) & 
          !(grepl(pattern = "_ADFG", x = a))]
 for (i in 1:length(a)){
@@ -157,9 +159,10 @@ for (i in 1:length(a)){
 
 df.ls<-list()
 
-a<-list.files(path = paste0(dir_data, "/oracle/"), 
+a <- list.files(path = paste0(dir_data, "/oracle/"), 
               pattern = paste0("biomass_"), 
               full.names = TRUE)
+a <- a[grepl(pattern = "_safe", x = a)]
 
 for (i in 1:length(a)){
   b <- readr::read_csv(file = a[i], show_col_types = FALSE)
@@ -537,8 +540,7 @@ stratum_info <-
       dplyr::distinct(stratum, stationid, stationid) %>% 
       dplyr::select(stratum, stationid) %>% 
       dplyr::group_by(stratum) %>% 
-      dplyr::summarise(count(stratum)) %>% 
-      dplyr::rename(stations_completed = "freq") %>% 
+      dplyr::summarise(stations_completed = length(unique(stationid))) %>% 
       dplyr::select(stratum, stations_completed), 
     by = "stratum") %>% 
   dplyr::left_join(
@@ -546,8 +548,7 @@ stratum_info <-
     y = station_info %>% 
       dplyr::select(stratum, stationid) %>% 
       dplyr::group_by(stratum) %>% 
-      dplyr::summarise(count(stratum)) %>% 
-      dplyr::rename(stations_avail = "freq") %>% 
+      dplyr::summarise(stations_avail = length(unique(stationid))) %>% 
       dplyr::select(stratum, stations_avail), 
     by = "stratum") %>% 
   dplyr::left_join(
@@ -1145,7 +1146,7 @@ cold_pool_area <- temp %>%
   dplyr::mutate(bin = cut(x = value, 
                           breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
   dplyr::group_by(year, bin) %>%
-  dplyr::summarise(count(bin)) %>%
+  dplyr::summarise(freq = length(unique(bin))) %>%
   dplyr::filter(year <= maxyr) %>%
   dplyr::mutate(perc = (freq/length(temp$`1982`)) * 100)  %>% # length(temp$`1982`) = 21299 is the number of cells and shouldnt change?
   dplyr::mutate(label = dplyr::case_when(
