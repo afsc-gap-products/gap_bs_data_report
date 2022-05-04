@@ -263,7 +263,7 @@ table_print <- flextable::flextable(
   theme_flextable_nmfstm(x = ., 
                          font0 = font0, 
                          pgwidth = full_page_portrait_width)  %>%
-  flextable::align(x = ., 
+  flextable::align(x = ., j = c("stratum", "area", "stations_completed", "density"), 
                      align = "right", part = "body")
 
 
@@ -1507,8 +1507,7 @@ temp1 <- function(table_raw, strat, total) {
                      align = "right", part = "body")
   
   return(list("table_raw" = table_raw, 
-              "
-              " = table_print))
+              "table_print" = table_print))
 }
 
 ```
@@ -1534,7 +1533,6 @@ exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes 
     species_code == 10285 ~ "Pleuronectidae (flatfishes)_Alaska plaice",
     species_code == 10110 ~ "Pleuronectidae (flatfishes)_arrowtooth flounder",
     species_code == 10112 ~ "Pleuronectidae (flatfishes)_Kamchatka flounder",
-    species_code == 10115 ~ "Pleuronectidae (flatfishes)_Greenland turbot",
     species_code == 10120 ~ "Pleuronectidae (flatfishes)_Pacific halibut",
     species_code >= 10041 & species_code <= 10295 & 
       species_code != 10210 &
@@ -2080,8 +2078,8 @@ for (i in 1:2) {
         varmnwgtcpue = paste0("SD CPUE"), 
         biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
         varbio = paste0("SD Biomass", varbio0$unit_word), 
-        upperb = paste0("95% LCL", biomass0$unit_word), 
-        lowerb = paste0("95% UCL", biomass0$unit_word), 
+        lowerb = paste0("95% LCL", biomass0$unit_word), 
+        upperb = paste0("95% UCL", biomass0$unit_word), 
         # haulcount = "Total hauls", 
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
@@ -2095,8 +2093,9 @@ for (i in 1:2) {
                                           font0 = font0, 
                                           row_lines = TRUE, 
                                           pgwidth = full_page_landscape_width) %>%
-      flextable::align(x = ., j = 3:11, 
-                       align = "right", part = "body")
+      flextable::align(x = ., align = "right", part = "body") %>%
+      flextable::align(x = ., j = c("print_name"), 
+                       align = "left", part = "body")
     
   } else { # CPUE No/HA and POPULATION
     
@@ -2144,8 +2143,8 @@ for (i in 1:2) {
         varmnnumcpue = paste0("SD CPUE"), 
         population = paste0("Estimated\nPopulation", population0$unit_word), 
         varpop = paste0("SD Population", varpop0$unit_word), 
-        upperp = paste0("95% LCL", population0$unit_word), 
-        lowerp = paste0("95% UCL", population0$unit_word), 
+        lowerp = paste0("95% LCL", population0$unit_word), 
+        upperp = paste0("95% UCL", population0$unit_word), 
         # haulcount = "Total hauls", 
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
@@ -2160,8 +2159,9 @@ for (i in 1:2) {
       NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, 
                              row_lines = TRUE, 
                              pgwidth = full_page_landscape_width) %>%
-      flextable::align(x = ., j = 3:11, 
-                       align = "right", part = "body")
+      flextable::align(x = ., align = "right", part = "body") %>%
+      flextable::align(x = ., j = c("print_name"), 
+                       align = "left", part = "body")
   }
   
   # save yo' stuff and do a lot of behind the scenes work

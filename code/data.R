@@ -164,103 +164,6 @@ for (i in 1:length(a)){
 # load(here::here("data", "publicdata", "all_data.Rdata"))
 # lastdl <- ageoffile(here::here("data", "publicdata", "all_data.Rdata"))   
 
-# *** Load Biomass Design Based Estimates ----------------------------------------------
-
-df.ls<-list()
-
-a <- list.files(path = paste0(dir_data, "/oracle/"), 
-              pattern = paste0("biomass_"), 
-              full.names = TRUE)
-a <- a[grepl(pattern = "_safe", x = a)]
-
-for (i in 1:length(a)){
-  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
-  b <- janitor::clean_names(b)
-  if (names(b)[1] %in% "x1"){
-    b$x1<-NULL
-  }
-  b$file <- a[i]
-  temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
-  b$survey <- toupper(strsplit(x = temp, split = "_")[[1]][strsplit(x = temp, split = "_")[[1]] %in% c("nbs", "ebs")])
-  df.ls[[i]]<-b
-  names(df.ls)[i]<-a[i]
-}
-# }
-
-biomass_strat <- SameColNames(df.ls)  %>%
-  dplyr::filter(year <= maxyr  #& 
-                  # catcount != 0 #& stratum == 999
-                ) %>% 
-  dplyr::rename(SRVY = survey) %>%
-  dplyr::mutate(taxon = dplyr::case_when(
-    species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert")) %>% 
-  dplyr::filter(!is.na(species_code)) %>% 
-# modify for spp
-  dplyr::filter(!(year < 1996 & common_name == "northern rock sole" )) %>% # 10263 NRS
-  dplyr::filter(!(year < 2000 & common_name == "Bering skate" ))  %>% 
-  unique() #%>% 
-  # dplyr::group_by(species_code) %>% 
-  # dplyr::mutate(meanpop_spp = mean(pop, na.rm = TRUE), 
-  #               meanbio_spp = mean(pop, na.rm = TRUE)) %>% 
-  # dplyr::ungroup() %>% 
-  # dplyr::group_by(species_code, year) %>% 
-  # dplyr::mutate(varpop = sqrt(sum(population - meanpop_spp)/(catcount-1)), # from 1 SD to Standard Error
-  #               varbio = sqrt(sum(biomass - meanbio_spp)/(catcount-1)))  %>% # from 1 SD to Standard Error
-  # dplyr::ungroup() %>% 
-  # dplyr::mutate(upperp = population+varpop, 
-  #               lowerp = population-varpop, 
-  #               upperb = biomass+varbio, 
-  #               lowerb = biomass-varbio) 
-
-# dplyr::mutate(varpop =  sqrt(varpop)/sqrt(catcount), # from 1 SD to Standard Error
-#               upperp = population+varpop,
-#               lowerp = population-varpop,
-#               varbio =  sqrt(varbio)/sqrt(catcount), # from 1 SD to Standard Error
-#               upperb = biomass+varbio,
-#               lowerb = biomass-varbio)
-
-
-temp <- dplyr::bind_rows(
-  ebscrab0 %>%
-    dplyr::filter(!(cruise %in% unique(ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
-    dplyr::mutate(SRVY = "EBS"),
-  ebscrab_nbs0 %>%
-    dplyr::mutate(SRVY = "NBS") ) %>% 
-  dplyr::filter(!is.na(length)) %>% 
-  dplyr::select(hauljoin, species_code) %>% 
-  dplyr::left_join(
-    x = ., 
-    y = haul %>% 
-      dplyr::select(hauljoin, stratum, year), 
-    by = c("hauljoin")) %>%
-  dplyr::group_by(species_code, stratum, year) %>% 
-    dplyr::summarise(lencount = n()) %>% 
-  dplyr::filter(!is.na(stratum))
-
-biomass_strat <- dplyr::bind_rows(
-  biomass_strat %>% 
-    dplyr::filter(species_code %in% unique(temp$species_code)) %>%
-    dplyr::select(-lencount) %>%
-    dplyr::left_join(x = ., 
-                     y = temp, 
-                     by = c("species_code", "stratum", "year")) %>% 
-    dplyr::mutate(lencount = ifelse(is.na(lencount), 0, lencount)), 
-  biomass_strat %>% 
-    dplyr::filter(!(species_code %in% unique(temp$species_code)))
-)
-  
-
-
-biomass <- biomass_strat %>%
-  dplyr::filter(stratum == 999)
-
-biomass_maxyr<-biomass %>%
-  dplyr::filter(year == maxyr)
-
-biomass_compareyr<-biomass %>%
-  dplyr::filter(year == compareyr[1])
-
 
 ## *** Load CPUE Design Based Estimates ----------------------------------------------
 
@@ -1434,6 +1337,106 @@ sizecomp_maxyr<-sizecomp %>%
 
 sizecomp_compareyr<-sizecomp %>%
   dplyr::filter(year == compareyr[1])
+
+
+# *** Load Biomass Design Based Estimates ----------------------------------------------
+
+df.ls<-list()
+
+a <- list.files(path = paste0(dir_data, "/oracle/"), 
+                pattern = paste0("biomass_"), 
+                full.names = TRUE)
+a <- a[grepl(pattern = "_safe", x = a)]
+
+for (i in 1:length(a)){
+  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
+  }
+  b$file <- a[i]
+  temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
+  b$survey <- toupper(strsplit(x = temp, split = "_")[[1]][strsplit(x = temp, split = "_")[[1]] %in% c("nbs", "ebs")])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
+}
+# }
+
+biomass_strat <- SameColNames(df.ls)  %>%
+  dplyr::filter(year <= maxyr  #& 
+                # catcount != 0 #& stratum == 999
+  ) %>% 
+  dplyr::rename(SRVY = survey) %>%
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert")) %>% 
+  dplyr::filter(!is.na(species_code)) %>% 
+  # modify for spp
+  dplyr::filter(!(year < 1996 & common_name == "northern rock sole" )) %>% # 10263 NRS
+  dplyr::filter(!(year < 2000 & common_name == "Bering skate" ))  %>% 
+  unique() #%>% 
+# dplyr::group_by(species_code) %>% 
+# dplyr::mutate(meanpop_spp = mean(pop, na.rm = TRUE), 
+#               meanbio_spp = mean(pop, na.rm = TRUE)) %>% 
+# dplyr::ungroup() %>% 
+# dplyr::group_by(species_code, year) %>% 
+# dplyr::mutate(varpop = sqrt(sum(population - meanpop_spp)/(catcount-1)), # from 1 SD to Standard Error
+#               varbio = sqrt(sum(biomass - meanbio_spp)/(catcount-1)))  %>% # from 1 SD to Standard Error
+# dplyr::ungroup() %>% 
+# dplyr::mutate(upperp = population+varpop, 
+#               lowerp = population-varpop, 
+#               upperb = biomass+varbio, 
+#               lowerb = biomass-varbio) 
+
+# dplyr::mutate(varpop =  sqrt(varpop)/sqrt(catcount), # from 1 SD to Standard Error
+#               upperp = population+varpop,
+#               lowerp = population-varpop,
+#               varbio =  sqrt(varbio)/sqrt(catcount), # from 1 SD to Standard Error
+#               upperb = biomass+varbio,
+#               lowerb = biomass-varbio)
+
+
+temp <- dplyr::bind_rows(
+  ebscrab0 %>%
+    dplyr::filter(!(cruise %in% unique(ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
+    dplyr::mutate(SRVY = "EBS"),
+  ebscrab_nbs0 %>%
+    dplyr::mutate(SRVY = "NBS") ) %>% 
+  dplyr::filter(!is.na(length)) %>% 
+  dplyr::select(hauljoin, species_code) %>% 
+  dplyr::left_join(
+    x = ., 
+    y = haul %>% 
+      dplyr::select(hauljoin, stratum, year), 
+    by = c("hauljoin")) %>%
+  dplyr::group_by(species_code, stratum, year) %>% 
+  dplyr::summarise(lencount = n()) %>% 
+  dplyr::filter(!is.na(stratum))
+
+biomass_strat <- dplyr::bind_rows(
+  biomass_strat %>% 
+    dplyr::filter(species_code %in% unique(temp$species_code)) %>%
+    dplyr::select(-lencount) %>%
+    dplyr::left_join(x = ., 
+                     y = temp, 
+                     by = c("species_code", "stratum", "year")) %>% 
+    dplyr::mutate(lencount = ifelse(is.na(lencount), 0, lencount)), 
+  biomass_strat %>% 
+    dplyr::filter(!(species_code %in% unique(temp$species_code)))
+)
+
+
+
+biomass <- biomass_strat %>%
+  dplyr::filter(stratum == 999)
+
+biomass_maxyr<-biomass %>%
+  dplyr::filter(year == maxyr)
+
+biomass_compareyr<-biomass %>%
+  dplyr::filter(year == compareyr[1])
+
+
 
 ## *** Total Biomass ---------------------------------------------------------------
 
