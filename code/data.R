@@ -220,6 +220,38 @@ biomass_strat <- SameColNames(df.ls)  %>%
 #               upperb = biomass+varbio,
 #               lowerb = biomass-varbio)
 
+
+temp <- dplyr::bind_rows(
+  ebscrab0 %>%
+    dplyr::filter(!(cruise %in% unique(ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
+    dplyr::mutate(SRVY = "EBS"),
+  ebscrab_nbs0 %>%
+    dplyr::mutate(SRVY = "NBS") ) %>% 
+  dplyr::filter(!is.na(length)) %>% 
+  dplyr::select(hauljoin, species_code) %>% 
+  dplyr::left_join(
+    x = ., 
+    y = haul %>% 
+      dplyr::select(hauljoin, stratum, year), 
+    by = c("hauljoin")) %>%
+  dplyr::group_by(species_code, stratum, year) %>% 
+    dplyr::summarise(lencount = n()) %>% 
+  dplyr::filter(!is.na(stratum))
+
+biomass_strat <- dplyr::bind_rows(
+  biomass_strat %>% 
+    dplyr::filter(species_code %in% unique(temp$species_code)) %>%
+    dplyr::select(-lencount) %>%
+    dplyr::left_join(x = ., 
+                     y = temp, 
+                     by = c("species_code", "stratum", "year")) %>% 
+    dplyr::mutate(lencount = ifelse(is.na(lencount), 0, lencount)), 
+  biomass_strat %>% 
+    dplyr::filter(!(species_code %in% unique(temp$species_code)))
+)
+  
+
+
 biomass <- biomass_strat %>%
   dplyr::filter(stratum == 999)
 

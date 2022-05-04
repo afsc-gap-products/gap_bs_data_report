@@ -449,203 +449,207 @@ if (spp_table_cpue) {
     dplyr::arrange(SRVY) %>% 
     dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
   
-if (sum(temp$biomass[temp$stratum == "Total"] != 0) > 0) {
-
-  
-  if (sum(temp$biomass[temp$stratum == "Total"] %in% 0)>0) {
-    temp <- temp %>% 
-      dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
-                                        temp$biomass != 0])
-  } else {
-    temp <- temp
-  }
-  
+  if (sum(temp$biomass[temp$stratum == "Total"] != 0) > 0) {
     
-  haul_cruises_maxyr0 <- haul_cruises_maxyr %>% 
-    dplyr::filter(SRVY %in% unique(temp$SRVY))
-  
-  # for (i in 1:nrow(haul_cruises_maxyr)) {
-  #   if (nrow(haul_cruises_maxyr)>1) {
-  #     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
-  #     newobj <- ifelse(i==1, TRUE, FALSE)
-  #   }
-  
-  for (i in 1:2) {
-    subobj <- TRUE
-    newobj <- ifelse(i==1, TRUE, FALSE)
-    table_raw <- table_print <- data.frame()
     
-    if (i == 1){ # CPUE (WT/HA) and BIOMASS
-      nickname <- paste0(nickname0, "wt")
-      # header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (mt) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",
-      #                  spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")),
-      #                  " by stratum for the ",maxyr," ",                     
-      #                  NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, 
-      #                                                " (", 
-      #                                                haul_cruises_maxyr0$stations_completed,
-      #                                                " stations completed)")),
-      #                  " Shelf Trawl Surveys. Differences in sums of estimates and totals are due to rounding.")
-      
-      table_raw <- temp %>% 
-        dplyr::select(SRVY, stratum, 
-                      meanwgtcpue, varmnwgtcpue, 
-                      biomass, varbio, upperb, lowerb, 
-                      # haulcount, 
-                      catcount, numcount, lencount) 
-      
-      if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
-        
-        meanwgtcpue0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$meanwgtcpue[table_raw$meanwgtcpue != 0])    
-        varmnwgtcpue0<-find_units(unit = "", unt = "", table_raw$varmnwgtcpue[table_raw$varmnwgtcpue != 0])
-        biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass[table_raw$biomass != 0])
-        varbio0<-find_units(unit = "", unt = "", table_raw$varbio[table_raw$varbio != 0])
-        
-        header <- paste0("Mean CPUE by weight",meanwgtcpue0$unit_word,
-                         " with standard deviation",varmnwgtcpue0$unit_word,
-                         ", and estimated biomass",biomass0$unit_word,
-                         " with standard deviation",varbio0$unit_word,
-                         " and 95% lower (LCL) and upper (UCL) confidence limits for ",
-                         spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")),
-                         " by stratum for the ",maxyr," ",
-                         NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, " (",
-                                                       haul_cruises_maxyr0$stations_completed,
-                                                       " stations completed)")),
-                         " Shelf Trawl Surveys. Differences in sums of estimates and totals are due to rounding.")
-        
-        
-        table_print <- table_raw %>% 
-          dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>%
-          dplyr::mutate(varmnwgtcpue = varmnwgtcpue/varmnwgtcpue0$divby) %>%
-          dplyr::mutate(biomass = biomass/biomass0$divby) %>% 
-          dplyr::mutate(upperb = upperb/biomass0$divby) %>% 
-          dplyr::mutate(lowerb = lowerb/biomass0$divby) %>% 
-          dplyr::mutate(varbio = varbio/varbio0$divby) %>% 
-          dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
-                               formatC, big.mark=",", digits = 2, format = "f")) %>% 
-          dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
-                               formatC, big.mark=",", digits = 0, format = "f")) %>%
-          flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
-          flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE) %>% 
-          flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-          flextable::bold(x = ., #j = "stratum", 
-                          i = ~ (stratum == "Total") ) %>%
-          # flextable::padding(x = ., 
-          #                    j = 1, i = ~ is.na(SRVY), 
-          #                    padding.left = 20) %>%
-          flextable::align(align = "right", part = "body") %>%  
-          flextable::set_header_labels(
-            x = ., 
-            stratum = "Stratum", 
-            meanwgtcpue = paste0("Mean CPUE", meanwgtcpue0$unit_word), 
-            varmnwgtcpue = paste0("SD CPUE", varmnwgtcpue0$unit_word), 
-            biomass = paste0("Estimated Biomass", biomass0$unit_word), 
-            varbio = paste0("SD Biomass", varbio0$unit_word), 
-            upperb = paste0("95% LCL", biomass0$unit_word), 
-            lowerb = paste0("95% UCL", biomass0$unit_word), 
-            # haulcount = "Total hauls", 
-            catcount = "Hauls with weights", 
-            numcount = "Hauls with counts", 
-            lencount = "Hauls with lengths") %>% 
-          # flextable::merge_v(j = "Region") %>%
-          flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
-          flextable::valign(valign = "top") %>%
-          NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = FALSE, 
-                                              pgwidth = full_page_landscape_width) %>% 
-          flextable::padding(x = .,
-                             j = 1, i = ~ is.na(SRVY),
-                             padding.left = 5) %>%
-          flextable::align(x = ., i = ~ is.na(SRVY), 
-                           align = "right", part = "body")
-      }
-    } else { # CPUE No/HA and POPULATION
-      
-      nickname <- paste0(nickname0, "num")
-      # header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
-      #                  NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY_long, 
-      #                                                " shelf (", 
-      #                                                haul_cruises_maxyr0$SRVY, "; ",
-      #                                                haul_cruises_maxyr0$stations_completed,
-      #                                                " stations completed)")),
-      #                  " trawl survey. Differences in sums of estimates and totals are due to rounding.")
-      
-      table_raw <- temp %>% 
-        dplyr::select(SRVY, stratum, 
-                      meannumcpue, varmnnumcpue, 
-                      population, varpop, upperp, lowerp, 
-                      # haulcount, 
-                      catcount, numcount, lencount)
-      
-      if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
-        
-        meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue[table_raw$meannumcpue != 0])
-        varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue[table_raw$varmnnumcpue != 0])
-        population0 <- find_units(unit = "", unt = "", table_raw$population[table_raw$population != 0])
-        varpop0 <- find_units(unit = "", unt = "", table_raw$varpop[table_raw$varpop != 0])
-        
-        header <- paste0("Mean CPUE by number", meannumcpue0$unit_word,
-                         " with standard deviation", varmnnumcpue0$unit_word,
-                         ", and estimated population", population0$unit_word,
-                         "  with standard deviation", varpop0$unit_word,
-                         "  and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, 
-                         ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
-                         NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, " (",
-                                                       haul_cruises_maxyr0$stations_completed,
-                                                       " stations completed)")),
-                         " trawl survey. Differences in sums of estimates and totals are due to rounding.")
-        
-        table_print <- table_raw %>% 
-          dplyr::mutate(meannumcpue = meannumcpue/meannumcpue0$divby) %>%
-          dplyr::mutate(varmnnumcpue = varmnnumcpue/varmnnumcpue0$divby) %>%
-          dplyr::mutate(population = population/population0$divby) %>% 
-          dplyr::mutate(upperp = upperp/population0$divby) %>% 
-          dplyr::mutate(lowerp = lowerp/population0$divby) %>% 
-          dplyr::mutate(varpop = varpop/varpop0$divby) %>% 
-          dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
-                               formatC, big.mark=",", digits = 2, format = "f")) %>% 
-          dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
-                               formatC, big.mark=",", digits = 0, format = "f")) %>%
-          flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
-          flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
-          flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-          flextable::bold(x = ., #j = "stratum", 
-                          i = ~ (stratum == "Total") ) %>%
-          flextable::align(align = "right", part = "body")  %>%  
-          flextable::set_header_labels(
-            x = ., 
-            stratum = "Stratum", 
-            meannumcpue = paste0("Mean CPUE", meannumcpue0$unit_word), 
-            varmnnumcpue = paste0("SD CPUE", varmnnumcpue0$unit_word), 
-            population = paste0("Estimated Population", population0$unit_word), 
-            varpop = paste0("SD Population", varpop0$unit_word), 
-            upperp = paste0("95% LCL", population0$unit_word), 
-            lowerp = paste0("95% UCL", population0$unit_word), 
-            # haulcount = "Total hauls", 
-            catcount = "Hauls with weights", 
-            numcount = "Hauls with counts", 
-            lencount = "Hauls with lengths") %>% 
-          # flextable::merge_v(j = "Region") %>%
-          flextable::valign(valign = "top") %>%
-          flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
-          NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, font = font0, 
-                                              pgwidth = full_page_landscape_width) %>% 
-          flextable::padding(x = .,
-                             j = 1, i = ~ is.na(SRVY),
-                             padding.left = 5) %>%
-          flextable::align(x = ., i = ~ is.na(SRVY), 
-                           align = "right", part = "body")
-      }
+    if (sum(temp$biomass[temp$stratum == "Total"] %in% 0)>0) {
+      temp <- temp %>% 
+        dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
+                                          temp$biomass != 0])
+    } else {
+      temp <- temp
     }
     
-    # save yo' stuff and do a lot of behind the scenes work
-    # alt: this does the same thing as calling "child = " in the chunk header
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-      quiet = TRUE
-    )
     
-    list_tables[nickname][[1]]$res <- res
+    haul_cruises_maxyr0 <- haul_cruises_maxyr %>% 
+      dplyr::filter(SRVY %in% unique(temp$SRVY))
+    
+    # for (i in 1:nrow(haul_cruises_maxyr)) {
+    #   if (nrow(haul_cruises_maxyr)>1) {
+    #     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+    #     newobj <- ifelse(i==1, TRUE, FALSE)
+    #   }
+    
+    for (i in 1:2) {
+      subobj <- TRUE
+      newobj <- ifelse(i==1, TRUE, FALSE)
+      table_raw <- table_print <- data.frame()
+      
+      if (i == 1){ # CPUE (WT/HA) and BIOMASS
+        nickname <- paste0(nickname0, "wt")
+        # header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (mt) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",
+        #                  spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")),
+        #                  " by stratum for the ",maxyr," ",                     
+        #                  NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, 
+        #                                                " (", 
+        #                                                haul_cruises_maxyr0$stations_completed,
+        #                                                " stations completed)")),
+        #                  " Shelf Trawl Surveys. Differences in sums of estimates and totals are due to rounding.")
+        
+        table_raw <- temp %>% 
+          dplyr::select(SRVY, stratum, 
+                        meanwgtcpue, varmnwgtcpue, 
+                        biomass, varbio, upperb, lowerb, 
+                        # haulcount, 
+                        catcount, numcount, lencount) 
+        
+        if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
+          
+          meanwgtcpue0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$meanwgtcpue[table_raw$meanwgtcpue != 0])    
+          varmnwgtcpue0<-find_units(unit = "", unt = "", table_raw$varmnwgtcpue[table_raw$varmnwgtcpue != 0])
+          biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass[table_raw$biomass != 0])
+          varbio0<-find_units(unit = "", unt = "", table_raw$varbio[table_raw$varbio != 0])
+          
+          header <- paste0("Mean CPUE by weight",meanwgtcpue0$unit_word,
+                           " with standard deviation",varmnwgtcpue0$unit_word,
+                           ", and estimated biomass",biomass0$unit_word,
+                           " with standard deviation",varbio0$unit_word)
+          
+          
+          
+           <- table_raw %>% 
+            dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>%
+            dplyr::mutate(varmnwgtcpue = varmnwgtcpue/varmnwgtcpue0$divby) %>%
+            dplyr::mutate(biomass = biomass/biomass0$divby) %>% 
+            dplyr::mutate(upperb = upperb/biomass0$divby) %>% 
+            dplyr::mutate(lowerb = lowerb/biomass0$divby) %>% 
+            dplyr::mutate(varbio = varbio/varbio0$divby) %>% 
+            dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
+                                 formatC, big.mark=",", digits = 2, format = "f")) %>% 
+            dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
+                                 formatC, big.mark=",", digits = 0, format = "f")) %>%
+            flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
+            flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE) %>% 
+            flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+            flextable::bold(x = ., #j = "stratum", 
+                            i = ~ (stratum == "Total") ) %>%
+            # flextable::padding(x = ., 
+            #                    j = 1, i = ~ is.na(SRVY), 
+            #                    padding.left = 20) %>%
+            flextable::align(align = "right", part = "body") %>%  
+            flextable::set_header_labels(
+              x = ., 
+              stratum = "Stratum", 
+              meanwgtcpue = paste0("Mean CPUE", meanwgtcpue0$unit_word), 
+              varmnwgtcpue = paste0("SD CPUE", varmnwgtcpue0$unit_word), 
+              biomass = paste0("Estimated Biomass", biomass0$unit_word), 
+              varbio = paste0("SD Biomass", varbio0$unit_word), 
+              upperb = paste0("95% LCL", biomass0$unit_word), 
+              lowerb = paste0("95% UCL", biomass0$unit_word), 
+              # haulcount = "Total hauls", 
+              catcount = "Hauls with weights", 
+              numcount = "Hauls with counts", 
+              lencount = "Hauls with lengths") %>% 
+            # flextable::merge_v(j = "Region") %>%
+            flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
+            flextable::valign(valign = "top") %>%
+            NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = FALSE, 
+                                                pgwidth = full_page_landscape_width) %>% 
+            flextable::padding(x = .,
+                               j = 1, i = ~ is.na(SRVY),
+                               padding.left = 5) %>%
+            flextable::align(x = ., i = ~ is.na(SRVY), 
+                             align = "right", part = "body")
+        }
+      } else { # CPUE No/HA and POPULATION
+        
+        nickname <- paste0(nickname0, "num")
+        # header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
+        #                  NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY_long, 
+        #                                                " shelf (", 
+        #                                                haul_cruises_maxyr0$SRVY, "; ",
+        #                                                haul_cruises_maxyr0$stations_completed,
+        #                                                " stations completed)")),
+        #                  " trawl survey. Differences in sums of estimates and totals are due to rounding.")
+        
+        table_raw <- temp %>% 
+          dplyr::select(SRVY, stratum, 
+                        meannumcpue, varmnnumcpue, 
+                        population, varpop, upperp, lowerp, 
+                        # haulcount, 
+                        catcount, numcount, lencount)
+        
+        if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
+          
+          meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue[table_raw$meannumcpue != 0])
+          varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue[table_raw$varmnnumcpue != 0])
+          population0 <- find_units(unit = "", unt = "", table_raw$population[table_raw$population != 0])
+          varpop0 <- find_units(unit = "", unt = "", table_raw$varpop[table_raw$varpop != 0])
+          
+          header <- paste0("Mean CPUE by number", meannumcpue0$unit_word,
+                           " with standard deviation", varmnnumcpue0$unit_word,
+                           ", and estimated population", population0$unit_word,
+                           "  with standard deviation", varpop0$unit_word)
+          
+          table_print <- table_raw %>% 
+            dplyr::mutate(meannumcpue = meannumcpue/meannumcpue0$divby) %>%
+            dplyr::mutate(varmnnumcpue = varmnnumcpue/varmnnumcpue0$divby) %>%
+            dplyr::mutate(population = population/population0$divby) %>% 
+            dplyr::mutate(upperp = upperp/population0$divby) %>% 
+            dplyr::mutate(lowerp = lowerp/population0$divby) %>% 
+            dplyr::mutate(varpop = varpop/varpop0$divby) %>% 
+            dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
+                                 formatC, big.mark=",", digits = 2, format = "f")) %>% 
+            dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
+                                 formatC, big.mark=",", digits = 0, format = "f")) %>%
+            flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
+            flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+            flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+            flextable::bold(x = ., #j = "stratum", 
+                            i = ~ (stratum == "Total") ) %>%
+            flextable::align(align = "right", part = "body")  %>%  
+            flextable::set_header_labels(
+              x = ., 
+              stratum = "Stratum", 
+              meannumcpue = paste0("Mean CPUE", meannumcpue0$unit_word), 
+              varmnnumcpue = paste0("SD CPUE", varmnnumcpue0$unit_word), 
+              population = paste0("Estimated Population", population0$unit_word), 
+              varpop = paste0("SD Population", varpop0$unit_word), 
+              upperp = paste0("95% LCL", population0$unit_word), 
+              lowerp = paste0("95% UCL", population0$unit_word), 
+              # haulcount = "Total hauls", 
+              catcount = "Hauls with weights", 
+              numcount = "Hauls with counts", 
+              lencount = "Hauls with lengths") %>% 
+            # flextable::merge_v(j = "Region") %>%
+            flextable::valign(valign = "top") %>%
+            flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
+            NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, font = font0, 
+                                                pgwidth = full_page_landscape_width) %>% 
+            flextable::padding(x = .,
+                               j = 1, i = ~ is.na(SRVY),
+                               padding.left = 5) %>%
+            flextable::align(x = ., i = ~ is.na(SRVY), 
+                             align = "right", part = "body")
+        }
+      }
+      
+      header <- paste0(header,
+                           " and 95% lower (LCL) and upper (UCL) confidence limits for ",
+                       spp_print, 
+                           ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
+                           NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, " (",
+                                                         haul_cruises_maxyr0$stations_completed,
+                                                         " stations completed)")),
+                           " shelf trawl survey",
+                           ifelse(length(setdiff(SRVY1, haul_cruises_maxyr0$SRVY))>0, "s", ""),". ",
+                           ifelse(length(setdiff(SRVY1, haul_cruises_maxyr0$SRVY))>0, 
+                                  paste0("No ", spp_print," were found in the ", 
+                                         setdiff(SRVY1, haul_cruises_maxyr0$SRVY),
+                                         " shelf trawl survey. "), 
+                                  ""),
+                           "Differences in sums of estimates and totals are due to rounding.")
+      
+      # save yo' stuff and do a lot of behind the scenes work
+      # alt: this does the same thing as calling "child = " in the chunk header
+      res <- knitr::knit_child(
+        text = knitr::knit_expand(
+          file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
+        quiet = TRUE
+      )
+      
+      list_tables[nickname][[1]]$res <- res
+    }
   }
-}
 }
 ```
