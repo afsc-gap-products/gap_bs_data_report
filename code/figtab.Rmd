@@ -264,7 +264,7 @@ table_print <- flextable::flextable(
                          font0 = font0, 
                          pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c("stratum", "area", "stations_completed", "density"), 
-                     align = "right", part = "body")
+                     align = "right", part = "all")
 
 
 # table_raw_stratum_areas <- table_raw
@@ -396,16 +396,16 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  # Length = "Length\nmeasurements",
                                  # Age = "Age structure (otolith)\nmeasurements"
     ) %>%
-    flextable::width(x = ., width = .5, unit = "in") %>%
-    flextable::width(x = ., j = "common_name", width = 4, unit = "in") %>% 
+    flextable::width(x = ., width = 1, unit = "in") %>%
+    flextable::width(x = ., j = "common_name", width = 3, unit = "in") %>% 
     flextable::bold(x = ., i = which(table_print$common_name == "Total")) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
     NMFSReports::theme_flextable_nmfstm(x = ., 
                                         font0 = font0,
-                                        pgwidth = full_page_portrait_width)  %>%
-  flextable::align(x = ., j = 2:ncol(table_print), 
-                     align = "right", part = "body")
+                                        pgwidth = full_page_portrait_width) %>%
+    flextable::align(x = ., j = 2:ncol(table_print), 
+                     align = "right", part = "all") 
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -558,7 +558,7 @@ table_print <- flextable::flextable(table_raw %>%
                                       row_lines = TRUE, 
                                       pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c(SRVY1), 
-                     align = "right", part = "body")
+                     align = "right", part = "all")
 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -894,10 +894,10 @@ for (i in 1:2) { # two cases, above and below
   newobj <- ifelse(i==1, TRUE, FALSE)
   TF <- ifelse(i==1, FALSE, TRUE)
   case <- ifelse(i==1, "below", "above")
-  year <- sort(temps_avg_yr_abovebelow[,case])
+  years <- sort(temps_avg_yr_abovebelow[case][[1]])
   
   header <- paste0("Contour maps of the near-bottom temperatures from the ",
-                   NMFSReports::text_list(year)," ", 
+                   NMFSReports::text_list(years)," ", 
                    "EBS", # NMFSReports::text_list(haul_cruises_maxyr$SRVY),
                    " Shelf Bottom Trawl Surveys. In these years, the survey mean bottom temperature was ",
                    case,
@@ -906,14 +906,14 @@ for (i in 1:2) { # two cases, above and below
   
   # Just EBS
   rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
-                                subset = paste0("sebs_ste_", year, "_gear_temperature"))
+                                subset = paste0("sebs_ste_", years, "_gear_temperature"))
   names(rasterbrick) <- gsub(pattern = "_", replacement = "", 
                              x = (gsub(x = names(rasterbrick), 
                                        pattern = "[a-zA-Z]+", replacement = "")))
   
-  if (length(year)<10) {
+  if (length(years)<10) {
   row <- 3
-  } else if (length(year)<6) {
+  } else if (length(years)<6) {
   row <- 2
   # } else {
   # row <- 4
@@ -926,7 +926,7 @@ for (i in 1:2) { # two cases, above and below
     colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
     viridis_palette_option = "H", 
     row = row, # ifelse(length(year)<10, 3, 4), 
-    title0 = paste0("Years ", stringr::str_to_sentence(case)), " Mean Temperature")
+    title0 = paste0("Years ", stringr::str_to_sentence(case), " Mean Temperature"))
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -1504,7 +1504,7 @@ temp1 <- function(table_raw, strat, total) {
                                         row_lines = TRUE,
                                         pgwidth = full_page_landscape_width) %>%
     flextable::align(x = ., j = c("999", "CI95", "prop",  strat), 
-                     align = "right", part = "body")
+                     align = "right", part = "all")
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
@@ -1976,10 +1976,12 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                         font0 = font0, 
                                         row_lines = FALSE, 
                                         pgwidth = full_page_landscape_width) %>% 
-    flextable::vline(x = ., part = "all", j = 5) %>%
+    flextable::vline(x = ., part = "all", j = "change ") %>%
     flextable::align(x = ., j = c(paste0(maxyr, " "), paste0(compareyr, " "), "change ",
                                   maxyr, compareyr, "change"), 
-                     align = "right", part = "body")
+                     align = "right", part = "all") %>% 
+    flextable::padding(x = ., j = "change ", padding.right = 5, part = "all") %>% 
+    flextable::padding(x = ., j = "Invertebrate taxon", padding.left = 5, part = "all")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -2084,7 +2086,7 @@ for (i in 1:2) {
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
         lencount = "Hauls with lengths") %>% 
-      flextable::width(x = ., j = "print_name", width = 2.5) %>%
+      flextable::width(x = ., j = "print_name", width = 3) %>%
       # flextable::width(x = ., j = "SRVY", width = 0.5) %>%
       flextable::merge_v(x = ., target = "print_name", 
                          j = "print_name", part = "body") %>% 
@@ -2149,7 +2151,7 @@ for (i in 1:2) {
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
         lencount = "Hauls with lengths") %>% 
-      flextable::width(x = ., j = "print_name", width = 2.5) %>%
+      flextable::width(x = ., j = "print_name", width = 3) %>%
       # flextable::width(x = ., j = "SRVY", width = 0.5) %>%
       flextable::merge_v(x = ., 
                          target = "print_name", 
@@ -2161,7 +2163,7 @@ for (i in 1:2) {
                              pgwidth = full_page_landscape_width) %>%
       flextable::align(x = ., align = "right", part = "body") %>%
       flextable::align(x = ., j = c("print_name"), 
-                       align = "left", part = "body")
+                       align = "left", part = "all")
   }
   
   # save yo' stuff and do a lot of behind the scenes work

@@ -965,14 +965,15 @@ specimen_maxyr <-
 #     (st_wt_above_mean == FALSE & bt_wt_above_mean == TRUE) ~ "bt warmer, st colder") ) 
 
 # averge temp without maxyr
-temp <- coldpool:::cold_pool_index %>% 
-  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>% 
-  dplyr::rename(bt = MEAN_GEAR_TEMPERATURE, 
-                st = MEAN_SURFACE_TEMPERATURE) %>% 
-  dplyr::filter(YEAR < maxyr) %>% 
-  janitor::clean_names() %>% 
-  dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE)) %>% 
-  dplyr::mutate(st_mean = mean(st, na.rm = TRUE))
+
+# temp <- coldpool:::cold_pool_index %>% 
+#   dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>% 
+#   dplyr::rename(bt = MEAN_GEAR_TEMPERATURE, 
+#                 st = MEAN_SURFACE_TEMPERATURE) %>% 
+#   dplyr::filter(YEAR < maxyr) %>% 
+#   janitor::clean_names() %>% 
+#   dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE)) %>% 
+#   dplyr::mutate(st_mean = mean(st, na.rm = TRUE))
 
 temps_avg_yr <- coldpool:::cold_pool_index %>% 
   dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>% 
@@ -980,8 +981,8 @@ temps_avg_yr <- coldpool:::cold_pool_index %>%
                 st = MEAN_SURFACE_TEMPERATURE) %>% 
   dplyr::filter(YEAR <= maxyr) %>% 
   janitor::clean_names() %>% 
-  dplyr::mutate(bt_mean = temp$bt[1]) %>% 
-  dplyr::mutate(st_mean = temp$st[1]) %>% 
+  dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE)) %>% 
+  dplyr::mutate(st_mean = mean(st, na.rm = TRUE)) %>% 
   dplyr::mutate(bt_mean_maxyr = mean(bt, na.rm = TRUE)) %>% 
   dplyr::mutate(st_mean_maxyr = mean(st, na.rm = TRUE)) %>% 
   dplyr::mutate(SRVY = "EBS") %>%
@@ -1037,42 +1038,46 @@ temps_avg_yr_maxyr <- temps_avg_yr %>%  # temps_avg_yr_longterm
 #       head(8) %>%
 #       unlist())
 
-
-temp1 <- temps_avg_yr %>% 
+temps_avg_yr_abovebelow <- list(
+# temp1 <- 
+  "above" = 
+  temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == TRUE &
                       year >= maxyr-16) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
-      unlist() %>% 
-  data.frame() 
-names(temp1) <- c("above")
+      unlist() ,#%>% 
+  # data.frame() ,
+# names(temp1) <- c("above")
 
-temp2 <- temps_avg_yr %>% 
+# temp2 <- 
+"below" = 
+  temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == FALSE &
                       year >= maxyr-16) %>% 
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
-      unlist() %>% 
-  data.frame() 
-names(temp2) <- c("below")
+      unlist() #%>% 
+  # data.frame() 
+# names(temp2) <- c("below")
+)
 
-
-# make the same length so they can be bound together
-if (nrow(temp1)>nrow(temp2)) {
-  temp2 <- temp2 %>% 
-    dplyr::bind_rows(., 
-                     data.frame(below = rep_len(NA, (nrow(temp1)-nrow(temp2)))))
-} else {
-  temp1 <- temp1 %>% 
-    dplyr::bind_rows(., 
-                     data.frame(above = rep_len(NA, (nrow(temp2)-nrow(temp1)))))
-}
-
-temps_avg_yr_abovebelow <- dplyr::bind_cols(temp1, temp2)
+# # make the same length so they can be bound together
+# if (nrow(temp1)>nrow(temp2)) {
+#   temp2 <- temp2 %>% 
+#     dplyr::bind_rows(., 
+#                      data.frame(below = rep_len(NA, (nrow(temp1)-nrow(temp2)))))
+# } else {
+#   temp1 <- temp1 %>% 
+#     dplyr::bind_rows(., 
+#                      data.frame(above = rep_len(NA, (nrow(temp2)-nrow(temp1)))))
+# }
+# 
+# temps_avg_yr_abovebelow <- dplyr::bind_cols(temp1, temp2)
 
 temp <- coldpool:::ebs_bottom_temperature
 temp <- projectRaster(temp, crs = crs(reg_dat$akland))
@@ -1090,9 +1095,9 @@ cold_pool_area <- temp %>%
   dplyr::mutate(bin = cut(x = value, 
                           breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
   dplyr::group_by(year, bin) %>%
-  dplyr::summarise(freq = length(unique(bin))) %>%
+  dplyr::summarise(freq = n()) %>%
   dplyr::filter(year <= maxyr) %>%
-  dplyr::mutate(perc = (freq/length(temp$`1982`)) * 100)  %>% # length(temp$`1982`) = 21299 is the number of cells and shouldnt change?
+  dplyr::mutate(perc = (freq/nrow(temp)) * 100) %>% # length(temp$`1982`) = 21299 is the number of cells and shouldnt change?
   dplyr::mutate(label = dplyr::case_when(
     bin == "(-Inf,-1]" ~ "> -1\u00B0C",
     bin == "(-1,0]" ~ "-1 to 0\u00B0C",

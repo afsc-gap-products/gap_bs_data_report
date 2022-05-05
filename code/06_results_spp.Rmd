@@ -200,20 +200,7 @@ if (text_spp) {
     sublist = "number")
   }
   
-  # Species specific
-  table_est_both <- NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "*"), 
-    sublist = "number", 
-    exact = FALSE)
-  table_est_wt <- NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "_wt"), 
-    sublist = "number")
-  table_est_num <- NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "_num"), 
-    sublist = "number")
+
   
   if (spp_plot_sizecomp) {
     figure_sizecomp <- NMFSReports::crossref(
@@ -246,6 +233,26 @@ if (text_spp) {
   insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
                     refcontent = refcontent)
 }
+
+
+  # Species specific
+  table_est_both <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "*"), 
+    sublist = "number", 
+    exact = FALSE)
+  table_est_wt <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "_wt"), 
+    sublist = "number")
+  table_est_num <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "_num"), 
+    sublist = "number")
+  
+land_start <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_START--->", "")
+land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "")
+
 ```
 
 `r insert `
@@ -254,9 +261,9 @@ if (text_spp) {
 
 `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
 
-<!---BLOCK_LANDSCAPE_START--->
+`r land_start `
 
 `r NMFSReports::crossref(list_obj = list_tables, nickname = paste0("tab_estimates_maxyr_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
 
-<!---BLOCK_LANDSCAPE_STOP--->
+`r land_end `
 
