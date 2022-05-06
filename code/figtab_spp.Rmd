@@ -142,28 +142,26 @@ if (spp_plot_idw_coldwarm){
     
     
     if (length(year)<10) {
-      row <- 3
+      row0 <- 3
     } else if (length(year)<6) {
-      row <- 2
-      # } else {
-      # row <- 4
+      row0 <- 2
     }
     
     figure <- plot_idw_xbyx(
       yrs = years, 
       dat = table_raw,
-      cruises = cruises,
       lat = "latitude",
       lon = "longitude",
       var = "cpue_kgha",
+      year = "year",
       grid = "extrapolation.grid",
-      extrap.box = extrap.box,
+      extrap.box = extrap.box, 
+      region = map.area, 
       key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
-      workfaster = workfaster,
-      SRVY = SRVY, 
+      grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
+                   ifelse(workfaster, 1.5, 0.02)),
       set.breaks = set.breaks, 
-      row = row)
-    
+      row0 = row0)
     
     # save yo' stuff and do a lot of behind the scenes work
     # alt: this does the same thing as calling "child = " in the chunk header
@@ -215,21 +213,22 @@ if (spp_plot_idw){
     extrap.box0 <- report_types[[unique(table_raw$SRVY)]]$extrap.box
   }
   
-  figure <- plot_idw_xbyx(
-    yrs = c(maxyr, compareyr),
-    dat = table_raw,
-    cruises = cruises,
-    lat = "latitude",
-    lon = "longitude",
-    var = "cpue_kgha",
-    grid = "extrapolation.grid",
-    extrap.box = extrap.box0,
+   figure <- plot_idw_xbyx(
+      yrs = c(maxyr, compareyr),
+      dat = table_raw,
+      lat = "latitude",
+      lon = "longitude",
+      var = "cpue_kgha",
+      year = "year",
+      grid = "extrapolation.grid",
+      extrap.box = extrap.box0, 
+      region = map.area, 
     key.title = paste0(stringr::str_to_sentence(spp_print), "
 relative biomass (kg/ha)"),
-workfaster = workfaster,
-SRVY = SRVY, 
-set.breaks = set.breaks, 
-row = 1)
+      grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
+                   ifelse(workfaster, 1.5, 0.02)),
+      set.breaks = set.breaks, 
+      row0 = 1)
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -522,13 +521,13 @@ if (spp_table_cpue) {
                                  formatC, big.mark=",", digits = 0, format = "f")) %>%
             flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
             flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE) %>% 
-            flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-            flextable::bold(x = ., #j = "stratum", 
-                            i = ~ (stratum == "Total") ) %>%
+            # flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+            # flextable::bold(x = ., #j = "stratum", 
+            #                 i = ~ (stratum == "Total") ) %>%
             # flextable::padding(x = ., 
             #                    j = 1, i = ~ is.na(SRVY), 
             #                    padding.left = 20) %>%
-            flextable::align(align = "right", part = "body") %>%  
+            # flextable::align(align = "right", part = "body") %>%  
             flextable::set_header_labels(
               x = ., 
               stratum = "Stratum", 
@@ -541,17 +540,7 @@ if (spp_table_cpue) {
               # haulcount = "Total hauls", 
               catcount = "Hauls with weights", 
               numcount = "Hauls with counts", 
-              lencount = "Hauls with lengths") %>% 
-            # flextable::merge_v(j = "Region") %>%
-            flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
-            flextable::valign(valign = "top") %>%
-            NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = FALSE, 
-                                                pgwidth = full_page_landscape_width) %>% 
-            flextable::padding(x = .,
-                               j = 1, i = ~ is.na(SRVY),
-                               padding.left = 5) %>%
-            flextable::align(x = ., i = ~ is.na(SRVY), 
-                             align = "right", part = "body")
+              lencount = "Hauls with lengths")
         }
       } else { # CPUE No/HA and POPULATION
         
@@ -596,10 +585,6 @@ if (spp_table_cpue) {
                                  formatC, big.mark=",", digits = 0, format = "f")) %>%
             flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
             flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
-            flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-            flextable::bold(x = ., #j = "stratum", 
-                            i = ~ (stratum == "Total") ) %>%
-            flextable::align(align = "right", part = "body")  %>%  
             flextable::set_header_labels(
               x = ., 
               stratum = "Stratum", 
@@ -612,18 +597,7 @@ if (spp_table_cpue) {
               # haulcount = "Total hauls", 
               catcount = "Hauls with weights", 
               numcount = "Hauls with counts", 
-              lencount = "Hauls with lengths") %>% 
-            # flextable::merge_v(j = "Region") %>%
-            flextable::valign(valign = "top") %>%
-            flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
-            NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, font = font0, 
-                                                pgwidth = full_page_landscape_width) %>% 
-            flextable::padding(x = .,
-                               j = 1, i = ~ is.na(SRVY),
-                               padding.left = 5) %>%
-            flextable::align(x = ., i = ~ is.na(SRVY), 
-                             align = "right", part = "all")
-        }
+              lencount = "Hauls with lengths") 
       }
       
       header <- paste0(header,
@@ -641,6 +615,25 @@ if (spp_table_cpue) {
                                          " shelf trawl survey. "), 
                                   ""),
                            "Differences in sums of estimates and totals are due to rounding.")
+      
+      table_print <- table_print %>% 
+            flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+            flextable::bold(x = ., #j = "stratum", 
+                            i = ~ (stratum == "Total") ) %>%
+        # flextable::merge_v(j = "Region") %>%
+            flextable::valign(valign = "top") %>%
+            flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
+            NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, font = font0, 
+                                                pgwidth = full_page_landscape_width) %>% 
+            flextable::padding(x = .,
+                               j = 1, i = ~ is.na(SRVY),
+                               padding.left = 5) %>%
+            flextable::align(x = ., 
+                             align = "right", part = "all") %>%
+            flextable::align(x = ., i = ~ !is.na(SRVY),
+                             align = "left", part = "body")
+        }
+        
       
       # save yo' stuff and do a lot of behind the scenes work
       # alt: this does the same thing as calling "child = " in the chunk header

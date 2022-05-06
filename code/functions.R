@@ -1178,132 +1178,127 @@ set_breaks <- function(dat, var) {
 #' Plot IDW maps in x by x facet_wraps
 #'
 #' @param yrs The years, as a vector, that subplots should be created for
-#' @param dat The data that will be used to create the IDW plots
-#' @param cruises # cruise data
+#' @param dat The data that will be used to create the IDW plots, containing the data used in lat, lon, and var. 
 #' @param lat The name of the column in dat for latitude
 #' @param lon The name of the column in dat for longitude
-#' @param var The name of the column in dat for the variable
+#' @param var The name of the column in dat for the variable (e.g., cpue, temperature)
+#' @param year The name of the column in dat for year
 #' @param key.title A character string that will be used as the legend title
 #' @param grid "continuous.grid" or "extrapolation.grid"
-#' @set.breaks Suggested. Vector of break points to use for plotting. Feeds the akgfmaps::make_idw_map.  function. 
-#' @extrap.box Optional. Vector specifying the dimensions of the extrapolation grid. Elements of the vector should be named to specify the minimum and maximum x and y values c(xmn, xmx, ymn, ymx). If not provided, region will be used to set the extrapolation area. Feeds the akgfmaps::make_idw_map. 
-#' @param workfaster TRUE/FALSE. Cuts down resolution so figure will render faster if TRUE. 
-#' @param nrow How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
+#' @param extrap.box Optional. Vector specifying the dimensions of the extrapolation grid. Elements of the vector should be named to specify the minimum and maximum x and y values c(xmn, xmx, ymn, ymx). If not provided, region will be used to set the extrapolation area. Feeds the akgfmaps::make_idw_map. 
+#' @param set.breaks Suggested. Vector of break points to use for plotting. Feeds the akgfmaps::make_idw_map.  function.  
+#' @param grid.cell Inherited from akgfmaps::make_idw_map. Numeric vector of length two, specifying the resolution for the extrapolation grid in degrees. Default c(0.05,0.05)
+#' @param row0 How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
+#' @param region Defualt = "bs.south". Inherited from akgfmaps::make_idw_map. 
+#' @param dist_unit Default = "nm" (nautical miles). This is the unit that will be used for the map's scale bar.  
+#' @param col_viridis Defauly = "mako". Inherited from ggplot2::scale_fill_viridis_c. This will be the color scheme for the inverse distance weighted plot. 
+#' @param plot_coldpool Default = TRUE Logical. Will plot cold pool outlines on the plot. 
+#' @param plot_stratum Default = FALSE. Logical. This will plot stratun areas on the plot. 
+#' @param use.survey.bathymetry Default = FALSE. Logical. Inherited from akgfmaps::make_idw_map
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' figure <- plot_idw_xbyx(
+#'   yrs = c(2017), 
+#'   dat = akgfmaps:::YFS2017, 
+#'   lat = "LATITUDE",
+#'   lon = "LONGITUDE",
+#'   var = "CPUE_KGHA",
+#'   year = "YEAR",
+#'   key.title = "Yellowfin sole (kg/km2)", 
+#'   grid = "extrapolation.grid",
+#'   extrap.box = c(xmn = -180, xmx = -156, ymn = 54, ymx = 62), 
+#'   grid.cell = c(1.5, 1.5), # will take less time
+#'   row0 = 1, 
+#'   region = "bs.south") 
+#' figure
 plot_idw_xbyx <- function(
-  yrs, 
-  dat, 
-  cruises, 
-  lat = "latitude",
-  lon = "longitude",
-  var = "cpue_kgha",
-  key.title = "", 
-  grid = "extrapolation.grid",
-  extrap.box, 
-  set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
-  workfaster = FALSE, 
-  row = 2, 
-  SRVY, 
-  dist_unit = "nm", # nautical miles
-  col_viridis = "mako", 
-  plot_coldpool = FALSE) {
+    yrs, 
+    dat, 
+    lat,
+    lon,
+    var,
+    year,
+    key.title = "", 
+    grid = "extrapolation.grid",
+    extrap.box, 
+    set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
+    grid.cell = c(0.02, 0.02), 
+    row0 = 2, 
+    region = "bs.south",
+    dist_unit = "nm", # nautical miles
+    col_viridis = "mako", 
+    plot_coldpool = FALSE, 
+    plot_stratum = TRUE, 
+    use.survey.bathymetry = FALSE) {
   
+  reg_dat <- akgfmaps::get_base_layers(select.region = region)
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   figure <- ggplot()
+  dat <- dat %>%
+    dplyr::rename(year = as.character(year), 
+                  lat = as.character(lat), 
+                  lon = as.character(lon), 
+                  var = as.character(var)) %>% 
+    dplyr::select(year, lat, lon, var) %>% 
+    dplyr::mutate(year = as.numeric(year), 
+                  lat = as.numeric(lat), 
+                  lon = as.numeric(lon))
   
   if (nrow(dat) != 0) {
-  if (set.breaks[1] =="auto") {
-    set.breaks <- set_breaks(dat, var)
-      
-    # set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
-    #                                         n = 5, style = "jenks")$brks
-    # set.breaks <- c()
-    # 
-    # for (i in 1:length(set.breaks0)) {
-    #   
-    #   if (i == length(set.breaks0)) {
-    #     set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)# #round(set.breaks0[i], digits = 0))
-    #   } else if (i == 1) {
-    #     set.breaks<-c(set.breaks, 0)
-    #   } else {    
-    #     set.breaks <- c(set.breaks, 
-    #                     plyr::round_any(x = set.breaks0[i], 
-    #                                     accuracy = ifelse(max(set.breaks0[i])>300, 100, 
-    #                                                       ifelse(max(set.breaks0[i])>100, 50, 
-    #                                                              ifelse(max(set.breaks0[i])>20, 10, 
-    #                                                                     1))), 
-    #                                     f = ceiling))    
-    #   }
-    # }
-    # set.breaks <- unique(set.breaks)
-  }
-  # if(set.breaks =="auto"){
-  #   set.breaks <- quantile(as.numeric(unlist(dat[dat$year %in% yrs,var])), probs = c(0, .95))
-  #   set.breaks <- plyr::round_any(x = set.breaks, 
-  #                                 accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
-  #                                 f = ceiling)
-  #   set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
-  # }
-  
-  # Select data and make plot
-  for (ii in length(yrs):1) {
+    if (set.breaks[1] =="auto") {
+      set.breaks <- set_breaks(dat = dat, var = "var")
+    }
     
-    temp1 <- unique(table_raw$SRVY[table_raw$year == yrs[ii]])
-    region <- "bs.all"
-    if (length(temp1)==1) {
-      if (temp1 %in% c("EBS")) {
-        region <- "bs.south"
-      } else if (temp1 %in% c("NBS")) {
-        region <- "bs.north"
+    # Select data and make plot
+    for (ii in length(yrs):1) {
+      
+      # temp1 <- unique(dat$SRVY[dat$year == yrs[ii]])
+      
+      temp <- dat %>% 
+        dplyr::filter(year == yrs[ii]) 
+      
+      temp1 <- akgfmaps::make_idw_map(
+        LATITUDE = temp$lat,
+        LONGITUDE = temp$lon,
+        CPUE_KGHA = temp$var,
+        use.survey.bathymetry = use.survey.bathymetry,
+        region = region, 
+        out.crs = as.character(crs(reg_dat$bathymetry)),
+        extrap.box = extrap.box, 
+        set.breaks = set.breaks,
+        grid.cell = grid.cell, 
+        key.title = key.title)
+      
+      temp0 <- temp1[grid][[1]]  
+      
+      if (ii == length(yrs)) {
+        stars_list <- temp0
+        names(stars_list)[names(stars_list) == "var1.pred"] <- paste0("y", yrs[ii])  
+      } else {
+        stars_list$temp <- temp0$var1.pred
+        names(stars_list)[names(stars_list) == "temp"] <- paste0("y", yrs[ii])   
       }
     }
     
-    temp <- dat %>%
-      dplyr::filter(# cpue_kgha > 0 & 
-        year == yrs[ii]) 
     
-    temp1 <- akgfmaps::make_idw_map(
-      LATITUDE = as.numeric(unlist(temp[,lat])),
-      LONGITUDE = as.numeric(unlist(temp[,lon])),
-      CPUE_KGHA = as.numeric(unlist(temp[,var])),
-      use.survey.bathymetry = FALSE,
-      region = region, 
-      out.crs = as.character(crs(reg_dat$bathymetry)),
-      extrap.box = extrap.box, 
-      set.breaks = set.breaks,
-      grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
-                    ifelse(workfaster, 1.5, 0.02)), # 0.2x0.2 degree grid cells
-      key.title = key.title)
+    # stars_list0<-stars_list
     
-    temp0 <- temp1[grid][[1]]  
+    # https://rpubs.com/michaeldorman/646276
+    stars_list <- stars_list %>% 
+      dplyr::select(names(stars_list)[substr(start = 1, stop = 1, x = names(stars_list)) == "y"])
+    names(stars_list)<-gsub(pattern = "y", replacement = "", x = names(stars_list))
+    stars_list = stars::st_redimension(stars_list)
+    names(stars_list) = "value"
     
-    if (ii == length(yrs)) {
-      stars_list <- temp0
-      names(stars_list)[names(stars_list) == "var1.pred"] <- paste0("y", yrs[ii])  
-    } else {
-      stars_list$temp <- temp0$var1.pred
-      names(stars_list)[names(stars_list) == "temp"] <- paste0("y", yrs[ii])   
-    }
+    
+    figure <- figure +
+      geom_stars(data = stars_list, na.rm = TRUE) 
   }
   
   
-  # stars_list0<-stars_list
-  
-  # https://rpubs.com/michaeldorman/646276
-  stars_list <- stars_list %>% 
-    dplyr::select(names(stars_list)[substr(start = 1, stop = 1, x = names(stars_list)) == "y"])
-  names(stars_list)<-gsub(pattern = "y", replacement = "", x = names(stars_list))
-  stars_list = stars::st_redimension(stars_list)
-  names(stars_list) = "value"
-  
-  
-  figure <- figure +
-    geom_stars(data = stars_list, na.rm = TRUE) 
-  } 
   
   if (plot_coldpool) {
     
@@ -1342,25 +1337,31 @@ plot_idw_xbyx <- function(
     
   }  
   
-  if (nrow(dat) != 0) {
-  figure <- figure +
-    facet_wrap( ~ new_dim, nrow = row) +
-    coord_equal() 
-  } else {
+  if (length(yrs) == 0) {
+    
     grid <- ""
     figure <- figure +
       ggplot2::geom_text(mapping = aes(x = mean(reg_dat$lon.breaks), 
                                        y = mean(reg_dat$lat.breaks), 
                                        label = "No data was available\nfor this species in this\nregion for this year."), 
                          fontface="bold")
+  }   else if (length(yrs)>1) {
+    figure <- figure +
+      facet_wrap( ~ new_dim, nrow = row0) +
+      coord_equal() 
   }
   
-  figure <- figure + 
-    geom_sf(data = reg_dat$survey.strata,
-            color = "grey50",
-            size = 0.1,
-            alpha = 0,
-            fill = NA) +
+  
+  if (plot_stratum) {
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.strata,
+              color = "grey50",
+              size = 0.1,
+              alpha = 0,
+              fill = NA)
+  }
+  
+  figure <- figure +
     geom_sf(data = reg_dat$graticule,
             color = "grey80",
             alpha = 0.2) +
@@ -1373,36 +1374,16 @@ plot_idw_xbyx <- function(
                        breaks = reg_dat$lat.breaks) +
     coord_sf(xlim = reg_dat$plot.boundary$x, 
              ylim = reg_dat$plot.boundary$y)  +
-    # ggsn::scalebar(data = reg_dat$survey.grid,
-    #                location = "bottomleft",
-    #                dist = 150,
-    #                dist_unit = dist_unit,
-    #                transform = FALSE,
-    #                st.dist = .03,
-    #                height = 0.02,
-    #                st.bottom = TRUE,
-    #                st.size = 2,
-    #                model = reg_dat$crs) 
-  # ggsn::scalebar(data = reg_dat$survey.grid,
-  #                location = "bottomleft",
-  #                dist = 150,
-  #                dist_unit = dist_unit,
-  #                transform = FALSE,
-  #                st.dist = ifelse(row > 2, 0.08, 0.04),
-  #                height = ifelse(row > 2, 0.03, 0.02),
-  #                st.bottom = ifelse(row <= 4, FALSE, TRUE),
-  #                st.size = ifelse(row > 2, 1.5, 3),
-  #                model = reg_dat$crs) 
-  ggsn::scalebar(data = reg_dat$survey.grid,
-                 location = "bottomleft",
-                 dist = 150,
-                 dist_unit = dist_unit,
-                 transform = FALSE,
-                 st.dist = ifelse(row > 2, 0.08, 0.04),
-                 height = ifelse(row > 2, 0.04, 0.02),
-                 st.bottom = FALSE, #ifelse(row <= 2, TRUE, FALSE),
-                 st.size = ifelse(row > 2, 2.5, 3), # 2.5
-                 model = reg_dat$crs) 
+    ggsn::scalebar(data = reg_dat$survey.grid,
+                   location = "bottomleft",
+                   dist = 150,
+                   dist_unit = dist_unit,
+                   transform = FALSE,
+                   st.dist = ifelse(row0 > 2, 0.08, 0.04),
+                   height = ifelse(row0 > 2, 0.04, 0.02),
+                   st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+                   st.size = ifelse(row0 > 2, 2.5, 3), # 2.5
+                   model = reg_dat$crs) 
   
   
   if (grid == "continuous.grid") {

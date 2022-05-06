@@ -43,19 +43,19 @@ font0 <- "Arial Narrow"
 # ref_maxyr_npfmc <- "@NPFMC2017"
 # dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
-maxyr <- 2019
-compareyr <- 2017
-SRVY<-"NEBS"
-ref_compareyr <- "@Lauth2019" # CHANGE
-ref_maxyr_npfmc <- "@NPFMC2018"
-dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
-
-# maxyr <- 2021
-# compareyr <- 2019
+# maxyr <- 2019
+# compareyr <- 2017
 # SRVY<-"NEBS"
-# ref_compareyr <- "@2019NEBS2022" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2019"
-# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+# ref_compareyr <- "@Lauth2019" # CHANGE
+# ref_maxyr_npfmc <- "@NPFMC2018"
+# dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
+
+maxyr <- 2021
+compareyr <- 2019
+SRVY<-"NEBS"
+ref_compareyr <- "@2019NEBS2022" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2019"
+dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
 # compareyr <- 2021
@@ -222,7 +222,15 @@ for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file
 #                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# *** 09 - Appendix ------------------------
+# *** 09 - Endmatter ------------------------
+cnt_chapt<-auto_counter(cnt_chapt)
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_endmatter_")
+rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
+                  output_dir = dir_out_chapters,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+# *** 10 - Appendix ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_appendix_")
@@ -230,14 +238,6 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
-
-# *** 10 - Endmatter ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_endmatter_")
-rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
 # *** 11 - Presentation ------------------------
