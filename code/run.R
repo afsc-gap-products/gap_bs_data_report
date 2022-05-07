@@ -27,14 +27,14 @@ font0 <- "Arial Narrow"
 # ref_compareyr_nbs <- "@RN909" # temp
 # ref_maxyr_npfmc <- "@NPFMC2015" # temp
 
-# maxyr <- 2017 # or the year of the report, for example
-# compareyr <- 2010
-# # SRVY<-"NEBS"
+maxyr <- 2017 # or the year of the report, for example
+compareyr <- 2010
 # SRVY<-"NEBS"
-# ref_compareyr <- "@RN976"
-# # ref_compareyr <- "@RN909"
-# ref_maxyr_npfmc <- "@NPFMC2016" # temp
-# # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
+SRVY<-"NEBS"
+ref_compareyr <- "@RN976"
+# ref_compareyr <- "@RN909"
+ref_maxyr_npfmc <- "@NPFMC2016" # temp
+# dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
 # maxyr <- 2018 # NOTE RAPID RESPONCE
 # compareyr <- 2016
@@ -50,11 +50,11 @@ font0 <- "Arial Narrow"
 # ref_maxyr_npfmc <- "@NPFMC2018"
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-maxyr <- 2021
-compareyr <- 2019
-SRVY<-"NEBS"
-ref_compareyr <- "@2019NEBS2022" # CHANGE
-ref_maxyr_npfmc <- "@NPFMC2019"
+# maxyr <- 2021
+# compareyr <- 2019
+# SRVY<-"NEBS"
+# ref_compareyr <- "@2019NEBS2022" # CHANGE
+# ref_maxyr_npfmc <- "@NPFMC2019"
 dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
@@ -110,7 +110,7 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
 cnt_chapt_content<-"000"
 
 full_page_portrait_width <- 6.5
-full_page_portrait_height <- 8
+full_page_portrait_height <- 7.5
 full_page_landscape_width <- 9.5
 
 if (FALSE) {
@@ -223,6 +223,44 @@ for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file
 
 
 # *** 09 - Endmatter ------------------------
+
+files0<-list.files(path = paste0(dir.output, Sys.Date(), "/", maxyr, "/rawdata/"), pattern = ".docx", full.names = TRUE)
+files1 <- files0
+
+files0<-list.files(path = dir_code, pattern = ".Rmd", full.names = TRUE)
+files0<-files0[grep(pattern = "[0-9]+_", x = files0)]
+files0<-files0[-grepl(pattern = "presentation", x = files0)]
+files1 <- c(files1, files0)
+
+ee <- c()
+
+for (ii in 1:length(files1)){
+  if (grepl(pattern = ".docx", x = files1[ii], fixed = TRUE)) {
+    aa <- readtext(file = files1[ii])$text
+  } else {
+    aa <- readLines(con = files1[ii], warn = FALSE)
+  }
+  bb <- unlist(strsplit(x = aa, split = " "))
+  cc <- dd <- bb[grep(pattern = "@", x = strsplit(x = bb, split = " "))]
+  # dd <- cc
+  # dd <- cc[substr(x = cc, start = 1, stop = 1)=="@"]
+  # dd <- cc[!grepl(pattern = "\\", x = cc, fixed = TRUE)]
+  # dd <- ifelse(length(dd) == 0, "", dd)
+  if (length(dd) != 0) {
+    remove <- c(";", "[", "]", ".", ",", ")", "(", '"') # , "\\" 
+    for (i in 1:length(remove)){
+      dd <- gsub(pattern = remove[i], replacement = "", x = dd, fixed = TRUE)
+    }
+  }
+  ee <- c(ee, dd)
+}
+
+ee <- unique(ee)
+ee <- ee[ee != "'@*'"]
+ee <- ee[substr(x = ee, start = 1, stop = 1)=="@"]
+ee <- sapply( strsplit(x = ee, split = "\\\n", perl = TRUE),"[[",1)
+str0 <- paste0(ee, collapse = ", ")
+
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_endmatter_")

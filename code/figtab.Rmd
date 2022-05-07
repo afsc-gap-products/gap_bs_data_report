@@ -247,7 +247,7 @@ table_print <- flextable::flextable(
   flextable::compose(x = ., i = 1, j = "density", part = "header",
                      value = as_paragraph("Sampling density\n(km", as_sup("2"), "/Stations successfully sampled)")) %>%  
   flextable::width(x = ., j = "Region", width = 4) %>% 
-  flextable::width(x = ., j = "stratum", width = 2.5) %>% 
+  flextable::width(x = ., j = "stratum", width = 3) %>% 
   flextable::width(x = ., j = "density", width = 4) %>% 
   flextable::set_header_labels(., 
                                Region = "",
@@ -1470,12 +1470,10 @@ temp1 <- function(table_raw, strat, total) {
     flextable::merge_h_range(x = ., i = ~ is.na(taxon), j1 = "group", j2 = "taxon", part = "body") %>%
     flextable::add_header_row(top = TRUE, 
                               values = c("Taxon", 
-                                         "Estimated total biomass (mt) and 95% confidence interval", 
-                                         "Proportion of total animal biomass", 
+                                         "Estimated total biomass (mt)\nand 95% confidence interval", 
+                                         "Proportion of\ntotal animal biomass", 
                                          "Estimated biomass by stratum (mt)"), 
                               colwidths = c(2,3,1,length(strat))) %>% 
-    # flextable::width(x = ., # j = c(999, strat), 
-    #                  width = 2.5, unit = "in") %>%
     flextable::width(x = ., #j = c("999"), 
                      width = 1.5, unit = "in") %>%
     flextable::width(x = ., j = c("999"), 
@@ -1489,8 +1487,6 @@ temp1 <- function(table_raw, strat, total) {
     flextable::align(i = 1, align = "center", part = "header")  %>%  
     flextable::footnote(x = ., part = "header", i = 1, j = 5, 
                         value = as_paragraph(footnote0)) %>%
-    # flextable::bold(x = ., part = "body", i = whichtobold) %>% 
-    # flextable::bold(x = ., i = ~ (grepl(pattern = "Total ", x = taxon) )) %>%
     flextable::bold(x = ., i = ~ (grepl(pattern = "Total", x = group) )) %>%
     flextable::set_header_labels(.,
                                  "group" = "", 
@@ -1499,12 +1495,18 @@ temp1 <- function(table_raw, strat, total) {
                                  "CI95" = "", 
                                  "a" = "", 
                                  "prop" = "") %>%
-    NMFSReports::theme_flextable_nmfstm(x = ., #
+    flextable::merge_at(x = ., j = c("group", "taxon"), part = "header") %>% 
+    flextable::merge_at(x = ., j = c("999", "a", "CI95"), part = "header") %>% 
+    flextable::merge_at(x = ., j = c("prop"), part = "header") %>% 
+    NMFSReports::theme_flextable_nmfstm(x = ., 
                                         font0 = font0,
                                         row_lines = TRUE,
                                         pgwidth = full_page_landscape_width) %>%
     flextable::align(x = ., j = c("999", "CI95", "prop",  strat), 
-                     align = "right", part = "all")
+                     align = "right", part = "all") %>%
+    flextable::align(x = ., 
+                     j = c(strat), 
+                     align = "left", i = 1, part = "header")
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
@@ -1701,142 +1703,6 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 } 
 ```
 
-## tab_biomass_compareyr_maxyr_percchange
-
-```{r tab_biomass_compareyr_maxyr_percchange}
-
-# nickname0 <- "tab_biomass_compareyr_maxyr_percchange_"
-# 
-# # Select data and make plot
-# table_raw <- rbind.data.frame(biomass_maxyr, biomass_compareyr) %>% 
-#   dplyr::left_join(x = ., 
-#                    y = spp_info %>% 
-#                      dplyr::select(used_in_counts, species_code),
-#                    by = "species_code") %>%
-#   dplyr::filter(stratum == 999 &
-#                   used_in_counts == TRUE &
-#                   !is.na(common_name) &
-#                   !(grepl(pattern = " egg", x = common_name, fixed = T)) & 
-#                   !(grepl(pattern = " sp.", x = common_name, fixed = T)) & 
-#                   !(grepl(pattern = " unid.", x = common_name, fixed = T))) %>% 
-#   dplyr::select(year, taxon, biomass, SRVY, species_code, common_name) %>% 
-#   unique()  %>% 
-#   dplyr::left_join(
-#     x = ., 
-#     y = rbind.data.frame(biomass_maxyr, biomass_compareyr) %>% 
-#       dplyr::select(species_code, catcount, year, SRVY) %>% 
-#       unique() %>% 
-#       dplyr::group_by(species_code, SRVY) %>% 
-#       dplyr::summarise(catcount = sum(catcount, na.rm = TRUE)), 
-#     by = c("species_code", "SRVY")) %>%
-#   dplyr::filter(catcount > 49) %>% 
-#   tidyr::pivot_wider(names_from = year, 
-#                      # id_cols = species_code, 
-#                      values_fill = NA,
-#                      values_from = biomass, 
-#                      names_prefix = "b_") 
-# 
-# table_raw$pchange <- NMFSReports::pchange(start = unlist(table_raw[,paste0("b_", compareyr)]), 
-#                                           end = unlist(table_raw[,paste0("b_", maxyr)]), 
-#                                           value_only = TRUE)
-# table_raw <- table_raw %>%
-#   dplyr::filter(!is.infinite(pchange) &
-#                   !is.na(pchange) &
-#                   pchange != 0) %>% 
-#   dplyr::arrange(-pchange, b_2017, common_name) %>% 
-#   dplyr::relocate(common_name, paste0("b_", compareyr), paste0("b_", maxyr), 
-#                   pchange, taxon, SRVY, species_code, catcount)
-# 
-# table_raw1 <- table_raw
-# 
-# for (i in 1:nrow(haul_cruises_maxyr)) {
-#   if (nrow(haul_cruises_maxyr)>1) {
-#     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
-#     newobj <- ifelse(i==1, TRUE, FALSE)
-#   }
-#   header <- paste0("Total estimated biomass in metric tons (mt) and the percent change from the ",compareyr," and ",maxyr," ",haul_cruises_maxyr$SRVY[i]," (",haul_cruises_maxyr$SRVY_long[i],") bottom trawl surveys for invertebrate and fish taxa captured in greater than 50 trawl samples from both years combined.")
-#   
-#   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
-#   
-#   table_raw <- table_raw1
-#   
-#   temp <- table_raw1 %>% 
-#     dplyr::select(-SRVY, -species_code, -catcount) 
-#   temp[,paste0("b_", compareyr)] <- round(x = temp[,paste0("b_", compareyr)], digits = 0)
-#   temp[,paste0("b_", maxyr)] <- round(x = temp[,paste0("b_", maxyr)], digits = 0)
-#   temp$pchange <- paste0(round(temp$pchange, digits = 0), "%")
-#   
-#   temp1 <- temp %>% 
-#     dplyr::filter(taxon == "fish") %>% 
-#     dplyr::select(-taxon) 
-#   temp2 <- temp %>% 
-#     dplyr::filter(taxon == "invert") %>% 
-#     dplyr::select(-taxon) 
-#   
-#   # make the same length so they can be bound together
-#   if (nrow(temp1)>nrow(temp2)) {
-#     temp0 <- data.frame(matrix(data = NA, 
-#                                nrow = (nrow(temp1)-nrow(temp2)),
-#                                ncol = ncol(temp2)))
-#     names(temp0) <- names(temp2)
-#     temp2 <- rbind.data.frame(temp2, temp0)
-#   } else {
-#     temp0 <- data.frame(matrix(data = NA, 
-#                                nrow = (nrow(temp2)-nrow(temp1)),
-#                                ncol = ncol(temp1)))
-#     names(temp0) <- names(temp1)
-#     temp1 <- rbind.data.frame(temp1, temp0)
-#   }
-#   
-#   names(temp1) <- paste0(names(temp1), "_")
-#   
-#   temp <-list(
-#     "common_name" = "taxon", 
-#     "common_name_" = "taxon", 
-#     "pchange" = "change", 
-#     "pchange" = "change", 
-#     "a" = compareyr,
-#     "b"  = maxyr, 
-#     "a1" = compareyr,
-#     "b1"  = maxyr)
-#   names(temp)[5:8] <- c(paste0("b_", compareyr, "_"), 
-#                         paste0("b_", maxyr, "_"), 
-#                         paste0("b_", compareyr), 
-#                         paste0("b_", maxyr))
-#   
-#   
-#   table_print <- 
-#     cbind.data.frame(temp2, 
-#                      # "" = "",
-#                      temp1) %>% 
-#     flextable::flextable(data = .)  %>%
-#     flextable::add_header_row(top = TRUE, 
-#                               values = c("Invertebrate", 
-#                                          "Biomass (mt)", 
-#                                          "%", 
-#                                          "Fish", 
-#                                          "Biomass (mt)", 
-#                                          "%"), 
-#                               colwidths = c(1,2,1,1,2,1)) %>% 
-#     flextable::align(i = 1, align = "center", part = "header")  %>%  
-#     flextable::set_header_labels(., values = temp) %>%
-#     NMFSReports::theme_flextable_nmfstm(font0 = font0, row_lines = FALSE)  %>% 
-#     flextable::vline(x = ., j = 4, part = "all")
-#   
-#   # save yo' stuff and do a lot of behind the scenes work
-#   # alt: this does the same thing as calling "child = " in the chunk header
-#   res <- knitr::knit_child(
-#     text = knitr::knit_expand(
-#       file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-#     quiet = TRUE
-#   )
-#   
-# list_tables[nickname][[1]]$res <- res
-#   
-# } 
-
-```
-
 
 ## tab_majortaxa_pchange_
 
@@ -1844,7 +1710,6 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 nickname0 <- "tab_majortaxa_pchange_" 
 yrs <- nbsyr
-# header <- paste0("Major taxa sampled in the NBS bottom trawl survey for ",NMFSReports::text_list(nbsyr),", and the percentage change in biomass (metric tons) from ",compareyr," to ",maxyr," in descending order of percent (%) change.")
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
@@ -1871,8 +1736,6 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     dplyr::select(-"Survey", -starts_with("change_"), -ends_with(as.character(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])))  %>% 
     dplyr::mutate(print_name = gsub(pattern = "smelts (*Osmeridae*) include eulachon, capelin, and rainbow smelt", replacement = "smelts", x = print_name, fixed = TRUE))
   
-  # table_print <- a$table_print
-  
   temp1 <- table_raw %>% 
     dplyr::filter(taxon == "fish")
   
@@ -1887,9 +1750,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   } else {
     temp1 <- temp1 %>% 
       dplyr::bind_rows(., 
-                       data.frame(common_name = rep_len(NA, (nrow(temp2)-nrow(temp1)))#, 
-                                  # report_name_scientific = NA, 
-                                  # above_60 = FALSE
+                       data.frame(common_name = rep_len(NA, (nrow(temp2)-nrow(temp1)))
                        ))
   }
   
@@ -1900,14 +1761,11 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
   
   table_print <- dplyr::bind_cols(temp1, temp2) %>%
-    # dplyr::select(-taxon) %>% 
     dplyr::mutate(across(starts_with("change"), 
                          formatC, big.mark=",", digits = 1, format = "f")) %>%
-    # dplyr::select(-taxon) %>% 
     dplyr::mutate(across(starts_with("change"), paste0, "%")) %>%
     dplyr::mutate(across(where(is.numeric), 
                          formatC, big.mark=",", digits = 0, format = "f")) %>%
-    # dplyr::mutate(change = paste0(prettyNum(change, big.mark=","), "%")) %>% 
     dplyr::mutate(group = stringr::str_to_title(print_name)) %>% 
     dplyr::mutate(dplyr::across(where(is.character), gsub, pattern = "NA%", replacement = "")) %>% 
     dplyr::mutate(dplyr::across(where(is.character), gsub, pattern = "NA", replacement = ""))
@@ -1937,14 +1795,8 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
         grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1)) %>% 
     dplyr::rename("Fish taxon" = "print_name ", 
                   "Invertebrate taxon" = "print_name") %>% 
-    # dplyr::select(`Fish taxon`, dplyr::all_of(c(maxyr, compareyr, paste0(maxyr, " "), paste0(compareyr, " "))), change, 
-    #               `Invertebrate taxon`, `change `) %>% 
     dplyr::select(dplyr::all_of(c("Fish taxon", paste0(maxyr, " "), paste0(compareyr, " "), "change ",
                                   "Invertebrate taxon", maxyr, compareyr, "change")))
-  
-      # dplyr::select(`Fish taxon`, dplyr::all_of(c(paste0(maxyr, " "), paste0(compareyr, " "))), `change `, 
-      #             `Invertebrate taxon`, dplyr::all_of(c(maxyr, compareyr)), change)
-  
   table_print <- table_print %>%
     flextable::flextable(data = ., 
                          col_keys = c(ifelse(length(unique(table_print$SRVY)) == 1, 
@@ -1953,9 +1805,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                       paste0(yrs, " "), "change ", 
                                       "Invertebrate taxon", 
                                       as.character(yrs), "change")) %>%
-    # compose(j = "dummy", 
-    #         value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
-    flextable::color(color = "red", 
+    flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
                      i = grepl(pattern = "-", x = as.character(table_print$change)), 
                      j = "change") %>% 
     flextable::color(color = "red", 
@@ -1965,11 +1815,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::width(x = ., j = "Invertebrate taxon", width = 3) %>% 
     flextable::width(x = ., j = "change ", width = 1) %>% 
     flextable::width(x = ., j = "change", width = 1) %>% 
-    # flextable::width(x = ., j = maxyr, width = 2) %>% 
-    # flextable::width(x = ., j = compareyr, width = 2) %>% 
     flextable::set_header_labels(.,
-                                 # group = "Common name",
-                                 # dummy = "Taxon",
                                  "change " = paste0("Change (", maxyr, ", ", compareyr, ")" ), 
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
     NMFSReports::theme_flextable_nmfstm(x = ., 
@@ -2039,7 +1885,7 @@ for (i in 1:2) {
     header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (mt) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for other common groundfish species for the ",
                      maxyr," ",
                      NMFSReports::text_list(paste0( 
-                       haul_cruises_maxyr$SRVY, " ( ",
+                       haul_cruises_maxyr$SRVY, " (",
                        haul_cruises_maxyr$stations_completed,
                        " stations completed)"))," Shelf Bottom Trawl Survey.")
     
@@ -2085,19 +1931,7 @@ for (i in 1:2) {
         # haulcount = "Total hauls", 
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
-        lencount = "Hauls with lengths") %>% 
-      flextable::width(x = ., j = "print_name", width = 3) %>%
-      # flextable::width(x = ., j = "SRVY", width = 0.5) %>%
-      flextable::merge_v(x = ., target = "print_name", 
-                         j = "print_name", part = "body") %>% 
-      flextable::valign(valign = "top") %>%  
-      NMFSReports::theme_flextable_nmfstm(x = ., 
-                                          font0 = font0, 
-                                          row_lines = TRUE, 
-                                          pgwidth = full_page_landscape_width) %>%
-      flextable::align(x = ., align = "right", part = "body") %>%
-      flextable::align(x = ., j = c("print_name"), 
-                       align = "left", part = "body")
+        lencount = "Hauls with lengths") 
     
   } else { # CPUE No/HA and POPULATION
     
@@ -2150,21 +1984,36 @@ for (i in 1:2) {
         # haulcount = "Total hauls", 
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
-        lencount = "Hauls with lengths") %>% 
+        lencount = "Hauls with lengths") #%>% 
+      # flextable::width(x = ., j = "print_name", width = 3) %>%
+      # # flextable::width(x = ., j = "SRVY", width = 0.5) %>%
+      # flextable::merge_v(x = ., 
+      #                    target = "print_name", 
+      #                    j = "print_name", 
+      #                    part = "body") %>% 
+      # flextable::valign(valign = "top") %>%
+      # NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, 
+      #                        row_lines = TRUE, 
+      #                        pgwidth = full_page_landscape_width) %>%
+      # flextable::align(x = ., align = "right", part = "body") %>%
+      # flextable::align(x = ., j = c("print_name"), 
+      #                  align = "left", part = "all")
+  }
+  
+  
+  table_print <- table_print %>% 
       flextable::width(x = ., j = "print_name", width = 3) %>%
       # flextable::width(x = ., j = "SRVY", width = 0.5) %>%
-      flextable::merge_v(x = ., 
-                         target = "print_name", 
-                         j = "print_name", 
-                         part = "body") %>% 
-      flextable::valign(valign = "top") %>%
-      NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, 
-                             row_lines = TRUE, 
-                             pgwidth = full_page_landscape_width) %>%
-      flextable::align(x = ., align = "right", part = "body") %>%
-      flextable::align(x = ., j = c("print_name"), 
+      flextable::merge_v(x = ., target = "print_name", 
+                         j = "print_name", part = "body") %>% 
+      flextable::valign(valign = "top") %>%  
+      NMFSReports::theme_flextable_nmfstm(x = ., 
+                                          font0 = font0, 
+                                          row_lines = TRUE, 
+                                          pgwidth = full_page_landscape_width) %>%
+      flextable::align(x = ., align = "right", part = "all") %>%
+      flextable::align(x = ., j = c("print_name", "SRVY"), 
                        align = "left", part = "all")
-  }
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header

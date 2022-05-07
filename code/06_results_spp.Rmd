@@ -38,7 +38,6 @@ haul0 <- catch_haul_cruises %>%
                   "survey_name", "SRVY", "year", "species_code", 
                   "weight", "number_fish", "hauljoin")
 
-
 # biomass_cpue <- dplyr::full_join(
 #   x = cpue %>%
 #     dplyr::select("year", "SRVY", "species_code", "cpue_kgha") %>%
@@ -166,16 +165,15 @@ if (text_spp) {
   # general coldpool figures
   figure_coldpool_warm_stanza <- NMFSReports::crossref(
     list_obj = list_figures, 
-    nickname = paste0("fig_bt_timeseries_above"), 
-    sublist = "number", 
-    exact = FALSE)
+    nickname = paste0("fig_bt_temperature_ebs_above"), 
+    sublist = "number")
   figure_coldpool_cold_stanza <- NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = paste0("fig_bt_timeseries_below"), 
+    list_obj = list_figures, 
+    nickname = paste0("fig_bt_temperature_ebs_below"), 
     sublist = "number")
   figure_coldpool_both_stanza <- NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = paste0("fig_bt_timeseries_*"), 
+    list_obj = list_figures, 
+    nickname = paste0("fig_bt_temperature_*"), 
     sublist = "number", 
     exact = FALSE)
   
@@ -219,7 +217,9 @@ if (text_spp) {
   if (spp_plot_idw_coldwarm) {
       figure_idw_both_stanza <- NMFSReports::crossref(
         list_obj = list_figures, 
-        nickname = paste0("fig_idw_cpue_fish_", spp_file, "*"), sublist = "number")
+        nickname = paste0("fig_idw_cpue_fish_", spp_file, "_*"), 
+        sublist = "number", 
+        exact = FALSE)
       figure_idw_warm_stanza <- NMFSReports::crossref(
         list_obj = list_figures, 
         nickname = paste0("fig_idw_cpue_fish_", spp_file, "_above"), 
@@ -238,17 +238,19 @@ if (text_spp) {
   # Species specific
   table_est_both <- NMFSReports::crossref(
     list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "*"), 
+    nickname = paste0("tab_estimates_maxyr_*", spp_file, "*"), 
     sublist = "number", 
     exact = FALSE)
   table_est_wt <- NMFSReports::crossref(
     list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "_wt"), 
-    sublist = "number")
+    nickname = paste0("tab_estimates_maxyr_*", spp_file, "_wt"), 
+    sublist = "number", 
+    exact = FALSE)
   table_est_num <- NMFSReports::crossref(
     list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_fish_", spp_file, "_num"), 
-    sublist = "number")
+    nickname = paste0("tab_estimates_maxyr_*", spp_file, "_num"), 
+    sublist = "number", 
+    exact = FALSE)
   
 land_start <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_START--->", "")
 land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "")

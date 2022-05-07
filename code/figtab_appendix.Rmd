@@ -230,36 +230,23 @@ for (i in 1:nrow(temp)) {
   
   table_print <- table_print %>%
     flextable::as_grouped_data(x = ., 
-                               # columns = c("species_name",
-                               #             "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max"),
                                groups = c("taxon")) %>% 
     flextable::flextable(data = ., #x = .,  
                          col_keys = c("taxon" ,
                                       "species_name",
                                       "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max")#,
-                         # hide_grouplabel = TRUE
     ) %>%
-    # ftExtra::span_header() %>% 
     flextable::compose(j = "species_name",
                        value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
-    # flextable::flextable(data = ., 
-    #                      col_keys = c("family_taxon" ,"species_name", 
-    #                                        "common_name", "stations_n", "depth_min", "depth_max", "depth_mean", "lat_min", "lat_max")) %>%
-    # flextable::padding(x = ., 
-    #                    j = 1, i = ~ 
-    #                      is.na(family_taxon), 
-    #                    padding.left = 20) %>%
-    # flextable::bold(x = ., j = 1, i = ~ !is.na(family_taxon) ) %>%
-    # flextable::width(x = ., j = "family_taxon", width = 1.5) %>% 
     flextable::width(x = ., width = 1, unit = "in") %>%
     flextable::width(x = ., j = "taxon", width = 0.5, unit = "in") %>%
     flextable::merge_h_range(x = ., i = ~ taxon == "", j1 = "taxon", j2 = "species_name", part = "body") %>%
     flextable::set_header_labels(., 
                                  values = list(
-                                 taxon = ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
-                                 species_name = "Scientific name",
-                                 common_name = "Common name",
-                                 stations_n = "Number stations present", 
+                                 taxon = "", #ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
+                                 species_name = "", #"Scientific name",
+                                 common_name = "", #"Common name",
+                                 stations_n = "", #"Number stations present", 
                                  depth_min = "Min.", 
                                  depth_max = "Max.", 
                                  depth_mean = "Avg.", 
@@ -267,13 +254,25 @@ for (i in 1:nrow(temp)) {
                                  lat_min = "Northern")) %>%
     flextable::add_header_row(x = ., 
                               top = TRUE, 
-                              values = c("", "Bottom depth (m)", "Latitude range"), 
-                              colwidths = c(4,3,2)) %>% 
+                              values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"), 
+                                         "Scientific name", "Common name", "Number stations present", 
+                                         "Bottom depth (m)", "Latitude range"), 
+                              colwidths = c(1,1,1,1,3,2)) %>% 
     # flextable::add_header_lines(x = ., values = c("", "Bottom depth (m)", "Latitude range"), top = FALSE) %>%
     flextable::align(i = 1, align = "center", part = "header")  %>%  
+    flextable::merge_at(x = ., j = c("taxon"), part = "header") %>%
+    flextable::merge_at(x = ., j = c("species_name"), part = "header") %>%
+    flextable::merge_at(x = ., j = c("common_name"), part = "header") %>%
+    flextable::merge_at(x = ., j = c("stations_n"), part = "header") %>%
     theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE, 
                            body_size = 8, header_size = 9, 
-                           pgwidth = full_page_landscape_width)
+                           pgwidth = full_page_landscape_width) %>%
+    flextable::align(x = ., 
+                     j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
+                     align = "right", part = "all") %>%
+    flextable::align(x = ., 
+                     j = c("depth_max", "depth_mean", "lat_max", "lat_min"), 
+                     align = "left", i = 1, part = "header")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header

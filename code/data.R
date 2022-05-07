@@ -65,7 +65,7 @@ report_types <- list(
   ), 
   "NEBS" = list(
     sectname = "NEBS-BTS-Report", 
-    SURVEY = "northern and eastern Bering Sea",
+    SURVEY = "eastern and northern Bering Sea",
     map.area = "bs.all", 
     SRVY1 = c("EBS", "NBS"), 
     SRVY0 = "BS", # in Oracle

@@ -505,9 +505,7 @@ if (spp_table_cpue) {
                            " with standard deviation",varmnwgtcpue0$unit_word,
                            ", and estimated biomass",biomass0$unit_word,
                            " with standard deviation",varbio0$unit_word)
-          
-          
-          
+
            table_print <- table_raw %>% 
             dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>%
             dplyr::mutate(varmnwgtcpue = varmnwgtcpue/varmnwgtcpue0$divby) %>%
@@ -531,12 +529,12 @@ if (spp_table_cpue) {
             flextable::set_header_labels(
               x = ., 
               stratum = "Stratum", 
-              meanwgtcpue = paste0("Mean CPUE", meanwgtcpue0$unit_word), 
-              varmnwgtcpue = paste0("SD CPUE", varmnwgtcpue0$unit_word), 
-              biomass = paste0("Estimated Biomass", biomass0$unit_word), 
-              varbio = paste0("SD Biomass", varbio0$unit_word), 
-              lowerb = paste0("95% LCL", biomass0$unit_word), 
-              upperb = paste0("95% UCL", biomass0$unit_word), 
+              meanwgtcpue = paste0("Mean CPUE", ifelse(meanwgtcpue0$unit_word=="", "", paste0("\n",meanwgtcpue0$unit_word))), 
+              varmnwgtcpue = paste0("SD CPUE", ifelse(varmnwgtcpue0$unit_word=="", "", paste0("\n",varmnwgtcpue0$unit_word))), 
+              biomass = paste0("Estimated Biomass", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
+              varbio = paste0("SD Biomass", ifelse(varbio0$unit_word=="", "", paste0("\n",varbio0$unit_word))), 
+              lowerb = paste0("95% LCL", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
+              upperb = paste0("95% UCL", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
               # haulcount = "Total hauls", 
               catcount = "Hauls with weights", 
               numcount = "Hauls with counts", 
@@ -588,18 +586,21 @@ if (spp_table_cpue) {
             flextable::set_header_labels(
               x = ., 
               stratum = "Stratum", 
-              meannumcpue = paste0("Mean CPUE", meannumcpue0$unit_word), 
-              varmnnumcpue = paste0("SD CPUE", varmnnumcpue0$unit_word), 
-              population = paste0("Estimated Population", population0$unit_word), 
-              varpop = paste0("SD Population", varpop0$unit_word), 
-              lowerp = paste0("95% LCL", population0$unit_word), 
-              upperp = paste0("95% UCL", population0$unit_word), 
+              meannumcpue = paste0("Mean CPUE", ifelse(meannumcpue0$unit_word=="", "", paste0("\n", meannumcpue0$unit_word))), 
+              varmnnumcpue = paste0("SD CPUE", ifelse(varmnnumcpue0$unit_word=="", "", paste0("\n", varmnnumcpue0$unit_word))), 
+              population = paste0("Estimated Population", 
+                                  ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))),
+              varpop = paste0("SD Population", ifelse(varpop0$unit_word=="", "", paste0("\n", varpop0$unit_word))), 
+              lowerp = paste0("95% LCL", ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))), 
+              upperp = paste0("95% UCL", ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))), 
               # haulcount = "Total hauls", 
               catcount = "Hauls with weights", 
               numcount = "Hauls with counts", 
               lencount = "Hauls with lengths") 
       }
       
+        }
+        
       header <- paste0(header,
                            " and 95% lower (LCL) and upper (UCL) confidence limits for ",
                        spp_print, 
@@ -632,9 +633,7 @@ if (spp_table_cpue) {
                              align = "right", part = "all") %>%
             flextable::align(x = ., i = ~ !is.na(SRVY),
                              align = "left", part = "body")
-        }
-        
-      
+            
       # save yo' stuff and do a lot of behind the scenes work
       # alt: this does the same thing as calling "child = " in the chunk header
       res <- knitr::knit_child(
