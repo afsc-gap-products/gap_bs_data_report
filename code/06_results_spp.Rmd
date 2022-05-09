@@ -160,6 +160,25 @@ temp <- temp$text_spp
 
 ```{r insert_text}
 insert<-""
+
+
+  # Species specific
+  table_est_both <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_*", spp_file, "*"), 
+    sublist = "number", 
+    exact = FALSE)
+  table_est_wt <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_*", spp_file, "_wt"), 
+    sublist = "number", 
+    exact = FALSE)
+  table_est_num <- NMFSReports::crossref(
+    list_obj = list_tables, 
+    nickname = paste0("tab_estimates_maxyr_*", spp_file, "_num"), 
+    sublist = "number", 
+    exact = FALSE)
+  
 if (text_spp) {
   
   # general coldpool figures
@@ -233,24 +252,8 @@ if (text_spp) {
   insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
                     refcontent = refcontent)
 }
-
-
-  # Species specific
-  table_est_both <- NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_*", spp_file, "*"), 
-    sublist = "number", 
-    exact = FALSE)
-  table_est_wt <- NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_*", spp_file, "_wt"), 
-    sublist = "number", 
-    exact = FALSE)
-  table_est_num <- NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = paste0("tab_estimates_maxyr_*", spp_file, "_num"), 
-    sublist = "number", 
-    exact = FALSE)
+  
+  
   
 land_start <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_START--->", "")
 land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "")

@@ -11,7 +11,7 @@
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
-workfaster <- TRUE # an attempt to satisfy limited patience
+workfaster <- FALSE # an attempt to satisfy limited patience
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
@@ -27,21 +27,21 @@ font0 <- "Arial Narrow"
 # ref_compareyr_nbs <- "@RN909" # temp
 # ref_maxyr_npfmc <- "@NPFMC2015" # temp
 
-maxyr <- 2017 # or the year of the report, for example
-compareyr <- 2010
+# maxyr <- 2017 # or the year of the report, for example
+# compareyr <- 2010
+# # SRVY<-"NEBS"
 # SRVY<-"NEBS"
-SRVY<-"NEBS"
-ref_compareyr <- "@RN976"
-# ref_compareyr <- "@RN909"
-ref_maxyr_npfmc <- "@NPFMC2016" # temp
-# dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
+# ref_compareyr <- "@RN976"
+# # ref_compareyr <- "@RN909"
+# ref_maxyr_npfmc <- "@NPFMC2016" # temp
+# # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-# maxyr <- 2018 # NOTE RAPID RESPONCE
-# compareyr <- 2016
-# SRVY<-"EBS"
-# ref_compareyr <- "@RN976" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2017"
-# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+maxyr <- 2018 # NOTE RAPID RESPONCE
+compareyr <- 2016
+SRVY<-"EBS"
+ref_compareyr <- "@RN976" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2017"
+dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019
 # compareyr <- 2017
@@ -55,7 +55,7 @@ ref_maxyr_npfmc <- "@NPFMC2016" # temp
 # SRVY<-"NEBS"
 # ref_compareyr <- "@2019NEBS2022" # CHANGE
 # ref_maxyr_npfmc <- "@NPFMC2019"
-dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
 # compareyr <- 2021
@@ -124,14 +124,13 @@ if (FALSE) {
   for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))])) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
-    start_time <- Sys.time()
+    # start_time <- Sys.time()
     filename00<-paste0(cnt_chapt, "_spp_")
     rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                       output_dir = dir_out_ref,
                       output_file = paste0(filename00, cnt_chapt_content, "_", 
                                            unique(report_spp1$file_name)[jj],".docx"))
-    end_time <- Sys.time()
-    print(paste0(end_time - start_time))
+    # print(paste0(Sys.time() - start_time))
   }
   
   # *** *** Appendix --------------------------------------------
@@ -213,54 +212,7 @@ for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file
                                          unique(report_spp1$file_name)[jj],".docx"))
 }
 
-# *** 07 - Results_crabretow ------------------------
-# cnt_chapt<-auto_counter(cnt_chapt)
-# cnt_chapt_content<-"001"
-# filename0<-paste0(cnt_chapt, "_results_crabretow_")
-# rmarkdown::render(paste0(dir_code, "/07_results_crabretow.Rmd"),
-#                   output_dir = dir_out_chapters,
-#                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-
 # *** 09 - Endmatter ------------------------
-
-files0<-list.files(path = paste0(dir.output, Sys.Date(), "/", maxyr, "/rawdata/"), pattern = ".docx", full.names = TRUE)
-files1 <- files0
-
-files0<-list.files(path = dir_code, pattern = ".Rmd", full.names = TRUE)
-files0<-files0[grep(pattern = "[0-9]+_", x = files0)]
-files0<-files0[-grepl(pattern = "presentation", x = files0)]
-files1 <- c(files1, files0)
-
-ee <- c()
-
-for (ii in 1:length(files1)){
-  if (grepl(pattern = ".docx", x = files1[ii], fixed = TRUE)) {
-    aa <- readtext(file = files1[ii])$text
-  } else {
-    aa <- readLines(con = files1[ii], warn = FALSE)
-  }
-  bb <- unlist(strsplit(x = aa, split = " "))
-  cc <- dd <- bb[grep(pattern = "@", x = strsplit(x = bb, split = " "))]
-  # dd <- cc
-  # dd <- cc[substr(x = cc, start = 1, stop = 1)=="@"]
-  # dd <- cc[!grepl(pattern = "\\", x = cc, fixed = TRUE)]
-  # dd <- ifelse(length(dd) == 0, "", dd)
-  if (length(dd) != 0) {
-    remove <- c(";", "[", "]", ".", ",", ")", "(", '"') # , "\\" 
-    for (i in 1:length(remove)){
-      dd <- gsub(pattern = remove[i], replacement = "", x = dd, fixed = TRUE)
-    }
-  }
-  ee <- c(ee, dd)
-}
-
-ee <- unique(ee)
-ee <- ee[ee != "'@*'"]
-ee <- ee[substr(x = ee, start = 1, stop = 1)=="@"]
-ee <- sapply( strsplit(x = ee, split = "\\\n", perl = TRUE),"[[",1)
-str0 <- paste0(ee, collapse = ", ")
-
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_endmatter_")

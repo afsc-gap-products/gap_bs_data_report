@@ -1,6 +1,6 @@
 ---
 output:
-  word_document:
+  word_document: 
     pandoc_args: ["--metadata-file=header.yaml"]
     reference_docx: styles_reference.docx
     df_print: kable
@@ -246,14 +246,14 @@ table_print <- flextable::flextable(
                      value = as_paragraph("Representative\narea (km", as_sup("2"), ")")) %>%
   flextable::compose(x = ., i = 1, j = "density", part = "header",
                      value = as_paragraph("Sampling density\n(km", as_sup("2"), "/Stations successfully sampled)")) %>%  
-  flextable::width(x = ., j = "Region", width = 4) %>% 
-  flextable::width(x = ., j = "stratum", width = 3) %>% 
-  flextable::width(x = ., j = "density", width = 4) %>% 
+  # flextable::width(x = ., j = "Region", width = 3) %>% 
+  # flextable::width(x = ., j = "stratum", width = 3) %>% 
+  # flextable::width(x = ., j = "density", width = 3) %>% 
   flextable::set_header_labels(., 
                                Region = "",
                                stratum = "Stratum",
                                # area = "Representative\narea (km2)",
-                               stations_completed = "Stations successfully\nsampled"#,
+                               stations_completed = "Stations\nsuccessfully sampled"#,
                                # density = "Sampling density\n(km2/Stations successfully sampled)"
   ) %>% 
   flextable::merge_v(j = "Region") %>%
@@ -261,10 +261,11 @@ table_print <- flextable::flextable(
   flextable::valign(valign = "top") %>%
   flextable::bold(x = ., j = 1, i = ~ grepl(pattern = "Total", x = table_raw$Region) ) %>% #!is.na(Region) ) %>%
   theme_flextable_nmfstm(x = ., 
+                         pad = 0, 
                          font0 = font0, 
                          pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c("stratum", "area", "stations_completed", "density"), 
-                     align = "right", part = "all")
+                     align = "right", part = "all") 
 
 
 # table_raw_stratum_areas <- table_raw
@@ -402,7 +403,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
     NMFSReports::theme_flextable_nmfstm(x = ., 
-                                        font0 = font0,
+                                        pad = 0, 
+                                        spacing = 0.4,
+                                        font0 = font0, 
                                         pgwidth = full_page_portrait_width) %>%
     flextable::align(x = ., j = 2:ncol(table_print), 
                      align = "right", part = "all") 
@@ -490,7 +493,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     #   j = " ", # on column "var"
     #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
     # hline(i = ~ !is.na(SRVY), border = officer::fp_border() ) %>%
-    NMFSReports::theme_flextable_nmfstm(x = ., 
+    NMFSReports::theme_flextable_nmfstm(x = ., pad = 0, 
                                         font0 = font0, 
                                         row_lines = TRUE, 
                                         pgwidth = full_page_portrait_width)  %>%
@@ -554,6 +557,7 @@ table_print <- flextable::flextable(table_raw %>%
                                # species_name = "Scientific name", 
                                stomach_target = "Target collection number per survey") %>%
   NMFSReports::theme_flextable_nmfstm(x = ., 
+                                      pad = 0, 
                                       font0 = font0, 
                                       row_lines = TRUE, 
                                       pgwidth = full_page_portrait_width)  %>%
@@ -599,7 +603,7 @@ temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.x
 # nickname <- paste0(nickname0, "_", haul_cruises_maxyr$SRVY[i]) 
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
-                 haul_cruises_maxyr$SRVY[i], 
+                 NMFSReports::text_list(haul_cruises_maxyr$SRVY), 
                  "Shelf Bottom Trawl Survey by principal investigator and agency.")
 
 table_raw <- temp #%>% 
@@ -621,6 +625,7 @@ table_print <- table_raw %>%
                       part = "header", j = "Agency")  %>%
   NMFSReports::theme_flextable_nmfstm(x = ., 
                                       font0 = font0, 
+                                      pad = 0, 
                                       row_lines = TRUE, 
                                       pgwidth = full_page_portrait_width) %>% 
   flextable::padding(x = .,
@@ -764,7 +769,7 @@ alttext <- paste0("Cold pool extent in the EBS, as measured using observations f
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_cold_pool_area"
 
-height <- 4
+height <- 3.5
 width <- full_page_portrait_width # 6.5
 
 sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs",
@@ -1098,6 +1103,7 @@ if (SRVY == "NEBS"){
     ) %>%
     NMFSReports::theme_flextable_nmfstm(x = ., 
                                         font0 = font0, 
+                                        pad = 0, 
                                         row_lines = FALSE, 
                                         pgwidth = full_page_portrait_width) %>%
     flextable::vline(x = ., j = 2, part = "all")
@@ -1475,13 +1481,13 @@ temp1 <- function(table_raw, strat, total) {
                                          "Estimated biomass by stratum (mt)"), 
                               colwidths = c(2,3,1,length(strat))) %>% 
     flextable::width(x = ., #j = c("999"), 
-                     width = 1.5, unit = "in") %>%
+                     width = 1, unit = "in") %>%
     flextable::width(x = ., j = c("999"), 
                      width = 1.5, unit = "in") %>%
     flextable::width(x = ., j = c("group"), 
-                     width = 3, unit = "in") %>%    
+                     width = 2, unit = "in") %>%    
     flextable::width(x = ., j = c("taxon"), 
-                     width = 3, unit = "in") %>% 
+                     width = 2, unit = "in") %>% 
     flextable::width(x = ., j = c("a"), 
                      width = 0.25, unit = "in") %>%        
     flextable::align(i = 1, align = "center", part = "header")  %>%  
@@ -1499,7 +1505,8 @@ temp1 <- function(table_raw, strat, total) {
     flextable::merge_at(x = ., j = c("999", "a", "CI95"), part = "header") %>% 
     flextable::merge_at(x = ., j = c("prop"), part = "header") %>% 
     NMFSReports::theme_flextable_nmfstm(x = ., 
-                                        font0 = font0,
+                                        font0 = font0, 
+                                        pad = 0, 
                                         row_lines = TRUE,
                                         pgwidth = full_page_landscape_width) %>%
     flextable::align(x = ., j = c("999", "CI95", "prop",  strat), 
@@ -1820,6 +1827,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
     NMFSReports::theme_flextable_nmfstm(x = ., 
                                         font0 = font0, 
+                                        pad = 0, 
                                         row_lines = FALSE, 
                                         pgwidth = full_page_landscape_width) %>% 
     flextable::vline(x = ., part = "all", j = "change ") %>%
@@ -2009,6 +2017,7 @@ for (i in 1:2) {
       flextable::valign(valign = "top") %>%  
       NMFSReports::theme_flextable_nmfstm(x = ., 
                                           font0 = font0, 
+                                          pad = 0, 
                                           row_lines = TRUE, 
                                           pgwidth = full_page_landscape_width) %>%
       flextable::align(x = ., align = "right", part = "all") %>%

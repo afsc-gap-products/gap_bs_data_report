@@ -35,7 +35,7 @@ PKG <- c(
   "ggridges",
   
   # Text
-  "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports") # Package of my favorite grammar and file managment functions for writing reproducible reports
+  "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports", force = TRUE) # Package of my favorite grammar and file managment functions for writing reproducible reports
   
   # Citations
   "knitcitations", # devtools::install_github("cboettig/knitcitations")

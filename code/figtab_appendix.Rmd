@@ -1,6 +1,6 @@
 ---
 output:
-  word_document:
+  word_document: 
     pandoc_args: ["--metadata-file=header.yaml"]
     reference_docx: styles_reference.docx
     df_print: kable
@@ -95,6 +95,12 @@ for (iii in 1:nrow(temp)) {
   comb <- data.frame(c_start = seq(from = 1, to = ncol(table_print1), by = ncol_per_page)+1,
                      c_end = c(seq(from = ncol_per_page+1, to = ncol(table_print1), by = ncol_per_page), ncol(table_print1)))
   
+  # if there are less than 3 columns in the last table, combine with table before because it looks messy 
+  if (abs(comb$c_start[nrow(comb)]-comb$c_end[nrow(comb)]) < 3) {
+    comb$c_end[nrow(comb)-1] <- comb$c_start[nrow(comb)]
+    comb<-comb[1:(nrow(comb)-1),]
+  }
+  
   for (ii in 1:nrow(comb)) {
     cnt_pre <- "A"
     subobj <- TRUE
@@ -116,8 +122,12 @@ for (iii in 1:nrow(temp)) {
       flextable::flextable(data = .) %>%
       flextable::bold(x = ., j = "row") %>%
       flextable::set_header_labels(., row = "") %>%
-      NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE,
-                                          body_size = 8, pad = 0, spacing = 0.9, 
+      NMFSReports::theme_flextable_nmfstm(x = ., 
+                                          font0 = font0, 
+                                          row_lines = FALSE,
+                                          body_size = 7, 
+                                          header_size = 7, 
+                                          pad = 0, 
                                           pgwidth = full_page_landscape_width)
     
     header <- paste0("Haul and catch data for successfully completed tows by ", 
@@ -243,15 +253,15 @@ for (i in 1:nrow(temp)) {
     flextable::merge_h_range(x = ., i = ~ taxon == "", j1 = "taxon", j2 = "species_name", part = "body") %>%
     flextable::set_header_labels(., 
                                  values = list(
-                                 taxon = "", #ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
-                                 species_name = "", #"Scientific name",
-                                 common_name = "", #"Common name",
-                                 stations_n = "", #"Number stations present", 
-                                 depth_min = "Min.", 
-                                 depth_max = "Max.", 
-                                 depth_mean = "Avg.", 
-                                 lat_max = "Southern", 
-                                 lat_min = "Northern")) %>%
+                                   taxon = "", #ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
+                                   species_name = "", #"Scientific name",
+                                   common_name = "", #"Common name",
+                                   stations_n = "", #"Number stations present", 
+                                   depth_min = "Min.", 
+                                   depth_max = "Max.", 
+                                   depth_mean = "Avg.", 
+                                   lat_max = "Southern", 
+                                   lat_min = "Northern")) %>%
     flextable::add_header_row(x = ., 
                               top = TRUE, 
                               values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"), 
@@ -264,9 +274,13 @@ for (i in 1:nrow(temp)) {
     flextable::merge_at(x = ., j = c("species_name"), part = "header") %>%
     flextable::merge_at(x = ., j = c("common_name"), part = "header") %>%
     flextable::merge_at(x = ., j = c("stations_n"), part = "header") %>%
-    theme_flextable_nmfstm(x = ., font0 = font0, row_lines = FALSE, 
-                           body_size = 8, header_size = 9, 
-                           pgwidth = full_page_landscape_width) %>%
+    NMFSReports::theme_flextable_nmfstm(x = ., 
+                                        font0 = font0, 
+                                        row_lines = FALSE, 
+                                        body_size = 7, 
+                                        header_size = 7, 
+                                        pad = 0, 
+                                        pgwidth = full_page_landscape_width) %>%
     flextable::align(x = ., 
                      j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
                      align = "right", part = "all") %>%
@@ -365,9 +379,13 @@ for (i in 1:nrow(temp)) {
                                    cumprop = "Cumulative proportion") %>%
       flextable::align(i = 1, align = "center", part = "header")  %>%  
       flextable::bold(x = ., i = nrow(table_raw), part = "body") %>%
-      theme_flextable_nmfstm(x = ., font0 = font0, 
-                             row_lines = FALSE, body_size = 8, header_size = 9, 
-                             pgwidth = full_page_landscape_width)
+      NMFSReports::theme_flextable_nmfstm(x = ., 
+                                          font0 = font0, 
+                                          row_lines = FALSE, 
+                                          body_size = 7, 
+                                          header_size = 7, 
+                                          pad = 0, 
+                                          pgwidth = full_page_landscape_width)
     
     # save yo' stuff and do a lot of behind the scenes work
     # alt: this does the same thing as calling "child = " in the chunk header
