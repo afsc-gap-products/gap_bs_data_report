@@ -11,7 +11,7 @@
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
-workfaster <- FALSE # an attempt to satisfy limited patience
+workfaster <- TRUE # an attempt to satisfy limited patience
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
@@ -227,8 +227,6 @@ filename0<-paste0(cnt_chapt, "_appendix_")
 rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-
 
 # *** 11 - Presentation ------------------------
 

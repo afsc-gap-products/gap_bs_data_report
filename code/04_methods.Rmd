@@ -25,7 +25,6 @@ The Marport Deep Sea Technologies Inc. net mensuration system was used during th
 
 Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station. Average bottom depth was calculated by adding the average net height to the average depth of the headrope. 
 
-`r list_figures$fig_trawl_gear$res `
 
 ```{r}
 # > Should we limit to 3 decimal places for eq?
@@ -161,6 +160,10 @@ $$ w \\sim {s}^{-1} + h + \\frac{h}{s} $$
 # `r str`
 ```
 
+
+`r list_figures$fig_trawl_gear$res `
+
+\newpage
 
 ## EBS Sampling Logistics and Stratification Scheme
 
@@ -310,7 +313,7 @@ Catches estimated to be less than approximately 1,200 kg (2,650 lbs) were entire
 
 Catch weights and numbers by species or species group were either estimated directly when subsampled, or estimated by extrapolating the proportion in the subsample to that of the entire catch weight. All Pacific halibut (*Hippoglossus stenolepis*) and commercial crab species were weighed and enumerated from each catch. Other selected species including Greenland turbot, large skates, Pacific cod, sculpins, sharks, and octopuses were also completely sorted from the catch in most cases.
 
-Random samples of selected fish species (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`) were further processed to obtain length measurements. The number of fish in a random length sample for a species was dependent on the size range of that species in the haul, up to a maximum of 300 specimens. For each fish in a length sample, sex was determined and then the fork or total length was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture `r ifelse(maxyr > 2020, "", "and 50% were randomly selected to receive a preopercle tag,")` after which the halibut were immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
+Random samples of selected fish species (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`) were further processed to obtain length measurements. The number of fish in a random length sample for a species was dependent on the size range of that species in the haul, up to a maximum of `r ifelse(maxyr>2021, "100", "300")` specimens. For each fish in a length sample, sex was determined and then the fork or total length was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture `r ifelse(maxyr > 2020, "", "and 50% were randomly selected to receive a preopercle tag,")` after which the halibut were immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
 
 
 ```{r}
@@ -343,10 +346,44 @@ if (SRVY == "NEBS") {
                    NMFSReports::text_list(paste0(temp$SRVY)))
    } 
  }
+  
+# describing types of oto samples  
+if (SRVY == "NEBS") {
+  temp <- dplyr::bind_rows(
+    list_tables$tab_oto_collection_scheme_EBS$raw %>% 
+      dplyr::mutate(SRVY = "EBS"), 
+     list_tables$tab_oto_collection_scheme_NBS$raw %>% 
+      dplyr::mutate(SRVY = "NBS") ) 
+} else {
+  temp <- list_tables$tab_oto_collection_scheme_EBS$raw %>% 
+      dplyr::mutate(SRVY = "EBS")
+}
+   
+  temp <- temp %>% 
+    dplyr::select(oto_samp_type, SRVY) %>% 
+    dplyr::distinct()  
+  
+    str2 <- c()
+  for (i in 1:length(unique(temp$SRVY))) {
+    srvy <- (unique(temp$SRVY))[i]
+    str2 <- c(str2, 
+              paste0(NMFSReports::text_list(sort(temp$oto_samp_type[temp$SRVY == srvy]))))
+  }
+    
+    if (length(str2)>1 & # if there is more than one region
+        length(unique(str2))==1) { # and the regions have the same samp types
+      str2 <- paste0(str2[1], " method",ifelse(nrow(temp)>length(unique(temp$SRVY)),"s", "")," were used in both the ", NMFSReports::text_list(unique(temp$SRVY)))
+    } else {
+      temp0 <- temp %>% 
+        dplyr::group_by(SRVY) %>% 
+        dplyr::summarise(freq = n())
+      str2 <- NMFSReports::text_list(paste0(str2, " method",ifelse(temp0$freq,"s", "")," were used in the ", (temp0$SRVY)))
+    }
+
 ```
 
 Sagittal otoliths were collected in the field from `r str0 ` (Tables 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = c("tab_specimen_samples_", "tab_oto_collection_scheme_"), sublist = "number", exact = FALSE)`) and brought to the AFSC to be processed for age determination. Depending on fish species, a length-stratified or a random sampling method was used for collecting otolith pairs in `r ifelse(SRVY == "NEBS", "the NBS and ", "")`two different EBS regions (southeast and northwest; Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_oto_collection_scheme_", sublist = "number", exact = FALSE)`). Otoliths were preserved in 50% glycerol-thymol solution. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, the survey area was also divided into low- and high-density strata based on historical population densities and an isobath of approximately 70 m.  
+`r NMFSReports::crossref(list_obj = list_tables, nickname = c("tab_specimen_samples_", "tab_oto_collection_scheme_"), sublist = "number", exact = FALSE)`) and brought to the AFSC to be processed for age determination. The `r str2 ` for collecting otolith pairs (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_oto_collection_scheme_", sublist = "number", exact = FALSE)`). Otoliths were preserved in 50% glycerol-thymol solution. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, the survey area was also divided into low- and high-density strata based on historical population densities and an isobath of approximately 70 m.  
 
 ```{r}
 temp <- list_tables$tab_stomach_collection_scheme$raw

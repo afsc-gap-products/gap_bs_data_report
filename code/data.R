@@ -720,8 +720,8 @@ length_crab <- dplyr::bind_rows(
   dplyr::left_join(
     x = .,
     y = haul %>% 
-      dplyr::select(SRVY, hauljoin, haul_type, abundance_haul, performance),
-    by = c("hauljoin", "SRVY")) %>%
+      dplyr::select(SRVY, hauljoin,haul_type, stationid, abundance_haul, performance), # haul, cruise, 
+    by = c("SRVY","hauljoin")) %>% # ,  "haul", "station" = "stationid", "cruise"
   dplyr::filter(
     abundance_haul == "Y" &
       performance >= 0 &

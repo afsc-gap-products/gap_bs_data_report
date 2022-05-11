@@ -18,14 +18,16 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ## fig_sample_grid
 
 ```{r fig_sample_grid}
-header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY)," continental shelf bottom trawl survey", 
+header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
+                 NMFSReports::text_list(haul_cruises_maxyr$SRVY),
+                 " continental shelf bottom trawl survey", 
                  ifelse(SRVY == "NEBS", "s", ""), ".")
 nickname <- "fig_sample_grid"
 subobj <- FALSE
 
 # header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined in the dark gray line are the NBS stations that were sampled in ",maxyr,". The dots within each area indicate each station location.") # TOLEDO
 
-  height <- full_page_portrait_height # height <- 6
+  height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 6
   width <- full_page_portrait_width # width <- 6.5
 
 figure <- plot_survey_stations(reg_dat = reg_dat, 
@@ -56,7 +58,7 @@ nickname <- "fig_sampled_survey_stations"
 header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY)," continental shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), ". The map also depicts the stations sampled by each survey vessel and where, if any, Norton Sound crab resampling was done.")
 # header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined in the dark gray line are the NBS stations that were sampled in ",maxyr,". The dots within each area indicate each station location.") # TOLEDO
 
-  height <- full_page_portrait_height # height <- 6
+  height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 6
   width <- full_page_portrait_width # width <- 6.5
 
 reg_dat0 <- reg_dat
@@ -161,7 +163,9 @@ list_figures[nickname][[1]]$res <- res
 ## fig_trawl_gear
 
 ```{r fig_trawl_gear}
-header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used during the ", maxyr ," ", SRVY ," bottom trawl surveys.")
+header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used during the ", 
+                 maxyr ," ", NMFSReports::text_list(SRVY1) ," bottom trawl survey", 
+                 ifelse(length(SRVY1)>1, "s", ""), ".")
 footnote<- NA
 nickname <- "fig_trawl_gear"
 alttext <- paste0(header)
@@ -192,7 +196,8 @@ list_figures[nickname][[1]]$res <- res
 
 ```{r tab_stratum_areas}
 header <- paste0("Stratum areas and sampling densities for the ",maxyr,
-                 " ", SRVY ," bottom trawl survey. These stratum areas were calculated in ", 
+                 " ", NMFSReports::text_list(SRVY1) ," bottom trawl survey", 
+                 ifelse(length(SRVY1)>1, "s", ""),". These stratum areas were calculated in ", 
                  stratum_info$year[1] , ". ")
 nickname <- "tab_stratum_areas" 
 
@@ -1476,21 +1481,21 @@ temp1 <- function(table_raw, strat, total) {
     flextable::merge_h_range(x = ., i = ~ is.na(taxon), j1 = "group", j2 = "taxon", part = "body") %>%
     flextable::add_header_row(top = TRUE, 
                               values = c("Taxon", 
-                                         "Estimated total biomass (mt)\nand 95% confidence interval", 
+                                         "Estimated total\nbiomass (mt) ± 95%\nconfidence interval", 
                                          "Proportion of\ntotal animal biomass", 
                                          "Estimated biomass by stratum (mt)"), 
                               colwidths = c(2,3,1,length(strat))) %>% 
-    flextable::width(x = ., #j = c("999"), 
-                     width = 1, unit = "in") %>%
-    flextable::width(x = ., j = c("999"), 
-                     width = 1.5, unit = "in") %>%
+    flextable::width(x = .,  
+                     width = .5, unit = "in") %>%
+    # flextable::width(x = ., j = c("999"), 
+    #                  width = 1, unit = "in") %>%
     flextable::width(x = ., j = c("group"), 
-                     width = 2, unit = "in") %>%    
+                     width = 1.5, unit = "in") %>%    
     flextable::width(x = ., j = c("taxon"), 
-                     width = 2, unit = "in") %>% 
+                     width = 1.5, unit = "in") %>% 
     flextable::width(x = ., j = c("a"), 
                      width = 0.25, unit = "in") %>%        
-    flextable::align(i = 1, align = "center", part = "header")  %>%  
+    flextable::align(i = 1, align = "center", j = "a", part = "all")  %>%  
     flextable::footnote(x = ., part = "header", i = 1, j = 5, 
                         value = as_paragraph(footnote0)) %>%
     flextable::bold(x = ., i = ~ (grepl(pattern = "Total", x = group) )) %>%
@@ -1513,7 +1518,7 @@ temp1 <- function(table_raw, strat, total) {
                      align = "right", part = "all") %>%
     flextable::align(x = ., 
                      j = c(strat), 
-                     align = "left", i = 1, part = "header")
+                     align = "center", i = 1, part = "header")
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
@@ -1900,7 +1905,7 @@ for (i in 1:2) {
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
                     meanwgtcpue, varmnwgtcpue, 
-                    biomass, varbio, upperb, lowerb, 
+                    biomass, varbio, lowerb, upperb, 
                     # haulcount, 
                     catcount, numcount, lencount) 
     
@@ -1955,7 +1960,7 @@ for (i in 1:2) {
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
                     meannumcpue, varmnnumcpue, 
-                    population, varpop, upperp, lowerp, 
+                    population, varpop, lowerp, upperp, 
                     # haulcount, 
                     catcount, numcount, lencount)
     

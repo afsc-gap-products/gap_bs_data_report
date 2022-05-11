@@ -139,10 +139,10 @@ files1 <- files0
 
 files0<-list.files(path = dir_code, pattern = ".Rmd", full.names = TRUE)
 files0<-files0[grep(pattern = "[0-9]+_", x = files0)]
-files0<-files0[-grepl(pattern = "presentation", x = files0)]
+files0<-files0[!grepl(pattern = "presentation", x = files0)]
 files1 <- c(files1, files0)
 
-ee <- c()
+ee <- c(ref_compareyr, ref_maxyr_npfmc)
 
 for (ii in 1:length(files1)){
   if (grepl(pattern = ".docx", x = files1[ii], fixed = TRUE)) {
@@ -150,12 +150,9 @@ for (ii in 1:length(files1)){
   } else {
     aa <- readLines(con = files1[ii], warn = FALSE)
   }
-  bb <- unlist(strsplit(x = aa, split = " "))
-  cc <- dd <- bb[grep(pattern = "@", x = strsplit(x = bb, split = " "))]
-  # dd <- cc
-  # dd <- cc[substr(x = cc, start = 1, stop = 1)=="@"]
-  # dd <- cc[!grepl(pattern = "\\", x = cc, fixed = TRUE)]
-  # dd <- ifelse(length(dd) == 0, "", dd)
+  bb <- unlist(strsplit(x = aa, split = " ", fixed = TRUE))
+  bb <- unlist(strsplit(x = bb, split = "\n", perl = TRUE))
+  cc <- dd <- bb[grep(pattern = "@", x = bb)]
   if (length(dd) != 0) {
     remove <- c(";", "[", "]", ".", ",", ")", "(", '"') # , "\\" 
     for (i in 1:length(remove)){
