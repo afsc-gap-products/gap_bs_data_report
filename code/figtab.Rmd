@@ -1926,10 +1926,25 @@ for (i in 1:2) {
     
     if (SRVY == "EBS") {
       table_print <- table_print %>% 
-        dplyr::select(-SRVY)
-    }
-    
-    table_print <- table_print %>%
+        dplyr::select(-SRVY) %>%
+      flextable::flextable(data = .) %>% 
+      flextable::set_header_labels(
+        x = ., 
+        print_name = "Species", 
+        # SRVY = "Shelf area", 
+        meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
+        varmnwgtcpue = paste0("SD CPUE"), 
+        biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
+        varbio = paste0("SD Biomass", varbio0$unit_word), 
+        lowerb = paste0("95% LCL", biomass0$unit_word), 
+        upperb = paste0("95% UCL", biomass0$unit_word), 
+        # haulcount = "Total hauls", 
+        catcount = "Hauls with weights", 
+        numcount = "Hauls with counts", 
+        lencount = "Hauls with lengths") 
+    } else {
+            table_print <- table_print %>% 
+        dplyr::select(-SRVY) %>%
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(
         x = ., 
@@ -1945,7 +1960,8 @@ for (i in 1:2) {
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
         lencount = "Hauls with lengths") 
-    
+    }
+
   } else { # CPUE No/HA and POPULATION
     
     header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for other common groundfish species for the ", 
@@ -1979,10 +1995,24 @@ for (i in 1:2) {
     
     if (SRVY == "EBS") {
       table_print <- table_print %>% 
-        dplyr::select(-SRVY)
-    }
-    
-    table_print <- table_print %>%
+        dplyr::select(-SRVY) %>%
+      flextable::flextable(data = .) %>% 
+      flextable::set_header_labels(
+        x = ., 
+        print_name = "Species", 
+        # SRVY = "Shelf area", 
+        meannumcpue = paste0("Mean CPUE (no/ha)"), 
+        varmnnumcpue = paste0("SD CPUE"), 
+        population = paste0("Estimated\nPopulation", population0$unit_word), 
+        varpop = paste0("SD Population", varpop0$unit_word), 
+        lowerp = paste0("95% LCL", population0$unit_word), 
+        upperp = paste0("95% UCL", population0$unit_word), 
+        # haulcount = "Total hauls", 
+        catcount = "Hauls with weights", 
+        numcount = "Hauls with counts", 
+        lencount = "Hauls with lengths") 
+    } else {
+            table_print <- table_print %>% 
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(
         x = ., 
@@ -1997,20 +2027,8 @@ for (i in 1:2) {
         # haulcount = "Total hauls", 
         catcount = "Hauls with weights", 
         numcount = "Hauls with counts", 
-        lencount = "Hauls with lengths") #%>% 
-      # flextable::width(x = ., j = "print_name", width = 3) %>%
-      # # flextable::width(x = ., j = "SRVY", width = 0.5) %>%
-      # flextable::merge_v(x = ., 
-      #                    target = "print_name", 
-      #                    j = "print_name", 
-      #                    part = "body") %>% 
-      # flextable::valign(valign = "top") %>%
-      # NMFSReports::theme_flextable_nmfstm(x = ., font0 = font0, 
-      #                        row_lines = TRUE, 
-      #                        pgwidth = full_page_landscape_width) %>%
-      # flextable::align(x = ., align = "right", part = "body") %>%
-      # flextable::align(x = ., j = c("print_name"), 
-      #                  align = "left", part = "all")
+        lencount = "Hauls with lengths") 
+    }
   }
   
   
@@ -2026,7 +2044,7 @@ for (i in 1:2) {
                                           row_lines = TRUE, 
                                           pgwidth = full_page_landscape_width) %>%
       flextable::align(x = ., align = "right", part = "all") %>%
-      flextable::align(x = ., j = c("print_name", "SRVY"), 
+      flextable::align(x = ., j = c("print_name"), #, "SRVY"
                        align = "left", part = "all")
   
   # save yo' stuff and do a lot of behind the scenes work

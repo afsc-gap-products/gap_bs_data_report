@@ -31,11 +31,6 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 
 ```{r data_wrangle}
 # find basic info about species
-# haul0 <- catch_haul_cruises %>% 
-#   dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
-#                 "bottom_depth", "gear_temperature" ,"surface_temperature", 
-#                 "survey_name", "SRVY", "year", "species_code", 
-#                 "weight", "number_fish", "hauljoin")
 
 haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea"] <- "southeastern Bering Sea"
 
@@ -112,9 +107,9 @@ if (spp_plot_idw_coldwarm){
     dplyr::filter(!is.na(cpue_kgha)) %>% 
     dplyr::arrange(desc(year)) %>% 
     dplyr::filter(species_code %in% spp_code #& 
-                    # dplyr::filter(common_name %in% spp_common & 
-                    # year %in% unlist(temps_avg_yr_abovebelow)
-                    )
+                  # dplyr::filter(common_name %in% spp_common & 
+                  # year %in% unlist(temps_avg_yr_abovebelow)
+    )
   
   set.breaks <- set_breaks(dat = table_raw0, 
                            var = "cpue_kgha")
@@ -159,7 +154,7 @@ if (spp_plot_idw_coldwarm){
       region = map.area, 
       key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
       grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
-                   ifelse(workfaster, 1.5, 0.02)),
+                    ifelse(workfaster, 1.5, 0.02)),
       set.breaks = set.breaks, 
       row0 = row0)
     
@@ -211,22 +206,22 @@ if (spp_plot_idw){
     extrap.box0 <- report_types[[unique(table_raw$SRVY)]]$extrap.box
   }
   
-   figure <- plot_idw_xbyx(
-      yrs = c(maxyr, compareyr),
-      dat = table_raw,
-      lat = "latitude",
-      lon = "longitude",
-      var = "cpue_kgha",
-      year = "year",
-      grid = "extrapolation.grid",
-      extrap.box = extrap.box0, 
-      region = map.area, 
+  figure <- plot_idw_xbyx(
+    yrs = c(maxyr, compareyr),
+    dat = table_raw,
+    lat = "latitude",
+    lon = "longitude",
+    var = "cpue_kgha",
+    year = "year",
+    grid = "extrapolation.grid",
+    extrap.box = extrap.box0, 
+    region = map.area, 
     key.title = paste0(stringr::str_to_sentence(spp_print), "
 relative biomass (kg/ha)"),
-      grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
-                   ifelse(workfaster, 1.5, 0.02)),
-      set.breaks = set.breaks, 
-      row0 = 1)
+grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
+              ifelse(workfaster, 1.5, 0.02)),
+set.breaks = set.breaks, 
+row0 = 1)
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -502,8 +497,8 @@ if (spp_table_cpue) {
                            " with standard deviation",varmnwgtcpue0$unit_word,
                            ", and estimated biomass",biomass0$unit_word,
                            " with standard deviation",varbio0$unit_word)
-
-           table_print <- table_raw %>% 
+          
+          table_print <- table_raw %>% 
             dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>%
             dplyr::mutate(varmnwgtcpue = varmnwgtcpue/varmnwgtcpue0$divby) %>%
             dplyr::mutate(biomass = biomass/biomass0$divby) %>% 
@@ -513,16 +508,17 @@ if (spp_table_cpue) {
             dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                                  formatC, big.mark=",", digits = 2, format = "f")) %>% 
             dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
-                                 formatC, big.mark=",", digits = 0, format = "f")) %>%
-            flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
-            flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE) %>% 
-            # flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-            # flextable::bold(x = ., #j = "stratum", 
-            #                 i = ~ (stratum == "Total") ) %>%
-            # flextable::padding(x = ., 
-            #                    j = 1, i = ~ is.na(SRVY), 
-            #                    padding.left = 20) %>%
-            # flextable::align(align = "right", part = "body") %>%  
+                                 formatC, big.mark=",", digits = 0, format = "f")) 
+          if (length(unique(table_raw$SRVY)) > 1) {
+            table_print <- table_print %>%
+              flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
+              flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE)
+          } else {
+            table_print <- table_print %>% 
+              dplyr::select(-SRVY) %>%
+              flextable::flextable(data = .)
+          }
+          table_print <- table_print %>% 
             flextable::set_header_labels(
               x = ., 
               stratum = "Stratum", 
@@ -540,13 +536,6 @@ if (spp_table_cpue) {
       } else { # CPUE No/HA and POPULATION
         
         nickname <- paste0(nickname0, "num")
-        # header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
-        #                  NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY_long, 
-        #                                                " shelf (", 
-        #                                                haul_cruises_maxyr0$SRVY, "; ",
-        #                                                haul_cruises_maxyr0$stations_completed,
-        #                                                " stations completed)")),
-        #                  " trawl survey. Differences in sums of estimates and totals are due to rounding.")
         
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
@@ -577,9 +566,19 @@ if (spp_table_cpue) {
             dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                                  formatC, big.mark=",", digits = 2, format = "f")) %>% 
             dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
-                                 formatC, big.mark=",", digits = 0, format = "f")) %>%
-            flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL) %>% 
-            flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+                                 formatC, big.mark=",", digits = 0, format = "f")) 
+          
+          if (length(unique(table_raw$SRVY)) > 1) {
+            table_print <- table_print %>%
+              flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
+              flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE)
+          } else {
+            table_print <- table_print %>% 
+              dplyr::select(-SRVY) %>%
+              flextable::flextable(data = .)
+          }
+          table_print <- table_print %>% 
+            
             flextable::set_header_labels(
               x = ., 
               stratum = "Stratum", 
@@ -594,45 +593,49 @@ if (spp_table_cpue) {
               catcount = "Hauls with weights", 
               numcount = "Hauls with counts", 
               lencount = "Hauls with lengths") 
-      }
-      
         }
         
+      }
+      
       header <- paste0(header,
-                           " and 95% lower (LCL) and upper (UCL) confidence limits for ",
+                       " and 95% lower (LCL) and upper (UCL) confidence limits for ",
                        spp_print, 
-                           ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
-                           NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, " (",
-                                                         haul_cruises_maxyr0$stations_completed,
-                                                         " stations completed)")),
-                           " shelf trawl survey",
-                           ifelse(length(setdiff(SRVY1, haul_cruises_maxyr0$SRVY))>0, "s", ""),". ",
-                           ifelse(length(setdiff(SRVY1, haul_cruises_maxyr0$SRVY))>0, 
-                                  paste0("No ", spp_print," were found in the ", 
-                                         setdiff(SRVY1, haul_cruises_maxyr0$SRVY),
-                                         " shelf trawl survey. "), 
-                                  ""),
-                           "Differences in sums of estimates and totals are due to rounding.")
+                       ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
+                       NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, " (",
+                                                     haul_cruises_maxyr0$stations_completed,
+                                                     " stations completed)")),
+                       " shelf trawl survey",
+                       ifelse(length(setdiff(SRVY1, haul_cruises_maxyr0$SRVY))>0, "s", ""),". ",
+                       ifelse(length(setdiff(SRVY1, haul_cruises_maxyr0$SRVY))>0, 
+                              paste0("No ", spp_print," were found in the ", 
+                                     setdiff(SRVY1, haul_cruises_maxyr0$SRVY),
+                                     " shelf trawl survey. "), 
+                              ""),
+                       "Differences in sums of estimates and totals are due to rounding.")
       
       table_print <- table_print %>% 
-            flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-            flextable::bold(x = ., #j = "stratum", 
-                            i = ~ (stratum == "Total") ) %>%
+        flextable::bold(x = ., #j = "stratum", 
+                        i = ~ (stratum == "Total") ) %>%
         # flextable::merge_v(j = "Region") %>%
-            flextable::valign(valign = "top") %>%
-            flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
-            NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, 
-                                                font = font0, 
-                                                pad = 0, 
-                                                pgwidth = full_page_landscape_width) %>% 
-            flextable::padding(x = .,
-                               j = 1, i = ~ is.na(SRVY),
-                               padding.left = 5) %>%
-            flextable::align(x = ., 
-                             align = "right", part = "all") %>%
-            flextable::align(x = ., i = ~ !is.na(SRVY),
-                             align = "left", part = "body")
-            
+        flextable::valign(valign = "top") %>%
+        flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
+        NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, 
+                                            font = font0, 
+                                            pad = 0, 
+                                            pgwidth = full_page_landscape_width) %>%
+        flextable::align(x = ., 
+                         align = "right", part = "all")
+      
+          if (length(unique(table_raw$SRVY)) > 1) {
+      table_print <- table_print %>% 
+        flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+        flextable::padding(x = .,
+                           j = 1, i = ~ is.na(SRVY),
+                           padding.left = 5) %>%
+        flextable::align(x = ., i = ~ !is.na(SRVY),
+                         align = "left", part = "body")
+      }
+      
       # save yo' stuff and do a lot of behind the scenes work
       # alt: this does the same thing as calling "child = " in the chunk header
       res <- knitr::knit_child(
