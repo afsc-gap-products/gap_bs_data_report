@@ -433,18 +433,21 @@ if (spp_table_cpue) {
                     species_code %in% spp_code) %>% 
     dplyr::select(SRVY, stratum, 
                   meanwgtcpue, varmnwgtcpue, 
-                  biomass, varbio, upperb, lowerb, 
+                  biomass, varbio, lowerb, upperb, 
                   meannumcpue, varmnnumcpue, 
-                  population, varpop, upperp, lowerp, 
+                  population, varpop, lowerp, upperp, 
                   haulcount, catcount, numcount, lencount) %>% 
     dplyr::mutate(stratum = as.character(stratum)) %>%
     dplyr::arrange(stratum) %>% 
     dplyr::arrange(SRVY) %>% 
     dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
   
+  # Were lengths taken for this taxon? If not, we wont include the lencount column in the table and optomize for space
+  include_lencount <- !(sum(temp$lencount[temp$stratum == "Total"] %in% 0) == 
+    length(temp$lencount[temp$stratum == "Total"]))
+  
   if (sum(temp$biomass[temp$stratum == "Total"] != 0) > 0) {
-    
-    
+
     if (sum(temp$biomass[temp$stratum == "Total"] %in% 0)>0) {
       temp <- temp %>% 
         dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
@@ -453,15 +456,8 @@ if (spp_table_cpue) {
       temp <- temp
     }
     
-    
     haul_cruises_maxyr0 <- haul_cruises_maxyr %>% 
       dplyr::filter(SRVY %in% unique(temp$SRVY))
-    
-    # for (i in 1:nrow(haul_cruises_maxyr)) {
-    #   if (nrow(haul_cruises_maxyr)>1) {
-    #     subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
-    #     newobj <- ifelse(i==1, TRUE, FALSE)
-    #   }
     
     for (i in 1:2) {
       subobj <- TRUE
@@ -470,21 +466,18 @@ if (spp_table_cpue) {
       
       if (i == 1){ # CPUE (WT/HA) and BIOMASS
         nickname <- paste0(nickname0, "wt")
-        # header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (mt) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for ",
-        #                  spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")),
-        #                  " by stratum for the ",maxyr," ",                     
-        #                  NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, 
-        #                                                " (", 
-        #                                                haul_cruises_maxyr0$stations_completed,
-        #                                                " stations completed)")),
-        #                  " Shelf Trawl Surveys. Differences in sums of estimates and totals are due to rounding.")
         
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
                         meanwgtcpue, varmnwgtcpue, 
-                        biomass, varbio, upperb, lowerb, 
+                        biomass, varbio, lowerb, upperb, 
                         # haulcount, 
                         catcount, numcount, lencount) 
+        
+        if (!include_lencount) {
+           table_raw <- table_raw %>% 
+             dplyr::select(-lencount)
+        }
         
         if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
           
@@ -521,17 +514,12 @@ if (spp_table_cpue) {
           table_print <- table_print %>% 
             flextable::set_header_labels(
               x = ., 
-              stratum = "Stratum", 
               meanwgtcpue = paste0("Mean CPUE", ifelse(meanwgtcpue0$unit_word=="", "", paste0("\n",meanwgtcpue0$unit_word))), 
               varmnwgtcpue = paste0("SD CPUE", ifelse(varmnwgtcpue0$unit_word=="", "", paste0("\n",varmnwgtcpue0$unit_word))), 
               biomass = paste0("Estimated Biomass", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
               varbio = paste0("SD Biomass", ifelse(varbio0$unit_word=="", "", paste0("\n",varbio0$unit_word))), 
               lowerb = paste0("95% LCL", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
-              upperb = paste0("95% UCL", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
-              # haulcount = "Total hauls", 
-              catcount = "Hauls with weights", 
-              numcount = "Hauls with counts", 
-              lencount = "Hauls with lengths")
+              upperb = paste0("95% UCL", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word)))) 
         }
       } else { # CPUE No/HA and POPULATION
         
@@ -540,9 +528,14 @@ if (spp_table_cpue) {
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
                         meannumcpue, varmnnumcpue, 
-                        population, varpop, upperp, lowerp, 
+                        population, varpop, lowerp, upperp, 
                         # haulcount, 
                         catcount, numcount, lencount)
+        
+        if (!include_lencount) {
+           table_raw <- table_raw %>% 
+             dplyr::select(-lencount)
+        }
         
         if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
           
@@ -581,18 +574,13 @@ if (spp_table_cpue) {
             
             flextable::set_header_labels(
               x = ., 
-              stratum = "Stratum", 
               meannumcpue = paste0("Mean CPUE", ifelse(meannumcpue0$unit_word=="", "", paste0("\n", meannumcpue0$unit_word))), 
               varmnnumcpue = paste0("SD CPUE", ifelse(varmnnumcpue0$unit_word=="", "", paste0("\n", varmnnumcpue0$unit_word))), 
               population = paste0("Estimated Population", 
                                   ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))),
               varpop = paste0("SD Population", ifelse(varpop0$unit_word=="", "", paste0("\n", varpop0$unit_word))), 
               lowerp = paste0("95% LCL", ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))), 
-              upperp = paste0("95% UCL", ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))), 
-              # haulcount = "Total hauls", 
-              catcount = "Hauls with weights", 
-              numcount = "Hauls with counts", 
-              lencount = "Hauls with lengths") 
+              upperp = paste0("95% UCL", ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word)))) 
         }
         
       }
@@ -611,7 +599,8 @@ if (spp_table_cpue) {
                                      setdiff(SRVY1, haul_cruises_maxyr0$SRVY),
                                      " shelf trawl survey. "), 
                               ""),
-                       "Differences in sums of estimates and totals are due to rounding.")
+                       "Differences in sums of estimates and totals are due to rounding. ", 
+                       ifelse(!include_lencount, "No lengths were collected for this taxon. ", ""))
       
       table_print <- table_print %>% 
         flextable::bold(x = ., #j = "stratum", 
@@ -624,9 +613,21 @@ if (spp_table_cpue) {
                                             pad = 0, 
                                             pgwidth = full_page_landscape_width) %>%
         flextable::align(x = ., 
-                         align = "right", part = "all")
+                         align = "right", part = "all") %>% 
+            flextable::set_header_labels(
+              x = ., 
+              stratum = "Stratum", 
+              catcount = "Hauls with weights", 
+              numcount = "Hauls with counts") 
+          
+      if (include_lencount) { # if no lengths were collected, dont include the column
+          table_print <- table_print %>% 
+            flextable::set_header_labels(
+              x = ., 
+              lencount = "Hauls with lengths")
+      }
       
-          if (length(unique(table_raw$SRVY)) > 1) {
+      if (length(unique(table_raw$SRVY)) > 1) {
       table_print <- table_print %>% 
         flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
         flextable::padding(x = .,

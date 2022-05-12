@@ -97,10 +97,14 @@ temp <- cold_pool_area %>%
 
 temp4 <- ""
 if (temp$rank[temp$year == maxyr] < 6) {
-  temp4 <- paste0(NMFSReports::numbers2words_th(temp$rank[temp$year == maxyr])," lowest")
+  temp4a <- NMFSReports::numbers2words_th(temp$rank[temp$year == maxyr])
+  temp4 <- paste0(ifelse(temp4a != "first", paste0(temp4a, " "), ""),
+                  "lowest")
 } 
 if (abs(temp$rank[temp$year == maxyr]-length(temp$rank)) < 6) {
-  temp4 <- paste0(NMFSReports::numbers2words_th(abs(temp$rank[temp$year == maxyr]-length(temp$rank)))," highest")
+  temp4a <- NMFSReports::numbers2words_th(abs(temp$rank[temp$year == maxyr]-length(temp$rank)))
+  temp4 <- paste0(ifelse(temp4a != "first", paste0(temp4a, " "), ""),
+                  "highest")
 }
 if (temp$rank[temp$year == maxyr] < 6 | abs(temp$rank[temp$year == maxyr]-length(temp$rank)) < 6) {
 temp4 <- paste0(", which was the ", temp4," areal coverage in the ", 

@@ -662,8 +662,12 @@ prev: fig_temp_weight_mean
 # code orig from sean rohan's coldpool package! Jan 23 2021 
 
 nickname <- "fig_mean_temperature"
-header <- paste0("Average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed lines represent the time series mean.")
-alttext <- paste0("Graph showing average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf (left) based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf (right) based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::text_list(nbsyr),". Dashed horizontal lines represent the time series mean.")
+header <- paste0("Average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr,
+                 ifelse(SRVY == "NEBS", 
+                        paste0("and NBS shelf based on data collected during standardized summer bottom trawl surveys from ", 
+                               NMFSReports::range_text(nbsyr)), ""),
+                 ". Dashed lines represent the time series mean.")
+# alttext <- paste0("Graph showing average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf (left) based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf (right) based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::range_text(nbsyr),". Dashed horizontal lines represent the time series mean.")
 
 height = 3.5
 width <- full_page_portrait_width # 6.5
@@ -686,24 +690,32 @@ nbs_temperatures <- coldpool:::nbs_mean_temperature %>%
                 region = "Northern Bering Sea") %>%
   reshape2::melt(id.vars = c("YEAR", "group", "region"))
 
-all_temperatures <- dplyr::bind_rows(sebs_temperatures,
-                                     nbs_temperatures)
+ebs_mean_temp_df <- data.frame(region = c(rep("Eastern Bering Sea", 2),
+                                          rep("Northern Bering Sea", 2)),
+                               variable = rep(c("Bottom", "Surface"), 2),
+                               value = c(mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"]),
+                                         mean(sebs_temperatures$value[sebs_temperatures$variable == "Surface"]),
+                                         mean(nbs_temperatures$value[nbs_temperatures$variable == "Bottom"]),
+                                         mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"])))
 
-sebs_sst_mean <- mean(sebs_temperatures$value[sebs_temperatures$variable == "Surface"])
-sebs_bt_mean <- mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"])
-nbs_sst_mean <- mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"])
-nbs_bt_mean <- mean(nbs_temperatures$value[nbs_temperatures$variable == "Bottom"])
+
+if (SRVY == "NEBS") {
+  all_temperatures <- dplyr::bind_rows(sebs_temperatures,
+                                       nbs_temperatures)
+} else {
+  all_temperatures <- dplyr::bind_rows(sebs_temperatures)
+  ebs_mean_temp_df <- ebs_mean_temp_df[ebs_mean_temp_df$region == "Eastern Bering Sea",]
+}
+# 
+# sebs_sst_mean <- 
+# sebs_bt_mean <- 
+# nbs_sst_mean <- 
+# nbs_bt_mean <- 
 
 color_sst <- nmfs_palette("oceans")(2)[1]#"darkgreen"
 color_bt <- nmfs_palette("oceans")(2)[2]#"darkblue"
 
-ebs_mean_temp_df <- data.frame(region = c(rep("Eastern Bering Sea", 2),
-                                          rep("Northern Bering Sea", 2)),
-                               variable = rep(c("Bottom", "Surface"), 2),
-                               value = c(sebs_bt_mean,
-                                         sebs_sst_mean,
-                                         nbs_bt_mean,
-                                         nbs_sst_mean))
+
 
 figure <- ggplot(data = all_temperatures,
                  mapping = aes(x = YEAR,
