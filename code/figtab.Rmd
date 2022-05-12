@@ -476,18 +476,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
       columns = NULL) %>% 
     flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
     flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>%
-    # flextable::italic(x = ., j = "species_name") %>% 
-    # flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-    # flextable::padding(x = ., 
-    #                    j = 1, i = ~ #is.na(SRVY) & 
-    #                      is.na(oto_samp_type), # TOLEDO
-    #                    padding.left = 20) %>%
     flextable::width(x = ., j = "print_name", width = 4) %>% 
-    # flextable::width(x = ., j = "species_name", width = 3.5) %>% 
-    # flextable::width(x = ., j = "oto_target", width = 2) %>% 
-    # flextable::padding(x = ., 
-    #                    j = 1, i = ~ is.na(oto_samp_type), 
-    #                    padding.left = 20) %>%
     flextable::set_header_labels(.,
                                  print_name = "Common name", 
                                  # species_name = "Scientific name", 
@@ -690,7 +679,7 @@ nbs_temperatures <- coldpool:::nbs_mean_temperature %>%
                 region = "Northern Bering Sea") %>%
   reshape2::melt(id.vars = c("YEAR", "group", "region"))
 
-ebs_mean_temp_df <- data.frame(region = c(rep("Eastern Bering Sea", 2),
+mean_temp <- data.frame(region = c(rep("Eastern Bering Sea", 2),
                                           rep("Northern Bering Sea", 2)),
                                variable = rep(c("Bottom", "Surface"), 2),
                                value = c(mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"]),
@@ -704,7 +693,7 @@ if (SRVY == "NEBS") {
                                        nbs_temperatures)
 } else {
   all_temperatures <- dplyr::bind_rows(sebs_temperatures)
-  ebs_mean_temp_df <- ebs_mean_temp_df[ebs_mean_temp_df$region == "Eastern Bering Sea",]
+  mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
 }
 # 
 # sebs_sst_mean <- 
@@ -725,7 +714,7 @@ figure <- ggplot(data = all_temperatures,
                                group = paste0(group, variable))) +
   geom_point(size = rel(2)) +
   geom_line() +
-  geom_hline(data = ebs_mean_temp_df,
+  geom_hline(data = mean_temp,
              aes(yintercept = value,
                  color = variable),
              linetype = 2) +
@@ -734,8 +723,8 @@ figure <- ggplot(data = all_temperatures,
                      limits = c(0,11.2),
                      breaks = seq(0,12,2),
                      expand = c(0,0)) +
-  scale_x_continuous(name = "Year",
-                     breaks = seq(1980,floor(maxyr/10)*10,10)) +
+  # scale_x_continuous(name = "Year",
+  #                    breaks = seq(1980,floor(maxyr/5)*5,5)) +
   facet_wrap(~region, scales = "free") +
   guides(
     fill = guide_legend(title.position = "top", 
@@ -1094,36 +1083,72 @@ if (SRVY == "NEBS"){
   
   names(temp1) <- paste0(names(temp1), "_")
   
-  temp <- dplyr::bind_cols(temp1, temp2)
+  table_raw <- dplyr::bind_cols(temp1, temp2)
   
-  table_print <- temp %>%
-    dplyr::select(-above_60, -above_60_) %>%
-    flextable::flextable(data = .) %>%
-    flextable::italic(x = .,
-                      j = c(2,4)) %>%
-    # flextable::bold(x = .,
-    #                 i = which(temp1$above_60_),
-    #                 j = 1:2) %>%
-    # flextable::bold(x = .,
-    #                 i = which(temp2$above_60),
-    #                 j = 3:4) %>%
-    # flextable::footnote(x = ., part = "header", i = 1, j = 1,
-    #                     value = as_paragraph(footnote0)) %>%
-    flextable::add_header_row(x = .,
-                   values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
-                   colwidths = c(2, 2)) %>%
-    flextable::set_header_labels(.,
-                                 common_name_ = "Common name",
-                                 report_name_scientific_ = "Scientific name",
-                                 common_name = "Common name",
-                                 report_name_scientific = "Scientific name"
-    ) %>%
+  table_print <- flextable::flextable(
+  data = table_raw,
+  col_keys = c("dummy_ebs","dummy_nbs"))  %>%
+  flextable::compose(j = "dummy_ebs", part = "body",
+          value = as_paragraph(
+                        as_chunk(ifelse(!is.na(common_name_), 
+                            paste0(common_name_), ""),
+                     props = fp_text_default(bold = TRUE, font.size = 10, font.family = font0)), 
+            as_chunk(ifelse(!is.na(report_name_scientific_), 
+                            paste0(" (", report_name_scientific_, ")"), ""),
+                     props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
+  flextable::compose(j = "dummy_nbs", part = "body",
+          value = as_paragraph(
+            as_chunk(ifelse(!is.na(common_name), 
+                            paste0(common_name), ""),
+                     props = fp_text_default(bold = TRUE, font.size = 10, font.family = font0)), 
+            as_chunk(ifelse(!is.na(report_name_scientific), 
+                            paste0(" (", report_name_scientific, ")"), ""),
+                     props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
+      flextable::compose(x = ., i = 1, j = "dummy_ebs", part = "header",
+                     as_paragraph("Present in EBS but absent in NBS\nCommon Name ", 
+            as_chunk(paste0("(Scientific Name)"),
+                     props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
+      flextable::compose(x = ., i = 1, j = "dummy_nbs", part = "header",
+                     as_paragraph("Present in NBS but absent in EBS\nCommon Name ", 
+            as_chunk(paste0("(Scientific Name)"),
+                     props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
     NMFSReports::theme_flextable_nmfstm(x = ., 
                                         font0 = font0, 
                                         pad = 0, 
                                         row_lines = FALSE, 
                                         pgwidth = full_page_portrait_width) %>%
-    flextable::vline(x = ., j = 2, part = "all")
+    flextable::vline(x = ., j = "dummy_nbs", part = "all") %>%
+    flextable::padding(x = ., j = "dummy_nbs", padding.left = 5, part = "all")
+  
+  # table_print <- temp %>%
+  #   dplyr::select(-above_60, -above_60_) %>%
+  #   flextable::flextable(data = .) %>%
+  #   flextable::italic(x = .,
+  #                     j = c(2,4)) %>%
+  #   # flextable::bold(x = .,
+  #   #                 i = which(temp1$above_60_),
+  #   #                 j = 1:2) %>%
+  #   # flextable::bold(x = .,
+  #   #                 i = which(temp2$above_60),
+  #   #                 j = 3:4) %>%
+  #   # flextable::footnote(x = ., part = "header", i = 1, j = 1,
+  #   #                     value = as_paragraph(footnote0)) %>%
+  #   flextable::add_header_row(x = .,
+  #                  values = c("Present in EBS but absent in NBS", "Present in NBS but absent in EBS"),
+  #                  colwidths = c(2, 2)) %>%
+  #   flextable::set_header_labels(.,
+  #                                common_name_ = "Common name",
+  #                                report_name_scientific_ = "Scientific name",
+  #                                common_name = "Common name",
+  #                                report_name_scientific = "Scientific name"
+  #   ) %>%
+  #   NMFSReports::theme_flextable_nmfstm(x = ., 
+  #                                       font0 = font0, 
+  #                                       pad = 0, 
+  #                                       row_lines = FALSE, 
+  #                                       pgwidth = full_page_portrait_width) %>%
+  #   flextable::vline(x = ., j = 2, part = "all") %>% 
+  #   flextable::padding(x = ., j = "common_name", padding.left = 5, part = "all")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
