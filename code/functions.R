@@ -1360,19 +1360,14 @@ plot_idw_xbyx <- function(
     
     temp_break <- 2 # 2*C
     
-    # nbs_ebs_layers <- akgfmaps::get_base_layers(select.region = "ebs",
-    #                                             set.crs = coldpool:::ebs_proj_crs)
-    
-    year_vec <- yrs
-    
     coords <- raster::coordinates(coldpool:::nbs_ebs_bottom_temperature)
     
-    for(i in 1:length(year_vec)) {
+    for(i in 1:length(yrs)) {
       sel_layer_df <- data.frame(x = coords[,1],
                                  y = coords[,2],
                                  temperature = coldpool:::nbs_ebs_bottom_temperature@data@values[,i])
       sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
-      sel_layer_df$year <- year_vec[i]
+      sel_layer_df$year <- yrs[i]
       
       if(i == 1) {
         bt_year_df <- sel_layer_df
@@ -1417,6 +1412,13 @@ plot_idw_xbyx <- function(
               fill = NA)
   }
   
+  lon_break <- reg_dat$lon.breaks
+  lat_break <- reg_dat$lat.breaks
+  if (length(yrs) > 6) {
+    lon_break <- reg_dat$lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
+    lat_break <- reg_dat$lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
+  }
+  
   figure <- figure +
     geom_sf(data = reg_dat$graticule,
             color = "grey80",
@@ -1424,12 +1426,17 @@ plot_idw_xbyx <- function(
     geom_sf(data = reg_dat$akland, 
             color = NA, 
             fill = "grey50") +
-    scale_x_continuous(name = "", # "Longitude",
-                       breaks = reg_dat$lon.breaks) +
-    scale_y_continuous(name = "", # "Latitude",
-                       breaks = reg_dat$lat.breaks) +
-    coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y)  +
+    scale_y_continuous(name = "", # "Latitude",,
+                       # labels = lat_break, 
+                       # labels = reg_dat$lat.breaks, 
+                       limits = reg_dat$plot.boundary$y,
+                       breaks = lat_break) +
+    scale_x_continuous(name = "", # "Longitude"#,
+                       # labels = reg_dat$lon.breaks,
+                       limits = reg_dat$plot.boundary$x,
+                       breaks = lon_break) +
+    # coord_sf(xlim = reg_dat$plot.boundary$x, 
+    #          ylim = reg_dat$plot.boundary$y)  +
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
                    dist = 150,
@@ -1479,6 +1486,7 @@ plot_idw_xbyx <- function(
     
     #set legend position and vertical arrangement
     theme( 
+      # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 

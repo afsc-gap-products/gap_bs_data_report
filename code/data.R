@@ -380,13 +380,13 @@ lastyr <- max(haul$year[haul$year != maxyr])
 
 # *** stratum_info (survey area) -------------------------------------------
 
-temp <- function(yr) {
+temp <- function(strat_yr) {#yr) {
   
   # # unique  and sort are not necessary, just easier for troubleshooting
   # if (sum(yr<unique(stratum0$year)) == 0) {
   # # if (sum((yr - stratum0$year)<0 %in% TRUE) == 0) {
   #   # if there are no stratum years greater than yr, use the most recent stratum year
-  strat_yr <- max(stratum0$year)
+  # strat_yr <- max(stratum0$year)
   # } else {
   #   # if the yr is less than the max stratum year, use the stratum yr next less
   #   temp <- sort(unique(stratum0$year))
@@ -431,7 +431,7 @@ temp <- function(yr) {
   
 }
 
-stratum_info <- temp(yr = maxyr)
+stratum_info <- temp(strat_yr =strat_yr)#yr = strat_yr)
 
 #G:\HaehnR\rScripts\working on for techmemo\tables_TechMemo\code\Fig_1_stratra_area_hauls.R
 # ## year = 2019 is most up to date- not updated every year
@@ -457,7 +457,7 @@ stratum_info <- temp(yr = maxyr)
 #                    by = "stratum") 
 
 station_info <- haul %>% #  
-  # dplyr::filter(year == maxyr) %>% 
+  # dplyr::filter(year == strat_yr) %>%
   dplyr::select(stationid, stratum, start_latitude, start_longitude) %>% 
   dplyr::group_by(stationid, stratum) %>% 
   dplyr::summarise(start_latitude = mean(start_latitude, na.rm = TRUE), 

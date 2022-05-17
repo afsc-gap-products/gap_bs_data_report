@@ -1083,10 +1083,10 @@ if (SRVY == "NEBS"){
   
   names(temp1) <- paste0(names(temp1), "_")
   
-  table_raw <- dplyr::bind_cols(temp1, temp2)
+  temp0 <- dplyr::bind_cols(temp1, temp2)
   
   table_print <- flextable::flextable(
-  data = table_raw,
+  data = temp0,
   col_keys = c("dummy_ebs","dummy_nbs"))  %>%
   flextable::compose(j = "dummy_ebs", part = "body",
           value = as_paragraph(
@@ -1117,7 +1117,7 @@ if (SRVY == "NEBS"){
                                         pad = 0, 
                                         row_lines = FALSE, 
                                         pgwidth = full_page_portrait_width) %>%
-    flextable::vline(x = ., j = "dummy_nbs", part = "all") %>%
+    flextable::vline(x = ., j = "dummy_ebs", part = "all") %>%
     flextable::padding(x = ., j = "dummy_nbs", padding.left = 5, part = "all")
   
   # table_print <- temp %>%
@@ -1490,6 +1490,13 @@ temp <- function(exp0,
   
 }
 
+    FitFlextableToPage <- function(x, pgwidth = 6) {
+        ft_out <- x %>% flextable::autofit()
+        ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths * 
+            pgwidth/(flextable::flextable_dim(ft_out)$widths))
+        return(ft_out)
+    }
+
 temp1 <- function(table_raw, strat, total) {
   
   table_raw <- table_raw %>% 
@@ -1499,40 +1506,32 @@ temp1 <- function(table_raw, strat, total) {
   footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", 
                       formatC(x = total, digits = 0, format = "f", big.mark = ","), " mt.")
   
-  # table_print <- table_raw
-  
-  # table_print[is.na(table_print) | table_print %in% 0] <- "-"
   
   table_print <- table_raw %>% 
     dplyr::mutate(prop = ifelse(prop < 0.0001, "<0.0001", 
                                 formatC(x = prop, digits = 4, 
-                                        format = "f", big.mark = ",")) ) %>% # , 
-    # CI95 = formatC(x = CI95, digits = 0, format = "f", ) ) %>% 
-    dplyr::mutate(across(where(is.numeric), 
-                         formatC, big.mark=",", digits = 0, format = "f"))
+                                        format = "f", big.mark = ",")), 
+                  across(where(is.numeric), 
+                         formatC, big.mark=",", digits = 0, format = "f"), 
+                  `999` = paste0(`999`, " ", a)) %>% 
+    dplyr::select(-a)
 
   table_print <- table_print %>%
-    # flextable::as_grouped_data(groups = c("group"), columns = NULL) %>% 
     flextable::flextable(data = .)  %>%
     flextable::merge_v(x = ., j = ~ group) %>%
     flextable::merge_h_range(x = ., i = ~ is.na(taxon), j1 = "group", j2 = "taxon", part = "body") %>%
     flextable::add_header_row(top = TRUE, 
                               values = c("Taxon", 
                                          "Estimated total\nbiomass (mt) ± 95%\nconfidence interval", 
-                                         "Proportion of\ntotal animal biomass", 
+                                         "Proportion of total animal biomass", 
                                          "Estimated biomass by stratum (mt)"), 
-                              colwidths = c(2,3,1,length(strat))) %>% 
+                              colwidths = c(2,2,1,length(strat))) %>% 
     flextable::width(x = .,  
-                     width = .5, unit = "in") %>%
-    # flextable::width(x = ., j = c("999"), 
-    #                  width = 1, unit = "in") %>%
+                     width = ifelse(length(strat)>3, .65, 1.25), unit = "in") %>%
     flextable::width(x = ., j = c("group"), 
-                     width = 1.5, unit = "in") %>%    
+                     width = 1, unit = "in") %>%    
     flextable::width(x = ., j = c("taxon"), 
                      width = 1.5, unit = "in") %>% 
-    flextable::width(x = ., j = c("a"), 
-                     width = 0.25, unit = "in") %>%        
-    flextable::align(i = 1, align = "center", j = "a", part = "all")  %>%  
     flextable::footnote(x = ., part = "header", i = 1, j = 5, 
                         value = as_paragraph(footnote0)) %>%
     flextable::bold(x = ., i = ~ (grepl(pattern = "Total", x = group) )) %>%
@@ -1541,16 +1540,46 @@ temp1 <- function(table_raw, strat, total) {
                                  "taxon" = "", 
                                  "999" = "", 
                                  "CI95" = "", 
-                                 "a" = "", 
                                  "prop" = "") %>%
     flextable::merge_at(x = ., j = c("group", "taxon"), part = "header") %>% 
-    flextable::merge_at(x = ., j = c("999", "a", "CI95"), part = "header") %>% 
-    flextable::merge_at(x = ., j = c("prop"), part = "header") %>% 
-    NMFSReports::theme_flextable_nmfstm(x = ., 
-                                        font0 = font0, 
-                                        pad = 0, 
-                                        row_lines = TRUE,
-                                        pgwidth = full_page_landscape_width) %>%
+    flextable::merge_at(x = ., j = c("999", "CI95"), part = "header") %>% 
+    flextable::merge_at(x = ., j = c("prop"), part = "header") #%>% 
+    # NMFSReports::theme_flextable_nmfstm(x = .,
+    #                                     font0 = font0,
+    #                                     pad = 0,
+    #                                     row_lines = TRUE,
+    #                                     pgwidth = full_page_landscape_width) %>%
+    row_lines <- TRUE
+    pad = 0
+    body_size = 10
+    header_size = 10
+    spacing = 0.6
+pgwidth = full_page_landscape_width
+std_b <- officer::fp_border(width = 2, color = "grey10")
+    thin_b <- officer::fp_border(width = 0.5, color = "grey10") 
+    
+    x <- table_print
+
+    x <- flextable::border_remove(x)
+    if (row_lines == TRUE) {
+        x <- flextable::hline(x = x, border = thin_b, part = "body")
+    }
+    x <- flextable::hline_top(x = x, border = std_b, part = "header")
+    x <- flextable::hline_bottom(x = x, border = std_b, part = "header")
+    x <- flextable::hline_bottom(x = x, border = std_b, part = "body")
+    x <- flextable::bold(x = x, bold = TRUE, part = "header")
+    x <- flextable::align_text_col(x = x, align = "left", header = TRUE)
+    x <- flextable::align_nottext_col(x = x, align = "right", header = TRUE)
+    x <- flextable::padding(x = x, padding = pad, part = "all")
+    x <- flextable::font(x = x, fontname = font0, part = "all")
+    x <- flextable::fontsize(x = x, size = body_size - 2, part = "footer")
+    x <- flextable::fontsize(x = x, size = body_size, part = "body")
+    x <- flextable::fontsize(x = x, size = header_size, part = "header")
+    # x <- FitFlextableToPage(x = x, pgwidth = pgwidth)
+    x <- flextable::fix_border_issues(x = x)
+    
+    table_print <- x %>%
+    # flextable::align(i = 1, align = "center", j = "a", part = "all")  %>%  
     flextable::align(x = ., j = c("999", "CI95", "prop",  strat), 
                      align = "right", part = "all") %>%
     flextable::align(x = ., 
@@ -1976,9 +2005,9 @@ for (i in 1:2) {
         lowerb = paste0("95% LCL", biomass0$unit_word), 
         upperb = paste0("95% UCL", biomass0$unit_word), 
         # haulcount = "Total hauls", 
-        catcount = "Hauls with weights", 
-        numcount = "Hauls with counts", 
-        lencount = "Hauls with lengths") 
+        catcount = "Hauls with\nweights", 
+        numcount = "Hauls with\ncounts", 
+        lencount = "Hauls with\nlengths") 
     } else {
             table_print <- table_print %>% 
         dplyr::select(-SRVY) %>%
@@ -1994,9 +2023,9 @@ for (i in 1:2) {
         lowerb = paste0("95% LCL", biomass0$unit_word), 
         upperb = paste0("95% UCL", biomass0$unit_word), 
         # haulcount = "Total hauls", 
-        catcount = "Hauls with weights", 
-        numcount = "Hauls with counts", 
-        lencount = "Hauls with lengths") 
+        catcount = "Hauls with\nweights", 
+        numcount = "Hauls with\ncounts", 
+        lencount = "Hauls with\nlengths") 
     }
 
   } else { # CPUE No/HA and POPULATION
@@ -2045,9 +2074,9 @@ for (i in 1:2) {
         lowerp = paste0("95% LCL", population0$unit_word), 
         upperp = paste0("95% UCL", population0$unit_word), 
         # haulcount = "Total hauls", 
-        catcount = "Hauls with weights", 
-        numcount = "Hauls with counts", 
-        lencount = "Hauls with lengths") 
+        catcount = "Hauls with\nweights", 
+        numcount = "Hauls with\ncounts", 
+        lencount = "Hauls with\nlengths") 
     } else {
             table_print <- table_print %>% 
       flextable::flextable(data = .) %>% 
@@ -2062,9 +2091,9 @@ for (i in 1:2) {
         lowerp = paste0("95% LCL", population0$unit_word), 
         upperp = paste0("95% UCL", population0$unit_word), 
         # haulcount = "Total hauls", 
-        catcount = "Hauls with weights", 
-        numcount = "Hauls with counts", 
-        lencount = "Hauls with lengths") 
+        catcount = "Hauls with\nweights", 
+        numcount = "Hauls with\ncounts", 
+        lencount = "Hauls with\nlengths") 
     }
   }
   

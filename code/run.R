@@ -15,7 +15,7 @@
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
-workfaster <- TRUE # an attempt to satisfy limited patience
+workfaster <- FALSE # an attempt to satisfy limited patience
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
@@ -33,6 +33,7 @@ font0 <- "Arial Narrow"
 
 # maxyr <- 2017 # or the year of the report, for example
 # compareyr <- 2010
+# strat_yr <- 2010
 # # SRVY<-"NEBS"
 # SRVY<-"NEBS"
 # ref_compareyr <- "@RN976"
@@ -40,26 +41,29 @@ font0 <- "Arial Narrow"
 # ref_maxyr_npfmc <- "@NPFMC2016" # temp
 # # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-# maxyr <- 2018 # NOTE RAPID RESPONCE
-# compareyr <- 2016
-# SRVY<-"EBS"
-# ref_compareyr <- "@RN976" # CHANGE
-# ref_maxyr_npfmc <- "@NPFMC2017"
-# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+maxyr <- 2018 # NOTE RAPID RESPONCE
+strat_yr <- 2019
+compareyr <- 2016
+SRVY<-"EBS"
+ref_compareyr <- "@RN976" # CHANGE
+ref_maxyr_npfmc <- "@NPFMC2017"
+dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019
 # compareyr <- 2017
+# strat_yr <- 2019
 # SRVY<-"NEBS"
 # ref_compareyr <- "@Lauth2019" # CHANGE
 # ref_maxyr_npfmc <- "@NPFMC2018"
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-maxyr <- 2021
-compareyr <- 2019
-SRVY<-"NEBS"
-ref_compareyr <- "@2019NEBS2022" # CHANGE
-ref_maxyr_npfmc <- "@NPFMC2019"
-dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+# maxyr <- 2021
+# compareyr <- 2019
+# strat_yr <- 2019
+# SRVY<-"NEBS"
+# ref_compareyr <- "@2019NEBS2022" # CHANGE
+# ref_maxyr_npfmc <- "@NPFMC2019"
+# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
 # compareyr <- 2021
@@ -154,6 +158,10 @@ if (FALSE) {
 
 load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 load(file = paste0(dir_out_tables, "/report_tables.rdata"))
+# a <- grepl(x = strsplit(x = list_figures[[1]]$filename, split = "/"), pattern = "-")
+# if (Sys.Date() != ) {
+#   
+# }
 
 # rmarkdown::render(input = "./notforgit/test.Rmd",
 #                   output_dir = dir_out_chapters,

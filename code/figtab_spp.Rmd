@@ -8,6 +8,10 @@ csl: "../cite/citestyle.csl"
 bibliography: "../cite/bibliography.bib"
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
 ## vars
 
 ```{r vars}
@@ -446,6 +450,7 @@ if (spp_table_cpue) {
   include_lencount <- !(sum(temp$lencount[temp$stratum == "Total"] %in% 0) == 
     length(temp$lencount[temp$stratum == "Total"]))
   
+  
   if (sum(temp$biomass[temp$stratum == "Total"] != 0) > 0) {
 
     if (sum(temp$biomass[temp$stratum == "Total"] %in% 0)>0) {
@@ -605,26 +610,26 @@ if (spp_table_cpue) {
       table_print <- table_print %>% 
         flextable::bold(x = ., #j = "stratum", 
                         i = ~ (stratum == "Total") ) %>%
-        # flextable::merge_v(j = "Region") %>%
-        flextable::valign(valign = "top") %>%
-        flextable::width(x = ., width = 1.5, unit = "in", j = "stratum") %>%
-        NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, 
-                                            font = font0, 
-                                            pad = 0, 
-                                            pgwidth = full_page_landscape_width) %>%
-        flextable::align(x = ., 
-                         align = "right", part = "all") %>% 
+        flextable::valign(valign = "top") %>% 
             flextable::set_header_labels(
               x = ., 
               stratum = "Stratum", 
-              catcount = "Hauls with weights", 
-              numcount = "Hauls with counts") 
+              catcount = "Hauls with\nweights", 
+              numcount = "Hauls with\ncounts")  %>%
+        NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, 
+                                            font = font0, 
+                                            pad = 0, 
+                                            pgwidth = full_page_landscape_width)  %>%
+        flextable::width(x = ., width = 1, unit = "in") %>%
+        flextable::width(x = ., width = .5, unit = "in", j = "stratum") %>%
+        flextable::align(x = ., 
+                         align = "left", part = "all")
           
       if (include_lencount) { # if no lengths were collected, dont include the column
           table_print <- table_print %>% 
             flextable::set_header_labels(
               x = ., 
-              lencount = "Hauls with lengths")
+              lencount = "Hauls with\nlengths")
       }
       
       if (length(unique(table_raw$SRVY)) > 1) {
@@ -635,6 +640,14 @@ if (spp_table_cpue) {
                            padding.left = 5) %>%
         flextable::align(x = ., i = ~ !is.na(SRVY),
                          align = "left", part = "body")
+      }
+      
+      if (i == 1) {
+        table_print <- table_print %>% 
+        flextable::width(x = ., j = "biomass", width = 1.25, unit = "in")
+      } else {
+        table_print <- table_print %>% 
+        flextable::width(x = ., j = "population", width = 1.25, unit = "in")
       }
       
       # save yo' stuff and do a lot of behind the scenes work
