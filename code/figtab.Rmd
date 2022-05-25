@@ -135,7 +135,7 @@ width <- full_page_portrait_width # width <- 6.5
 # Select data and make plot
 p1 <- 
   cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "94_vesterhaalen.png")), 
+  cowplot::draw_image(readPNG(paste0(dir_img, "94_vesteraalen.png")), 
                       scale = 0.9 )
 
 p2 <- 
@@ -1931,9 +1931,9 @@ temp <- biomass %>%
   dplyr::filter(year == maxyr) %>% 
   dplyr::select(species_code, SRVY, 
                 meanwgtcpue, varmnwgtcpue, 
-                biomass, varbio, upperb, lowerb, 
+                biomass, sdbio, upperb, lowerb, 
                 meannumcpue, varmnnumcpue, 
-                population, varpop, upperp, lowerp, 
+                population, sdpop, upperp, lowerp, 
                 # haulcount, 
                 catcount, numcount, lencount) %>% 
   dplyr::left_join(
@@ -1971,12 +1971,12 @@ for (i in 1:2) {
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
                     meanwgtcpue, varmnwgtcpue, 
-                    biomass, varbio, lowerb, upperb, 
+                    biomass, sdbio, lowerb, upperb, 
                     # haulcount, 
                     catcount, numcount, lencount) 
     
     biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass)
-    varbio0<-find_units(unit = "", unt = "", table_raw$varbio)
+    sdbio0<-find_units(unit = "", unt = "", table_raw$sdbio)
     
     table_print <- table_raw %>% 
       # dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>% 
@@ -1984,7 +1984,7 @@ for (i in 1:2) {
       dplyr::mutate(biomass = biomass/biomass0$divby) %>% 
       dplyr::mutate(upperb = upperb/biomass0$divby) %>% 
       dplyr::mutate(lowerb = lowerb/biomass0$divby) %>% 
-      dplyr::mutate(varbio = varbio/varbio0$divby) %>% 
+      dplyr::mutate(sdbio = sdbio/sdbio0$divby) %>% 
       dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                            formatC, big.mark=",", digits = 2, format = "f")) %>% 
       dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
@@ -2001,7 +2001,7 @@ for (i in 1:2) {
         meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
         varmnwgtcpue = paste0("SD CPUE"), 
         biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
-        varbio = paste0("SD Biomass", varbio0$unit_word), 
+        sdbio = paste0("SD Biomass", sdbio0$unit_word), 
         lowerb = paste0("95% LCL", biomass0$unit_word), 
         upperb = paste0("95% UCL", biomass0$unit_word), 
         # haulcount = "Total hauls", 
@@ -2019,7 +2019,7 @@ for (i in 1:2) {
         meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
         varmnwgtcpue = paste0("SD CPUE"), 
         biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
-        varbio = paste0("SD Biomass", varbio0$unit_word), 
+        sdbio = paste0("SD Biomass", sdbio0$unit_word), 
         lowerb = paste0("95% LCL", biomass0$unit_word), 
         upperb = paste0("95% UCL", biomass0$unit_word), 
         # haulcount = "Total hauls", 
@@ -2042,18 +2042,18 @@ for (i in 1:2) {
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
                     meannumcpue, varmnnumcpue, 
-                    population, varpop, lowerp, upperp, 
+                    population, sdpop, lowerp, upperp, 
                     # haulcount, 
                     catcount, numcount, lencount)
     
     population0 <- find_units(unit = "", unt = "", dat = table_raw$population)
-    varpop0 <- find_units(unit = "", unt = "", dat = table_raw$varpop)
+    sdpop0 <- find_units(unit = "", unt = "", dat = table_raw$sdpop)
     
     table_print <- table_raw %>% 
       dplyr::mutate(population = population/population0$divby) %>% 
       dplyr::mutate(upperp = upperp/population0$divby) %>% 
       dplyr::mutate(lowerp = lowerp/population0$divby) %>% 
-      dplyr::mutate(varpop = varpop/varpop0$divby) %>% 
+      dplyr::mutate(sdpop = sdpop/sdpop0$divby) %>% 
       dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                            formatC, big.mark=",", digits = 2, format = "f")) %>% 
       dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
@@ -2070,7 +2070,7 @@ for (i in 1:2) {
         meannumcpue = paste0("Mean CPUE (no/ha)"), 
         varmnnumcpue = paste0("SD CPUE"), 
         population = paste0("Estimated\nPopulation", population0$unit_word), 
-        varpop = paste0("SD Population", varpop0$unit_word), 
+        sdpop = paste0("SD Population", sdpop0$unit_word), 
         lowerp = paste0("95% LCL", population0$unit_word), 
         upperp = paste0("95% UCL", population0$unit_word), 
         # haulcount = "Total hauls", 
@@ -2087,7 +2087,7 @@ for (i in 1:2) {
         meannumcpue = paste0("Mean CPUE (no/ha)"), 
         varmnnumcpue = paste0("SD CPUE"), 
         population = paste0("Estimated\nPopulation", population0$unit_word), 
-        varpop = paste0("SD Population", varpop0$unit_word), 
+        sdpop = paste0("SD Population", sdpop0$unit_word), 
         lowerp = paste0("95% LCL", population0$unit_word), 
         upperp = paste0("95% UCL", population0$unit_word), 
         # haulcount = "Total hauls", 

@@ -41,7 +41,7 @@ haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea
 # Biomass
 bio <- biomass %>%
   dplyr::filter(stratum == 999) %>% 
-  dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass, taxon) %>% 
+  dplyr::select(SRVY, year, species_code, upperb, lowerb, sdbio, biomass, taxon) %>% 
   dplyr::left_join(x = ., 
                    y = report_spp1 %>% 
                      dplyr::select(print_name, species_code, species_name1), 
@@ -50,7 +50,7 @@ bio <- biomass %>%
   dplyr::rename(y = biomass, 
                 lower = lowerb, 
                 upper = upperb, 
-                var = varbio) %>% 
+                var = sdbio) %>% 
   dplyr::left_join(x = . , 
                    y = haul_cruises_maxyr %>% 
                      dplyr::select(SRVY, SRVY_long),
@@ -61,7 +61,7 @@ bio <- biomass %>%
 # Abundance
 pop <- biomass %>%
   dplyr::filter(stratum == 999) %>% 
-  dplyr::select(SRVY, year, species_code, upperp, lowerp, varpop, population, taxon) %>% 
+  dplyr::select(SRVY, year, species_code, upperp, lowerp, sdpop, population, taxon) %>% 
   dplyr::left_join(x = ., 
                    y = report_spp1 %>% 
                      dplyr::select(print_name, species_code, species_name1), 
@@ -70,7 +70,7 @@ pop <- biomass %>%
   dplyr::rename(y = population, 
                 lower = lowerp, 
                 upper = upperp, 
-                var = varpop) %>% 
+                var = sdpop) %>% 
   dplyr::left_join(x = . , 
                    y = haul_cruises_maxyr %>% 
                      dplyr::select(SRVY, SRVY_long),
@@ -437,9 +437,9 @@ if (spp_table_cpue) {
                     species_code %in% spp_code) %>% 
     dplyr::select(SRVY, stratum, 
                   meanwgtcpue, varmnwgtcpue, 
-                  biomass, varbio, lowerb, upperb, 
+                  biomass, sdbio, lowerb, upperb, 
                   meannumcpue, varmnnumcpue, 
-                  population, varpop, lowerp, upperp, 
+                  population, sdpop, lowerp, upperp, 
                   haulcount, catcount, numcount, lencount) %>% 
     dplyr::mutate(stratum = as.character(stratum)) %>%
     dplyr::arrange(stratum) %>% 
@@ -475,7 +475,7 @@ if (spp_table_cpue) {
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
                         meanwgtcpue, varmnwgtcpue, 
-                        biomass, varbio, lowerb, upperb, 
+                        biomass, sdbio, lowerb, upperb, 
                         # haulcount, 
                         catcount, numcount, lencount) 
         
@@ -489,12 +489,12 @@ if (spp_table_cpue) {
           meanwgtcpue0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$meanwgtcpue[table_raw$meanwgtcpue != 0])    
           varmnwgtcpue0<-find_units(unit = "", unt = "", table_raw$varmnwgtcpue[table_raw$varmnwgtcpue != 0])
           biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass[table_raw$biomass != 0])
-          varbio0<-find_units(unit = "", unt = "", table_raw$varbio[table_raw$varbio != 0])
+          sdbio0<-find_units(unit = "", unt = "", table_raw$sdbio[table_raw$sdbio != 0])
           
           header <- paste0("Mean CPUE by weight",meanwgtcpue0$unit_word,
                            " with standard deviation",varmnwgtcpue0$unit_word,
                            ", and estimated biomass",biomass0$unit_word,
-                           " with standard deviation",varbio0$unit_word)
+                           " with standard deviation",sdbio0$unit_word)
           
           table_print <- table_raw %>% 
             dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>%
@@ -502,7 +502,7 @@ if (spp_table_cpue) {
             dplyr::mutate(biomass = biomass/biomass0$divby) %>% 
             dplyr::mutate(upperb = upperb/biomass0$divby) %>% 
             dplyr::mutate(lowerb = lowerb/biomass0$divby) %>% 
-            dplyr::mutate(varbio = varbio/varbio0$divby) %>% 
+            dplyr::mutate(sdbio = sdbio/sdbio0$divby) %>% 
             dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                                  formatC, big.mark=",", digits = 2, format = "f")) %>% 
             dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
@@ -522,7 +522,7 @@ if (spp_table_cpue) {
               meanwgtcpue = paste0("Mean CPUE", ifelse(meanwgtcpue0$unit_word=="", "", paste0("\n",meanwgtcpue0$unit_word))), 
               varmnwgtcpue = paste0("SD CPUE", ifelse(varmnwgtcpue0$unit_word=="", "", paste0("\n",varmnwgtcpue0$unit_word))), 
               biomass = paste0("Estimated Biomass", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
-              varbio = paste0("SD Biomass", ifelse(varbio0$unit_word=="", "", paste0("\n",varbio0$unit_word))), 
+              sdbio = paste0("SD Biomass", ifelse(sdbio0$unit_word=="", "", paste0("\n",sdbio0$unit_word))), 
               lowerb = paste0("95% LCL", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
               upperb = paste0("95% UCL", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word)))) 
         }
@@ -533,7 +533,7 @@ if (spp_table_cpue) {
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
                         meannumcpue, varmnnumcpue, 
-                        population, varpop, lowerp, upperp, 
+                        population, sdpop, lowerp, upperp, 
                         # haulcount, 
                         catcount, numcount, lencount)
         
@@ -547,12 +547,12 @@ if (spp_table_cpue) {
           meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue[table_raw$meannumcpue != 0])
           varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue[table_raw$varmnnumcpue != 0])
           population0 <- find_units(unit = "", unt = "", table_raw$population[table_raw$population != 0])
-          varpop0 <- find_units(unit = "", unt = "", table_raw$varpop[table_raw$varpop != 0])
+          sdpop0 <- find_units(unit = "", unt = "", table_raw$sdpop[table_raw$sdpop != 0])
           
           header <- paste0("Mean CPUE by number", meannumcpue0$unit_word,
                            " with standard deviation", varmnnumcpue0$unit_word,
                            ", and estimated population", population0$unit_word,
-                           "  with standard deviation", varpop0$unit_word)
+                           "  with standard deviation", sdpop0$unit_word)
           
           table_print <- table_raw %>% 
             dplyr::mutate(meannumcpue = meannumcpue/meannumcpue0$divby) %>%
@@ -560,7 +560,7 @@ if (spp_table_cpue) {
             dplyr::mutate(population = population/population0$divby) %>% 
             dplyr::mutate(upperp = upperp/population0$divby) %>% 
             dplyr::mutate(lowerp = lowerp/population0$divby) %>% 
-            dplyr::mutate(varpop = varpop/varpop0$divby) %>% 
+            dplyr::mutate(sdpop = sdpop/sdpop0$divby) %>% 
             dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
                                  formatC, big.mark=",", digits = 2, format = "f")) %>% 
             dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
@@ -583,7 +583,7 @@ if (spp_table_cpue) {
               varmnnumcpue = paste0("SD CPUE", ifelse(varmnnumcpue0$unit_word=="", "", paste0("\n", varmnnumcpue0$unit_word))), 
               population = paste0("Estimated Population", 
                                   ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))),
-              varpop = paste0("SD Population", ifelse(varpop0$unit_word=="", "", paste0("\n", varpop0$unit_word))), 
+              sdpop = paste0("SD Population", ifelse(sdpop0$unit_word=="", "", paste0("\n", sdpop0$unit_word))), 
               lowerp = paste0("95% LCL", ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))), 
               upperp = paste0("95% UCL", ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word)))) 
         }

@@ -1379,7 +1379,9 @@ biomass_strat <- SameColNames(df.ls)  %>%
   # modify for spp
   dplyr::filter(!(year < 1996 & common_name == "northern rock sole" )) %>% # 10263 NRS
   dplyr::filter(!(year < 2000 & common_name == "Bering skate" ))  %>% 
-  unique() #%>% 
+  unique() %>%
+  dplyr::mutate(sdbio = sqrt(varbio), 
+                sdpop = sqrt(varpop))
 # dplyr::group_by(species_code) %>% 
 # dplyr::mutate(meanpop_spp = mean(pop, na.rm = TRUE), 
 #               meanbio_spp = mean(pop, na.rm = TRUE)) %>% 

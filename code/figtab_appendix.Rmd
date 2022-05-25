@@ -11,165 +11,159 @@ bibliography: "../cite/bibliography.bib"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+cnt_pre <- 0
+
 ```
 
 # Appendix A
 
 ## tab_hauls_catch_
 
-### time on the date is missing
-
 ```{r tab_app_hauls_catch_}
-nickname0 <- "tab_app_hauls_catch_" 
-cnt_tables <- 0
-
-temp <- tidyr::crossing(vessel_info %>% 
-                          dplyr::select(vessel_name, vessel_ital), 
-                        haul_cruises_maxyr %>% 
-                          dplyr::select(SRVY_long, SRVY))
-
-for (iii in 1:nrow(temp)) {
-  table_raw <- catch_haul_cruises_maxyr %>% 
-    dplyr::filter(year == maxyr &
-                    SRVY == temp$SRVY[iii]) %>%
-    dplyr::left_join(
-      x = ., 
-      y = report_spp1 %>% 
-        dplyr::select(species_code, species_name, print_name), 
-      by = "species_code") %>% 
-    dplyr::filter(!is.na(print_name)) %>% 
-    dplyr::select(stationid, start_time, haul, start_latitude, start_longitude, end_latitude, end_longitude, bottom_depth, duration, distance_fished, net_width, net_measured, performance, weight, print_name) %>% 
-    dplyr::group_by(stationid, start_time, haul, start_latitude, start_longitude, end_latitude, end_longitude, bottom_depth, duration, distance_fished, net_width, net_measured, performance, print_name) %>% 
-    dplyr::summarise(weight = as.character(round(sum(weight, na.rm  = TRUE), 0))) %>% 
-    dplyr::ungroup() %>% 
-    tidyr::pivot_wider(names_from = print_name, 
-                       values_from = weight, 
-                       values_fill = "-") %>%
-    tidyr::separate(data = ., col = start_time, into = c("Date", "Time"), sep = " ", remove = TRUE) %>% 
-    dplyr::mutate(across(where(is.numeric), 
-                         formatC, big.mark=",", digits = 1, format = "f")) %>% 
-    dplyr::rename(#"Start date and time"# and time" 
-      #= start_time,
-      "Haul number" = haul,
-      "Start latitude" = start_latitude,
-      "Start longitude" = start_longitude,
-      "End latitude" = end_latitude,
-      "End longitude" = end_longitude,
-      "Bottom depth _m__" = bottom_depth,
-      "Duration (_h__)" = duration,
-      "Distance fished _km__" = distance_fished,
-      "Net width _m__" = net_width,
-      "Net measured___" = net_measured,
-      "Performance" = performance) 
-  
-  table_raw <- data.frame(t(data.frame(table_raw)))
-  names(table_raw) <- table_raw["stationid", ]
-  table_raw <- table_raw[!(rownames(table_raw) %in% "stationid"), ]
-  rownames(table_raw) <- gsub(
-    pattern = ".", 
-    replacement = " ", 
-    x = rownames(table_raw), fixed = TRUE)
-  rownames(table_raw) <- gsub(
-    pattern = "___", 
-    replacement = "?", 
-    x = rownames(table_raw), fixed = TRUE)
-  rownames(table_raw) <- gsub(
-    pattern = "__", 
-    replacement = ")", 
-    x = rownames(table_raw), fixed = TRUE)
-  rownames(table_raw) <- gsub(
-    pattern = "_", 
-    replacement = "(", 
-    x = rownames(table_raw), fixed = TRUE)  
-  
-  table_print1 <- table_raw
-  table_print1$row <- rownames(table_raw) 
-  table_raw00 <- table_raw
-  
-  table_print1 <- table_print1 %>% 
-    dplyr::relocate(row)
-  
-  c_start <- 1
-  ncol_per_page <- 15 # how many columns should go on each page
-  
-  comb <- data.frame(c_start = seq(from = 1, to = ncol(table_print1), by = ncol_per_page)+1,
-                     c_end = c(seq(from = ncol_per_page+1, to = ncol(table_print1), by = ncol_per_page), ncol(table_print1)))
-  
-  # if there are less than 3 columns in the last table, combine with table before because it looks messy 
-  if (abs(comb$c_start[nrow(comb)]-comb$c_end[nrow(comb)]) < 3) {
-    comb$c_end[nrow(comb)-1] <- comb$c_start[nrow(comb)]
-    comb<-comb[1:(nrow(comb)-1),]
-  }
-  
-  for (ii in 1:nrow(comb)) {
-    cnt_pre <- "A"
-    subobj <- TRUE
-    newobj <- ifelse(ii == 1, TRUE, FALSE)
-    table_raw <- table_raw00
-    
-    c_start <- comb$c_start[ii]
-    c_end <- comb$c_end[ii]
-    
-    nickname <- paste0(nickname0, 
-                       temp$SRVY[iii], 
-                       "_",  
-                       gsub(pattern = " ", replacement = "", perl = TRUE, 
-                            x = gsub(pattern = "F/V ", replacement = "", 
-                                     x = temp$vessel_name[iii], fixed = TRUE)), 
-                       "_", iii,"_", ii)
-    
-    table_print <- table_print1[,c(1, c_start:c_end)] %>% 
-      flextable::flextable(data = .) %>%
-      flextable::bold(x = ., j = "row") %>%
-      flextable::set_header_labels(., row = "") %>%
-      NMFSReports::theme_flextable_nmfstm(x = ., 
-                                          font0 = font0, 
-                                          row_lines = FALSE,
-                                          body_size = 7, 
-                                          header_size = 7, 
-                                          pad = 0, 
-                                          pgwidth = full_page_landscape_width)
-    
-    header <- paste0("Haul and catch data for successfully completed tows by ", 
-                     temp$vessel_ital[iii]," during the ", maxyr, " ", 
-                     temp$SRVY[iii], 
-                     " bottom trawl survey. In this table shows stations ", 
-                     names(table_print1)[c_start], " through ", 
-                     names(table_print1)[c_end], 
-                     " are shown. ")
-    
-    # save yo' stuff and do a lot of behind the scenes work
-    # alt: this does the same thing as calling "child = " in the chunk header
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
-      quiet = TRUE
-    )
-    
-    list_tables[nickname][[1]]$res <- res
-  }
-}
+# nickname0 <- "tab_app_hauls_catch_" 
+# cnt_tables <- 0
+# 
+# temp <- tidyr::crossing(vessel_info %>% 
+#                           dplyr::select(vessel_name, vessel_ital), 
+#                         haul_cruises_maxyr %>% 
+#                           dplyr::select(SRVY_long, SRVY))
+# 
+# for (iii in 1:nrow(temp)) {
+#   table_raw <- catch_haul_cruises_maxyr %>% 
+#     dplyr::filter(year == maxyr &
+#                     SRVY == temp$SRVY[iii]) %>%
+#     dplyr::left_join(
+#       x = ., 
+#       y = report_spp1 %>% 
+#         dplyr::select(species_code, species_name, print_name), 
+#       by = "species_code") %>% 
+#     dplyr::filter(!is.na(print_name)) %>% 
+#     dplyr::select(stationid, start_time, haul, start_latitude, start_longitude, end_latitude, end_longitude, bottom_depth, duration, distance_fished, net_width, net_measured, performance, weight, print_name) %>% 
+#     dplyr::group_by(stationid, start_time, haul, start_latitude, start_longitude, end_latitude, end_longitude, bottom_depth, duration, distance_fished, net_width, net_measured, performance, print_name) %>% 
+#     dplyr::summarise(weight = as.character(round(sum(weight, na.rm  = TRUE), 0))) %>% 
+#     dplyr::ungroup() %>% 
+#     tidyr::pivot_wider(names_from = print_name, 
+#                        values_from = weight, 
+#                        values_fill = "-") %>%
+#     tidyr::separate(data = ., col = start_time, into = c("Date", "Time"), sep = " ", remove = TRUE) %>% 
+#     dplyr::mutate(across(where(is.numeric), 
+#                          formatC, big.mark=",", digits = 1, format = "f")) %>% 
+#     dplyr::rename(#"Start date and time"# and time" 
+#       #= start_time,
+#       "Haul number" = haul,
+#       "Start latitude" = start_latitude,
+#       "Start longitude" = start_longitude,
+#       "End latitude" = end_latitude,
+#       "End longitude" = end_longitude,
+#       "Bottom depth _m__" = bottom_depth,
+#       "Duration (_h__)" = duration,
+#       "Distance fished _km__" = distance_fished,
+#       "Net width _m__" = net_width,
+#       "Net measured___" = net_measured,
+#       "Performance" = performance) 
+#   
+#   table_raw <- data.frame(t(data.frame(table_raw)))
+#   names(table_raw) <- table_raw["stationid", ]
+#   table_raw <- table_raw[!(rownames(table_raw) %in% "stationid"), ]
+#   rownames(table_raw) <- gsub(
+#     pattern = ".", 
+#     replacement = " ", 
+#     x = rownames(table_raw), fixed = TRUE)
+#   rownames(table_raw) <- gsub(
+#     pattern = "___", 
+#     replacement = "?", 
+#     x = rownames(table_raw), fixed = TRUE)
+#   rownames(table_raw) <- gsub(
+#     pattern = "__", 
+#     replacement = ")", 
+#     x = rownames(table_raw), fixed = TRUE)
+#   rownames(table_raw) <- gsub(
+#     pattern = "_", 
+#     replacement = "(", 
+#     x = rownames(table_raw), fixed = TRUE)  
+#   
+#   table_print1 <- table_raw
+#   table_print1$row <- rownames(table_raw) 
+#   table_raw00 <- table_raw
+#   
+#   table_print1 <- table_print1 %>% 
+#     dplyr::relocate(row)
+#   
+#   c_start <- 1
+#   ncol_per_page <- 15 # how many columns should go on each page
+#   
+#   comb <- data.frame(c_start = seq(from = 1, to = ncol(table_print1), by = ncol_per_page)+1,
+#                      c_end = c(seq(from = ncol_per_page+1, to = ncol(table_print1), by = ncol_per_page), ncol(table_print1)))
+#   
+#   # if there are less than 3 columns in the last table, combine with table before because it looks messy 
+#   if (abs(comb$c_start[nrow(comb)]-comb$c_end[nrow(comb)]) < 3) {
+#     comb$c_end[nrow(comb)-1] <- comb$c_start[nrow(comb)]
+#     comb<-comb[1:(nrow(comb)-1),]
+#   }
+#   
+#   for (ii in 1:nrow(comb)) {
+#     cnt_pre <- "A"
+#     subobj <- TRUE
+#     newobj <- ifelse(ii == 1, TRUE, FALSE)
+#     table_raw <- table_raw00
+#     
+#     c_start <- comb$c_start[ii]
+#     c_end <- comb$c_end[ii]
+#     
+#     nickname <- paste0(nickname0, 
+#                        temp$SRVY[iii], 
+#                        "_",  
+#                        gsub(pattern = " ", replacement = "", perl = TRUE, 
+#                             x = gsub(pattern = "F/V ", replacement = "", 
+#                                      x = temp$vessel_name[iii], fixed = TRUE)), 
+#                        "_", iii,"_", ii)
+#     
+#     table_print <- table_print1[,c(1, c_start:c_end)] %>% 
+#       flextable::flextable(data = .) %>%
+#       flextable::bold(x = ., j = "row") %>%
+#       flextable::set_header_labels(., row = "") %>%
+#       NMFSReports::theme_flextable_nmfstm(x = ., 
+#                                           font0 = font0, 
+#                                           row_lines = FALSE,
+#                                           body_size = 7, 
+#                                           header_size = 7, 
+#                                           pad = 0, 
+#                                           pgwidth = full_page_landscape_width)
+#     
+#     header <- paste0("Haul and catch data for successfully completed tows by ", 
+#                      temp$vessel_ital[iii]," during the ", maxyr, " ", 
+#                      temp$SRVY[iii], 
+#                      " bottom trawl survey. In this table shows stations ", 
+#                      names(table_print1)[c_start], " through ", 
+#                      names(table_print1)[c_end], 
+#                      " are shown. ")
+#     
+#     # save yo' stuff and do a lot of behind the scenes work
+#     # alt: this does the same thing as calling "child = " in the chunk header
+#     res <- knitr::knit_child(
+#       text = knitr::knit_expand(
+#         file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
+#       quiet = TRUE
+#     )
+#     
+#     list_tables[nickname][[1]]$res <- res
+#   }
+# }
 ```
 
 
-# Appendix B
+# Appendix A and B
 
-## tab_taxa_encountered_
+## tab_taxa_encountered_*_prep
 
-### get group to behave properly
-
-```{r tab_app_taxa_encountered_}
-nickname0 <- "tab_app_taxa_encountered_" 
-cnt_tables <- 0
-
-temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
-                                   taxon0 = c("invert", "fish")), 
-                        haul_cruises_maxyr %>% 
-                          dplyr::select(SRVY_long, SRVY))
+```{r tab_app_taxa_encountered_*_prep}
+tab_taxa_encountered_ <- function(temp, nickname0, cnt_pre, maxyr, 
+                                  catch_haul_cruises_maxyr, spp_info) {
+  cnt_tables <- 0
+  nickname0 <- "tab_app_taxa_encountered_" 
 
 for (i in 1:nrow(temp)) {
   newobj <- TRUE
-  cnt_pre <- "B"
   nickname <- paste0(nickname0, 
                      temp$SRVY[i], 
                      "_",  
@@ -285,25 +279,63 @@ for (i in 1:nrow(temp)) {
   
   list_tables[nickname][[1]]$res <- res
 }
+}
+```
+
+
+## Appendix A (EBS)
+
+```{r tab_app_taxa_encountered_EBS}
+temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
+                                   taxon0 = c("invert", "fish")), 
+                        haul_cruises_maxyr %>% 
+                          dplyr::select(SRVY_long, SRVY) %>% 
+                          dplyr::filter(SRVY == "EBS"))
+  
+cnt_pre <- cnt_pre + 1
+tab_taxa_encountered_(temp = temp, 
+                      cnt_pre = cnt_pre, 
+                      maxyr = maxyr, 
+                      catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
+                      spp_info = spp_info) 
 
 ```
 
-# Appendix C
 
-## tab_principal_fish_
+## Appendix B (NBS)
 
-### 999 vs total?
+```{r tab_app_taxa_encountered_NBS}
+if (SRVY == "NEBS") {
+temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
+                                   taxon0 = c("invert", "fish")), 
+                        haul_cruises_maxyr %>% 
+                          dplyr::select(SRVY_long, SRVY) %>% 
+                          dplyr::filter(SRVY == "NBS"))
+  
+cnt_pre <- cnt_pre + 1
+tab_taxa_encountered_(temp = temp, 
+                      cnt_pre = cnt_pre, 
+                      maxyr = maxyr, 
+                      catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
+                      spp_info = spp_info) 
+}
+```
 
-```{r tab_app_principal_fish_}
+# Appendix C and D
+
+## tab_principal_fish_*_prep
+
+```{r tab_app_principal_fish_*_prep}
+
+tab_app_principal_fish_ <- function(temp, 
+                      cnt_pre, 
+                      maxyr, 
+                      haul_cruises_maxyr, 
+                      report_spp1,
+                      spp_info) {
+  
 nickname0 <- "tab_app_principal_fish_" 
 cnt_tables <- 0
-
-temp <- tidyr::crossing(haul_cruises_maxyr %>% 
-                          dplyr::select(SRVY_long, SRVY), 
-                        report_spp1 %>% 
-                          dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
-                          dplyr::select(file_name, print_name, common_name1, species_name, species_name1) %>% 
-                          dplyr::distinct())
 
 temp0 <- report_spp1 %>% 
   dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
@@ -312,7 +344,6 @@ temp0 <- report_spp1 %>%
 
 for (i in 1:nrow(temp)) {
   newobj <- TRUE
-  cnt_pre <- "C"
   print(temp$file_name[i])
   
   nickname <- paste0(nickname0, 
@@ -385,5 +416,50 @@ for (i in 1:nrow(temp)) {
     list_tables[nickname][[1]]$res <- res
   }
 }
+}
+```
+
+
+## Appendix C (or B if EBS only) (EBS)
+
+```{r tab_app_principal_fish_EBS}
+temp <- tidyr::crossing(haul_cruises_maxyr %>% 
+                          dplyr::select(SRVY_long, SRVY) %>% 
+                          dplyr::filter(SRVY == "EBS"), 
+                        report_spp1 %>% 
+                          dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
+                          dplyr::select(file_name, print_name, common_name1, species_name, species_name1) %>% 
+                          dplyr::distinct())
+
+cnt_pre <- cnt_pre + 1
+tab_app_principal_fish_(temp = temp, 
+                      cnt_pre = cnt_pre, 
+                      maxyr = maxyr, 
+                      haul_cruises_maxyr = haul_cruises_maxyr, 
+                      report_spp1 = report_spp1,
+                      spp_info = spp_info)
 
 ```
+
+## Appendix D (NBS)
+
+```{r tab_app_principal_fish_NBS}
+if (SRVY == "NEBS") {
+temp <- tidyr::crossing(haul_cruises_maxyr %>% 
+                          dplyr::select(SRVY_long, SRVY) %>% 
+                          dplyr::filter(SRVY == "NBS"), 
+                        report_spp1 %>% 
+                          dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
+                          dplyr::select(file_name, print_name, common_name1, species_name, species_name1) %>% 
+                          dplyr::distinct())
+
+cnt_pre <- cnt_pre + 1
+tab_app_principal_fish_(temp = temp, 
+                      cnt_pre = cnt_pre, 
+                      maxyr = maxyr, 
+                      haul_cruises_maxyr = haul_cruises_maxyr, 
+                      report_spp1 = report_spp1,
+                      spp_info = spp_info)
+}
+```
+
