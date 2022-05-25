@@ -11,7 +11,8 @@
 
 # issues
 # had to recalculate the lencount column for crab data in species specific biomass/pop tables
-
+# make sure if spp found in NBS are only are plotted in the NBS, visa versa
+# create PA plots for low count spp
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
