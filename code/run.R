@@ -48,6 +48,7 @@ font0 <- "Arial Narrow"
 # SRVY<-"EBS"
 # ref_compareyr <- "@RN976" # CHANGE
 # ref_maxyr_npfmc <- "@NPFMC2017"
+# ref_feus <- "@feus2018"
 # dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019
@@ -56,6 +57,7 @@ font0 <- "Arial Narrow"
 # SRVY<-"NEBS"
 # ref_compareyr <- "@Lauth2019" # CHANGE
 # ref_maxyr_npfmc <- "@NPFMC2018"
+# ref_feus <- "@feus2019"
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
 maxyr <- 2021
@@ -64,6 +66,7 @@ strat_yr <- 2019
 SRVY<-"NEBS"
 ref_compareyr <- "@2019NEBS2022" # CHANGE
 ref_maxyr_npfmc <- "@NPFMC2019"
+ref_feus <- "@feus2019"
 dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # maxyr <- 2022
@@ -71,6 +74,7 @@ dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.co
 # SRVY<-"NEBS"
 # ref_compareyr <- "@2021NEBS2022" # CHANGE
 # ref_maxyr_npfmc <- "@NPFMC2021" # temp
+# ref_feus <- "@feus2020"
 # dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
