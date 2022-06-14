@@ -28,7 +28,7 @@ nbs_str0 <- ifelse(SRVY == "NEBS",
                                  dplyr::select(yrofsurvey)),
                              " time since 2010 that the NBS shelf survey has been completed. The expanded study area covered the entire Bering Sea continental shelf from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
                              # EBS
-                             "The study area covered the southeastern Bering Sea continental shelf, from 20 to 200 m bottom depth; to the U.S.-Russia Maritime Boundary between the Alaska Peninsula; and to the approximate latitude of St. Matthew Island (60° 50' N).")
+                             "The study area covered the eastern Bering Sea continental shelf from 20 to 200 m bottom depth; to the U.S.-Russia Maritime Boundary between the Alaska Peninsula; and to the approximate latitude of 62° N).")
 
 
 if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_completed) == 1) { # diff answers or only 1 srvy
@@ -47,7 +47,7 @@ if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_complet
 } 
 ```
 
-From `r temp$start_mo_long` to `r temp$end_mo_long` `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of National Marine Fisheries Service’s (NMFS') Alaska Fisheries Science Center (AFSC) conducted the `r temp$yrofsurvey ``r temp$stndth `, annual `r ifelse(maxyr>2020, " nearly ", "")` eastern Bering Sea (EBS) continental shelf bottom trawl survey of groundfish and invertebrate fauna. `r nbs_str0` `r stringr::str_to_sentence(NMFSReports::numbers2words(nrow(vessel_info)))` stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$vessel_ital)) `, were chartered to sample the `r NMFSReports::text_list(SRVY1) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations centered within a stratified, systematic grid consisting of a total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_avail, " stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition of the catch was determined and length distributions, as well as age structure samples, were collected from ecologically and commercially important species. `r str0 `. 
+From `r temp$start_mo_long` to `r temp$end_mo_long` `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r temp$yrofsurvey ``r temp$stndth ` annual `r ifelse(maxyr>2020, " nearly ", "")` eastern Bering Sea (EBS) continental shelf bottom trawl survey of groundfish and invertebrate fauna. `r nbs_str0` `r stringr::str_to_sentence(NMFSReports::numbers2words(nrow(vessel_info)))` stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$vessel_ital)) `, were chartered for `r ifelse(SRVY=="NEBS", "these surveys", "the survey")`. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid consisting of a total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_avail, " stations in the ", haul_cruises_maxyr$SRVY))`. At each station, the species composition of the catch was determined and length distributions, as well as age structure samples, were collected from ecologically and commercially important species. `r str0 `. 
 
 
 ```{r}
@@ -77,7 +77,8 @@ for (i in 1:length(unique(temp0$SRVY))){
   if (sum(temp$nthyr > 1)>(nrow(temp)-1)) { # 
     str01 <- paste0(str01, 
                            NMFSReports::text_list(
-      paste0(ifelse(grepl(pattern = "warm", x = temp$case), "Warm", "Cold"),
+      paste0("The recent trend of",
+             ifelse(grepl(pattern = "warm", x = temp$case), "warm", "cold"),
                          " temperatures continued on the ", temp$SRVY, " shelf for the ",
                          numbers2words_th(x = temp$nthyr, type = "word"),
                          " consecutive year. ")))
@@ -104,15 +105,13 @@ for (i in 1:length(unique(temp0$SRVY))){
 }
 
 str0 <- paste0(str01,
-                       " than the survey long-term (",
-                         haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY %in% temp$SRVY],
-                      "-",lastyr, 
-                       ") averages of ",
+                       " than the survey long-term averages of ",
                        round(x = mean(temp$st_mean, na.rm = T), digits = 1),
                        "°C for the surface and ",
                        round(x = mean(temp$bt_mean, na.rm = T), digits = 1),
                        "°C for the bottom. ", 
                       str02)
+
 
 
 # Species counts -------------------------------------
@@ -125,9 +124,9 @@ str0 <- paste0(str01,
 
 ```
 
-`r str0` In the `r NMFSReports::text_list(SRVY1)`, a total of `r fish_sp ` species of fishes were identified, representing `r NMFSReports::xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families; `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera of fish were also observed in the data, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms across `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
+`r str0` A total of `r fish_sp ` species of fishes were identified during the `r ifelse(SRVY=="NEBS", "surveys", "survey")`, representing `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera and `r NMFSReports::xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms across `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
 
-The distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))` different fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` shelf bottom trawl surveys. For the more common fish species, plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys are also available. Survey results presented herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, estimates of population size for the most common fishes, geographic distributions and abundance-at-length of the more common fish species, and summary surface and bottom temperature data during the summer survey period. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data of the sampled populations.
+The distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))` different fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa are compared with side-by-side maps from both the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` shelf bottom trawl surveys. For the more common fish species, plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys are also available. Survey results presented herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, estimates of population size for the most common fishes, geographic distributions and abundance-at-length of the more common fish species, and summary surface and bottom temperature. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data of the sampled populations.
 
 ```{r}
 str0 <- ""
