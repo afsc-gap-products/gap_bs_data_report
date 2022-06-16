@@ -1237,6 +1237,183 @@ set_breaks <- function(dat, var) {
 #' @param dat The data that will be used to create the IDW plots, containing the data used in lat, lon, and var. 
 #' @param lat The name of the column in dat for latitude
 #' @param lon The name of the column in dat for longitude
+#' @param year The name of the column in dat for year
+#' @param key.title A character string that will be used as the legend title
+#' @param extrap.box Optional. Vector specifying the dimensions of the extrapolation grid. Elements of the vector should be named to specify the minimum and maximum x and y values c(xmn, xmx, ymn, ymx). If not provided, region will be used to set the extrapolation area. Feeds the akgfmaps::make_idw_map. 
+#' @param row0 How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
+#' @param region Defualt = "bs.south". Inherited from akgfmaps::make_idw_map. 
+#' @param dist_unit Default = "nm" (nautical miles). This is the unit that will be used for the map's scale bar.  
+#' @param col_viridis Defauly = "mako". Inherited from ggplot2::scale_fill_viridis_c. This will be the color scheme for the inverse distance weighted plot. 
+#' @param plot_coldpool Default = TRUE Logical. Will plot cold pool outlines on the plot. 
+#' @param plot_stratum Default = FALSE. Logical. This will plot stratun areas on the plot. 
+#' @param use.survey.bathymetry Default = FALSE. Logical. Inherited from akgfmaps::make_idw_map
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' figure <- plot_idw_xbyx(
+#'   yrs = c(2017), 
+#'   dat = akgfmaps:::YFS2017, 
+#'   lat = "LATITUDE",
+#'   lon = "LONGITUDE",
+#'   year = "YEAR",
+#'   key.title = "Yellowfin sole (kg/km2)", 
+#'   grid = "extrapolation.grid",
+#'   extrap.box = c(xmn = -180, xmx = -156, ymn = 54, ymx = 62), 
+#'   grid.cell = c(1.5, 1.5), # will take less time
+#'   row0 = 1, 
+#'   region = "bs.south") 
+#' figure
+plot_pa_xbyx <- function(
+    yrs, 
+    dat, 
+    lat,
+    lon,
+    year,
+    key.title = "", 
+    extrap.box, 
+    row0 = 2, 
+    region = "ebs",
+    dist_unit = "nm", # nautical miles
+    col_viridis = "mako", 
+    plot_coldpool = FALSE, 
+    plot_stratum = TRUE, 
+    use.survey.bathymetry = FALSE) {
+  
+  reg_dat <- akgfmaps::get_base_layers(select.region = region)
+  yrs <- as.numeric(sort(x = yrs, decreasing = T))
+  
+  dat <- dat %>%
+    dplyr::rename(year = as.character(year), 
+                  lat = as.character(lat), 
+                  lon = as.character(lon)) %>% 
+    dplyr::select(year, lat, lon) %>% 
+    dplyr::mutate(year = as.numeric(year), 
+                  lat = as.numeric(lat), 
+                  lon = as.numeric(lon))
+  
+  d <- dat[,c("lon", "lat")]
+  coordinates(d) <- c("lon", "lat")
+  proj4string(d) <- CRS("+init=epsg:4326") # 
+  d <- data.frame(sp::spTransform(x = d, CRSobj = CRS(reg_dat$crs$input)))
+  dat$lon <- d$lon
+  dat$lat <- d$lat
+    
+    figure <- ggplot() + 
+      ggplot2::geom_point(data = dat, 
+                          mapping = aes(x = lon, y = lat, group = "year"), 
+                          color = mako(n = 1, begin = .25, end = .75), size = 3)
+  
+  if (plot_coldpool) {
+    
+    temp_break <- 2 # 2*C
+    
+    coords <- raster::coordinates(coldpool:::nbs_ebs_bottom_temperature)
+    
+    for(i in 1:length(yrs)) {
+      sel_layer_df <- data.frame(x = coords[,1],
+                                 y = coords[,2],
+                                 temperature = coldpool:::nbs_ebs_bottom_temperature@data@values[,i])
+      sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
+      sel_layer_df$year <- yrs[i]
+      
+      if(i == 1) {
+        bt_year_df <- sel_layer_df
+      } else{
+        bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
+      }
+    }
+    
+    figure <- figure +
+      ggplot2::geom_tile(data = bt_year_df %>%
+                           dplyr::filter(temperature <= temp_break) %>% 
+                           dplyr::rename(new_dim = year),
+                         aes(x = x,
+                             y = y, 
+                             group = new_dim),
+                         fill = "magenta",#"gray80",
+                         alpha = 0.5)
+    
+  }  
+  
+  if (length(yrs) == 0) {
+    grid <- ""
+    figure <- figure +
+      ggplot2::geom_text(mapping = aes(x = mean(reg_dat$lon.breaks), 
+                                       y = mean(reg_dat$lat.breaks), 
+                                       label = "No data was available\nfor this species in this\nregion for this year."), 
+                         fontface="bold")
+  }   else if (length(yrs)>1) {
+    figure <- figure +
+      facet_wrap( ~ year, nrow = row0) +
+      coord_equal() 
+  }
+  
+  
+  if (plot_stratum) {
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.strata,
+              color = "grey50",
+              size = 0.1,
+              alpha = 0,
+              fill = NA)
+  }
+  
+  lon_break <- reg_dat$lon.breaks
+  lat_break <- reg_dat$lat.breaks
+  
+  if (length(yrs) > 6) {
+    lon_break <- reg_dat$lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
+    lat_break <- reg_dat$lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
+  }
+  
+  figure <- figure +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2) +
+    geom_sf(data = reg_dat$akland, 
+            color = NA, 
+            fill = "grey50") +
+    scale_y_continuous(name = "", # "Latitude",,
+                       limits = reg_dat$plot.boundary$y,
+                       breaks = lat_break) +
+    scale_x_continuous(name = "", # "Longitude"#,
+                       limits = reg_dat$plot.boundary$x,
+                       breaks = lon_break) +
+    ggsn::scalebar(data = reg_dat$survey.grid,
+                   location = "bottomleft",
+                   dist = 150,
+                   dist_unit = dist_unit,
+                   transform = FALSE,
+                   st.dist = ifelse(row0 > 2, 0.08, 0.04),
+                   height = ifelse(row0 > 2, 0.04, 0.02),
+                   st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+                   st.size = ifelse(row0 > 2, 2.5, 3), # 2.5
+                   model = reg_dat$crs)  +
+
+    theme( # set legend position and vertical arrangement
+      # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+      legend.position = "none",
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      axis.text = element_text(size = 8),
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 10, face = "bold"))
+  
+  return(figure)
+  
+}
+
+
+#' Plot IDW maps in x by x facet_wraps
+#'
+#' @param yrs The years, as a vector, that subplots should be created for
+#' @param dat The data that will be used to create the IDW plots, containing the data used in lat, lon, and var. 
+#' @param lat The name of the column in dat for latitude
+#' @param lon The name of the column in dat for longitude
 #' @param var The name of the column in dat for the variable (e.g., cpue, temperature)
 #' @param year The name of the column in dat for year
 #' @param key.title A character string that will be used as the legend title
@@ -1283,7 +1460,7 @@ plot_idw_xbyx <- function(
     set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
     grid.cell = c(0.02, 0.02), 
     row0 = 2, 
-    region = "bs.south",
+    region = "ebs",
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
     plot_coldpool = FALSE, 
@@ -2313,7 +2490,8 @@ plot_survey_stations <- function(reg_dat,
       geom_sf(data = reg_dat$survey.area %>%
                 dplyr::mutate(SURVEY = dplyr::case_when(
                   SURVEY == "EBS_SHELF" ~ "EBS", 
-                  SURVEY == "NBS_SHELF" ~ "NBS")), 
+                  SURVEY == "NBS_SHELF" ~ "NBS")) %>% 
+                dplyr::filter(SURVEY %in% SRVY1), 
               aes(color = SURVEY), 
               fill = NA, 
               size = 1.5,

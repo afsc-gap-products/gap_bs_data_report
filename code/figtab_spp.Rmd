@@ -37,7 +37,7 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 ```{r data_wrangle}
 # find basic info about species
 
-haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea"] <- "southeastern Bering Sea"
+haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea"] <- "eastern Bering Sea"
 
 # Biomass
 bio <- biomass %>%
@@ -183,7 +183,7 @@ if (spp_plot_idw_coldwarm){
 
 ```{r fig_idw_cpue_[taxon]_[spp]}
 
-if (spp_plot_idw){
+if (spp_plot_idw | spp_plot_pa){
   
   nickname <- paste0("fig_idw_cpue_", spp_taxon, "_", spp_file)
   
@@ -196,13 +196,13 @@ if (spp_plot_idw){
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
   
-  
-  header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
-                   " distribution and relative biomass (kg/ha) from the ",
-                   compareyr," (left) and ",maxyr,
-                   " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
-  
-  set.breaks <- set_breaks(dat = table_raw, 
+  if (spp_plot_idw) {
+    header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                     " distribution and relative biomass (kg/ha) from the ",
+                     compareyr," (left) and ",maxyr,
+                     " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
+    
+      set.breaks <- set_breaks(dat = table_raw, 
                            var = "cpue_kgha")
   
   # only if both species re only found in prt of the region, chnge the extrp.box
@@ -221,13 +221,33 @@ if (spp_plot_idw){
     grid = "extrapolation.grid",
     extrap.box = extrap.box0, 
     region = map.area, 
-    key.title = paste0(stringr::str_to_sentence(spp_print), "
-relative biomass (kg/ha)"),
-grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
+    key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
+    grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
               ifelse(workfaster, 1.5, 0.02)),
-set.breaks = set.breaks, 
-row0 = 1)
-  
+    set.breaks = set.breaks, 
+    row0 = 1)
+
+  } else if (spp_plot_pa) {
+    header <- paste0("Maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                     " presence from the ",
+                     compareyr," (left) and ",maxyr,
+                     " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
+    
+
+    figure <- plot_pa_xbyx(
+      yrs = c(maxyr, compareyr),
+      dat = table_raw %>% 
+        dplyr::filter(!is.na(cpue_kgha)),
+      lat = "latitude",
+      lon = "longitude",
+      year = "year",
+      extrap.box = extrap.box0, 
+      region = map.area, 
+      key.title = paste0(stringr::str_to_sentence(spp_print), "\npresence"),
+      row0 = 1)
+    
+  }
+
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
   res <- knitr::knit_child(
@@ -246,63 +266,63 @@ row0 = 1)
 ## fig_pa_cpue_[taxon]_[spp]
 
 ```{r fig_pa_cpue_[taxon]_[spp]}
-
-if (spp_plot_pa){
-  
-  nickname <- paste0("fig_pa_cpue_", spp_taxon, "_", spp_file)
-  
-  height <- ifelse(SRVY == "NEBS", 5, 4) # height <- 6
-  width <- full_page_portrait_width # 6.5
-  
-  table_raw <- cpue %>%
-    dplyr::filter(!is.na(cpue_kgha) & 
-                    species_code %in% spp_code & 
-                    year %in% c(maxyr, compareyr)) %>% 
-    dplyr::arrange(desc(year))
-  
-  
-  header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
-                   " distribution and relative biomass (kg/ha) from the ",
-                   compareyr," (left) and ",maxyr,
-                   " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
-  
-  set.breaks <- set_breaks(dat = table_raw, 
-                           var = "cpue_kgha")
-  
-  # only if both species re only found in prt of the region, chnge the extrp.box
-  extrap.box0 <- extrap.box
-  if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") {
-    extrap.box0 <- report_types[[unique(table_raw$SRVY)]]$extrap.box
-  }
-  
-  figure <- plot_pa_xbyx(
-    yrs = c(maxyr, compareyr),
-    dat = table_raw,
-    lat = "latitude",
-    lon = "longitude",
-    var = "cpue_kgha",
-    year = "year",
-    extrap.box = extrap.box0, 
-    region = map.area, 
-    key.title = paste0(stringr::str_to_sentence(spp_print), "
-relative biomass (kg/ha)"),
-grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
-              ifelse(workfaster, 1.5, 0.02)),
-set.breaks = set.breaks, 
-row0 = 1)
-  
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_fig.Rmd", 
-                         package = "NMFSReports")), 
-    quiet = TRUE
-  )
-  
-  list_figures[nickname][[1]]$res <- res
-  
-}
+# 
+# if (spp_plot_pa){
+#   
+#   nickname <- paste0("fig_pa_cpue_", spp_taxon, "_", spp_file)
+#   
+#   height <- ifelse(SRVY == "NEBS", 5, 4) # height <- 6
+#   width <- full_page_portrait_width # 6.5
+#   
+#   table_raw <- cpue %>%
+#     dplyr::filter(!is.na(cpue_kgha) & 
+#                     species_code %in% spp_code & 
+#                     year %in% c(maxyr, compareyr)) %>% 
+#     dplyr::arrange(desc(year))
+#   
+#   
+#   header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+#                    " distribution and relative biomass (kg/ha) from the ",
+#                    compareyr," (left) and ",maxyr,
+#                    " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
+#   
+#   set.breaks <- set_breaks(dat = table_raw, 
+#                            var = "cpue_kgha")
+#   
+#   # only if both species re only found in prt of the region, chnge the extrp.box
+#   extrap.box0 <- extrap.box
+#   if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") {
+#     extrap.box0 <- report_types[[unique(table_raw$SRVY)]]$extrap.box
+#   }
+#   
+#   figure <- plot_pa_xbyx(
+#     yrs = c(maxyr, compareyr),
+#     dat = table_raw,
+#     lat = "latitude",
+#     lon = "longitude",
+#     var = "cpue_kgha",
+#     year = "year",
+#     extrap.box = extrap.box0, 
+#     region = map.area, 
+#     key.title = paste0(stringr::str_to_sentence(spp_print), "
+# relative biomass (kg/ha)"),
+# grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
+#               ifelse(workfaster, 1.5, 0.02)),
+# set.breaks = set.breaks, 
+# row0 = 1)
+#   
+#   # save yo' stuff and do a lot of behind the scenes work
+#   # alt: this does the same thing as calling "child = " in the chunk header
+#   res <- knitr::knit_child(
+#     text = knitr::knit_expand(
+#       file = system.file("rmd/_child_save_fig.Rmd", 
+#                          package = "NMFSReports")), 
+#     quiet = TRUE
+#   )
+#   
+#   list_figures[nickname][[1]]$res <- res
+#   
+# }
 
 ```
 
@@ -513,11 +533,11 @@ if (spp_table_cpue) {
   
   # Were lengths taken for this taxon? If not, we wont include the lencount column in the table and optomize for space
   include_lencount <- !(sum(temp$lencount[temp$stratum == "Total"] %in% 0) == 
-    length(temp$lencount[temp$stratum == "Total"]))
+                          length(temp$lencount[temp$stratum == "Total"]))
   
   
   if (sum(temp$biomass[temp$stratum == "Total"] != 0) > 0) {
-
+    
     if (sum(temp$biomass[temp$stratum == "Total"] %in% 0)>0) {
       temp <- temp %>% 
         dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
@@ -545,8 +565,8 @@ if (spp_table_cpue) {
                         catcount, numcount, lencount) 
         
         if (!include_lencount) {
-           table_raw <- table_raw %>% 
-             dplyr::select(-lencount)
+          table_raw <- table_raw %>% 
+            dplyr::select(-lencount)
         }
         
         if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
@@ -603,8 +623,8 @@ if (spp_table_cpue) {
                         catcount, numcount, lencount)
         
         if (!include_lencount) {
-           table_raw <- table_raw %>% 
-             dplyr::select(-lencount)
+          table_raw <- table_raw %>% 
+            dplyr::select(-lencount)
         }
         
         if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
@@ -676,11 +696,11 @@ if (spp_table_cpue) {
         flextable::bold(x = ., #j = "stratum", 
                         i = ~ (stratum == "Total") ) %>%
         flextable::valign(valign = "top") %>% 
-            flextable::set_header_labels(
-              x = ., 
-              stratum = "Stratum", 
-              catcount = "Hauls with\nweights", 
-              numcount = "Hauls with\ncounts")  %>%
+        flextable::set_header_labels(
+          x = ., 
+          stratum = "Stratum", 
+          catcount = "Hauls with\nweights", 
+          numcount = "Hauls with\ncounts")  %>%
         NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, 
                                             font = font0, 
                                             pad = 0, 
@@ -689,30 +709,30 @@ if (spp_table_cpue) {
         flextable::width(x = ., width = .5, unit = "in", j = "stratum") %>%
         flextable::align(x = ., 
                          align = "left", part = "all")
-          
+      
       if (include_lencount) { # if no lengths were collected, dont include the column
-          table_print <- table_print %>% 
-            flextable::set_header_labels(
-              x = ., 
-              lencount = "Hauls with\nlengths")
+        table_print <- table_print %>% 
+          flextable::set_header_labels(
+            x = ., 
+            lencount = "Hauls with\nlengths")
       }
       
       if (length(unique(table_raw$SRVY)) > 1) {
-      table_print <- table_print %>% 
-        flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-        flextable::padding(x = .,
-                           j = 1, i = ~ is.na(SRVY),
-                           padding.left = 5) %>%
-        flextable::align(x = ., i = ~ !is.na(SRVY),
-                         align = "left", part = "body")
+        table_print <- table_print %>% 
+          flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+          flextable::padding(x = .,
+                             j = 1, i = ~ is.na(SRVY),
+                             padding.left = 5) %>%
+          flextable::align(x = ., i = ~ !is.na(SRVY),
+                           align = "left", part = "body")
       }
       
       if (i == 1) {
         table_print <- table_print %>% 
-        flextable::width(x = ., j = "biomass", width = 1.25, unit = "in")
+          flextable::width(x = ., j = "biomass", width = 1.25, unit = "in")
       } else {
         table_print <- table_print %>% 
-        flextable::width(x = ., j = "population", width = 1.25, unit = "in")
+          flextable::width(x = ., j = "population", width = 1.25, unit = "in")
       }
       
       # save yo' stuff and do a lot of behind the scenes work

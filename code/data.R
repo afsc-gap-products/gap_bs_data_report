@@ -12,11 +12,11 @@
 # When you select a region using get_base_layers(), the grid will be clipped to only include stations in the survey region.  I haven't added NBS functionality to get_base_layers() since we do both surveys in the same year, but there is an easy workaround (third block of code below).
 
 # library(akgfmaps)
-# full_ebs_layers <- akgfmaps::get_base_layers(select.region = "ebs", set.crs = "auto", return.survey.grid = TRUE)
+# full_ebs_layers <- akgfmaps::get_base_layers(select.region = "ebs", set.crs = "auto")
 # ggplot() +
 #   geom_sf(data = full_ebs_layers$survey.grid)
 # 
-# sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs", set.crs = "auto", return.survey.grid = TRUE)
+# sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs", set.crs = "auto")
 # ggplot() +
 #   geom_sf(data = sebs_layers$survey.grid)
 # image.png
@@ -41,8 +41,7 @@ report_types <- list(
                "999"),
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.south", 
-      set.crs = "auto", 
-      return.survey.grid = TRUE)#,
+      set.crs = "auto")#,
     # report_species = report_species_NEBS
   ), 
   "NBS" = list(
@@ -59,8 +58,7 @@ report_types <- list(
                "999"), 
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.north", 
-      set.crs = "auto", 
-      return.survey.grid = TRUE)#,
+      set.crs = "auto")#,
     # report_species = report_species_NEBS
   ), 
   "NEBS" = list(
@@ -79,8 +77,7 @@ report_types <- list(
                "999"), 
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.all", 
-      set.crs = "auto", 
-      return.survey.grid = TRUE)#,
+      set.crs = "auto")#,
     # report_species = report_species_NEBS
   )
 )
@@ -981,15 +978,17 @@ temps_avg_yr <- coldpool:::cold_pool_index %>%
                 st = MEAN_SURFACE_TEMPERATURE) %>% 
   dplyr::filter(YEAR <= maxyr) %>% 
   janitor::clean_names() %>% 
-  dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE)) %>% 
-  dplyr::mutate(st_mean = mean(st, na.rm = TRUE)) %>% 
-  dplyr::mutate(bt_mean_maxyr = mean(bt, na.rm = TRUE)) %>% 
-  dplyr::mutate(st_mean_maxyr = mean(st, na.rm = TRUE)) %>% 
-  dplyr::mutate(SRVY = "EBS") %>%
+  dplyr::arrange(desc(bt)) %>%
+  dplyr::mutate(warmest_rank = 1:nrow(.)) %>%
+  dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE), 
+                st_mean = mean(st, na.rm = TRUE), 
+                bt_mean_maxyr = mean(bt, na.rm = TRUE), 
+                st_mean_maxyr = mean(st, na.rm = TRUE), 
+                SRVY = "EBS") %>%
   dplyr::arrange(SRVY, year) %>%
-  dplyr::mutate(bt_above_mean = bt>bt_mean) %>%
-  dplyr::mutate(st_above_mean = st>st_mean) %>%
-  dplyr::mutate(case = dplyr::case_when(
+  dplyr::mutate(bt_above_mean = bt>bt_mean, 
+                st_above_mean = st>st_mean, 
+                case = dplyr::case_when(
     ((st_above_mean + bt_above_mean)==2) ~ "both warmer",
     ((st_above_mean + bt_above_mean)==0) ~ "both colder",
     (st_above_mean == TRUE & bt_above_mean == FALSE) ~ "st warmer, bt colder",

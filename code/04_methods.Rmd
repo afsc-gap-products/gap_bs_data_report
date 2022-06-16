@@ -98,14 +98,16 @@ if (sum(!is.na(temp$vessel)) == nrow(temp)) {
   str0 <- paste0(str0, 
                 "In the ",unique(temp$SRVY)[i],
                 ", the net mensuration system failed to record data for ", 
-                NMFSReports::text_list(paste0(xunits(temp0$N), " tows on the ", temp0$vessel_ital)), ". ")
+                NMFSReports::text_list(paste0(xunits(temp0$N), " tow on the ", temp0$vessel_ital)), ". ")
   }
   
   str0 <- paste0(str0, "To estimate missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), and $s$ is the scope, inversed, below.
 
-$$ w \\sim {s}^{-1} + h + \\frac{h}{s} $$
+$$ w \\sim {s}^{-1} + h + \\frac{h}{s} + \epsilon $$
 
-")
+\epsilon~N(0,\sigma^{2})
+
+") # TOLEDO - include mgcv spline
 }
 ```
 
