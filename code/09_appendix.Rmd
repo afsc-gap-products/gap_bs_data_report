@@ -38,35 +38,132 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 # `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_app_hauls_catch_", sublist = "res", exact = FALSE) `
 # 
 # <!---BLOCK_LANDSCAPE_STOP--->
+# 
+# ## Appendix A: List of taxa encountered
+# 
+# Appendix A lists all fish and invertebrate taxa taken during the AFSC’s `r NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY)) ` bottom trawl survey.
+# 
+# **List of Tables**
+# 
+# `r NMFSReports::text_list(paste0("\n\n - Appendix B ", sapply(list_tables[grepl(x = names(list_tables), pattern = "tab_app_taxa_encountered_")],"[[","header")), oxford = FALSE, sep = " ", sep_last = " ") `
+# 
+# `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_app_taxa_encountered_", sublist = "res", exact = FALSE) `
+# 
+# ## Appendix B: List of taxa encountered
+# 
+# Appendix A lists all fish and invertebrate taxa taken during the AFSC’s `r NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY)) ` bottom trawl survey.
+# 
+# **List of Tables**
+# 
+# `r NMFSReports::text_list(paste0("\n\n - Appendix B ", sapply(list_tables[grepl(x = names(list_tables), pattern = "tab_app_taxa_encountered_")],"[[","header")), oxford = FALSE, sep = " ", sep_last = " ") `
+# 
+# `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_app_taxa_encountered_", sublist = "res", exact = FALSE) `
+# 
+# 
+# ## Appendix C: Population estimates by sex and size group for principal fish species
+# 
+# Appendix C presents population estimates by sex and size group from the `r maxyr` `r NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY))` survey`r ifelse(length(haul_cruises_maxyr$SRVY)>1, "s", "")` for principal fish species.
+# 
+# **List of Tables**
+# 
+# `r NMFSReports::text_list(paste0("\n\n - Appendix C ", sapply(list_tables[grepl(x = names(list_tables), pattern = "tab_app_principal_fish_")],"[[","header")), oxford = FALSE, sep = " ", sep_last = " ") `
+# 
+# `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_app_principal_fish_", sublist = "res", exact = FALSE) `
+# 
 ```
 
-## Appendix A: List of taxa encountered
 
-Appendix A lists all fish and invertebrate taxa taken during the AFSC’s `r NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY)) ` bottom trawl survey.
+```{r tab_app_taxa_encountered_}
+nickname0 <- "tab_app_taxa_encountered"
+
+list_tables0 <- list_tables[grepl(x = names(list_tables), pattern = nickname0)]
+srvy <- unique(lapply(X = strsplit(x =
+                                     gsub(pattern = nickname0,
+                                          replacement = "",
+                                          x = names(list_tables0)), split = "_"),
+                      `[[`, 1))
+abcd <- unique(gsub(pattern = "[0-9]+", 
+                    replacement = "", 
+                    x = unlist(lapply(list_tables0, `[[`, "number"))))
+
+str0 <- ""
+
+for (i in 1:length(abcd)) {
+  
+  list_tables00 <- list_tables0[grepl(x = names(list_tables0), pattern = srvy[i])]
+  # unlist(lapply(list_tables0, `[[`, "number"))
+  
+  str0 <- paste0(str0, 
+                 '## Appendix ',abcd[i],': List of taxa encountered in the ', srvy[i], '
+
+Appendix ',abcd[i],' lists all fish and invertebrate taxa taken during the AFSC’s ',
+srvy[i] ,
+' bottom trawl survey.
 
 **List of Tables**
 
-`r NMFSReports::text_list(paste0("\n\n - Appendix B ", sapply(list_tables[grepl(x = names(list_tables), pattern = "tab_app_taxa_encountered_")],"[[","header")), oxford = FALSE, sep = " ", sep_last = " ") `
+',
+NMFSReports::text_list(paste0("\n\n - Appendix ",#abcd[i]," ", 
+                              sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")],
+                                     "[[","header")), 
+                       oxford = FALSE, sep = " ", sep_last = " "),
+'
 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_app_taxa_encountered_", sublist = "res", exact = FALSE) `
+', 
+NMFSReports::crossref(list_obj = list_tables00, 
+                      nickname = "", 
+                      sublist = "res", exact = FALSE),
+' ')
+}
 
-## Appendix B: List of taxa encountered
+```
 
-Appendix A lists all fish and invertebrate taxa taken during the AFSC’s `r NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY)) ` bottom trawl survey.
+`r str0 `
+
+
+
+```{r tab_app_principal_fish_}
+nickname0 <- "tab_app_principal_fish_"
+
+list_tables0 <- list_tables[grepl(x = names(list_tables), pattern = nickname0)]
+srvy <- unique(lapply(X = strsplit(x =
+                                     gsub(pattern = nickname0,
+                                          replacement = "",
+                                          x = names(list_tables0)), split = "_"),
+                      `[[`, 1))
+abcd <- unique(gsub(pattern = "[0-9]+", 
+                    replacement = "", 
+                    x = unlist(lapply(list_tables0, `[[`, "number"))))
+
+str0 <- ""
+
+for (i in 1:length(abcd)) {
+  
+  list_tables00 <- list_tables0[grepl(x = names(list_tables0), pattern = srvy[i])]
+  
+  str0 <- paste0(str0, 
+                 '## Appendix ',abcd[i],
+                 ': Population estimates by sex and size group for principal fish species in the ', srvy[i], '
+
+Appendix ',abcd[i],' presents population estimates by sex and size group from the ', maxyr,' ',
+srvy[i] , ' bottom trawl survey for principal fish species. .
 
 **List of Tables**
 
-`r NMFSReports::text_list(paste0("\n\n - Appendix B ", sapply(list_tables[grepl(x = names(list_tables), pattern = "tab_app_taxa_encountered_")],"[[","header")), oxford = FALSE, sep = " ", sep_last = " ") `
+',
+NMFSReports::text_list(paste0("\n\n - Appendix ",#abcd[i]," ", 
+                              sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")],
+                                     "[[","header")), 
+                       oxford = FALSE, sep = " ", sep_last = " "),
+'
 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_app_taxa_encountered_", sublist = "res", exact = FALSE) `
+', 
+NMFSReports::crossref(list_obj = list_tables00, 
+                      nickname = "", 
+                      sublist = "res", exact = FALSE),
+' ')
+}
+
+```
 
 
-## Appendix C: Population estimates by sex and size group for principal fish species
-
-Appendix C presents population estimates by sex and size group from the `r maxyr` `r NMFSReports::text_list(paste0(haul_cruises_maxyr$SRVY))` survey`r ifelse(length(haul_cruises_maxyr$SRVY)>1, "s", "")` for principal fish species.
-
-**List of Tables**
-
-`r NMFSReports::text_list(paste0("\n\n - Appendix C ", sapply(list_tables[grepl(x = names(list_tables), pattern = "tab_app_principal_fish_")],"[[","header")), oxford = FALSE, sep = " ", sep_last = " ") `
-
-`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_app_principal_fish_", sublist = "res", exact = FALSE) `
