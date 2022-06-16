@@ -12,7 +12,6 @@ bibliography: "../cite/bibliography.bib"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 cnt_pre <- 0
-
 ```
 
 # Appendix A
@@ -172,7 +171,8 @@ for (i in 1:nrow(temp)) {
   header <- paste0(stringr::str_to_sentence(temp$taxon[i]), 
                    " taxa encountered during the ", 
                    maxyr, " ", temp$SRVY[i], 
-                   " bottom trawl survey and listed alphabetically by family.")
+                   " bottom trawl survey listed alphabetically by ", 
+                   ifelse(temp$taxon[i] == "fish", "family", "phylum"), ".")
   
   table_raw <- 
     dplyr::left_join(
@@ -191,20 +191,26 @@ for (i in 1:nrow(temp)) {
                      depth_min = min(bottom_depth, na.rm = TRUE), 
                      depth_max = max(bottom_depth, na.rm = TRUE), 
                      depth_mean = mean(bottom_depth, na.rm = TRUE), 
-                     lat_min = min(bottom_depth, na.rm = TRUE), 
-                     lat_max = max(bottom_depth, na.rm = TRUE)) %>% 
+                     lat_min = min(start_latitude, na.rm = TRUE), 
+                     lat_max = max(start_latitude, na.rm = TRUE)) %>% 
     dplyr::ungroup() %>% 
     dplyr::arrange(species_name)  %>%
     dplyr::arrange(taxon)  %>%
     dplyr::mutate(stations_n = formatC(stations_n, big.mark=",", digits = 0, format = "f"))  %>%
     dplyr::mutate(across(where(is.numeric), 
-                         formatC, big.mark=",", digits = 1, format = "f"))
+                         formatC, big.mark=",", digits = 1, format = "f"), 
+                  taxon = ifelse(is.na(taxon), "Other", taxon))
   
   table_print <- table_raw %>% 
     dplyr::mutate(species_name1 = species_name) %>%
     dplyr::mutate(spp = dplyr::case_when(
       grepl(pattern = "sp.", x = species_name1, fixed = TRUE) ~ "sp.", 
       grepl(pattern = "spp.", x = species_name1, fixed = TRUE) ~ "spp.", 
+      grepl(pattern = "egg case", x = species_name1, fixed = TRUE) ~ "egg case", 
+      grepl(pattern = "Naticidae egg", x = species_name1, fixed = TRUE) ~ "gastropod egg", 
+      grepl(pattern = "gastropod egg", x = species_name1, fixed = TRUE) ~ "gastropod egg", 
+      grepl(pattern = "hybrid", x = species_name1, fixed = TRUE) ~ "hybrid", 
+      grepl(pattern = "Polychaete tubes", x = species_name1, fixed = TRUE) ~ "Polychaete tubes", 
       TRUE ~ "")) %>%
     dplyr::mutate(
       species_name = species_name1, 
@@ -214,6 +220,21 @@ for (i in 1:nrow(temp)) {
       species_name1 =
         gsub(pattern = " spp.", replacement = "",
              x = species_name1, fixed = TRUE),
+      species_name1 =
+        gsub(pattern = " egg case", replacement = "",
+             x = species_name1, fixed = TRUE),          
+      species_name1 =
+        gsub(pattern = "Naticidae egg", replacement = "",
+             x = species_name1, fixed = TRUE),  
+      species_name1 =
+        gsub(pattern = "gastropod egg", replacement = "",
+             x = species_name1, fixed = TRUE),          
+      species_name1 =
+        gsub(pattern = " hybrid", replacement = "",
+             x = species_name1, fixed = TRUE),    
+      species_name1 =
+        gsub(pattern = "Polychaete tubes", replacement = "",
+             x = species_name1, fixed = TRUE),      
       species_name2 = dplyr::case_when(
         !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), 
       species_name1 = dplyr::case_when(
@@ -257,7 +278,7 @@ for (i in 1:nrow(temp)) {
                                         body_size = 9, 
                                         header_size = 9, 
                                         pad = 0, 
-                                        pgwidth = full_page_landscape_width) %>%
+                                        pgwidth = full_page_portrait_width) %>%
     flextable::width(x = ., width = .5, unit = "in") %>%
     flextable::width(x = ., width = .75, j = "stations_n", unit = "in") %>%
     flextable::width(x = ., width = .75, j = c("taxon"), unit = "in") %>%
@@ -280,6 +301,7 @@ for (i in 1:nrow(temp)) {
   list_tables[nickname][[1]]$res <- res
 }
 }
+
 ```
 
 
@@ -338,9 +360,11 @@ nickname0 <- "tab_app_principal_fish_"
 cnt_tables <- 0
 
 temp0 <- report_spp1 %>% 
-  dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
+  dplyr::filter(taxon == "fish" & 
+                  text_spp == TRUE &
+                  file_name != "pacific_halibut") %>% 
   dplyr::select(file_name, species_code) %>% 
-  dplyr::distinct()
+  dplyr::distinct() 
 
 for (i in 1:nrow(temp)) {
   newobj <- TRUE
@@ -388,7 +412,7 @@ for (i in 1:nrow(temp)) {
     table_print <- table_raw %>%
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(.,
-                                   length = "Length (mm)",
+                                   length = "Length (cm)",
                                    males = "Males",
                                    females = "Females",
                                    unsexed = "Unsexed", 
@@ -403,7 +427,7 @@ for (i in 1:nrow(temp)) {
                                           body_size = 9, 
                                           header_size = 9, 
                                           pad = 0, 
-                                          pgwidth = full_page_landscape_width)
+                                          pgwidth = full_page_portrait_width)
     
     # save yo' stuff and do a lot of behind the scenes work
     # alt: this does the same thing as calling "child = " in the chunk header
