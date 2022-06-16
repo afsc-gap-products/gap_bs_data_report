@@ -782,31 +782,15 @@ nickname <- "fig_cold_pool_area"
 height <- 3.5
 width <- full_page_portrait_width # 6.5
 
-sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs",
-                                         set.crs = coldpool:::ebs_proj_crs)
-
-area_df <- coldpool:::cold_pool_index %>%
-  dplyr::filter(YEAR <= maxyr) %>%
-  dplyr::mutate(lteminus1 = AREA_LTEMINUS1_KM2,
-                lte0 = AREA_LTE0_KM2 - AREA_LTEMINUS1_KM2,
-                lte1 = AREA_LTE1_KM2 - AREA_LTE0_KM2,
-                lte2 = AREA_LTE2_KM2 - AREA_LTE1_KM2) %>%
-  dplyr::select(YEAR, lteminus1, lte0, lte1, lte2) %>%
-  reshape2::melt(id.vars = "YEAR") %>%
-  dplyr::mutate(variable = factor(variable, 
-                                  levels = c( "lte2", "lte1", "lte0", "lteminus1"),
-                                  labels = c("\u2264 2\u00b0C", "\u2264 1\u00b0C", "\u2264 0\u00b0C", "\u2264 -1\u00b0C")),
-                proportion = value/sebs_layers$survey.area$AREA_KM2)
-
 figure <- ggplot() + 
-  geom_area(data = area_df %>%
-              dplyr::filter(YEAR < 2020),
-            mapping = aes(x = YEAR,
+  geom_area(data = coldpool_ebs_bin_area %>%
+              dplyr::filter(year < 2020),
+            mapping = aes(x = year,
                           y = proportion,
                           fill = variable)) +
-  geom_point(data = area_df %>%
-               dplyr::filter(YEAR == 2021),
-             mapping = aes(x = YEAR,
+  geom_point(data = coldpool_ebs_bin_area %>%
+               dplyr::filter(year == 2021),
+             mapping = aes(x = year,
                            y = proportion, 
                            fill = variable),
              shape = 21, 

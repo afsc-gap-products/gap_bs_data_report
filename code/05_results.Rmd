@@ -83,17 +83,7 @@ During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-y
 The size of the cold pool each summer depends on sea ice coverage from the previous winter, the timing of sea ice retreat during the spring and early summer, as well as other oceanographic and meteorological conditions [@RN941]. During the coldest years, sea ice extended farther south and lasted later into spring resulting in cold pools that extended farther south down the middle domain into Bristol Bay and near the Alaska Peninsula (Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')` and `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). Interannual variability in the dynamics of seasonal ice is a major environmental driver on the Bering Sea shelf [@RN930; @RN931; @RN932] that can change recruitment and migration patterns, as well as cause major distributional shifts in groundfish and crab species [@RN905; @RN913; @RN977]. 
 
 ```{r}
-temp <- cold_pool_area %>% 
-  dplyr::group_by(year) %>% 
-  dplyr::summarise(perc = sum(perc, na.rm = T), 
-                   freq = sum(freq, na.rm = T)) %>% 
-  dplyr::mutate(area_km2 = (perc/100) * 
-                  sum(stratum_info %>% 
-                        dplyr::filter(SRVY == "EBS") %>% 
-                        dplyr::select(area_km2), na.rm = TRUE)) %>%
-  dplyr::arrange((perc)) %>% 
-  dplyr::mutate(rank = 1:nrow(.)) %>% 
-  dplyr::arrange(desc(year))
+temp <- coldpool_ebs_total_area
 
 temp4 <- ""
 if (temp$rank[temp$year == maxyr] < 6) {

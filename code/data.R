@@ -1078,34 +1078,82 @@ temps_avg_yr_abovebelow <- list(
 # 
 # temps_avg_yr_abovebelow <- dplyr::bind_cols(temp1, temp2)
 
-temp <- coldpool:::ebs_bottom_temperature
-temp <- projectRaster(temp, crs = crs(reg_dat$akland))
-temp <- as(temp, "SpatialPixelsDataFrame")
-temp <- as.data.frame(temp)
-temp1 <- gsub(pattern = "[A-Za-z]+", 
-              replacement = "", 
-              x = names(temp[!(names(temp) %in% c("x", "y"))]))
-temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
-colnames(temp) <- c(temp1, "latitude", "longitude")
-cold_pool_area <- temp %>% 
-  tidyr::pivot_longer(values_to = "value", 
-                      names_to = "year", 
-                      cols = all_of(temp1)) %>% 
-  dplyr::mutate(bin = cut(x = value, 
-                          breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
-  dplyr::group_by(year, bin) %>%
-  dplyr::summarise(freq = n()) %>%
+
+sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs",
+                                         set.crs = coldpool:::ebs_proj_crs)
+
+coldpool_ebs_bin_area <- coldpool:::cold_pool_index %>%
+  dplyr::rename(year = YEAR) %>%
   dplyr::filter(year <= maxyr) %>%
-  dplyr::mutate(perc = (freq/nrow(temp)) * 100) %>% # length(temp$`1982`) = 21299 is the number of cells and shouldnt change?
-  dplyr::mutate(label = dplyr::case_when(
-    bin == "(-Inf,-1]" ~ "> -1\u00B0C",
-    bin == "(-1,0]" ~ "-1 to 0\u00B0C",
-    bin == "(0,1]" ~ "0 to 1\u00B0C",
-    bin == "(1,2]" ~ "1 to 2\u00B0C")) %>% 
-  dplyr::filter(!is.na(bin)) %>%
-  dplyr::mutate(label = factor(label, 
-                               levels=c("1 to 2\u00B0C", "0 to 1\u00B0C", "-1 to 0\u00B0C", "> -1\u00B0C"), 
-                               ordered = TRUE))
+  dplyr::mutate(lteminus1 = AREA_LTEMINUS1_KM2,
+                lte0 = AREA_LTE0_KM2 - AREA_LTEMINUS1_KM2,
+                lte1 = AREA_LTE1_KM2 - AREA_LTE0_KM2,
+                lte2 = AREA_LTE2_KM2 - AREA_LTE1_KM2) %>%
+  dplyr::select(year, lteminus1, lte0, lte1, lte2) %>%
+  reshape2::melt(id.vars = "year") %>%
+  dplyr::mutate(area_km2 = value, 
+                variable = factor(variable, 
+                                  levels = c( "lte2", "lte1", "lte0", "lteminus1"),
+                                  labels = c("\u2264 2\u00b0C", "\u2264 1\u00b0C", "\u2264 0\u00b0C", "\u2264 -1\u00b0C")),
+                label = variable, 
+                proportion = value/sebs_layers$survey.area$AREA_KM2, 
+                perc = proportion*100)  
+
+coldpool_ebs_total_area <- coldpool_ebs_bin_area %>%
+  dplyr::group_by(year) %>% 
+  dplyr::summarise(proportion = sum(proportion, na.rm = TRUE), 
+                   perc = sum(perc, na.rm = TRUE), 
+                   value = sum(value, na.rm = TRUE), 
+                   area_km2 = sum(area_km2, na.rm = TRUE)) %>%
+  dplyr::arrange(desc(perc)) %>% 
+  dplyr::mutate(rank = 1:nrow(.)) %>% 
+  dplyr::arrange(desc(year))
+
+# temp <- coldpool:::ebs_bottom_temperature
+# temp <- projectRaster(temp, crs = crs(reg_dat$akland))
+# temp <- as(temp, "SpatialPixelsDataFrame")
+# temp <- as.data.frame(temp)
+# temp1 <- gsub(pattern = "[A-Za-z]+", 
+#               replacement = "", 
+#               x = names(temp[!(names(temp) %in% c("x", "y"))]))
+# temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+# colnames(temp) <- c(temp1, "latitude", "longitude")
+# cold_pool_area <- temp %>% 
+#   tidyr::pivot_longer(values_to = "value", 
+#                       names_to = "year", 
+#                       cols = all_of(temp1)) %>% 
+#   dplyr::mutate(bin = cut(x = value, 
+#                           breaks = c(-Inf, seq(from = -1, to = 2, by = 1)))) %>% 
+#   dplyr::group_by(year, bin) %>%
+#   dplyr::summarise(freq = n()) %>%
+#   dplyr::filter(year <= maxyr) %>%
+#   dplyr::mutate(perc = (freq/nrow(temp)) * 100) %>% # length(temp$`1982`) = 21299 is the number of cells and shouldnt change?
+#   dplyr::mutate(label = dplyr::case_when(
+#     bin == "(-Inf,-1]" ~ "> -1\u00B0C",
+#     bin == "(-1,0]" ~ "-1 to 0\u00B0C",
+#     bin == "(0,1]" ~ "0 to 1\u00B0C",
+#     bin == "(1,2]" ~ "1 to 2\u00B0C")) %>% 
+#   dplyr::filter(!is.na(bin)) %>%
+#   dplyr::mutate(label = factor(label, 
+#                                levels=c("1 to 2\u00B0C", "0 to 1\u00B0C", "-1 to 0\u00B0C", "> -1\u00B0C"), 
+#                                ordered = TRUE))
+
+
+# sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs",
+#                                          set.crs = coldpool:::ebs_proj_crs)
+# 
+# coldpool_ebs_area <- coldpool:::cold_pool_index %>%
+#   dplyr::filter(YEAR <= maxyr) %>%
+#   dplyr::mutate(lteminus1 = AREA_LTEMINUS1_KM2,
+#                 lte0 = AREA_LTE0_KM2 - AREA_LTEMINUS1_KM2,
+#                 lte1 = AREA_LTE1_KM2 - AREA_LTE0_KM2,
+#                 lte2 = AREA_LTE2_KM2 - AREA_LTE1_KM2) %>%
+#   dplyr::select(YEAR, lteminus1, lte0, lte1, lte2) %>%
+#   reshape2::melt(id.vars = "YEAR") %>%
+#   dplyr::mutate(variable = factor(variable, 
+#                                   levels = c( "lte2", "lte1", "lte0", "lteminus1"),
+#                                   labels = c("\u2264 2\u00b0C", "\u2264 1\u00b0C", "\u2264 0\u00b0C", "\u2264 -1\u00b0C")),
+#                 proportion = value/sebs_layers$survey.area$AREA_KM2)
 
 # *** Calculate Biomass and CPUE -----------------------------------------------------------
 
