@@ -23,7 +23,7 @@ The `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1,
 
 The Marport Deep Sea Technologies Inc. net mensuration system was used during the deployment of each tow to record net spread and net height. Net spread was measured as the horizontal distance between two sensors attached immediately forward of the junction of the upper breastline and the dandyline, and net height was measured from the headrope to the seafloor. Mean net spread values for estimating area swept per tow were calculated according to methods described by @RN910. A custom-made AFSC bottom contact sensor (accelerometer) attached to the center of the footrope was used to determine tow duration based on footrope contact with the seafloor. 
 
-Temperature and depth profiles were recorded using a Sea-Bird SBE-39 datalogger (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station. Average bottom depth was calculated by adding the average net height to the average depth of the headrope. 
+Temperature and depth profiles were recorded using a Sea-Bird SBE-39 temperature-depth recorder (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station. Average bottom depth was calculated by adding the average net height to the average depth of the headrope. 
 
 
 ```{r}
@@ -101,7 +101,7 @@ if (sum(!is.na(temp$vessel)) == nrow(temp)) {
                 NMFSReports::text_list(paste0(xunits(temp0$N), " tow on the ", temp0$vessel_ital)), ". ")
   }
   
-  str0 <- paste0(str0, "To estimate missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows based on the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), and $s$ is the scope, inversed, below.
+  str0 <- paste0(str0, "To estimate missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows following the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), and $s$ is the scope, inversed, below.
 
 $$ w \\sim {s}^{-1} + h + \\frac{h}{s} + \epsilon $$
 
@@ -252,7 +252,7 @@ str0 <- data.frame(str = str0,
                   SRVY = unique(cruises_maxyr$SRVY))
 ```
 
-The `r text_list(vessel_info$vessel_ital)` conducted the standard EBS shelf survey charters. At the beginning of the survey, scientists boarded the vessels in Dutch Harbor, Alaska, then headed to eastern Bristol Bay to begin surveying.  From Bristol Bay, the survey then proceeded westward to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `). The progression from east to west was established in response to movements of yellowfin sole and other species, which may be migrating eastward during the course of the survey [@RN928]. In the EBS, `r str0$str[str0$SRVY == "EBS"]` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `).
+At the beginning of the survey, scientists boarded the vessels (`r text_list(vessel_info$vessel_ital)`) in Dutch Harbor, Alaska, then headed to eastern Bristol Bay to begin surveying.  From Bristol Bay, the survey then proceeded westward to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `). The east to west survey progression is intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration of yellowfin sole and other species [@RN928]. In the EBS, `r str0$str[str0$SRVY == "EBS"]` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `).
 
 ```{r}
 temp0 <- list_tables$tab_stratum_areas$raw
@@ -268,7 +268,7 @@ temp_tot <- temp0 %>%
   dplyr::select(density)
 ```
 
-For catch analysis, the EBS shelf was divided into 12 strata bounded by the 50-m, 100-m, and 200-m isobaths and a geographic stratum line separating the northwest and southeast shelf; the shelf was also delineated by localized, high-density strata in the regions around St. Matthew Island and the Pribilof Islands (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). This stratification scheme reflects the differences observed in Bering Sea groundfish distribution across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to reduce variance estimates for blue king crab. Sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`) and the sampling density for the entire EBS shelf was one station per `r xunits(temp_tot$density)` km^2^ (Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`). For purposes of some analyses (i.e., abundance at length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number")`; Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`).
+For catch analysis, the EBS shelf was divided into 12 strata bounded by the 50-m, 100-m, and 200-m isobaths and a geographic stratum line separating the northwest and southeast shelf (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). The stratum boundaries correspond with oceanographic domains and different biological communities. This stratification scheme reflects the differences observed in Bering Sea groundfish distribution across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to reduce variance estimates for blue king crab. Sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`) and the sampling density for the entire EBS shelf was one station per `r xunits(temp_tot$density)` km^2^ (Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`). For purposes of some analyses (i.e., abundance at length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number")`; Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`).
 
 ```{r}
 nbs_insert <- ""
@@ -307,9 +307,9 @@ if (SRVY == "NEBS") {
 
 ## Catch Sampling Procedures
 
-Standard sampling procedures used in RACE Bering Sea assessment surveys are described in detail by @RN939 and @RN933. A brief summary of these procedures is described below.
+Standard catch sampling procedures used in RACE Bering Sea assessment surveys are described in detail by @RN939 and @RN933. A brief summary of these procedures is described below.
 
-Samples were collected by trawling near the center of each grid square (or grid circle, in the case of high-density corner stations) for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If a station was not considered trawlable due to obstructions visible on the depth sounder, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage or contained debris, such as discarded crab pots, that caused visible changes in net mensuration were redeployed to obtain a successful sample.
+Samples were collected by trawling near the center of each grid square (or grid circle, in the case of high-density corner stations) for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If a station was not considered trawlable due to obstructions visible on the depth sounder, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage or contained debris, such as derelict crab pots, that caused visible changes in net mensuration were redeployed to obtain a successful sample.
 
 Catches estimated to be less than approximately 1,200 kg (2,650 lbs) were entirely sorted and enumerated, while larger catches were weighed in aggregate and subsampled before sorting. After sorting subsampled catches, individual species were weighed and counted in aggregate, and these weights and numbers were then expanded arithmetically to the total catch. Fishes and invertebrates were identified and sorted to the lowest taxonomic level practicable. 
 
