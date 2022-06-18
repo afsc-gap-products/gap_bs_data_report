@@ -2417,9 +2417,9 @@ plot_survey_stations <- function(reg_dat,
   if (stratum_no) {
     figure <- figure  +
       geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50")
-  # } else {
-    # figure <- figure  +
-    #   geom_sf(data = reg_dat$bathymetry, color = "grey50")    
+  } else {
+  figure <- figure  +
+    geom_sf(data = reg_dat$bathymetry, color = "transparent")
   }
   
   figure <- figure  +
