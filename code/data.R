@@ -25,6 +25,7 @@
 # ggplot() +
 #   geom_sf(data = nbs_grid)
 
+out.crs <- "EPSG:3338"
 
 report_types <- list(
   "EBS" = list(
@@ -36,12 +37,12 @@ report_types <- list(
     SRVY00 = 98, # EBS
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.south"),
-    extrap.box = c(xmn = -180, xmx = -156, ymn = 54, ymx = 62), 
+    extrap.box = c(xmin = -180, xmax = -156, ymin = 54, ymax = 62), 
     strat0 = c("10", "20", "30", "31", "32", "40", "41", "42", "43", "50", "60", "61", "62", "82", "90", 
                "999"),
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.south", 
-      set.crs = "auto")#,
+      set.crs = out.crs)#,
     # report_species = report_species_NEBS
   ), 
   "NBS" = list(
@@ -53,12 +54,12 @@ report_types <- list(
     SRVY00 = 143,
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.north"),
-    extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68),
+    extrap.box = c(xmin = -179.5, xmax = -157, ymin = 54, ymax = 68),
     strat0 = c("70", "71", "81", 
                "999"), 
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.north", 
-      set.crs = "auto")#,
+      set.crs = out.crs)#,
     # report_species = report_species_NEBS
   ), 
   "NEBS" = list(
@@ -71,17 +72,16 @@ report_types <- list(
                143), # EBS
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.all"),
-    extrap.box = c(xmn = -179.5, xmx = -157, ymn = 54, ymx = 68),
+    extrap.box = c(xmin = -179.5, xmax = -157, ymin = 54, ymax = 68),
     strat0 = c("10", "20", "30", "31", "32", "40", "41", "42", "43", "50", "60", "61", "62", "82", "90",
                "70", "71", "81", 
                "999"), 
     reg_dat = akgfmaps::get_base_layers(
       select.region = "bs.all", 
-      set.crs = "auto")#,
+      set.crs = out.crs)#,
     # report_species = report_species_NEBS
   )
 )
-
 
 # TOLEDO
 # report_types$EBS$reg_dat$survey.strata$Stratum[

@@ -156,6 +156,7 @@ if (spp_plot_idw_coldwarm){
       year = "year",
       grid = "extrapolation.grid",
       extrap.box = extrap.box, 
+      reg_dat = reg_dat, 
       region = map.area, 
       key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
       grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
@@ -220,6 +221,7 @@ if (spp_plot_idw | spp_plot_pa){
     year = "year",
     grid = "extrapolation.grid",
     extrap.box = extrap.box0, 
+    reg_dat = reg_dat, 
     region = map.area, 
     key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
     grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
@@ -242,8 +244,8 @@ if (spp_plot_idw | spp_plot_pa){
       lon = "longitude",
       year = "year",
       extrap.box = extrap.box0, 
-      region = map.area, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), "\npresence"),
+      reg_dat = reg_dat, 
+      key.title = paste0("Presence of ", stringr::str_to_sentence(spp_print)),
       row0 = 1)
     
   }
@@ -268,33 +270,33 @@ if (spp_plot_idw | spp_plot_pa){
 ```{r fig_pa_cpue_[taxon]_[spp]}
 # 
 # if (spp_plot_pa){
-#   
+# 
 #   nickname <- paste0("fig_pa_cpue_", spp_taxon, "_", spp_file)
-#   
+# 
 #   height <- ifelse(SRVY == "NEBS", 5, 4) # height <- 6
 #   width <- full_page_portrait_width # 6.5
-#   
+# 
 #   table_raw <- cpue %>%
-#     dplyr::filter(!is.na(cpue_kgha) & 
-#                     species_code %in% spp_code & 
-#                     year %in% c(maxyr, compareyr)) %>% 
+#     dplyr::filter(!is.na(cpue_kgha) &
+#                     species_code %in% spp_code &
+#                     year %in% c(maxyr, compareyr)) %>%
 #     dplyr::arrange(desc(year))
-#   
-#   
-#   header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+# 
+# 
+#   header <- paste0("Contour maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")),
 #                    " distribution and relative biomass (kg/ha) from the ",
 #                    compareyr," (left) and ",maxyr,
 #                    " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
-#   
-#   set.breaks <- set_breaks(dat = table_raw, 
+# 
+#   set.breaks <- set_breaks(dat = table_raw,
 #                            var = "cpue_kgha")
-#   
+# 
 #   # only if both species re only found in prt of the region, chnge the extrp.box
 #   extrap.box0 <- extrap.box
 #   if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") {
 #     extrap.box0 <- report_types[[unique(table_raw$SRVY)]]$extrap.box
 #   }
-#   
+# 
 #   figure <- plot_pa_xbyx(
 #     yrs = c(maxyr, compareyr),
 #     dat = table_raw,
@@ -302,26 +304,26 @@ if (spp_plot_idw | spp_plot_pa){
 #     lon = "longitude",
 #     var = "cpue_kgha",
 #     year = "year",
-#     extrap.box = extrap.box0, 
-#     region = map.area, 
+#     extrap.box = extrap.box0,
+#     reg_dat = reg_dat,
 #     key.title = paste0(stringr::str_to_sentence(spp_print), "
 # relative biomass (kg/ha)"),
-# grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
+# grid.cell = c(ifelse(workfaster, 1.5, 0.02),
 #               ifelse(workfaster, 1.5, 0.02)),
-# set.breaks = set.breaks, 
+# set.breaks = set.breaks,
 # row0 = 1)
-#   
+# 
 #   # save yo' stuff and do a lot of behind the scenes work
 #   # alt: this does the same thing as calling "child = " in the chunk header
 #   res <- knitr::knit_child(
 #     text = knitr::knit_expand(
-#       file = system.file("rmd/_child_save_fig.Rmd", 
-#                          package = "NMFSReports")), 
+#       file = system.file("rmd/_child_save_fig.Rmd",
+#                          package = "NMFSReports")),
 #     quiet = TRUE
 #   )
-#   
+# 
 #   list_figures[nickname][[1]]$res <- res
-#   
+# 
 # }
 
 ```

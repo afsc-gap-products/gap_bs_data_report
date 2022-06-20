@@ -1274,14 +1274,15 @@ plot_pa_xbyx <- function(
     key.title = "", 
     extrap.box, 
     row0 = 2, 
-    region = "ebs",
+    reg_dat,
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
     plot_coldpool = FALSE, 
     plot_stratum = TRUE, 
     use.survey.bathymetry = FALSE) {
   
-  reg_dat <- akgfmaps::get_base_layers(select.region = region)
+  # reg_dat <- akgfmaps::get_base_layers(select.region = region, 
+  #                                      set.crs = "EPSG:3338")
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
   dat <- dat %>%
@@ -1290,20 +1291,21 @@ plot_pa_xbyx <- function(
                   lon = as.character(lon)) %>% 
     dplyr::select(year, lat, lon) %>% 
     dplyr::mutate(year = as.numeric(year), 
-                  lat = as.numeric(lat), 
-                  lon = as.numeric(lon))
+                  latdd = as.numeric(lat), 
+                  londd = as.numeric(lon))
   
-  d <- dat[,c("lon", "lat")]
-  coordinates(d) <- c("lon", "lat")
-  proj4string(d) <- CRS("+init=epsg:4326") # 
-  d <- data.frame(sp::spTransform(x = d, CRSobj = CRS(reg_dat$crs$input)))
-  dat$lon <- d$lon
-  dat$lat <- d$lat
-    
-    figure <- ggplot() + 
-      ggplot2::geom_point(data = dat, 
-                          mapping = aes(x = lon, y = lat, group = "year"), 
-                          color = mako(n = 1, begin = .25, end = .75), size = 3)
+  d <- dat[,c("londd", "latdd", "year")]
+  coordinates(d) <- c("londd", "latdd")
+  proj4string(d) <- CRS("+proj=longlat") 
+  dd <- sf::st_as_sf(x = dd, coords = 1:2)
+  dd <- sf::st_transform(x = dd, CRSobj = CRS("+init=EPSG:3338")) # CRS(reg_dat$crs$input)))
+  
+  figure <- ggplot() +
+    geom_sf(data = dd, aes(group = as.factor(year), shape = key.title), 
+                                    color = mako(n = 1, begin = .25, end = .75),
+                                    size = 2,
+                                    show.legend = TRUE,
+                                    na.rm = TRUE)
   
   if (plot_coldpool) {
     
@@ -1372,8 +1374,8 @@ plot_pa_xbyx <- function(
     geom_sf(data = reg_dat$graticule,
             color = "grey80",
             alpha = 0.2) +
-    geom_sf(data = reg_dat$akland, 
-            color = NA, 
+    geom_sf(data = reg_dat$akland,
+            color = NA,
             fill = "grey50") +
     scale_y_continuous(name = "", # "Latitude",,
                        limits = reg_dat$plot.boundary$y,
@@ -1389,19 +1391,33 @@ plot_pa_xbyx <- function(
                    st.dist = ifelse(row0 > 2, 0.08, 0.04),
                    height = ifelse(row0 > 2, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2.5, 3), # 2.5
-                   model = reg_dat$crs)  +
-
-    theme( # set legend position and vertical arrangement
-      # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
-      legend.position = "none",
+                   st.size = ifelse(row0 > 2, 2.5, 3)#, # 2.5
+                   ) +
+    guides(
+      fill = guide_legend(title = NA, 
+                          title.position = "top", 
+                          label.position = "bottom",
+                          title.hjust = 0.5,
+                          nrow = 1
+      )) +
+    theme(  #set legend position and vertical arrangement
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
       axis.text = element_text(size = 8),
+      
       strip.background = element_blank(), 
-      strip.text = element_text(size = 10, face = "bold"))
+      strip.text = element_text(size = 10, face = "bold"), 
+      legend.title = element_blank(), 
+      legend.text = element_text(size = 10),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = "bottom",
+      legend.box = "horizontal")
+  
   
   return(figure)
   
@@ -1460,14 +1476,16 @@ plot_idw_xbyx <- function(
     set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
     grid.cell = c(0.02, 0.02), 
     row0 = 2, 
-    region = "ebs",
+    reg_dat,
+    region, 
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
     plot_coldpool = FALSE, 
     plot_stratum = TRUE, 
     use.survey.bathymetry = FALSE) {
   
-  reg_dat <- akgfmaps::get_base_layers(select.region = region)
+  # reg_dat <- akgfmaps::get_base_layers(select.region = region, 
+  #                                      set.crs = "EPSG:3338")
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   figure <- ggplot()
   dat <- dat %>%
@@ -1499,7 +1517,7 @@ plot_idw_xbyx <- function(
         CPUE_KGHA = temp$var,
         use.survey.bathymetry = use.survey.bathymetry,
         region = region, 
-        out.crs = as.character(crs(reg_dat$bathymetry)),
+        out.crs = "EPSG:3338", #as.character(reg_dat$crs)[1],# as.character(crs(reg_dat$bathymetry)),
         extrap.box = extrap.box, 
         set.breaks = set.breaks,
         grid.cell = grid.cell, 
@@ -1600,20 +1618,15 @@ plot_idw_xbyx <- function(
     geom_sf(data = reg_dat$graticule,
             color = "grey80",
             alpha = 0.2) +
-    geom_sf(data = reg_dat$akland, 
-            color = NA, 
+    geom_sf(data = reg_dat$akland,
+            color = NA,
             fill = "grey50") +
     scale_y_continuous(name = "", # "Latitude",,
-                       # labels = lat_break, 
-                       # labels = reg_dat$lat.breaks, 
                        limits = reg_dat$plot.boundary$y,
                        breaks = lat_break) +
     scale_x_continuous(name = "", # "Longitude"#,
-                       # labels = reg_dat$lon.breaks,
                        limits = reg_dat$plot.boundary$x,
                        breaks = lon_break) +
-    # coord_sf(xlim = reg_dat$plot.boundary$x, 
-    #          ylim = reg_dat$plot.boundary$y)  +
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
                    dist = 150,
@@ -1622,8 +1635,8 @@ plot_idw_xbyx <- function(
                    st.dist = ifelse(row0 > 2, 0.08, 0.04),
                    height = ifelse(row0 > 2, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2.5, 3), # 2.5
-                   model = reg_dat$crs) 
+                   st.size = ifelse(row0 > 2, 2.5, 3)#, # 2.5
+    )
   
   
   if (grid == "continuous.grid") {
@@ -1709,7 +1722,7 @@ plot_temps_facet <- function(rasterbrick,
                              colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
                              dist_unit = "nm", # nautical miles
                              viridis_palette_option = "H", 
-                             row = 2, 
+                             row0 = 2, 
                              title0 = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
@@ -1731,7 +1744,7 @@ plot_temps_facet <- function(rasterbrick,
     geom_tile(data=temp_df, 
               mapping = aes(x=x, y=y, fill=cut(value, breaks = colorbar_breaks)))  +
     facet_wrap( ~ year, 
-                nrow = row) +
+                nrow = row0) +
     coord_equal() +
     scale_fill_manual(values = fig_palette) +
     geom_sf(data = reg_dat$survey.strata,
@@ -1753,13 +1766,13 @@ plot_temps_facet <- function(rasterbrick,
              ylim = reg_dat$plot.boundary$y)  +
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
-                   dist = 150,
+                   dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row > 2, 0.08, 0.04),
-                   height = ifelse(row > 2, 0.04, 0.02),
-                   st.bottom = ifelse(row <= 2, TRUE, FALSE),
-                   st.size = ifelse(row > 2, 2.5, 3), # 2.5
+                   st.dist = ifelse(row0 > 2, 0.08, 0.04),
+                   height = ifelse(row0 > 2, 0.04, 0.02),
+                   st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+                   st.size = ifelse(row0 > 2, 2.5, 3), # 2.5
                    model = reg_dat$crs) +
     #set legend position and vertical arrangement
     guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
