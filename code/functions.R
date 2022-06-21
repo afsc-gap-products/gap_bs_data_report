@@ -1490,13 +1490,14 @@ plot_idw_xbyx <- function(
   figure <- ggplot()
   dat <- dat %>%
     dplyr::rename(year = as.character(year), 
-                  lat = as.character(lat), 
-                  lon = as.character(lon), 
-                  var = as.character(var)) %>% 
-    dplyr::select(year, lat, lon, var) %>% 
+                  LATITUDE = as.character(lat), 
+                  LONGITUDE = as.character(lon), 
+                  CPUE_KGHA = as.character(var)) %>% 
+    dplyr::select(year, LATITUDE, LONGITUDE, CPUE_KGHA) %>% 
     dplyr::mutate(year = as.numeric(year), 
-                  lat = as.numeric(lat), 
-                  lon = as.numeric(lon))
+                  CPUE_KGHA = as.numeric(CPUE_KGHA), 
+                  LATITUDE = as.numeric(LATITUDE), 
+                  LONGITUDE = as.numeric(LONGITUDE))
   
   if (nrow(dat) != 0) {
     if (set.breaks[1] =="auto") {
@@ -1511,14 +1512,29 @@ plot_idw_xbyx <- function(
       temp <- dat %>% 
         dplyr::filter(year == yrs[ii]) 
       
-      temp1 <- akgfmaps::make_idw_map(
-        LATITUDE = temp$lat,
-        LONGITUDE = temp$lon,
-        CPUE_KGHA = temp$var,
+      # opt1 <- make_idw_map(x = yfs2017, # Pass data as a data frame
+      #                      region = region, # Predefined bs.all area
+      #                      set.breaks = set.breaks, # Gets Jenks breaks from classint::classIntervals()
+      #                      in.crs = "+proj=longlat", # Set input coordinate reference system
+      #                      out.crs = "EPSG:3338", # Set output coordinate reference system
+      #                      grid.cell = c(20000, 20000), # 20x20km grid
+      #                      key.title = "yellowfin sole") # Include yellowfin sole in the legend title
+      # 
+      # 
+      # temp1 <- make_idw_map(x = temp, # Pass data as a data frame
+      #                      region = region, # Predefined bs.all area
+      #                      set.breaks = set.breaks, # Gets Jenks breaks from classint::classIntervals()
+      #                      use.survey.bathymetry = use.survey.bathymetry,
+      #                      # in.crs = "+proj=longlat", # Set input coordinate reference system
+      #                      # out.crs = "EPSG:3338", # Set output coordinate reference system
+      #                      grid.cell = grid.cell, # 20x20km grid
+      #                      key.title = key.title) # Include yellowfin sole in the legend title
+      
+      temp1 <- make_idw_map(x = temp, # Pass data as a data frame
         use.survey.bathymetry = use.survey.bathymetry,
         region = region, 
         out.crs = "EPSG:3338", #as.character(reg_dat$crs)[1],# as.character(crs(reg_dat$bathymetry)),
-        extrap.box = extrap.box, 
+        # extrap.box = extrap.box, 
         set.breaks = set.breaks,
         grid.cell = grid.cell, 
         key.title = key.title)
