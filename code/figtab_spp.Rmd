@@ -214,7 +214,8 @@ if (spp_plot_idw | spp_plot_pa){
 
   figure <- plot_idw_xbyx(
     yrs = c(maxyr, compareyr),
-    dat = table_raw,
+    dat = table_raw, # %>% 
+        # dplyr::filter(!is.na(cpue_kgha)), # TOLEDO
     lat = "latitude",
     lon = "longitude",
     var = "cpue_kgha",
@@ -233,7 +234,7 @@ if (spp_plot_idw | spp_plot_pa){
     header <- paste0("Maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                      " presence from the ",
                      compareyr," (left) and ",maxyr,
-                     " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
+                     " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys. Historically, not enough of this species is caught to calculate a distribution. ")
     
 
     figure <- plot_pa_xbyx(
@@ -245,7 +246,7 @@ if (spp_plot_idw | spp_plot_pa){
       year = "year",
       extrap.box = extrap.box0, 
       reg_dat = reg_dat, 
-      key.title = paste0("Presence of ", stringr::str_to_sentence(spp_print)),
+      key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
       row0 = 1)
     
   }
