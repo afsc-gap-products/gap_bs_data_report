@@ -1643,10 +1643,10 @@ plot_idw_xbyx <- function(
                    dist = 100, #ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 2, 0.08, 0.04),
+                   st.dist = ifelse(row0 > 2, 0.08, 0.03),
                    height = ifelse(row0 > 2, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2.5, 3))
+                   st.size = ifelse(row0 > 2, 2.25, 3))
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
