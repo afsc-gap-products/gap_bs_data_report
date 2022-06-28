@@ -1239,7 +1239,6 @@ set_breaks <- function(dat, var) {
 #' @param lon The name of the column in dat for longitude
 #' @param year The name of the column in dat for year
 #' @param key.title A character string that will be used as the legend title
-#' @param extrap.box Optional. Vector specifying the dimensions of the extrapolation grid. Elements of the vector should be named to specify the minimum and maximum x and y values c(xmn, xmx, ymn, ymx). If not provided, region will be used to set the extrapolation area. Feeds the akgfmaps::make_idw_map. 
 #' @param row0 How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
 #' @param region Defualt = "bs.south". Inherited from akgfmaps::make_idw_map. 
 #' @param dist_unit Default = "nm" (nautical miles). This is the unit that will be used for the map's scale bar.  
@@ -1259,7 +1258,6 @@ set_breaks <- function(dat, var) {
 #'   year = "YEAR",
 #'   key.title = "Yellowfin sole (kg/km2)", 
 #'   grid = "extrapolation.grid",
-#'   extrap.box = c(xmn = -180, xmx = -156, ymn = 54, ymx = 62), 
 #'   grid.cell = c(1.5, 1.5), # will take less time
 #'   row0 = 1, 
 #'   region = "bs.south") 
@@ -1271,7 +1269,6 @@ plot_pa_xbyx <- function(
     lon,
     year,
     key.title = "", 
-    extrap.box, 
     row0 = 2, 
     reg_dat,
     dist_unit = "nm", # nautical miles
@@ -1282,7 +1279,7 @@ plot_pa_xbyx <- function(
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
-  dat <- dat %>%
+  dat0 <- dat %>%
     dplyr::rename(year = as.character(year), 
                   lat = as.character(lat), 
                   lon = as.character(lon)) %>% 
@@ -1291,7 +1288,7 @@ plot_pa_xbyx <- function(
                   latdd = as.numeric(lat), 
                   londd = as.numeric(lon))
   
-  d <- dat[,c("londd", "latdd", "year")]
+  d <- dat0[,c("londd", "latdd", "year")]
   coordinates(d) <- c("londd", "latdd")
   sp::proj4string(d) <- CRS("+proj=longlat +datum=WGS84") 
   dd <- data.frame(sp::spTransform(d, CRS(as.character(reg_dat$crs)[1])))
@@ -1305,7 +1302,7 @@ plot_pa_xbyx <- function(
             color = "grey80",
             alpha = 0.2)
   
-  if (length(length(reg_dat$survey.area$color)>1) ) {
+  # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure   + 
       geom_point(data = dd, 
                  mapping = aes(x = londd, y = latdd,
@@ -1316,11 +1313,8 @@ plot_pa_xbyx <- function(
                  size = 2,
                  show.legend = TRUE,
                  na.rm = TRUE) +
-      geom_sf(data = reg_dat$survey.area %>%
-                dplyr::mutate(SURVEY = dplyr::case_when(
-                  SURVEY == "EBS_SHELF" ~ "EBS", 
-                  SURVEY == "NBS_SHELF" ~ "NBS")) %>% 
-                dplyr::filter(SURVEY %in% SRVY1), 
+      geom_sf(data = reg_dat$survey.area, # %>% 
+                # dplyr::filter(SRVY %in% SRVY1), 
               mapping = aes(color = SURVEY), 
               fill = NA, 
               shape = NA, 
@@ -1329,20 +1323,20 @@ plot_pa_xbyx <- function(
       scale_color_manual(
         name = "", # key.title,
         values = reg_dat$survey.area$color,
-        breaks = rev(unique(station_info$SRVY)), 
-        labels = rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long)))) 
-  } else {
-    figure <- figure   + 
-      geom_point(data = dd, 
-                 mapping = aes(x = londd, y = latdd, 
-                               shape = key.title,
-                               group = as.factor(year)), 
-                 color = mako(n = 1, begin = .25, end = .75),
-                 # shape = 16,
-                 size = 2,
-                 show.legend = TRUE,
-                 na.rm = TRUE) 
-  }
+        breaks = rev(reg_dat$survey.area$SURVEY), 
+        labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY_long)))
+  # } else {
+  #   figure <- figure   + 
+  #     geom_point(data = dd, 
+  #                mapping = aes(x = londd, y = latdd, 
+  #                              shape = key.title,
+  #                              group = as.factor(year)), 
+  #                color = mako(n = 1, begin = .25, end = .75),
+  #                # shape = 16,
+  #                size = 2,
+  #                show.legend = TRUE,
+  #                na.rm = TRUE) 
+  # }
   
   if (plot_coldpool) {
     
@@ -1468,7 +1462,6 @@ plot_pa_xbyx <- function(
 #' @param year The name of the column in dat for year
 #' @param key.title A character string that will be used as the legend title
 #' @param grid "continuous.grid" or "extrapolation.grid"
-#' @param extrap.box Optional. Vector specifying the dimensions of the extrapolation grid. Elements of the vector should be named to specify the minimum and maximum x and y values c(xmn, xmx, ymn, ymx). If not provided, region will be used to set the extrapolation area. Feeds the akgfmaps::make_idw_map. 
 #' @param set.breaks Suggested. Vector of break points to use for plotting. Feeds the akgfmaps::make_idw_map.  function.  
 #' @param grid.cell Inherited from akgfmaps::make_idw_map. Numeric vector of length two, specifying the resolution for the extrapolation grid in degrees. Default c(0.05,0.05)
 #' @param row0 How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
@@ -1491,7 +1484,6 @@ plot_pa_xbyx <- function(
 #'   year = "YEAR",
 #'   key.title = "Yellowfin sole (kg/km2)", 
 #'   grid = "extrapolation.grid",
-#'   extrap.box = c(xmn = -180, xmx = -156, ymn = 54, ymx = 62), 
 #'   grid.cell = c(1.5, 1.5), # will take less time
 #'   row0 = 1, 
 #'   region = "bs.south") 
@@ -1505,9 +1497,8 @@ plot_idw_xbyx <- function(
     year,
     key.title = "", 
     grid = "extrapolation.grid",
-    extrap.box, 
     set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
-    grid.cell = c(0.02, 0.02), 
+    grid.cell = c(20000, 20000), # c(0.02, 0.02), for lat-lon 
     row0 = 2, 
     reg_dat,
     region, 
@@ -1657,28 +1648,46 @@ plot_idw_xbyx <- function(
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
                    st.size = ifelse(row0 > 2, 2.5, 3))
   
-  if (length(length(reg_dat$survey.area$color)>1) ) {
+  # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
-      geom_sf(data = reg_dat$survey.area %>%
-                dplyr::mutate(SURVEY = dplyr::case_when(
-                  SURVEY == "EBS_SHELF" ~ "EBS", 
-                  SURVEY == "NBS_SHELF" ~ "NBS")) %>% 
-                dplyr::filter(SURVEY %in% SRVY1), 
+      geom_sf(data = reg_dat$survey.area %>% 
+                dplyr::filter(SRVY %in% SRVY1), 
               mapping = aes(color = SURVEY), 
               fill = NA, 
               shape = NA, 
               size = ifelse(row0 > 2, 0.25, 0.75),
-              show.legend = TRUE) + 
+              show.legend = TRUE) +
       scale_color_manual(
-        name = "", #"Survey Region",
-        values = c(reg_dat$survey.area$color),
-        breaks = c(rev(unique(station_info$SRVY))), 
-        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long)))))  +
+        name = "", # key.title,
+        values = reg_dat$survey.area$color,
+        breaks = rev(reg_dat$survey.area$SURVEY), 
+        labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY_long))) + 
       ggplot2::guides(
         size = guide_legend(
           # order = 1,# survey regions
-          override.aes = list(size = 10)))
-  } 
+          override.aes = list(size = 10)))  +
+      guides(
+        fill = guide_legend(order = 1, 
+                            title.position = "top", 
+                            label.position = "bottom",
+                            title.hjust = 0.5, 
+                            override.aes = list(color = NA), 
+                            nrow = 1), 
+        color = guide_legend(order = 2, 
+                             label.position = "right",
+                             override.aes = list(size = 2), 
+                             title.hjust = 0.5,
+                             nrow = 2)) 
+  # } else {
+  #   figure <- figure +
+  #     guides(
+  #       fill = guide_legend(title = key.title, 
+  #                           title.position = "top", 
+  #                           label.position = "bottom",
+  #                           title.hjust = 0.5, 
+  #                           override.aes = list(color = NA), 
+  #                           nrow = 1)) 
+  # }
   
   
   if (grid == "continuous.grid") {
@@ -1709,17 +1718,6 @@ plot_idw_xbyx <- function(
   }
   
   figure <- figure +
-    guides(
-      fill = guide_legend(order = 1, 
-                          title.position = "top", 
-                          label.position = "bottom",
-                          title.hjust = 0.5, 
-                          override.aes = list(color = NA), 
-                          nrow = 1), 
-      color = guide_legend(order = 2, 
-                           label.position = "right",
-                           title.hjust = 0.5,
-                           nrow = 2)) +
     #set legend position and vertical arrangement
     theme( 
       # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
@@ -1741,7 +1739,7 @@ plot_idw_xbyx <- function(
       legend.position = "bottom", 
       # legend.box.just = "center",
       # legend.key.width = unit(.5, "in"), 
-      legend.box = "horizontal") # vertical
+      legend.box = "horizontal") # ifelse(length(length(reg_dat$survey.area$color)>1), "horizontal", "vertical"))
   
   return(figure)
   
@@ -1818,8 +1816,7 @@ plot_temps_facet <- function(rasterbrick,
                    st.dist = ifelse(row0 > 2, 0.08, 0.04),
                    height = ifelse(row0 > 2, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2.5, 3), # 2.5
-                   model = reg_dat$crs) +
+                   st.size = ifelse(row0 > 2, 2.5, 3)) +
     #set legend position and vertical arrangement
     guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
       fill = guide_legend(title.position="top", 

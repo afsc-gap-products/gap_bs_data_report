@@ -90,10 +90,15 @@ for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 # add color to survey.area
 survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
 survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
-# alpha(colour = c(reg_dat$survey.area$color), 0.7)
-reg_dat$survey.area$color <- alpha(colour = survey_reg_col, 0.7)
-
-
+reg_dat$survey.area <- reg_dat$survey.area %>%
+  dplyr::mutate(
+    SRVY = dplyr::case_when(
+      SURVEY == "EBS_SHELF" ~ "EBS", 
+      SURVEY == "NBS_SHELF" ~ "NBS"), 
+    color = alpha(colour = survey_reg_col, 0.7), 
+    SRVY_long = dplyr::case_when(
+      SRVY == "EBS" ~ "Eastern Bering Sea", 
+      SRVY == "NBS" ~ "Northern Bering Sea") )
 
 # fix reg_dat$graticule
 reg_dat$graticule <- sf::st_transform(x = reg_dat$graticule, crs = CRS(as.character(reg_dat$crs)[1]))

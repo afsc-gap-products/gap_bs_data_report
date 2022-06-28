@@ -114,7 +114,10 @@ if (spp_plot_idw_coldwarm){
     dplyr::filter(species_code %in% spp_code #& 
                   # dplyr::filter(common_name %in% spp_common & 
                   # year %in% unlist(temps_avg_yr_abovebelow)
-    )
+    ) %>% 
+    dplyr::mutate(SRVY_long = dplyr::case_when(
+                    SRVY == "EBS" ~ "Eastern Bering Sea", 
+                    SRVY == "NBS" ~ "Northern Bering Sea"))
   
   set.breaks <- set_breaks(dat = table_raw0, 
                            var = "cpue_kgha")
@@ -155,11 +158,9 @@ if (spp_plot_idw_coldwarm){
       var = "cpue_kgha",
       year = "year",
       grid = "extrapolation.grid",
-      extrap.box = extrap.box, 
       reg_dat = reg_dat, 
       region = map.area, 
       key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
-      grid.cell = c(20000, 20000), #c(ifelse(workfaster, 20000, 0.02), # c(20000, 20000) # 20x20km grid
       set.breaks = set.breaks, 
       row0 = row0)
     
@@ -183,7 +184,7 @@ if (spp_plot_idw_coldwarm){
 
 ```{r fig_idw_cpue_[taxon]_[spp]}
 
-if (spp_plot_idw | spp_plot_pa){
+if (spp_plot_idw | spp_plot_pa) {
   
   nickname <- paste0("fig_idw_cpue_", spp_taxon, "_", spp_file)
   
@@ -198,9 +199,23 @@ if (spp_plot_idw | spp_plot_pa){
   
     
   # only if both species re only found in prt of the region, chnge the extrp.box
-  extrap.box0 <- extrap.box
-  if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") {
-    extrap.box0 <- report_types[[unique(table_raw$SRVY)]]$extrap.box
+  map.area0 <- map.area
+  reg_dat0 <- reg_dat
+  if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
+    map.area0 <- ifelse(unique(table_raw$SRVY) == "EBS", "bs.south", "bs.north")
+    reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
+    survey_reg_col <- gray.colors(length(unique(reg_dat0$survey.area$SURVEY))+2)
+    survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+    reg_dat0$survey.area <- reg_dat0$survey.area %>%
+                dplyr::mutate(
+                  SRVY = dplyr::case_when(
+                    SURVEY == "EBS_SHELF" ~ "EBS", 
+                    SURVEY == "NBS_SHELF" ~ "NBS"), 
+                  color = alpha(colour = survey_reg_col, 0.7), 
+                  SRVY_long = dplyr::case_when(
+                    SRVY == "EBS" ~ "Eastern Bering Sea", 
+                    SRVY == "NBS" ~ "Northern Bering Sea"))
+    
   }
   
   if (spp_plot_idw) {
@@ -209,8 +224,7 @@ if (spp_plot_idw | spp_plot_pa){
                      compareyr," (left) and ",maxyr,
                      " (right) EBS (eastern Bering Sea) and NBS (northern Bering Sea) bottom trawl surveys.")
     
-      set.breaks <- set_breaks(dat = table_raw, 
-                           var = "cpue_kgha")
+      set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
 
   figure <- plot_idw_xbyx(
     yrs = c(maxyr, compareyr),
@@ -221,12 +235,9 @@ if (spp_plot_idw | spp_plot_pa){
     var = "cpue_kgha",
     year = "year",
     grid = "extrapolation.grid",
-    extrap.box = extrap.box0, 
-    reg_dat = reg_dat, 
-    region = map.area, 
+    reg_dat = reg_dat0, 
+    region = map.area0, 
     key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
-    grid.cell = c(20000, 20000), #c(ifelse(workfaster, 20000, 0.02), # c(20000, 20000) # 20x20km grid
-              # ifelse(workfaster, 20000, 0.02)),
     set.breaks = set.breaks, 
     row0 = 1)
 
@@ -244,11 +255,11 @@ if (spp_plot_idw | spp_plot_pa){
       lat = "latitude",
       lon = "longitude",
       year = "year",
-      extrap.box = extrap.box0, 
-      reg_dat = reg_dat, 
+      reg_dat = reg_dat0, 
       key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
       row0 = 1)
     
+  
   }
 
   # save yo' stuff and do a lot of behind the scenes work
