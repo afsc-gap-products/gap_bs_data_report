@@ -90,6 +90,17 @@ if (crab_resample == TRUE){
       unique(), 
     by = ("STATIONID")) 
 }
+# vess <- survey.grid0 %>% dplyr::filter(!is.na(vessel_name))
+
+
+# figure <- plot_survey_stations(reg_dat = reg_dat0, 
+#                                station_info, 
+#                                haul_cruises_maxyr, 
+#                                station_grid = FALSE, 
+#                                stratum_no = TRUE, 
+#                                station_pts_srvy = FALSE, 
+#                                station_pts_vess = TRUE, 
+#                                crab_resample = FALSE) # defined in data.r
 
 figure <- plot_survey_stations(
   reg_dat = reg_dat0, 
@@ -508,7 +519,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 nickname <- paste0("tab_stomach_collection_scheme") 
 
-header <- paste0("Stomach collection scheme during the ", 
+header <- paste0("Target stomach collection numbers during the ", 
                  maxyr, " ", 
                  NMFSReports::text_list(paste0( 
                    haul_cruises_maxyr$SRVY)),
@@ -1294,7 +1305,7 @@ temp <- function(exp0,
                      num_hauls = sum(num_hauls, na.rm = TRUE)  # do I need to sum num_hauls from all spp or sum of tows where any of those species ever occured
                      ) %>%
     dplyr::mutate(ci = confint(num_hauls, bio_var), 
-                  taxon = paste0("total ", (group)))
+                  taxon = paste0("total ", tolower(group)))
   
   biomass_group_999 <- dat %>%  ## summarize by group to compare to prior years tech memo    
     dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
@@ -1309,7 +1320,7 @@ temp <- function(exp0,
       ci = confint(num_hauls, bio_var), 
       # up_ci_bio_tot = biomass_mt + ci,
       # ci_percent = ((1-(biomass_mt/up_ci_bio_tot))*100), 
-      taxon = paste0("total ", (group)), 
+      taxon = paste0("total ", tolower(group)), 
       strata = 999) %>% 
     dplyr::select(-num)
   
