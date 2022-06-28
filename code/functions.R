@@ -1246,7 +1246,6 @@ set_breaks <- function(dat, var) {
 #' @param col_viridis Defauly = "mako". Inherited from ggplot2::scale_fill_viridis_c. This will be the color scheme for the inverse distance weighted plot. 
 #' @param plot_coldpool Default = TRUE Logical. Will plot cold pool outlines on the plot. 
 #' @param plot_stratum Default = FALSE. Logical. This will plot stratun areas on the plot. 
-#' @param use.survey.bathymetry Default = FALSE. Logical. Inherited from akgfmaps::make_idw_map
 #'
 #' @return
 #' @export
@@ -1278,11 +1277,9 @@ plot_pa_xbyx <- function(
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
     plot_coldpool = FALSE, 
-    plot_stratum = TRUE, 
+    plot_stratum = FALSE, 
     use.survey.bathymetry = FALSE) {
   
-  # reg_dat <- akgfmaps::get_base_layers(select.region = region, 
-  #                                      set.crs = "EPSG:3338")
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
   dat <- dat %>%
@@ -1296,16 +1293,56 @@ plot_pa_xbyx <- function(
   
   d <- dat[,c("londd", "latdd", "year")]
   coordinates(d) <- c("londd", "latdd")
-  proj4string(d) <- CRS("+proj=longlat") 
-  dd <- sf::st_as_sf(x = dd, coords = 1:2)
-  dd <- sf::st_transform(x = dd, CRSobj = CRS("+init=EPSG:3338")) # CRS(reg_dat$crs$input)))
+  sp::proj4string(d) <- CRS("+proj=longlat +datum=WGS84") 
+  dd <- data.frame(sp::spTransform(d, CRS(as.character(reg_dat$crs)[1])))
+  # dd <- as(res, "SpatialPoints") ## For a SpatialPoints object rather than a SpatialPointsDataFrame
   
   figure <- ggplot() +
-    geom_sf(data = dd, aes(group = as.factor(year), shape = key.title), 
-                                    color = mako(n = 1, begin = .25, end = .75),
-                                    size = 2,
-                                    show.legend = TRUE,
-                                    na.rm = TRUE)
+    geom_sf(data = reg_dat$akland,
+            color = NA,
+            fill = "grey50") +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2)
+  
+  if (length(length(reg_dat$survey.area$color)>1) ) {
+  figure <- figure   + 
+    geom_point(data = dd, 
+            mapping = aes(x = londd, y = latdd, 
+                          # shape = key.title,
+                group = as.factor(year)), 
+            color = mako(n = 1, begin = .25, end = .75),
+            shape = 16,
+            size = 2,
+            show.legend = TRUE,
+            na.rm = TRUE) +
+  geom_sf(data = reg_dat$survey.area %>%
+            dplyr::mutate(SURVEY = dplyr::case_when(
+              SURVEY == "EBS_SHELF" ~ "EBS", 
+              SURVEY == "NBS_SHELF" ~ "NBS")) %>% 
+            dplyr::filter(SURVEY %in% SRVY1), 
+          mapping = aes(color = SURVEY), 
+          fill = NA, 
+          shape = NA, 
+          size = 1,
+          show.legend = TRUE) +
+    scale_color_manual(
+      name = "", #"Survey Region",
+      values = reg_dat$survey.area$color,
+      breaks = rev(unique(station_info$SRVY)), 
+      labels = rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long)))) 
+  } else {
+    figure <- figure   + 
+      geom_point(data = dd, 
+                 mapping = aes(x = londd, y = latdd, 
+                               shape = key.title,
+                               group = as.factor(year)), 
+                 color = mako(n = 1, begin = .25, end = .75),
+                 # shape = 16,
+                 size = 2,
+                 show.legend = TRUE,
+                 na.rm = TRUE) 
+  }
   
   if (plot_coldpool) {
     
@@ -1339,17 +1376,17 @@ plot_pa_xbyx <- function(
     
   }  
   
-  if (length(yrs) == 0) {
+  if (length(yrs) == 0) { # if there is no data to plot
     grid <- ""
     figure <- figure +
       ggplot2::geom_text(mapping = aes(x = mean(reg_dat$lon.breaks), 
                                        y = mean(reg_dat$lat.breaks), 
                                        label = "No data was available\nfor this species in this\nregion for this year."), 
                          fontface="bold")
-  }   else if (length(yrs)>1) {
+  } else if (length(yrs)>1) { # if there is data to plot
     figure <- figure +
       facet_wrap( ~ year, nrow = row0) +
-      coord_equal() 
+      coord_sf() # coord_equal() 
   }
   
   
@@ -1362,43 +1399,41 @@ plot_pa_xbyx <- function(
               fill = NA)
   }
   
-  lon_break <- reg_dat$lon.breaks
-  lat_break <- reg_dat$lat.breaks
-  
-  if (length(yrs) > 6) {
-    lon_break <- reg_dat$lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
-    lat_break <- reg_dat$lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
-  }
+  # lon_break <- reg_dat$lon.breaks
+  # lat_break <- reg_dat$lat.breaks
+  # lon_label <- reg_dat$lon.label
+  # lat_label <- reg_dat$lat.label
+  # if (length(yrs) > 6) { # are there a lot of plots on the page? In which case we'd want detail
+  #   lon_break <- lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
+  #   lat_break <- lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
+  #   lon_label <- lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_label))]
+  #   lat_label <- lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_label))]
+  # }
   
   figure <- figure +
-    geom_sf(data = reg_dat$graticule,
-            color = "grey80",
-            alpha = 0.2) +
-    geom_sf(data = reg_dat$akland,
-            color = NA,
-            fill = "grey50") +
     scale_y_continuous(name = "", # "Latitude",,
-                       limits = reg_dat$plot.boundary$y,
-                       breaks = lat_break) +
+                       limits = reg_dat$plot.boundary$y, n.breaks = 2#, 
+                       # labels = lat_label,
+                       # breaks = lat_break
+                       ) +
     scale_x_continuous(name = "", # "Longitude"#,
-                       limits = reg_dat$plot.boundary$x,
-                       breaks = lon_break) +
+                       limits = reg_dat$plot.boundary$x)  +
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
-                   dist = 150,
+                   dist = ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
                    st.dist = ifelse(row0 > 2, 0.08, 0.04),
                    height = ifelse(row0 > 2, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
                    st.size = ifelse(row0 > 2, 2.5, 3)#, # 2.5
-                   ) +
+    ) +
     guides(
-      fill = guide_legend(title = NA, 
+      fill = guide_legend(title = key.title, 
                           title.position = "top", 
                           label.position = "bottom",
                           title.hjust = 0.5,
-                          nrow = 1
+                          nrow = 2
       )) +
     theme(  #set legend position and vertical arrangement
       panel.background = element_rect(fill = "white", 
@@ -1409,7 +1444,7 @@ plot_pa_xbyx <- function(
       
       strip.background = element_blank(), 
       strip.text = element_text(size = 10, face = "bold"), 
-      legend.title = element_blank(), 
+      # legend.title = ,element_blank(),
       legend.text = element_text(size = 10),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
@@ -1443,7 +1478,6 @@ plot_pa_xbyx <- function(
 #' @param col_viridis Defauly = "mako". Inherited from ggplot2::scale_fill_viridis_c. This will be the color scheme for the inverse distance weighted plot. 
 #' @param plot_coldpool Default = TRUE Logical. Will plot cold pool outlines on the plot. 
 #' @param plot_stratum Default = FALSE. Logical. This will plot stratun areas on the plot. 
-#' @param use.survey.bathymetry Default = FALSE. Logical. Inherited from akgfmaps::make_idw_map
 #'
 #' @return
 #' @export
@@ -1480,14 +1514,9 @@ plot_idw_xbyx <- function(
     region, 
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
-    plot_coldpool = FALSE, 
-    plot_stratum = TRUE, 
-    use.survey.bathymetry = FALSE) {
-  
-  # reg_dat <- akgfmaps::get_base_layers(select.region = region, 
-  #                                      set.crs = "EPSG:3338")
+    plot_coldpool = FALSE) {
+    
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
-  figure <- ggplot()
   dat <- dat %>%
     dplyr::rename(year = as.character(year), 
                   LATITUDE = as.character(lat), 
@@ -1499,6 +1528,7 @@ plot_idw_xbyx <- function(
                   LATITUDE = as.numeric(LATITUDE), 
                   LONGITUDE = as.numeric(LONGITUDE))
   
+  figure <- ggplot()
   if (nrow(dat) != 0) {
     if (set.breaks[1] =="auto") {
       set.breaks <- set_breaks(dat = dat, var = "var")
@@ -1507,34 +1537,12 @@ plot_idw_xbyx <- function(
     # Select data and make plot
     for (ii in length(yrs):1) {
       
-      # temp1 <- unique(dat$SRVY[dat$year == yrs[ii]])
-      
       temp <- dat %>% 
         dplyr::filter(year == yrs[ii]) 
       
-      # opt1 <- make_idw_map(x = yfs2017, # Pass data as a data frame
-      #                      region = region, # Predefined bs.all area
-      #                      set.breaks = set.breaks, # Gets Jenks breaks from classint::classIntervals()
-      #                      in.crs = "+proj=longlat", # Set input coordinate reference system
-      #                      out.crs = "EPSG:3338", # Set output coordinate reference system
-      #                      grid.cell = c(20000, 20000), # 20x20km grid
-      #                      key.title = "yellowfin sole") # Include yellowfin sole in the legend title
-      # 
-      # 
-      # temp1 <- make_idw_map(x = temp, # Pass data as a data frame
-      #                      region = region, # Predefined bs.all area
-      #                      set.breaks = set.breaks, # Gets Jenks breaks from classint::classIntervals()
-      #                      use.survey.bathymetry = use.survey.bathymetry,
-      #                      # in.crs = "+proj=longlat", # Set input coordinate reference system
-      #                      # out.crs = "EPSG:3338", # Set output coordinate reference system
-      #                      grid.cell = grid.cell, # 20x20km grid
-      #                      key.title = key.title) # Include yellowfin sole in the legend title
-      
       temp1 <- make_idw_map(x = temp, # Pass data as a data frame
-        use.survey.bathymetry = use.survey.bathymetry,
         region = region, 
-        out.crs = "EPSG:3338", #as.character(reg_dat$crs)[1],# as.character(crs(reg_dat$bathymetry)),
-        # extrap.box = extrap.box, 
+        out.crs = as.character(reg_dat$crs)[1],
         set.breaks = set.breaks,
         grid.cell = grid.cell, 
         key.title = key.title)
@@ -1550,9 +1558,6 @@ plot_idw_xbyx <- function(
       }
     }
     
-    
-    # stars_list0<-stars_list
-    
     # https://rpubs.com/michaeldorman/646276
     stars_list <- stars_list %>% 
       dplyr::select(names(stars_list)[substr(start = 1, stop = 1, x = names(stars_list)) == "y"])
@@ -1565,12 +1570,8 @@ plot_idw_xbyx <- function(
       geom_stars(data = stars_list, na.rm = TRUE) 
   }
   
-  
-  
   if (plot_coldpool) {
-    
     temp_break <- 2 # 2*C
-    
     coords <- raster::coordinates(coldpool:::nbs_ebs_bottom_temperature)
     
     for(i in 1:length(yrs)) {
@@ -1594,7 +1595,7 @@ plot_idw_xbyx <- function(
                          aes(x = x,
                              y = y, 
                              group = new_dim),
-                         fill = "magenta",#"gray80",
+                         fill = "magenta", 
                          alpha = 0.5)
     
   }  
@@ -1607,10 +1608,10 @@ plot_idw_xbyx <- function(
                                        y = mean(reg_dat$lat.breaks), 
                                        label = "No data was available\nfor this species in this\nregion for this year."), 
                          fontface="bold")
-  }   else if (length(yrs)>1) {
+  }   else if (length(yrs)>0) {
     figure <- figure +
       facet_wrap( ~ new_dim, nrow = row0) +
-      coord_equal() 
+      coord_sf()# coord_equal() 
   }
   
   
@@ -1624,28 +1625,33 @@ plot_idw_xbyx <- function(
   }
   
   lon_break <- reg_dat$lon.breaks
+  lon_label <- reg_dat$lon.label
   lat_break <- reg_dat$lat.breaks
-  if (length(yrs) > 6) {
-    lon_break <- reg_dat$lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
-    lat_break <- reg_dat$lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
-  }
+  lat_label <- reg_dat$lat.label
+  # if (length(yrs) > 6) {
+  #   lon_break <- reg_dat$lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
+  #   lat_break <- reg_dat$lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
+  # }
   
   figure <- figure +
+    geom_sf(data = reg_dat$akland,
+            color = NA,
+            fill = "grey50")  +  
     geom_sf(data = reg_dat$graticule,
             color = "grey80",
             alpha = 0.2) +
-    geom_sf(data = reg_dat$akland,
-            color = NA,
-            fill = "grey50") +
-    scale_y_continuous(name = "", # "Latitude",,
-                       limits = reg_dat$plot.boundary$y,
-                       breaks = lat_break) +
-    scale_x_continuous(name = "", # "Longitude"#,
-                       limits = reg_dat$plot.boundary$x,
-                       breaks = lon_break) +
+    scale_y_continuous(name = "", # "Latitude",
+                       # labels = lat_label,
+                       # breaks = lat_break,
+                       limits = reg_dat$plot.boundary$y) +
+    scale_x_continuous(name = "", # "Longitude" 
+                       # labels = lon_label,
+                       # breaks = lon_break,
+                       # n.breaks = 3,
+                       limits = reg_dat$plot.boundary$x) +
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
-                   dist = 150,
+                   dist = ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
                    st.dist = ifelse(row0 > 2, 0.08, 0.04),
@@ -1653,6 +1659,25 @@ plot_idw_xbyx <- function(
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
                    st.size = ifelse(row0 > 2, 2.5, 3)#, # 2.5
     )
+  
+  if (length(length(reg_dat$survey.area$color)>1) ) {
+    figure <- figure +
+    geom_sf(data = reg_dat$survey.area %>%
+              dplyr::mutate(SURVEY = dplyr::case_when(
+                SURVEY == "EBS_SHELF" ~ "EBS", 
+                SURVEY == "NBS_SHELF" ~ "NBS")) %>% 
+              dplyr::filter(SURVEY %in% SRVY1), 
+            mapping = aes(color = SURVEY), 
+            fill = NA, 
+            shape = NA, 
+            size = 1,
+            show.legend = TRUE) + 
+    scale_color_manual(
+      name = "", #"Survey Region",
+      values = c(reg_dat$survey.area$color),
+      breaks = c(rev(unique(station_info$SRVY))), 
+      labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))) 
+  } 
   
   
   if (grid == "continuous.grid") {
@@ -1662,8 +1687,8 @@ plot_idw_xbyx <- function(
                            na.value = "transparent", 
                            breaks = set.breaks,
                            labels = set.breaks)  + 
-      guides(fill=guide_colourbar(title=key.title, 
-                                  title.position="top", 
+      guides(fill=guide_colourbar(title = key.title, 
+                                  title.position = "top", 
                                   title.hjust = 0.5))
     
   } else if (grid == "extrapolation.grid") {
@@ -1768,12 +1793,12 @@ plot_temps_facet <- function(rasterbrick,
             size = 0.1,
             alpha = 0,
             fill = NA) +
-    geom_sf(data = reg_dat$graticule,
-            color = "grey80",
-            alpha = 0.2) +
     geom_sf(data = reg_dat$akland, 
             color = NA, 
             fill = "grey50") +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2) +
     scale_x_continuous(name = "",#"Longitude",
                        breaks = reg_dat$lon.breaks) +
     scale_y_continuous(name = "",#Latitude",
@@ -2413,12 +2438,6 @@ plot_survey_stations <- function(reg_dat,
                                  dist_unit = "nm", 
                                  place_labels = TRUE) {
   
-  # survey_reg_col <- c(as.character(nmfspalette::nmfs_cols("supdkgray")), 
-  #                     as.character(nmfspalette::nmfs_cols("medgray")))
-  
-  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
-  survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
-  
   figure <- ggplot() 
   
   # if (station_pts_vess) {
@@ -2480,7 +2499,7 @@ plot_survey_stations <- function(reg_dat,
                           na.rm = TRUE) + 
       scale_color_manual(
         name = " ", #"Survey Region",
-        values = c(alpha(colour = c(survey_reg_col), 0.7), 
+        values = c(reg_dat$survey.area$color, 
                    unique(vess$vess_col)),
         breaks = c(rev(unique(reg_dat$survey.area$SURVEY)), 
                    unique(vess$vess_col)), 
@@ -2500,7 +2519,6 @@ plot_survey_stations <- function(reg_dat,
         colour = guide_legend(
           # order = 1,# survey regions
           override.aes = list(fill = NA,
-                              # color = c(survey_reg_col, NA, NA),
                               linetype = c(
                                 rep_len(x = 1, 
                                         length.out = length(unique(haul_cruises_maxyr$SRVY))), 
@@ -2527,15 +2545,14 @@ plot_survey_stations <- function(reg_dat,
               show.legend = TRUE) +
       scale_color_manual(
         name = "", #"Survey Region",
-        values = c(survey_reg_col,
-                   survey_reg_col),
-        breaks = c(rev(unique(station_info$SRVY)),
+        values = reg_dat$survey.area$color,
+        breaks = c(#rev(unique(station_info$SRVY)),
                    rev(unique(station_info$SRVY))), #TOLEDO rev
-        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
+        labels = c(#rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
                    rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))) #+
     # scale_color_manual(
     #   name = " ", #"Survey Region",
-    #   values = c(alpha(colour = c(survey_reg_col), 0.7),
+    #   values = c(reg_dat$survey.area$color, 
     #              unique(vess$vess_col)),
     #   breaks = c(rev(unique(reg_dat$survey.area$SURVEY)),
     #              unique(vess$vess_col)),
@@ -2589,9 +2606,11 @@ plot_survey_stations <- function(reg_dat,
     coord_sf(xlim = reg_dat$plot.boundary$x, 
              ylim = reg_dat$plot.boundary$y) +
     scale_x_continuous(name = "Longitude", 
-                       breaks = reg_dat$lon.breaks) + 
+                       # breaks = reg_dat$lon.breaks, 
+                       limits = reg_dat$plot.boundary$x) + 
     scale_y_continuous(name = "Latitude", 
-                       breaks = reg_dat$lat.breaks) +
+                       # breaks = reg_dat$lat.breaks, 
+                       limits = reg_dat$plot.boundary$y) +
     # geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
     #           aes(x = x, y = y, label = lab), 
     #           size = 14, group = 99) + 
@@ -2605,7 +2624,7 @@ plot_survey_stations <- function(reg_dat,
     #   size = 2, group = 99) +
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
-                   dist = 150,
+                   dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
                    st.dist = 0.02,

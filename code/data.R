@@ -83,14 +83,46 @@ report_types <- list(
   )
 )
 
-# TOLEDO
-# report_types$EBS$reg_dat$survey.strata$Stratum[
-#   report_types$EBS$reg_dat$survey.strata$Stratum == 30]<-31
-# report_types$NEBS$reg_dat$survey.strata$Stratum[
-#   report_types$NEBS$reg_dat$survey.strata$Stratum == 30]<-31
-
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+
+
+# add color to survey.area
+survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
+survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+# alpha(colour = c(reg_dat$survey.area$color), 0.7)
+reg_dat$survey.area$color <- alpha(colour = survey_reg_col, 0.7)
+
+
+
+# fix reg_dat$graticule
+reg_dat$graticule <- sf::st_transform(x = reg_dat$graticule, crs = CRS(as.character(reg_dat$crs)[1]))
+
+
+
+lon_label <- reg_dat$lon.breaks
+lat_label <- reg_dat$lat.breaks
+# get the lon and lat breaks in the right projection
+remove_lon <- 0
+remove_lat <- 0
+if (length(lon_label) > length(lat_label)) {
+  remove_lat <- (length(lon_label)-length(lat_label))
+  lat_label <- c(lat_label, rep_len(x = 0, length.out = remove_lat))
+} else if (length(lon_label) < length(lat_label)) {
+  remove_lon <- (length(lat_label)-length(lon_label))
+  lon_label <- c(lon_label, rep_len(x = 0, length.out = remove_lon))
+}
+
+d <- data.frame("X" = lon_label, "Y" = lat_label)
+coordinates(d) <- c("X", "Y")
+sp::proj4string(d) <- CRS("+proj=longlat +datum=WGS84") 
+dd <- data.frame(sp::spTransform(d, CRS("+init=EPSG:3338")))
+
+reg_dat$lon.label <- reg_dat$lon.breaks
+reg_dat$lat.label <- reg_dat$lat.breaks
+reg_dat$lon.breaks <- dd$X[1:(nrow(dd)-remove_lon)]
+reg_dat$lat.breaks <- dd$Y[1:(nrow(dd)-remove_lat)]
+
 
 # Load data --------------------------------------------------------------------
 
