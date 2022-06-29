@@ -2617,7 +2617,7 @@ plot_survey_stations <- function(reg_dat,
                  dist = 100,
                  dist_unit = dist_unit,
                  transform = FALSE,
-                 st.dist = 0.04,
+                 st.dist = 0.02,
                  height = 0.02,
                  st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
                  st.size = 3) + 
