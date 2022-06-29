@@ -62,7 +62,11 @@ list_figures[nickname][[1]]$res <- res
 ```{r fig_sampled_survey_stations}
 # header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of the ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY)," continental shelf bottom trawl surveys.")
 nickname <- "fig_sampled_survey_stations"
-header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of the ",maxyr," ",NMFSReports::text_list(haul_cruises_maxyr$SRVY)," continental shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), ". The map also depicts the stations sampled by each survey vessel and where, if any, Bristol Bay crab resampling was done.")
+header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of the ", maxyr," ",
+                 NMFSReports::text_list(haul_cruises_maxyr$SRVY),
+                 " continental shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
+                 ". The map also depicts the stations sampled by each survey vessel",
+                 ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
 # header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined in the dark gray line are the NBS stations that were sampled in ",maxyr,". The dots within each area indicate each station location.") # TOLEDO
 
 height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 6
@@ -1492,14 +1496,15 @@ FitFlextableToPage <- function(x, pgwidth = 6) {
 }
 
 temp1 <- function(table_raw, strat, total) {
-  
+  table_raw0 <- table_raw
   table_raw <- table_raw %>% 
     dplyr::select("group", "taxon", "999", "a", "CI95", "prop", 
                   all_of(strat))
   
-  footnote0 <- paste0("Proportion of total estimated biomass, fish and invertebrates combined, for the total survey area = ", 
-                      formatC(x = total, digits = 0, format = "f", big.mark = ","), " mt.")
-  
+  footnote0 <- paste0("Proportion of total estimated biomass is ", 
+                      formatC(x = total, digits = 0, format = "f", big.mark = ","), 
+                      " mt for fish and invertebrates in the ",  
+                      unique(table_raw0$SRVY), " Bottom Trawl Survey.")
   
   table_print <- table_raw %>% 
     dplyr::mutate(prop = ifelse(prop < 0.0001, "<0.0001", 
@@ -1992,14 +1997,13 @@ for (i in 1:2) {
                                     digits = ifelse(sdbio0$divby>1, 2, 0), 
                                     format = "f", big.mark = ","))
     
-    if (SRVY == "EBS") {
+    if (SRVY == "NEBS"){
       table_print <- table_print %>% 
-        dplyr::select(-SRVY) %>%
         flextable::flextable(data = .) %>% 
         flextable::set_header_labels(
           x = ., 
           print_name = "Species", 
-          # SRVY = "Shelf area", 
+          SRVY = "Shelf area", 
           meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
           sdcpuewt = paste0("SD CPUE"), 
           biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
@@ -2017,7 +2021,7 @@ for (i in 1:2) {
         flextable::set_header_labels(
           x = ., 
           print_name = "Species", 
-          SRVY = "Shelf area", 
+          # SRVY = "Shelf area", 
           meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
           sdcpuewt = paste0("SD CPUE"), 
           biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
@@ -2028,7 +2032,7 @@ for (i in 1:2) {
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 
           lencount = "Hauls with\nlengths") 
-    }
+    } 
     
   } else { # CPUE No/HA and POPULATION
     

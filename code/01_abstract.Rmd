@@ -78,8 +78,8 @@ for (i in 1:length(unique(temp0$SRVY))){
     str01 <- paste0(str01, 
                            NMFSReports::text_list(
       paste0("The recent trend of ",
-             ifelse(grepl(pattern = "warm", x = temp$case), "warm", "cold"),
-                         " temperatures continued on the ", temp$SRVY, " shelf for the ",
+             ifelse(grepl(pattern = "warm", x = temp$case), "higher", "lower"),
+                         " than average temperatures continued on the ", temp$SRVY, " shelf for the ",
                          numbers2words_th(x = temp$nthyr, type = "word"),
                          " consecutive year. ")))
   }
@@ -154,9 +154,13 @@ str0 <- paste0(
          "increased", "decreased"),
   " from ", 
   NMFSReports::xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == "NBS"], na.rm = TRUE)) ,
-  " t in ", compareyr, " to ", 
+  " mt ", #"(", NMFSReports::xunits(sum(biomass_compareyr$sdbio[biomass_compareyr$SRVY == "NBS"], na.rm = TRUE)) ,
+  # " standard deviation (SD) mt) ", 
+  "in ", compareyr, " to ", 
   NMFSReports::xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == "NBS"], na.rm = TRUE)),
-  " t in ", maxyr)
+  " mt ", # "(", NMFSReports::xunits(sum(biomass_maxyr$sdbio[biomass_maxyr$SRVY == "NBS"], na.rm = TRUE)) ,
+  # " SD mt)", 
+  " in ", maxyr)
 
 str0 <- paste0(str0, ". ")
 
