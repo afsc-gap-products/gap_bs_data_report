@@ -39,44 +39,46 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 
 haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea"] <- "eastern Bering Sea"
 
-# Biomass
-bio <- biomass %>%
-  dplyr::filter(stratum == 999) %>% 
-  dplyr::select(SRVY, year, species_code, upperb, lowerb, sdbio, biomass, taxon) %>% 
-  dplyr::left_join(x = ., 
-                   y = report_spp1 %>% 
-                     dplyr::select(print_name, species_code, species_name1), 
-                   by = "species_code") %>% 
-  dplyr::filter(print_name == spp_print) %>% 
-  dplyr::rename(y = biomass, 
-                lower = lowerb, 
-                upper = upperb, 
-                var = sdbio) %>% 
-  dplyr::left_join(x = . , 
-                   y = haul_cruises_maxyr %>% 
-                     dplyr::select(SRVY, SRVY_long),
-                   by = "SRVY") %>% 
-  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
-
-
-# Abundance
-pop <- biomass %>%
-  dplyr::filter(stratum == 999) %>% 
-  dplyr::select(SRVY, year, species_code, upperp, lowerp, sdpop, population, taxon) %>% 
-  dplyr::left_join(x = ., 
-                   y = report_spp1 %>% 
-                     dplyr::select(print_name, species_code, species_name1), 
-                   by = "species_code") %>% 
-  dplyr::filter(print_name == spp_print) %>% 
-  dplyr::rename(y = population, 
-                lower = lowerp, 
-                upper = upperp, 
-                var = sdpop) %>% 
-  dplyr::left_join(x = . , 
-                   y = haul_cruises_maxyr %>% 
-                     dplyr::select(SRVY, SRVY_long),
-                   by = "SRVY") %>% 
-  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
+# # Biomass
+# bio <- biomass %>%
+#   dplyr::filter(stratum == 999) %>% 
+#   dplyr::select(SRVY, year, species_code, upperb, lowerb, sdbio, biomass, taxon) %>% 
+#   dplyr::left_join(x = ., 
+#                    y = report_spp1 %>% 
+#                      dplyr::select(print_name, species_code, species_name1), 
+#                    by = "species_code") %>% 
+#   dplyr::filter(print_name == spp_print) %>% 
+#   dplyr::rename(y = biomass, 
+#                 lower = lowerb, 
+#                 upper = upperb#, 
+#                 # var = sdbio
+#                 ) %>% 
+#   dplyr::left_join(x = . , 
+#                    y = haul_cruises_maxyr %>% 
+#                      dplyr::select(SRVY, SRVY_long),
+#                    by = "SRVY") %>% 
+#   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
+# 
+# 
+# # Abundance
+# pop <- biomass %>%
+#   dplyr::filter(stratum == 999) %>% 
+#   dplyr::select(SRVY, year, species_code, upperp, lowerp, sdpop, population, taxon) %>% 
+#   dplyr::left_join(x = ., 
+#                    y = report_spp1 %>% 
+#                      dplyr::select(print_name, species_code, species_name1), 
+#                    by = "species_code") %>% 
+#   dplyr::filter(print_name == spp_print) %>% 
+#   dplyr::rename(y = population, 
+#                 lower = lowerp, 
+#                 upper = upperp#, 
+#                 # var = sdpop
+#                 ) %>% 
+#   dplyr::left_join(x = . , 
+#                    y = haul_cruises_maxyr %>% 
+#                      dplyr::select(SRVY, SRVY_long),
+#                    by = "SRVY") %>% 
+#   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
 
 # # Lengths
 # lengths <- length_data %>% 
@@ -116,8 +118,8 @@ if (spp_plot_idw_coldwarm){
                   # year %in% unlist(temps_avg_yr_abovebelow)
     ) %>% 
     dplyr::mutate(SRVY_long = dplyr::case_when(
-                    SRVY == "EBS" ~ "Eastern Bering Sea", 
-                    SRVY == "NBS" ~ "Northern Bering Sea"))
+      SRVY == "EBS" ~ "Eastern Bering Sea", 
+      SRVY == "NBS" ~ "Northern Bering Sea"))
   
   set.breaks <- set_breaks(dat = table_raw0, 
                            var = "cpue_kgha")
@@ -197,7 +199,7 @@ if (spp_plot_idw | spp_plot_pa) {
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
   
-    
+  
   # only if both species re only found in prt of the region, chnge the extrp.box
   map.area0 <- map.area
   reg_dat0 <- reg_dat
@@ -207,16 +209,16 @@ if (spp_plot_idw | spp_plot_pa) {
     survey_reg_col <- gray.colors(length(unique(reg_dat0$survey.area$SURVEY))+2)
     survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
     reg_dat0$survey.area <- reg_dat0$survey.area %>%
-                dplyr::mutate(
-                  SRVY = dplyr::case_when(
-                    SURVEY == "EBS_SHELF" ~ "EBS", 
-                    SURVEY == "NBS_SHELF" ~ "NBS"), 
-                  color = alpha(colour = survey_reg_col, 0.7), 
-                  SRVY_long = dplyr::case_when(
-                    SRVY == "EBS" ~ "Eastern Bering Sea", 
-                    SRVY == "NBS" ~ "Northern Bering Sea"))
+      dplyr::mutate(
+        SRVY = dplyr::case_when(
+          SURVEY == "EBS_SHELF" ~ "EBS", 
+          SURVEY == "NBS_SHELF" ~ "NBS"), 
+        color = alpha(colour = survey_reg_col, 0.7), 
+        SRVY_long = dplyr::case_when(
+          SRVY == "EBS" ~ "Eastern Bering Sea", 
+          SRVY == "NBS" ~ "Northern Bering Sea"))
     height <- 4
-
+    
   }
   
   if (spp_plot_idw) {
@@ -224,44 +226,44 @@ if (spp_plot_idw | spp_plot_pa) {
                      " distribution and relative biomass (kg/ha) from the ",
                      compareyr," (left) and ",maxyr,
                      " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " Shelf Bottom Trawl Survey", 
-                   ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
+                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
     
-      set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
-
-  figure <- plot_idw_xbyx(
-    yrs = c(maxyr, compareyr),
-    dat = table_raw, # %>% 
-        # dplyr::filter(!is.na(cpue_kgha)), # TOLEDO
-    lat = "latitude",
-    lon = "longitude",
-    var = "cpue_kgha",
-    year = "year",
-    grid = "extrapolation.grid",
-    reg_dat = reg_dat0, 
-    region = map.area0, 
-    key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
-    set.breaks = set.breaks, 
-    row0 = 1)
-
+    set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
+    
+    figure <- plot_idw_xbyx(
+      yrs = c(maxyr, compareyr),
+      dat = table_raw, # %>% 
+      # dplyr::filter(!is.na(cpue_kgha)), # TOLEDO
+      lat = "latitude",
+      lon = "longitude",
+      var = "cpue_kgha",
+      year = "year",
+      grid = "extrapolation.grid",
+      reg_dat = reg_dat0, 
+      region = map.area0, 
+      key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
+      set.breaks = set.breaks, 
+      row0 = 1)
+    
   } else if (spp_plot_pa) {
     header <- paste0("Maps of ",spp_print, ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                      " presence from the ",
                      compareyr," (left) and ",maxyr,
                      " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " Shelf Bottom Trawl Survey", 
-                   ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
-                   ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
+                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
+                     ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
     
     
     table_raw0 <- catch_haul_cruises %>% 
       dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
       dplyr::rename(latitude = start_latitude, 
                     longitude = start_longitude) %>% 
-        dplyr::filter(!is.na(number_fish) &
-                        number_fish != 0 &
-                        species_code == spp_code & 
-                        year %in% c(maxyr, compareyr) &
-                        SRVY %in% unique(table_raw$SRVY))
-
+      dplyr::filter(!is.na(number_fish) &
+                      number_fish != 0 &
+                      species_code == spp_code & 
+                      year %in% c(maxyr, compareyr) &
+                      SRVY %in% unique(table_raw$SRVY))
+    
     figure <- plot_pa_xbyx(
       yrs = c(maxyr, compareyr),
       dat = table_raw0,
@@ -273,7 +275,7 @@ if (spp_plot_idw | spp_plot_pa) {
       row0 = 1)
     
   }
-
+  
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
   res <- knitr::knit_child(
@@ -328,7 +330,7 @@ if (spp_plot_sizecomp) {
       dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE))
   }
   
-    
+  
   header <- paste0("Total abundance-at-length estimates of ",
                    spp_print, ifelse(is.na(spp_sci), "", 
                                      paste0(" (",spp_sci,")")), 
@@ -486,9 +488,9 @@ if (spp_table_cpue) {
                     stratum %in% strat0 &
                     species_code %in% spp_code) %>% 
     dplyr::select(SRVY, stratum, 
-                  meanwgtcpue, varmnwgtcpue, 
+                  meanwgtcpue, sdcpuewt, 
                   biomass, sdbio, lowerb, upperb, 
-                  meannumcpue, varmnnumcpue, 
+                  meannumcpue, sdcpuenum, 
                   population, sdpop, lowerp, upperp, 
                   haulcount, catcount, numcount, lencount) %>% 
     dplyr::mutate(stratum = as.character(stratum)) %>%
@@ -504,6 +506,7 @@ if (spp_table_cpue) {
   if (sum(temp$biomass[temp$stratum == "Total"] != 0) > 0) {
     
     if (sum(temp$biomass[temp$stratum == "Total"] %in% 0)>0) {
+      
       temp <- temp %>% 
         dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
                                           temp$biomass != 0])
@@ -519,12 +522,12 @@ if (spp_table_cpue) {
       newobj <- ifelse(i==1, TRUE, FALSE)
       table_raw <- table_print <- data.frame()
       
-      if (i == 1){ # CPUE (WT/HA) and BIOMASS
+      if (i == 1) { # CPUE (WT/HA) and BIOMASS
         nickname <- paste0(nickname0, "wt")
         
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
-                        meanwgtcpue, varmnwgtcpue, 
+                        meanwgtcpue, sdcpuewt, 
                         biomass, sdbio, lowerb, upperb, 
                         # haulcount, 
                         catcount, numcount, lencount) 
@@ -537,26 +540,35 @@ if (spp_table_cpue) {
         if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
           
           meanwgtcpue0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$meanwgtcpue[table_raw$meanwgtcpue != 0])    
-          varmnwgtcpue0<-find_units(unit = "", unt = "", table_raw$varmnwgtcpue[table_raw$varmnwgtcpue != 0])
+          sdcpuewt0<-find_units(unit = "", unt = "", table_raw$sdcpuewt[table_raw$sdcpuewt != 0])
           biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass[table_raw$biomass != 0])
           sdbio0<-find_units(unit = "", unt = "", table_raw$sdbio[table_raw$sdbio != 0])
           
           header <- paste0("Mean CPUE by weight",meanwgtcpue0$unit_word,
-                           " with standard deviation",varmnwgtcpue0$unit_word,
+                           " with standard deviation",sdcpuewt0$unit_word,
                            ", and estimated biomass",biomass0$unit_word,
                            " with standard deviation",sdbio0$unit_word)
           
           table_print <- table_raw %>% 
-            dplyr::mutate(meanwgtcpue = meanwgtcpue/meanwgtcpue0$divby) %>%
-            dplyr::mutate(varmnwgtcpue = varmnwgtcpue/varmnwgtcpue0$divby) %>%
-            dplyr::mutate(biomass = biomass/biomass0$divby) %>% 
-            dplyr::mutate(upperb = upperb/biomass0$divby) %>% 
-            dplyr::mutate(lowerb = lowerb/biomass0$divby) %>% 
-            dplyr::mutate(sdbio = sdbio/sdbio0$divby) %>% 
-            dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
-                                 formatC, big.mark=",", digits = 2, format = "f")) %>% 
-            dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
-                                 formatC, big.mark=",", digits = 0, format = "f")) 
+            dplyr::mutate(meanwgtcpue = formatC(x = meanwgtcpue/meanwgtcpue0$divby, 
+                                                digits = 2, 
+                                                format = "f", big.mark = ","),
+                          sdcpuewt = formatC(x = sdcpuewt/sdcpuewt0$divby, 
+                                             digits = 2, 
+                                             format = "f", big.mark = ","), 
+                          biomass = formatC(x = biomass/biomass0$divby, 
+                                            digits = ifelse(biomass0$divby>1, 2, 0), 
+                                            format = "f", big.mark = ",") , 
+                          upperb = formatC(x = upperb/biomass0$divby, 
+                                           digits = ifelse(biomass0$divby>1, 2, 0), 
+                                           format = "f", big.mark = ",") , 
+                          lowerb = formatC(x = lowerb/biomass0$divby, 
+                                           digits = ifelse(biomass0$divby>1, 2, 0), 
+                                           format = "f", big.mark = ",") , 
+                          sdbio = formatC(x = sdbio/sdbio0$divby, 
+                                          digits = ifelse(sdbio0$divby>1, 2, 0), 
+                                          format = "f", big.mark = ","))
+          
           if (length(unique(table_raw$SRVY)) > 1) {
             table_print <- table_print %>%
               flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
@@ -570,7 +582,7 @@ if (spp_table_cpue) {
             flextable::set_header_labels(
               x = ., 
               meanwgtcpue = paste0("Mean CPUE", ifelse(meanwgtcpue0$unit_word=="", "", paste0("\n",meanwgtcpue0$unit_word))), 
-              varmnwgtcpue = paste0("SD CPUE", ifelse(varmnwgtcpue0$unit_word=="", "", paste0("\n",varmnwgtcpue0$unit_word))), 
+              sdcpuewt = paste0("SD CPUE", ifelse(sdcpuewt0$unit_word=="", "", paste0("\n",sdcpuewt0$unit_word))), 
               biomass = paste0("Estimated Biomass", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
               sdbio = paste0("SD Biomass", ifelse(sdbio0$unit_word=="", "", paste0("\n",sdbio0$unit_word))), 
               lowerb = paste0("95% LCL", ifelse(biomass0$unit_word=="", "", paste0("\n",biomass0$unit_word))), 
@@ -582,7 +594,7 @@ if (spp_table_cpue) {
         
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
-                        meannumcpue, varmnnumcpue, 
+                        meannumcpue, sdcpuenum, 
                         population, sdpop, lowerp, upperp, 
                         # haulcount, 
                         catcount, numcount, lencount)
@@ -595,26 +607,35 @@ if (spp_table_cpue) {
         if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
           
           meannumcpue0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$meannumcpue[table_raw$meannumcpue != 0])
-          varmnnumcpue0 <- find_units(unit = "", unt = "", table_raw$varmnnumcpue[table_raw$varmnnumcpue != 0])
+          sdcpuenum0 <- find_units(unit = "", unt = "", table_raw$sdcpuenum[table_raw$sdcpuenum != 0])
           population0 <- find_units(unit = "", unt = "", table_raw$population[table_raw$population != 0])
           sdpop0 <- find_units(unit = "", unt = "", table_raw$sdpop[table_raw$sdpop != 0])
           
           header <- paste0("Mean CPUE by number", meannumcpue0$unit_word,
-                           " with standard deviation", varmnnumcpue0$unit_word,
+                           " with standard deviation", sdcpuenum0$unit_word,
                            ", and estimated population", population0$unit_word,
                            "  with standard deviation", sdpop0$unit_word)
           
+          
           table_print <- table_raw %>% 
-            dplyr::mutate(meannumcpue = meannumcpue/meannumcpue0$divby) %>%
-            dplyr::mutate(varmnnumcpue = varmnnumcpue/varmnnumcpue0$divby) %>%
-            dplyr::mutate(population = population/population0$divby) %>% 
-            dplyr::mutate(upperp = upperp/population0$divby) %>% 
-            dplyr::mutate(lowerp = lowerp/population0$divby) %>% 
-            dplyr::mutate(sdpop = sdpop/sdpop0$divby) %>% 
-            dplyr::mutate(across(where(is.double) & ends_with("cpue"), 
-                                 formatC, big.mark=",", digits = 2, format = "f")) %>% 
-            dplyr::mutate(across(where(is.double) & !ends_with("cpue"),# & ends_with("count"), 
-                                 formatC, big.mark=",", digits = 0, format = "f")) 
+            dplyr::mutate(meannumcpue = formatC(x = meannumcpue/meannumcpue0$divby, 
+                                                digits = 2, 
+                                                format = "f", big.mark = ","),
+                          sdcpuenum = formatC(x = sdcpuenum/sdcpuenum0$divby, 
+                                              digits = 2, 
+                                              format = "f", big.mark = ","), 
+                          population = formatC(x = population/population0$divby, 
+                                               digits = ifelse(population0$divby>1, 2, 0), 
+                                               format = "f", big.mark = ",") , 
+                          upperp = formatC(x = upperp/population0$divby, 
+                                           digits = ifelse(population0$divby>1, 2, 0), 
+                                           format = "f", big.mark = ",") , 
+                          lowerp = formatC(x = lowerp/population0$divby, 
+                                           digits = ifelse(population0$divby>1, 2, 0), 
+                                           format = "f", big.mark = ",") , 
+                          sdpop = formatC(x = sdpop/sdpop0$divby, 
+                                          digits = ifelse(sdpop0$divby>1, 2, 0), 
+                                          format = "f", big.mark = ","))
           
           if (length(unique(table_raw$SRVY)) > 1) {
             table_print <- table_print %>%
@@ -630,7 +651,7 @@ if (spp_table_cpue) {
             flextable::set_header_labels(
               x = ., 
               meannumcpue = paste0("Mean CPUE", ifelse(meannumcpue0$unit_word=="", "", paste0("\n", meannumcpue0$unit_word))), 
-              varmnnumcpue = paste0("SD CPUE", ifelse(varmnnumcpue0$unit_word=="", "", paste0("\n", varmnnumcpue0$unit_word))), 
+              sdcpuenum = paste0("SD CPUE", ifelse(sdcpuenum0$unit_word=="", "", paste0("\n", sdcpuenum0$unit_word))), 
               population = paste0("Estimated Population", 
                                   ifelse(population0$unit_word=="", "", paste0("\n", population0$unit_word))),
               sdpop = paste0("SD Population", ifelse(sdpop0$unit_word=="", "", paste0("\n", sdpop0$unit_word))), 
