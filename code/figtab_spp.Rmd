@@ -215,7 +215,8 @@ if (spp_plot_idw | spp_plot_pa) {
                   SRVY_long = dplyr::case_when(
                     SRVY == "EBS" ~ "Eastern Bering Sea", 
                     SRVY == "NBS" ~ "Northern Bering Sea"))
-    
+    height <- 4
+
   }
   
   if (spp_plot_idw) {
@@ -248,13 +249,22 @@ if (spp_plot_idw | spp_plot_pa) {
                      compareyr," (left) and ",maxyr,
                      " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " Shelf Bottom Trawl Survey", 
                    ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
-                   ". This species has not been caught at enough stations to adequately characterize a distribution.")
+                   ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
     
+    
+    table_raw0 <- catch_haul_cruises %>% 
+      dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
+      dplyr::rename(latitude = start_latitude, 
+                    longitude = start_longitude) %>% 
+        dplyr::filter(!is.na(number_fish) &
+                        number_fish != 0 &
+                        species_code == spp_code & 
+                        year %in% c(maxyr, compareyr) &
+                        SRVY %in% unique(table_raw$SRVY))
 
     figure <- plot_pa_xbyx(
       yrs = c(maxyr, compareyr),
-      dat = table_raw %>% 
-        dplyr::filter(!is.na(cpue_kgha)),
+      dat = table_raw0,
       lat = "latitude",
       lon = "longitude",
       year = "year",
@@ -262,7 +272,6 @@ if (spp_plot_idw | spp_plot_pa) {
       key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
       row0 = 1)
     
-  
   }
 
   # save yo' stuff and do a lot of behind the scenes work

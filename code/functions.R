@@ -118,12 +118,15 @@ for (p in PKG) {
 
 loadfonts(device = "win")
 
-# renv ------------------------------------------------------------------
+# Knowns -----------------------------------------------------------------------
 
-# renv::snapshot()
+cnt_chapt_content<-"000"
 
+full_page_portrait_width <- 6.5
+full_page_portrait_height <- 7.5
+full_page_landscape_width <- 9.5
 
-# Cite R Packages --------------------------------------------------------
+# Cite R Packages --------------------------------------------------------------
 
 knitr::write_bib(x = PKG,
                  file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
@@ -142,7 +145,7 @@ files0<-files0[grep(pattern = "[0-9]+_", x = files0)]
 files0<-files0[!grepl(pattern = "presentation", x = files0)]
 files1 <- c(files1, files0)
 
-ee <- c(ref_compareyr, ref_maxyr_npfmc)
+ee <- c(ref_compareyr, paste0("@NPFMC", maxyr))
 
 for (ii in 1:length(files1)){
   if (grepl(pattern = ".docx", x = files1[ii], fixed = TRUE)) {
@@ -1274,8 +1277,7 @@ plot_pa_xbyx <- function(
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
     plot_coldpool = FALSE, 
-    plot_stratum = FALSE, 
-    use.survey.bathymetry = FALSE) {
+    plot_stratum = FALSE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
@@ -1405,13 +1407,12 @@ plot_pa_xbyx <- function(
   # }
   
   figure <- figure +
-    scale_y_continuous(name = "", # "Latitude",,
-                       limits = reg_dat$plot.boundary$y, n.breaks = 2#, 
-                       # labels = lat_label,
-                       # breaks = lat_break
-    ) +
-    scale_x_continuous(name = "", # "Longitude"#,
-                       limits = reg_dat$plot.boundary$x)  +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) + 
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
                    dist = ifelse(row0>2, 50, 100),
@@ -1629,15 +1630,12 @@ plot_idw_xbyx <- function(
     geom_sf(data = reg_dat$graticule,
             color = "grey80",
             alpha = 0.2) +
-    scale_y_continuous(name = "", # "Latitude",
-                       # labels = lat_label,
-                       # breaks = lat_break,
-                       limits = reg_dat$plot.boundary$y) +
-    scale_x_continuous(name = "", # "Longitude" 
-                       # labels = lon_label,
-                       # breaks = lon_break,
-                       # n.breaks = 3,
-                       limits = reg_dat$plot.boundary$x) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) + 
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
                    dist = 100, #ifelse(row0>2, 50, 100),
@@ -1658,7 +1656,7 @@ plot_idw_xbyx <- function(
               size = ifelse(row0 > 2, 0.25, 0.75),
               show.legend = TRUE) +
       scale_color_manual(
-        name = "", # key.title,
+        name = " ", 
         values = reg_dat$survey.area$color,
         breaks = rev(reg_dat$survey.area$SURVEY), 
         labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY_long))) + 
@@ -1802,10 +1800,12 @@ plot_temps_facet <- function(rasterbrick,
     geom_sf(data = reg_dat$graticule,
             color = "grey80",
             alpha = 0.2) +
-    scale_x_continuous(name = "",#"Longitude",
-                       breaks = reg_dat$lon.breaks) +
-    scale_y_continuous(name = "",#Latitude",
-                       breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) + 
     coord_sf(xlim = reg_dat$plot.boundary$x, 
              ylim = reg_dat$plot.boundary$y)  +
     ggsn::scalebar(data = reg_dat$survey.grid,
@@ -2472,10 +2472,10 @@ plot_survey_stations <- function(reg_dat,
       geom_sf(data = reg_dat$bathymetry, color = "transparent")
   }
   
-  figure <- figure  +
-    geom_sf(data = reg_dat$graticule,
-            color = "grey90",
-            alpha = 0.5)
+  # figure <- figure  +
+  #   geom_sf(data = reg_dat$graticule,
+  #           color = "grey90",
+  #           alpha = 0.5)
   
   
   if (station_pts_vess) {
@@ -2605,26 +2605,14 @@ plot_survey_stations <- function(reg_dat,
   
   
   figure <- figure +
-    coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y) +
-    scale_x_continuous(name = "Longitude", 
-                       # breaks = reg_dat$lon.breaks, 
-                       limits = reg_dat$plot.boundary$x) + 
-    scale_y_continuous(name = "Latitude", 
-                       # breaks = reg_dat$lat.breaks, 
-                       limits = reg_dat$plot.boundary$y) +
-    # geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
-    #           aes(x = x, y = y, label = lab), 
-    #           size = 14, group = 99) + 
-    # geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
-    #                 aes(x = x, y = y, label = lab), size = 5, angle = 40, 
-    #                 bg.color = "white", color = "black", group = 99) + 
-    # geom_shadowtext(
-    #   data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
-    #   aes(x = x, y = y, label = lab), 
-    #   bg.color = "white", color = "black", 
-    #   size = 2, group = 99) +
-  ggsn::scalebar(data = reg_dat$survey.grid,
+    ggplot2::scale_y_continuous(name = "Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) + 
+    # ggplot2::coord_sf() +
+    ggsn::scalebar(data = reg_dat$survey.grid,
                  location = "bottomleft",
                  dist = 100,
                  dist_unit = dist_unit,
@@ -2661,7 +2649,7 @@ plot_survey_stations <- function(reg_dat,
     figure <- figure +
       geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
                 aes(x = x, y = y, label = lab), 
-                size = 14, group = 99) + 
+                size = 10, group = 99) + 
       geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
                       aes(x = x, y = y, label = lab), size = 5, angle = 40, 
                       bg.color = "white", color = "black", group = 99) + 

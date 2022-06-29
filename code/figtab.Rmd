@@ -21,7 +21,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$SRVY),
                  " continental shelf bottom trawl survey", 
-                 ifelse(SRVY == "NEBS", "s", ""), ".")
+                 ifelse(SRVY == "NEBS", "s", ""), 
+                 ". Corner stations (denoted by circles) are not labeled for legibility. ")
 nickname <- "fig_sample_grid"
 subobj <- FALSE
 
@@ -33,6 +34,8 @@ subobj <- FALSE
   reg_dat0 <- reg_dat
   reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
     dplyr::mutate(STATIONID = ifelse(!grepl(pattern = "-", x = STATIONID), "", STATIONID))
+  reg_dat0$place.labels <- reg_dat0$place.labels %>% 
+    dplyr::filter(type %in% c("mainland", "peninsula"))
   
 figure <- plot_survey_stations(reg_dat = reg_dat0, 
                                station_info = station_info, 
@@ -40,7 +43,7 @@ figure <- plot_survey_stations(reg_dat = reg_dat0,
                                station_grid = TRUE, 
                                stratum_no = FALSE, 
                                station_pts_srvy = FALSE, 
-                               place_labels = FALSE)
+                               place_labels = TRUE)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
