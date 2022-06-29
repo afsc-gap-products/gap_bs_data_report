@@ -371,7 +371,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-A total of `r xunits(temp1$species_code) ` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934.
+A total of `r xunits(temp1$species_code) ` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " had a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
@@ -455,8 +455,8 @@ str0 <- paste0(str0, str00, ". ")
 if (SRVY == "NEBS") {
   str0 <- paste0(str0, 
                  paste0(ifelse(temp1$prop[temp1$SRVY=="EBS"]>temp1$prop[temp1$SRVY=="NBS"], 
-                               "The lower fish biomass in the NBS than in the EBS is consistent", 
-                               "The higher fish biomass in the NBS than in the EBS is inconsistent"), 
+                               "The lower relative fish biomass in the NBS than in the EBS is consistent", 
+                               "The higher relative fish biomass in the NBS than in the EBS is inconsistent"), 
                         " with results of a broader analysis of all survey years in @RN936 showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf (Tables ", 
                         NMFSReports::text_list(crossref(list_obj = list_tables, 
                                        nickname = "tab_biomass_est_fish_", 
@@ -571,7 +571,7 @@ if (SRVY == "NEBS") {
                              " was primarily comprised of ", 
                              temp0$str0[temp0$SRVY == SRVY1[i]]))
     temp3 <- paste0(temp3, 
-                    paste0("In the ", SRVY1[i], " ", 
+                    paste0("In the ", SRVY1[i], ", ", 
                            substr(temp4, start = 1, stop = (nchar(temp4)-1)), # get rid of last ")" 
                            "; ", 
                            NMFSReports::crossref(list_obj = list_tables, sublist = "number", 
@@ -602,7 +602,7 @@ if (SRVY == "NEBS") {
 
 ```{r}
 
-str0 <- paste0("There were noticeable changes in the benthic community of the ",
+str0 <- paste0("There were noticeable changes in the benthic communities of the ",
                NMFSReports::text_list(SRVY1)," between ", compareyr," and ", maxyr,". ")
 
 for (i in 1:length(SRVY1)) {
@@ -668,7 +668,7 @@ str0 <- paste0(str0,
                " (Table ",
                NMFSReports::crossref(list_obj = list_tables, 
                                      nickname = paste0("tab_majortaxa_pchange_", SRVY1[i]), sublist = "number"),
-               "). "
+               "). While all efforts are made at standardizing catch processing over time, some differences may exist between years, vessels and crews which may impact the interpretation of these differences."
                # something else
                # "Although there were large percentage increases in biomass for many invertebrate taxa, there was relatively little change in the combined total biomass of invertebrates (-0.2 million t) compared to 2010 (Table ",
                # NMFSReports::crossref(list_obj = list_tables, 
@@ -742,11 +742,11 @@ str0 <- NMFSReports::text_list(paste0(
 <!---BLOCK_LANDSCAPE_STOP--->
 
 
-## Summary of Results for Selected eastern Bering Sea and northern Bering Sea Fish and Invertebrate Fauna
+## Summary of Results for Selected Eastern Bering Sea and Northern Bering Sea Fish and Invertebrate Fauna
 
 An interactive map of CPUE by species for the `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys, as well as for all other AFSC bottom trawls surveys, can be found at <https://apps-st.fisheries.noaa.gov/dismap/>. The CPUE data with associated station information including position, surface and bottom temperatures, and bottom depth can be downloaded from the Fisheries One Stop Shop <https://www.fisheries.noaa.gov/foss/f?p=215:200:1099772399154:Mail:NO:::>. There, users can interactively select, view, and download data for this and other surveys conducted by our team. 
 
-### Spatial Distribution and Abundance, Size Compositions and Biomass and Population Estimates of Selected Fish
+### Spatial Distribution and Abundance, Size Compositions, Biomass and Population Estimates of Selected Fish
 
 ```{r}
 # major fish 
@@ -786,9 +786,9 @@ temp2 <- report_spp1 %>%
 
 ```
 
-Plots of the broad spatial distribution patterns and tables of relative biomass (kg/hectare) and relative abundance (no./hectare) for `r length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE, text = FALSE)) ` major fish species (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE) ` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_fish_", sublist = "number", exact = FALSE)`) caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented in the subsections below. Additionally total abundance-at-length and mean length estimates for major fish species (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sizecomp_fish_", sublist = "number", exact = FALSE) `)
+Plots of the spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE, text = FALSE)) ` major fish species (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE) ` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_fish_", sublist = "number", exact = FALSE)`) caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented in the subsections below. Total abundance-at-length and mean length estimates for major fish species are also presented in the subsections below(Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sizecomp_fish_", sublist = "number", exact = FALSE) `).
 
-Survey results for major fish fauna are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "number", exact = FALSE)`). Major species presented include `r str0`. Mean CPUE by weight and number, as well as maps of geographic distribution, for many other species are also included (Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "number", exact = FALSE)` and Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE)`). Appendices `r NMFSReports::crossref(list_tables, "tab_app_principal_fish_", "number", exact = FALSE)` contain population estimates by sex and size class for all `r nrow(temp0)` of these fish species. 
+Survey results for major fish taxa are presented in maps of geographic distribution and abundance, plots of total abundance-at-size, and tables with estimates of biomass and population number (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "number", exact = FALSE)`). Species include `r str0`. Mean CPUE by weight and number, as well as maps of geographic distribution, for many other species are also included (Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "number", exact = FALSE)` and Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE)`). Appendices `r NMFSReports::crossref(list_tables, "tab_app_principal_fish_", "number", exact = FALSE)` contain population estimates by sex and size class for all `r nrow(temp0)` of the fish species listed earlier in this paragraph. 
 
 ### Spatial Distribution of Selected Invertebrates
 
@@ -801,7 +801,7 @@ temp0 <- report_spp1 %>%
 
 ```
 
-Plots of the broad spatial distribution patterns and tables of relative biomass (kg/hectare) and relative abundance (no./hectare) for `r xunits(length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE, text = FALSE))) ` major invertebrate species (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE) ` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_invert_", sublist = "number", exact = FALSE)`) caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented in the subsections below. 
+Plots of spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r xunits(length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE, text = FALSE))) ` major invertebrate species (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE) ` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_invert_", sublist = "number", exact = FALSE)`) caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented below. 
 
 ```{r}
 if (SRVY == "NEBS") {
@@ -842,7 +842,7 @@ if (length(unique(temp$print_name))==1) {
   str0 <- paste0("The ",temp$print_name[1]," (*",temp$species_name1[1],"*) is common in the Bering ",
                  ifelse(temp$species_name1[1] == "Asterias amurensis", 
                         "and Chukchi Seas [@Hamazakietal2005; @Federetal2005]", "") , 
-                 " and it was the invertebrate taxon with the highest ranked catch rate by weight in the " , 
+                 " and it was the invertebrate taxon with the highest catch rate by weight in the " , 
                  NMFSReports::text_list(SRVY1)," (Table",ifelse(SRVY == "NEBS", "s", "")," ",
                  NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "number", exact = FALSE),
                  "). Catch rates for the ",temp$print_name[1]," were highest in the ",
