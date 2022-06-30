@@ -344,13 +344,14 @@ table_raw0 <-
                          TRUE ~ common_name)) %>% 
                      dplyr::select(species_code, common_name), 
                    by = "species_code") %>% 
-  dplyr::full_join(x = ., 
-                   y = temp, 
-                   by = c("common_name" = "print_name", "SRVY")) %>% 
-  dplyr::select(-species_code) %>% 
-  # dplyr::rename(common_name = print_name) %>%
   dplyr::group_by(SRVY, common_name) %>% 
   dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::full_join(x = ., 
+                   y = temp, 
+                   by = c("SRVY", "common_name" = "print_name")) %>% 
+  dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0))) %>%
+  dplyr::select(-species_code) %>% 
   dplyr::arrange(SRVY, common_name) 
 
 table_raw0$common_name[is.na(table_raw0$common_name)] <- "other" # TOLEDO
@@ -390,10 +391,12 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
   names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
     stringr::str_to_sentence(gsub(pattern = "_",
-                                  replacement = " ", 
+                                  replacement = "\n", 
                                   x = names(table_raw)[!(names(table_raw) %in% 
                                                            c("SRVY", "common_name"))], 
                                   fixed = TRUE))
+  names(table_raw)[names(table_raw) == "Otolith\nAge\nStructure\nMeasurements"] <- 
+    "Otolith Age\nStructure Measurements"
   
   
   table_print <- table_raw %>% 
@@ -709,16 +712,11 @@ if (SRVY == "NEBS") {
   all_temperatures <- dplyr::bind_rows(sebs_temperatures)
   mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
 }
-# 
-# sebs_sst_mean <- 
-# sebs_bt_mean <- 
-# nbs_sst_mean <- 
-# nbs_bt_mean <- 
 
-color_sst <- nmfs_palette("oceans")(2)[1]#"darkgreen"
-color_bt <- nmfs_palette("oceans")(2)[2]#"darkblue"
+all_temperatures$variable <- factor(all_temperatures$variable, levels=c('Surface','Bottom'))
 
-
+color_sst <- nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
+color_bt <- nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
 
 figure <- ggplot(data = all_temperatures,
                  mapping = aes(x = YEAR,
@@ -736,7 +734,8 @@ figure <- ggplot(data = all_temperatures,
   scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
                      limits = c(0,11.2),
                      breaks = seq(0,12,2),
-                     expand = c(0,0)) +
+                     expand = c(0,0))  + 
+  ggplot2::labs(x = "Year") +
   # scale_x_continuous(name = "Year",
   #                    breaks = seq(1980,floor(maxyr/5)*5,5)) +
   facet_wrap(~region, scales = "free") +
@@ -778,8 +777,6 @@ list_figures[nickname][[1]]$res <- res
 
 
 ## fig_cold_pool_area
-
-### Figure header from 2019: Figure 4. Mean summer surface and bottom temperatures for the 38-year times series from the EBS shelf bottom trawl survey (A) and the cumulative proportion of EBS shelf area covered by each one-degree bottom isotherm range (B).
 
 ```{r fig_cold_pool_area}
 # header <- paste0("Percentage of the EBS shelf from 1982–",maxyr," bottom area that is occupied by the cold pool in one degree Celsius increments.")
@@ -1187,7 +1184,7 @@ temp <- function(exp0,
   # total_biomass0 <- a$total_biomass
   
   # select spp 
-  dat <- eval(parse( 
+  dat <- eval(parse(
     text=gsub(pattern = "DATAFRAME", 
               replacement = "biomass_by_stratum0", 
               x = exp0) )) %>% 
@@ -1974,27 +1971,24 @@ for (i in 1:2) {
                     # haulcount, 
                     catcount, numcount, lencount) 
     
-    biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass)
-    sdbio0<-find_units(unit = "", unt = "", table_raw$sdbio)
-    
     table_print <- table_raw %>% 
-      dplyr::mutate(meanwgtcpue = formatC(x = meanwgtcpue/meanwgtcpue0$divby, 
+      dplyr::mutate(meanwgtcpue = formatC(x = meanwgtcpue, 
                                           digits = 2, 
                                           format = "f", big.mark = ","),
-                    sdcpuewt = formatC(x = sdcpuewt/sdcpuewt0$divby, 
+                    sdcpuewt = formatC(x = sdcpuewt, 
                                        digits = 2, 
                                        format = "f", big.mark = ","), 
-                    biomass = formatC(x = biomass/biomass0$divby, 
-                                      digits = ifelse(biomass0$divby>1, 2, 0), 
+                    biomass = formatC(x = biomass, 
+                                      digits = 0, 
                                       format = "f", big.mark = ",") , 
-                    upperb = formatC(x = upperb/biomass0$divby, 
-                                     digits = ifelse(biomass0$divby>1, 2, 0), 
+                    upperb = formatC(x = upperb, 
+                                      digits = 0, 
                                      format = "f", big.mark = ",") , 
-                    lowerb = formatC(x = lowerb/biomass0$divby, 
-                                     digits = ifelse(biomass0$divby>1, 2, 0), 
+                    lowerb = formatC(x = lowerb, 
+                                      digits = 0, 
                                      format = "f", big.mark = ",") , 
-                    sdbio = formatC(x = sdbio/sdbio0$divby, 
-                                    digits = ifelse(sdbio0$divby>1, 2, 0), 
+                    sdbio = formatC(x = sdbio, 
+                                      digits = 0, 
                                     format = "f", big.mark = ","))
     
     if (SRVY == "NEBS"){
@@ -2006,10 +2000,10 @@ for (i in 1:2) {
           SRVY = "Shelf area", 
           meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
           sdcpuewt = paste0("SD CPUE"), 
-          biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
-          sdbio = paste0("SD Biomass", sdbio0$unit_word), 
-          lowerb = paste0("95% LCL", biomass0$unit_word), 
-          upperb = paste0("95% UCL", biomass0$unit_word), 
+          biomass = paste0("Estimated\nBiomass"), 
+          sdbio = paste0("SD Biomass"), 
+          lowerb = paste0("95% LCL"), 
+          upperb = paste0("95% UCL"), 
           # haulcount = "Total hauls", 
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 
@@ -2024,10 +2018,10 @@ for (i in 1:2) {
           # SRVY = "Shelf area", 
           meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
           sdcpuewt = paste0("SD CPUE"), 
-          biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
-          sdbio = paste0("SD Biomass", sdbio0$unit_word), 
-          lowerb = paste0("95% LCL", biomass0$unit_word), 
-          upperb = paste0("95% UCL", biomass0$unit_word), 
+          biomass = paste0("Estimated\nBiomass"), 
+          sdbio = paste0("SD Biomass"), 
+          lowerb = paste0("95% LCL"), 
+          upperb = paste0("95% UCL"), 
           # haulcount = "Total hauls", 
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 
@@ -2052,27 +2046,27 @@ for (i in 1:2) {
                     # haulcount, 
                     catcount, numcount, lencount)
     
-    population0 <- find_units(unit = "", unt = "", dat = table_raw$population)
-    sdpop0 <- find_units(unit = "", unt = "", dat = table_raw$sdpop)
+    # population0 <- find_units(unit = "", unt = "", dat = table_raw$population)
+    # sdpop0 <- find_units(unit = "", unt = "", dat = table_raw$sdpop)
     
     table_print <- table_raw %>% 
-      dplyr::mutate(meannumcpue = formatC(x = meannumcpue/meannumcpue0$divby, 
+      dplyr::mutate(meannumcpue = formatC(x = meannumcpue, 
                                           digits = 2, 
                                           format = "f", big.mark = ","),
-                    sdcpuenum = formatC(x = sdcpuenum/sdcpuenum0$divby, 
+                    sdcpuenum = formatC(x = sdcpuenum, 
                                         digits = 2, 
                                         format = "f", big.mark = ","), 
-                    population = formatC(x = population/population0$divby, 
-                                         digits = ifelse(population0$divby>1, 2, 0), 
+                    population = formatC(x = population, 
+                                      digits = 0, 
                                          format = "f", big.mark = ",") , 
-                    upperp = formatC(x = upperp/population0$divby, 
-                                     digits = ifelse(population0$divby>1, 2, 0), 
+                    upperp = formatC(x = upperp, 
+                                      digits = 0, 
                                      format = "f", big.mark = ",") , 
-                    lowerp = formatC(x = lowerp/population0$divby, 
-                                     digits = ifelse(population0$divby>1, 2, 0), 
+                    lowerp = formatC(x = lowerp, 
+                                      digits = 0, 
                                      format = "f", big.mark = ",") , 
-                    sdpop = formatC(x = sdpop/sdpop0$divby, 
-                                    digits = ifelse(sdpop0$divby>1, 2, 0), 
+                    sdpop = formatC(x = sdpop, 
+                                      digits = 0, 
                                     format = "f", big.mark = ","))
     
     if (SRVY == "EBS") {
@@ -2085,10 +2079,10 @@ for (i in 1:2) {
           # SRVY = "Shelf area", 
           meannumcpue = paste0("Mean CPUE (no/ha)"), 
           sdcpuenum = paste0("SD CPUE"), 
-          population = paste0("Estimated\nPopulation", population0$unit_word), 
-          sdpop = paste0("SD Population", sdpop0$unit_word), 
-          lowerp = paste0("95% LCL", population0$unit_word), 
-          upperp = paste0("95% UCL", population0$unit_word), 
+          population = paste0("Estimated\nPopulation"), 
+          sdpop = paste0("SD Population"), 
+          lowerp = paste0("95% LCL"), 
+          upperp = paste0("95% UCL"), 
           # haulcount = "Total hauls", 
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 
@@ -2102,10 +2096,10 @@ for (i in 1:2) {
           SRVY = "Shelf area", 
           meannumcpue = paste0("Mean CPUE (no/ha)"), 
           sdcpuenum = paste0("SD CPUE"), 
-          population = paste0("Estimated\nPopulation", population0$unit_word), 
-          sdpop = paste0("SD Population", sdpop0$unit_word), 
-          lowerp = paste0("95% LCL", population0$unit_word), 
-          upperp = paste0("95% UCL", population0$unit_word), 
+          population = paste0("Estimated\nPopulation"), 
+          sdpop = paste0("SD Population"), 
+          lowerp = paste0("95% LCL"), 
+          upperp = paste0("95% UCL"), 
           # haulcount = "Total hauls", 
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 

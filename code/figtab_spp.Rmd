@@ -30,75 +30,6 @@ spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
 spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
 spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
 text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
-```
-
-## data_wrangle
-
-```{r data_wrangle}
-# find basic info about species
-
-haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea"] <- "eastern Bering Sea"
-
-# # Biomass
-# bio <- biomass %>%
-#   dplyr::filter(stratum == 999) %>% 
-#   dplyr::select(SRVY, year, species_code, upperb, lowerb, sdbio, biomass, taxon) %>% 
-#   dplyr::left_join(x = ., 
-#                    y = report_spp1 %>% 
-#                      dplyr::select(print_name, species_code, species_name1), 
-#                    by = "species_code") %>% 
-#   dplyr::filter(print_name == spp_print) %>% 
-#   dplyr::rename(y = biomass, 
-#                 lower = lowerb, 
-#                 upper = upperb#, 
-#                 # var = sdbio
-#                 ) %>% 
-#   dplyr::left_join(x = . , 
-#                    y = haul_cruises_maxyr %>% 
-#                      dplyr::select(SRVY, SRVY_long),
-#                    by = "SRVY") %>% 
-#   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
-# 
-# 
-# # Abundance
-# pop <- biomass %>%
-#   dplyr::filter(stratum == 999) %>% 
-#   dplyr::select(SRVY, year, species_code, upperp, lowerp, sdpop, population, taxon) %>% 
-#   dplyr::left_join(x = ., 
-#                    y = report_spp1 %>% 
-#                      dplyr::select(print_name, species_code, species_name1), 
-#                    by = "species_code") %>% 
-#   dplyr::filter(print_name == spp_print) %>% 
-#   dplyr::rename(y = population, 
-#                 lower = lowerp, 
-#                 upper = upperp#, 
-#                 # var = sdpop
-#                 ) %>% 
-#   dplyr::left_join(x = . , 
-#                    y = haul_cruises_maxyr %>% 
-#                      dplyr::select(SRVY, SRVY_long),
-#                    by = "SRVY") %>% 
-#   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
-
-# # Lengths
-# lengths <- length_data %>% 
-#   dplyr::filter(species_code %in% spp_code) %>% 
-#   dplyr::select(SRVY, species_code, frequency, sex, length,
-#                 sample_type, length_type, name, year, 
-#                 sentancefrag)
-# 
-# # Size Comps
-# sizec <- sizecomp %>% 
-#   dplyr::left_join(x = ., 
-#                    y = report_spp1 %>% 
-#                      dplyr::select(print_name, species_code, species_name1), 
-#                    by = "species_code") %>% 
-#   dplyr::filter(print_name == spp_print) %>% 
-#   dplyr::left_join(x = . , 
-#                    y = haul_cruises_maxyr %>% 
-#                      dplyr::select(SRVY, SRVY_long),
-#                    by = "SRVY") %>% 
-#   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
 
 ```
 
@@ -146,11 +77,11 @@ if (spp_plot_idw_coldwarm){
       dplyr::filter(year %in% years)
     
     
-    if (length(year)<10) {
-      row0 <- 3
-    } else if (length(year)<6) {
+    if (length(years)<6) {
       row0 <- 2
-    }
+    } else if (length(years)<10) {
+      row0 <- 3
+    }  
     
     figure <- plot_idw_xbyx(
       yrs = years, 
@@ -164,7 +95,8 @@ if (spp_plot_idw_coldwarm){
       region = map.area, 
       key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
       set.breaks = set.breaks, 
-      row0 = row0)
+      row0 = row0) + 
+      ggtitle(paste0("CPUE in Years of ", stringr::str_to_sentence(case), " Mean Temperature"))
     
     # save yo' stuff and do a lot of behind the scenes work
     # alt: this does the same thing as calling "child = " in the chunk header
@@ -199,7 +131,6 @@ if (spp_plot_idw | spp_plot_pa) {
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
   
-  
   # only if both species re only found in prt of the region, chnge the extrp.box
   map.area0 <- map.area
   reg_dat0 <- reg_dat
@@ -218,7 +149,6 @@ if (spp_plot_idw | spp_plot_pa) {
           SRVY == "EBS" ~ "Eastern Bering Sea", 
           SRVY == "NBS" ~ "Northern Bering Sea"))
     height <- 4
-    
   }
   
   if (spp_plot_idw) {
@@ -615,7 +545,7 @@ if (spp_table_cpue) {
           header <- paste0("Mean CPUE by number", meannumcpue0$unit_word,
                            " with standard deviation", sdcpuenum0$unit_word,
                            ", and estimated population", population0$unit_word,
-                           "  with standard deviation", sdpop0$unit_word)
+                           " with standard deviation", sdpop0$unit_word)
           
           
           table_print <- table_raw %>% 
@@ -695,7 +625,7 @@ if (spp_table_cpue) {
         flextable::width(x = ., width = 1, unit = "in") %>%
         flextable::width(x = ., width = .5, unit = "in", j = "stratum") %>%
         flextable::align(x = ., 
-                         align = "left", part = "all")
+                         align = "right", part = "all")
       
       if (include_lencount) { # if no lengths were collected, dont include the column
         table_print <- table_print %>% 
