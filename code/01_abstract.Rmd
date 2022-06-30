@@ -51,7 +51,7 @@ From `r temp$start_mo_long` to `r temp$end_mo_long` `r maxyr`, the Resource Asse
 
 
 ```{r}
-# long term mean --------------------------------
+# long-term mean --------------------------------
 temp0 <- temps_avg_yr
 
 str02 <- ""
@@ -130,9 +130,9 @@ str0 <- paste0(str01,
 
 ```
 
-`r str0` A total of `r fish_sp ` species of fishes were identified during the `r ifelse(SRVY=="NEBS", "surveys", "survey")`, representing `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera and `r NMFSReports::xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms across `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
+`r str0` A total of `r fish_sp ` species of fishes were identified during the `r ifelse(SRVY=="NEBS", "surveys", "survey")`, representing `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera and `r NMFSReports::xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms representing `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
 
-This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))` different fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` shelf bottom trawl surveys. For select, common fish species, plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, and estimates of population size, geographic distributions and abundance-at-length of select fish species. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data of the sampled populations.
+This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` shelf bottom trawl surveys. For select, common fish species, plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, and estimates of population size, geographic distributions and abundance-at-length of select fish species. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data for the sampled populations.
 
 ```{r}
 str0 <- ""
@@ -145,10 +145,7 @@ if (SRVY == "NEBS") {
   case <- sum(change>0, na.rm = TRUE) > sum(change<=0, na.rm = TRUE)
   
 str0 <- paste0(
-  "Between ", compareyr, " and ", maxyr, 
-  ", the total CPUE (catch per unit effort) for many of the animals in the NBS were ",
-  ifelse(case, "lower", "higher")," in ", compareyr, " than in ", maxyr, 
-  ". The total estimated animal biomass in the NBS ",
+  "The total estimated animal biomass in the NBS ",
   ifelse(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == "NBS"]) < 
            sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == "NBS"]), 
          "increased", "decreased"),
