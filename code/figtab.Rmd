@@ -658,10 +658,7 @@ list_tables[nickname][[1]]$res <- res
 
 # Results
 
-
 ## fig_mean_temperature
-
-prev: fig_temp_weight_mean
 
 ```{r fig_mean_temperature}
 
@@ -675,7 +672,7 @@ header <- paste0("Average summer surface (light blue triangles) and bottom (dark
                  "(right). Dashed lines represent the time series mean.")
 # alttext <- paste0("Graph showing average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf (left) based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf (right) based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::range_text(nbsyr),". Dashed horizontal lines represent the time series mean.")
 
-height = 3.5
+height = 3.25
 width <- full_page_portrait_width # 6.5
 
 sebs_temperatures <- coldpool:::cold_pool_index %>%
@@ -786,7 +783,7 @@ alttext <- paste0("Annual cold pool extent on the EBS shelf, as measured using o
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_cold_pool_area"
 
-height <- 3.5
+height <- 3
 width <- full_page_portrait_width # 6.5
 
 figure <- ggplot() + 
@@ -1045,7 +1042,6 @@ if (SRVY == "NEBS"){
     dplyr::filter(!is.na(common_name)) %>%
     dplyr::arrange(common_name)
   
-  
   temp <- table_raw %>% 
     dplyr::select(-species_code)
   
@@ -1080,6 +1076,23 @@ if (SRVY == "NEBS"){
   
   temp0 <- dplyr::bind_cols(temp1, temp2)
   
+  for (iii in 1:nrow(temp0)) {
+    if (grepl(pattern = " unid.", x = temp0$report_name_scientific[iii])) {
+      temp0$common_name[iii] <- paste0(temp0$common_name[iii], 
+                                       " (", temp0$report_name_scientific[iii], ")")
+      temp0$report_name_scientific[iii] <- NA
+    # } else {
+    #   temp0$report_name_scientific[iii] <- paste0(" (", temp0$report_name_scientific[iii], ")")
+    }
+        if (grepl(pattern = " unid.", x = temp0$report_name_scientific[iii])) {
+      temp0$common_name_[iii] <- paste0(temp0$common_name_[iii], 
+                                       " (", temp0$report_name_scientific_[iii], ")")
+      temp0$report_name_scientific_[iii] <- NA
+      #   } else {
+      # temp0$report_name_scientific_[iii] <- paste0(" (", temp0$report_name_scientific_[iii], ")")
+          }
+  }
+  
   table_print <- flextable::flextable(
     data = temp0,
     col_keys = c("dummy_ebs","dummy_nbs"))  %>%
@@ -1087,7 +1100,7 @@ if (SRVY == "NEBS"){
                        value = as_paragraph(
                          as_chunk(ifelse(!is.na(common_name_), 
                                          paste0(common_name_), ""),
-                                  props = fp_text_default(bold = TRUE, font.size = 10, font.family = font0)), 
+                                  props = fp_text_default(bold = FALSE, font.size = 10, font.family = font0)), 
                          as_chunk(ifelse(!is.na(report_name_scientific_), 
                                          paste0(" (", report_name_scientific_, ")"), ""),
                                   props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
@@ -1095,18 +1108,20 @@ if (SRVY == "NEBS"){
                        value = as_paragraph(
                          as_chunk(ifelse(!is.na(common_name), 
                                          paste0(common_name), ""),
-                                  props = fp_text_default(bold = TRUE, font.size = 10, font.family = font0)), 
+                                  props = fp_text_default(bold = FALSE, font.size = 10, font.family = font0)), 
                          as_chunk(ifelse(!is.na(report_name_scientific), 
                                          paste0(" (", report_name_scientific, ")"), ""),
                                   props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
     flextable::compose(x = ., i = 1, j = "dummy_ebs", part = "header",
                        as_paragraph("Present in EBS but absent in NBS\nCommon Name ", 
                                     as_chunk(paste0("(Scientific Name)"),
-                                             props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
+                                             props = fp_text_default(italic = TRUE, bold = TRUE, 
+                                                                     font.size = 10, font.family = font0)))) %>%  
     flextable::compose(x = ., i = 1, j = "dummy_nbs", part = "header",
                        as_paragraph("Present in NBS but absent in EBS\nCommon Name ", 
                                     as_chunk(paste0("(Scientific Name)"),
-                                             props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
+                                             props = fp_text_default(italic = TRUE, bold = TRUE, 
+                                                                     font.size = 10, font.family = font0)))) %>%  
     NMFSReports::theme_flextable_nmfstm(x = ., 
                                         font0 = font0, 
                                         pad = 0, 
@@ -1221,7 +1236,6 @@ temp <- function(exp0,
   #                  ci = confint(num_hauls, bio_var)) %>% 
   # dplyr::ungroup()
   
-  
   biomass_spp_bystrata <- dat %>%
     # dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
     dplyr::group_by(SRVY, strata, group, taxon) %>% # , num_hauls
@@ -1245,7 +1259,6 @@ temp <- function(exp0,
   
   
   # group level --------------------------------------------------------------
-  
   
   dat0 <- eval(parse(
     text=gsub(pattern = "DATAFRAME",
@@ -1309,7 +1322,7 @@ temp <- function(exp0,
                      num_hauls = sum(num_hauls, na.rm = TRUE)  # do I need to sum num_hauls from all spp or sum of tows where any of those species ever occured
     ) %>%
     dplyr::mutate(ci = confint(num_hauls, bio_var), 
-                  taxon = paste0("total ", tolower(group)))
+                  taxon = paste0("total ", (group)))
   
   biomass_group_999 <- dat %>%  ## summarize by group to compare to prior years tech memo    
     dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
@@ -1324,7 +1337,7 @@ temp <- function(exp0,
       ci = confint(num_hauls, bio_var), 
       # up_ci_bio_tot = biomass_mt + ci,
       # ci_percent = ((1-(biomass_mt/up_ci_bio_tot))*100), 
-      taxon = paste0("total ", tolower(group)), 
+      taxon = paste0("total ", (group)), 
       strata = 999) %>% 
     dplyr::select(-num)
   
@@ -1580,7 +1593,8 @@ temp1 <- function(table_raw, strat, total) {
                      align = "right", part = "all") %>%
     flextable::align(x = ., 
                      j = c(strat), 
-                     align = "center", i = 1, part = "header")
+                     align = "center", i = 1, part = "header") %>%
+      flextable::hline(x = ., i = 1, part = "header")
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
@@ -1602,7 +1616,7 @@ exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes 
     species_code >= 401 & 
       species_code <= 495 & 
       species_code != 471 ~ "Rajidae (skates)_other skates",
-    species_code == 10210 ~ "Pleuronectidae (flatfishes)_yellowfin sole",
+    species_code == 10210 ~ "Pleuronectidatable_pe (flatfishes)_yellowfin sole",
     species_code == 10261 ~ "Pleuronectidae (flatfishes)_northern rock sole",
     species_code == 10130 ~ "Pleuronectidae (flatfishes)_flathead sole",
     species_code == 10140 ~ "Pleuronectidae (flatfishes)_Bering flounder",
@@ -1636,9 +1650,9 @@ exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes 
     species_code >= 23000 & species_code <= 23099 ~ "Osmeridae (smelts)",
     species_code >= 23800 & species_code <= 23870 ~ "Stichaeidae (blennies)", 
     species_code >= 24100 & species_code <= 24395 ~ "Zoarcidae (eelpouts)",
-    species_code == 30060 ~ "Scorpaenidae (rockfish)_Pacific ocean perch",
+    species_code == 30060 ~ "Scorpaenidae (rockfishes)_Pacific ocean perch",
     species_code >= 30000 & species_code <= 31550 & 
-      species_code != 30060 ~ "Scorpaenidae (rockfish)_other rockfish",
+      species_code != 30060 ~ "Scorpaenidae (rockfishes)_other rockfish",
     TRUE ~ "Other"))')
 
 table_raw0 <- temp(exp0 = exp0, 
@@ -1930,7 +1944,7 @@ temp <- biomass %>%
                 biomass, sdbio, upperb, lowerb, 
                 meannumcpue, sdcpuenum, 
                 population, sdpop, upperp, lowerp, 
-                # haulcount, 
+                # haulcount, s
                 catcount, numcount, lencount) %>% 
   dplyr::left_join(
     x = ., 
@@ -2121,7 +2135,8 @@ for (i in 1:2) {
                                         pgwidth = full_page_landscape_width) %>%
     flextable::align(x = ., align = "right", part = "all") %>%
     flextable::align(x = ., j = c("print_name"), #, "SRVY"
-                     align = "left", part = "all")
+                     align = "left", part = "all") %>%
+    flextable::hline(x = ., i = 1, part = "header")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header

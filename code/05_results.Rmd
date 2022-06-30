@@ -162,6 +162,9 @@ temp0 <- function(cols, SRVY, report_spp1) {
                                                        unique(temp$common_name)])) )
   }
   
+cols <- gsub(pattern = "\n", replacement = " ", x = cols)
+cols <- gsub(pattern = " Measurements", replacement = "s", x = cols)
+  
   return(list("col" = tolower(cols), 
               "nspec" = nspec, 
               "ctaxa" = ctaxa, # kinds of taxa
@@ -171,11 +174,12 @@ temp0 <- function(cols, SRVY, report_spp1) {
 cols <- names(list_tables$tab_specimen_samples_EBS$raw)
 cols <- cols[!(cols %in% c("common_name", "SRVY"))]
 
+
 # "", "stomachs collected"	count_pathobiology_samples	count_fecundity_and_maturity_(ovaries)_samples
 
 temp <- temp0(cols, SRVY, a)
 
-str0 <- paste0("A total of ", NMFSReports::text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, ifelse(temp$ntaxa==1, " taxon", " taxa"))), ". ")
+str0 <- paste0("A total of ", NMFSReports::text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, ifelse(temp$ntaxa==1, "taxon", "taxa"))), ". ")
 
 ```
 

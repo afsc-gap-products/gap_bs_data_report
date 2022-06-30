@@ -1499,7 +1499,8 @@ temp <- dplyr::bind_rows(
     species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
     TRUE ~ length)) %>%
   dplyr::filter(!is.na(length)) %>% # if NA, it was not lengthed!
-  dplyr::select(hauljoin, SRVY, species_code) %>% 
+  dplyr::select(hauljoin, SRVY, species_code, station) %>% 
+  dplyr::distinct() %>%
   dplyr::left_join(
     x = ., 
     y = haul %>% 
