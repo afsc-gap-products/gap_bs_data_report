@@ -206,9 +206,11 @@ tab_taxa_encountered_ <- function(temp,
       dplyr::arrange(species_name)  %>%
       dplyr::arrange(taxon)  %>%
       dplyr::mutate(stations_n = formatC(stations_n, big.mark=",", digits = 0, format = "f"))  %>%
-      dplyr::mutate(across(where(is.numeric), 
+      dplyr::mutate(across(c("lat_min", "lat_max", "depth_mean"), 
                            formatC, big.mark=",", digits = 1, format = "f"), 
-                    taxon = ifelse(is.na(taxon), "Other", taxon))
+                    taxon = ifelse(is.na(taxon), "Other", taxon), 
+                    across(c("depth_min", "depth_max"), 
+                           formatC, big.mark=",", digits = 0, format = "f"))
     
     table_print <- table_raw %>% 
       dplyr::mutate(species_name1 = species_name) %>%
@@ -272,8 +274,8 @@ tab_taxa_encountered_ <- function(temp,
                                      depth_max = "Max.", 
                                      depth_mean = "Avg.", 
                                      spacer = " ", 
-                                     lat_max = "Southern", 
-                                     lat_min = "Northern")) %>%
+                                     lat_max = "S", 
+                                     lat_min = "N")) %>%
       flextable::add_header_row(x = .,
                                 top = TRUE,
                                 values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
@@ -289,15 +291,16 @@ tab_taxa_encountered_ <- function(temp,
       NMFSReports::theme_flextable_nmfstm(x = ., 
                                           font0 = font0, 
                                           row_lines = TRUE, 
-                                          body_size = 8, 
-                                          header_size = 9, 
+                                          # body_size = 8, 
+                                          # header_size = 9, 
                                           pad = 0, 
                                           pgwidth = full_page_portrait_width) %>%
+      flextable::hline(x = ., part = "header") %>%
       flextable::width(x = ., width = .5, unit = "in") %>%
       # flextable::width(x = ., width = .75, j = "stations_n", unit = "in") %>%
       flextable::width(x = ., width = .1, j = c("spacer"), unit = "in") %>%
-      flextable::width(x = ., width = .75, j = c("taxon", "common_name"), unit = "in") %>%
-      flextable::width(x = ., width = 1.5, j = c("species_name"), unit = "in") %>%
+      flextable::width(x = ., width = 1, j = c("taxon", "common_name"), unit = "in") %>%
+      flextable::width(x = ., width = 1.25, j = c("species_name"), unit = "in") %>%
       flextable::align(x = ., 
                        j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
                        align = "right", part = "all") %>%
@@ -476,8 +479,8 @@ tab_app_principal_fish_ <- function(temp,
         NMFSReports::theme_flextable_nmfstm(x = ., 
                                             font0 = font0, 
                                             row_lines = FALSE, 
-                                            body_size = 8, 
-                                            header_size = 9, 
+                                            # body_size = 8, 
+                                            # header_size = 9, 
                                             pad = 0, 
                                             pgwidth = full_page_portrait_width) %>%
         flextable::width(x = ., width = .9, unit = "in")

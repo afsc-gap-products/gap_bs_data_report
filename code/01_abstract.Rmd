@@ -118,19 +118,34 @@ str0 <- paste0(str01,
                              " warmest observed since the begining the survey. "), ""),
                       str02)
 
+```
 
+`r str0` 
 
-# Species counts -------------------------------------
-  temp <- spp_info_maxyr %>% 
-    dplyr::filter(used_in_counts == TRUE) 
+```{r species_counts}
+
+  # temp <- spp_info_maxyr %>% 
+  #   dplyr::filter(used_in_counts == TRUE) 
+
+temp <- dplyr::left_join(
+  x = catch_haul_cruises_maxyr %>% 
+    dplyr::select(SRVY, species_code) %>% 
+    dplyr::distinct(), 
+  y = spp_info %>% 
+    dplyr::filter(used_in_counts) %>%
+    dplyr::select(species_code, species_taxon, family_taxon, genus_taxon, taxon) %>%
+    dplyr::distinct(), 
+  by = "species_code") %>% 
+  dplyr::filter(taxon == "fish") %>% 
+  dplyr::select(species_code, species_taxon, family_taxon, genus_taxon, taxon, SRVY) %>% 
+  dplyr::distinct()
   
   fish_sp <- xunits(length(unique(temp$report_name_scientific[temp$taxon == "fish" & 
                                                      !(grepl(pattern = " sp.", x = temp$report_name_scientific, fixed = T)) & 
                                                      !(grepl(pattern = " unid.", x = temp$report_name_scientific, fixed = T))])))
-
 ```
 
-`r str0` A total of `r fish_sp ` species of fishes were identified during the `r ifelse(SRVY=="NEBS", "surveys", "survey")`, representing `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera and `r NMFSReports::xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms representing `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
+A total of `r fish_sp ` species of fishes were identified during the `r ifelse(SRVY=="NEBS", "surveys", "survey")`, representing `r xunits(length(unique(temp$genus_taxon[temp$taxon == "fish"])))` genera and `r NMFSReports::xunits(length(unique(temp$family_taxon[temp$taxon == "fish"])))` families, as well as `r xunits(length(unique(temp$report_name_scientific[temp$taxon == "invert"])))` invertebrate taxa. In total, organisms representing `r xunits(length(unique(temp$phylum_taxon)))` phyla were identified in the catches.
 
 This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` shelf bottom trawl surveys. For select, common fish species, plots of abundance-at-length comparing the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, and estimates of population size, geographic distributions and abundance-at-length of select fish species. Appendices provide station data, summarized catch data by station, species listings, and detailed analyses of abundance and biological data for the sampled populations.
 

@@ -1439,7 +1439,7 @@ plot_pa_xbyx <- function(
       strip.background = element_blank(), 
       strip.text = element_text(size = 10, face = "bold"), 
       # legend.title = ,element_blank(),
-      legend.text = element_text(size = 10),
+      legend.text = element_text(size = 9),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
@@ -1514,11 +1514,12 @@ plot_idw_xbyx <- function(
                   LATITUDE = as.character(lat), 
                   LONGITUDE = as.character(lon), 
                   CPUE_KGHA = as.character(var)) %>% 
-    dplyr::select(year, LATITUDE, LONGITUDE, CPUE_KGHA) %>% 
+    dplyr::select(year, LATITUDE, LONGITUDE, CPUE_KGHA, SRVY) %>% 
     dplyr::mutate(year = as.numeric(year), 
                   CPUE_KGHA = as.numeric(CPUE_KGHA), 
                   LATITUDE = as.numeric(LATITUDE), 
-                  LONGITUDE = as.numeric(LONGITUDE))
+                  LONGITUDE = as.numeric(LONGITUDE)) %>% 
+    dplyr::filter(year %in% yrs)
   
   figure <- ggplot()
   if (nrow(dat) != 0) {
@@ -1532,8 +1533,16 @@ plot_idw_xbyx <- function(
       temp <- dat %>% 
         dplyr::filter(year == yrs[ii]) 
       
+      region0 <- region
+      # reg_dat0 <- reg_dat
+      if (length(unique(temp$SRVY))==1 & # is this species in only 1 of the 2 survey areas
+          length(unique(dat$SRVY))>1) { # (when SRVY == NEBS)?
+        region0 <- ifelse(unique(temp$SRVY) == "EBS", "bs.south", "bs.north")
+      }
+      
       temp1 <- make_idw_map(x = temp, # Pass data as a data frame
-                            region = region, 
+                            region = region0, 
+                            extrap.box = sf::st_bbox(reg_dat$survey.area), 
                             out.crs = as.character(reg_dat$crs)[1],
                             set.breaks = set.breaks,
                             grid.cell = grid.cell, 
@@ -1557,9 +1566,8 @@ plot_idw_xbyx <- function(
     stars_list = stars::st_redimension(stars_list)
     names(stars_list) = "value"
     
-    
     figure <- figure +
-      geom_stars(data = stars_list, na.rm = TRUE) 
+      geom_stars(data = stars_list) 
   }
   
   if (plot_coldpool) {
@@ -1641,10 +1649,10 @@ plot_idw_xbyx <- function(
                    dist = 100, #ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 2, 0.08, 0.03),
+                   st.dist = ifelse(row0 > 2, 0.06, 0.03),
                    height = ifelse(row0 > 2, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2.25, 3))
+                   st.size = ifelse(row0 > 2, 2, 3))
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
@@ -1661,10 +1669,7 @@ plot_idw_xbyx <- function(
         breaks = rev(reg_dat$survey.area$SURVEY), 
         labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY_long))) + 
       ggplot2::guides(
-        size = guide_legend(
-          # order = 1,# survey regions
-          override.aes = list(size = 10)))  +
-      guides(
+        size = guide_legend(override.aes = list(size = 10)), 
         fill = guide_legend(order = 1, 
                             title.position = "top", 
                             label.position = "bottom",
@@ -1676,17 +1681,6 @@ plot_idw_xbyx <- function(
                              override.aes = list(size = 2), 
                              title.hjust = 0.5,
                              nrow = 2)) 
-  # } else {
-  #   figure <- figure +
-  #     guides(
-  #       fill = guide_legend(title = key.title, 
-  #                           title.position = "top", 
-  #                           label.position = "bottom",
-  #                           title.hjust = 0.5, 
-  #                           override.aes = list(color = NA), 
-  #                           nrow = 1)) 
-  # }
-  
   
   if (grid == "continuous.grid") {
     figure <- figure + 
@@ -1703,14 +1697,15 @@ plot_idw_xbyx <- function(
     # temp <- factor(x = temp0$var1.pred, levels = levels(temp0$var1.pred), labels = levels(temp0$var1.pred), ordered = T)
     figure <- figure +
       scale_fill_manual(
+        name = key.title, 
+        na.value = "transparent",
+        limits = levels(temp0$var1.pred), 
         values=c("gray90", 
                  viridis::mako(
                    direction = -1, 
-                   n = temp1$n.breaks,
+                   n = (length(levels(temp0$var1.pred))-1), # temp1$n.breaks,
                    begin = 0,
                    end = 0.80)), 
-        name = key.title,
-        na.value = "transparent", 
         breaks = levels(temp0$var1.pred), 
         labels = levels(temp0$var1.pred))      
   }
@@ -1728,7 +1723,7 @@ plot_idw_xbyx <- function(
       strip.background = element_blank(), 
       strip.text = element_text(size = 10, face = "bold"), 
       # legend.title = element_text(size = 12), #, vjust = .5, hjust = .3),
-      legend.text = element_text(size = 10),
+      legend.text = element_text(size = 9),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
@@ -1824,6 +1819,7 @@ plot_temps_facet <- function(rasterbrick,
                           title.hjust = 0.5, nrow = 1)) +
     
     theme(
+      legend.text = element_text(size = 9),
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
@@ -2247,6 +2243,7 @@ plot_sizecomp <- function(sizecomp0,
           panel.grid.minor.x = element_blank(),
           strip.background = element_blank(),
           strip.text = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 9),
           legend.key = element_rect(colour = "transparent",
                                     fill = "transparent"),
           axis.title = element_text(size = 10, face = "bold"),
@@ -2564,7 +2561,10 @@ plot_survey_stations <- function(reg_dat,
   }
   
   figure <- figure +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80")
+    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2)
   
   if (station_pts_srvy) {
     figure <- figure +
@@ -2636,7 +2636,7 @@ plot_survey_stations <- function(reg_dat,
       legend.background=element_blank(),
       legend.key = element_rect(colour = "transparent", 
                                 fill = "transparent"),
-      legend.position = c(.15, .22),
+      legend.position = c(.15, .2),
       # legend.justification = c("right"),
       legend.box.just = "left",
       # legend.margin = margin(6, 6, 6, 6), 

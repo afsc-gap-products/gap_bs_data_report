@@ -22,7 +22,7 @@ header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$SRVY),
                  " continental shelf bottom trawl survey", 
                  ifelse(SRVY == "NEBS", "s", ""), 
-                 ". Corner stations (denoted by circles) are not labeled for legibility. ")
+                 ". ", ifelse(SRVY == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. "))
 nickname <- "fig_sample_grid"
 subobj <- FALSE
 
@@ -252,36 +252,52 @@ table_raw <-
     Region == "EBS and NBS Total" ~ 7
   ))  %>%
   dplyr::arrange(order, stratum) %>% #SRVY, stratum) %>% 
-  dplyr::select(Region, stratum, area, stations_completed, density, -order) %>% 
-  dplyr::relocate(Region, stratum, area, stations_completed, density)
+  # dplyr::select(Region, stratum, area, stations_completed, density, -order) %>% 
+  dplyr::select(-Region, -order) %>%
+  dplyr::relocate(SRVY, type, #Region, 
+                  stratum, area, stations_completed, density) %>% 
+  dplyr::rename(Region = type)
 
-table_print <- flextable::flextable(
-  data = table_raw, 
-  col_keys = c("Region", "stratum", "area", "stations_completed", "density"))  %>%
+          # if (length(unique(table_raw$SRVY)) > 1) {
+            table_print <- table_raw %>%
+              flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
+              flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE)
+          # } else {
+          #   table_print <- table_raw %>%
+          #     dplyr::select(-SRVY) %>%
+          #     flextable::flextable(data = .)
+          # }
+
+table_print <- table_print %>%
   flextable::compose(x = ., i = 1, j = "area", part = "header",
                      value = as_paragraph("Representative\narea (km", as_sup("2"), ")")) %>%
   flextable::compose(x = ., i = 1, j = "density", part = "header",
                      value = as_paragraph("Sampling density\n(km", as_sup("2"), "/Stations successfully sampled)")) %>%  
-  # flextable::width(x = ., j = "Region", width = 3) %>% 
-  # flextable::width(x = ., j = "stratum", width = 3) %>% 
-  # flextable::width(x = ., j = "density", width = 3) %>% 
   flextable::set_header_labels(., 
                                Region = "",
                                stratum = "Stratum",
                                # area = "Representative\narea (km2)",
-                               stations_completed = "Stations\nsuccessfully sampled"#,
                                # density = "Sampling density\n(km2/Stations successfully sampled)"
-  ) %>% 
+                               stations_completed = "Stations\nsuccessfully sampled") %>% 
   flextable::merge_v(j = "Region") %>%
   flextable::merge_h_range(x = ., i = ~ stratum == "", j1 = "Region", j2 = "stratum", part = "body") %>%
   flextable::valign(valign = "top") %>%
-  flextable::bold(x = ., j = 1, i = ~ grepl(pattern = "Total", x = table_raw$Region) ) %>% #!is.na(Region) ) %>%
   theme_flextable_nmfstm(x = ., 
+                         row_lines = FALSE, 
                          pad = 0, 
                          font0 = font0, 
                          pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c("stratum", "area", "stations_completed", "density"), 
-                   align = "right", part = "all") 
+                   align = "right", part = "all")  %>% 
+          flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+          flextable::padding(x = .,
+                             j = 1, i = ~ is.na(SRVY),
+                             padding.left = 5)   %>%
+          flextable::hline(x = ., i = ~ !is.na(Region), #j = SRVY, #border = fp_border(width = 3), 
+                           part = "body")  %>%
+          flextable::hline(x = ., i = ~ (Region == "Total"), #j = SRVY, #border = fp_border(width = 3), 
+                           part = "body", border = fp_border(width = 2)) 
+
 
 
 # table_raw_stratum_areas <- table_raw
@@ -344,13 +360,14 @@ table_raw0 <-
                          TRUE ~ common_name)) %>% 
                      dplyr::select(species_code, common_name), 
                    by = "species_code") %>% 
-  dplyr::full_join(x = ., 
-                   y = temp, 
-                   by = c("common_name" = "print_name", "SRVY")) %>% 
-  dplyr::select(-species_code) %>% 
-  # dplyr::rename(common_name = print_name) %>%
   dplyr::group_by(SRVY, common_name) %>% 
   dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::full_join(x = ., 
+                   y = temp, 
+                   by = c("SRVY", "common_name" = "print_name")) %>% 
+  dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0))) %>%
+  dplyr::select(-species_code) %>% 
   dplyr::arrange(SRVY, common_name) 
 
 table_raw0$common_name[is.na(table_raw0$common_name)] <- "other" # TOLEDO
@@ -390,10 +407,12 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
   names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
     stringr::str_to_sentence(gsub(pattern = "_",
-                                  replacement = " ", 
+                                  replacement = "\n", 
                                   x = names(table_raw)[!(names(table_raw) %in% 
                                                            c("SRVY", "common_name"))], 
                                   fixed = TRUE))
+  names(table_raw)[names(table_raw) == "Otolith\nAge\nStructure\nMeasurements"] <- 
+    "Otolith Age\nStructure Measurements"
   
   
   table_print <- table_raw %>% 
@@ -412,9 +431,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  common_name = haul_cruises_maxyr$SRVY[i]#,
                                  # Length = "Length\nmeasurements",
                                  # Age = "Age structure (otolith)\nmeasurements"
-    ) %>%
-    flextable::width(x = ., width = 1, unit = "in") %>%
-    flextable::width(x = ., j = "common_name", width = 3, unit = "in") %>% 
+    ) %>% 
     flextable::bold(x = ., i = which(table_print$common_name == "Total")) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
@@ -424,7 +441,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                         font0 = font0, 
                                         pgwidth = full_page_portrait_width) %>%
     flextable::align(x = ., j = 2:ncol(table_print), 
-                     align = "right", part = "all") 
+                     align = "right", part = "all")  %>%
+    # flextable::width(x = ., width = 1.5, unit = "in") %>%
+    flextable::width(x = ., j = "common_name", width = 2, unit = "in")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -486,8 +505,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
       "oto_samp_type"), 
       columns = NULL) %>% 
     flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
-    flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>%
-    flextable::width(x = ., j = "print_name", width = 4) %>% 
+    flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>% 
     flextable::set_header_labels(.,
                                  print_name = "Common name", 
                                  # species_name = "Scientific name", 
@@ -504,7 +522,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                         pgwidth = full_page_portrait_width)  %>%
     flextable::padding(x = .,
                        j = 1, i = ~ is.na(oto_samp_type),
-                       padding.left = 5) 
+                       padding.left = 5) %>%
+    # flextable::width(x = ., j = "print_name", width = 1.5) %>%
+    flextable::width(x = ., j = "print_name", width = 2)
   
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -567,7 +587,8 @@ table_print <- flextable::flextable(table_raw %>%
                                       row_lines = TRUE, 
                                       pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c(SRVY1), 
-                   align = "right", part = "all")
+                   align = "right", part = "all")  %>%
+    flextable::width(x = ., j = "print_name", width = 2)  
 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -655,10 +676,7 @@ list_tables[nickname][[1]]$res <- res
 
 # Results
 
-
 ## fig_mean_temperature
-
-prev: fig_temp_weight_mean
 
 ```{r fig_mean_temperature}
 
@@ -672,7 +690,7 @@ header <- paste0("Average summer surface (light blue triangles) and bottom (dark
                  "(right). Dashed lines represent the time series mean.")
 # alttext <- paste0("Graph showing average summer surface (light blue triangles) and bottom (dark blue circles) temperatures (°C) on the EBS shelf (left) based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr," and NBS shelf (right) based on data collected during standardized summer bottom trawl surveys from ", NMFSReports::range_text(nbsyr),". Dashed horizontal lines represent the time series mean.")
 
-height = 3.5
+height = 3.25
 width <- full_page_portrait_width # 6.5
 
 sebs_temperatures <- coldpool:::cold_pool_index %>%
@@ -709,16 +727,11 @@ if (SRVY == "NEBS") {
   all_temperatures <- dplyr::bind_rows(sebs_temperatures)
   mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
 }
-# 
-# sebs_sst_mean <- 
-# sebs_bt_mean <- 
-# nbs_sst_mean <- 
-# nbs_bt_mean <- 
 
-color_sst <- nmfs_palette("oceans")(2)[1]#"darkgreen"
-color_bt <- nmfs_palette("oceans")(2)[2]#"darkblue"
+all_temperatures$variable <- factor(all_temperatures$variable, levels=c('Surface','Bottom'))
 
-
+color_sst <- nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
+color_bt <- nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
 
 figure <- ggplot(data = all_temperatures,
                  mapping = aes(x = YEAR,
@@ -736,7 +749,8 @@ figure <- ggplot(data = all_temperatures,
   scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
                      limits = c(0,11.2),
                      breaks = seq(0,12,2),
-                     expand = c(0,0)) +
+                     expand = c(0,0))  + 
+  ggplot2::labs(x = "Year") +
   # scale_x_continuous(name = "Year",
   #                    breaks = seq(1980,floor(maxyr/5)*5,5)) +
   facet_wrap(~region, scales = "free") +
@@ -779,8 +793,6 @@ list_figures[nickname][[1]]$res <- res
 
 ## fig_cold_pool_area
 
-### Figure header from 2019: Figure 4. Mean summer surface and near-bottom temperatures for the 38-year times series from the EBS shelf bottom trawl survey (A) and the cumulative proportion of EBS shelf area covered by each one-degree bottom isotherm range (B).
-
 ```{r fig_cold_pool_area}
 # header <- paste0("Percentage of the EBS shelf from 1982–",maxyr," bottom area that is occupied by the cold pool in one degree Celsius increments.")
 header <- paste0("Annual cold pool extent on the EBS shelf, based on observations from the EBS bottom trawl survey. Extent of the cold pool is shown in proportion to the total southern EBS shelf survey area. Shading denotes near-bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
@@ -789,7 +801,7 @@ alttext <- paste0("Annual cold pool extent on the EBS shelf, as measured using o
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_cold_pool_area"
 
-height <- 3.5
+height <- 3
 width <- full_page_portrait_width # 6.5
 
 figure <- ggplot() + 
@@ -897,7 +909,7 @@ nickname0 <- "fig_bt_temperature_ebs_"
 for (i in 1:2) { # two cases, above and below
   
   height <- full_page_portrait_height # 7
-  width <- full_page_portrait_width # 6.5
+  width <- full_page_portrait_width-1 # 6.5
   
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
@@ -1048,7 +1060,6 @@ if (SRVY == "NEBS"){
     dplyr::filter(!is.na(common_name)) %>%
     dplyr::arrange(common_name)
   
-  
   temp <- table_raw %>% 
     dplyr::select(-species_code)
   
@@ -1083,6 +1094,23 @@ if (SRVY == "NEBS"){
   
   temp0 <- dplyr::bind_cols(temp1, temp2)
   
+  for (iii in 1:nrow(temp0)) {
+    if (grepl(pattern = " unid.", x = temp0$report_name_scientific[iii])) {
+      temp0$common_name[iii] <- paste0(temp0$common_name[iii], 
+                                       " (", temp0$report_name_scientific[iii], ")")
+      temp0$report_name_scientific[iii] <- NA
+    # } else {
+    #   temp0$report_name_scientific[iii] <- paste0(" (", temp0$report_name_scientific[iii], ")")
+    }
+        if (grepl(pattern = " unid.", x = temp0$report_name_scientific[iii])) {
+      temp0$common_name_[iii] <- paste0(temp0$common_name_[iii], 
+                                       " (", temp0$report_name_scientific_[iii], ")")
+      temp0$report_name_scientific_[iii] <- NA
+      #   } else {
+      # temp0$report_name_scientific_[iii] <- paste0(" (", temp0$report_name_scientific_[iii], ")")
+          }
+  }
+  
   table_print <- flextable::flextable(
     data = temp0,
     col_keys = c("dummy_ebs","dummy_nbs"))  %>%
@@ -1090,7 +1118,7 @@ if (SRVY == "NEBS"){
                        value = as_paragraph(
                          as_chunk(ifelse(!is.na(common_name_), 
                                          paste0(common_name_), ""),
-                                  props = fp_text_default(bold = TRUE, font.size = 10, font.family = font0)), 
+                                  props = fp_text_default(bold = FALSE, font.size = 10, font.family = font0)), 
                          as_chunk(ifelse(!is.na(report_name_scientific_), 
                                          paste0(" (", report_name_scientific_, ")"), ""),
                                   props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
@@ -1098,18 +1126,20 @@ if (SRVY == "NEBS"){
                        value = as_paragraph(
                          as_chunk(ifelse(!is.na(common_name), 
                                          paste0(common_name), ""),
-                                  props = fp_text_default(bold = TRUE, font.size = 10, font.family = font0)), 
+                                  props = fp_text_default(bold = FALSE, font.size = 10, font.family = font0)), 
                          as_chunk(ifelse(!is.na(report_name_scientific), 
                                          paste0(" (", report_name_scientific, ")"), ""),
                                   props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
     flextable::compose(x = ., i = 1, j = "dummy_ebs", part = "header",
                        as_paragraph("Present in EBS but absent in NBS\nCommon Name ", 
                                     as_chunk(paste0("(Scientific Name)"),
-                                             props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
+                                             props = fp_text_default(italic = TRUE, bold = TRUE, 
+                                                                     font.size = 10, font.family = font0)))) %>%  
     flextable::compose(x = ., i = 1, j = "dummy_nbs", part = "header",
                        as_paragraph("Present in NBS but absent in EBS\nCommon Name ", 
                                     as_chunk(paste0("(Scientific Name)"),
-                                             props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
+                                             props = fp_text_default(italic = TRUE, bold = TRUE, 
+                                                                     font.size = 10, font.family = font0)))) %>%  
     NMFSReports::theme_flextable_nmfstm(x = ., 
                                         font0 = font0, 
                                         pad = 0, 
@@ -1187,7 +1217,7 @@ temp <- function(exp0,
   # total_biomass0 <- a$total_biomass
   
   # select spp 
-  dat <- eval(parse( 
+  dat <- eval(parse(
     text=gsub(pattern = "DATAFRAME", 
               replacement = "biomass_by_stratum0", 
               x = exp0) )) %>% 
@@ -1224,7 +1254,6 @@ temp <- function(exp0,
   #                  ci = confint(num_hauls, bio_var)) %>% 
   # dplyr::ungroup()
   
-  
   biomass_spp_bystrata <- dat %>%
     # dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
     dplyr::group_by(SRVY, strata, group, taxon) %>% # , num_hauls
@@ -1248,7 +1277,6 @@ temp <- function(exp0,
   
   
   # group level --------------------------------------------------------------
-  
   
   dat0 <- eval(parse(
     text=gsub(pattern = "DATAFRAME",
@@ -1312,7 +1340,7 @@ temp <- function(exp0,
                      num_hauls = sum(num_hauls, na.rm = TRUE)  # do I need to sum num_hauls from all spp or sum of tows where any of those species ever occured
     ) %>%
     dplyr::mutate(ci = confint(num_hauls, bio_var), 
-                  taxon = paste0("total ", tolower(group)))
+                  taxon = paste0("total ", (group)))
   
   biomass_group_999 <- dat %>%  ## summarize by group to compare to prior years tech memo    
     dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
@@ -1327,7 +1355,7 @@ temp <- function(exp0,
       ci = confint(num_hauls, bio_var), 
       # up_ci_bio_tot = biomass_mt + ci,
       # ci_percent = ((1-(biomass_mt/up_ci_bio_tot))*100), 
-      taxon = paste0("total ", tolower(group)), 
+      taxon = paste0("total ", (group)), 
       strata = 999) %>% 
     dplyr::select(-num)
   
@@ -1583,7 +1611,8 @@ temp1 <- function(table_raw, strat, total) {
                      align = "right", part = "all") %>%
     flextable::align(x = ., 
                      j = c(strat), 
-                     align = "center", i = 1, part = "header")
+                     align = "center", i = 1, part = "header") %>%
+      flextable::hline(x = ., i = 1, part = "header")
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
@@ -1605,7 +1634,7 @@ exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes 
     species_code >= 401 & 
       species_code <= 495 & 
       species_code != 471 ~ "Rajidae (skates)_other skates",
-    species_code == 10210 ~ "Pleuronectidae (flatfishes)_yellowfin sole",
+    species_code == 10210 ~ "Pleuronectidatable_pe (flatfishes)_yellowfin sole",
     species_code == 10261 ~ "Pleuronectidae (flatfishes)_northern rock sole",
     species_code == 10130 ~ "Pleuronectidae (flatfishes)_flathead sole",
     species_code == 10140 ~ "Pleuronectidae (flatfishes)_Bering flounder",
@@ -1639,9 +1668,9 @@ exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes 
     species_code >= 23000 & species_code <= 23099 ~ "Osmeridae (smelts)",
     species_code >= 23800 & species_code <= 23870 ~ "Stichaeidae (blennies)", 
     species_code >= 24100 & species_code <= 24395 ~ "Zoarcidae (eelpouts)",
-    species_code == 30060 ~ "Scorpaenidae (rockfish)_Pacific ocean perch",
+    species_code == 30060 ~ "Scorpaenidae (rockfishes)_Pacific ocean perch",
     species_code >= 30000 & species_code <= 31550 & 
-      species_code != 30060 ~ "Scorpaenidae (rockfish)_other rockfish",
+      species_code != 30060 ~ "Scorpaenidae (rockfishes)_other rockfish",
     TRUE ~ "Other"))')
 
 table_raw0 <- temp(exp0 = exp0, 
@@ -1974,27 +2003,24 @@ for (i in 1:2) {
                     # haulcount, 
                     catcount, numcount, lencount) 
     
-    biomass0<-find_units(unit = "mt", unt = "mt", table_raw$biomass)
-    sdbio0<-find_units(unit = "", unt = "", table_raw$sdbio)
-    
     table_print <- table_raw %>% 
-      dplyr::mutate(meanwgtcpue = formatC(x = meanwgtcpue/meanwgtcpue0$divby, 
+      dplyr::mutate(meanwgtcpue = formatC(x = meanwgtcpue, 
                                           digits = 2, 
                                           format = "f", big.mark = ","),
-                    sdcpuewt = formatC(x = sdcpuewt/sdcpuewt0$divby, 
+                    sdcpuewt = formatC(x = sdcpuewt, 
                                        digits = 2, 
                                        format = "f", big.mark = ","), 
-                    biomass = formatC(x = biomass/biomass0$divby, 
-                                      digits = ifelse(biomass0$divby>1, 2, 0), 
+                    biomass = formatC(x = biomass, 
+                                      digits = 0, 
                                       format = "f", big.mark = ",") , 
-                    upperb = formatC(x = upperb/biomass0$divby, 
-                                     digits = ifelse(biomass0$divby>1, 2, 0), 
+                    upperb = formatC(x = upperb, 
+                                      digits = 0, 
                                      format = "f", big.mark = ",") , 
-                    lowerb = formatC(x = lowerb/biomass0$divby, 
-                                     digits = ifelse(biomass0$divby>1, 2, 0), 
+                    lowerb = formatC(x = lowerb, 
+                                      digits = 0, 
                                      format = "f", big.mark = ",") , 
-                    sdbio = formatC(x = sdbio/sdbio0$divby, 
-                                    digits = ifelse(sdbio0$divby>1, 2, 0), 
+                    sdbio = formatC(x = sdbio, 
+                                      digits = 0, 
                                     format = "f", big.mark = ","))
     
     if (SRVY == "NEBS"){
@@ -2006,10 +2032,10 @@ for (i in 1:2) {
           SRVY = "Shelf area", 
           meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
           sdcpuewt = paste0("SD CPUE"), 
-          biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
-          sdbio = paste0("SD Biomass", sdbio0$unit_word), 
-          lowerb = paste0("95% LCL", biomass0$unit_word), 
-          upperb = paste0("95% UCL", biomass0$unit_word), 
+          biomass = paste0("Estimated\nBiomass"), 
+          sdbio = paste0("SD Biomass"), 
+          lowerb = paste0("95% LCL"), 
+          upperb = paste0("95% UCL"), 
           # haulcount = "Total hauls", 
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 
@@ -2024,10 +2050,10 @@ for (i in 1:2) {
           # SRVY = "Shelf area", 
           meanwgtcpue = paste0("Mean CPUE (kg/ha)"), 
           sdcpuewt = paste0("SD CPUE"), 
-          biomass = paste0("Estimated\nBiomass", biomass0$unit_word), 
-          sdbio = paste0("SD Biomass", sdbio0$unit_word), 
-          lowerb = paste0("95% LCL", biomass0$unit_word), 
-          upperb = paste0("95% UCL", biomass0$unit_word), 
+          biomass = paste0("Estimated\nBiomass"), 
+          sdbio = paste0("SD Biomass"), 
+          lowerb = paste0("95% LCL"), 
+          upperb = paste0("95% UCL"), 
           # haulcount = "Total hauls", 
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 
@@ -2052,27 +2078,27 @@ for (i in 1:2) {
                     # haulcount, 
                     catcount, numcount, lencount)
     
-    population0 <- find_units(unit = "", unt = "", dat = table_raw$population)
-    sdpop0 <- find_units(unit = "", unt = "", dat = table_raw$sdpop)
+    # population0 <- find_units(unit = "", unt = "", dat = table_raw$population)
+    # sdpop0 <- find_units(unit = "", unt = "", dat = table_raw$sdpop)
     
     table_print <- table_raw %>% 
-      dplyr::mutate(meannumcpue = formatC(x = meannumcpue/meannumcpue0$divby, 
+      dplyr::mutate(meannumcpue = formatC(x = meannumcpue, 
                                           digits = 2, 
                                           format = "f", big.mark = ","),
-                    sdcpuenum = formatC(x = sdcpuenum/sdcpuenum0$divby, 
+                    sdcpuenum = formatC(x = sdcpuenum, 
                                         digits = 2, 
                                         format = "f", big.mark = ","), 
-                    population = formatC(x = population/population0$divby, 
-                                         digits = ifelse(population0$divby>1, 2, 0), 
+                    population = formatC(x = population, 
+                                      digits = 0, 
                                          format = "f", big.mark = ",") , 
-                    upperp = formatC(x = upperp/population0$divby, 
-                                     digits = ifelse(population0$divby>1, 2, 0), 
+                    upperp = formatC(x = upperp, 
+                                      digits = 0, 
                                      format = "f", big.mark = ",") , 
-                    lowerp = formatC(x = lowerp/population0$divby, 
-                                     digits = ifelse(population0$divby>1, 2, 0), 
+                    lowerp = formatC(x = lowerp, 
+                                      digits = 0, 
                                      format = "f", big.mark = ",") , 
-                    sdpop = formatC(x = sdpop/sdpop0$divby, 
-                                    digits = ifelse(sdpop0$divby>1, 2, 0), 
+                    sdpop = formatC(x = sdpop, 
+                                      digits = 0, 
                                     format = "f", big.mark = ","))
     
     if (SRVY == "EBS") {
@@ -2085,10 +2111,10 @@ for (i in 1:2) {
           # SRVY = "Shelf area", 
           meannumcpue = paste0("Mean CPUE (no/ha)"), 
           sdcpuenum = paste0("SD CPUE"), 
-          population = paste0("Estimated\nPopulation", population0$unit_word), 
-          sdpop = paste0("SD Population", sdpop0$unit_word), 
-          lowerp = paste0("95% LCL", population0$unit_word), 
-          upperp = paste0("95% UCL", population0$unit_word), 
+          population = paste0("Estimated\nPopulation"), 
+          sdpop = paste0("SD Population"), 
+          lowerp = paste0("95% LCL"), 
+          upperp = paste0("95% UCL"), 
           # haulcount = "Total hauls", 
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 
@@ -2102,10 +2128,10 @@ for (i in 1:2) {
           SRVY = "Shelf area", 
           meannumcpue = paste0("Mean CPUE (no/ha)"), 
           sdcpuenum = paste0("SD CPUE"), 
-          population = paste0("Estimated\nPopulation", population0$unit_word), 
-          sdpop = paste0("SD Population", sdpop0$unit_word), 
-          lowerp = paste0("95% LCL", population0$unit_word), 
-          upperp = paste0("95% UCL", population0$unit_word), 
+          population = paste0("Estimated\nPopulation"), 
+          sdpop = paste0("SD Population"), 
+          lowerp = paste0("95% LCL"), 
+          upperp = paste0("95% UCL"), 
           # haulcount = "Total hauls", 
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts", 
@@ -2127,7 +2153,8 @@ for (i in 1:2) {
                                         pgwidth = full_page_landscape_width) %>%
     flextable::align(x = ., align = "right", part = "all") %>%
     flextable::align(x = ., j = c("print_name"), #, "SRVY"
-                     align = "left", part = "all")
+                     align = "left", part = "all") %>%
+    flextable::hline(x = ., i = 1, part = "header")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header

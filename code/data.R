@@ -1080,7 +1080,7 @@ temps_avg_yr_abovebelow <- list(
   temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == TRUE &
-                      year >= maxyr-10) %>% 
+                      year >= 2006) %>% # the begining of the last cold stanza
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
@@ -1093,7 +1093,7 @@ temps_avg_yr_abovebelow <- list(
   temps_avg_yr %>% 
       dplyr::filter(SRVY == "EBS" & 
                       bt_above_mean == FALSE &
-                      year >= maxyr-10) %>% 
+                      year >= 2006) %>%  # the begining of the last cold stanza
       dplyr::ungroup() %>%
       dplyr::arrange(-year) %>% 
       dplyr::select(year) %>% 
@@ -1499,7 +1499,8 @@ temp <- dplyr::bind_rows(
     species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
     TRUE ~ length)) %>%
   dplyr::filter(!is.na(length)) %>% # if NA, it was not lengthed!
-  dplyr::select(hauljoin, SRVY, species_code) %>% 
+  dplyr::select(hauljoin, SRVY, species_code, station) %>% 
+  dplyr::distinct() %>%
   dplyr::left_join(
     x = ., 
     y = haul %>% 
