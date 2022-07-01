@@ -26,7 +26,7 @@ The Marport Deep Sea Technologies Inc. net mensuration system was used during ea
 Temperature and depth profiles were recorded using a Sea-Bird SBE-39 temperature-depth recorder (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station. Average bottom depth was calculated by adding the average net height to the average depth of the headrope. 
 
 
-```{r}
+```{r net_width}
 # > Should we limit to 3 decimal places for eq?
 
   # equation = "{Net width} ∼ {Inverse scope} + {Height} + {Inverse scope} * {Height}"
@@ -113,7 +113,7 @@ $$ \\epsilon \\sim N(0,\\sigma^{2}) $$
 
 `r str0 `
 
-```{r}
+```{r dummy}
 # str <- c()
 # # if equations were estimated
 # if (sum(!is.na(temp$vessel)) == nrow(temp)) {
@@ -166,7 +166,7 @@ $$ \\epsilon \\sim N(0,\\sigma^{2}) $$
 
 ## EBS Sampling Logistics and Stratification Scheme
 
-```{r}
+```{r ebs_survey_plan}
 
 date_format<- "%B %d, %Y"
 str0 <- c()
@@ -251,8 +251,9 @@ str0 <- data.frame(str = str0,
 
 At the beginning of the survey, scientists boarded the chartered vessels (`r text_list(vessel_info$vessel_ital)`) in Dutch Harbor, Alaska, then transited to eastern Bristol Bay to begin sampling.  From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `). The east to west survey progression is intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration of yellowfin sole and other species, reducing the likelihood of encountering a portion of these populations multiple times [@RN928]. In the EBS, `r str0$str[str0$SRVY == "EBS"]` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `).
 
-```{r}
-temp0 <- list_tables$tab_stratum_areas$raw
+```{r ebs_survey_area}
+temp0 <- list_tables$tab_stratum_areas$raw %>% 
+    dplyr::mutate(Region = paste0(SRVY, " ", Region))
 
 temp <- temp0 %>% 
   dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -265,14 +266,15 @@ temp_tot <- temp0 %>%
   dplyr::select(density)
 ```
 
-For catch analysis, the EBS shelf was divided into 12 strata bounded by the 20 m, 50 m, 100 m, and 200 m isobaths and a geographic stratum line separating the northwest and southeast shelf (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). The stratum boundaries correspond with oceanographic domains and different biological communities. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to reduce variance estimates for blue king crab. Sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`) and the sampling density for the entire EBS shelf was one station per `r xunits(temp_tot$density)` km^2^ (Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`). For some analyses (e.g. abundance at length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number")`; Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`).
+For catch analysis, the EBS shelf was divided into 12 strata bounded by the 20 m, 50 m, 100 m, and 200 m isobaths and a geographic stratum line separating the northwest and southeast shelf (Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). The stratum boundaries correspond with oceanographic domains and different biological communities. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to reduce variance estimates for blue king crab. Sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`) and the sampling density for the entire EBS shelf was one station per `r xunits(temp_tot$density)` km^2^ (Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`). For some analyses (e.g. abundance at length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number")`; Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`).
 
-```{r}
+```{r nbs_survey_plan}
 nbs_insert <- ""
 
 if (SRVY == "NEBS") {
   
-  temp0 <- list_tables$tab_stratum_areas$raw
+  temp0 <- list_tables$tab_stratum_areas$raw %>% 
+    dplyr::mutate(Region = paste0(SRVY, " ", Region))
   
   temp <- temp0 %>% 
     dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -315,7 +317,7 @@ All Pacific halibut (*Hippoglossus stenolepis*) were enumerated and all commerci
 Length measurements were obtained from a random subsample of selected fish species from every haul (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`). The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of `r ifelse(maxyr>2021, "100", "300")` specimens. For each fish in a length subsample, sex was determined and then the fork length or total length was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture `r ifelse(maxyr > 2020, "", "and 50% were randomly selected to receive a preopercle tag,")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
 
 
-```{r}
+```{r collection_scheme}
 # wrong in 2021 because includes artic and saffron cod, which were special projects
 # temp <- specimen_maxyr %>% 
 #   dplyr::group_by(SRVY = all_of(SRVY)) %>% 
@@ -384,7 +386,7 @@ if (SRVY == "NEBS") {
 Sagittal otoliths were collected from `r str0 ` (Tables 
 `r NMFSReports::crossref(list_obj = list_tables, nickname = c("tab_specimen_samples_", "tab_oto_collection_scheme_"), sublist = "number", exact = FALSE)`) and shipped to the AFSC for age determination. Otolith samples were collected following `r str2 ` (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_oto_collection_scheme_", sublist = "number", exact = FALSE)`). Otoliths were preserved in a glycerol-thymol solution. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, the survey area was also divided into low-density and high-density age structure sampling strata based on historical population densities and an isobath of approximately 70 m.  
 
-```{r}
+```{r stomach_collection}
 temp <- list_tables$tab_stomach_collection_scheme$raw
 ```
 
@@ -408,7 +410,7 @@ Except for Pacific halibut, otolith samples collected during the survey were rea
 
 ## Additional Research Projects
 
-```{r}
+```{r additional_research}
 temp <- list_tables$tab_special_projects$raw %>% 
   dplyr::group_by(SRVY) %>% 
   dplyr::summarise(n = length(all_of(SRVY))) %>% 

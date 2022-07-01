@@ -2561,7 +2561,10 @@ plot_survey_stations <- function(reg_dat,
   }
   
   figure <- figure +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80")
+    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2)
   
   if (station_pts_srvy) {
     figure <- figure +
