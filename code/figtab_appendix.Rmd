@@ -206,9 +206,11 @@ tab_taxa_encountered_ <- function(temp,
       dplyr::arrange(species_name)  %>%
       dplyr::arrange(taxon)  %>%
       dplyr::mutate(stations_n = formatC(stations_n, big.mark=",", digits = 0, format = "f"))  %>%
-      dplyr::mutate(across(where(is.numeric), 
+      dplyr::mutate(across(c("lat_min", "lat_max", "depth_mean"), 
                            formatC, big.mark=",", digits = 1, format = "f"), 
-                    taxon = ifelse(is.na(taxon), "Other", taxon))
+                    taxon = ifelse(is.na(taxon), "Other", taxon), 
+                    across(c("depth_min", "depth_max"), 
+                           formatC, big.mark=",", digits = 0, format = "f"))
     
     table_print <- table_raw %>% 
       dplyr::mutate(species_name1 = species_name) %>%

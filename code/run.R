@@ -116,7 +116,7 @@ if (FALSE) {
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
   # *** *** Species figures --------------------------------------------
-  for (jj in 1:length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))])) {
+  for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
     # start_time <- Sys.time()

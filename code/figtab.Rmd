@@ -252,36 +252,56 @@ table_raw <-
     Region == "EBS and NBS Total" ~ 7
   ))  %>%
   dplyr::arrange(order, stratum) %>% #SRVY, stratum) %>% 
-  dplyr::select(Region, stratum, area, stations_completed, density, -order) %>% 
-  dplyr::relocate(Region, stratum, area, stations_completed, density)
+  # dplyr::select(Region, stratum, area, stations_completed, density, -order) %>% 
+  dplyr::select(-Region, -order) %>%
+  dplyr::relocate(SRVY, type, #Region, 
+                  stratum, area, stations_completed, density) %>% 
+  dplyr::rename(Region = type)
 
-table_print <- flextable::flextable(
-  data = table_raw, 
-  col_keys = c("Region", "stratum", "area", "stations_completed", "density"))  %>%
+
+
+          if (length(unique(table_raw$SRVY)) > 1) {
+            table_print <- table_raw %>%
+              flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
+              flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE)
+          } else {
+            table_print <- table_raw %>%
+              dplyr::select(-SRVY) %>%
+              flextable::flextable(data = .)
+          }
+
+
+
+
+
+
+table_print <- table_print %>%
   flextable::compose(x = ., i = 1, j = "area", part = "header",
                      value = as_paragraph("Representative\narea (km", as_sup("2"), ")")) %>%
   flextable::compose(x = ., i = 1, j = "density", part = "header",
                      value = as_paragraph("Sampling density\n(km", as_sup("2"), "/Stations successfully sampled)")) %>%  
-  # flextable::width(x = ., j = "Region", width = 3) %>% 
-  # flextable::width(x = ., j = "stratum", width = 3) %>% 
-  # flextable::width(x = ., j = "density", width = 3) %>% 
   flextable::set_header_labels(., 
                                Region = "",
                                stratum = "Stratum",
                                # area = "Representative\narea (km2)",
-                               stations_completed = "Stations\nsuccessfully sampled"#,
                                # density = "Sampling density\n(km2/Stations successfully sampled)"
-  ) %>% 
+                               stations_completed = "Stations\nsuccessfully sampled") %>% 
   flextable::merge_v(j = "Region") %>%
   flextable::merge_h_range(x = ., i = ~ stratum == "", j1 = "Region", j2 = "stratum", part = "body") %>%
   flextable::valign(valign = "top") %>%
-  flextable::bold(x = ., j = 1, i = ~ grepl(pattern = "Total", x = table_raw$Region) ) %>% #!is.na(Region) ) %>%
   theme_flextable_nmfstm(x = ., 
+                         row_lines = FALSE, 
                          pad = 0, 
                          font0 = font0, 
                          pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c("stratum", "area", "stations_completed", "density"), 
-                   align = "right", part = "all") 
+                   align = "right", part = "all")  %>% 
+          flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+          flextable::padding(x = .,
+                             j = 1, i = ~ is.na(SRVY),
+                             padding.left = 5)  %>%
+          flextable::hline(x = ., i = ~ (Region == "Total"), #j = SRVY, #border = fp_border(width = 3), 
+                           part = "body") 
 
 
 # table_raw_stratum_areas <- table_raw
@@ -384,7 +404,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
                    haul_cruises_maxyr$SRVY[i],
-                   " Shelf Bottom Trawl Survey.")
+                   " shelf bottom trawl survey.")
   
   table_raw <- table_raw0 %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i])
@@ -415,9 +435,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  common_name = haul_cruises_maxyr$SRVY[i]#,
                                  # Length = "Length\nmeasurements",
                                  # Age = "Age structure (otolith)\nmeasurements"
-    ) %>%
-    flextable::width(x = ., width = 1, unit = "in") %>%
-    flextable::width(x = ., j = "common_name", width = 3, unit = "in") %>% 
+    ) %>% 
     flextable::bold(x = ., i = which(table_print$common_name == "Total")) %>%
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
@@ -427,7 +445,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                         font0 = font0, 
                                         pgwidth = full_page_portrait_width) %>%
     flextable::align(x = ., j = 2:ncol(table_print), 
-                     align = "right", part = "all") 
+                     align = "right", part = "all")  %>%
+    flextable::width(x = ., width = 1.5, unit = "in") %>%
+    flextable::width(x = ., j = "common_name", width = 3, unit = "in")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -476,7 +496,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   header <- paste0("Otolith collection scheme during the ", 
                    maxyr, " ", 
                    haul_cruises_maxyr$SRVY[i],
-                   " Shelf Bottom Trawl Survey.")
+                   " shelf bottom trawl survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   
@@ -489,8 +509,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
       "oto_samp_type"), 
       columns = NULL) %>% 
     flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
-    flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>%
-    flextable::width(x = ., j = "print_name", width = 4) %>% 
+    flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>% 
     flextable::set_header_labels(.,
                                  print_name = "Common name", 
                                  # species_name = "Scientific name", 
@@ -507,7 +526,8 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                         pgwidth = full_page_portrait_width)  %>%
     flextable::padding(x = .,
                        j = 1, i = ~ is.na(oto_samp_type),
-                       padding.left = 5) 
+                       padding.left = 5)  %>%
+    flextable::width(x = ., j = "print_name", width = 3)
   
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -533,7 +553,7 @@ header <- paste0("Stomach collection targets during the ",
                  maxyr, " ", 
                  NMFSReports::text_list(paste0( 
                    haul_cruises_maxyr$SRVY)),
-                 " Shelf Bottom Trawl Survey.")
+                 " shelf bottom trawl survey.")
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_scheme.xlsx"), 
                                 sheet = "Sheet1", 
@@ -570,7 +590,9 @@ table_print <- flextable::flextable(table_raw %>%
                                       row_lines = TRUE, 
                                       pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c(SRVY1), 
-                   align = "right", part = "all")
+                   align = "right", part = "all")  %>%
+    flextable::width(x = ., j = "print_name", width = 2)  %>%
+    flextable::width(x = ., j = "print_name", width = 3)
 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -612,7 +634,7 @@ temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.x
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
                  NMFSReports::text_list(haul_cruises_maxyr$SRVY), 
-                 " Shelf Bottom Trawl Survey by principal investigator and agency.")
+                 " shelf bottom trawl survey by principal investigator and agency.")
 
 table_raw <- temp #%>% 
 # dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
@@ -846,7 +868,7 @@ list_figures[nickname][[1]]$res <- res
 # header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
 #                  # NMFSReports::text_list(haul_cruises_maxyr$SRVY),
 #                  "EBS", 
-#                  " Shelf Bottom Trawl Surveys.")
+#                  " shelf bottom trawl surveys.")
 # nickname <- "fig_st_maxyr"
 # height <- 8
 # width <- 6.5
@@ -902,7 +924,7 @@ for (i in 1:2) { # two cases, above and below
   header <- paste0("Near-bottom temperatures from the ",
                    NMFSReports::text_list(years)," ", 
                    "EBS", # NMFSReports::text_list(haul_cruises_maxyr$SRVY),
-                   " Shelf Bottom Trawl Surveys. In these years, the survey mean bottom temperature was ",
+                   " shelf bottom trawl surveys. In these years, the survey mean bottom temperature was ",
                    case,
                    " the long-term mean.")
   nickname <- paste0(nickname0, case)
@@ -1674,7 +1696,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   header <- paste0("Biomass estimates (mt) for major fish taxa taken during the ", 
                    maxyr, " ", 
                    haul_cruises_maxyr$SRVY[i],
-                   " Shelf Bottom Trawl Survey.")
+                   " shelf bottom trawl survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   
@@ -1760,7 +1782,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   header <- paste0("Biomass estimates (mt) for major invertebrate taxa taken during the ", 
                    maxyr, " ", 
                    haul_cruises_maxyr$SRVY[i],
-                   " Shelf Bottom Trawl Survey.")
+                   " shelf bottom trawl survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   
@@ -1810,7 +1832,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     "Total estimated biomass in metric tons (mt) and the percent change from the ",
     compareyr," and ",maxyr," ", 
     haul_cruises_maxyr$SRVY[i], 
-    " Shelf Bottom Trawl Surveys for predominant fish and invertebrate taxa.")
+    " shelf bottom trawl surveys for predominant fish and invertebrate taxa.")
   
   a<-table_change(dat = cpue_biomass_total %>% 
                     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>%
@@ -1944,7 +1966,7 @@ temp <- biomass %>%
                 biomass, sdbio, upperb, lowerb, 
                 meannumcpue, sdcpuenum, 
                 population, sdpop, upperp, lowerp, 
-                # haulcount, s
+                # haulcount, 
                 catcount, numcount, lencount) %>% 
   dplyr::left_join(
     x = ., 
@@ -1976,7 +1998,7 @@ for (i in 1:2) {
                      NMFSReports::text_list(paste0( 
                        haul_cruises_maxyr$SRVY, " (",
                        haul_cruises_maxyr$stations_completed,
-                       " stations completed)"))," Shelf Bottom Trawl Survey.")
+                       " stations completed)"))," shelf bottom trawl survey.")
     
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 

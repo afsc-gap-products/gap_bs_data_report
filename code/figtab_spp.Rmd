@@ -155,7 +155,7 @@ if (spp_plot_idw | spp_plot_pa) {
     header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                      " distribution and relative biomass (kg/ha) from the ",
                      compareyr," (left) and ",maxyr,
-                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " Shelf Bottom Trawl Survey", 
+                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
                      ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
     
     set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
@@ -179,7 +179,7 @@ if (spp_plot_idw | spp_plot_pa) {
     header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                      " presence from the ",
                      compareyr," (left) and ",maxyr,
-                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " Shelf Bottom Trawl Survey", 
+                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
                      ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
                      ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
     
@@ -268,7 +268,7 @@ if (spp_plot_sizecomp) {
                    ") observed during the ",
                    compareyr," and ",maxyr," ",
                    NMFSReports::text_list(unique(table_raw$SRVY)), 
-                   " Shelf Bottom Trawl Survey", 
+                   " shelf bottom trawl survey", 
                    ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
                    ".")
   
@@ -641,7 +641,12 @@ if (spp_table_cpue) {
                              j = 1, i = ~ is.na(SRVY),
                              padding.left = 5) %>%
           flextable::align(x = ., i = ~ !is.na(SRVY),
-                           align = "left", part = "body")
+                           align = "left", part = "body") 
+      }
+
+      if (sum(table_raw$SRVY %in% "NBS")>0) {
+        table_print <- table_print %>% 
+          flextable::hline(x = .,i = ~ (stratum == "Total"), part = "body")
       }
       
       if (i == 1) {
