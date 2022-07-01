@@ -1439,7 +1439,7 @@ plot_pa_xbyx <- function(
       strip.background = element_blank(), 
       strip.text = element_text(size = 10, face = "bold"), 
       # legend.title = ,element_blank(),
-      legend.text = element_text(size = 10),
+      legend.text = element_text(size = 9),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
@@ -1649,10 +1649,10 @@ plot_idw_xbyx <- function(
                    dist = 100, #ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 2, 0.08, 0.03),
+                   st.dist = ifelse(row0 > 2, 0.06, 0.03),
                    height = ifelse(row0 > 2, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2.25, 3))
+                   st.size = ifelse(row0 > 2, 2, 3))
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
@@ -1723,7 +1723,7 @@ plot_idw_xbyx <- function(
       strip.background = element_blank(), 
       strip.text = element_text(size = 10, face = "bold"), 
       # legend.title = element_text(size = 12), #, vjust = .5, hjust = .3),
-      legend.text = element_text(size = 10),
+      legend.text = element_text(size = 9),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
@@ -1819,6 +1819,7 @@ plot_temps_facet <- function(rasterbrick,
                           title.hjust = 0.5, nrow = 1)) +
     
     theme(
+      legend.text = element_text(size = 9),
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
@@ -2242,6 +2243,7 @@ plot_sizecomp <- function(sizecomp0,
           panel.grid.minor.x = element_blank(),
           strip.background = element_blank(),
           strip.text = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 9),
           legend.key = element_rect(colour = "transparent",
                                     fill = "transparent"),
           axis.title = element_text(size = 10, face = "bold"),

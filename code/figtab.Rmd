@@ -258,8 +258,6 @@ table_raw <-
                   stratum, area, stations_completed, density) %>% 
   dplyr::rename(Region = type)
 
-
-
           if (length(unique(table_raw$SRVY)) > 1) {
             table_print <- table_raw %>%
               flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
@@ -269,11 +267,6 @@ table_raw <-
               dplyr::select(-SRVY) %>%
               flextable::flextable(data = .)
           }
-
-
-
-
-
 
 table_print <- table_print %>%
   flextable::compose(x = ., i = 1, j = "area", part = "header",
@@ -299,9 +292,12 @@ table_print <- table_print %>%
           flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
           flextable::padding(x = .,
                              j = 1, i = ~ is.na(SRVY),
-                             padding.left = 5)  %>%
+                             padding.left = 5)   %>%
+          flextable::hline(x = ., i = ~ !is.na(Region), #j = SRVY, #border = fp_border(width = 3), 
+                           part = "body")  %>%
           flextable::hline(x = ., i = ~ (Region == "Total"), #j = SRVY, #border = fp_border(width = 3), 
-                           part = "body") 
+                           part = "body", border = fp_border(width = 2)) 
+
 
 
 # table_raw_stratum_areas <- table_raw
@@ -913,7 +909,7 @@ nickname0 <- "fig_bt_temperature_ebs_"
 for (i in 1:2) { # two cases, above and below
   
   height <- full_page_portrait_height # 7
-  width <- full_page_portrait_width # 6.5
+  width <- full_page_portrait_width-1 # 6.5
   
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)

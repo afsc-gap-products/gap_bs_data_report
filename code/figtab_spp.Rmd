@@ -127,6 +127,7 @@ if (spp_plot_idw | spp_plot_pa) {
   
   table_raw <- cpue %>%
     dplyr::filter(!is.na(cpue_kgha) & 
+                    cpue_kgha != 0 & 
                     species_code %in% spp_code & 
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
@@ -162,8 +163,7 @@ if (spp_plot_idw | spp_plot_pa) {
     
     figure <- plot_idw_xbyx(
       yrs = c(maxyr, compareyr),
-      dat = table_raw, # %>% 
-      # dplyr::filter(!is.na(cpue_kgha)), # TOLEDO
+      dat = table_raw, 
       lat = "latitude",
       lon = "longitude",
       var = "cpue_kgha",
