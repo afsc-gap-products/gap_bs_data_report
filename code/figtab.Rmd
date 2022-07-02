@@ -442,7 +442,8 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                         pgwidth = full_page_portrait_width) %>%
     flextable::align(x = ., j = 2:ncol(table_print), 
                      align = "right", part = "all")  %>%
-    # flextable::width(x = ., width = 1.5, unit = "in") %>%
+    # flextable::width(x = ., width = 1.5, unit = "in")   %>%
+    flextable::width(x = ., width = 1.125, unit = "in") %>%
     flextable::width(x = ., j = "common_name", width = 2, unit = "in")
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -523,8 +524,10 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::padding(x = .,
                        j = 1, i = ~ is.na(oto_samp_type),
                        padding.left = 5) %>%
-    # flextable::width(x = ., j = "print_name", width = 1.5) %>%
-    flextable::width(x = ., j = "print_name", width = 2)
+    # flextable::width(x = ., j = "print_name", width = 1.5)  %>%
+    flextable::width(x = ., j = "oto_rules", width = 3, unit = "in") %>%
+    flextable::width(x = ., j = "oto_target", width = 1.5, unit = "in") %>%
+    flextable::width(x = ., j = c("print_name"), width = 2)
   
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -587,8 +590,9 @@ table_print <- flextable::flextable(table_raw %>%
                                       row_lines = TRUE, 
                                       pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c(SRVY1), 
-                   align = "right", part = "all")  %>%
-    flextable::width(x = ., j = "print_name", width = 2)  
+                   align = "right", part = "all")   %>%
+    flextable::width(x = ., width = 2.5)  %>%
+    flextable::width(x = ., j = "print_name", width = 4)  
 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -908,8 +912,8 @@ nickname0 <- "fig_bt_temperature_ebs_"
 
 for (i in 1:2) { # two cases, above and below
   
-  height <- full_page_portrait_height # 7
-  width <- full_page_portrait_width-1 # 6.5
+  height <- full_page_portrait_height 
+  width <- full_page_portrait_width-1 
   
   subobj <- TRUE
   newobj <- ifelse(i==1, TRUE, FALSE)
@@ -932,13 +936,16 @@ for (i in 1:2) { # two cases, above and below
                              x = (gsub(x = names(rasterbrick), 
                                        pattern = "[a-zA-Z]+", replacement = "")))
   
-  if (length(years)<10) {
-    row0 <- 3
-  } else if (length(years)<6) {
+  if (length(years)<3) {
+    row0 <- 1
+    height <- full_page_portrait_height - 4 
+  } else if (length(years)<7) {
     row0 <- 2
-    # } else {
-    # row <- 4
-  }
+    height <- full_page_portrait_height - 2
+  } else { # }  if (length(years)<10) {
+    row0 <- 3
+    height <- full_page_portrait_height 
+  } 
   
   figure <- plot_temps_facet(
     rasterbrick = rasterbrick,
@@ -1549,22 +1556,24 @@ temp1 <- function(table_raw, strat, total) {
     flextable::merge_h_range(x = ., i = ~ is.na(taxon), j1 = "group", j2 = "taxon", part = "body") %>%
     flextable::add_header_row(top = TRUE, 
                               values = c("Taxon", 
-                                         "Estimated total\nbiomass (mt) ± 95%\nconfidence interval", 
+                                         "Estimated total biomass (mt)\n± 95%\nconfidence interval", 
                                          "Proportion of total animal biomass", 
                                          "Estimated biomass by stratum (mt)"), 
                               colwidths = c(2,2,1,length(strat))) %>% 
     flextable::width(x = .,  
-                     width = ifelse(length(strat)>3, .65, 1.25), unit = "in") %>%
+                     width = ifelse(length(strat)>3, .6, 1.25), unit = "in") %>%
+    flextable::width(x = ., j = "prop", 
+                     width = 1, unit = "in") %>%
     flextable::width(x = ., j = c("group"), 
                      width = 1, unit = "in") %>%    
     flextable::width(x = ., j = c("taxon"), 
-                     width = 1.5, unit = "in") %>% 
+                     width = 1.6, unit = "in") %>% 
     flextable::footnote(x = ., part = "header", i = 1, j = 5, ref_symbols = "1",
                         value = as_paragraph(footnote0)) %>%
     flextable::bold(x = ., i = ~ (grepl(pattern = "Total", x = group) )) %>%
     flextable::set_header_labels(.,
                                  "group" = "", 
-                                 "taxon" = "", 
+                                 "taxon" = "",
                                  "999" = "", 
                                  "CI95" = "", 
                                  "prop" = "") %>%
@@ -1611,8 +1620,8 @@ temp1 <- function(table_raw, strat, total) {
                      align = "right", part = "all") %>%
     flextable::align(x = ., 
                      j = c(strat), 
-                     align = "center", i = 1, part = "header") %>%
-      flextable::hline(x = ., i = 1, part = "header")
+                     align = "center", i = 1, part = "header") #%>%
+      # flextable::hline(x = ., i = 1, part = "header")
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
@@ -1949,7 +1958,6 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 }
 ```
 
-
 ## tab_estimates_maxyr_spp_
 
 ```{r tab_estimates_maxyr_spp_}
@@ -2153,8 +2161,8 @@ for (i in 1:2) {
                                         pgwidth = full_page_landscape_width) %>%
     flextable::align(x = ., align = "right", part = "all") %>%
     flextable::align(x = ., j = c("print_name"), #, "SRVY"
-                     align = "left", part = "all") %>%
-    flextable::hline(x = ., i = 1, part = "header")
+                     align = "left", part = "all") #%>%
+    # flextable::hline(x = ., i = 1, part = "header")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header

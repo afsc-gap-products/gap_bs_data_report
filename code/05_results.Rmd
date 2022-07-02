@@ -120,8 +120,8 @@ if (temp$rank[temp$year == maxyr] < 6 | abs(temp$rank[temp$year == maxyr]-length
   
     temp4a <- ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
                           paste0(" followed by ", NMFSReports::text_list(paste0(temp0$year[temp0$year != maxyr], 
-                                                        " (", temp0$rank_[temp0$year != maxyr], ")")), 
-                          ""))
+                                                        " (", temp0$rank_[temp0$year != maxyr], ")"))), 
+                          "")
   
     temp4 <- paste0(", which was the ", temp4," areal coverage in the ", 
                 haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == 'EBS'], 
@@ -131,7 +131,7 @@ if (temp$rank[temp$year == maxyr] < 6 | abs(temp$rank[temp$year == maxyr]-length
 
 ```
 
-During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')`), while `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool in the EBS varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)] ` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)] `, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f") ` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1) `%) of the EBS shelf survey area`r temp4`.
+During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')`), while `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool in the EBS varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)] ` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)] `, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f") ` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1) `%) of the EBS shelf survey area`r temp4`
 
 The `r compareyr` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys provided a quasi-synoptic view of the spatial pattern of bottom temperatures across the entire `r NMFSReports::text_list(SRVY1)` shelf, providing an index of annual differences in demersal fauna distribution patterns. Cold water in the middle of the EBS can restrict marine fauna from moving east-west across the shelf or north-south along the inner domain.
 
@@ -833,7 +833,7 @@ temp0 <- report_spp1 %>%
 
 ```
 
-Plots of spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r xunits(length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE, text = FALSE))) ` major invertebrate species (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE) ` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_invert_", sublist = "number", exact = FALSE)`) caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented below. 
+Plots of spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r xunits(length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE, text = FALSE))) ` major invertebrate species (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE) ` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_invert_", sublist = "number", exact = FALSE)`) caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented below. The crab species listed in this report and others are discussed and analyzed in more detail in `paste0("@SAPcrab", maxyr)` prepared by the AFSC Shelfish Assessment Program.
 
 ```{r taxon_pchange}
 if (SRVY == "NEBS") {
@@ -906,4 +906,6 @@ Shelf-wide distributions of the four major commercial crab species: blue king cr
 \pagebreak
 
 ## Summary of Results for Selected `r NMFSReports::text_list(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))` Fish and Invertebrate Fauna
+
+Differences in sums of estimates and totals are due to rounding. 
 
