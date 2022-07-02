@@ -232,7 +232,7 @@ if (spp_plot_idw | spp_plot_pa) {
 ```{r fig_sizecomp_[taxon]_[spp]}
 if (spp_plot_sizecomp) {
   
-  height <- full_page_portrait_height # 7
+  height <- full_page_portrait_height #2 7
   height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 3.5) 
   width <- full_page_portrait_width # 6.5
   
@@ -482,7 +482,10 @@ if (spp_table_cpue) {
           header <- paste0("Mean CPUE by weight",meanwgtcpue0$unit_word,
                            " with standard deviation",sdcpuewt0$unit_word,
                            ", and estimated biomass",biomass0$unit_word,
-                           " with standard deviation",sdbio0$unit_word)
+                           " with standard deviation",sdbio0$unit_word, 
+                           " and 95% lower (LCL; ",biomass0$unit_word,
+                           ") and upper (UCL; ",biomass0$unit_word,
+                           ") confidence limits for ")
           
           table_print <- table_raw %>% 
             dplyr::mutate(meanwgtcpue = formatC(x = meanwgtcpue/meanwgtcpue0$divby, 
@@ -549,7 +552,10 @@ if (spp_table_cpue) {
           header <- paste0("Mean CPUE by number", meannumcpue0$unit_word,
                            " with standard deviation", sdcpuenum0$unit_word,
                            ", and estimated population", population0$unit_word,
-                           " with standard deviation", sdpop0$unit_word)
+                           " with standard deviation", sdpop0$unit_word, 
+                           " and 95% lower (LCL; ",population0$unit_word,
+                           ") and upper (UCL; ",population0$unit_word,
+                           ") confidence limits for ")
           
           
           table_print <- table_raw %>% 
@@ -597,7 +603,6 @@ if (spp_table_cpue) {
       }
       
       header <- paste0(header,
-                       " and 95% lower (LCL) and upper (UCL) confidence limits for ",
                        spp_print, 
                        ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")"))," by stratum for the ",maxyr," ",
                        NMFSReports::text_list(paste0(haul_cruises_maxyr0$SRVY, " (",

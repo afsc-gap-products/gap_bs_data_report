@@ -1649,10 +1649,10 @@ plot_idw_xbyx <- function(
                    dist = 100, #ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 2, 0.06, 0.03),
+                   st.dist = ifelse(row0 > 2, 0.08, 0.04),
                    height = ifelse(row0 > 2, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2, 3))
+                   st.size = ifelse(row0 > 2, 2.5, 3) )#, # 2.5
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
@@ -2186,7 +2186,6 @@ plot_sizecomp <- function(sizecomp0,
     
     
   } else {
-    
     table_raw1 <- table_raw %>% 
       dplyr::ungroup() %>% 
       dplyr::group_by(year, #SRVY, 
@@ -2220,8 +2219,7 @@ plot_sizecomp <- function(sizecomp0,
       levels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
       labels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
       ordered = TRUE)
-    
-    
+
     figure <- ggplot(data = table_raw1, 
                      mapping = aes(x = length, 
                                    y = year, 
@@ -2264,8 +2262,7 @@ plot_sizecomp <- function(sizecomp0,
                        unlist()))
     
     dat_text$label <- gsub("\\s", " ", formatC(x = dat_text$label)) #, width=max(nchar(dat_text$label))))
-    
-    
+
     figure <- 
       tag_facet(p = figure, 
                 x = Inf, y = Inf, 
