@@ -1418,10 +1418,10 @@ plot_pa_xbyx <- function(
                    dist = ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 2, 0.08, 0.04),
-                   height = ifelse(row0 > 2, 0.04, 0.02),
+                   st.dist = ifelse(row0 > 1, 0.08, 0.04),
+                   height = ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2.5, 3)#, # 2.5
+                   st.size = ifelse(row0 > 1, 2.5, 3)#, # 2.5
     ) +
     guides(
       color = guide_legend(title = key.title, 
@@ -1649,10 +1649,10 @@ plot_idw_xbyx <- function(
                    dist = 100, #ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 4, 0.08, 0.04),
-                   height = ifelse(row0 > 4, 0.04, 0.02),
+                   st.dist = ifelse(row0 > 1, 0.08, 0.04),
+                   height = ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 4, 2.5, 3) )#, # 2.5
+                   st.size = ifelse(row0 > 1, 2.5, 3) )#, # 2.5
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
@@ -1808,10 +1808,10 @@ plot_temps_facet <- function(rasterbrick,
                    dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 2, 0.08, 0.04),
-                   height = ifelse(row0 > 2, 0.04, 0.02),
+                   st.dist = ifelse(row0 > 1, 0.08, 0.04),
+                   height = ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 2, 2.5, 3)) +
+                   st.size = ifelse(row0 > 1, 2.5, 3)) +
     #set legend position and vertical arrangement
     guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
       fill = guide_legend(title.position="top", 
@@ -2600,6 +2600,7 @@ plot_survey_stations <- function(reg_dat,
     
   }
   
+  row0 <- 1
   
   figure <- figure +
     ggplot2::scale_y_continuous(name = "Latitude", 
@@ -2614,10 +2615,11 @@ plot_survey_stations <- function(reg_dat,
                  dist = 100,
                  dist_unit = dist_unit,
                  transform = FALSE,
-                 st.dist = 0.02,
-                 height = 0.02,
-                 st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                 st.size = 3) + 
+                   st.dist = ifelse(row0 > 1, 0.08, 0.04),
+                   height = ifelse(row0 > 1, 0.04, 0.02),
+                   st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+                   st.size = ifelse(row0 > 1, 2.5, 3) ) +#, # 2.5
+    
     #set legend position and vertical arrangement
     theme(#plot.background = element_rect(fill = "white"), 
       panel.background = element_rect(fill = "white", 
@@ -2640,15 +2642,13 @@ plot_survey_stations <- function(reg_dat,
       legend.box = "vertical"
     )
   
-  
-  
   if (place_labels) {
     figure <- figure +
       geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
                 aes(x = x, y = y, label = lab), 
-                size = 10, group = 99) + 
+                size = 7, group = 99) + 
       geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
-                      aes(x = x, y = y, label = lab), size = 5, angle = 40, 
+                      aes(x = x, y = y, label = lab), size = 3, angle = 40, 
                       bg.color = "white", color = "black", group = 99) + 
       geom_shadowtext(
         data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
