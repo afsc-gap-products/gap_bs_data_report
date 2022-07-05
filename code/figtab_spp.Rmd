@@ -127,8 +127,7 @@ if (spp_plot_idw | spp_plot_pa) {
   
   nickname <- paste0("fig_idw_cpue_", spp_taxon, "_", spp_file)
   
-  height <- 5.5 # full_page_portrait_height - 
-    # ifelse(SRVY == "NEBS", 5.5, 4) # height <- 6
+  height <- ifelse(SRVY == "NEBS", 5.5, 4) 
   width <- full_page_portrait_width # 6.5
   
   table_raw <- cpue %>%
@@ -233,7 +232,6 @@ if (spp_plot_idw | spp_plot_pa) {
 ```{r fig_sizecomp_[taxon]_[spp]}
 if (spp_plot_sizecomp) {
   
-  height <- full_page_portrait_height #2 7
   height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 3.25) 
   width <- full_page_portrait_width # 6.5
   
@@ -263,6 +261,8 @@ if (spp_plot_sizecomp) {
         dplyr::summarise(length) %>% 
         dplyr::mutate(SRVY = "EBS and NBS")) %>% 
       dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE))
+  } else { 
+    height <- 3.25 
   }
   
   
