@@ -8,7 +8,6 @@ csl: "../cite/citestyle.csl"
 bibliography: "../cite/bibliography.bib"
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
@@ -90,8 +89,6 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
-
-
 ## fig_sample_grid
 
 ```{r fig_sample_grid}
@@ -135,7 +132,6 @@ list_figures[nickname][[1]]$res <- res
 ```
 
 # Methods
-
 
 ## fig_vessels
 
@@ -202,20 +198,18 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
-
 ## tab_stratum_areas
-
-### should density use stations_completed or stations_avail?
 
 ```{r tab_stratum_areas}
 header <- paste0("Stratum areas and sampling densities for the ",maxyr,
                  " ", NMFSReports::text_list(SRVY1) ," bottom trawl survey", 
                  ifelse(length(SRVY1)>1, "s", ""),". These stratum areas were calculated in ", 
                  stratum_info$year[1] , ". ")
+
 nickname <- "tab_stratum_areas" 
 
 temp <- stratum_info %>% 
-  dplyr::select(area, stations_completed, stratum, type,  SRVY)
+  dplyr::select(area, stations_completed, stratum, type, SRVY) 
 
 if (length(unique(station_info$SRVY))>1) {
   totals_sub <- stratum_info %>%
@@ -235,7 +229,6 @@ totals <- stratum_info %>%
   dplyr::mutate(type = "Total") %>% 
   dplyr::mutate(SRVY = NMFSReports::text_list(SRVY1)) %>% 
   dplyr::relocate(names(temp))
-
 
 table_raw <- 
   rbind.data.frame(temp, 
@@ -260,17 +253,9 @@ table_raw <-
                   stratum, area, stations_completed, density) %>% 
   dplyr::rename(Region = type)
 
-          # if (length(unique(table_raw$SRVY)) > 1) {
-            table_print <- table_raw %>%
-              flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
-              flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE)
-          # } else {
-          #   table_print <- table_raw %>%
-          #     dplyr::select(-SRVY) %>%
-          #     flextable::flextable(data = .)
-          # }
-
-table_print <- table_print %>%
+table_print <- table_raw %>%
+  flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
+  flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE) %>%
   flextable::compose(x = ., i = 1, j = "area", part = "header",
                      value = as_paragraph("Representative\narea (km", as_sup("2"), ")")) %>%
   flextable::compose(x = ., i = 1, j = "density", part = "header",
@@ -291,18 +276,14 @@ table_print <- table_print %>%
                          pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c("stratum", "area", "stations_completed", "density"), 
                    align = "right", part = "all")  %>% 
-          flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-          flextable::padding(x = .,
-                             j = 1, i = ~ is.na(SRVY),
-                             padding.left = 5)   %>%
-          flextable::hline(x = ., i = ~ !is.na(Region), #j = SRVY, #border = fp_border(width = 3), 
-                           part = "body")  %>%
-          flextable::hline(x = ., i = ~ (Region == "Total"), #j = SRVY, #border = fp_border(width = 3), 
-                           part = "body", border = fp_border(width = 2)) 
-
-
-
-# table_raw_stratum_areas <- table_raw
+  flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+  flextable::padding(x = .,
+                     j = 1, i = ~ is.na(SRVY),
+                     padding.left = 5)   %>%
+  flextable::hline(x = ., i = ~ !is.na(Region), #j = SRVY, #border = fp_border(width = 3), 
+                   part = "body")  %>%
+  flextable::hline(x = ., i = ~ (Region == "Total"), #j = SRVY, #border = fp_border(width = 3), 
+                   part = "body", border = fp_border(width = 2)) 
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -316,7 +297,7 @@ list_tables[nickname][[1]]$res <- res
 
 ```
 
-## tab_specimen_samples_
+## tab_specimen_samples
 
 ```{r tab_specimen_samples_}
 nickname0 <- paste0("tab_specimen_samples_") 
@@ -447,7 +428,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::align(x = ., j = 2:ncol(table_print), 
                      align = "right", part = "all")  %>%
     # flextable::width(x = ., width = 1.5, unit = "in")   %>%
-    flextable::width(x = ., width = 1.125, unit = "in") %>%
+    flextable::width(x = ., width = (4.5/(ncol(table_raw)-2)), unit = "in") %>%
     flextable::width(x = ., j = "common_name", width = 2, unit = "in")
   
   # save yo' stuff and do a lot of behind the scenes work
@@ -464,7 +445,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 ```
 
-## tab_oto_collection_scheme_
+## tab_oto_collection_scheme\_
 
 ```{r tab_oto_collection_scheme_}
 
@@ -546,7 +527,6 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 }
 ```
 
-
 ## tab_stomach_collection_scheme
 
 ```{r tab_stomach_collection_scheme}
@@ -577,7 +557,8 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_sc
   dplyr::select(-order, -species_code) %>% 
   dplyr::relocate(SRVY, print_name, species_name, stomach_target) %>% 
   dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0))) %>% 
-  tidyr::pivot_wider(data = ., id_cols = c("print_name", "species_name"), names_from = "SRVY", values_from = "stomach_target")
+  tidyr::pivot_wider(data = ., id_cols = c("print_name", "species_name"), 
+                     names_from = "SRVY", values_from = "stomach_target")
 
 table_raw[is.na(table_raw)] <- "-"
 
@@ -595,8 +576,8 @@ table_print <- flextable::flextable(table_raw %>%
                                       pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c(SRVY1), 
                    align = "right", part = "all")   %>%
-    flextable::width(x = ., width = (2.5/length(length(SRVY1))))  %>%
-    flextable::width(x = ., j = "print_name", width = 4)  
+  flextable::width(x = ., width = (2.5/length(SRVY1)))  %>%
+  flextable::width(x = ., j = "print_name", width = 4)  
 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -680,7 +661,6 @@ res <- knitr::knit_child(
 list_tables[nickname][[1]]$res <- res
 
 ```
-
 
 # Results
 
@@ -798,7 +778,6 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
-
 ## fig_cold_pool_area
 
 ```{r fig_cold_pool_area}
@@ -906,7 +885,7 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
-## fig_bt_temperature_ebs_[above or below]
+## fig_bt_temperature_ebs\_[above or below]
 
 ### need to figure out how to plot whole NBS
 
@@ -974,7 +953,7 @@ for (i in 1:2) { # two cases, above and below
 }
 ```
 
-## fig_[st or bt]_temperature_nebs_surveys
+## fig\_[st or bt]\_temperature_nebs_surveys
 
 ```{r fig_[st or bt]_temperature_nebs_surveys}
 
@@ -1110,16 +1089,16 @@ if (SRVY == "NEBS"){
       temp0$common_name[iii] <- paste0(temp0$common_name[iii], 
                                        " (", temp0$report_name_scientific[iii], ")")
       temp0$report_name_scientific[iii] <- NA
-    # } else {
-    #   temp0$report_name_scientific[iii] <- paste0(" (", temp0$report_name_scientific[iii], ")")
+      # } else {
+      #   temp0$report_name_scientific[iii] <- paste0(" (", temp0$report_name_scientific[iii], ")")
     }
-        if (grepl(pattern = " unid.", x = temp0$report_name_scientific[iii])) {
+    if (grepl(pattern = " unid.", x = temp0$report_name_scientific[iii])) {
       temp0$common_name_[iii] <- paste0(temp0$common_name_[iii], 
-                                       " (", temp0$report_name_scientific_[iii], ")")
+                                        " (", temp0$report_name_scientific_[iii], ")")
       temp0$report_name_scientific_[iii] <- NA
       #   } else {
       # temp0$report_name_scientific_[iii] <- paste0(" (", temp0$report_name_scientific_[iii], ")")
-          }
+    }
   }
   
   table_print <- flextable::flextable(
@@ -1199,8 +1178,8 @@ if (SRVY == "NEBS"){
   
   list_tables[nickname][[1]]$res <- res
 }
-```
 
+```
 
 ## tab_biomass_est_PREP
 
@@ -1625,7 +1604,7 @@ temp1 <- function(table_raw, strat, total) {
     flextable::align(x = ., 
                      j = c(strat), 
                      align = "center", i = 1, part = "header") #%>%
-      # flextable::hline(x = ., i = 1, part = "header")
+  # flextable::hline(x = ., i = 1, part = "header")
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
@@ -1633,7 +1612,7 @@ temp1 <- function(table_raw, strat, total) {
 
 ```
 
-### tab_biomass_est_fish_ (EBS and NBS)
+### tab_biomass_est_fish\_ (EBS and NBS)
 
 ```{r tab_biomass_est_fish_}
 
@@ -1739,8 +1718,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 ```
 
-### tab_biomass_est_invert_ (EBS and NBS)
-
+### tab_biomass_est_invert\_ (EBS and NBS)
 
 ```{r tab_biomass_est_invert_}
 
@@ -1824,8 +1802,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 } 
 ```
 
-
-## tab_majortaxa_pchange_
+## tab_majortaxa_pchange\_
 
 ```{r tab_majortaxa_pchange_}
 
@@ -1964,7 +1941,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 }
 ```
 
-## tab_estimates_maxyr_spp_
+## tab_estimates_maxyr_spp\_
 
 ```{r tab_estimates_maxyr_spp_}
 nickname0 <- paste0("tab_estimates_maxyr_spp_") 
@@ -2028,13 +2005,13 @@ for (i in 1:2) {
                                       digits = 0, 
                                       format = "f", big.mark = ",") , 
                     upperb = formatC(x = upperb, 
-                                      digits = 0, 
+                                     digits = 0, 
                                      format = "f", big.mark = ",") , 
                     lowerb = formatC(x = lowerb, 
-                                      digits = 0, 
+                                     digits = 0, 
                                      format = "f", big.mark = ",") , 
                     sdbio = formatC(x = sdbio, 
-                                      digits = 0, 
+                                    digits = 0, 
                                     format = "f", big.mark = ","))
     
     if (SRVY == "NEBS"){
@@ -2103,16 +2080,16 @@ for (i in 1:2) {
                                         digits = 2, 
                                         format = "f", big.mark = ","), 
                     population = formatC(x = population, 
-                                      digits = 0, 
+                                         digits = 0, 
                                          format = "f", big.mark = ",") , 
                     upperp = formatC(x = upperp, 
-                                      digits = 0, 
+                                     digits = 0, 
                                      format = "f", big.mark = ",") , 
                     lowerp = formatC(x = lowerp, 
-                                      digits = 0, 
+                                     digits = 0, 
                                      format = "f", big.mark = ",") , 
                     sdpop = formatC(x = sdpop, 
-                                      digits = 0, 
+                                    digits = 0, 
                                     format = "f", big.mark = ","))
     
     if (SRVY == "EBS") {
@@ -2168,7 +2145,7 @@ for (i in 1:2) {
     flextable::align(x = ., align = "right", part = "all") %>%
     flextable::align(x = ., j = c("print_name"), #, "SRVY"
                      align = "left", part = "all") #%>%
-    # flextable::hline(x = ., i = 1, part = "header")
+  # flextable::hline(x = ., i = 1, part = "header")
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -2181,5 +2158,3 @@ for (i in 1:2) {
   list_tables[nickname][[1]]$res <- res
 }
 ```
-
-

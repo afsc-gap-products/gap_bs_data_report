@@ -127,7 +127,8 @@ if (spp_plot_idw | spp_plot_pa) {
   
   nickname <- paste0("fig_idw_cpue_", spp_taxon, "_", spp_file)
   
-  height <- 4 #full_page_portrait_height - ifelse(SRVY == "NEBS", 5, 4) # height <- 6
+  height <- 5.5 # full_page_portrait_height - 
+    # ifelse(SRVY == "NEBS", 5.5, 4) # height <- 6
   width <- full_page_portrait_width # 6.5
   
   table_raw <- cpue %>%
@@ -154,7 +155,7 @@ if (spp_plot_idw | spp_plot_pa) {
         SRVY_long = dplyr::case_when(
           SRVY == "EBS" ~ "Eastern Bering Sea", 
           SRVY == "NBS" ~ "Northern Bering Sea"))
-    # height <- 4
+    height <- ifelse(SRVY == "EBS", 4, 3.5)
   }
   
   if (spp_plot_idw) {
@@ -437,7 +438,6 @@ if (spp_table_cpue) {
   include_lencount <- !(sum(temp$lencount[temp$stratum == "Total"] %in% 0) == 
                           length(temp$lencount[temp$stratum == "Total"]))
   
-  
   if (sum(temp$biomass[temp$stratum == "Total"] != 0) > 0) {
     
     if (sum(temp$biomass[temp$stratum == "Total"] %in% 0)>0) {
@@ -483,8 +483,8 @@ if (spp_table_cpue) {
                            " with standard deviation",sdcpuewt0$unit_word,
                            ", and estimated biomass",biomass0$unit_word,
                            " with standard deviation",sdbio0$unit_word, 
-                           " and 95% lower (LCL; ",biomass0$unit_word,
-                           ") and upper (UCL; ",biomass0$unit_word,
+                           " and 95% lower (LCL;", gsub("[()]", "", biomass0$unit_word),
+                           ") and upper (UCL;", gsub("[()]", "", biomass0$unit_word),
                            ") confidence limits for ")
           
           table_print <- table_raw %>% 
@@ -553,8 +553,8 @@ if (spp_table_cpue) {
                            " with standard deviation", sdcpuenum0$unit_word,
                            ", and estimated population", population0$unit_word,
                            " with standard deviation", sdpop0$unit_word, 
-                           " and 95% lower (LCL; ",population0$unit_word,
-                           ") and upper (UCL; ",population0$unit_word,
+                           " and 95% lower (LCL;", gsub("[()]", "", population0$unit_word),
+                           ") and upper (UCL;", gsub("[()]", "", population0$unit_word),
                            ") confidence limits for ")
           
           

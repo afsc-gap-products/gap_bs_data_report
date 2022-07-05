@@ -2615,7 +2615,7 @@ plot_survey_stations <- function(reg_dat,
                  dist = 100,
                  dist_unit = dist_unit,
                  transform = FALSE,
-                   st.dist = ifelse(row0 > 1, 0.08, 0.04),
+                   st.dist = ifelse(row0 > 1, 0.08, 0.02),
                    height = ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
                    st.size = ifelse(row0 > 1, 2.5, 3) ) +#, # 2.5
@@ -2648,7 +2648,7 @@ plot_survey_stations <- function(reg_dat,
                 aes(x = x, y = y, label = lab), 
                 size = 7, group = 99) + 
       geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
-                      aes(x = x, y = y, label = lab), size = 3, angle = 40, 
+                      aes(x = x, y = y, label = lab), size = 3, angle = 30, 
                       bg.color = "white", color = "black", group = 99) + 
       geom_shadowtext(
         data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
