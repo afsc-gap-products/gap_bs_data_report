@@ -127,7 +127,7 @@ if (spp_plot_idw | spp_plot_pa) {
   
   nickname <- paste0("fig_idw_cpue_", spp_taxon, "_", spp_file)
   
-  height <- ifelse(SRVY == "NEBS", 5.5, 4) 
+  height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
   width <- full_page_portrait_width # 6.5
   
   table_raw <- cpue %>%
@@ -154,7 +154,7 @@ if (spp_plot_idw | spp_plot_pa) {
         SRVY_long = dplyr::case_when(
           SRVY == "EBS" ~ "Eastern Bering Sea", 
           SRVY == "NBS" ~ "Northern Bering Sea"))
-    height <- ifelse(SRVY == "EBS", 4, 3.5)
+    height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF", 4.25, 3.5)
   }
   
   if (spp_plot_idw) {
@@ -261,8 +261,8 @@ if (spp_plot_sizecomp) {
         dplyr::summarise(length) %>% 
         dplyr::mutate(SRVY = "EBS and NBS")) %>% 
       dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE))
-  } else { 
-    height <- 3.25 
+  } else if (SRVY == "NEBS" & length(unique(table_raw$SRVY))==1) { 
+    height <- 3.25 # 
   }
   
   

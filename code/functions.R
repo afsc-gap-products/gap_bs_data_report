@@ -1644,15 +1644,24 @@ plot_idw_xbyx <- function(
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) + 
+    # ggsn::scalebar(data = reg_dat$survey.grid,
+    #                location = "bottomleft",
+    #                dist = 100, #ifelse(row0>2, 50, 100),
+    #                dist_unit = dist_unit,
+    #                transform = FALSE,
+    #                st.dist = ifelse(row0 > 1, 0.08, 0.04),
+    #                height = ifelse(row0 > 1, 0.04, 0.02),
+    #                st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+    #                st.size = ifelse(row0 > 1, 2.5, 3) )#, # 2.5
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
-                   dist = 100, #ifelse(row0>2, 50, 100),
+                   dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 1, 0.08, 0.04),
-                   height = ifelse(row0 > 1, 0.04, 0.02),
+                   st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+                   height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 1, 2.5, 3) )#, # 2.5
+                   st.size = ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))) 
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
@@ -1808,10 +1817,10 @@ plot_temps_facet <- function(rasterbrick,
                    dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 1, 0.08, 0.04),
-                   height = ifelse(row0 > 1, 0.04, 0.02),
+                   st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+                   height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 1, 2.5, 3)) +
+                   st.size = ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))) +
     #set legend position and vertical arrangement
     guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
       fill = guide_legend(title.position="top", 
@@ -2648,7 +2657,7 @@ plot_survey_stations <- function(reg_dat,
                 aes(x = x, y = y, label = lab), 
                 size = 7, group = 99) + 
       geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
-                      aes(x = x, y = y, label = lab), size = 3, angle = 30, 
+                      aes(x = x, y = y, label = lab), size = 3, angle = 3, 
                       bg.color = "white", color = "black", group = 99) + 
       geom_shadowtext(
         data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
