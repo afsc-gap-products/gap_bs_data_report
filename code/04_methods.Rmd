@@ -261,9 +261,10 @@ temp <- temp0 %>%
   dplyr::filter(!grepl(pattern = "Total", x = Region) & 
                   grepl(pattern = "EBS", x = Region))
 
+temp1 <- ifelse(SRVY == "NEBS", "EBS Total", "Total")
 
 temp_tot <- temp0 %>% 
-  dplyr::filter(grepl(pattern = ifelse(SRVY == "NEBS", "EBS Total", "Total"), x = Region) & 
+  dplyr::filter(grepl(pattern = temp1, x = Region) & 
                   grepl(pattern = "EBS", x = Region)) %>% 
   dplyr::select(density)
 ```

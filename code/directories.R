@@ -71,3 +71,4 @@ for (i in 1:length(listfiles0)){
 
 # CITATION STYLE ---------------------------------------------------------------
 options("citation_format" = "pandoc")
+
