@@ -120,6 +120,8 @@ loadfonts(device = "win")
 
 # Knowns -----------------------------------------------------------------------
 
+date_format<- "%B %d, %Y"
+
 cnt_chapt_content<-"000"
 
 full_page_portrait_width <- 6.5

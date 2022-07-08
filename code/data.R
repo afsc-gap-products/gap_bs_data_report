@@ -579,7 +579,11 @@ haul_cruises_vess_compareyr <- temp(cruises_compareyr, haul_compareyr)
 vessel_info <-  haul_cruises_vess_maxyr %>% 
   dplyr::select("vessel_name", "vessel_ital", "vessel", "tonnage",
                 "length_m", "length_ft", "vess_shape") %>% 
-  unique()
+  unique() %>% 
+  dplyr::mutate(img = dplyr::case_when(
+     vessel == 94 ~ "94_vesteraalen.png", 
+     vessel == 162 ~ "163_alaskaknight.png")) %>% 
+  dplyr::arrange(vessel_name)
 
 # *** haul_cruises + _maxyr + _compareyr ------------------------------------------
 

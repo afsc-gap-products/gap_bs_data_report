@@ -105,7 +105,7 @@ if (sum(!is.na(temp$vessel)) == nrow(temp)) {
                 NMFSReports::text_list(paste0(xunits(temp0$N), " tow on the ", temp0$vessel_ital)), ". ")
   }
   
-  str0 <- paste0(str0, "To estimate missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows following the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), and $s$ is the scope.
+  str0 <- paste0(str0, "To estimate missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows following the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), $s$ is the scope, and $\\epsilon$ represents the modeled error.
 
 $$ w \\sim {s}^{-1} + h + \\frac{h}{s} + \\epsilon $$
 
@@ -170,7 +170,6 @@ $$ \\epsilon \\sim N(0,\\sigma^{2}) $$
 
 ```{r ebs_survey_plan}
 
-date_format<- "%B %d, %Y"
 str0 <- c()
 
 for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
@@ -185,10 +184,14 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
     unique() %>% 
     group_by(year, survey_name, vessel, vessel_name, 
              vessel_ital, SRVY, SRVY_long) %>% 
-    dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise), format = "%m/%d/%Y"), 
-                     end_date_cruise = as.Date(max(end_date_cruise), format = "%m/%d/%Y"), 
-                     start_date_haul = as.Date(min(start_date_haul), format = "%m/%d/%Y"), 
-                     end_date_haul = as.Date(max(end_date_haul), format = "%m/%d/%Y")) 
+    dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise), 
+                                                 format = "%m/%d/%Y"), 
+                     end_date_cruise = as.Date(max(end_date_cruise), 
+                                               format = "%m/%d/%Y"), 
+                     start_date_haul = as.Date(min(start_date_haul), 
+                                               format = "%m/%d/%Y"), 
+                     end_date_haul = as.Date(max(end_date_haul), 
+                                             format = "%m/%d/%Y")) 
   
   temp <- "" # paste0("of the ", srvy, ", which ")
   
@@ -251,7 +254,7 @@ str0 <- data.frame(str = str0,
                   SRVY = unique(cruises_maxyr$SRVY))
 ```
 
-At the beginning of the survey, scientists boarded the chartered vessels (`r text_list(vessel_info$vessel_ital)`) in Dutch Harbor, Alaska, then transited to eastern Bristol Bay to begin sampling.  From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `). The east to west survey progression is intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration of yellowfin sole and other species, reducing the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. In the EBS, `r str0$str[str0$SRVY == "EBS"]` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `).
+At the beginning of the survey, scientists boarded the chartered vessels (`r text_list(vessel_info$vessel_ital)`) in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number") `). The east-to-west survey progression is intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy aims reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. In the EBS, `r str0$str[str0$SRVY == "EBS"]`.
 
 ```{r ebs_survey_area}
 temp0 <- list_tables$tab_stratum_areas$raw %>% 
@@ -269,9 +272,7 @@ temp_tot <- temp0 %>%
   dplyr::select(density)
 ```
 
-
-For design-based index catch analysis, the EBS shelf was divided into 12 strata bounded by the 20 m, 50 m, 100 m, and 200 m isobaths and a geographic stratum line separating the northwest and southeast shelf (Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). The stratum boundaries correspond with oceanographic domains and different biological communities. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to reduce variance estimates for blue king crab. Sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`) and the sampling density for the entire EBS shelf was one station per `r xunits(temp_tot$density)` km^2^ (Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`). For some analyses (e.g., abundance at length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number")`; Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`).
-
+For design-based (as opposed to mode-based) index catch analysis, the EBS shelf was divided into 12 strata bounded by the 20 m, 50 m, 100 m, and 200 m isobaths and a geographic stratum line separating the northwest and southeast shelf (Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). The stratum boundaries correspond with oceanographic domains and different biological communities. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to increase sampling resolution and thereby reduce variance estimates for blue king crab. Sampling density across the EBS shelf was one station per `r xunits(temp_tot$density)` km^2^, ranging from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`; Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`). For some analyses (e.g., abundance-at-length), the high-density strata were grouped, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number")`; Table `r crossref(list_obj = list_tables, nickname = "tab_stratum_areas", sublist = "number")`).
 
 ```{r nbs_survey_plan}
 nbs_insert <- ""
@@ -311,15 +312,13 @@ if (SRVY == "NEBS") {
 
 ## Catch Sampling Procedures
 
-Standard catch sampling procedures used in RACE Bering Sea assessment surveys are described in detail by @RN939 and @RN933. A brief summary of these procedures is described below.
+Standard catch sampling procedures used in RACE Bering Sea assessment surveys are described in detail by @RN939 and @RN933. In summary, samples were collected by trawling near the center of each grid square (or intersection of grid lines, in the case of high-density corner stations) for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If a station was not considered trawlable due to obstructions visible on the depth sounder, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage or contained debris, such as derelict crab pots, generating visible changes in net mensuration were redeployed to obtain a successful sample.
 
-Samples were collected by trawling near the center of each grid square (or intersection of grid lines, in the case of high-density corner stations) for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If a station was not considered trawlable due to obstructions visible on the depth sounder, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage or contained debris, such as derelict crab pots, generating visible changes in net mensuration were redeployed to obtain a successful sample.
+Catches estimated to be less than approximately 1,200 kg (2,650 lbs) were entirely sorted and enumerated, while larger catches were weighed in aggregate or volumetrically measured and subsampled before sorting. The goal of subsampling is to obtain a representative sample, which requires some variation in catch processing methods among hauls and is dependent on the overall size and species composition of the catches. After sorting subsampled catches, individual species were weighed and counted in aggregate, and these weights and numbers were then expanded proportionally to the total catch. Fish and invertebrate species were sorted and identified to the lowest, reliable taxonomic level. 
 
-Catches estimated to be less than approximately 1,200 kg (2,650 lbs) were entirely sorted and enumerated, while larger catches were weighed in aggregate or volumetrically measured and subsampled before sorting. The goal of subsampling is to obtain a representative sample, which requires some variation in catch processing methods among hauls, depending on the overall size and species composition of the catches. After sorting subsampled catches, individual species were weighed and counted in aggregate, and these weights and numbers were then expanded proportionally to the total catch. Fishes and invertebrates were sorted and identified to the lowest reliable taxonomic level. 
+All commercial crab species were weighed and enumerated from each catch. Other select species including Pacific halibut, Greenland turbot, large skates, rockfish, Atka mackerel, prowfish, Bering wolffish, giant wrymouth, Pacific cod, some sculpins, sharks, and any other large, rare species that are not represented in the subsample were completely sorted from the catch in most cases.
 
-All Pacific halibut (*Hippoglossus stenolepis*) were enumerated and all commercial crab species were weighed and enumerated from each catch. Other selected species including Greenland turbot, large skates, rockfish, Atka mackerel, prowfish, Bering wolffish, giant wrymouth, Pacific cod, some sculpins, sharks, and any other large, rare species that are not represented in the subsample were completely sorted from the catch in most cases.
-
-Length measurements were obtained from a random subsample of selected fish species from every haul (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`). The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of `r ifelse(maxyr>2021, "100", "300")` specimens. For each fish in a length subsample, sex was determined and then the fork length or total length was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture `r ifelse(maxyr > 2020, "", "and 50% were randomly selected to receive a preopercle tag,")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
+Length measurements were obtained from a random subsample of select fish species from every haul (Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_oto_collection_scheme_", sublist = "number", exact = FALSE)`). `r ifelse(sum((list_tables$tab_oto_collection_scheme_EBS$raw$oto_samp_type) %in% "random-by-haul")>0, paste0("The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of ", ifelse(maxyr>2021, "100", "300"), " specimens. "), "")`For each fish in a length subsample, sex was determined and then the fork length or total length (depending on the species) was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture `r ifelse(maxyr > 2020, "", "and 50% were randomly selected to receive a preopercle tag")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
 
 
 ```{r collection_scheme}
@@ -389,15 +388,13 @@ if (SRVY == "NEBS") {
 ```
 
 Sagittal otoliths were collected from `r str0 ` (Tables 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = c("tab_specimen_samples_", "tab_oto_collection_scheme_"), sublist = "number", exact = FALSE)`) and shipped to the AFSC for age determination. Otolith samples were collected following `r str2 ` (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_oto_collection_scheme_", sublist = "number", exact = FALSE)`). Otoliths were preserved in a glycerol-thymol solution. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, the survey area was also divided into low-density and high-density age structure sampling strata based on historical population densities and an isobath of approximately 70 m.  
+`r NMFSReports::crossref(list_obj = list_tables, nickname = c("tab_specimen_samples_", "tab_oto_collection_scheme_"), sublist = "number", exact = FALSE)`) and shipped to the AFSC’s Age and Growth Program of the AFSC’s Resource Ecology and Fisheries Management Division for age determination. Otolith samples were collected following `r str2 ` (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_oto_collection_scheme_", sublist = "number", exact = FALSE)`). Otoliths were preserved in a glycerol-thymol solution. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, age structure sampling effort was further divided into low-density and high-density regions based on historical population densities and an isobath of approximately 70 m.  
 
 ```{r stomach_collection}
 temp <- list_tables$tab_stomach_collection_scheme$raw
 ```
 
-Stomachs were collected in the field from `r xunits(nrow(temp))` fish species (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_stomach_collection_scheme", sublist = "number") `) and were preserved in the field in 10% formalin. Arrowtooth flounder and Kamchatka flounder (*Atheresthes* spp.) stomachs were collected together as one genus because they occupy a similar trophic niche in the Bering Sea. 
-
-`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "res", exact = FALSE) `
+Stomachs were collected in the field from `r xunits(nrow(temp))` fish species (Table `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_stomach_collection_scheme", sublist = "number") `) and were preserved in the field in 10% formalin. Arrowtooth flounder and Kamchatka flounder (*Atheresthes* spp.) stomachs were collected as one genus because they occupy a similar trophic niche in the Bering Sea. 
 
 `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_oto_collection_scheme_", sublist = "res", exact = FALSE) `
 
@@ -405,13 +402,13 @@ Stomachs were collected in the field from `r xunits(nrow(temp))` fish species (T
 
 ## Catch Data Analysis
 
-Design-based estimates of biomass, population, and size structure of fishes and invertebrate species were calculated from EBS and NBS survey data. A brief description of the procedures used in the analysis of RACE Bering Sea survey data follows [@RN939]. Some species were grouped by family for catch data analysis because of their limited commercial value or an inability to identify to lower taxonomic level while in the field. 
+Design-based estimates of biomass, population, and size structure of fishes and invertebrate species were calculated from `r NMFSReports::text_list(SRVY1)` survey data. A brief description of the procedures used in the analysis of RACE Bering Sea survey data follows [@RN939]. Some species were grouped by family for catch data analysis because of their limited commercial value or an inability to identify to lower taxonomic level while in the field. 
 
 Mean catch per unit effort (CPUE) for each species was calculated in kilograms per hectare (1 ha = 10,000 m^2^) and number of fish per hectare for each stratum  [@RN889; @RN910]. Area swept (hectares) was computed as the linear distance towed multiplied by the mean net width [@RN889; @RN910]. Mean CPUE was calculated for individual strata and summed proportionally for the overall survey area. Design-based biomass and population estimates were calculated for each stratum by multiplying the stratum mean CPUE by the stratum area. Stratum estimates were then summed for total survey area estimates in the `r NMFSReports::text_list(SRVY1) `. Disparities between the number of hauls when a species was weighed, counted, and measured may occur due to processing errors during sampling. 
 
 For size composition estimates, the proportion of fish at each centimeter length interval (from subsamples at each station), weighted by CPUE (number of fish/ha), was expanded to the stratum population. Stratum abundance-at-length estimates were summed for the total estimated size composition for the overall survey area in the `r NMFSReports::text_list(paste0(SRVY1))`.
 
-Except for Pacific halibut, otolith samples collected during the survey were read for age estimates by staff of the Age and Growth Program of the AFSC's Resource Ecology and Fisheries Management Division. The most current information about age, growth, and population analyses are presented in the 2018 NPFMC Stock Assessment and Fishery Evaluation Report for the Groundfish Resources of the Bering Sea/Aleutian Islands Region [`r paste0("@NPFMC", maxyr)`].
+Otolith samples collected during the survey were read for age estimates by staff of the Age and Growth Program of the AFSC's Resource Ecology and Fisheries Management Division for all fish except for Pacific halibut, whose otoliths are processed by the IPHC. The most current information about age, growth, and population analyses are presented in the 2018 NPFMC Stock Assessment and Fishery Evaluation Report for the Groundfish Resources of the Bering Sea/Aleutian Islands Region [`r paste0("@NPFMC", maxyr)`].
 
 ## Additional Research Projects
 
@@ -427,6 +424,10 @@ temp <- list_tables$tab_special_projects$raw %>%
   )) %>% 
   dplyr::arrange(-n)
 
+if (SRVY != "NEBS") {
+  temp$SRVY <- gsub(pattern = "only ", replacement = "", x = temp$SRVY)
+}
+
 temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
                          sheet = "solicitation_date", 
                          skip = 1) %>% 
@@ -434,10 +435,10 @@ temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.
   dplyr::select(solicitation_date) %>% 
   dplyr::mutate(solicitation_date = 
                   format(x = as.POSIXlt(x = solicitation_date), 
-                         format="%d %B %Y")) %>% 
+                         format = date_format)) %>% 
   unlist()
 ```
 
-In addition to standard survey operations, `r gsub(x = NMFSReports::text_list(paste0(temp$n, " research project",ifelse(temp$n>1, "s were", " was")," undertaken in ", temp$SRVY), sep_last = ", and "), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`). A solicitation for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC strategic science plans and mission and their expected impact on survey resources and available time. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) designated in Table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`.
+In addition to standard survey operations, `r gsub(x = NMFSReports::text_list(paste0(temp$n, " research project",ifelse(temp$n>1, "s were", " was")," undertaken in ", temp$SRVY), sep_last = ", and "), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`). A solicitation for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC strategic science plans and mission and their expected impact on survey resources and available time to complete the project. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) designated in Table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`.
 
 `r list_tables$tab_special_projects$res `
