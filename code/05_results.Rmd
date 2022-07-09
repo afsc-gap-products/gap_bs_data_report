@@ -359,7 +359,7 @@ insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 ```
 
-A total of `r xunits(temp1$species_code) ` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert `
+A total of `r xunits(temp1$species_code) ` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert `
 
 ```{r taxon_count}
 # count spp - invert
@@ -408,7 +408,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-A total of `r xunits(temp1$species_code) ` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934. Additionally, trawl catchability of small invertebrates is not known.
+`r NMFSReports::numbers2words(temp1$species_code) ` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
@@ -462,7 +462,7 @@ str0 <- paste0("The ",
                  total_biomass$SRVY, 
                         " was estimated at ", 
                         NMFSReports::xunits(total_biomass$total), 
-                        " metric tons (mt)")), ". " )
+                        " mt")), ". " )
 
 str00 <- ""
 for (ii in 1:length(temp2$SRVY)) {
@@ -596,7 +596,7 @@ if (SRVY == "NEBS") {
     }
   }
   
-  temp0$group0 <- paste0("the family ", temp0$group0)
+  temp0$group0 <- paste0(" the family ", temp0$group0)
   
   temp0$str0 <- gsub(pattern = "*NA*, ", replacement = "", x = temp0$str0, fixed = TRUE)
   temp0$str0 <- gsub(pattern = "  ", replacement = " ", x = temp0$str0, fixed = TRUE)
@@ -606,7 +606,7 @@ if (SRVY == "NEBS") {
     temp4 <- NMFSReports::text_list(paste0(
                              temp0$group0[temp0$SRVY == SRVY1[i]], 
                              " was primarily comprised of ", 
-                             temp0$str0[temp0$SRVY == SRVY1[i]]))
+                             temp0$str0[temp0$SRVY == SRVY1[i]]), sep_last = "")
     temp3 <- paste0(temp3, 
                     paste0("In the ", SRVY1[i], ", ", 
                            substr(temp4, start = 1, stop = (nchar(temp4)-1)), # get rid of last ")" 
@@ -621,7 +621,7 @@ if (SRVY == "NEBS") {
     " were the fish families with greatest biomass in both the EBS (",
     NMFSReports::text_list(
       paste0(round(x = temp1$prop_EBS[1:2]*100, digits = 1), "%")), 
-    " of the total biomass, respectively) and the NBS (",
+    " of the total biomass, respectively), and the NBS (",
     NMFSReports::text_list(
       paste0(round(x = temp1$prop_NBS[1:2]*100, digits = 1), "%")), 
     " of the total biomass, respectively; ", 
@@ -638,8 +638,8 @@ if (SRVY == "NEBS") {
 
 ```{r benthic_community}
 
-str0 <- paste0("There were noticeable changes in the benthic communities of the ",
-               NMFSReports::text_list(SRVY1)," between ", compareyr," and ", maxyr,". ")
+str0 <- paste0("Noticeable changes were observed in",ifelse(SRVY == "NEBS", " both", ""), " the ", NMFSReports::text_list(SRVY1)," the benthic communities between ",
+               compareyr," and ", maxyr,". ")
 
 for (i in 1:length(SRVY1)) {
   
@@ -704,7 +704,7 @@ str0 <- paste0(str0,
                " (Table ",
                NMFSReports::crossref(list_obj = list_tables, 
                                      nickname = paste0("tab_majortaxa_pchange_", SRVY1[i]), sublist = "number"),
-               "). While all efforts are made at standardizing catch processing over time, some differences may exist between years, vessels, and crews which may impact the interpretation of these differences."
+               "). "
                # something else
                # "Although there were large percentage increases in biomass for many invertebrate taxa, there was relatively little change in the combined total biomass of invertebrates (-0.2 million t) compared to 2010 (Table ",
                # NMFSReports::crossref(list_obj = list_tables, 
@@ -718,7 +718,7 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 ```
 
-`r str0`
+`r str0`While all efforts are made at standardizing catch processing over time, some differences may exist between years, vessels, and crews which may affect the interpretation of these differences.
 
 ```{r top_10_taxon}
 temp <- data.frame()
