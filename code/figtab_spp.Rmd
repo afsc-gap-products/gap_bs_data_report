@@ -74,20 +74,28 @@ if (spp_plot_idw_coldwarm){
                      ifelse(SRVY=="NEBS", "s", ""),".")
     nickname <- paste0(nickname0, case)
     
-    table_raw <- table_raw0 %>% 
-      dplyr::filter(year %in% years)
+        table_raw <- dplyr::left_join(
+      x = cpue %>%
+        dplyr::filter(year %in% years & 
+                        SRVY %in% SRVY1) %>%
+        dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
+        dplyr::distinct(), 
+      y = table_raw0 %>% 
+        dplyr::filter(year %in% years), 
+      by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
+        dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
     
     
-  if (length(years)<3) {
-    row0 <- 1
-    height <- 4 
-  } else if (length(years)<7) {
-    row0 <- 2
-    height <- full_page_portrait_height - 2
-  } else { # }  if (length(years)<10) {
-    row0 <- 3
-    height <- full_page_portrait_height 
-  }  
+    if (length(years)<3) {
+      row0 <- 1
+      height <- 4 
+    } else if (length(years)<7) {
+      row0 <- 2
+      height <- full_page_portrait_height - 2
+    } else { # }  if (length(years)<10) {
+      row0 <- 3
+      height <- full_page_portrait_height 
+    }  
     
     figure <- plot_idw_xbyx(
       yrs = years, 
@@ -167,6 +175,16 @@ if (spp_plot_idw | spp_plot_pa) {
                      " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
                      ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
     set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
+    
+    table_raw <- dplyr::left_join(
+      x = cpue %>%
+        dplyr::filter(year %in% c(maxyr, compareyr) & 
+                        SRVY %in% SRVY1) %>%
+        dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
+        dplyr::distinct(), 
+      y = table_raw, 
+      by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
+        dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
     
     figure <- plot_idw_xbyx(
       yrs = c(maxyr, compareyr),
@@ -622,8 +640,8 @@ if (spp_table_cpue) {
                               ""),
                        # "Differences in sums of estimates and totals are due to rounding. ", 
                        # ifelse(grepl(pattern = "crab", x = spp_print), 
-                              # "Lengths are collected and reported on by the Shelfish Assessment Program in a seperate report. ", 
-                              ifelse(!include_lencount, "No lengths were collected for this taxon. ", ""))#)
+                       # "Lengths are collected and reported on by the Shelfish Assessment Program in a seperate report. ", 
+                       ifelse(!include_lencount, "No lengths were collected for this taxon. ", ""))#)
       
       table_print <- table_print %>% 
         flextable::bold(x = ., #j = "stratum", 
@@ -659,7 +677,7 @@ if (spp_table_cpue) {
           flextable::align(x = ., i = ~ !is.na(SRVY),
                            align = "left", part = "body") 
       }
-
+      
       if (sum(table_raw$SRVY %in% "NBS")>0) {
         table_print <- table_print %>% 
           flextable::hline(x = .,i = ~ (stratum == "Total"), part = "body")
