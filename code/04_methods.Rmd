@@ -176,7 +176,8 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
   
   srvy <- unique(haul_cruises_vess_maxyr$SRVY)[i]
   cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
-    dplyr::filter(SRVY == srvy) %>% 
+    dplyr::filter(SRVY %in% srvy &
+                    year %in% maxyr) %>% 
     dplyr::select("year", "survey_name", "vessel", "vessel_name", 
                   "vessel_ital", "SRVY", "SRVY_long", 
                   "start_date_cruise", "end_date_cruise", 
@@ -184,14 +185,12 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
     unique() %>% 
     group_by(year, survey_name, vessel, vessel_name, 
              vessel_ital, SRVY, SRVY_long) %>% 
-    dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise), 
-                                                 format = "%d %B %Y"), 
-                     end_date_cruise = as.Date(max(end_date_cruise), 
-                                               format = "%d %B %Y"), 
+    dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
+                     end_date_cruise = as.Date(max(end_date_cruise)), 
                      start_date_haul = as.Date(min(start_date_haul), 
-                                               format = "%d %B %Y"), 
+                                               format = "%m/%d/%Y"), 
                      end_date_haul = as.Date(max(end_date_haul), 
-                                             format = "%d %B %Y")) 
+                                             format = "%m/%d/%Y")) 
   
   temp <- "" # paste0("of the ", srvy, ", which ")
   

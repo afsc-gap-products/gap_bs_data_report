@@ -2291,6 +2291,7 @@ plot_timeseries <- function(
     unit = "", 
     unt = "", 
     y_long = "", 
+    error_bar = TRUE, 
     spp_print = ""){
   
   table_raw <- dat
@@ -2355,25 +2356,27 @@ plot_timeseries <- function(
                                  color = SRVY_long1, group = SRVY_long1), 
                    data = table_raw) +
     geom_line(size = 1) +
-    geom_point(size = 1.5) +
+    geom_point(size = 1.5)
+    # geom_errorbar(aes(ymin=lowervar, ymax=uppervar), 
+    #               width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
+    #                position=position_dodge(0.05)) +
+  if (error_bar) {
+  figure <- figure  +
     geom_segment(data = table_raw_mean, 
                  # yintercept=y,
                  mapping = aes(x = minyr, xend = maxyr, y = y, yend = y, 
                                group = SRVY_long1, color = SRVY_long1), 
                  linetype = "dashed", size = 1) +
-    
-    # geom_errorbar(aes(ymin=lowervar, ymax=uppervar), 
-    #               width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
-    #                position=position_dodge(0.05)) +
-    
     geom_errorbar(aes(ymin=lower, ymax=upper),
                   width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
-                  position=position_dodge(0.05)) +
+                  position=position_dodge(0.05))
+  } 
     # scale_color_viridis_d(direction = -1,
     #                       option = "mako",
     #                       begin = .2,
     #                       end = .6,
     #                       na.value = "transparent") %>%
+  figure <- figure +
     scale_color_manual(values = pcol, breaks = unique(table_raw$SRVY_long1))
   
   if (!is.na(anno)) {
