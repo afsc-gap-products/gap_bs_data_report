@@ -18,108 +18,12 @@ spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
 
 spp_plot_sizecomps <- 
-  #   ifelse(sizecomp %>% 
-  #            dplyr::filter(species_code %in% spp_code & 
-  #                            SRVY == "NBS") %>% 
-  #            nrow() == 0, 
-  #     FALSE, 
   ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
-# 
-spp_plot_idw <-
-  #   ifelse(cpue_biomass_station %>%
-  #     dplyr::ungroup() %>% 
-  #     dplyr::select(year, stationid, #hauljoin, 
-  #                   SRVY, cpue_kgha, 
-  #                   group, species_name) %>%
-  #     dplyr::filter(!is.na(cpue_kgha)) %>%
-  #     dplyr::arrange(-year) %>%
-  #     dplyr::filter(tolower(group) %in% tolower(spp_print) &
-  #                     year %in% nbsyr) %>% 
-  #     dplyr::left_join(
-  #       x = ., 
-#       y = station_info %>% 
-#         dplyr::select(-reg), 
-#       by = c("stationid", "SRVY")) %>% 
-#     dplyr::filter(!is.na(latitude) & !is.na(longitude)) %>% 
-#            nrow() == 0, 
-#          FALSE, 
-ifelse(sum(ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1]), 
-           ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1]), 
-           na.rm = TRUE)>0, TRUE, FALSE)
+
+spp_plot_idw <- ifelse(sum(ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1]), 
+                           ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1]), 
+                           na.rm = TRUE)>0, TRUE, FALSE)
 ```
-
-
-```{r data_wrangle}
-# find basic info about species
-haul0 <- catch_haul_cruises %>% 
-  dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
-                "bottom_depth", "gear_temperature" ,"surface_temperature", 
-                "survey_name", "SRVY", "year", "species_code", 
-                "weight", "number_fish", "hauljoin")
-
-haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY_long == "eastern Bering Sea"] <- "southeastern Bering Sea"
-
-# Biomass
-bio <- biomass %>%
-  dplyr::filter(stratum == 999) %>% 
-  dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass, taxon) %>% 
-  dplyr::left_join(x = ., 
-                   y = report_spp1 %>% 
-                     dplyr::select(print_name, species_code, species_name1), 
-                   by = "species_code") %>% 
-  dplyr::filter(print_name == spp_print) %>% 
-  dplyr::rename(y = biomass, 
-                lower = lowerb, 
-                upper = upperb, 
-                var = varbio) %>% 
-  dplyr::left_join(x = . , 
-                   y = haul_cruises_maxyr %>% 
-                     dplyr::select(SRVY, SRVY_long),
-                   by = "SRVY") %>% 
-  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
-
-
-# Abundance
-pop <- biomass %>%
-  dplyr::filter(stratum == 999) %>% 
-  dplyr::select(SRVY, year, species_code, upperp, lowerp, varpop, population, taxon) %>% 
-  dplyr::left_join(x = ., 
-                   y = report_spp1 %>% 
-                     dplyr::select(print_name, species_code, species_name1), 
-                   by = "species_code") %>% 
-  dplyr::filter(print_name == spp_print) %>% 
-  dplyr::rename(y = population, 
-                lower = lowerp, 
-                upper = upperp, 
-                var = varpop) %>% 
-  dplyr::left_join(x = . , 
-                   y = haul_cruises_maxyr %>% 
-                     dplyr::select(SRVY, SRVY_long),
-                   by = "SRVY") %>% 
-  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
-
-# Lengths
-lengths <- length_data %>% 
-  dplyr::filter(species_code %in% spp_code) %>% 
-  dplyr::select(SRVY, species_code, frequency, sex, length,
-                sample_type, length_type, name, year, 
-                sentancefrag)
-
-# Size Comps
-sizec <- sizecomp %>% 
-  dplyr::left_join(x = ., 
-                   y = report_spp1 %>% 
-                     dplyr::select(print_name, species_code, species_name1), 
-                   by = "species_code") %>% 
-  dplyr::filter(print_name == spp_print) %>% 
-  dplyr::left_join(x = . , 
-                   y = haul_cruises_maxyr %>% 
-                     dplyr::select(SRVY, SRVY_long),
-                   by = "SRVY") %>% 
-  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
-
-```
-
 
 ## fig_biomass_
 
@@ -128,41 +32,79 @@ sizec <- sizecomp %>%
 height <- 4
 width <- 5
 
-y_long <- "Biomass"
-
-a <- table_change_pres(dat = bio, 
-                       yrs = nbsyr, 
-                       maxyr = maxyr, 
-                       compareyr = compareyr, 
-                       unit = "metric tons", 
-                       unt = "mt", 
-                       y_long = y_long, 
-                       digits = 2)
-
-# a$table_raw <- a$table_raw %>% 
-#   dplyr::mutate(dplyr::across(starts_with("change_"), gsub, pattern = "-", replace = "+"))
-
-header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "** ", 
-                                        unlist(a$table_raw[grep(pattern = as.character(maxyr), 
-                                                                x = names(a$table_raw))[1]]), 
-                                        " ", a$unt, " ", 
-                                        unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
-                                                                x = names(a$table_raw))]), 
-                                        "% from ", max(nbsyr[nbsyr != maxyr]), 
-                                        " (", 
-                                        unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
-                                                                x = names(a$table_raw))[1]]), 
-                                        " ", a$unt, ")"))
-# header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
-
 nickname <- paste0("fig_biomass_", spp_file)
 
+# Biomass
+bio <- biomass %>%
+  dplyr::filter(stratum == 999) %>% 
+  dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass) %>% 
+  dplyr::filter(species_code %in% spp_code) %>% 
+  dplyr::rename(y = biomass, 
+                lower = lowerb, 
+                upper = upperb, 
+                var = varbio) %>% 
+  dplyr::left_join(x = . , 
+                   y = haul_cruises_maxyr %>% 
+                     dplyr::select(SRVY, SRVY_long),
+                   by = "SRVY")  %>% 
+  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) 
 
-figure <- plot_timeseries(dat = bio, 
-                          unit = "metric tons", 
-                          unt = "mt", 
-                          y_long = "biomass", 
+# bio <- biomass %>%
+#   dplyr::filter(stratum == 999) %>% 
+#   dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass, taxon) %>% 
+#   dplyr::left_join(x = ., 
+#                    y = report_spp1 %>% 
+#                      dplyr::select(print_name, species_code, species_name1), 
+#                    by = "species_code") %>% 
+#   dplyr::filter(print_name == spp_print) %>% 
+#   dplyr::rename(y = biomass, 
+#                 lower = lowerb, 
+#                 upper = upperb, 
+#                 var = varbio) %>% 
+#   dplyr::left_join(x = . , 
+#                    y = haul_cruises_maxyr %>% 
+#                      dplyr::select(SRVY, SRVY_long),
+#                    by = "SRVY") %>% 
+#   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
+# 
+# a <- table_change_pres(dat = bio, 
+#                        yrs = nbsyr, 
+#                        maxyr = maxyr, 
+#                        compareyr = compareyr, 
+#                        unit = "metric tons", 
+#                        unt = "mt", 
+#                        y_long = "Biomass", 
+#                        digits = 2)
+# 
+# header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "** ", 
+#                                         unlist(a$table_raw[grep(pattern = as.character(maxyr), 
+#                                                                 x = names(a$table_raw))[1]]), 
+#                                         " ", a$unt, " ", 
+#                                         unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
+#                                                                 x = names(a$table_raw))]), 
+#                                         "% from ", max(nbsyr[nbsyr != maxyr]), 
+#                                         " (", 
+#                                         unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
+#                                                                 x = names(a$table_raw))[1]]), 
+#                                         " ", a$unt, ")"))
+
+
+if (length(spp_code)>1) {
+  bio <- bio %>% 
+    dplyr::group_by(SRVY, year, SRVY_long) %>%
+    dplyr::summarise(y = sum(y), 
+                     var = sum(var), 
+                     upper = mean(upper), 
+                     lower = mean(upper))
+}
+
+figure <- plot_timeseries(dat = bio,
+                          unit = "metric tons",
+                          unt = "mt",
+                          y_long = "biomass",
+                          error_bar = ifelse(length(spp_code)>1, FALSE, TRUE),
                           spp_print = spp_print)
+
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
 res <- knitr::knit_child(
@@ -179,86 +121,15 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ")
 
-# nickname <- paste0("tab_biomass_", spp_file)
-# header <- ""
-# 
-# y_long <- "Biomass"
-# 
-# a <- table_change_pres(dat = bio, 
-#                   yrs = nbsyr, 
-#                   maxyr = maxyr, 
-#                   compareyr = compareyr, 
-#                   unit = "metric tons", 
-#                   unt = "mt", 
-#                   y_long = y_long)
-# 
-# # a$table_raw <- a$table_raw %>% 
-# #   dplyr::mutate(dplyr::across(starts_with("change_"), gsub, pattern = "-", replace = "+"))
-# 
-# str <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "**/n", 
-#                                      unlist(a$table_raw[grep(pattern = as.character(maxyr), 
-#                                                       x = names(a$table_raw))[1]]), 
-#                                      " ", a$unt, "\n", 
-#                                      unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
-#                                                       x = names(a$table_raw))]), 
-#                                      "% from ", max(nbsyr[nbsyr != maxyr]), 
-#                                      " (", 
-#                                      unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
-#                                                            x = names(a$table_raw))[1]]), 
-#                                      " ", a$unt, ")\n\n"), sep = "\n\n\n")
-# 
-# 
-#   # save yo' stuff and do a lot of behind the scenes work
-#   # alt: this does the same thing as calling "child = " in the chunk header
-#   res <- knitr::knit_child(
-#     text = knitr::knit_expand(
-#       file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-#     quiet = TRUE
-#   )
-#   
-# list_tables[nickname][[1]]$res <- res <- paste0("
-# ###### 
-# 
-# ",res,"
-# 
-# ")
-
 ```
 
 
-## fig_abund_
-
-> pop?
+## fig_pop_
 
 ```{r, fig_abund_}
 
 height <- 4
 width <- 5
-
-y_long <- "Abundance"
-
-a <- table_change_pres(dat = pop, 
-                                 yrs = nbsyr, 
-                                 maxyr = maxyr, 
-                                 compareyr = compareyr, 
-                                 unit = "", 
-                                 unt = "", 
-                                 y_long = y_long, 
-                       digits = 2)
-
-# header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "**/n", 
-#                                         unlist(a$table_raw[grep(pattern = as.character(maxyr), 
-#                                                                 x = names(a$table_raw))[1]]), 
-#                                         " ", a$unt, "\n", 
-#                                         unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
-#                                                                 x = names(a$table_raw))]), 
-#                                         "% from ", max(nbsyr[nbsyr != maxyr]), 
-#                                         " (", 
-#                                         unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
-#                                                                 x = names(a$table_raw))[1]]), 
-#                                         " ", a$unt, ")\n\n"), sep = "\n\n\n")
-# header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
-
 
 header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "** ", 
                                         unlist(a$table_raw[grep(pattern = as.character(maxyr), 
@@ -274,13 +145,39 @@ header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "
 # header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
 
 
-nickname <- paste0("fig_abund_", spp_file)
+nickname <- paste0("fig_pop_", spp_file)
 
-figure <- plot_timeseries(dat = pop, 
+# Abundance
+pop <- biomass %>%
+  dplyr::filter(stratum == 999) %>%
+  dplyr::select(SRVY, year, species_code, upperp, lowerp, varpop, population, taxon) %>%
+  dplyr::filter(species_code %in% spp_code) %>% 
+  dplyr::rename(y = population,
+                lower = lowerp,
+                upper = upperp,
+                var = varpop) %>%
+  dplyr::left_join(x = . ,
+                   y = haul_cruises_maxyr %>%
+                     dplyr::select(SRVY, SRVY_long),
+                   by = "SRVY") %>% 
+  dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
+
+if (length(spp_code)>1) {
+  pop <- pop %>% 
+    dplyr::group_by(SRVY, year, SRVY_long) %>%
+    dplyr::summarise(y = sum(y), 
+                     var = sum(var), 
+                     upper = mean(upper), 
+                     lower = mean(upper))
+}
+
+figure <- plot_timeseries(dat = pop,
                           unit = "", 
-                          unt = "", 
-                          y_long = "abundance", 
+                          unt = "",
+                          y_long = "abundance",
+                          error_bar = ifelse(length(spp_code)>1, FALSE, TRUE), 
                           spp_print = spp_print)
+
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
 res <- knitr::knit_child(
@@ -339,201 +236,217 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ```
 
-## fig_sizecomp_nbs_[spp]
+## fig_sizecomp_[spp]
 
 
-```{r fig_sizecomp_nbs_}
+```{r fig_sizecomp_}
 
 
 if (spp_plot_sizecomps) {
   
   height <- 6
-  width <- 3
+  width <- 6.5
   header <- ""
-  nickname <- paste0("fig_sizecomp_nbs_", spp_file)
-  
-  length_data0 <- lengths %>%
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% "NBS" & 
-                    year %in% nbsyr)
+  nickname <- paste0("fig_sizecomp_", spp_file)
   
   
-  sizecomp0 <- sizec %>% 
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% "NBS" & 
-                    year %in% nbsyr)  
+  length_data0 <- length_data %>%
+    dplyr::filter(species_code %in% spp_code) %>% 
+    dplyr::select(SRVY, species_code, frequency, sex, length,
+                  length_type, length_type, name, year, 
+                  sentancefrag) %>%
+    dplyr::filter(species_code %in% spp_code)
+  
+  sizecomp0 <- sizecomp %>% 
+    dplyr::left_join(x = ., 
+                     y = report_spp1 %>% 
+                       dplyr::select(print_name, species_code, species_name1), 
+                     by = "species_code") %>% 
+    dplyr::filter(print_name == spp_print) %>% 
+    dplyr::left_join(x = . , 
+                     y = haul_cruises_maxyr %>% 
+                       dplyr::select(SRVY, SRVY_long),
+                     by = "SRVY") %>% 
+    dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) %>% 
+    dplyr::filter(species_code %in% spp_code)
+  
+    header <- paste0("Total abundance-at-length estimates of ",
+                   spp_print, ifelse(is.na(spp_sci), "", 
+                                     paste0(" (",spp_sci,")")), 
+                   " by sex (",NMFSReports::text_list(tolower(unique(sizecomp0$sex))),
+                   ") observed during the ",
+                   NMFSReports::text_list(unique(sizecomp0$SRVY)), 
+                   " shelf bottom trawl survey", 
+                   ifelse(length(unique(sizecomp0$SRVY))==1 & length(unique(sizecomp0$year))==1, "", "s"),
+                   ".")
   
   if (nrow(sizecomp0) != 0) {
-  
-  
-  # get size unit/type
-  if (tolower(spp_print) %in% c("red king crab", "blue king crab")) {
-    type <- "carapace lengths"
-  } else   if (tolower(spp_print) %in% c("snow crab")) {
-    type <- "carapace widths"
-  } else {
-    type <- unique(length_data0$sentancefrag)
-  }
-  
-  figure <- plot_sizecomp(
-    sizecomp0 = sizecomp0,
-    length_data0 = length_data0, 
-    spp_code = spp_code,
-    spp_print = paste0("NBS ", spp_print), 
-    type = type, 
-    print_n = FALSE)
-  
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_fig.Rmd", 
-                         package = "NMFSReports")), 
-    quiet = TRUE
-  )
-  
-  list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
-
-",res,"
-
-")
-  }
-}
-
-```
-
-## fig_sizecomp_ebs_[spp]
-
-```{r fig_sizecomp_ebs_}
-if (spp_plot_sizecomps) {
-  
-  height <- 6
-  width <- 3
-  header <- ""
-  nickname <- paste0("fig_sizecomps_ebs_", spp_file)
-  
-  length_data0 <- lengths %>%
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% "EBS")
-  
-  
-  sizecomp0 <- sizec %>% 
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% "EBS")    
-    if (nrow(sizecomp0) != 0) {
-
-  
-  # get size unit/type
-  if (tolower(spp_print) %in% c("red king crab", "blue king crab")) {
-    type <- "carapace lengths"
-  } else   if (tolower(spp_print) %in% c("snow crab")) {
-    type <- "carapace widths"
-  } else {
-    type <- unique(length_data0$sentancefrag)
-  }
-  
-  figure <- plot_sizecomp(
-    sizecomp0 = sizecomp0,
-    length_data0 = length_data0, 
-    spp_code = spp_code,
-    spp_print = paste0("EBS ", spp_print), 
-    type = type, 
-    print_n = FALSE, 
-    ridgeline = TRUE)
-  
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_fig.Rmd", 
-                         package = "NMFSReports")), 
-    quiet = TRUE
-  )
-  
-  list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
-
-",res,"
-
-")
+    
+    # get size unit/type
+    if (tolower(spp_print) %in% c("red king crab", "blue king crab")) {
+      type <- "carapace lengths"
+    } else   if (tolower(spp_print) %in% c("snow crab")) {
+      type <- "carapace widths"
+    } else {
+      type <- unique(length_data0$sentancefrag)
     }
+    
+    length_data_nbs <- length_data0 %>%
+      dplyr::filter(SRVY %in% "NBS" & 
+                      year %in% nbsyr)
+    
+    sizecomp_nbs <- sizecomp0 %>% 
+      dplyr::filter(SRVY %in% "NBS" & 
+                      year %in% nbsyr)  
+    
+    length_data_ebs <- length_data0 %>%
+      dplyr::filter(SRVY %in% "EBS")
+    
+    sizecomp_ebs <- sizecomp0 %>% 
+      dplyr::filter(SRVY %in% "EBS")  
+    
+    
+    figure1 <- plot_sizecomp(
+      sizecomp0 = sizecomp_nbs,
+      length_data0 = length_data_nbs, 
+      spp_code = spp_code,
+      spp_print = paste0("NBS ", spp_print), 
+      type = type, 
+      print_n = FALSE)
+    
+    figure2 <- plot_sizecomp(
+      sizecomp0 = sizecomp_ebs,
+      length_data0 = length_data_ebs, 
+      spp_code = spp_code,
+      spp_print = paste0("EBS ", spp_print), 
+      type = type, 
+      print_n = FALSE, 
+      ridgeline = TRUE)
+    
+    figure <- cowplot::plot_grid(figure1, figure2, nrow = 1)
+    
+    # save yo' stuff and do a lot of behind the scenes work
+    # alt: this does the same thing as calling "child = " in the chunk header
+    res <- knitr::knit_child(
+      text = knitr::knit_expand(
+        file = system.file("rmd/_child_save_fig.Rmd", 
+                           package = "NMFSReports")), 
+      quiet = TRUE
+    )
+    
+    list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+  }
 }
+
 ```
 
+## fig_idw/pa_cpue_[taxon]_[spp]
 
-## fig_idw_[spp]
+```{r fig_idw_cpue_[taxon]_[spp]}
 
-```{r fig_idw_}
-if (spp_plot_idw) {
+if (spp_plot_idw | spp_plot_pa) {
   
-  nickname <- paste0("fig_idw_", spp_file)
-  header <- ""
+  yrs <- nbsyr[(length(nbsyr)-4):length(nbsyr)]
   
-  height <- 4
-  width <- 9
+  nickname <- paste0("fig_idw_cpue_", spp_taxon, "_", spp_file)
   
-  table_raw <- table_print <- data.frame(
-    x = 1,
-    y = 1,
-    label = "This is a placeholder")
-
-  figure <- ggplot(data = table_raw,
-                   mapping = aes(x = x, y = y))
+  height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
+  width <- full_page_portrait_width # 6.5
   
+  table_raw <- cpue %>%
+    dplyr::filter(!is.na(cpue_kgha) & 
+                    cpue_kgha != 0 & 
+                    species_code %in% spp_code & 
+                    year %in% yrs) %>% 
+    dplyr::arrange(desc(year))
   
-  # table_raw <- cpue %>%
-  #   dplyr::select(year, stationid, #hauljoin,
-  #                 SRVY, cpue_kgha, species_code,
-  #                 latitude, longitude)  %>%
-  #   dplyr::left_join(x = .,
-  #                    y = report_spp1 %>%
-  #                      dplyr::select(print_name, species_code, species_name1),
-  #                    by = "species_code") %>%
-  #   dplyr::filter(print_name == spp_print) %>%
-  #   # dplyr::rename(y = cpue_kgha) %>%
-  #   dplyr::left_join(x = . ,
-  #                    y = haul_cruises_maxyr %>%
-  #                      dplyr::select(SRVY, SRVY_long),
-  #                    by = "SRVY") %>%
-  #   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) %>%
-  #   dplyr::filter(!is.na(cpue_kgha),
-  #                 # tolower(species_name) %in% tolower(report_spp1$species_name[jj]) &
-  #                 year %in% nbsyr) %>%
-  #   dplyr::arrange(-year) %>%
-  #   dplyr::filter(!is.na(latitude) & !is.na(longitude)) %>%
-  #   dplyr::ungroup()
-  # 
-  # 
-  # 
-  # # table_raw <- cpue_biomass_station %>%
-  # #   dplyr::ungroup() %>%
-  # #   dplyr::select(year, stationid, #hauljoin,
-  # #                 SRVY, cpue_kgha,
-  # #                 group, species_name,
-  # #                 latitude, longitude) %>%
-  # #   dplyr::filter(!is.na(cpue_kgha),
-  # #                 tolower(species_name) %in% tolower(report_spp1$species_name[jj]) &
-  # #                 year %in% nbsyr) %>%
-  # #   dplyr::arrange(-year) %>%
-  # #   dplyr::filter(!is.na(latitude) & !is.na(longitude))
-  # 
-  # 
-  # figure <- plot_idw_xbyx(
-  #   yrs = nbsyr,
-  #   dat = table_raw,
-  #   cruises = cruises,
-  #   lat = "latitude",
-  #   lon = "longitude",
-  #   var = "cpue_kgha",
-  #   grid = "extrapolation.grid",
-  #   extrap.box = extrap.box,
-  #   key.title = paste0(str_to_title(spp_print), "\nRelative Biomass (kg/ha)"),
-  #   workfaster = TRUE,
-  #   SRVY = SRVY,
-  #   nrow = 1,
-  #   set.breaks = "auto",
-  #   plot_coldpool = FALSE)
+  # only if both species re only found in prt of the region, chnge the extrp.box
+  map.area0 <- map.area
+  reg_dat0 <- reg_dat
+  if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
+    map.area0 <- ifelse(unique(table_raw$SRVY) == "EBS", "bs.south", "bs.north")
+    reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
+    survey_reg_col <- gray.colors(length(unique(reg_dat0$survey.area$SURVEY))+2)
+    survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+    reg_dat0$survey.area <- reg_dat0$survey.area %>%
+      dplyr::mutate(
+        SRVY = dplyr::case_when(
+          SURVEY == "EBS_SHELF" ~ "EBS", 
+          SURVEY == "NBS_SHELF" ~ "NBS"), 
+        color = alpha(colour = survey_reg_col, 0.7), 
+        SRVY_long = dplyr::case_when(
+          SRVY == "EBS" ~ "Eastern Bering Sea", 
+          SRVY == "NBS" ~ "Northern Bering Sea"))
+    height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF", 4.25, 3.5)
+  }
+  
+  if (spp_plot_idw) {
+    header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                     " distribution and relative biomass (kg/ha) from the ",
+                     compareyr," (left) and ",maxyr,
+                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
+                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
+    set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
+    
+    table_raw <- dplyr::left_join(
+      x = cpue %>%
+        dplyr::filter(year %in% yrs & 
+                        SRVY %in% SRVY1) %>%
+        dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
+        dplyr::distinct(), 
+      y = table_raw, 
+      by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
+      dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
+    
+    figure <- plot_idw_xbyx(
+      yrs = yrs,
+      dat = table_raw, 
+      lat = "latitude",
+      lon = "longitude",
+      var = "cpue_kgha",
+      year = "year",
+      grid = "extrapolation.grid",
+      reg_dat = reg_dat0, 
+      region = map.area0, 
+      key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
+      set.breaks = set.breaks,
+      row0 = 1)
+    
+  } else if (spp_plot_pa) {
+    header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                     " presence from the ",
+                     compareyr," (left) and ",maxyr,
+                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
+                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
+                     ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
+    
+    
+    table_raw0 <- catch_haul_cruises %>% 
+      dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
+      dplyr::rename(latitude = start_latitude, 
+                    longitude = start_longitude) %>% 
+      dplyr::filter(!is.na(number_fish) &
+                      number_fish != 0 &
+                      species_code == spp_code & 
+                      year %in% yrs &
+                      SRVY %in% unique(table_raw$SRVY))
+    
+    figure <- plot_pa_xbyx(
+      yrs = c(maxyr, compareyr),
+      dat = table_raw0,
+      lat = "latitude",
+      lon = "longitude",
+      year = "year",
+      reg_dat = reg_dat0, 
+      key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
+      row0 = 1)
+    
+  }
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -544,12 +457,9 @@ if (spp_plot_idw) {
     quiet = TRUE
   )
   
-  list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
-
-",res,"
-
-")
+  list_figures[nickname][[1]]$res <- res
+  
 }
 
 ```
+

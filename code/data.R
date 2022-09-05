@@ -785,8 +785,8 @@ length_crab <- dplyr::bind_rows(
       species_code <= 31550 ~ "fish", 
       species_code >= 40001 ~ "invert"), 
     length_type = dplyr::case_when( # what are other crabs?
-      species_code %in% c(68580, 68590, 68560) ~ 8,  # 8 Width of carapace 
-      TRUE ~ 7 # 7 Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
+      species_code %in% c(68580, 68590, 68560) ~ 8,  # 8 - Width of carapace 
+      TRUE ~ 7 # 7 - Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
     ) ) 
 
 # # Review

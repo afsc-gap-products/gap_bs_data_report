@@ -162,6 +162,7 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_cold_pool_description.doc
 temp0 <- function(cols, SRVY, report_spp1) {
   nspec <- c()
   ntaxa <- c()
+  ntaxa0 <- c()
   ctaxa <- c()
   a <- report_spp1
   a$taxon[a$taxon == "invert" & 
@@ -183,6 +184,10 @@ temp0 <- function(cols, SRVY, report_spp1) {
     nspec <- c(nspec, 
                xunits(sum(temp[temp$common_name == "Total", 
                                names(temp) %in% col]))) # how many specimen
+    
+    ntaxa0 <- c(ntaxa0, 
+               length(unique(temp$common_name)[unique(temp$common_name) != "Total"])) # number of taxa
+        
     ntaxa <- c(ntaxa, 
                xunits(length(unique(temp$common_name)[unique(temp$common_name) != "Total"]))) # number of taxa
     
@@ -197,6 +202,7 @@ cols <- gsub(pattern = " Measurements", replacement = "s", x = cols)
   return(list("col" = tolower(cols), 
               "nspec" = nspec, 
               "ctaxa" = ctaxa, # kinds of taxa
+              "ntaxa0" = ntaxa0, # kinds of taxa
               "ntaxa" = ntaxa))
 }
 
@@ -208,7 +214,7 @@ cols <- cols[!(cols %in% c("common_name", "SRVY"))]
 
 temp <- temp0(cols, SRVY, a)
 
-str0 <- paste0("A total of ", NMFSReports::text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, ifelse(temp$ntaxa==1, "taxon", "taxa"))), ". ")
+str0 <- paste0("A total of ", NMFSReports::text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, ifelse(temp$ntaxa0==1, "taxon", "taxa"))), ". ")
 
 ```
 
@@ -408,7 +414,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r NMFSReports::numbers2words(temp1$species_code) ` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa in each survey area were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_title(NMFSReports::numbers2words(temp1$species_code)) ` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa `r ifesle(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
