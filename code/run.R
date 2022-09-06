@@ -24,7 +24,7 @@
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
 workfaster <- FALSE # an attempt to satisfy limited patience
-refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
+refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
@@ -40,12 +40,12 @@ font0 <- "Arial Narrow"
 # # ref_compareyr <- "@RN909"
 # # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-maxyr <- 2018 # NOTE RAPID RESPONCE
-strat_yr <- 2019
-compareyr <- 2016
-SRVY<-"EBS"
-ref_compareyr <- "@RN976" # CHANGE
-dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+# maxyr <- 2018 # NOTE RAPID RESPONCE
+# strat_yr <- 2019
+# compareyr <- 2016
+# SRVY<-"EBS"
+# ref_compareyr <- "@RN976" # CHANGE
+# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 # maxyr <- 2019
 # compareyr <- 2017
@@ -110,7 +110,7 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_codes = "species_code", 
                               lang = FALSE)
 
-if (FALSE) {
+# if (FALSE) {
   # *** *** General figures --------------------------------------------
   filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
@@ -143,14 +143,10 @@ if (FALSE) {
   save(list_tables,
        file=paste0(dir_out_tables, "/report_tables.rdata"))
   
-}
-
-load(file = paste0(dir_out_figures, "/report_figures.rdata"))
-load(file = paste0(dir_out_tables, "/report_tables.rdata"))
-# a <- grepl(x = strsplit(x = list_figures[[1]]$filename, split = "/"), pattern = "-")
-# if (Sys.Date() != ) {
-#   
 # }
+
+# load(file = paste0(dir_out_figures, "/report_figures.rdata"))
+# load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
 # rmarkdown::render(input = "./notforgit/test.Rmd",
 #                   output_dir = dir_out_chapters,
@@ -234,7 +230,7 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
 
 # *** *** - Figures and Tables ------------------------
 # - run figures and tables before each chapter so everything works smoothly
-if (FALSE) {
+# if (FALSE) {
   
   report_spp1 <- add_report_spp(spp_info = spp_info, 
                                 spp_info_codes = "species_code", 
@@ -271,10 +267,10 @@ if (FALSE) {
   save(list_tables,
        file=paste0(dir_out_tables, "/report_tables_pres.rdata"))
   
-}
+# }
 
-load(file = paste0(dir_out_tables, "/report_figures_pres.rdata"))
-load(file = paste0(dir_out_tables, "/report_tables_pres.rdata"))
+# load(file = paste0(dir_out_tables, "/report_figures_pres.rdata"))
+# load(file = paste0(dir_out_tables, "/report_tables_pres.rdata"))
 
 # subtitle
 cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 

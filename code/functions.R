@@ -2384,7 +2384,7 @@ plot_timeseries <- function(
                          color = pcol_anno)
   }
   
-  if (sum(dat$y == 0) == 1) {
+  if (sum(dat$y == 0) > 0) {
     figure <- figure +
       ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), " ", y_long, unit_word), 
                                   labels = scales::comma) 
