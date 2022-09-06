@@ -23,6 +23,11 @@ spp_plot_sizecomps <-
 spp_plot_idw <- ifelse(sum(ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1]), 
                            ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1]), 
                            na.rm = TRUE)>0, TRUE, FALSE)
+
+negative <- "#EDA247"
+positive <- "#57C4AD"
+neutral <- "#E6E1BC"
+
 ```
 
 ## fig_biomass_
@@ -37,7 +42,7 @@ nickname <- paste0("fig_biomass_", spp_file)
 # Biomass
 bio <- biomass %>%
   dplyr::filter(stratum == 999) %>% 
-  dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass) %>% 
+  dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass, taxon) %>% 
   dplyr::filter(species_code %in% spp_code) %>% 
   dplyr::rename(y = biomass, 
                 lower = lowerb, 
@@ -47,47 +52,50 @@ bio <- biomass %>%
                    y = haul_cruises_maxyr %>% 
                      dplyr::select(SRVY, SRVY_long),
                    by = "SRVY")  %>% 
+  dplyr::left_join(x = . , 
+                   y = report_spp1 %>% 
+                     dplyr::select(print_name, species_code, species_name1) ,
+                   by = "species_code")  %>% 
   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) 
 
-# bio <- biomass %>%
-#   dplyr::filter(stratum == 999) %>% 
-#   dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass, taxon) %>% 
-#   dplyr::left_join(x = ., 
-#                    y = report_spp1 %>% 
-#                      dplyr::select(print_name, species_code, species_name1), 
-#                    by = "species_code") %>% 
-#   dplyr::filter(print_name == spp_print) %>% 
-#   dplyr::rename(y = biomass, 
-#                 lower = lowerb, 
-#                 upper = upperb, 
-#                 var = varbio) %>% 
-#   dplyr::left_join(x = . , 
-#                    y = haul_cruises_maxyr %>% 
-#                      dplyr::select(SRVY, SRVY_long),
-#                    by = "SRVY") %>% 
-#   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
-# 
-# a <- table_change_pres(dat = bio, 
-#                        yrs = nbsyr, 
-#                        maxyr = maxyr, 
-#                        compareyr = compareyr, 
-#                        unit = "metric tons", 
-#                        unt = "mt", 
-#                        y_long = "Biomass", 
-#                        digits = 2)
-# 
-# header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "** ", 
-#                                         unlist(a$table_raw[grep(pattern = as.character(maxyr), 
-#                                                                 x = names(a$table_raw))[1]]), 
-#                                         " ", a$unt, " ", 
-#                                         unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
-#                                                                 x = names(a$table_raw))]), 
-#                                         "% from ", max(nbsyr[nbsyr != maxyr]), 
-#                                         " (", 
-#                                         unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
-#                                                                 x = names(a$table_raw))[1]]), 
-#                                         " ", a$unt, ")"))
+y_long = "Biomass"
+a <- table_change_pres(dat = bio, 
+                       yrs = nbsyr, 
+                       maxyr = maxyr, 
+                       compareyr = compareyr, 
+                       unit = "metric tons", 
+                       unt = "mt", 
+                       y_long = y_long, 
+                       digits = 2)
 
+b <- a$table_raw %>% 
+  dplyr::arrange(Survey) %>% 
+  dplyr::mutate(dplyr::across(dplyr::starts_with("20"), gsub, pattern = ",", replace = ""))
+
+for (i in which(colnames(b) %in% nbsyr)) {
+  for (ii in 1:nrow(b)) {
+    temp <- find_units(dat = as.numeric(b[ii,i]))
+    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i])/temp$divby, 
+                              digits = ifelse(temp$divby>1, 1, 0), 
+                              big.mark = ",", format = "f", 
+                              drop0trailing = TRUE), 
+                      temp$unit_wrd)
+  }
+}
+
+# find_units(dat = b$`2010`[1])
+
+header <- NMFSReports::text_list(paste0("**", b$Survey, " ", y_long, "** ", 
+                                        unlist(b[grep(pattern = as.character(maxyr), 
+                                                                x = names(b))[1]]), 
+                                        " ", a$unt, " (",
+                                        unlist(b[grep(pattern = paste0("_", maxyr), 
+                                                                x = names(b))]), 
+                                        "%) from ", max(nbsyr[nbsyr != maxyr]), 
+                                        " ", 
+                                        unlist(b[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
+                                                                x = names(b))[1]]), 
+                                        " ", a$unt, ""), sep_last = "\n\n")
 
 if (length(spp_code)>1) {
   bio <- bio %>% 
@@ -131,20 +139,6 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 height <- 4
 width <- 5
 
-header <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "** ", 
-                                        unlist(a$table_raw[grep(pattern = as.character(maxyr), 
-                                                                x = names(a$table_raw))[1]]), 
-                                        " ", a$unt, " ", 
-                                        unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
-                                                                x = names(a$table_raw))]), 
-                                        "% from ", max(nbsyr[nbsyr != maxyr]), 
-                                        " (", 
-                                        unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
-                                                                x = names(a$table_raw))[1]]), 
-                                        " ", a$unt, ")"))
-# header <- gsub(pattern = "\n\n and ", replacement = "\n\n", x = header, fixed = TRUE)
-
-
 nickname <- paste0("fig_pop_", spp_file)
 
 # Abundance
@@ -160,7 +154,50 @@ pop <- biomass %>%
                    y = haul_cruises_maxyr %>%
                      dplyr::select(SRVY, SRVY_long),
                    by = "SRVY") %>% 
+  dplyr::left_join(x = . , 
+                   y = report_spp1 %>% 
+                     dplyr::select(print_name, species_code, species_name1) ,
+                   by = "species_code")  %>% 
   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))
+
+y_long <- "Abundance"
+a <- table_change_pres(dat = pop, 
+                       yrs = nbsyr, 
+                       maxyr = maxyr, 
+                       compareyr = compareyr, 
+                       unit = "individuals", 
+                       unt = "", 
+                       y_long = y_long, 
+                       digits = 0)
+
+b <- a$table_raw %>% 
+  dplyr::arrange(Survey) %>% 
+  dplyr::mutate(dplyr::across(dplyr::starts_with("20"), gsub, pattern = ",", replace = ""))
+
+for (i in which(colnames(b) %in% nbsyr)) {
+  for (ii in 1:nrow(b)) {
+    temp <- find_units(dat = as.numeric(b[ii,i]))
+    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i])/temp$divby, 
+                              digits = ifelse(temp$divby>1, 1, 0), 
+                              big.mark = ",", format = "f", 
+                              drop0trailing = TRUE), 
+                      temp$unit_wrd)
+  }
+}
+
+# find_units(dat = b$`2010`[1])
+
+header <- NMFSReports::text_list(paste0("**", b$Survey, " ", y_long, "** ", 
+                                        unlist(b[grep(pattern = as.character(maxyr), 
+                                                                x = names(b))[1]]), 
+                                        a$unt, " (",
+                                        unlist(b[grep(pattern = paste0("_", maxyr), 
+                                                                x = names(b))]), 
+                                        "%) from ", max(nbsyr[nbsyr != maxyr]), 
+                                        " ", 
+                                        unlist(b[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
+                                                                x = names(b))[1]]), 
+                                        a$unt, ""), sep_last = "\n\n")
 
 if (length(spp_code)>1) {
   pop <- pop %>% 
@@ -170,6 +207,9 @@ if (length(spp_code)>1) {
                      upper = mean(upper), 
                      lower = mean(upper))
 }
+
+# pop <- pop %>% 
+#   dplyr::select
 
 figure <- plot_timeseries(dat = pop,
                           unit = "", 
@@ -193,46 +233,6 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ",res,"
 
 ")
-
-
-# nickname <- paste0("tab_abund_", spp_file)
-# header <- ""
-# 
-# table_print <- table_change_pres(dat = pop, 
-#                   yrs = nbsyr, 
-#                   maxyr = maxyr, 
-#                   compareyr = compareyr, 
-#                           unit = "", 
-#                           unt = "", 
-#                           y_long = "Abundance")
-# 
-# str <- NMFSReports::text_list(paste0("**", a$table_raw$Survey, " ", y_long, "**/n", 
-#                                      unlist(a$table_raw[grep(pattern = as.character(maxyr), 
-#                                                       x = names(a$table_raw))[1]]), 
-#                                      " ", a$unt, "\n", 
-#                                      unlist(a$table_raw[grep(pattern = paste0("_", maxyr), 
-#                                                       x = names(a$table_raw))]), 
-#                                      "% from ", max(nbsyr[nbsyr != maxyr]), 
-#                                      " (", 
-#                                      unlist(a$table_raw[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
-#                                                            x = names(a$table_raw))[1]]), 
-#                                      " ", a$unt, ")\n\n"), sep = "\n\n\n")
-# 
-# 
-#   # save yo' stuff and do a lot of behind the scenes work
-#   # alt: this does the same thing as calling "child = " in the chunk header
-#   res <- knitr::knit_child(
-#     text = knitr::knit_expand(
-#       file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-#     quiet = TRUE
-#   )
-#   
-# list_tables[nickname][[1]]$res <- res <- paste0("
-# ###### 
-# 
-# ",res,"
-# 
-# ")
 
 ```
 

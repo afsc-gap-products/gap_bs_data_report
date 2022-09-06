@@ -2298,17 +2298,13 @@ plot_timeseries <- function(
   pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
   
   # find appropriate units
-  a<-find_units(unit, unt, dat = table_raw$y)
+  a<-find_units(unit, unt, dat = table_raw$y) # [table_raw$y > 0]
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-  
-  # unit <-1
   
   table_raw <- table_raw %>%
     dplyr::mutate(y = y/divby, 
                   upper = upper/divby, 
-                  lower = lower/divby)#, 
-  # uppervar = (y-var)/divby, 
-  # lowervar = (y+var)/divby)
+                  lower = lower/divby)
   
   table_raw_mean <- table_raw %>% 
     dplyr::group_by(SRVY_long, SRVY) %>% 
@@ -2362,10 +2358,10 @@ plot_timeseries <- function(
     #                position=position_dodge(0.05)) +
   if (error_bar) {
   figure <- figure  +
-    geom_segment(data = table_raw_mean, 
+    geom_segment(data = table_raw_mean,
                  # yintercept=y,
-                 mapping = aes(x = minyr, xend = maxyr, y = y, yend = y, 
-                               group = SRVY_long1, color = SRVY_long1), 
+                 mapping = aes(x = minyr, xend = maxyr, y = y, yend = y,
+                               group = SRVY_long1, color = SRVY_long1),
                  linetype = "dashed", size = 1) +
     geom_errorbar(aes(ymin=lower, ymax=upper),
                   width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
@@ -2388,14 +2384,21 @@ plot_timeseries <- function(
                          color = pcol_anno)
   }
   
+  if (sum(dat$y == 0) == 1) {
+    figure <- figure +
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), " ", y_long, unit_word), 
+                                  labels = scales::comma) 
+    
+  } else {
+    figure <- figure +
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
+                         breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1))))) 
+  }
   
   figure <- figure +
-    guides(color=guide_legend(title="")) +
-    xlab("Year") +
-    scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
-                       breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1))))) + 
-    guides(color = guide_legend(nrow = 2)) +
-    theme(
+    ggplot2::guides(color = guide_legend(title="", nrow = 2)) +
+    ggplot2::xlab("Year") +
+    ggplot2::theme(
       # axis.line=element_line(),
       panel.background = element_rect(fill = "white"),
       panel.grid.major.y = element_blank(),

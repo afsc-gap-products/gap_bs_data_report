@@ -250,12 +250,9 @@ if (FALSE) {
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-  
-  
-  
   for (jj in 1:length(unique(report_spp1$file_name))) {
     
-    print(paste0(jj, " of ", length(unique(report_spp1$file_name))))
+    print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
     start_time <- Sys.time()
     # cnt_chapt<-auto_counter(cnt_chapt)
     # cnt_chapt_content<-"001"
