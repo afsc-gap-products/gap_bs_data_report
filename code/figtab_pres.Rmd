@@ -465,94 +465,6 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 
 ```
 
-
-# tab_oto_collection_scheme
-
-```{r}
-
-nickname0 <- paste0("tab_oto_collection_scheme_") 
-
-
-table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_scheme.xlsx"), 
-                                 sheet = "Sheet1", 
-                                 skip = 1) %>% 
-  dplyr::filter(year == maxyr & !is.na(oto_target)) %>% 
-  dplyr::select(SRVY, print_name, species_code, oto_target, oto_rules, oto_samp_type) %>% 
-  dplyr::left_join(
-    x = ., 
-    y = report_spp1 %>% 
-      dplyr::select(print_name, species_name1, order) %>% 
-      dplyr::rename(species_name = species_name1) %>% 
-      dplyr::distinct(), 
-    by = "print_name") %>% 
-  dplyr::arrange(order) %>% 
-  dplyr::arrange(oto_samp_type) %>% 
-  dplyr::arrange(SRVY) %>% 
-  dplyr::select(-order, -species_code) %>% 
-  dplyr::relocate(SRVY, print_name, species_name, oto_samp_type, oto_target, oto_rules)
-
-for (i in 1:nrow(haul_cruises_maxyr)) {
-  if (nrow(haul_cruises_maxyr)>1) {
-    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
-    newobj <- ifelse(i==1, TRUE, FALSE)
-  }
-  header <- paste0("Otolith collection types and counts during the ", 
-                   maxyr, " ", 
-                   haul_cruises_maxyr$SRVY[i],
-                   " shelf bottom trawl survey.")
-  
-  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
-  
-  table_raw <- table_raw0 %>% 
-    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-    # dplyr::mutate(oto_target = formatC(x = oto_target, digits = 0)) %>%
-    dplyr::select(-SRVY, -species_name)
-  
-  table_raw$oto_target <- gsub(pattern = ".0", replacement = "", x = table_raw$oto_target)
-  
-  table_print <- table_raw %>% 
-    flextable::as_grouped_data(x = ., groups = c(#"SRVY", 
-      "oto_samp_type"), 
-      columns = NULL) %>% 
-    flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
-    flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>% 
-    flextable::set_header_labels(.,
-                                 print_name = "Common name", 
-                                 # species_name = "Scientific name", 
-                                 oto_rules = "Collect when \u2265 n individuals\n caught in each haul",
-                                 oto_target = "Target collection number per haul") %>%
-    # flextable::compose(
-    #   i = ~ !is.na(group), # when var_group not NA
-    #   j = " ", # on column "var"
-    #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
-    # hline(i = ~ !is.na(SRVY), border = officer::fp_border() ) %>%
-    NMFSReports::theme_flextable_nmfstm(x = ., pad = 0, 
-                                        font0 = font0, 
-                                        row_lines = TRUE, 
-                                        pgwidth = full_page_portrait_width)  %>%
-    flextable::padding(x = .,
-                       j = 1, i = ~ is.na(oto_samp_type),
-                       padding.left = 5) %>%
-    # flextable::width(x = ., j = "print_name", width = 1.5)  %>%
-    flextable::width(x = ., j = "oto_rules", width = 1.5, unit = "in") %>%
-    flextable::width(x = ., j = "oto_target", width = 3, unit = "in") %>%
-    flextable::width(x = ., j = c("print_name"), width = 2) %>% 
-    flextable::hline(x = ., i = ~ !is.na(oto_samp_type), 
-                     border = fp_border(color = "white"), 
-                     part = "body") 
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")), 
-    quiet = TRUE
-  )
-  
-  list_tables[nickname][[1]]$res <- res
-}
-```
-
-
 ## tab_special_projects
 
 ```{r tab_special_projects}
@@ -874,7 +786,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ```{r tab_biomass_change}
 
 nickname <- "tab_biomass_change"
-header <- ""
+header <- paste0("Biomass and abundance change for major species in ", maxyr, " and ", compareyr,".")
 
 a <- report_spp1 %>% 
   dplyr::select(print_name, species_code, species_name1, plot_sizecomp, order) %>% 
@@ -985,7 +897,7 @@ table_raw <-
                      dplyr::select(print_name, order) %>% 
                      dplyr::distinct(), 
                    by = "print_name") %>%
-  dplyr::arrange(print_name, year) %>%  # desc(value_EBS_bio), 
+  dplyr::arrange(order, year) %>%  # desc(value_EBS_bio), 
   dplyr::mutate(year = as.character(year)) %>% 
   dplyr::mutate(dplyr::across(dplyr::starts_with("value_"), ~replace_na(.,"-"))) 
   
@@ -994,7 +906,8 @@ table_raw <-
 negative <- "#EDA247"
 positive <- "#57C4AD"
 neutral <- "#E6E1BC"
-  
+# fp_border0 <- fp_border(color = "black", style = "solid", width = 1)  
+
 table_print <- 
   flextable::flextable(data = table_raw, #hide_grouplabel = TRUE, 
                        col_keys = c("print_name", "year", 

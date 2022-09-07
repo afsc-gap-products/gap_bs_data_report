@@ -3,23 +3,18 @@
 #' author: E. H. Markowitz, E. J. Dawson
 #' purpose: Run Scripts and R Markdown Files
 #' start date: 2021-09-01
-#' date modified: 2021-09-01                                          # CHANGE
-#' Notes:                                                               # CHANGE
+#' date modified: 2022-09-01                                          # CHANGE
+#' Notes:  
+#' Compile master word doc using # https://support.microsoft.com/en-us/help/2665750/how-to-merge-multiple-word-documents-into-one
+#' create file that checks for errors in RMDs:
+#'    https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/test_rmds.R
+#'    https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/render%20dev%20report%20with%20errors.R
+#'    # rmarkdown::render(input = "./notforgit/test.Rmd",
+#'                   output_dir = dir_out_chapters,
+#'                   output_file = "test.docx")
 #' ---------------------------------------------
 
 # START ------------------------------------------------------------------------
-
-# CHECK EVERY YEAR ---------------
-# each year we need these new bibs
-# paste0("@SAPcrab", maxyr)
-# paste0("@NPFMC", maxyr)
-
-# ISSUES -------------------------
-# had to recalculate the lencount column for crab data in species specific biomass/pop tables
-# make sure if spp found in NBS are only are plotted in the NBS, visa versa
-# create PA plots for low count spp
-# mgcv spline coefficient
-# no catch in idws
 
 # *** REPORT KNOWNS ------------------------------------------------------------
 report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
@@ -63,9 +58,10 @@ dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.co
 
 # maxyr <- 2022
 # compareyr <- 2021
+# strat_yr <- 2022
 # SRVY<-"NEBS"
 # ref_compareyr <- "@2021NEBS2022" # CHANGE
-# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+# dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 
@@ -79,29 +75,17 @@ source('./code/directories.R')
 
 source('./code/functions.R')
 
-# source('./code/dataDL.R')
+# source('./code/dataDL.R') # Run when there is new data!
 
 source('./code/data.R')
 
 # csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/american-fisheries-society.csl")
 # readr::write_lines(x = csl, file = "./cite/citestyle.csl")
 
-# *** REPORT TITLE -------------------------------------------------------------
-report_title <- paste0('Data Report: ',maxyr,' ', NMFSReports::TitleCase(SURVEY),
-                       ' continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna')
-report_authors <- 'Markowitz, E. H., E. J. Dawson, N. Charriere, B. Prohaska, S. Rohan, D. Stevenson, and L. Britt'
-# report_yr <- maxyr 
-
-
 # RUN EACH REPORT SECTION ------------------------------------------------------
 
-# TOLEDO
-# create file that checks for errors in RMDs
-# https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/test_rmds.R
-# https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/render%20dev%20report%20with%20errors.R
-
 # *** Figures and Tables ------------------------
-# - run figures and tables before each chapter so everything works smoothly
+# run figures and tables before each chapter so everything works smoothly
 
 report_spp1 <- add_report_spp(spp_info = spp_info, 
                               spp_info_codes = "species_code", 
@@ -121,13 +105,11 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
   for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
-    # start_time <- Sys.time()
     filename00<-paste0(cnt_chapt, "_spp_")
     rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                       output_dir = dir_out_ref,
                       output_file = paste0(filename00, cnt_chapt_content, "_", 
                                            unique(report_spp1$file_name)[jj],".docx"))
-    # print(paste0(Sys.time() - start_time))
   }
   
   # *** *** Appendix --------------------------------------------
@@ -144,13 +126,8 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
        file=paste0(dir_out_tables, "/report_tables.rdata"))
   
 # }
-
 # load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 # load(file = paste0(dir_out_tables, "/report_tables.rdata"))
-
-# rmarkdown::render(input = "./notforgit/test.Rmd",
-#                   output_dir = dir_out_chapters,
-#                   output_file = "test.docx")
 
 # *** 01 - Abstract ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
@@ -160,7 +137,6 @@ rmarkdown::render(input = paste0(dir_code, "/01_abstract.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
-
 # *** 02 - Introduction ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
@@ -168,7 +144,6 @@ filename0<-paste0(cnt_chapt, "_introduction_")
 rmarkdown::render(paste0(dir_code, "/02_introduction.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
 
 # *** 04 - Methods ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
@@ -178,7 +153,6 @@ rmarkdown::render(paste0(dir_code, "/04_methods.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
-
 # *** 05 - Results ------------------------
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
@@ -186,7 +160,6 @@ filename0<-paste0(cnt_chapt, "_results_")
 rmarkdown::render(paste0(dir_code, "/05_results.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
 
 # *** 06 - Results_spp ------------------------
 report_spp1 <- add_report_spp(spp_info = spp_info, 
@@ -227,19 +200,16 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
 
 # *** 11 - Presentation ------------------------
 
-
-# *** *** - Figures and Tables ------------------------
-# - run figures and tables before each chapter so everything works smoothly
-# if (FALSE) {
-  
   report_spp1 <- add_report_spp(spp_info = spp_info, 
-                                spp_info_codes = "species_code", 
+                                spp_info_codes = "species_code0", 
                                 report_spp = report_spp, 
                                 report_spp_col = "order", 
-                                report_spp_codes = "species_code", 
+                                report_spp_codes = "species_code0", 
                                 lang = TRUE)
+
+# *** *** - Figures and Tables ------------------------
+# if (FALSE) {
   
-  # cnt_chapt<-auto_counter(cnt_chapt)
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab_pres.Rmd"),
@@ -249,16 +219,12 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
   for (jj in 1:length(unique(report_spp1$file_name))) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
-    start_time <- Sys.time()
-    # cnt_chapt<-auto_counter(cnt_chapt)
-    # cnt_chapt_content<-"001"
+    
     filename00<-paste0(cnt_chapt, "_spp_")
     rmarkdown::render(paste0(dir_code, "/figtab_spp_pres.Rmd"),
                       output_dir = dir_out_ref,
                       output_file = paste0(filename00, cnt_chapt_content, "_", 
                                            unique(report_spp1$file_name)[jj],".docx"))
-    end_time <- Sys.time()
-    print(paste0(end_time - start_time))
   }
   
   save(list_figures,
@@ -269,29 +235,10 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
   
 # }
 
-# load(file = paste0(dir_out_tables, "/report_figures_pres.rdata"))
-# load(file = paste0(dir_out_tables, "/report_tables_pres.rdata"))
-
-# subtitle
-cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
-  dplyr::filter(SRVY %in% c("NBS", "EBS")) %>% 
-  dplyr::select("year", "survey_name", "vessel", "vessel_name", 
-                "vessel_ital", "SRVY", "SRVY_long", 
-                "start_date_cruise", "end_date_cruise", 
-                "start_date_haul", "end_date_haul") %>% 
-  unique() %>% 
-  group_by(year, survey_name, vessel, vessel_name, 
-           vessel_ital, SRVY, SRVY_long) %>% 
-  dplyr::summarise(start_date_cruise = min(start_date_cruise), 
-                   end_date_cruise = max(end_date_cruise), 
-                   start_date_haul = min(start_date_haul), 
-                   end_date_haul = max(end_date_haul)) %>% 
-  dplyr::arrange(start_date_cruise)
-
 str <- paste0(
-  format(min(cruises_maxyr0$start_date_haul), format = "%B %d"), 
+  format(min(haul_cruises_vess_maxyr$start_date_cruise), format = "%B %d"), 
   " to ", 
-  format(max(cruises_maxyr0$end_date_haul), format = "%B %d, %Y") ) 
+  format(max(haul_cruises_vess_maxyr$end_date_cruise), format = "%B %d, %Y") ) 
 
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
@@ -299,22 +246,6 @@ filename0<-paste0(cnt_chapt, "_presentation_")
 rmarkdown::render(paste0(dir_code, "/11_presentation.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".pptx"))
-
-# SAVE OTHER OUTPUTS -----------------------------------------------------------
-
-# save(list_figures,
-#      file=paste0(dir_out_figures, "/report_figures.rdata"))
-# 
-# save(list_tables,
-#      file=paste0(dir_out_tables, "/report_tables.rdata"))
-
-save(list_equations,
-     file=paste0(dir_out_tables, "/report_equations.rdata"))
-
-# MAKE MASTER DOCX -------------------------------------------------------------
-
-#USE GUIDENCE FROM THIS LINK
-#https://support.microsoft.com/en-us/help/2665750/how-to-merge-multiple-word-documents-into-one
 
 # SAVE METADATA ----------------------------------------------------------------
 

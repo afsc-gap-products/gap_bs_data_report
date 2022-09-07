@@ -28,62 +28,6 @@ knitr::opts_chunk$set(
 ```
 
 
-
-```{r print_fig}
-
-list_figures1 <- data.frame(nickname = 
-                              gsub(pattern = "_", replacement = " ", 
-                                   gsub(pattern = "fig_", replacement = "", x = names(list_figures), 
-                                        fixed = TRUE), fixed = TRUE), 
-                            header = as.character(lapply(list_figures, `[[`, 'header')), 
-                            filename = paste0(dir_out_figures, lapply(list_figures, `[[`, 'filename'), '.png'))
-
-list_figures1$title <- stringr::str_to_title(gsub(pattern = "idw ", replacement = "", x = 
-                                                    gsub(pattern = "size dist ", replacement = "", 
-                                                         x = list_figures1$nickname)))
-
-
-insert <- c()
-for (i in 1:nrow(list_figures1)){
-  # insert <- paste0(insert, 
-  #                    paste(paste0("## ", list_figures1$title[i], 
-  #                    "\n\n![*", list_figures1$header[i], "*](",
-  #                    list_figures1$filename[i], ")\n\n", collpase = ""),
-  #             sep = "", collapse = ""))
-  
-    insert <- paste0(insert, 
-                     paste(paste0("## ", list_figures1$title[i], 
-"
-
-![", 
-ifelse(grepl(x = list_figures1$header[i], pattern = "biomass ") | grepl(x = list_figures1$header[i], pattern = "abundance "), 
-       paste0("*", list_figures1$header[i], "*"), ""), 
-"](",
-                     list_figures1$filename[i], ")\n\n", collpase = ""),
-"
-
-::: {.notes}
-
-", list_figures1$header[i], "
-
-:::
-
-
-", collpase = ""),
-sep = "", collapse = "")
-    
-}
-
-
-# ::: {.notes}
-# Speaker notes go here.
-# :::
-
-```
-
-`r insert `
-
-
 ```{r}
 i<-0
 ```
@@ -124,12 +68,66 @@ i<-i+1
 list_tables[i][[1]]$print
 ```
 
-## `r names(list_tables)[i+1] `
 
-```{r}
-i<-i+1
-list_tables[i][[1]]$print
+```{r print_fig}
+
+list_figures1 <- data.frame(nickname = 
+                              gsub(pattern = "_", replacement = " ", 
+                                   gsub(pattern = "fig_", replacement = "", x = names(list_figures), 
+                                        fixed = TRUE), fixed = TRUE), 
+                            header = as.character(lapply(list_figures, `[[`, 'header')), 
+                            filename = paste0(dir_out_figures, lapply(list_figures, `[[`, 'filename'), '.png'))
+# cap <- c("CPUE")
+for (i in 1:length(list_figures1$nickname)) {
+  list_figures1$nickname[i] <- gsub(pattern = "cpue", replacement = "CPUE", x = list_figures1$nickname[i])
+}
+
+
+list_figures1$title <- stringr::str_to_title(gsub(pattern = "idw ", replacement = "", x = 
+                                                    gsub(pattern = "size dist ", replacement = "", 
+                                                         x = list_figures1$nickname)))
+
+
+insert <- c()
+for (i in 1:nrow(list_figures1)){
+  # insert <- paste0(insert, 
+  #                    paste(paste0("## ", list_figures1$title[i], 
+  #                    "\n\n![*", list_figures1$header[i], "*](",
+  #                    list_figures1$filename[i], ")\n\n", collpase = ""),
+  #             sep = "", collapse = ""))
+  
+    insert <- paste0(insert, 
+                     paste(
+"
+## ", list_figures1$title[i], "
+
+![", 
+ifelse(grepl(x = list_figures1$nickname[i], pattern = "biomass ") | 
+         grepl(x = list_figures1$nickname[i], pattern = "abundance "), 
+       paste0("*", list_figures1$header[i], "*"), ""), 
+"](",
+                     list_figures1$filename[i], ")\n\n", collpase = ""),
+"
+
+::: {.notes}
+
+", list_figures1$header[i], "
+
+:::
+
+", sep = "", collpase = "")
+    
+}
+
+
+# ::: {.notes}
+# Speaker notes go here.
+# :::
+
 ```
+
+`r insert `
+
 
 
 ```{r print_spp_img}
