@@ -1342,37 +1342,35 @@ plot_pa_xbyx <- function(
   #                na.rm = TRUE) 
   # }
   
-  if (plot_coldpool) {
-    
-    temp_break <- 2 # 2*C
-    
-    coords <- raster::coordinates(coldpool:::nbs_ebs_bottom_temperature)
-    
-    for(i in 1:length(yrs)) {
-      sel_layer_df <- data.frame(x = coords[,1],
-                                 y = coords[,2],
-                                 temperature = coldpool:::nbs_ebs_bottom_temperature@data@values[,i])
-      sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
-      sel_layer_df$year <- yrs[i]
+    if (plot_coldpool) {
+      temp_break <- 2 # 2*C
+      coords <- raster::coordinates(coldpool:::nbs_ebs_bottom_temperature)
       
-      if(i == 1) {
-        bt_year_df <- sel_layer_df
-      } else{
-        bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
+      for(i in 1:length(yrs)) {
+        sel_layer_df <- data.frame(x = coords[,1],
+                                   y = coords[,2],
+                                   temperature = coldpool:::nbs_ebs_bottom_temperature@data@values[,i])
+        sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
+        sel_layer_df$year <- yrs[i]
+        
+        if(i == 1) {
+          bt_year_df <- sel_layer_df
+        } else{
+          bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
+        }
       }
-    }
-    
-    figure <- figure +
-      ggplot2::geom_tile(data = bt_year_df %>%
-                           dplyr::filter(temperature <= temp_break) %>% 
-                           dplyr::rename(new_dim = year),
-                         aes(x = x,
-                             y = y, 
-                             group = new_dim),
-                         fill = "magenta",#"gray80",
-                         alpha = 0.5)
-    
-  }  
+      
+      figure <- figure +
+        ggplot2::geom_tile(data = bt_year_df %>%
+                             dplyr::filter(temperature <= temp_break), #%>% 
+                             # dplyr::rename(new_dim = year),
+                           aes(x = x,
+                               y = y, 
+                               group = year),
+                           fill = "magenta", 
+                           alpha = 0.5)
+      
+    }  
   
   if (length(yrs) == 0) { # if there is no data to plot
     grid <- ""
@@ -1389,6 +1387,7 @@ plot_pa_xbyx <- function(
   
   
   if (plot_stratum) {
+    
     figure <- figure +
       geom_sf(data = reg_dat$survey.strata,
               color = "grey50",

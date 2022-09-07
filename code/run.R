@@ -201,7 +201,7 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
 # *** 11 - Presentation ------------------------
 
   report_spp1 <- add_report_spp(spp_info = spp_info, 
-                                spp_info_codes = "species_code0", 
+                                spp_info_codes = "species_code", 
                                 report_spp = report_spp, 
                                 report_spp_col = "order", 
                                 report_spp_codes = "species_code0", 

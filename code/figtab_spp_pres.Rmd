@@ -447,7 +447,7 @@ if (spp_plot_idw | spp_plot_pa) {
                       SRVY %in% unique(table_raw$SRVY))
     
     figure <- plot_pa_xbyx(
-      yrs = c(maxyr, compareyr),
+      yrs = yrs,
       dat = table_raw0,
       lat = "latitude",
       lon = "longitude",
@@ -473,3 +473,126 @@ if (spp_plot_idw | spp_plot_pa) {
 
 ```
 
+
+
+## fig_idw/pa_cpue_[spp]_coldpool
+
+```{r fig_idw_cpue_[spp]_coldpool}
+
+if (spp_plot_idw | spp_plot_pa) {
+  
+  yrs <- nbsyr[(length(nbsyr)-4):length(nbsyr)]
+  
+  nickname <- paste0("fig_", spp_file, "_", 
+                     ifelse(spp_plot_pa, "presence", "distribution"), 
+                     "_coldpool")
+  
+  height <- 4 #ifelse(SRVY == "NEBS", 5.5, 4.25) 
+  width <- full_page_portrait_width # 6.5
+  
+  table_raw <- cpue %>%
+    dplyr::filter(!is.na(cpue_kgha) & 
+                    cpue_kgha != 0 & 
+                    species_code %in% spp_code & 
+                    year %in% yrs) %>% 
+    dplyr::arrange(desc(year))
+  
+  # only if both species re only found in prt of the region, chnge the extrp.box
+  map.area0 <- map.area
+  reg_dat0 <- reg_dat
+  if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
+    map.area0 <- ifelse(unique(table_raw$SRVY) == "EBS", "bs.south", "bs.north")
+    reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
+    survey_reg_col <- gray.colors(length(unique(reg_dat0$survey.area$SURVEY))+2)
+    survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+    reg_dat0$survey.area <- reg_dat0$survey.area %>%
+      dplyr::mutate(
+        SRVY = dplyr::case_when(
+          SURVEY == "EBS_SHELF" ~ "EBS", 
+          SURVEY == "NBS_SHELF" ~ "NBS"), 
+        color = alpha(colour = survey_reg_col, 0.7), 
+        SRVY_long = dplyr::case_when(
+          SRVY == "EBS" ~ "Eastern Bering Sea", 
+          SRVY == "NBS" ~ "Northern Bering Sea"))
+    height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF", 4.25, 3.5)
+  }
+  
+  if (spp_plot_idw) {
+    header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                     " distribution and relative biomass (kg/ha) from the ",
+                     compareyr," (left) and ",maxyr,
+                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
+                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
+    set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
+    
+    table_raw <- dplyr::left_join(
+      x = cpue %>%
+        dplyr::filter(year %in% yrs & 
+                        SRVY %in% SRVY1) %>%
+        dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
+        dplyr::distinct(), 
+      y = table_raw, 
+      by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
+      dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
+    
+    figure <- plot_idw_xbyx(
+      yrs = yrs,
+      dat = table_raw, 
+      lat = "latitude",
+      lon = "longitude",
+      var = "cpue_kgha",
+      year = "year",
+      grid = "extrapolation.grid",
+      reg_dat = reg_dat0, 
+      region = map.area0, 
+      key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
+      set.breaks = set.breaks,
+      plot_coldpool = TRUE,
+      row0 = 1)
+    
+  } else if (spp_plot_pa) {
+    header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                     " presence from the ",
+                     compareyr," (left) and ",maxyr,
+                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
+                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
+                     ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
+    
+    
+    table_raw0 <- catch_haul_cruises %>% 
+      dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
+      dplyr::rename(latitude = start_latitude, 
+                    longitude = start_longitude) %>% 
+      dplyr::filter(!is.na(number_fish) &
+                      number_fish != 0 &
+                      species_code == spp_code & 
+                      year %in% yrs &
+                      SRVY %in% unique(table_raw$SRVY))
+    
+    figure <- plot_pa_xbyx(
+      yrs = yrs,
+      dat = table_raw0,
+      lat = "latitude",
+      lon = "longitude",
+      year = "year",
+      reg_dat = reg_dat0, 
+      key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
+      plot_coldpool = TRUE,
+      row0 = 1)
+    
+  }
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_figures[nickname][[1]]$res <- res
+  
+}
+
+```
