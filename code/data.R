@@ -222,22 +222,26 @@ for (i in 1:length(a)){
 #   names(df.ls)[i]<-a[i]
 # }
 
-temp <- readr::read_csv(file = paste0(dir_data, "/public/cpue_station.csv"), show_col_types = FALSE) %>% 
+temp <- readr::read_csv(file = paste0(dir_data, "/oracle/racebase_public_foss.csv"),
+                        show_col_types = FALSE) %>%
   dplyr::select(year, vessel_id, srvy,  stratum, station, scientific_name,
-                species_code, longitude_dd, latitude_dd, #hauljoin,  
-                haul, 
+                species_code, longitude_dd, latitude_dd, #hauljoin,
+                haul,
                 cpue_noha, cpue_kgha, common_name#, area_fished_ha, taxon
-                ) %>% 
-  dplyr::rename(SRVY = srvy, 
-                latitude = latitude_dd, 
-                longitude = longitude_dd, 
-                vessel = vessel_id, 
-                stationid = station, 
-                species_name = scientific_name) %>% 
+                ) %>%
+  dplyr::rename(SRVY = srvy,
+                latitude = latitude_dd,
+                longitude = longitude_dd,
+                vessel = vessel_id,
+                stationid = station,
+                species_name = scientific_name) %>%
   dplyr::filter(SRVY %in% SRVY1)
 
-cpue <- temp %>% #SameColNames(df.ls)  %>%
+cpue <- 
+  temp %>% 
+  # SameColNames(df.ls)  %>%
   # dplyr::rename(SRVY = survey) %>%
+  
   dplyr::filter(year <= maxyr) %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish",
@@ -1530,9 +1534,7 @@ biomass_strat <- dplyr::bind_rows(
                      by = c("species_code", "SRVY", "stratum", "year")) %>% 
     dplyr::mutate(lencount = ifelse(is.na(lencount), 0, lencount)), 
   biomass_strat %>% 
-    dplyr::filter(!(species_code %in% unique(temp$species_code)))
-)
-
+    dplyr::filter(!(species_code %in% unique(temp$species_code)))) 
 
 
 biomass <- biomass_strat %>%
@@ -1543,7 +1545,6 @@ biomass_maxyr<-biomass %>%
 
 biomass_compareyr<-biomass %>%
   dplyr::filter(year == compareyr[1])
-
 
 
 ## *** Total Biomass ---------------------------------------------------------------

@@ -1344,12 +1344,19 @@ plot_pa_xbyx <- function(
   
     if (plot_coldpool) {
       temp_break <- 2 # 2*C
-      coords <- raster::coordinates(coldpool:::nbs_ebs_bottom_temperature)
+      
+      if (unique(dat$SRVY) %in% "EBS") {
+        cp <- coldpool:::ebs_bottom_temperature
+      } else if (unique(dat$SRVY) %in% "NBS") {
+        cp <- coldpool:::nbs_ebs_bottom_temperature
+      }
+      
+      coords <- raster::coordinates(cp)
       
       for(i in 1:length(yrs)) {
         sel_layer_df <- data.frame(x = coords[,1],
                                    y = coords[,2],
-                                   temperature = coldpool:::nbs_ebs_bottom_temperature@data@values[,i])
+                                   temperature = cp@data@values[,i])
         sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
         sel_layer_df$year <- yrs[i]
         
@@ -1573,12 +1580,20 @@ plot_idw_xbyx <- function(
   
   if (plot_coldpool) {
     temp_break <- 2 # 2*C
-    coords <- raster::coordinates(coldpool:::nbs_ebs_bottom_temperature)
     
-    for(i in 1:length(yrs)) {
+    for (i in 1:length(yrs)) {
+      
+      if (unique(dat$SRVY) %in% "EBS") {
+        cp <- coldpool:::ebs_bottom_temperature
+      } else if (unique(dat$SRVY) %in% "NBS") {
+        cp <- coldpool:::nbs_ebs_bottom_temperature
+      }
+      
+    coords <- raster::coordinates(cp)
+      
       sel_layer_df <- data.frame(x = coords[,1],
                                  y = coords[,2],
-                                 temperature = coldpool:::nbs_ebs_bottom_temperature@data@values[,i])
+                                 temperature = cp@data@values[,i])
       sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
       sel_layer_df$year <- yrs[i]
       
@@ -1659,10 +1674,15 @@ plot_idw_xbyx <- function(
                    dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+                   st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
+                                              row0 == 2 ~ 0.06, 
+                                              TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
                    height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))) 
+                   st.size = dplyr::case_when(row0 == 1 & length(yrs) > 3~ 2, 
+                                              row0 == 1 ~ 3, 
+                                              row0 == 2 ~ 2.25, 
+                                              TRUE ~ 2)) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
@@ -2881,6 +2901,7 @@ table_change_pres <- function(dat,
                               divby = NULL, 
                               digits = 1) {
   
+  yrs <- sort(yrs)
   temp <- data.frame(var2 = yrs[-length(yrs)],
                      var1 = yrs[-1] )
   
@@ -2894,7 +2915,7 @@ table_change_pres <- function(dat,
     dplyr::mutate(y = y/divby)
   
   
-  a<-table_change(dat = table_raw, 
+  a <- table_change(dat = table_raw, 
                   yrs = yrs, 
                   maxyr = maxyr, 
                   compareyr = compareyr, 

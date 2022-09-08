@@ -52,7 +52,7 @@ font0 <- "Arial Narrow"
 maxyr <- 2021
 compareyr <- 2019
 strat_yr <- 2019
-SRVY<-"NEBS"
+SRVY <- "EBS" # "NEBS"
 ref_compareyr <- "@2019NEBS2022" # CHANGE
 dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
@@ -75,7 +75,7 @@ source('./code/directories.R')
 
 source('./code/functions.R')
 
-# source('./code/dataDL.R') # Run when there is new data!
+# source('./code/data_dl.R') # Run when there is new data!
 
 source('./code/data.R')
 
@@ -198,6 +198,9 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
+
+# RUN EACH PRESENTATION SECTION ------------------------------------------------------
+
 # *** 11 - Presentation ------------------------
 
   report_spp1 <- add_report_spp(spp_info = spp_info, 
@@ -234,11 +237,6 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
        file=paste0(dir_out_tables, "/report_tables_pres.rdata"))
   
 # }
-
-str <- paste0(
-  format(min(haul_cruises_vess_maxyr$start_date_cruise), format = "%B %d"), 
-  " to ", 
-  format(max(haul_cruises_vess_maxyr$end_date_cruise), format = "%B %d, %Y") ) 
 
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
