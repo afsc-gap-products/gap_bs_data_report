@@ -57,7 +57,7 @@ PKG <- c(
   "coldpool", # devtools::install_github("sean-rohan-noaa/coldpool")
   
   
-  # Spatial
+  # Spatial mapping
   "sf",
   "rlist", 
   "jsonlite", 
@@ -80,23 +80,14 @@ PKG <- c(
   "stars",
   "grid", 
   
+  
+  "scales",
   # library(rasterVis)
-  # library(scales)
   # library(ggthemes) # theme_map()
   
   # check website links
   "pingr",
   "httr",
-  
-  
-  # Time
-  # "lubridate",
-  
-  # Species
-  # "taxize", 
-  
-  # For outputting JS files
-  # "jsonlite", 
   
   # Tables
   "officer", 
@@ -1426,10 +1417,19 @@ plot_pa_xbyx <- function(
                    dist = ifelse(row0>2, 50, 100),
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 > 1, 0.08, 0.04),
-                   height = ifelse(row0 > 1, 0.04, 0.02),
+                   # st.dist = ifelse(row0 > 1, 0.08, 0.04),
+                   # height = ifelse(row0 > 1, 0.04, 0.02),
+                   # st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+                   # st.size = ifelse(row0 > 1, 2.5, 3)#, # 2.5
+                   st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
+                                              row0 == 2 ~ 0.06, 
+                                              TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+                   height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 1, 2.5, 3)#, # 2.5
+                   st.size = dplyr::case_when(row0 == 1 & length(yrs) > 3~ 2, 
+                                              row0 == 1 ~ 3, 
+                                              row0 == 2 ~ 2.25, 
+                                              TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
     ) +
     guides(
       color = guide_legend(title = key.title, 
@@ -1838,10 +1838,21 @@ plot_temps_facet <- function(rasterbrick,
                    dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+                   # st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+                   # height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
+                   # st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+                   # st.size = ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
+                   st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
+                                              row0 == 2 ~ 0.06, 
+                                              TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
                    height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))) +
+                   st.size = dplyr::case_when(row0 == 1 & length(yrs) > 3~ 2, 
+                                              row0 == 1 ~ 3, 
+                                              row0 == 2 ~ 2.25, 
+                                              TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
+  
+  ) +
     #set legend position and vertical arrangement
     guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
       fill = guide_legend(title.position="top", 
@@ -2314,6 +2325,36 @@ plot_timeseries <- function(
     spp_print = ""){
   
   table_raw <- dat
+  
+  yr_missing <- data.frame()
+  for (i in 1:length(unique(table_raw$SRVY))){
+    temp <- table_raw[table_raw$SRVY %in% unique(table_raw$SRVY)[i], ]
+    yr_missing <- dplyr::bind_rows(
+      yr_missing, 
+      data.frame(yr_missing = setdiff((min(temp$year):max(temp$year)),
+                                      unique(temp$year)),
+                 SRVY = unique(table_raw$SRVY)[i], 
+                 SRVY_long = unique(table_raw$SRVY_long[table_raw$SRVY == unique(table_raw$SRVY)[i]])))
+
+  }
+  
+  if (nrow(yr_missing) > 0) {
+  temp <- unique(table_raw[,c("print_name", "species_name1", "species_code", "taxon")])
+
+  temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*nrow(yr_missing),
+                             ncol = ncol(table_raw)))
+  names(temp1) <- names(table_raw)
+  temp1$print_name <- temp$print_name
+  temp1$species_name1 <- temp$species_name1
+  temp1$species_code <- temp$species_code
+  temp1$taxon <- temp$taxon
+  temp1 <- dplyr::arrange(temp1, SRVY)
+  temp1$year <- yr_missing$yr_missing
+  temp1$SRVY <- yr_missing$SRVY
+  temp1$SRVY_long <- yr_missing$SRVY_long
+  table_raw <- dplyr::bind_rows(temp1, table_raw)
+  }
+  
   pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
   
   # find appropriate units
@@ -2365,6 +2406,12 @@ plot_timeseries <- function(
       by = "SRVY_long") %>% 
     dplyr::filter(SRVY %in% table_raw_mean$SRVY)
   
+  figure <- ggplot(mapping = aes(x = year, y = y, 
+                            color = SRVY_long1, 
+                            group = SRVY_long1), 
+              data = table_raw) +
+    geom_line(size = 1) +
+    geom_point(size = 1.5)
   
   
   figure <- ggplot(mapping = aes(x = year, y = y, 
@@ -2699,7 +2746,79 @@ plot_survey_stations <- function(reg_dat,
   return(figure)
 }
 
-
+plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr) {
+  
+  table_raw <- coldpool_ebs_bin_area#[!(coldpool_ebs_bin_area$year %in% 1990:1992),]
+  
+  yr_missing <- setdiff((min(table_raw$year):max(table_raw$year)), unique(table_raw$year))
+  
+  temp <- unique(table_raw[,c("variable", "label")])
+  
+  temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*length(yr_missing), ncol = ncol(table_raw)))
+  names(temp1) <- names(table_raw)
+  temp1$variable <- temp$variable
+  temp1$label <- temp$label
+  temp1 <- dplyr::arrange(temp1, label)
+  temp1$year <- yr_missing
+  
+  table_raw <- dplyr::bind_rows(temp1, table_raw)
+  
+  table_raw$ymax <-table_raw$proportion
+  table_raw$ymin <- 0
+  zl <- levels(table_raw$variable)
+  for ( i in 2:length(zl) ) {
+    zi <- table_raw$variable==zl[i]
+    zi_1 <- table_raw$variable==zl[i-1]
+    table_raw$ymin[zi] <- table_raw$ymax[zi_1]
+    table_raw$ymax[zi] <- table_raw$ymin[zi] + table_raw$ymax[zi]
+  }
+  
+  
+  if (is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])) {
+    table_raw <- dplyr::bind_rows( 
+      table_raw[table_raw$year == (maxyr),] %>% 
+        dplyr::mutate(year = maxyr+.5), 
+      table_raw)
+  }
+  
+  # ggplot(table_raw, aes(x=x,ymax=ymax,ymin=ymin, fill=z)) + geom_ribbon()
+  
+  figure <- ggplot(data = table_raw, 
+                   mapping = aes(x = year,
+                                 ymax = ymax, 
+                                 ymin = ymin, 
+                                 fill = variable)) + 
+    geom_ribbon() + # geom_area() +
+    scale_fill_manual(name = "Temperature", 
+                      values = viridis::mako(5, direction = -1, end = .8)) +  
+    scale_y_continuous(name = "Proportion of EBS Shelf Survey Area",
+                       limits = c(0, 1),
+                       expand = c(0, 0),
+                       breaks = seq(0,1,0.1)) +
+    scale_x_continuous(name = "Year", 
+                       limits = c(1982,
+                                  maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
+                       expand = c(0, 0),
+                       breaks = seq(1980, floor(maxyr/10)*10, 10)) +
+    guides(fill = guide_legend(label.position = "right")) +
+    theme_bw() +
+    theme(
+      panel.background = element_rect(fill = "white", colour = NA), 
+      panel.border = element_rect(fill = NA, colour = "grey20"), 
+      panel.grid.minor = element_blank(),
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 12, face = "bold"), 
+      legend.text = element_text(size = 10),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = c(0.1, 0.8),
+      legend.title = element_blank(),
+      legend.box = "vertical")
+  
+  return(figure)
+}
 
 
 # Tables -----------------------------------------------------------------------

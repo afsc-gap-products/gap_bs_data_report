@@ -1534,7 +1534,8 @@ biomass_strat <- dplyr::bind_rows(
                      by = c("species_code", "SRVY", "stratum", "year")) %>% 
     dplyr::mutate(lencount = ifelse(is.na(lencount), 0, lencount)), 
   biomass_strat %>% 
-    dplyr::filter(!(species_code %in% unique(temp$species_code)))) 
+    dplyr::filter(!(species_code %in% unique(temp$species_code)))) %>% 
+  dplyr::filter(SRVY %in% SRVY1)
 
 
 biomass <- biomass_strat %>%

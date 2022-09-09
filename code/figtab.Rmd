@@ -656,46 +656,7 @@ nickname <- "fig_cold_pool_area"
 height <- 3
 width <- full_page_portrait_width # 6.5
 
-figure <- ggplot() + 
-  geom_area(data = coldpool_ebs_bin_area %>%
-              dplyr::filter(year < 2020),
-            mapping = aes(x = year,
-                          y = proportion,
-                          fill = variable)) +
-  geom_point(data = coldpool_ebs_bin_area %>%
-               dplyr::filter(year == 2021),
-             mapping = aes(x = year,
-                           y = proportion, 
-                           fill = variable),
-             shape = 21, 
-             color = "white", show.legend = FALSE,
-             size = rel(3)) +
-  scale_fill_manual(name = "Temperature", 
-                    values = viridis::mako(5, direction = -1, end = .8)) +  # nmfspalette::nmfs_palette("oceans")(4)) +
-  scale_y_continuous(name = "Proportion of EBS Shelf Survey Area",
-                     limits = c(0, 1),
-                     expand = c(0, 0),
-                     breaks = seq(0,1,0.1)) +
-  scale_x_continuous(name = "Year", 
-                     limits = c(1982,maxyr+.5), #c(1982, maxyr + 0.5),
-                     expand = c(0, 0),
-                     breaks = seq(1980, floor(maxyr/10)*10, 10)) +# seq(1982, maxyr, 4)) +
-  guides(fill = guide_legend(label.position = "right")) +
-  theme_bw() +
-  theme(
-    panel.background = element_rect(fill = "white", colour = NA), 
-    panel.border = element_rect(fill = NA, colour = "grey20"), 
-    panel.grid.minor = element_blank(),
-    strip.background = element_blank(), 
-    strip.text = element_text(size = 12, face = "bold"), 
-    legend.text = element_text(size = 10),
-    legend.background = element_rect(colour = "transparent", 
-                                     fill = "transparent"),
-    legend.key = element_rect(colour = "transparent", 
-                              fill = "transparent"),
-    legend.position = c(0.1, 0.8),
-    legend.title = element_blank(),
-    legend.box = "vertical")
+figure <- plot_coldpool_area(coldpool_ebs_bin_area, maxyr)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header

@@ -29,7 +29,6 @@ font0 <- "Arial Narrow"
 # maxyr <- 2017 # or the year of the report, for example
 # compareyr <- 2010
 # strat_yr <- 2010
-# # SRVY<-"NEBS"
 # SRVY<-"NEBS"
 # ref_compareyr <- "@RN976"
 # # ref_compareyr <- "@RN909"
@@ -210,9 +209,13 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
                                 report_spp_codes = "species_code0", 
                                 lang = TRUE)
 
+yrs <- nbsyr
+  
 # *** *** - Figures and Tables ------------------------
 # if (FALSE) {
   
+yrs <- des(nbsyr)
+
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab_pres.Rmd"),

@@ -8,6 +8,8 @@ csl: "../cite/citestyle.csl"
 bibliography: "../cite/bibliography.bib"
 ---
 
+## vars
+
 ```{r vars}
 a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[jj], ]
 
@@ -43,9 +45,8 @@ nickname <- paste0("fig_",spp_file,"_biomass")
 
 # Biomass
 bio <- biomass %>%
-  dplyr::filter(stratum == 999) %>% 
+  dplyr::filter(stratum == 999 & species_code %in% spp_code) %>% 
   dplyr::select(SRVY, year, species_code, upperb, lowerb, varbio, biomass, taxon) %>% 
-  dplyr::filter(species_code %in% spp_code) %>% 
   dplyr::rename(y = biomass, 
                 lower = lowerb, 
                 upper = upperb, 
@@ -62,7 +63,7 @@ bio <- biomass %>%
 
 y_long = "Biomass"
 a <- table_change_pres(dat = bio, 
-                       yrs = nbsyr, 
+                       yrs = sort(yrs, decreasing = TRUE), 
                        maxyr = maxyr, 
                        compareyr = compareyr, 
                        unit = "metric tons", 
@@ -75,7 +76,7 @@ b <- a$table_raw %>%
   dplyr::mutate(dplyr::across(dplyr::starts_with("20"), gsub, pattern = ",", replace = "")) %>% 
   dplyr::filter(Survey %in% SRVY1)
 
-for (i in which(colnames(b) %in% nbsyr)) {
+for (i in which(colnames(b) %in% yrs)) {
   for (ii in 1:nrow(b)) {
     temp <- find_units(dat = as.numeric(b[ii,i]))
     b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i])/temp$divby, 
@@ -94,18 +95,18 @@ header <- NMFSReports::text_list(paste0("**", b$Survey, " ", y_long, "** ",
                                         " ", a$unt, " (",
                                         unlist(b[grep(pattern = paste0("_", maxyr), 
                                                                 x = names(b))]), 
-                                        "%) from ", max(nbsyr[nbsyr != maxyr]), 
+                                        "%) from ", max(yrs[yrs != maxyr]), 
                                         " ", 
-                                        unlist(b[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
+                                        unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
                                                                 x = names(b))[1]]), 
                                         " ", a$unt, "")) # , sep_last = "\n\n"
 
 if (length(spp_code)>1) {
-  bio <- bio %>% 
+  bio <- bio %>%
     dplyr::group_by(SRVY, year, SRVY_long) %>%
-    dplyr::summarise(y = sum(y), 
-                     var = sum(var), 
-                     upper = mean(upper), 
+    dplyr::summarise(y = sum(y),
+                     var = sum(var),
+                     upper = mean(upper),
                      lower = mean(upper))
 }
 
@@ -133,7 +134,6 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ")
 
 ```
-
 
 ## fig_abundance_
 
@@ -165,7 +165,7 @@ pop <- biomass %>%
 
 y_long <- "Abundance"
 a <- table_change_pres(dat = pop, 
-                       yrs = nbsyr, 
+                       yrs = yrs, 
                        maxyr = maxyr, 
                        compareyr = compareyr, 
                        unit = "individuals", 
@@ -178,7 +178,7 @@ b <- a$table_raw %>%
   dplyr::mutate(dplyr::across(dplyr::starts_with("20"), gsub, pattern = ",", replace = "")) %>% 
   dplyr::filter(Survey %in% SRVY1)
 
-for (i in which(colnames(b) %in% nbsyr)) {
+for (i in which(colnames(b) %in% yrs)) {
   for (ii in 1:nrow(b)) {
     temp <- find_units(dat = as.numeric(b[ii,i]))
     b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i])/temp$divby, 
@@ -197,9 +197,9 @@ header <- NMFSReports::text_list(paste0("**", b$Survey, " ", y_long, "** ",
                                         a$unt, " (",
                                         unlist(b[grep(pattern = paste0("_", maxyr), 
                                                                 x = names(b))]), 
-                                        "%) from ", max(nbsyr[nbsyr != maxyr]), 
+                                        "%) from ", max(yrs[yrs != maxyr]), 
                                         " ", 
-                                        unlist(b[grep(pattern = as.character(max(nbsyr[nbsyr != maxyr])), 
+                                        unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
                                                                 x = names(b))[1]]), 
                                         a$unt, "")) # , sep_last = "\n\n"
 
@@ -294,11 +294,11 @@ if (spp_plot_sizecomp) {
     if (sum(length_data0$SRVY == "NBS")>0) {
     length_data_nbs <- length_data0 %>%
       dplyr::filter(SRVY %in% "NBS" & 
-                      year %in% nbsyr)
+                      year %in% yrs)
     
     sizecomp_nbs <- sizecomp0 %>% 
       dplyr::filter(SRVY %in% "NBS" & 
-                      year %in% nbsyr)  
+                      year %in% yrs)  
  
     figure1 <- plot_sizecomp(
       sizecomp0 = sizecomp_nbs,
@@ -363,7 +363,7 @@ if (spp_plot_sizecomp) {
 
 if (spp_plot_idw | spp_plot_pa) {
   
-  yrs <- nbsyr[(length(nbsyr)-4):length(nbsyr)]
+  yrs <- yrs[(length(yrs)-4):length(yrs)]
   
   nickname <- paste0("fig_", spp_file, "_", ifelse(spp_plot_pa, "presence", "distribution"))
   
@@ -484,7 +484,7 @@ if (spp_plot_idw | spp_plot_pa) {
 
 if (spp_plot_idw | spp_plot_pa) {
   
-  yrs <- nbsyr[(length(nbsyr)-4):length(nbsyr)]
+  yrs <- yrs[(length(yrs)-4):length(yrs)]
   
   nickname <- paste0("fig_", spp_file, "_", 
                      ifelse(spp_plot_pa, "presence", "distribution"), 
