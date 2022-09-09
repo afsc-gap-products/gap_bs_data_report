@@ -1831,7 +1831,7 @@ plot_temps_facet <- function(rasterbrick,
                                               TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
                    height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = dplyr::case_when(row0 == 1 & length(yrs) > 3~ 2, 
+                   st.size = dplyr::case_when(row0 == 1 & length(names(rasterbrick)) > 3~ 2, 
                                               row0 == 1 ~ 3, 
                                               row0 == 2 ~ 2.25, 
                                               TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))

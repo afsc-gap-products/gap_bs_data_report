@@ -19,6 +19,7 @@
 # The latter is the preferred code, but I can't find the file. 
 # 2. For GFPT presentation, use SRVY<-"EBS." When NBS data becomes available, use SRVY<-"NEBS"
 # 3. When 2022 data is available, comment out 57:62 and uncomment 64:69.
+# 4. Redownload coldpool package
 
 # START ------------------------------------------------------------------------
 
@@ -220,7 +221,7 @@ yrs <- nbsyr
 # *** *** - Figures and Tables ------------------------
 # if (FALSE) {
   
-yrs <- des(nbsyr)
+yrs <- dec(nbsyr)
 
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
