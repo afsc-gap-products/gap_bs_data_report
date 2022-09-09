@@ -221,6 +221,11 @@ for (i in 1:length(a)){
 #   df.ls[[i]]<-b
 #   names(df.ls)[i]<-a[i]
 # }
+# 
+# 
+# cpue <- 
+#   SameColNames(df.ls)  %>%
+#   dplyr::rename(SRVY = survey) %>%
 
 temp <- readr::read_csv(file = paste0(dir_data, "/oracle/racebase_public_foss.csv"),
                         show_col_types = FALSE) %>%
@@ -237,11 +242,10 @@ temp <- readr::read_csv(file = paste0(dir_data, "/oracle/racebase_public_foss.cs
                 species_name = scientific_name) %>%
   dplyr::filter(SRVY %in% SRVY1)
 
-cpue <- 
-  temp %>% 
-  # SameColNames(df.ls)  %>%
-  # dplyr::rename(SRVY = survey) %>%
+cpue <- temp 
+
   
+  cpue <- cpue %>% 
   dplyr::filter(year <= maxyr) %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish",

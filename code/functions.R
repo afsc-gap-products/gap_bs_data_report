@@ -1366,7 +1366,8 @@ plot_pa_xbyx <- function(
                                y = y, 
                                group = year),
                            fill = "magenta", 
-                           alpha = 0.5)
+                           alpha = 0.25, 
+                           show.legend = FALSE)
       
     }  
   
@@ -1612,7 +1613,8 @@ plot_idw_xbyx <- function(
                              y = y, 
                              group = new_dim),
                          fill = "magenta", 
-                         alpha = 0.5)
+                         alpha = 0.25, 
+                         show.legend = FALSE)
     
   }  
   
@@ -1638,15 +1640,6 @@ plot_idw_xbyx <- function(
               fill = NA)
   }
   
-  # lon_break <- reg_dat$lon.breaks
-  # lon_label <- reg_dat$lon.label
-  # lat_break <- reg_dat$lat.breaks
-  # lat_label <- reg_dat$lat.label
-  # if (length(yrs) > 6) {
-  #   lon_break <- reg_dat$lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
-  #   lat_break <- reg_dat$lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
-  # }
-  
   figure <- figure +
     geom_sf(data = reg_dat$akland,
             color = NA,
@@ -1660,15 +1653,6 @@ plot_idw_xbyx <- function(
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) + 
-    # ggsn::scalebar(data = reg_dat$survey.grid,
-    #                location = "bottomleft",
-    #                dist = 100, #ifelse(row0>2, 50, 100),
-    #                dist_unit = dist_unit,
-    #                transform = FALSE,
-    #                st.dist = ifelse(row0 > 1, 0.08, 0.04),
-    #                height = ifelse(row0 > 1, 0.04, 0.02),
-    #                st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-    #                st.size = ifelse(row0 > 1, 2.5, 3) )#, # 2.5
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
                    dist = 100,
@@ -2746,7 +2730,15 @@ plot_survey_stations <- function(reg_dat,
   return(figure)
 }
 
-plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr) {
+plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
+  
+  # maxyr <- 2021
+  # 
+  # > coldpool_ebs_bin_area
+  # year variable  value area_km2  label   proportion        perc
+  # 1   1982   ≤ -1°C    425      425 ≤ -1°C 0.0008611844  0.08611844
+  # 2   1983   ≤ -1°C    750      750 ≤ -1°C 0.0015197372  0.15197372
+  # 3   1984   ≤ -1°C  17650    17650 ≤ -1°C 0.0357644815  3.57644815
   
   table_raw <- coldpool_ebs_bin_area#[!(coldpool_ebs_bin_area$year %in% 1990:1992),]
   
@@ -2796,10 +2788,10 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr) {
                        expand = c(0, 0),
                        breaks = seq(0,1,0.1)) +
     scale_x_continuous(name = "Year", 
-                       limits = c(1982,
+                       limits = c(minyr-0.5,
                                   maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
                        expand = c(0, 0),
-                       breaks = seq(1980, floor(maxyr/10)*10, 10)) +
+                       breaks = seq(minyr, floor(maxyr/10)*10, 10)) +
     guides(fill = guide_legend(label.position = "right")) +
     theme_bw() +
     theme(
