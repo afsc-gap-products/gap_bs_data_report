@@ -10,8 +10,8 @@
 # This has a specific username and password because I DONT want people to have access to this!
 # source("C:/Users/emily.markowitz/Work/Projects/ConnectToOracle.R")
 # source("C:/Users/emily.markowitz/Documents/Projects/ConnectToOracle.R")
-source("Z:/Projects/ConnectToOracle.R")
-# source("C:/Users/nicole.charriere/Work/R_Projects/Connect_to_Oracle.R")
+# source("Z:/Projects/ConnectToOracle.R")
+ source("C:/Users/nicole.charriere/Work/R_Projects/Connect_to_Oracle.R")
 
 # I set up a ConnectToOracle.R that looks like this: 
 #   
