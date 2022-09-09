@@ -18,6 +18,7 @@
 # 1. data.R: uncomment 204:228 and comment out 230:245 when RH reruns 2022 cpue_ebs_plusnw.csv. 
 # The latter is the preferred code, but I can't find the file. 
 # 2. For GFPT presentation, use SRVY<-"EBS." When NBS data becomes available, use SRVY<-"NEBS"
+# 3. When 2022 data is available, comment out 57:62 and uncomment 64:69.
 
 # START ------------------------------------------------------------------------
 
