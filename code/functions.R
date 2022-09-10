@@ -1618,6 +1618,27 @@ plot_idw_xbyx <- function(
     
   }  
   
+  
+  # if (plot_coldpool) {
+  #   temp_break <- 2 # 2*C
+  #   
+  #   if (unique(dat$SRVY) %in% "EBS") {
+  #     cp <- coldpool:::ebs_bottom_temperature
+  #   } else if (unique(dat$SRVY) %in% "NBS") {
+  #     cp <- coldpool:::nbs_ebs_bottom_temperature
+  #   }    
+  #   
+  #   temp <- c()
+  #   for (i in 1:length(yrs)){
+  #     temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
+  #   }
+  #   
+  #   pp <- rasterToPolygons(cp[[temp]], dissolve=TRUE)
+  #   outline <- sf::st_as_sf(pp) # %>% st_cast("LINESTRING") 
+  #   figure <- figure +
+  #     geom_sf(data = outline, size = 1.5, fill = "transparent", color = "white")
+  # }  
+  
   if (length(yrs) == 0) {
     grid <- ""
     figure <- figure +

@@ -110,12 +110,55 @@ if (length(spp_code)>1) {
                      lower = mean(upper))
 }
 
-figure <- plot_timeseries(dat = bio,
+figure0 <- plot_timeseries(dat = bio,
                           unit = "metric tons",
                           unt = "mt",
                           y_long = "biomass",
                           error_bar = ifelse(length(spp_code)>1, FALSE, TRUE),
                           spp_print = spp_print)
+
+
+
+# descr <- ggdraw() + draw_label(label = paste0(b$Survey, " ", y_long, "\n", 
+#                                         unlist(b[grep(pattern = as.character(maxyr), 
+#                                                                 x = names(b))[1]]), 
+#                                         " ", a$unt, " (",
+#                                         unlist(b[grep(pattern = paste0("_", maxyr), 
+#                                                                 x = names(b))]), 
+#                                         "%)\nfrom ", max(yrs[yrs != maxyr]), 
+#                                         "\n", 
+#                                         unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
+#                                                                 x = names(b))[1]]), 
+#                                         " ", a$unt, ""), 
+#                                fontface='bold', color = "#00467f")
+
+text0 <- c(paste0(b$Survey, " ", y_long), 
+                                        paste0(maxyr, ": ", unlist(b[grep(pattern = as.character(maxyr), 
+                                                                x = names(b))[1]]), 
+                                        " ", a$unt), 
+                                        paste0(max(yrs[yrs != maxyr]), 
+                                        ": ", 
+                                        unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
+                                                                x = names(b))[1]]), 
+                                        " ", a$unt, ""), 
+                                       paste0("(",
+                                        unlist(b[grep(pattern = paste0("_", maxyr), 
+                                                                x = names(b))]), 
+                                        "%)"))
+
+descr <- ggdraw() + draw_text(text = text0, 
+                               fontface=c('bold', "plain", "plain", "plain"), 
+                              y = seq(from = 0.8, to = ifelse(length(text0)>4, 0.4, 0.6), 
+                                      length.out = length(text0)),
+                              color = c("#00467f", "#00467f", "#00467f", 
+                                        ifelse(grepl(pattern = "-", 
+                                                     x = unlist(b[grep(pattern = paste0("_", maxyr), x = names(b))])), 
+                                               "red", "green")))
+
+figure <- cowplot::plot_grid(figure0, descr, nrow = 1, rel_widths = c(1, .4))
+
+
+# figure <- cowplot::ggdraw(add_sub(figure0, "This is an annotation.\nAnnotations can span multiple lines."))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -218,6 +261,31 @@ figure <- plot_timeseries(dat = pop,
                           y_long = "abundance",
                           error_bar = ifelse(length(spp_code)>1, FALSE, TRUE), 
                           spp_print = spp_print)
+
+text0 <- c(paste0(b$Survey, " ", y_long), 
+                                        paste0(maxyr, ": ", unlist(b[grep(pattern = as.character(maxyr), 
+                                                                x = names(b))[1]]), 
+                                        " ", a$unt), 
+                                        paste0(max(yrs[yrs != maxyr]), 
+                                        ": ", 
+                                        unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
+                                                                x = names(b))[1]]), 
+                                        " ", a$unt, ""), 
+                                       paste0("(",
+                                        unlist(b[grep(pattern = paste0("_", maxyr), 
+                                                                x = names(b))]), 
+                                        "%)"))
+
+descr <- ggdraw() + draw_text(text = text0, 
+                               fontface=c('bold', "plain", "plain", "plain"), 
+                              y = seq(from = 0.8, to = ifelse(length(text0)>4, 0.4, 0.6), 
+                                      length.out = length(text0)),
+                              color = c("#00467f", "#00467f", "#00467f", 
+                                        ifelse(grepl(pattern = "-", 
+                                                     x = unlist(b[grep(pattern = paste0("_", maxyr), x = names(b))])), 
+                                               "red", "green")))
+
+figure <- cowplot::plot_grid(figure0, descr, nrow = 1, rel_widths = c(1, .4))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header

@@ -297,7 +297,6 @@ header <- paste0("Lengths collected during the ", maxyr, " ",
                  NMFSReports::text_list(haul_cruises_maxyr$SRVY), 
                  " shelf bottom trawl survey.")
 
-
 a<-report_spp1 %>% 
   dplyr::select(print_name, species_code, species_name1, plot_sizecomp, order) %>% 
   dplyr::distinct() %>% 
@@ -679,12 +678,18 @@ header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS durin
                  NMFSReports::text_list(yrs),
                  " surveys, which are the years when the survey included the full NBS shelf.")
 
-rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+if (SRVY == "NEBS") {
+  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
                               subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
+} else if (SRVY == "EBS") {
+  rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
+                              subset = paste0("sebs_ste_", yrs, "_gear_temperature"))
+}
+
 figure <- plot_temps_facet(
   rasterbrick = rasterbrick, 
   key.title = expression(bold("Bottom Temperature (°C)")), 
-  reg_dat = report_types$NEBS$reg_dat, 
+  reg_dat = reg_dat, #report_types$NEBS$reg_dat, 
   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
   viridis_palette_option = "H", 
   row = 1) 
@@ -723,13 +728,21 @@ width <- 9
 #                  NMFSReports::text_list(yrs),
 #                  " surveys, which are the years when the survey included the full NBS shelf.")
 
-
-rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+if (SRVY == "NEBS") {
+  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
                               subset = paste0("ebs_ste_", yrs, "_surface_temperature"))
+} else if (SRVY == "EBS") {
+  rasterbrick <- raster::subset(x = coldpool:::ebs_surface_temperature,
+                              subset = paste0("sebs_ste_", yrs, "_surface_temperature"))
+}
+
+# 
+# rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+#                               subset = paste0("ebs_ste_", yrs, "_surface_temperature"))
 figure <- plot_temps_facet(
   rasterbrick = rasterbrick, 
   key.title = expression(bold("Surface Temperature (°C)")), 
-  reg_dat = report_types$NEBS$reg_dat, 
+  reg_dat = reg_dat, 
   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
   viridis_palette_option = "H", 
   row = 1) 
