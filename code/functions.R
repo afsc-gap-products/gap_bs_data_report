@@ -1333,6 +1333,44 @@ plot_pa_xbyx <- function(
   #                na.rm = TRUE) 
   # }
   
+    # if (plot_coldpool) {
+    #   temp_break <- 2 # 2*C
+    #   
+    #   if (unique(dat$SRVY) %in% "EBS") {
+    #     cp <- coldpool:::ebs_bottom_temperature
+    #   } else if (unique(dat$SRVY) %in% "NBS") {
+    #     cp <- coldpool:::nbs_ebs_bottom_temperature
+    #   }
+    #   
+    #   coords <- raster::coordinates(cp)
+    #   
+    #   for(i in 1:length(yrs)) {
+    #     sel_layer_df <- data.frame(x = coords[,1],
+    #                                y = coords[,2],
+    #                                temperature = cp@data@values[,i])
+    #     sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
+    #     sel_layer_df$year <- yrs[i]
+    #     
+    #     if(i == 1) {
+    #       bt_year_df <- sel_layer_df
+    #     } else{
+    #       bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
+    #     }
+    #   }
+    #   
+    #   figure <- figure +
+    #     ggplot2::geom_tile(data = bt_year_df %>%
+    #                          dplyr::filter(temperature <= temp_break), #%>% 
+    #                          # dplyr::rename(new_dim = year),
+    #                        aes(x = x,
+    #                            y = y, 
+    #                            group = year),
+    #                        fill = "magenta", 
+    #                        alpha = 0.25, 
+    #                        show.legend = FALSE)
+    #   
+    # }  
+    
     if (plot_coldpool) {
       temp_break <- 2 # 2*C
       
@@ -1342,34 +1380,33 @@ plot_pa_xbyx <- function(
         cp <- coldpool:::nbs_ebs_bottom_temperature
       }
       
-      coords <- raster::coordinates(cp)
-      
-      for(i in 1:length(yrs)) {
-        sel_layer_df <- data.frame(x = coords[,1],
-                                   y = coords[,2],
-                                   temperature = cp@data@values[,i])
-        sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
-        sel_layer_df$year <- yrs[i]
+      temp <- c()
+      outline <- c()
+      for (i in 1:length(yrs)){
+        #   temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
+        # }
+        temp <- which(grepl(pattern = yrs[i], x = names(cp)))
         
-        if(i == 1) {
-          bt_year_df <- sel_layer_df
-        } else{
-          bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
-        }
+        cp0 <- cp[[temp]]#[[which(grepl(x = names(cp), pattern = 2019))]] # cp[[temp[2]]]
+        values(cp0)[values(cp0) <= temp_break] <- 1
+        values(cp0)[values(cp0) > temp_break] <- NA
+        pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
+        
+        outline <- rbind(outline, 
+                         pp %>% 
+                           sp::geometry(obj = .) %>% 
+                           sf::st_as_sf(x = .) %>% 
+                           dplyr::mutate(new_dim  = yrs[i]))
+        
       }
       
       figure <- figure +
-        ggplot2::geom_tile(data = bt_year_df %>%
-                             dplyr::filter(temperature <= temp_break), #%>% 
-                             # dplyr::rename(new_dim = year),
-                           aes(x = x,
-                               y = y, 
-                               group = year),
-                           fill = "magenta", 
-                           alpha = 0.25, 
-                           show.legend = FALSE)
-      
-    }  
+        geom_sf(data = outline %>%
+                  sf::st_cast(x = ., to = "MULTIPOLYGON"), 
+                size = 1.5, 
+                fill = alpha(colour = "yellow", alpha = 0.3), 
+                color = alpha(colour = "yellow", alpha = 0.3))
+    }
   
   if (length(yrs) == 0) { # if there is no data to plot
     grid <- ""
@@ -1533,7 +1570,7 @@ plot_idw_xbyx <- function(
   figure <- ggplot()
   if (nrow(dat) != 0) {
     if (set.breaks[1] =="auto") {
-      set.breaks <- set_breaks(dat = dat, var = "var")
+      set.breaks <- set_breaks(dat = dat, var = "CPUE_KGHA")
     }
     
     # Select data and make plot
@@ -1581,63 +1618,40 @@ plot_idw_xbyx <- function(
   
   if (plot_coldpool) {
     temp_break <- 2 # 2*C
+
+    if (unique(dat$SRVY) %in% "EBS") {
+      cp <- coldpool:::ebs_bottom_temperature
+    } else if (unique(dat$SRVY) %in% "NBS") {
+      cp <- coldpool:::nbs_ebs_bottom_temperature
+    }
+
+    temp <- c()
+    outline <- c()
+    for (i in 1:length(yrs)){
+    #   temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
+    # }
+      temp <- which(grepl(pattern = yrs[i], x = names(cp)))
+
+    cp0 <- cp[[temp]]#[[which(grepl(x = names(cp), pattern = 2019))]] # cp[[temp[2]]]
+    values(cp0)[values(cp0) <= temp_break] <- 1
+    values(cp0)[values(cp0) > temp_break] <- NA
+    pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
     
-    for (i in 1:length(yrs)) {
-      
-      if (unique(dat$SRVY) %in% "EBS") {
-        cp <- coldpool:::ebs_bottom_temperature
-      } else if (unique(dat$SRVY) %in% "NBS") {
-        cp <- coldpool:::nbs_ebs_bottom_temperature
-      }
-      
-    coords <- raster::coordinates(cp)
-      
-      sel_layer_df <- data.frame(x = coords[,1],
-                                 y = coords[,2],
-                                 temperature = cp@data@values[,i])
-      sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
-      sel_layer_df$year <- yrs[i]
-      
-      if(i == 1) {
-        bt_year_df <- sel_layer_df
-      } else{
-        bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
-      }
+    outline <- rbind(outline, 
+                 pp %>% 
+      sp::geometry(obj = .) %>% 
+      sf::st_as_sf(x = .) %>% 
+        dplyr::mutate(new_dim  = yrs[i]))
+    
     }
     
     figure <- figure +
-      ggplot2::geom_tile(data = bt_year_df %>%
-                           dplyr::filter(temperature <= temp_break) %>% 
-                           dplyr::rename(new_dim = year),
-                         aes(x = x,
-                             y = y, 
-                             group = new_dim),
-                         fill = "magenta", 
-                         alpha = 0.25, 
-                         show.legend = FALSE)
-    
-  }  
-  
-  
-  # if (plot_coldpool) {
-  #   temp_break <- 2 # 2*C
-  #   
-  #   if (unique(dat$SRVY) %in% "EBS") {
-  #     cp <- coldpool:::ebs_bottom_temperature
-  #   } else if (unique(dat$SRVY) %in% "NBS") {
-  #     cp <- coldpool:::nbs_ebs_bottom_temperature
-  #   }    
-  #   
-  #   temp <- c()
-  #   for (i in 1:length(yrs)){
-  #     temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
-  #   }
-  #   
-  #   pp <- rasterToPolygons(cp[[temp]], dissolve=TRUE)
-  #   outline <- sf::st_as_sf(pp) # %>% st_cast("LINESTRING") 
-  #   figure <- figure +
-  #     geom_sf(data = outline, size = 1.5, fill = "transparent", color = "white")
-  # }  
+      geom_sf(data = outline %>%
+                sf::st_cast(x = ., to = "MULTIPOLYGON"), 
+              size = 1.5, 
+              fill = alpha(colour = "yellow", alpha = 0.3), 
+              color = alpha(colour = "yellow", alpha = 0.3))
+  }
   
   if (length(yrs) == 0) {
     grid <- ""

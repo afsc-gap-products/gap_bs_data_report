@@ -16,10 +16,13 @@
 
 # NOTES from Em for 2022 EBS presentation run
 # 1. data.R: uncomment 204:228 and comment out 230:245 when RH reruns 2022 cpue_ebs_plusnw.csv. 
-# The latter is the preferred code, but I can't find the file. 
+# The latter is the preferred code, but I can't find the file. UPDATE! New file found and code already 
+# uncommented, but you will still need to get the 2022 versions of the data. 
 # 2. For GFPT presentation, use SRVY<-"EBS." When NBS data becomes available, use SRVY<-"NEBS"
 # 3. When 2022 data is available, comment out 57:62 and uncomment 64:69.
 # 4. Redownload coldpool package
+# 5. If running the data report and you want the reference material to appear, set refcontent <- TRUE. If you want something that looks more like the final product, = FALSE. 
+
 
 # START ------------------------------------------------------------------------
 
@@ -216,12 +219,11 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
                                 report_spp_codes = "species_code0", 
                                 lang = TRUE)
 
-yrs <- nbsyr
+yrs <- sort(nbsyr, decreasing = FALSE)
   
 # *** *** - Figures and Tables ------------------------
 # if (FALSE) {
   
-yrs <- dec(nbsyr)
 
   cnt_chapt_content<-"001"
   filename0<-paste0(cnt_chapt, "_")
