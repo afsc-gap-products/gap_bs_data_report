@@ -1135,8 +1135,6 @@ add_report_spp <- function(spp_info,
   
   if (sum(temp1$species_code[(duplicated(temp1$species_code))])>0) warning("There are still duplicates in the species split ups!")
   
-  
-  
   temp0 <-  
     dplyr::left_join(x = temp1 %>% 
                        dplyr::select(-col), 
