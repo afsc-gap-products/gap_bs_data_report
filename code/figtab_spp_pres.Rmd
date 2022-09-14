@@ -435,7 +435,8 @@ if (spp_plot_idw | spp_plot_pa) {
   
   yrs <- yrs[(length(yrs)-4):length(yrs)]
   
-  nickname <- paste0("fig_pres_", spp_file, "_", ifelse(spp_plot_pa, "presence", "distribution"))
+  nickname <- paste0("fig_pres_", spp_file, "_", 
+                     ifelse(spp_plot_pa, "presence", "distribution"))
   
   height <- 4 #ifelse(SRVY == "NEBS", 5.5, 4.25) 
   width <- full_page_portrait_width # 6.5
@@ -449,7 +450,12 @@ if (spp_plot_idw | spp_plot_pa) {
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
     
-  } else if (spp_plot_pa) {
+    spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
+    spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
+  } 
+  
+  
+  if (spp_plot_pa) {
     
     table_raw <- catch_haul_cruises %>%
     dplyr::filter(!is.na(number_fish) & 
@@ -584,6 +590,9 @@ if (spp_plot_idw | spp_plot_pa) {
                     species_code %in% spp_code & 
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
+    
+    spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
+    spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
     
   } else if (spp_plot_pa) {
     

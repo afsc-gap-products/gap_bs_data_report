@@ -150,7 +150,12 @@ if (spp_plot_idw | spp_plot_pa) {
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
     
-  } else if (spp_plot_pa) {
+    spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
+    spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
+    
+  }  
+    
+    if (spp_plot_pa) {
     
     table_raw <- catch_haul_cruises %>%
     dplyr::filter(!is.na(number_fish) & 
@@ -158,7 +163,7 @@ if (spp_plot_idw | spp_plot_pa) {
                     species_code %in% spp_code & 
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
-    
+
   }
   
   # only if both species re only found in prt of the region, chnge the extrp.box
