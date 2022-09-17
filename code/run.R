@@ -224,28 +224,28 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
 #                                      ,"blue_king_crab","snow_crab"
 #                                      ,"tanner_crab","varigated_snailfish")))
 
-
 report_spp1 <- report_spp1 %>%
-  dplyr::filter((file_name %in% c("walleye_pollock",
-  "pacific_cod",
-  "yellowfin_sole",
-  "northern_rock_sole",
-  "flathead_sole",
-  "bering_flounder",
-  "alaska_plaice",
-  "greenland_turbot",
-  "arrowtooth_flounder",
-  "kamchatka_flounder",
-  "pacific_halibut",
-  "bering_skate",
-  "alaska_skate",
-  "plain_sculpin",
-  "great_sculpin",
-  "shorthorn_sculpin",
-  "pacific_ocean_perch",
-  "rex_sole",
-  "arctic_cod",
-  "saffron_cod")))
+  dplyr::filter((file_name %in% 
+                   c("walleye_pollock",
+                     "pacific_cod",
+                     "yellowfin_sole",
+                     "northern_rock_sole",
+                     "flathead_sole",
+                     "bering_flounder",
+                     "alaska_plaice",
+                     "greenland_turbot",
+                     "arrowtooth_flounder",
+                     "kamchatka_flounder",
+                     "pacific_halibut",
+                     "bering_skate",
+                     "alaska_skate",
+                     "plain_sculpin",
+                     "great_sculpin",
+                     "shorthorn_sculpin",
+                     "pacific_ocean_perch",
+                     "rex_sole",
+                     "arctic_cod",
+                     "saffron_cod")))
   
   yrs <- sort(nbsyr, decreasing = FALSE)
   
@@ -259,7 +259,7 @@ report_spp1 <- report_spp1 %>%
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-  for (jj in 1:20) { #length(unique(report_spp1$file_name))) {
+  for (jj in 1:length(unique(report_spp1$file_name))) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
     

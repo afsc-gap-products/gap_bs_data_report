@@ -61,7 +61,7 @@ bio <- biomass %>%
                    by = "species_code")  %>% 
   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) 
 
-y_long = "Biomass"
+y_long <- "Biomass"
 a <- table_change_pres(dat = bio, 
                        yrs = sort(yrs, decreasing = TRUE), 
                        maxyr = maxyr, 
@@ -433,7 +433,7 @@ if (spp_plot_sizecomp) {
 
 if (spp_plot_idw | spp_plot_pa) {
   
-  yrs <- yrs[(length(yrs)-4):length(yrs)]
+  # yrs <- yrs[(length(yrs)-4):length(yrs)]
   
   nickname <- paste0("fig_pres_", spp_file, "_", 
                      ifelse(spp_plot_pa, "presence", "distribution"))
@@ -447,7 +447,7 @@ if (spp_plot_idw | spp_plot_pa) {
     dplyr::filter(!is.na(cpue_kgha) & 
                     cpue_kgha != 0 & 
                     species_code %in% spp_code & 
-                    year %in% c(maxyr, compareyr)) %>% 
+                    year %in% yrs) %>% 
     dplyr::arrange(desc(year))
     
     spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
@@ -461,7 +461,7 @@ if (spp_plot_idw | spp_plot_pa) {
     dplyr::filter(!is.na(number_fish) & 
                     number_fish != 0 & 
                     species_code %in% spp_code & 
-                    year %in% c(maxyr, compareyr)) %>% 
+                    year %in% yrs) %>% 
     dplyr::arrange(desc(year))
     
   }
@@ -573,7 +573,7 @@ if (spp_plot_idw | spp_plot_pa) {
 
 if (spp_plot_idw | spp_plot_pa) {
   
-  yrs <- yrs[(length(yrs)-4):length(yrs)]
+  # yrs <- yrs[(length(yrs)-4):length(yrs)]
   
   nickname <- paste0("fig_pres_", spp_file, "_", 
                      ifelse(spp_plot_pa, "presence", "distribution"), 
@@ -588,7 +588,7 @@ if (spp_plot_idw | spp_plot_pa) {
     dplyr::filter(!is.na(cpue_kgha) & 
                     cpue_kgha != 0 & 
                     species_code %in% spp_code & 
-                    year %in% c(maxyr, compareyr)) %>% 
+                    year %in% yrs) %>% 
     dplyr::arrange(desc(year))
     
     spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
@@ -600,7 +600,7 @@ if (spp_plot_idw | spp_plot_pa) {
     dplyr::filter(!is.na(number_fish) & 
                     number_fish != 0 & 
                     species_code %in% spp_code & 
-                    year %in% c(maxyr, compareyr)) %>% 
+                    year %in% yrs) %>% 
     dplyr::arrange(desc(year))
     
   }

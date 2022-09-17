@@ -2952,7 +2952,8 @@ table_change <- function(dat,
   
   table_raw <- table_raw %>%
     dplyr::arrange(desc(SRVY), desc(change)) %>%
-    dplyr::filter(change != Inf) %>% 
+    # dplyr::filter(change != Inf) %>%
+    # dplyr::mutate(change = ifelse(change == Inf, "", change)) %>%
     dplyr::rename(Survey = SRVY)
   
   
@@ -3077,9 +3078,10 @@ table_change_pres <- function(dat,
   
   # table_raw$SRVY[table_raw$SRVY == "EBS"] <- "SEBS"
   
-  table_print<-table_raw
+  table_print <- table_raw
   
   for (i in 1:nrow(temp)) {
+    
     table_print[,as.character(temp$var1)[i]] <- 
       paste0(unlist(table_print[,as.character(temp$var1)[i]]), 
              " (", 
