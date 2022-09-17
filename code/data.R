@@ -1449,7 +1449,7 @@ df.ls<-list()
 a <- list.files(path = paste0(dir_data, "/oracle/"), 
                 pattern = paste0("biomass_"), 
                 full.names = TRUE)
-a <- a[grepl(pattern = "_safe", x = a)]
+a <- a[!grepl(pattern = "_safe", x = a)]
 
 for (i in 1:length(a)){
   b <- readr::read_csv(file = a[i], show_col_types = FALSE)

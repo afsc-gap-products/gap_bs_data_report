@@ -22,7 +22,7 @@
 # 3. When 2022 data is available, comment out 57:62 and uncomment 64:69.
 # 4. Redownload coldpool package
 # 5. If running the data report and you want the reference material to appear, set refcontent <- TRUE. If you want something that looks more like the final product, = FALSE. 
-
+#6. Needs access to crab tables and updated flat files
 
 # START ------------------------------------------------------------------------
 
@@ -58,19 +58,19 @@ font0 <- "Arial Narrow"
 # ref_compareyr <- "@Lauth2019" # CHANGE
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-maxyr <- 2021
-compareyr <- 2019
-strat_yr <- 2019
-SRVY <- "EBS" # "NEBS"
-ref_compareyr <- "@2019NEBS2022" # CHANGE
-dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+# maxyr <- 2021
+# compareyr <- 2019
+# strat_yr <- 2019
+# SRVY <- "EBS" # "NEBS"
+# ref_compareyr <- "@2019NEBS2022" # CHANGE
+# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
-# maxyr <- 2022
-# compareyr <- 2021
-# strat_yr <- 2022
-# SRVY<-"NEBS"
-# ref_compareyr <- "@2021NEBS2022" # CHANGE
-# dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
+ maxyr <- 2022
+ compareyr <- 2021
+ strat_yr <- 2022
+ SRVY<-"EBS"
+ ref_compareyr <- "@2021NEBS2022" # CHANGE
+ dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
 
 # *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
 
@@ -84,7 +84,7 @@ source('./code/directories.R')
 
 source('./code/functions.R')
 
-# source('./code/data_dl.R') # Run when there is new data!
+#source('./code/data_dl.R') # Run when there is new data!
 
 source('./code/data.R')
 
@@ -218,8 +218,36 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
                                 report_spp_col = "order", 
                                 report_spp_codes = "species_code0", 
                                 lang = TRUE)
+ 
+# #  report_spp1 <- report_spp1 %>%
+#     dplyr::filter(!(file_name %in% c("sturgeon_poacher", "red_king_crab"
+#                                      ,"blue_king_crab","snow_crab"
+#                                      ,"tanner_crab","varigated_snailfish")))
 
-yrs <- sort(nbsyr, decreasing = FALSE)
+
+report_spp1 <- report_spp1 %>%
+  dplyr::filter((file_name %in% c("walleye_pollock",
+  "pacific_cod",
+  "yellowfin_sole",
+  "northern_rock_sole",
+  "flathead_sole",
+  "bering_flounder",
+  "alaska_plaice",
+  "greenland_turbot",
+  "arrowtooth_flounder",
+  "kamchatka_flounder",
+  "pacific_halibut",
+  "bering_skate",
+  "alaska_skate",
+  "plain_sculpin",
+  "great_sculpin",
+  "shorthorn_sculpin",
+  "pacific_ocean_perch",
+  "rex_sole",
+  "arctic_cod",
+  "saffron_cod")))
+  
+  yrs <- sort(nbsyr, decreasing = FALSE)
   
 # *** *** - Figures and Tables ------------------------
 # if (FALSE) {
@@ -231,7 +259,7 @@ yrs <- sort(nbsyr, decreasing = FALSE)
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-  for (jj in 1:length(unique(report_spp1$file_name))) {
+  for (jj in 1:20) { #length(unique(report_spp1$file_name))) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
     

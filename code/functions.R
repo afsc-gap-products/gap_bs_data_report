@@ -1335,9 +1335,9 @@ plot_pa_xbyx <- function(
     #   temp_break <- 2 # 2*C
     #   
     #   if (unique(dat$SRVY) %in% "EBS") {
-    #     cp <- coldpool:::ebs_bottom_temperature
+    #     cp <- coldpool::ebs_bottom_temperature
     #   } else if (unique(dat$SRVY) %in% "NBS") {
-    #     cp <- coldpool:::nbs_ebs_bottom_temperature
+    #     cp <- coldpool::nbs_ebs_bottom_temperature
     #   }
     #   
     #   coords <- raster::coordinates(cp)
@@ -1373,9 +1373,9 @@ plot_pa_xbyx <- function(
       temp_break <- 2 # 2*C
       
       if (unique(dat$SRVY) %in% "EBS") {
-        cp <- coldpool:::ebs_bottom_temperature
+        cp <- coldpool::ebs_bottom_temperature
       } else if (unique(dat$SRVY) %in% "NBS") {
-        cp <- coldpool:::nbs_ebs_bottom_temperature
+        cp <- coldpool::nbs_ebs_bottom_temperature
       }
       
       temp <- c()
@@ -1618,9 +1618,9 @@ plot_idw_xbyx <- function(
     temp_break <- 2 # 2*C
 
     if (unique(dat$SRVY) %in% "EBS") {
-      cp <- coldpool:::ebs_bottom_temperature
+      cp <- coldpool::ebs_bottom_temperature
     } else if (unique(dat$SRVY) %in% "NBS") {
-      cp <- coldpool:::nbs_ebs_bottom_temperature
+      cp <- coldpool::nbs_ebs_bottom_temperature
     }
 
     temp <- c()
