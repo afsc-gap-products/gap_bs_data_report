@@ -110,7 +110,7 @@ if (length(spp_code)>1) {
                      lower = mean(upper))
 }
 
-figure0 <- plot_timeseries(dat = bio,
+figure <- plot_timeseries(dat = bio,
                           unit = "metric tons",
                           unt = "mt",
                           y_long = "biomass",
@@ -157,10 +157,7 @@ descr <- ggdraw() + draw_text(text = text0,
                                                "#006400"# "green"
                                                )))
 
-figure <- cowplot::plot_grid(figure0, descr, nrow = 1, rel_widths = c(1, .4))
-
-
-# figure <- cowplot::ggdraw(add_sub(figure0, "This is an annotation.\nAnnotations can span multiple lines."))
+figure <- cowplot::plot_grid(figure, descr, nrow = 1, rel_widths = c(1, .4))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -220,7 +217,8 @@ a <- table_change_pres(dat = pop,
 
 b <- a$table_raw %>% 
   dplyr::arrange(Survey) %>% 
-  dplyr::mutate(dplyr::across(dplyr::starts_with("20"), gsub, pattern = ",", replace = "")) %>% 
+  dplyr::mutate(dplyr::across(dplyr::starts_with("20"), 
+                              gsub, pattern = ",", replace = "")) %>% 
   dplyr::filter(Survey %in% SRVY1)
 
 for (i in which(colnames(b) %in% yrs)) {
@@ -287,7 +285,7 @@ descr <- ggdraw() + draw_text(text = text0,
                                                      x = unlist(b[grep(pattern = paste0("_", maxyr), x = names(b))])), 
                                                "red", "green")))
 
-figure <- cowplot::plot_grid(figure0, descr, nrow = 1, rel_widths = c(1, .4))
+figure <- cowplot::plot_grid(figure, descr, nrow = 1, rel_widths = c(1, .4))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
