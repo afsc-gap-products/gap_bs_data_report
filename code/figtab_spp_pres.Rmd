@@ -20,7 +20,8 @@ spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
-spp_plot_sizecomp <- nrow(length_maxyr[length_maxyr$species_code %in% spp_code,]) > 0 # ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
+spp_plot_sizecomp <- nrow(sizecomp_maxyr[sizecomp_maxyr$species_code %in% spp_code &
+                                           sizecomp_maxyr$SRVY %in% SRVY1,]) > 0 # ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
 spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
 spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
@@ -301,10 +302,12 @@ text0 <- c(paste0(b$Survey, " ", y_long),
                   unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
                                 x = names(b))[1]]), 
                   " ", a$unt, ""), 
+    ifelse(unlist(b[grep(pattern = paste0("_", maxyr), x = names(b))]) == "Inf", 
+           "", 
            paste0("(",
                   unlist(b[grep(pattern = paste0("_", maxyr), 
                                 x = names(b))]), 
-                  "%)"))
+                  "%)")))
 
 descr <- ggdraw() + draw_text(text = text0, 
                               fontface=c('bold', "plain", "plain", "plain"), 
