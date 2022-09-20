@@ -2341,7 +2341,8 @@ plot_timeseries <- function(
     error_bar = TRUE, 
     spp_print = ""){
   
-  table_raw <- dat
+  table_raw <- dat %>% 
+    dplyr::arrange(-year)
   
   yr_missing <- data.frame()
   for (i in 1:length(unique(table_raw$SRVY))){

@@ -79,11 +79,12 @@ b <- a$table_raw %>%
 for (i in which(colnames(b) %in% yrs)) {
   for (ii in 1:nrow(b)) {
     temp <- find_units(dat = as.numeric(b[ii,i]))
-    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i])/temp$divby, 
+    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i]), #/temp$divby, 
                               digits = ifelse(temp$divby>1, 0, 1), 
                               big.mark = ",", format = "f", 
-                              drop0trailing = TRUE), 
-                      temp$unit_wrd)
+                              drop0trailing = TRUE)#, 
+                      # temp$unit_wrd
+                      )
   }
 }
 
@@ -95,8 +96,7 @@ for (i in (grep(pattern = "change_", x = names(b)))) {
                               digits = ifelse(as.numeric(b[ii,i]) < 10 & as.numeric(b[ii,i]) >=-10, 2, 1), 
                               # digits = ifelse(b[ii,i]>10, 0, 1), 
                               big.mark = ",", format = "f", 
-                              drop0trailing = TRUE), 
-                      temp$unit_wrd)
+                              drop0trailing = TRUE))
   }
 }
 
@@ -231,7 +231,7 @@ a <- table_change_pres(dat = pop,
                        unit = "individuals", 
                        unt = "", 
                        y_long = y_long, 
-                       digits = 0)
+                       digits = 2)
 
 b <- a$table_raw %>% 
   dplyr::arrange(Survey) %>% 
@@ -242,11 +242,12 @@ b <- a$table_raw %>%
 for (i in which(colnames(b) %in% yrs)) {
   for (ii in 1:nrow(b)) {
     temp <- find_units(dat = as.numeric(b[ii,i]))
-    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i])/temp$divby, 
+    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i]),#/temp$divby, 
                               digits = ifelse(temp$divby>1, 0, 1), 
                               big.mark = ",", format = "f", 
-                              drop0trailing = TRUE), 
-                      temp$unit_wrd)
+                              drop0trailing = TRUE)#, 
+                      # temp$unit_wrd
+                      )
   }
 }
 
