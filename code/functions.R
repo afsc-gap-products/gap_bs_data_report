@@ -2391,7 +2391,7 @@ plot_timeseries <- function(
                      maxyr = max(year, na.rm = TRUE)) %>% 
     dplyr::mutate(SRVY_long1 = paste0(SRVY_long, #"\n
                                       " (mean = ", 
-                                      formatC(x = y, digits = 1, big.mark = ",", format = "f"), 
+                                      formatC(x = y, digits = 1, big.mark = ",", format = "f"), " ",
                                       unit_wrd, ")"), 
                   yy = y*divby) %>% 
     dplyr::filter(yy>100) # if there is too little data, don't bother plotting
