@@ -243,9 +243,10 @@ report_spp1 <- report_spp1 %>%
                      "great_sculpin",
                      "shorthorn_sculpin",
                      "pacific_ocean_perch",
-                     "rex_sole",
-                     "arctic_cod",
-                     "saffron_cod")))
+                     "rex_sole"#,
+                     # "arctic_cod",
+                     # "saffron_cod"
+                     )))
   
   yrs <- sort(nbsyr, decreasing = FALSE)
   
