@@ -582,6 +582,31 @@ find_codes <- function(x, col = "common_name", str = NULL,
   return(out)
 }
 
+xunitspct<-function(value, sign = TRUE) {
+  out0<-c()
+  for (iii in 1:length(value)){
+    
+    if (is.na(value)) {
+      temp<-NA
+    } else if (value > -1 & value <= 0 | #negative values between 0 and -1
+               value < 1 & value >= 0) { #positive values between 1 and 0
+      temp<-as.numeric(formatC(x = value, digits = 0, big.mark = ",", 
+                               format = "f"))
+    } else {
+      temp<-as.numeric(round(value, digits = 0))
+    }
+    
+    if (sign == F | is.na(value)) {
+      out<-temp
+    } else {
+      out<-paste0(temp, "%")
+    }
+    out0<-c(out0, out)
+  }
+  
+  return(out0)
+  
+}
 
 species_table <- function(haul_spp, 
                           spp_print, 
@@ -797,7 +822,10 @@ The ",
     ## pchange_biomass
     str <- paste0(str, "
 
-", temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, metric = "biomass", metric_long = "biomass", unit = " mt", SRVY000, spp_print))
+", temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
+        metric = "biomass", 
+        metric_long = "biomass", 
+        unit = " mt", SRVY000, spp_print))
     
     
     
@@ -2844,6 +2872,133 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
       legend.box = "vertical")
   
   return(figure)
+}
+
+plot_mean_temperatures <- function(maxyr, SRVY){
+  
+  # EBS
+  sebs_temperatures <- coldpool:::cold_pool_index %>%
+    dplyr::filter(YEAR <= maxyr) %>%
+    dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
+    dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
+                  Surface = MEAN_SURFACE_TEMPERATURE) %>%
+    dplyr::mutate(#group = YEAR < 2020,
+      region = "Eastern Bering Sea") %>%
+    reshape2::melt(id.vars = c("YEAR", "region")) # "group", 
+  
+  temp0 <- setdiff(min(sebs_temperatures$YEAR):max(sebs_temperatures$YEAR), unique(sebs_temperatures$YEAR))
+  temp <- data.frame(matrix(data = NA, 
+                            ncol = ncol(sebs_temperatures), 
+                            nrow = length(temp0)*2 )) 
+  names(temp) <- names(sebs_temperatures)
+  temp <- temp %>% 
+    dplyr::mutate(YEAR = c(temp0, temp0), 
+                  region = "Eastern Bering Sea", 
+                  variable = c(rep_len(x = "Bottom", length.out = length(temp0)), 
+                               rep_len(x = "Surface", length.out = length(temp0))))
+  
+  sebs_temperatures <- dplyr::bind_rows(sebs_temperatures, temp)
+  
+  # NBS
+  nbs_temperatures <- coldpool:::nbs_mean_temperature %>%
+    dplyr::filter(YEAR <= maxyr) %>%
+    dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
+    dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
+                  Surface = MEAN_SURFACE_TEMPERATURE) %>%
+    dplyr::mutate(#group = YEAR,
+      region = "Northern Bering Sea") %>%
+    reshape2::melt(id.vars = c("YEAR", "region")) # "group", 
+  
+  
+  temp0 <- setdiff(min(nbs_temperatures$YEAR):max(nbs_temperatures$YEAR), unique(nbs_temperatures$YEAR))
+  temp <- data.frame(matrix(data = NA, 
+                            ncol = ncol(nbs_temperatures), 
+                            nrow = length(temp0)*2 )) 
+  names(temp) <- names(nbs_temperatures)
+  temp <- temp %>% 
+    dplyr::mutate(YEAR = c(temp0, temp0), 
+                  region = "Northern Bering Sea", 
+                  variable = c(rep_len(x = "Bottom", length.out = length(temp0)), 
+                               rep_len(x = "Surface", length.out = length(temp0))))
+  
+  nbs_temperatures <- dplyr::bind_rows(nbs_temperatures, temp)
+  
+  # mean temp
+  mean_temp <- data.frame(region = c(rep("Eastern Bering Sea", 2),
+                                     rep("Northern Bering Sea", 2)),
+                          variable = rep(c("Bottom", "Surface"), 2),
+                          value = c(mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"], 
+                                         na.rm = TRUE),
+                                    mean(sebs_temperatures$value[sebs_temperatures$variable == "Surface"],
+                                         na.rm = TRUE),
+                                    mean(nbs_temperatures$value[nbs_temperatures$variable == "Bottom"], 
+                                         na.rm = TRUE),
+                                    mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"], 
+                                         na.rm = TRUE)))
+  
+  if (SRVY == "NEBS") {
+    all_temperatures <- dplyr::bind_rows(sebs_temperatures,
+                                         nbs_temperatures)
+  } else if (SRVY == "EBS") {
+    all_temperatures <- dplyr::bind_rows(sebs_temperatures)
+    mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
+  } else if (SRVY == "NBS") {
+    all_temperatures <- dplyr::bind_rows(nbs_temperatures)
+    mean_temp <- mean_temp[mean_temp$region == "Northern Bering Sea",]
+  }
+  
+  all_temperatures$variable <- factor(all_temperatures$variable, 
+                                      levels=c('Surface','Bottom'))
+  
+  color_sst <- nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
+  color_bt <- nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
+  
+  figure <- ggplot(data = all_temperatures,
+                   mapping = aes(x = YEAR,
+                                 y = value,
+                                 color = variable,
+                                 shape = variable, 
+                                 group = paste0(variable))) +
+    facet_wrap(~region, scales = "free") +
+    geom_point(size = rel(2)) +
+    geom_line() +
+    geom_hline(data = mean_temp,
+               aes(yintercept = value,
+                   color = variable),
+               linetype = 2) +
+    scale_color_manual(values = c(color_bt, color_sst)) +
+    scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
+                       limits = c(0,11.2),
+                       breaks = seq(0,12,2),
+                       expand = c(0,0))  + 
+    scale_x_continuous(breaks = scales::pretty_breaks(), 
+                       name = "Year") +
+    guides(
+      fill = guide_legend(title.position = "top", 
+                          label.position = "bottom",
+                          title.hjust = 0.25,
+                          nrow = 1)) +
+    theme_bw() +
+    theme(
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      panel.grid.minor = element_blank(),
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 12, face = "bold"), 
+      legend.title = element_blank(), #, vjust = .5, hjust = .3),
+      legend.text = element_text(size = 10),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = "bottom",
+      legend.box = "horizontal")
+  
+  return(list("figure" = figure, 
+              "table_raw" = all_temperatures))
+  
 }
 
 

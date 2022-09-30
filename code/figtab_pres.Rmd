@@ -534,97 +534,14 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 nickname <- "fig_pres_mean_temperature"
 header <- paste0("Average summer surface (light blue triangles) and bottom (dark blue circles) and long-term mean surface (dark blue dashed line) and bottom (light blue dashed line) temperatures (°C) on the EBS shelf, based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr,
                  ifelse(SRVY == "NEBS", 
-                        paste0(" (left), and NBS shelf based on data collected during standardized summer bottom trawl surveys from ", 
-                               NMFSReports::range_text(yrs), 
-                               " (right)"), ""), 
+                        paste0(" (left), and NBS shelf based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
                  ". ")
 
+  height = 3.25
+  width <- full_page_portrait_width # 6.5
 
-height = 3.25
-width <- full_page_portrait_width # 6.5
-
-sebs_temperatures <- coldpool:::cold_pool_index %>%
-  dplyr::filter(YEAR <= maxyr) %>%
-  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
-  dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
-                Surface = MEAN_SURFACE_TEMPERATURE) %>%
-  dplyr::mutate(group = YEAR < 2020,
-                region = "Eastern Bering Sea") %>%
-  reshape2::melt(id.vars = c("YEAR", "group", "region"))
-
-nbs_temperatures <- coldpool:::nbs_mean_temperature %>%
-  dplyr::filter(YEAR <= maxyr) %>%
-  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
-  dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
-                Surface = MEAN_SURFACE_TEMPERATURE) %>%
-  dplyr::mutate(group = YEAR,
-                region = "Northern Bering Sea") %>%
-  reshape2::melt(id.vars = c("YEAR", "group", "region"))
-
-mean_temp <- data.frame(region = c(rep("Eastern Bering Sea", 2),
-                                   rep("Northern Bering Sea", 2)),
-                        variable = rep(c("Bottom", "Surface"), 2),
-                        value = c(mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"]),
-                                  mean(sebs_temperatures$value[sebs_temperatures$variable == "Surface"]),
-                                  mean(nbs_temperatures$value[nbs_temperatures$variable == "Bottom"]),
-                                  mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"])))
-
-if (SRVY == "NEBS") {
-  all_temperatures <- dplyr::bind_rows(sebs_temperatures,
-                                       nbs_temperatures)
-} else {
-  all_temperatures <- dplyr::bind_rows(sebs_temperatures)
-  mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
-}
-
-all_temperatures$variable <- factor(all_temperatures$variable, levels=c('Surface','Bottom'))
-
-color_sst <- nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
-color_bt <- nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
-
-figure <- ggplot(data = all_temperatures,
-                 mapping = aes(x = YEAR,
-                               y = value,
-                               color = variable,
-                               shape = variable, 
-                               group = paste0(group, variable))) +
-  geom_point(size = rel(2)) +
-  geom_line() +
-  geom_hline(data = mean_temp,
-             aes(yintercept = value,
-                 color = variable),
-             linetype = 2) +
-  scale_color_manual(values = c(color_bt, color_sst)) +
-  scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
-                     limits = c(0,11.2),
-                     breaks = seq(0,12,2),
-                     expand = c(0,0))  + 
-  ggplot2::labs(x = "Year") +
-  # scale_x_continuous(name = "Year",
-  #                    breaks = seq(1980,floor(maxyr/5)*5,5)) +
-  facet_wrap(~region, scales = "free") +
-  guides(
-    fill = guide_legend(title.position = "top", 
-                        label.position = "bottom",
-                        title.hjust = 0.25,
-                        nrow = 1)) +
-  theme_bw() +
-  theme(
-    panel.background = element_rect(fill = "white", 
-                                    colour = NA), 
-    panel.border = element_rect(fill = NA, 
-                                colour = "grey20"), 
-    panel.grid.minor = element_blank(),
-    strip.background = element_blank(), 
-    strip.text = element_text(size = 12, face = "bold"), 
-    legend.title = element_blank(), #, vjust = .5, hjust = .3),
-    legend.text = element_text(size = 10),
-    legend.background = element_rect(colour = "transparent", 
-                                     fill = "transparent"),
-    legend.key = element_rect(colour = "transparent", 
-                              fill = "transparent"),
-    legend.position = "bottom",
-    legend.box = "horizontal")
+a <- plot_mean_temperatures(maxyr, SRVY)
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header

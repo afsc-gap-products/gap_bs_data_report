@@ -10,8 +10,8 @@
 # This has a specific username and password because I DONT want people to have access to this!
 # source("C:/Users/emily.markowitz/Work/Projects/ConnectToOracle.R")
 # source("C:/Users/emily.markowitz/Documents/Projects/ConnectToOracle.R")
-# source("Z:/Projects/ConnectToOracle.R")
- source("C:/Users/nicole.charriere/Work/R_Projects/Connect_to_Oracle.R")
+source("Z:/Projects/ConnectToOracle.R")
+ # source("C:/Users/nicole.charriere/Work/R_Projects/Connect_to_Oracle.R")
 
 # I set up a ConnectToOracle.R that looks like this: 
 #   
@@ -48,30 +48,32 @@ locations<-c(
  "HAEHNR.sizecomp_ebs_plusnw_stratum_grouped",
   
   # # CRAB
+ "crab.ebscrab",
+ "crab.ebscrab_nbs",
 # "crab.co_size1_cpuenum",
-# "crab.co_size1_cpuewgt", 
+# "crab.co_size1_cpuewgt",
 # "crab.cb_size1_cpuenum",
 # "crab.cb_size1_cpuewgt",
 # "crab.rk_size1_cpuenum_leg1",
 # "crab.rk_size1_cpuewgt_leg1",
-# "crab.rk_size1_cpuenum_leg2",
-# "crab.rk_size1_cpuewgt_leg2",
+# # "crab.rk_size1_cpuenum_leg2",
+# # "crab.rk_size1_cpuewgt_leg2",
 # "crab.rk_size1_cpuenum_leg3",
 # "crab.rk_size1_cpuewgt_leg3",
 # "crab.bk_size1_cpuenum",
 # "crab.bk_size1_cpuewgt",
 # "crab.co_size1_cpuenum_nbs",
 # "crab.co_size1_cpuewgt_nbs",
-# "crab.co_weight_mt_size1_union_nbs",
-# "crab.co_num_size1_union_nbs",
+# # "crab.co_weight_mt_size1_union_nbs",
+# # "crab.co_num_size1_union_nbs",
 # "crab.bk_size1_cpuenum_nbs",
 # "crab.bk_size1_cpuewgt_nbs",
-# "crab.bk_weight_mt_size1_union_nbs",
-# "crab.bk_num_size1_union_nbs",
+# # "crab.bk_weight_mt_size1_union_nbs",
+# # "crab.bk_num_size1_union_nbs",
 # "crab.rk_size1_cpuenum_nbs",
 # "crab.rk_size1_cpuewgt_nbs",
   
-  '"RACEBASE_FOSS"."racebase_public_foss"',
+  # '"RACEBASE_FOSS"."racebase_public_foss"',
   
   # #General Tables of data
   "RACEBASE.CATCH",
@@ -85,7 +87,7 @@ locations<-c(
   # "RACEBASE.STATIONS",
   "RACEBASE.SPECIES",
   "RACEBASE.SPECIES_CLASSIFICATION",
-  "RACE_DATA.LENGTH_TYPES0",
+  "RACE_DATA.LENGTH_TYPES",
   # "RACE_DATA.RACE_SPECIES_CODES",
   "RACE_DATA.VESSELS"#,
   # "RACE_DATA.TAXONOMIC_RANKS",

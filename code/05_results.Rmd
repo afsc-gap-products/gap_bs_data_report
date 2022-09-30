@@ -167,23 +167,24 @@ temp0 <- function(cols, SRVY, report_spp1) {
   a <- report_spp1
   a$taxon[a$taxon == "invert" & 
             grepl(pattern = "crab", x = a$print_name)] <- "crab"
-  
-  for (i in 1:length(cols)){
     
-    col <- cols[i]
     if (SRVY == "NEBS") {
       temp <- dplyr::bind_rows(
         list_tables$tab_specimen_samples_EBS$raw, 
         list_tables$tab_specimen_samples_NBS$raw)      
     } else {
       temp <- list_tables$tab_specimen_samples_EBS$raw      
-    }
+    }  
     
+  for (i in 1:length(cols)){
+    col <- cols[i]
+
     temp <- temp[temp[,col]!=0,]
     
     nspec <- c(nspec, 
                xunits(sum(temp[temp$common_name == "Total", 
-                               names(temp) %in% col]))) # how many specimen
+                               which(names(temp) %in% col)], 
+                          na.rm = TRUE))) # how many specimen
     
     ntaxa0 <- c(ntaxa0, 
                length(unique(temp$common_name)[unique(temp$common_name) != "Total"])) # number of taxa
@@ -212,9 +213,9 @@ cols <- cols[!(cols %in% c("common_name", "SRVY"))]
 
 # "", "stomachs collected"	count_pathobiology_samples	count_fecundity_and_maturity_(ovaries)_samples
 
-temp <- temp0(cols, SRVY, a)
+temp <- temp0(cols, SRVY, report_spp1)
 
-str0 <- paste0("A total of ", NMFSReports::text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, ifelse(temp$ntaxa0==1, "taxon", "taxa"))), ". ")
+str0 <- paste0("A total of ", NMFSReports::text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, " ", ifelse(temp$ntaxa0==1, "taxon", "taxa"))), ". ")
 
 ```
 

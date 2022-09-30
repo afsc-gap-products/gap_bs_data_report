@@ -68,7 +68,7 @@ font0 <- "Arial Narrow"
  maxyr <- 2022
  compareyr <- 2021
  strat_yr <- 2022
- SRVY<-"EBS"
+ SRVY<-"NEBS"
  ref_compareyr <- "@2021NEBS2022" # CHANGE
  dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
 
@@ -84,7 +84,7 @@ source('./code/directories.R')
 
 source('./code/functions.R')
 
-#source('./code/data_dl.R') # Run when there is new data!
+# source('./code/data_dl.R') # Run when there is new data!
 
 source('./code/data.R')
 
