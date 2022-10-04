@@ -170,7 +170,7 @@ if (googledrive_dl) {
     googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
                                 # type = "docx", 
                                 overwrite = TRUE, 
-                                path = paste0(dir_out_rawdata, "/", a$name[i], ".docx"))
+                                path = paste0(dir_out_rawdata, "/", a$name[i]))
   }
   
 }
