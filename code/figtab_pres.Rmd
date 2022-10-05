@@ -93,7 +93,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ## fig_pres_crab_retow
 
 ```{r fig_pres_crab_retow}
-if (crab_resample == TRUE) {
+if (crab_resample) {
   nickname <- "fig_pres_crab_retow"
   header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of the ", maxyr," ",
                    NMFSReports::text_list(haul_cruises_maxyr$SRVY),
@@ -176,7 +176,7 @@ if (crab_resample == TRUE) {
 ## fig_pres_sampled_survey_1530
 
 ```{r fig_pres_sampled_survey_1530}
-if (tow1530 == TRUE) {
+if (tow1530) {
   header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of the ", maxyr," ",
                    NMFSReports::text_list(haul_cruises_maxyr$SRVY),
                    " shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
@@ -534,97 +534,14 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 nickname <- "fig_pres_mean_temperature"
 header <- paste0("Average summer surface (light blue triangles) and bottom (dark blue circles) and long-term mean surface (dark blue dashed line) and bottom (light blue dashed line) temperatures (°C) on the EBS shelf, based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr,
                  ifelse(SRVY == "NEBS", 
-                        paste0(" (left), and NBS shelf based on data collected during standardized summer bottom trawl surveys from ", 
-                               NMFSReports::range_text(yrs), 
-                               " (right)"), ""), 
+                        paste0(" (left), and NBS shelf based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
                  ". ")
 
+  height = 3.25
+  width <- full_page_portrait_width # 6.5
 
-height = 3.25
-width <- full_page_portrait_width # 6.5
-
-sebs_temperatures <- coldpool:::cold_pool_index %>%
-  dplyr::filter(YEAR <= maxyr) %>%
-  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
-  dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
-                Surface = MEAN_SURFACE_TEMPERATURE) %>%
-  dplyr::mutate(group = YEAR < 2020,
-                region = "Eastern Bering Sea") %>%
-  reshape2::melt(id.vars = c("YEAR", "group", "region"))
-
-nbs_temperatures <- coldpool:::nbs_mean_temperature %>%
-  dplyr::filter(YEAR <= maxyr) %>%
-  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
-  dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
-                Surface = MEAN_SURFACE_TEMPERATURE) %>%
-  dplyr::mutate(group = YEAR,
-                region = "Northern Bering Sea") %>%
-  reshape2::melt(id.vars = c("YEAR", "group", "region"))
-
-mean_temp <- data.frame(region = c(rep("Eastern Bering Sea", 2),
-                                   rep("Northern Bering Sea", 2)),
-                        variable = rep(c("Bottom", "Surface"), 2),
-                        value = c(mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"]),
-                                  mean(sebs_temperatures$value[sebs_temperatures$variable == "Surface"]),
-                                  mean(nbs_temperatures$value[nbs_temperatures$variable == "Bottom"]),
-                                  mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"])))
-
-if (SRVY == "NEBS") {
-  all_temperatures <- dplyr::bind_rows(sebs_temperatures,
-                                       nbs_temperatures)
-} else {
-  all_temperatures <- dplyr::bind_rows(sebs_temperatures)
-  mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
-}
-
-all_temperatures$variable <- factor(all_temperatures$variable, levels=c('Surface','Bottom'))
-
-color_sst <- nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
-color_bt <- nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
-
-figure <- ggplot(data = all_temperatures,
-                 mapping = aes(x = YEAR,
-                               y = value,
-                               color = variable,
-                               shape = variable, 
-                               group = paste0(group, variable))) +
-  geom_point(size = rel(2)) +
-  geom_line() +
-  geom_hline(data = mean_temp,
-             aes(yintercept = value,
-                 color = variable),
-             linetype = 2) +
-  scale_color_manual(values = c(color_bt, color_sst)) +
-  scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
-                     limits = c(0,11.2),
-                     breaks = seq(0,12,2),
-                     expand = c(0,0))  + 
-  ggplot2::labs(x = "Year") +
-  # scale_x_continuous(name = "Year",
-  #                    breaks = seq(1980,floor(maxyr/5)*5,5)) +
-  facet_wrap(~region, scales = "free") +
-  guides(
-    fill = guide_legend(title.position = "top", 
-                        label.position = "bottom",
-                        title.hjust = 0.25,
-                        nrow = 1)) +
-  theme_bw() +
-  theme(
-    panel.background = element_rect(fill = "white", 
-                                    colour = NA), 
-    panel.border = element_rect(fill = NA, 
-                                colour = "grey20"), 
-    panel.grid.minor = element_blank(),
-    strip.background = element_blank(), 
-    strip.text = element_text(size = 12, face = "bold"), 
-    legend.title = element_blank(), #, vjust = .5, hjust = .3),
-    legend.text = element_text(size = 10),
-    legend.background = element_rect(colour = "transparent", 
-                                     fill = "transparent"),
-    legend.key = element_rect(colour = "transparent", 
-                              fill = "transparent"),
-    legend.position = "bottom",
-    legend.box = "horizontal")
+a <- plot_mean_temperatures(maxyr, SRVY)
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -678,18 +595,18 @@ header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS durin
                  NMFSReports::text_list(yrs),
                  " surveys, which are the years when the survey included the full NBS shelf.")
 
-if (SRVY == "NEBS") {
-  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
-                              subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
-} else if (SRVY == "EBS") {
+# if c(SRVY == "NEBS") {
+  # rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+  #                             subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
+# } else if (SRVY == "EBS") {
   rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
                               subset = paste0("sebs_ste_", yrs, "_gear_temperature"))
-}
+# }
 
 figure <- plot_temps_facet(
   rasterbrick = rasterbrick, 
   key.title = expression(bold("Bottom Temperature (°C)")), 
-  reg_dat = reg_dat, #report_types$NEBS$reg_dat, 
+  reg_dat = report_types$NEBS$reg_dat, 
   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
   viridis_palette_option = "H", 
   row = 1) 
@@ -728,13 +645,13 @@ width <- 9
 #                  NMFSReports::text_list(yrs),
 #                  " surveys, which are the years when the survey included the full NBS shelf.")
 
-if (SRVY == "NEBS") {
+# if (SRVY == "NEBS") {
   rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
                               subset = paste0("ebs_ste_", yrs, "_surface_temperature"))
-} else if (SRVY == "EBS") {
-  rasterbrick <- raster::subset(x = coldpool:::ebs_surface_temperature,
-                              subset = paste0("sebs_ste_", yrs, "_surface_temperature"))
-}
+# } else if (SRVY == "EBS") {
+#   rasterbrick <- raster::subset(x = coldpool:::ebs_surface_temperature,
+#                               subset = paste0("sebs_ste_", yrs, "_surface_temperature"))
+# }
 
 # 
 # rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
@@ -742,7 +659,7 @@ if (SRVY == "NEBS") {
 figure <- plot_temps_facet(
   rasterbrick = rasterbrick, 
   key.title = expression(bold("Surface Temperature (°C)")), 
-  reg_dat = reg_dat, 
+  reg_dat = report_types$NEBS$reg_dat, 
   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
   viridis_palette_option = "H", 
   row = 1) 

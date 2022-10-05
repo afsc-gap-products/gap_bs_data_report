@@ -141,12 +141,30 @@ if (spp_plot_idw | spp_plot_pa) {
   height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
   width <- full_page_portrait_width # 6.5
   
-  table_raw <- cpue %>%
+  if (spp_plot_idw) {
+    
+    table_raw <- cpue %>%
     dplyr::filter(!is.na(cpue_kgha) & 
                     cpue_kgha != 0 & 
                     species_code %in% spp_code & 
                     year %in% c(maxyr, compareyr)) %>% 
     dplyr::arrange(desc(year))
+    
+    spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
+    spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
+    
+  }  
+    
+    if (spp_plot_pa) {
+    
+    table_raw <- catch_haul_cruises %>%
+    dplyr::filter(!is.na(number_fish) & 
+                    number_fish != 0 & 
+                    species_code %in% spp_code & 
+                    year %in% c(maxyr, compareyr)) %>% 
+    dplyr::arrange(desc(year))
+
+  }
   
   # only if both species re only found in prt of the region, chnge the extrp.box
   map.area0 <- map.area
@@ -210,14 +228,14 @@ if (spp_plot_idw | spp_plot_pa) {
     
     
     table_raw0 <- catch_haul_cruises %>% 
-      dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
-      dplyr::rename(latitude = start_latitude, 
-                    longitude = start_longitude) %>% 
       dplyr::filter(!is.na(number_fish) &
                       number_fish != 0 &
-                      species_code == spp_code & 
+                      species_code %in% spp_code & 
                       year %in% c(maxyr, compareyr) &
-                      SRVY %in% unique(table_raw$SRVY))
+                      SRVY %in% unique(table_raw$SRVY)) %>% 
+      dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
+      dplyr::rename(latitude = start_latitude, 
+                    longitude = start_longitude)
     
     figure <- plot_pa_xbyx(
       yrs = c(maxyr, compareyr),

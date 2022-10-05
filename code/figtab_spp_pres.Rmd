@@ -20,7 +20,8 @@ spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
-spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
+spp_plot_sizecomp <- nrow(sizecomp_maxyr[sizecomp_maxyr$species_code %in% spp_code &
+                                           sizecomp_maxyr$SRVY %in% SRVY1,]) > 0 # ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
 spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
 spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
@@ -61,7 +62,7 @@ bio <- biomass %>%
                    by = "species_code")  %>% 
   dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) 
 
-y_long = "Biomass"
+y_long <- "Biomass"
 a <- table_change_pres(dat = bio, 
                        yrs = sort(yrs, decreasing = TRUE), 
                        maxyr = maxyr, 
@@ -79,11 +80,24 @@ b <- a$table_raw %>%
 for (i in which(colnames(b) %in% yrs)) {
   for (ii in 1:nrow(b)) {
     temp <- find_units(dat = as.numeric(b[ii,i]))
-    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i])/temp$divby, 
-                              digits = ifelse(temp$divby>1, 1, 0), 
+    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i]), #/temp$divby, 
+                              digits = ifelse(temp$divby>1, 0, 1), 
                               big.mark = ",", format = "f", 
-                              drop0trailing = TRUE), 
-                      temp$unit_wrd)
+                              drop0trailing = TRUE)#, 
+                      # temp$unit_wrd
+                      )
+  }
+}
+
+
+for (i in (grep(pattern = "change_", x = names(b)))) {
+  for (ii in 1:nrow(b)) {
+    # temp <- find_units(dat = as.numeric(b[ii,i]))
+    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i]), 
+                              digits = ifelse(as.numeric(b[ii,i]) < 10 & as.numeric(b[ii,i]) >=-10, 2, 1), 
+                              # digits = ifelse(b[ii,i]>10, 0, 1), 
+                              big.mark = ",", format = "f", 
+                              drop0trailing = TRUE))
   }
 }
 
@@ -91,14 +105,14 @@ for (i in which(colnames(b) %in% yrs)) {
 
 header <- NMFSReports::text_list(paste0("**", b$Survey, " ", y_long, "** ", 
                                         unlist(b[grep(pattern = as.character(maxyr), 
-                                                                x = names(b))[1]]), 
+                                                      x = names(b))[1]]), 
                                         " ", a$unt, " (",
                                         unlist(b[grep(pattern = paste0("_", maxyr), 
-                                                                x = names(b))]), 
+                                                      x = names(b))]), 
                                         "%) from ", max(yrs[yrs != maxyr]), 
                                         " ", 
                                         unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
-                                                                x = names(b))[1]]), 
+                                                      x = names(b))[1]]), 
                                         " ", a$unt, "")) # , sep_last = "\n\n"
 
 if (length(spp_code)>1) {
@@ -110,7 +124,7 @@ if (length(spp_code)>1) {
                      lower = mean(upper))
 }
 
-figure0 <- plot_timeseries(dat = bio,
+figure <- plot_timeseries(dat = bio,
                           unit = "metric tons",
                           unt = "mt",
                           y_long = "biomass",
@@ -132,22 +146,27 @@ figure0 <- plot_timeseries(dat = bio,
 #                                         " ", a$unt, ""), 
 #                                fontface='bold', color = "#00467f")
 
-text0 <- c(paste0(b$Survey, " ", y_long), 
-                                        paste0(maxyr, ": ", unlist(b[grep(pattern = as.character(maxyr), 
-                                                                x = names(b))[1]]), 
-                                        " ", a$unt), 
-                                        paste0(max(yrs[yrs != maxyr]), 
-                                        ": ", 
-                                        unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
-                                                                x = names(b))[1]]), 
-                                        " ", a$unt, ""), 
-                                       paste0("(",
-                                        unlist(b[grep(pattern = paste0("_", maxyr), 
-                                                                x = names(b))]), 
-                                        "%)"))
+text0 <- 
+  c(paste0(b$Survey, " ", y_long), 
+    paste0(maxyr, ": ", unlist(b[grep(pattern = as.character(maxyr), 
+                                      x = names(b))[1]]), 
+           " ", a$unt), 
+    paste0(max(yrs[yrs != maxyr]), 
+           ": ", 
+           unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
+                         x = names(b))[1]]), 
+           " ", a$unt, ""), 
+    
+    
+    ifelse(unlist(b[grep(pattern = paste0("_", maxyr), x = names(b))]) == "Inf", 
+           "", 
+           paste0("(",
+                  unlist(b[grep(pattern = paste0("_", maxyr), 
+                                x = names(b))]), 
+                  "%)")))
 
 descr <- ggdraw() + draw_text(text = text0, 
-                               fontface=c('bold', "plain", "plain", "plain"), 
+                              fontface=c('bold', "plain", "plain", "plain"), 
                               y = seq(from = 0.8, to = ifelse(length(text0)>4, 0.4, 0.6), 
                                       length.out = length(text0)),
                               color = c("#00467f", "#00467f", "#00467f", 
@@ -155,12 +174,9 @@ descr <- ggdraw() + draw_text(text = text0,
                                                      x = unlist(b[grep(pattern = paste0("_", maxyr), x = names(b))])), 
                                                "red", 
                                                "#006400"# "green"
-                                               )))
+                                        )))
 
-figure <- cowplot::plot_grid(figure0, descr, nrow = 1, rel_widths = c(1, .4))
-
-
-# figure <- cowplot::ggdraw(add_sub(figure0, "This is an annotation.\nAnnotations can span multiple lines."))
+figure <- cowplot::plot_grid(figure, descr, nrow = 1, rel_widths = c(1, .4))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -216,21 +232,34 @@ a <- table_change_pres(dat = pop,
                        unit = "individuals", 
                        unt = "", 
                        y_long = y_long, 
-                       digits = 0)
+                       digits = 2)
 
 b <- a$table_raw %>% 
   dplyr::arrange(Survey) %>% 
-  dplyr::mutate(dplyr::across(dplyr::starts_with("20"), gsub, pattern = ",", replace = "")) %>% 
+  dplyr::mutate(dplyr::across(dplyr::starts_with("20"), 
+                              gsub, pattern = ",", replace = "")) %>% 
   dplyr::filter(Survey %in% SRVY1)
 
 for (i in which(colnames(b) %in% yrs)) {
   for (ii in 1:nrow(b)) {
     temp <- find_units(dat = as.numeric(b[ii,i]))
-    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i])/temp$divby, 
-                              digits = ifelse(temp$divby>1, 1, 0), 
+    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i]),#/temp$divby, 
+                              digits = ifelse(temp$divby>1, 0, 1), 
                               big.mark = ",", format = "f", 
-                              drop0trailing = TRUE), 
-                      temp$unit_wrd)
+                              drop0trailing = TRUE)#, 
+                      # temp$unit_wrd
+                      )
+  }
+}
+
+
+for (i in (grep(pattern = "change_", x = names(b)))) {
+  for (ii in 1:nrow(b)) {
+    # temp <- find_units(dat = as.numeric(b[ii,i]))
+    b[ii,i] <- paste0(formatC(x = as.numeric(b[ii,i]), 
+                              digits = ifelse(as.numeric(b[ii,i]) < 10 & as.numeric(b[ii,i]) >= -10, 2, 1), 
+                              big.mark = ",", format = "f", 
+                              drop0trailing = TRUE))
   }
 }
 
@@ -238,14 +267,14 @@ for (i in which(colnames(b) %in% yrs)) {
 
 header <- NMFSReports::text_list(paste0("**", b$Survey, " ", y_long, "** ", 
                                         unlist(b[grep(pattern = as.character(maxyr), 
-                                                                x = names(b))[1]]), 
+                                                      x = names(b))[1]]), 
                                         a$unt, " (",
                                         unlist(b[grep(pattern = paste0("_", maxyr), 
-                                                                x = names(b))]), 
+                                                      x = names(b))]), 
                                         "%) from ", max(yrs[yrs != maxyr]), 
                                         " ", 
                                         unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
-                                                                x = names(b))[1]]), 
+                                                      x = names(b))[1]]), 
                                         a$unt, "")) # , sep_last = "\n\n"
 
 if (length(spp_code)>1) {
@@ -265,29 +294,31 @@ figure <- plot_timeseries(dat = pop,
                           spp_print = spp_print)
 
 text0 <- c(paste0(b$Survey, " ", y_long), 
-                                        paste0(maxyr, ": ", unlist(b[grep(pattern = as.character(maxyr), 
-                                                                x = names(b))[1]]), 
-                                        " ", a$unt), 
-                                        paste0(max(yrs[yrs != maxyr]), 
-                                        ": ", 
-                                        unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
-                                                                x = names(b))[1]]), 
-                                        " ", a$unt, ""), 
-                                       paste0("(",
-                                        unlist(b[grep(pattern = paste0("_", maxyr), 
-                                                                x = names(b))]), 
-                                        "%)"))
+           paste0(maxyr, ": ", unlist(b[grep(pattern = as.character(maxyr), 
+                                             x = names(b))[1]]), 
+                  " ", a$unt), 
+           paste0(max(yrs[yrs != maxyr]), 
+                  ": ", 
+                  unlist(b[grep(pattern = as.character(max(yrs[yrs != maxyr])), 
+                                x = names(b))[1]]), 
+                  " ", a$unt, ""), 
+    ifelse(unlist(b[grep(pattern = paste0("_", maxyr), x = names(b))]) == "Inf", 
+           "", 
+           paste0("(",
+                  unlist(b[grep(pattern = paste0("_", maxyr), 
+                                x = names(b))]), 
+                  "%)")))
 
 descr <- ggdraw() + draw_text(text = text0, 
-                               fontface=c('bold', "plain", "plain", "plain"), 
+                              fontface=c('bold', "plain", "plain", "plain"), 
                               y = seq(from = 0.8, to = ifelse(length(text0)>4, 0.4, 0.6), 
                                       length.out = length(text0)),
                               color = c("#00467f", "#00467f", "#00467f", 
                                         ifelse(grepl(pattern = "-", 
                                                      x = unlist(b[grep(pattern = paste0("_", maxyr), x = names(b))])), 
-                                               "red", "green")))
+                                               "red", "#006400")))
 
-figure <- cowplot::plot_grid(figure0, descr, nrow = 1, rel_widths = c(1, .4))
+figure <- cowplot::plot_grid(figure, descr, nrow = 1, rel_widths = c(1, .4))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -340,11 +371,13 @@ if (spp_plot_sizecomp) {
     dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) %>% 
     dplyr::filter(species_code %in% spp_code)
   
-    header <- paste0("Total abundance-at-length estimates of ",
+  header <- paste0("Total abundance-at-length estimates of ",
                    spp_print, ifelse(is.na(spp_sci), "", 
                                      paste0(" (",spp_sci,")")), 
-                   " by sex (",NMFSReports::text_list(tolower(unique(sizecomp0$sex))),
-                   ") observed during the ",
+                   ifelse(SRVY %in% c("NEBS", "NBS"), 
+                          paste0(" by sex (",NMFSReports::text_list(tolower(unique(sizecomp0$sex))), ")"), 
+                          ""), 
+                   " observed during the ",
                    NMFSReports::text_list(unique(sizecomp0$SRVY)), 
                    " shelf bottom trawl survey", 
                    ifelse(length(unique(sizecomp0$SRVY))==1 & length(unique(sizecomp0$year))==1, "", "s"),
@@ -362,38 +395,38 @@ if (spp_plot_sizecomp) {
     }
     
     if (sum(length_data0$SRVY == "NBS")>0) {
-    length_data_nbs <- length_data0 %>%
-      dplyr::filter(SRVY %in% "NBS" & 
-                      year %in% yrs)
-    
-    sizecomp_nbs <- sizecomp0 %>% 
-      dplyr::filter(SRVY %in% "NBS" & 
-                      year %in% yrs)  
- 
-    figure1 <- plot_sizecomp(
-      sizecomp0 = sizecomp_nbs,
-      length_data0 = length_data_nbs, 
-      spp_code = spp_code,
-      spp_print = paste0("NBS ", spp_print), 
-      type = type, 
-      print_n = FALSE)
+      length_data_nbs <- length_data0 %>%
+        dplyr::filter(SRVY %in% "NBS" & 
+                        year %in% yrs)
+      
+      sizecomp_nbs <- sizecomp0 %>% 
+        dplyr::filter(SRVY %in% "NBS" & 
+                        year %in% yrs)  
+      
+      figure1 <- plot_sizecomp(
+        sizecomp0 = sizecomp_nbs,
+        length_data0 = length_data_nbs, 
+        spp_code = spp_code,
+        spp_print = paste0("NBS ", spp_print), 
+        type = type, 
+        print_n = FALSE)
     }
     
     if (sum(length_data0$SRVY == "EBS")>0) {
-    length_data_ebs <- length_data0 %>%
-      dplyr::filter(SRVY %in% "EBS")
-    
-    sizecomp_ebs <- sizecomp0 %>% 
-      dplyr::filter(SRVY %in% "EBS") 
-    
-    figure2 <- plot_sizecomp(
-      sizecomp0 = sizecomp_ebs,
-      length_data0 = length_data_ebs, 
-      spp_code = spp_code,
-      spp_print = paste0("EBS ", spp_print), 
-      type = type, 
-      print_n = FALSE, 
-      ridgeline = TRUE)
+      length_data_ebs <- length_data0 %>%
+        dplyr::filter(SRVY %in% "EBS")
+      
+      sizecomp_ebs <- sizecomp0 %>% 
+        dplyr::filter(SRVY %in% "EBS") 
+      
+      figure2 <- plot_sizecomp(
+        sizecomp0 = sizecomp_ebs,
+        length_data0 = length_data_ebs, 
+        spp_code = spp_code,
+        spp_print = paste0("EBS ", spp_print), 
+        type = type, 
+        print_n = FALSE, 
+        ridgeline = TRUE)
     }
     
     
@@ -433,19 +466,38 @@ if (spp_plot_sizecomp) {
 
 if (spp_plot_idw | spp_plot_pa) {
   
-  yrs <- yrs[(length(yrs)-4):length(yrs)]
+  # yrs <- yrs[(length(yrs)-4):length(yrs)]
   
-  nickname <- paste0("fig_pres_", spp_file, "_", ifelse(spp_plot_pa, "presence", "distribution"))
+  nickname <- paste0("fig_pres_", spp_file, "_", 
+                     ifelse(spp_plot_pa, "presence", "distribution"))
   
   height <- 4 #ifelse(SRVY == "NEBS", 5.5, 4.25) 
   width <- full_page_portrait_width # 6.5
   
-  table_raw <- cpue %>%
-    dplyr::filter(!is.na(cpue_kgha) & 
-                    cpue_kgha != 0 & 
-                    species_code %in% spp_code & 
-                    year %in% yrs) %>% 
-    dplyr::arrange(desc(year))
+  if (spp_plot_idw) {
+    
+    table_raw <- cpue %>%
+      dplyr::filter(!is.na(cpue_kgha) & 
+                      cpue_kgha != 0 & 
+                      species_code %in% spp_code & 
+                      year %in% yrs) %>% 
+      dplyr::arrange(desc(year))
+    
+    spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
+    spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
+  } 
+  
+  
+  if (spp_plot_pa) {
+    
+    table_raw <- catch_haul_cruises %>%
+      dplyr::filter(!is.na(number_fish) & 
+                      number_fish != 0 & 
+                      species_code %in% spp_code & 
+                      year %in% yrs) %>% 
+      dplyr::arrange(desc(year))
+    
+  }
   
   # only if both species re only found in prt of the region, chnge the extrp.box
   map.area0 <- map.area
@@ -509,7 +561,7 @@ if (spp_plot_idw | spp_plot_pa) {
                      ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
     
     
-    table_raw0 <- catch_haul_cruises %>% 
+    table_raw <- catch_haul_cruises %>% 
       dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
       dplyr::rename(latitude = start_latitude, 
                     longitude = start_longitude) %>% 
@@ -521,7 +573,7 @@ if (spp_plot_idw | spp_plot_pa) {
     
     figure <- plot_pa_xbyx(
       yrs = yrs,
-      dat = table_raw0,
+      dat = table_raw,
       lat = "latitude",
       lon = "longitude",
       year = "year",
@@ -530,6 +582,12 @@ if (spp_plot_idw | spp_plot_pa) {
       row0 = 1)
     
   }
+  
+  height0 <- height
+  width0 <- width
+  nickname0 <- nickname
+  table_raw0 <- table_raw
+  header0 <- header
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -548,69 +606,25 @@ if (spp_plot_idw | spp_plot_pa) {
 
 
 
-## fig_pres_idw/pa_cpue_[spp]_coldpool
+## fig_pres_idw/pa_cpue_[spp]_cold_pool
 
-```{r fig_pres_idw_cpue_[spp]_coldpool}
+```{r fig_pres_idw_cpue_[spp]_cold_pool}
 
 if (spp_plot_idw | spp_plot_pa) {
   
-  yrs <- yrs[(length(yrs)-4):length(yrs)]
+  # yrs <- yrs[(length(yrs)-4):length(yrs)]
   
-  nickname <- paste0("fig_pres_", spp_file, "_", 
-                     ifelse(spp_plot_pa, "presence", "distribution"), 
-                     "_coldpool")
-  
-  height <- 4 #ifelse(SRVY == "NEBS", 5.5, 4.25) 
-  width <- full_page_portrait_width # 6.5
-  
-  table_raw <- cpue %>%
-    dplyr::filter(!is.na(cpue_kgha) & 
-                    cpue_kgha != 0 & 
-                    species_code %in% spp_code & 
-                    year %in% yrs) %>% 
-    dplyr::arrange(desc(year))
-  
-  # only if both species re only found in prt of the region, chnge the extrp.box
-  map.area0 <- map.area
-  reg_dat0 <- reg_dat
-  
-  if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
-    map.area0 <- ifelse(unique(table_raw$SRVY) == "EBS", "bs.south", "bs.north")
-    reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
-    survey_reg_col <- gray.colors(length(unique(reg_dat0$survey.area$SURVEY))+2)
-    survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
-    reg_dat0$survey.area <- reg_dat0$survey.area %>%
-      dplyr::mutate(
-        SRVY = dplyr::case_when(
-          SURVEY == "EBS_SHELF" ~ "EBS", 
-          SURVEY == "NBS_SHELF" ~ "NBS"), 
-        color = alpha(colour = survey_reg_col, 0.7), 
-        SRVY_long = dplyr::case_when(
-          SRVY == "EBS" ~ "Eastern Bering Sea", 
-          SRVY == "NBS" ~ "Northern Bering Sea"))
-    height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF", 4.25, 3.5)
-  }
+  nickname <- paste0(nickname0, "_cold_pool")
+  height <- height0
+  width <- width0
+  table_raw <- table_raw0
+  header <- paste0(header0, " A yellow outline of the cold pool is featured for reference. ")
+  yrs0 <- yrs[yrs %in% unique(table_raw$year)]
   
   if (spp_plot_idw) {
-    header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
-                     " distribution and relative biomass (kg/ha) from the ",
-                     compareyr," (left) and ",maxyr,
-                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
-                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
-    set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
-    
-    table_raw <- dplyr::left_join(
-      x = cpue %>%
-        dplyr::filter(year %in% yrs & 
-                        SRVY %in% SRVY1) %>%
-        dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
-        dplyr::distinct(), 
-      y = table_raw, 
-      by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
-      dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
     
     figure <- plot_idw_xbyx(
-      yrs = yrs,
+      yrs = yrs0,
       dat = table_raw, 
       lat = "latitude",
       lon = "longitude",
@@ -621,38 +635,21 @@ if (spp_plot_idw | spp_plot_pa) {
       region = map.area0, 
       key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
       set.breaks = set.breaks,
-      plot_coldpool = TRUE,
-      row0 = 1)
+      row0 = 1, 
+      plot_coldpool = TRUE)
     
   } else if (spp_plot_pa) {
-    header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
-                     " presence from the ",
-                     compareyr," (left) and ",maxyr,
-                     " (right) ", NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
-                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
-                     ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
-    
-    
-    table_raw0 <- catch_haul_cruises %>% 
-      dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
-      dplyr::rename(latitude = start_latitude, 
-                    longitude = start_longitude) %>% 
-      dplyr::filter(!is.na(number_fish) &
-                      number_fish != 0 &
-                      species_code == spp_code & 
-                      year %in% yrs &
-                      SRVY %in% unique(table_raw$SRVY))
     
     figure <- plot_pa_xbyx(
-      yrs = yrs,
+      yrs = yrs0,
       dat = table_raw0,
       lat = "latitude",
       lon = "longitude",
       year = "year",
       reg_dat = reg_dat0, 
       key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
-      plot_coldpool = TRUE,
-      row0 = 1)
+      row0 = 1, 
+      plot_coldpool = TRUE)
     
   }
   
