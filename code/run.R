@@ -102,7 +102,6 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_col = "order", 
                               report_spp_codes = "species_code", 
                               lang = FALSE)
-
 # if (FALSE) {
   # *** *** General figures --------------------------------------------
   filename0<-paste0(cnt_chapt, "_")

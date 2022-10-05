@@ -1391,7 +1391,7 @@ sizecomp_crab <- SameColNames(df.ls) %>%
   #   by = c("gis_station" = "stationid")) %>%
   dplyr::mutate(SRVY = "NBS", 
                 species_code = dplyr::case_when(
-                  grepl(pattern = "_BK_", x = file, ignore.case = TRUE) ~ 69323, # "blue king crab"
+                  grepl(pattern = "_BKC_", x = file, ignore.case = TRUE) ~ 69323, # "blue king crab"
                   grepl(pattern = "_RKC_", x = file, ignore.case = TRUE) ~ 69322, # "red king crab"
                   grepl(pattern = "_CO_", x = file, ignore.case = TRUE) ~ 68580 # "snow crab"
                 )) %>%

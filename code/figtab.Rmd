@@ -887,9 +887,9 @@ l <- length_maxyr %>%
 
 # age oto data - from oracle
 a <- specimen_maxyr %>% 
+  dplyr::filter(!is.na(species_code) & specimen_sample_type == 1) %>%
   dplyr::select("SRVY", species_code) %>% 
   dplyr::group_by("SRVY" = SRVY, species_code) %>% 
-  dplyr::filter(!is.na(species_code)) %>%
   # also specimen_sample_type? 1 = otoliths, 
   # specimen_subsample_method 1=random, 2 = stratified?
   dplyr::summarise(age = as.numeric(n())) %>% 
