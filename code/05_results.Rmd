@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 # Results and Discussion
 
-A total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY, " stations")) ` were successfully sampled in `r maxyr` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number")`). Haul and catch sample data for successfully trawled stations used in the analyses can be found and downloaded from the Fisheries One Stop Shop (<https://www.fisheries.noaa.gov/foss/f?p=215:200:1099772399154:Mail:NO:::>). 
+A total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY, " stations"))` were successfully sampled in `r maxyr` (Figure `r crossref(list_obj = list_figures, nickname = "fig_sampled_survey_stations", sublist = "number")`). Haul and catch sample data for successfully trawled stations used in the analyses can be found and downloaded from the Fisheries One Stop Shop (<https://www.fisheries.noaa.gov/foss/f?p=215:200:1099772399154:Mail:NO:::>).
 
 ## Ocean Temperatures and the Cold Pool
 
@@ -77,9 +77,9 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 ```
 
-`r str0 ` During the EBS time series (`r haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY == "EBS"] `–`r maxyr`), mean summer bottom temperatures were highly variable, ranging from a low of `r round(x = min(temps_avg_yr$bt), digits = 1)`°C to a high of `r round(x = max(temps_avg_yr$bt), digits = 1)`°C. The grand mean for all years was `r round(x = min(temps_avg_yr$bt_mean[1]), digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`). The mean survey bottom temperature for the EBS in `r maxyr` was `r round(x = (temps_avg_yr_maxyr$bt), digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`), which was `r round(x = abs(temp$bt_mean_diff), digits = 1) `°C `r ifelse(temps_avg_yr_maxyr$bt_above_mean, "warmer", "colder")` than the long term mean [@RohanColdPool].
+`r str0` During the EBS time series (`r haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY == "EBS"]`--`r maxyr`), mean summer bottom temperatures were highly variable, ranging from a low of `r round(x = min(temps_avg_yr$bt), digits = 1)`°C to a high of `r round(x = max(temps_avg_yr$bt), digits = 1)`°C. The grand mean for all years was `r round(x = min(temps_avg_yr$bt_mean[1]), digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`). The mean survey bottom temperature for the EBS in `r maxyr` was `r round(x = (temps_avg_yr_maxyr$bt), digits = 1)`°C (Figure `r crossref(list_obj = list_figures, nickname = 'fig_mean_temperature', sublist = 'number')`), which was `r round(x = abs(temp$bt_mean_diff), digits = 1)`°C `r ifelse(temps_avg_yr_maxyr$bt_above_mean, "warmer", "colder")` than the long term mean [@RohanColdPool].
 
-The size of the cold pool each summer is defined by the extent of bottom temperatures below 2°C and depends on sea ice coverage from the previous winter, the timing of sea ice retreat during the spring and early summer, as well as other oceanographic and meteorological conditions [@RN941]. During the coldest years, sea ice extended farther south and lasted later into spring resulting in cold pools that extended farther south through the middle domain into Bristol Bay and near the Alaska Peninsula (Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')` and `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). Interannual variability in the dynamics of seasonal ice is a major environmental driver on the Bering Sea shelf [@RN930; @RN931; @RN932] that can change recruitment and migration patterns, as well as cause major distributional shifts in groundfish and crab species [@RN905; @RN913; @RN977]. 
+The size of the cold pool each summer is defined by the extent of bottom temperatures below 2°C and depends on sea ice coverage from the previous winter, the timing of sea ice retreat during the spring and early summer, as well as other oceanographic and meteorological conditions [@RN941]. During the coldest years, sea ice extended farther south and lasted later into spring resulting in cold pools that extended farther south through the middle domain into Bristol Bay and near the Alaska Peninsula (Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')` and `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). Interannual variability in the dynamics of seasonal ice is a major environmental driver on the Bering Sea shelf [@RN930; @RN931; @RN932] that can change recruitment and migration patterns, as well as cause major distributional shifts in groundfish and crab species [@RN905; @RN913; @RN977].
 
 ```{r cold_pool}
 temp <- coldpool_ebs_total_area
@@ -131,10 +131,9 @@ if (temp$rank[temp$year == maxyr] < 6 | abs(temp$rank[temp$year == maxyr]-length
 
 ```
 
-During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')`), while `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] `-year time series, the areal coverage of the summer survey cold pool in the EBS has varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)] ` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE)) ` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)] `, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f") ` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1) `%) of the EBS shelf survey area`r temp4`
+During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Figure `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')`), while `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-year time series, the areal coverage of the summer survey cold pool in the EBS has varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)]` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)]`, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Figure `r crossref(list_obj = list_figures, nickname = 'fig_cold_pool_area', sublist = 'number')`). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f")` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1)`%) of the EBS shelf survey area`r temp4`
 
 The `r compareyr` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys provided a quasi-synoptic view of the spatial pattern of bottom temperatures across the entire `r NMFSReports::text_list(SRVY1)` shelf, providing an index of annual differences in demersal fauna distribution patterns. The seasonal cold pool, which is a cold water mass that occupies the middle domain of the EBS shelf annually to a varying extent, may play a role in restricting the movements of some species both across the shelf (east-west) and along the inner domain of the shelf (north-south). Thus, tracking the position and spatial extent of this water mass is critically important.
-
 
 ```{r cold_pool_insert}
 # insert <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
@@ -146,17 +145,17 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_cold_pool_description.doc
 
 \newpage
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_mean_temperature", sublist = "res") `
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_mean_temperature", sublist = "res")`
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_cold_pool_area", sublist = "res") `
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_cold_pool_area", sublist = "res")`
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_st_maxyr", sublist = "res") `
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_st_maxyr", sublist = "res")`
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_bt_temperature_ebs_", sublist = "res", exact = FALSE) ` 
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_bt_temperature_ebs_", sublist = "res", exact = FALSE)`
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "_temperature_nebs_surveys", sublist = "res", exact = FALSE) `
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "_temperature_nebs_surveys", sublist = "res", exact = FALSE)`
 
-## Survey Data and Specimen Collections 
+## Survey Data and Specimen Collections
 
 ```{r num_taxa}
 temp0 <- function(cols, SRVY, report_spp1) {
@@ -219,9 +218,9 @@ str0 <- paste0("A total of ", NMFSReports::text_list(sep="; ", paste0(temp$nspec
 
 ```
 
-Specimens collected during the `r NMFSReports::text_list(SRVY1)` shelf trawl survey are shown in Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`. `r str0` Other special collections are listed in table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`. 
+Specimens collected during the `r NMFSReports::text_list(SRVY1)` shelf trawl survey are shown in Table`r ifelse(SRVY == "NEBS", "s", "")` `r crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "number", exact = FALSE)`. `r str0` Other special collections are listed in table `r crossref(list_obj = list_tables, nickname = "tab_special_projects", sublist = "number")`.
 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "res", exact = FALSE) `
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_specimen_samples_", sublist = "res", exact = FALSE)`
 
 ## Species Composition
 
@@ -366,7 +365,7 @@ insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 ```
 
-A total of `r xunits(temp1$species_code) ` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert `
+A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
 
 ```{r taxon_count}
 # count spp - invert
@@ -415,13 +414,13 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_title(NMFSReports::numbers2words(temp1$species_code)) ` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_title(NMFSReports::numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
 ```
 
-`r list_tables$tab_species_composition$res `
+`r list_tables$tab_species_composition$res`
 
 ## Biomass, Abundance, and Catch per Unit Effort
 
@@ -513,7 +512,7 @@ str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 
 ```
 
-`r str0 `
+`r str0`
 
 ```{r tot_biomass2}
 str0 <- ""
@@ -641,7 +640,7 @@ if (SRVY == "NEBS") {
 
 ```
 
-`r str0 ` 
+`r str0`
 
 ```{r benthic_community}
 
@@ -772,22 +771,21 @@ str0 <- NMFSReports::text_list(paste0(
 
 ```
 
-`r str0 `
+`r str0`
 
 <!---BLOCK_LANDSCAPE_START--->
 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_biomass_est_", sublist = "res", exact = FALSE) `
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_biomass_est_", sublist = "res", exact = FALSE)`
 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "res", exact = FALSE) `
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_majortaxa_pchange_", sublist = "res", exact = FALSE)`
 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "res", exact = FALSE) `
+`r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_spp_", sublist = "res", exact = FALSE)`
 
 <!---BLOCK_LANDSCAPE_STOP--->
 
+## Summary of Results for Selected `r NMFSReports::text_list(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))` Fish and Invertebrate Fauna
 
-## Summary of Results for Selected `r NMFSReports::text_list(stringr::str_to_title(haul_cruises_maxyr$SRVY_long)) ` Fish and Invertebrate Fauna
-
-An interactive map of species CPUE can be found at <https://apps-st.fisheries.noaa.gov/dismap/>. The CPUE data with associated station information including position, surface and bottom temperatures, and bottom depth can be downloaded from the NOAA Fisheries One Stop Shop data platform (FOSS; <https://www.fisheries.noaa.gov/foss/f?p=215:200:1099772399154:Mail:NO:::>). Users can interactively select, view, and download data on the platform for this survey and others. 
+An interactive map of species CPUE can be found at <https://apps-st.fisheries.noaa.gov/dismap/>. The CPUE data with associated station information including position, surface and bottom temperatures, and bottom depth can be downloaded from the NOAA Fisheries One Stop Shop data platform (FOSS; <https://www.fisheries.noaa.gov/foss/f?p=215:200:1099772399154:Mail:NO:::>). Users can interactively select, view, and download data on the platform for this survey and others.
 
 ### Selected Fish Species Estimates
 
@@ -829,7 +827,7 @@ temp2 <- report_spp1 %>%
 
 ```
 
-Plots of the spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE, text = FALSE)) ` major fish species caught during the `r NMFSReports::text_list(SRVY1)` continental shelf survey are presented in the subsections below (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE) ` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_fish_", sublist = "number", exact = FALSE)`). Differences in sums of estimates and totals are due to rounding. Total abundance-at-length and mean length estimates for major fish species are also presented in the subsections below (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sizecomp_fish_", sublist = "number", exact = FALSE) `). Appendices `r NMFSReports::crossref(list_tables, "tab_app_principal_fish_", "number", exact = FALSE)` contain population estimates by sex and size class for `r nrow(temp0)` fish species. 
+Plots of the spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE, text = FALSE))` major fish species caught during the `r NMFSReports::text_list(SRVY1)` continental shelf survey are presented in the subsections below (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE)` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_fish_", sublist = "number", exact = FALSE)`). Differences in sums of estimates and totals are due to rounding. Total abundance-at-length and mean length estimates for major fish species are also presented in the subsections below (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sizecomp_fish_", sublist = "number", exact = FALSE)`). Appendices `r NMFSReports::crossref(list_tables, "tab_app_principal_fish_", "number", exact = FALSE)` contain population estimates by sex and size class for `r nrow(temp0)` fish species.
 
 ### Selected Invertebrates Estimates
 
@@ -842,7 +840,7 @@ temp0 <- report_spp1 %>%
 
 ```
 
-Plots of spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r xunits(length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE, text = FALSE))) ` major invertebrate species caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented below (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE) ` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_invert_", sublist = "number", exact = FALSE)`). Differences in sums of estimates and totals are due to rounding. The crab species listed in this report and others are discussed and analyzed in more detail in a report prepared by the AFSC Shellfish Assessment Program [`r paste0("@SAPcrab", maxyr) `].
+Plots of spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r xunits(length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE, text = FALSE)))` major invertebrate species caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented below (Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE)` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_invert_", sublist = "number", exact = FALSE)`). Differences in sums of estimates and totals are due to rounding. The crab species listed in this report and others are discussed and analyzed in more detail in a report prepared by the AFSC Shellfish Assessment Program [`r paste0("@SAPcrab", maxyr)`].
 
 ```{r taxon_pchange}
 if (SRVY == "NEBS") {
@@ -908,11 +906,10 @@ if (length(unique(temp$print_name))==1) {
   
 ```
 
-`r str0 `
+`r str0`
 
-Shelf-wide distributions of the four major commercial crab species: blue king crab (*Paralithodes platypus*), red king crab (*Paralithodes camtschaticus*), snow crab (*Chionoecetes opilio*), and Tanner crab (*Chionoecetes bairdi*) are shown in Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_*_crab", sublist = "number", exact = FALSE) `. Commercial crab stocks are managed by the ADF&G with federal oversight by NOAA Fisheries. Detailed information on bottom trawl survey results for commercial crab are reported elsewhere [@RNChilton2011; @RN973]. The most recent modeling results on the status of these commercial crab stocks are reported in the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC [`r paste0("@NPFMC", maxyr)`].
+Shelf-wide distributions of the four major commercial crab species: blue king crab (*Paralithodes platypus*), red king crab (*Paralithodes camtschaticus*), snow crab (*Chionoecetes opilio*), and Tanner crab (*Chionoecetes bairdi*) are shown in Figures `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_*_crab", sublist = "number", exact = FALSE)`. Commercial crab stocks are managed by the ADF&G with federal oversight by NOAA Fisheries. Detailed information on bottom trawl survey results for commercial crab are reported elsewhere [@RNChilton2011; @RN973]. The most recent modeling results on the status of these commercial crab stocks are reported in the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC [`r paste0("@NPFMC", maxyr)`].
 
 \pagebreak
 
 <!-- ## Summary of Results for Selected `r NMFSReports::text_list(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))` Fish and Invertebrate Fauna -->
-
