@@ -723,20 +723,20 @@ During the ", maxyr, " survey, ", spp_print, " were present at ",
   str <- paste0(str, "
 
 ", stringr::str_to_sentence(spp_print), 
-" were found in bottom temperatures as warm as ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
-"\u00B0C and as cold as ", 
+" were found in bottom temperatures between ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
+"\u00B0C and ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
 "\u00B0C. ") #  (Figure ", cnt_figures,")
   
   # <!-- surface temperature -->
   str <- paste0(str, "
 
 ", stringr::str_to_sentence(spp_print), 
-" were found in areas where surface temperatures were as warm as ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
-"\u00B0C and as cold as ", 
+" were found in areas where surface temperatures between ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
+"\u00B0C and ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
 "\u00B0C. ") #  (Figure ", cnt_figures,")
   
   # <!-- Depth -->

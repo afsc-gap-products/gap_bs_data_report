@@ -74,6 +74,7 @@ length_maxyr0 <- length_data %>% #dplyr::left_join(
 
 
 ```{r ebs}
+if (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0) {
 temp <- ""
 temp1 <- ""
 if (refcontent) {
@@ -92,6 +93,7 @@ temp<-species_content(
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
+}
 ```
 
 `r ifelse(refcontent, "**Eastern Bering Sea (EBS)**", "")`
@@ -106,6 +108,7 @@ temp <- ""
 temp1 <- ""
 if (refcontent) {
 if (SRVY %in% "NEBS") {
+if (nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0) {
 temp<-species_content(
   SURVEY000 = "northern Bering Sea", 
   SRVY000 = "NBS", 
@@ -121,6 +124,7 @@ temp1<-temp$table_spp
 temp <- temp$text_spp
 }
 }
+}
 ```
 
 `r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "**Northeastern Bering Sea (NBS)**", ""), "")`
@@ -134,6 +138,8 @@ temp <- ""
 temp1 <- ""
 if (refcontent) {
 if (SRVY %in% "NEBS") {
+if (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0 &
+    nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0) {
 temp<-species_content(
   SURVEY000 = "eastern and northern Bering Sea",
   SRVY000 = c("NBS", "EBS"),
@@ -148,6 +154,7 @@ temp<-species_content(
                             "tab_majortaxa_pchange_NBS"))
 temp1<-temp$table_spp
 temp <- temp$text_spp
+}
 }
 }
 ```
