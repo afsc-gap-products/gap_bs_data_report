@@ -229,22 +229,24 @@ cpue <-
   dplyr::rename(SRVY = survey) %>% 
   dplyr::filter(SRVY %in% SRVY1)
 
-# temp <- readr::read_csv(file = paste0(dir_data, "/oracle/racebase_public_foss.csv"),
-#                         show_col_types = FALSE) %>%
-#   dplyr::select(year, vessel_id, srvy,  stratum, station, scientific_name,
-#                 species_code, longitude_dd, latitude_dd, #hauljoin,
-#                 haul,
-#                 cpue_noha, cpue_kgha, common_name#, area_fished_ha, taxon
-#                 ) %>%
-#   dplyr::rename(SRVY = srvy,
-#                 latitude = latitude_dd,
-#                 longitude = longitude_dd,
-#                 vessel = vessel_id,
-#                 stationid = station,
-#                 species_name = scientific_name) %>%
-#   dplyr::filter(SRVY %in% SRVY1)
-# 
-# cpue <- temp 
+temp <- readr::read_csv(file = paste0(dir_data, "/oracle/cpue_station.csv"),
+                        show_col_types = FALSE) %>%
+  janitor::clean_names() %>%
+  dplyr::filter(species_code %in% c(69322, 69323, 68580)) %>%
+  dplyr::select(year, vessel_id, srvy,  stratum, station, scientific_name,
+                species_code, longitude_dd_start, latitude_dd_start, #hauljoin,
+                haul,
+                cpue_noha, cpue_kgha, common_name#, area_fished_ha, taxon
+                ) %>%
+  dplyr::rename(SRVY = srvy,
+                latitude = latitude_dd_start,
+                longitude = longitude_dd_start,
+                vessel = vessel_id,
+                stationid = station,
+                species_name = scientific_name) %>%
+  dplyr::filter(SRVY %in% SRVY1)
+
+cpue <- dplyr::bind_rows(cpue, temp)
 
 
 cpue <- cpue %>% 
