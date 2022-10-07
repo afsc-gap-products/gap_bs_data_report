@@ -229,7 +229,7 @@ cpue <-
   dplyr::rename(SRVY = survey) %>% 
   dplyr::filter(SRVY %in% SRVY1)
 
-temp <- readr::read_csv(file = paste0(dir_data, "/oracle/cpue_station.csv"),
+temp <- readr::read_csv(file = paste0(dir_data, "/oracle/racebase_public_foss.csv"),
                         show_col_types = FALSE) %>%
   janitor::clean_names() %>%
   dplyr::filter(species_code %in% c(69322, 69323, 68580)) %>%
