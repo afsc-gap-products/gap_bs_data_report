@@ -290,8 +290,8 @@ readtext2 <- function(file, refcontent = FALSE){
     
     # remind reviewers what is code and what is not:
     if (refcontent) { 
-      insert <- paste0("**Hand written text from google drive**: ", 
-                       gsub(pattern = "\n", replacement = "\n\n\n **Hand written text from google drive**:", x = insert), 
+      insert <- paste0("**Handwritten text from google drive**: ", 
+                       gsub(pattern = "\n", replacement = "\n\n\n **Handwritten text from google drive**:", x = insert), 
                        "")
     } else {
       insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert)
@@ -733,7 +733,7 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>%
   str <- paste0(str, "
 
 ", stringr::str_to_sentence(spp_print), 
-" were found in areas where surface temperatures between ", 
+" were found in areas where surface temperatures were between ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
 "\u00B0C and ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
