@@ -121,6 +121,11 @@ full_page_landscape_width <- 9.5
 
 # Cite R Packages --------------------------------------------------------------
 
+if (report_title != "Data Report") {
+  download.file(url = "https://raw.githubusercontent.com/EmilyMarkowitz-NOAA/gap_bs_data_report/main/cite/bibliography.bib", 
+                destfile = paste0(dir_cite, "bibliography.bib"))
+}
+
 knitr::write_bib(x = PKG,
                  file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
 
