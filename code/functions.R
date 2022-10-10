@@ -2746,7 +2746,6 @@ plot_survey_stations <- function(reg_dat,
     ggplot2::scale_x_continuous(name = "Longitude", 
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) + 
-    # ggplot2::coord_sf() +
     ggsn::scalebar(data = reg_dat$survey.grid,
                  location = "bottomleft",
                  dist = 100,

@@ -74,10 +74,10 @@ length_maxyr0 <- length_data %>% #dplyr::left_join(
 
 
 ```{r ebs}
-if (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0) {
 temp <- ""
 temp1 <- ""
-if (refcontent) {
+show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0)
+if (show) {
 temp<-species_content(
   SURVEY000 = "eastern Bering Sea", 
   SRVY000 = "EBS", 
@@ -93,10 +93,9 @@ temp<-species_content(
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
-}
 ```
 
-`r ifelse(refcontent, "**Eastern Bering Sea (EBS)**", "")`
+`r ifelse(show, "**Eastern Bering Sea (EBS)**", "")`
 
 `r temp1`
 
@@ -106,9 +105,8 @@ temp <- temp$text_spp
 ```{r nbs}
 temp <- ""
 temp1 <- ""
-if (refcontent) {
-if (SRVY %in% "NEBS") {
-if (nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0) {
+show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
+if (show) {
 temp<-species_content(
   SURVEY000 = "northern Bering Sea", 
   SRVY000 = "NBS", 
@@ -123,11 +121,9 @@ temp<-species_content(
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
-}
-}
 ```
 
-`r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "**Northeastern Bering Sea (NBS)**", ""), "")`
+`r ifelse(show, ifelse(SRVY %in% "NEBS", "**North Bering Sea (NBS)**", ""), "")`
 
 `r temp1`
 
@@ -136,10 +132,10 @@ temp <- temp$text_spp
 ```{r nebs}
 temp <- ""
 temp1 <- ""
-if (refcontent) {
-if (SRVY %in% "NEBS") {
-if (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0 &
-    nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0) {
+show <- refcontent & 
+  (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0 &
+     nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
+if (show) {
 temp<-species_content(
   SURVEY000 = "eastern and northern Bering Sea",
   SRVY000 = c("NBS", "EBS"),
@@ -155,11 +151,9 @@ temp<-species_content(
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
-}
-}
 ```
 
-`r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "**Northern and Eastern Bering Sea Combined (NEBS)**", ""), "")`
+`r ifelse(show, ifelse(SRVY %in% "NEBS", "**Northern and Eastern Bering Sea Combined (NEBS)**", ""), "")`
 
 `r temp1`
 
