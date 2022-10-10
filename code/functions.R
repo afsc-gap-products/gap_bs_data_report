@@ -2708,7 +2708,7 @@ plot_survey_stations <- function(reg_dat,
                             dplyr::filter(in_maxyr == TRUE),
                           mapping = aes(color = SRVY),
                           shape = 16,
-                          size = .5, 
+                          size = 2, 
                           show.legend = FALSE, 
                           na.rm = TRUE)  
   }
