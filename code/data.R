@@ -200,67 +200,6 @@ for (i in 1:length(a)){
 # lastdl <- ageoffile(here::here("data", "publicdata", "all_data.Rdata"))   
 
 
-## *** Load CPUE Design Based Estimates ----------------------------------------------
-
-# df.ls<-list()
-# 
-# a<-list.files(path = paste0(dir_data, "/oracle/"),
-#               pattern = paste0("cpue_"),
-#               full.names = TRUE)
-# 
-# for (i in 1:length(a)){
-#   b <- readr::read_csv(file = a[i], show_col_types = FALSE)
-#   b <- janitor::clean_names(b)
-#   if (names(b)[1] %in% "x1"){
-#     b$x1<-NULL
-#   }
-#   b$file <- a[i]
-#   # temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
-#   temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
-#   b$survey <- toupper(strsplit(x = temp, split = "_")[[1]][strsplit(x = temp, split = "_")[[1]] %in% c("nbs", "ebs")])
-#   # b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
-#   df.ls[[i]]<-b
-#   names(df.ls)[i]<-a[i]
-# }
-# 
-# cpue <-
-#   SameColNames(df.ls)  %>%
-#   dplyr::rename(SRVY = survey) %>% 
-#   dplyr::filter(SRVY %in% SRVY1)
-
-cpue <- readr::read_csv(file = paste0(dir_data, "/oracle/racebase_public_foss.csv"),
-                        show_col_types = FALSE) %>%
-  janitor::clean_names() %>%
-  # dplyr::filter(species_code %in% c(69322, 69323, 68580)) %>%
-  dplyr::select(year, vessel_id, srvy,  stratum, station, scientific_name,
-                species_code, longitude_dd_start, latitude_dd_start, #hauljoin,
-                haul,
-                cpue_noha, cpue_kgha, common_name#, area_fished_ha, taxon
-                ) %>%
-  dplyr::rename(SRVY = srvy,
-                latitude = latitude_dd_start,
-                longitude = longitude_dd_start,
-                vessel = vessel_id,
-                stationid = station,
-                species_name = scientific_name) %>%
-  dplyr::filter(SRVY %in% SRVY1)
-
-# cpue <- dplyr::bind_rows(cpue, temp)
-
-cpue <- cpue %>% 
-  dplyr::filter(year <= maxyr) %>%
-  dplyr::mutate(taxon = dplyr::case_when(
-    species_code <= 31550 ~ "fish",
-    species_code >= 40001 ~ "invert"))
-
-cpue_maxyr <- cpue %>%
-  dplyr::filter(year == maxyr)
-
-cpue_compareyr<- cpue %>%
-  dplyr::filter(year == compareyr[1])
-
-cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whelk"
-
 # Wrangle Data -----------------------------------------------------------------
 
 # *** report_spp and spp_info ---------------------------------------------------------------
@@ -319,6 +258,7 @@ spp_info <-
 #     dplyr::select(order, file_name, print_name, common_name1, group, group_sci, 
 #                   species_code, species_name, species_name1), 
 #   by = "species_code")
+
 
 # *** cruises + maxyr  + compareyr -----------------------------------------------
 print("cruises + maxyr  + compareyr")
@@ -395,6 +335,81 @@ haul_maxyr <- haul %>%
 
 haul_compareyr <- haul %>% 
   dplyr::filter(year == compareyr[1])
+
+
+## *** Load CPUE Design Based Estimates ----------------------------------------------
+
+df.ls<-list()
+
+a<-list.files(path = paste0(dir_data, "/oracle/"),
+              pattern = paste0("bsshelf_cpue"),
+              full.names = TRUE)
+
+for (i in 1:length(a)){
+  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
+  b <- janitor::clean_names(b)
+  if (names(b)[1] %in% "x1"){
+    b$x1<-NULL
+  }
+  b$file <- a[i]
+  # temp <- strsplit(x = a[i], split = "_", fixed = TRUE)[[1]]
+  temp<-strsplit(x = a[i], split = "/", fixed = TRUE)[[1]][length(strsplit(x = a[i], split = "/", fixed = TRUE)[[1]])]
+  b$survey <- toupper(strsplit(x = temp, split = "shelf_")[[1]][strsplit(x = temp, split = "shelf_")[[1]] %in% c("nbs", "ebs")])
+  # b$survey <- toupper(temp[temp %in% tolower(SRVY1)])
+  df.ls[[i]]<-b
+  names(df.ls)[i]<-a[i]
+}
+
+cpue <-
+  SameColNames(df.ls)  %>%
+  dplyr::rename(SRVY = survey) %>%
+  dplyr::filter(SRVY %in% SRVY1)
+
+# cpue <- readr::read_csv(file = paste0(dir_data, "/oracle/racebase_public_foss.csv"),
+#                         show_col_types = FALSE) %>%
+#   janitor::clean_names() %>%
+#   # dplyr::filter(species_code %in% c(69322, 69323, 68580)) %>%
+#   dplyr::select(year, vessel_id, srvy,  stratum, station, scientific_name,
+#                 species_code, longitude_dd_start, latitude_dd_start, #hauljoin,
+#                 haul,
+#                 cpue_noha, cpue_kgha, common_name#, area_fished_ha, taxon
+#                 ) %>%
+#   dplyr::rename(SRVY = srvy,
+#                 latitude = latitude_dd_start,
+#                 longitude = longitude_dd_start,
+#                 vessel = vessel_id,
+#                 stationid = station,
+#                 species_name = scientific_name) %>%
+#   dplyr::filter(SRVY %in% SRVY1)
+
+# cpue <- dplyr::bind_rows(cpue, temp)
+
+cpue <- cpue %>% 
+  dplyr::filter(year <= maxyr) %>%
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish",
+    species_code >= 40001 ~ "invert")) %>% 
+  dplyr::left_join(x = ., 
+                   y = spp_info %>% 
+                     dplyr::select(common_name, species_name, species_code), 
+                   by = "species_code") %>% 
+  dplyr::left_join(x = ., 
+                   y = haul %>% 
+                     dplyr::select(stationid, SRVY, year, start_latitude, start_longitude), 
+                   by = c("stationid", "SRVY", "year")) %>% 
+  dplyr::rename(cpue_noha = numcpue, 
+              cpue_kgha = wgtcpue, 
+              latitude = start_latitude, 
+              longitude = start_longitude)
+
+cpue_maxyr <- cpue %>%
+  dplyr::filter(year == maxyr)
+
+cpue_compareyr<- cpue %>%
+  dplyr::filter(year == compareyr[1])
+
+cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whelk"
+
 
 # *** other var (survey additions, *yrs, etc. ----------------------------------
 

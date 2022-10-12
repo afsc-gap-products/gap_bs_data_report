@@ -38,9 +38,11 @@ locations<-c(
  "HAEHNR.biomass_ebs_plusnw_grouped",
  
   # # CPUE
- "HAEHNR.cpue_nbs",
- "HAEHNR.cpue_ebs_plusnw",
- "HAEHNR.cpue_ebs_plusnw_grouped",
+ # "HAEHNR.cpue_nbs",
+ # "HAEHNR.cpue_ebs_plusnw",
+ # "HAEHNR.cpue_ebs_plusnw_grouped",
+ "EBSSHELF.EBSSHELF_CPUE",
+ "NBSSHELF.NBSSHELF_CPUE",
   # 
   # # Size Comps - the extrapolated size distributions of each fish
  "HAEHNR.sizecomp_nbs_stratum",

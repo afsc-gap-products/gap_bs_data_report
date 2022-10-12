@@ -14,16 +14,6 @@
 #'                   output_file = "test.docx")
 #' ---------------------------------------------
 
-# NOTES from Em for 2022 EBS presentation run
-# 1. data.R: uncomment 204:228 and comment out 230:245 when RH reruns 2022 cpue_ebs_plusnw.csv. 
-# The latter is the preferred code, but I can't find the file. UPDATE! New file found and code already 
-# uncommented, but you will still need to get the 2022 versions of the data. 
-# 2. For GFPT presentation, use SRVY<-"EBS." When NBS data becomes available, use SRVY<-"NEBS"
-# 3. When 2022 data is available, comment out 57:62 and uncomment 64:69.
-# 4. Redownload coldpool package
-# 5. If running the data report and you want the reference material to appear, set refcontent <- TRUE. If you want something that looks more like the final product, = FALSE. 
-#6. Needs access to crab tables and updated flat files
-
 # START ------------------------------------------------------------------------
 
 # *** REPORT KNOWNS ------------------------------------------------------------
@@ -103,13 +93,14 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_codes = "species_code", 
                               lang = FALSE)
 # if (FALSE) {
-  # *** *** General figures --------------------------------------------
+  # *** *** General figures ----------------------------------------------------
   filename0<-paste0(cnt_chapt, "_")
   rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                     output_dir = dir_out_ref,
                     output_file = paste0(filename0, cnt_chapt_content, ".docx"))
   
-  # *** *** Species figures --------------------------------------------
+  # *** *** Species figures ----------------------------------------------------
+  
   for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
     
     print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))

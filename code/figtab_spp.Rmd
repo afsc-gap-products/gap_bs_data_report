@@ -290,6 +290,7 @@ if (spp_plot_sizecomp) {
                     year %in% c(compareyr, maxyr))
   
   if (SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
+    
     table_raw <- dplyr::bind_rows(
       table_raw, 
       table_raw %>%
@@ -300,6 +301,7 @@ if (spp_plot_sizecomp) {
         dplyr::summarise(length) %>% 
         dplyr::mutate(SRVY = "EBS and NBS")) %>% 
       dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE))
+    
   } else if (SRVY == "NEBS" & length(unique(table_raw$SRVY))==1) { 
     height <- 3.25 # 
   }

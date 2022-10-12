@@ -38,37 +38,16 @@ haul0 <- catch_haul_cruises %>%
                   "survey_name", "SRVY", "year", "species_code", 
                   "weight", "number_fish", "hauljoin")
 
-# biomass_cpue <- dplyr::full_join(
-#   x = cpue %>%
-#     dplyr::select("year", "SRVY", "species_code", "cpue_kgha") %>%
-#     dplyr::group_by(year, SRVY, species_code) %>%
-#     dplyr::summarise(cpue_kgha = sum(cpue_kgha, na.rm = TRUE)),
-#   y = biomass %>%
-#     dplyr::filter(stratum == 999) %>%
-#     dplyr::select("year", "SRVY", "species_code", "common_name",
-#                   "biomass"),
-#   by = c("year", "SRVY", "species_code"))
-
 biomass_cpue <- cpue_biomass_total %>% 
-  # dplyr::filter(group == spp_common) %>% 
-  dplyr::select("year", "print_name", #"species_name1", 
-                "SRVY", #"mean_CPUE_all_strata_times_area"
-                "weighted_CPUE", "biomass_mt") %>% 
+  dplyr::select("year", "print_name", "SRVY", "weighted_CPUE", "biomass_mt") %>% 
   dplyr::rename(biomass = biomass_mt, 
-                cpue_kgha = weighted_CPUE)#, 
-                # species_name = species_name1)
+                cpue_kgha = weighted_CPUE)
 
-
-length_maxyr0 <- length_data %>% #dplyr::left_join(
+length_maxyr0 <- length_data %>% 
   ungroup() %>% 
-  # x = length_maxyr, 
-  # y = length_type, 
-  # by = c("length_type" = "length_type_id")) %>% 
   dplyr::filter(species_code %in% spp_code) %>% 
   dplyr::select(SRVY, species_code, frequency, sex, length,
-                # sample_type, 
-                length_type, name, 
-                sentancefrag)
+                length_type, name, sentancefrag)
 
 ```
 
@@ -92,6 +71,7 @@ temp<-species_content(
 
 temp1<-temp$table_spp
 temp <- temp$text_spp
+
 }
 ```
 
@@ -123,7 +103,7 @@ temp <- temp$text_spp
 }
 ```
 
-`r ifelse(show, ifelse(SRVY %in% "NEBS", "**North Bering Sea (NBS)**", ""), "")`
+`r ifelse(show, ifelse(SRVY %in% "NEBS", "**Northern Bering Sea (NBS)**", ""), "")`
 
 `r temp1`
 
