@@ -336,8 +336,41 @@ haul_maxyr <- haul %>%
 haul_compareyr <- haul %>% 
   dplyr::filter(year == compareyr[1])
 
+# *** other var (survey additions, *yrs, etc. ----------------------------------
+print("define other vars")
+
+# Crab retows?
+crab_resample <- FALSE
+if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
+  crab_resample <- TRUE
+  haul_maxyr_crabretow <- haul0 %>%
+    dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
+    dplyr::filter(haul_type == 17) # crab retow == 17
+}
+
+# 15/30
+tow1530 <- FALSE
+if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 20) >0) {
+  tow1530 <- TRUE
+  haul_maxyr_tow1530 <- haul0 %>%
+    dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
+    dplyr::filter(haul_type == 20) 
+}
+
+if (SRVY == "NEBS") {
+  nbsyr <- sort(cruises %>% 
+                  dplyr::filter(SRVY == "NBS") %>% 
+                  dplyr::select(year) %>% 
+                  unique() %>% 
+                  unlist())
+} else {
+  nbsyr <- sort(unique(haul$year), decreasing = TRUE)[1:4]
+}
+
+lastyr <- max(haul$year[haul$year != maxyr])
 
 ## *** Load CPUE Design Based Estimates ----------------------------------------------
+print("Load CPUE Design Based Estimates")
 
 df.ls<-list()
 
@@ -409,39 +442,6 @@ cpue_compareyr<- cpue %>%
   dplyr::filter(year == compareyr[1])
 
 cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whelk"
-
-
-# *** other var (survey additions, *yrs, etc. ----------------------------------
-
-# Crab retows?
-crab_resample <- FALSE
-if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
-  crab_resample <- TRUE
-  haul_maxyr_crabretow <- haul0 %>%
-    dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
-    dplyr::filter(haul_type == 17) # crab retow == 17
-}
-
-# 15/30
-tow1530 <- FALSE
-if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 20) >0) {
-  tow1530 <- TRUE
-  haul_maxyr_tow1530 <- haul0 %>%
-    dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
-    dplyr::filter(haul_type == 20) 
-}
-
-if (SRVY == "NEBS") {
-  nbsyr <- sort(cruises %>% 
-                  dplyr::filter(SRVY == "NBS") %>% 
-                  dplyr::select(year) %>% 
-                  unique() %>% 
-                  unlist())
-} else {
-  nbsyr <- sort(unique(haul$year), decreasing = TRUE)[1:4]
-}
-
-lastyr <- max(haul$year[haul$year != maxyr])
 
 # *** stratum_info (survey area) -------------------------------------------
 print("stratum_info (survey area)")
