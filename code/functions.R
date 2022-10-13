@@ -728,7 +728,7 @@ During the ", maxyr, " survey, ", spp_print, " were present at ",
   str <- paste0(str, "
 
 ", stringr::str_to_sentence(spp_print), 
-" were found in bottom temperatures between ", 
+" were found in areas where bottom temperatures were between ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
 "\u00B0C and ", 
 as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
