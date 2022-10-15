@@ -702,7 +702,6 @@ species_text <- function(
   str <- c()
   
   
-  
   # <!-- weight -->
   #   str <- paste0(str, "
   # 
