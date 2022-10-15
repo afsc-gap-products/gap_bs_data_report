@@ -11,7 +11,7 @@ bibliography: "../cite/bibliography.bib"
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
-```{r}
+```{r vars}
 a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[jj], ]
 
 spp_sci <- a$species_name[1]
@@ -30,7 +30,7 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 
 ### `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
 
-```{r}
+```{r data_wrangle}
 # find basic info about species
 haul0 <- catch_haul_cruises %>% 
     dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
@@ -68,7 +68,7 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = "tab_majortaxa_pchange_EBS")
+  biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "table_est_wt", "table_est_num"))
 
 temp1<-temp$table_spp
 temp <- temp$text_spp
@@ -98,7 +98,7 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = "tab_majortaxa_pchange_NBS")
+  biomass_cpue_tab_name = c("tab_majortaxa_pchange_NBS", "table_est_wt", "table_est_num"))
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
@@ -127,8 +127,7 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", 
-                            "tab_majortaxa_pchange_NBS"))
+  biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "tab_majortaxa_pchange_NBS", "table_est_wt", "table_est_num"))
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
@@ -235,8 +234,7 @@ if (text_spp) {
   insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
                     refcontent = refcontent)
 }
-  
-  
+
   
 land_start <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_START--->", "")
 land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "")
@@ -247,9 +245,9 @@ land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "
 
 <div id="refs"></div>
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
-
 `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
+
+`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
 
 `r land_start `
 

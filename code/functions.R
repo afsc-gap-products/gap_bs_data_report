@@ -701,79 +701,6 @@ species_text <- function(
   
   str <- c()
   
-  # <!-- how many stations -->
-  str <- paste0(str, 
-                "Out of the total number of successful hauls (", 
-                length(unique(haul_maxyr0$hauljoin)), ") ",  
-                spp_print, 
-                " were found during ", 
-                length(unique(haul_maxyr_spp$hauljoin)), 
-                " hauls (", 
-                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"), 
-                "% of stations). ")
-  
-  # different version of above
-  str <- paste0(str, "
-
-During the ", maxyr, " survey, ", spp_print, " were present at ", 
-                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
-                        digits = 1, format = "f") , 
-                "% of stations in the ", 
-                ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000), " (", 
-                length(unique(haul_maxyr_spp$hauljoin)), " of ", 
-                length(unique(haul_maxyr0$hauljoin)), 
-                " stations). ")
-  
-  # <!-- bottom tempature -->
-  str <- paste0(str, "
-
-", stringr::str_to_sentence(spp_print), 
-" were found in bottom temperatures between ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
-"\u00B0C and ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
-"\u00B0C. ") #  (Figure ", cnt_figures,")
-  
-  # <!-- surface temperature -->
-  str <- paste0(str, "
-
-", stringr::str_to_sentence(spp_print), 
-" were found in areas where surface temperatures were between ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
-"\u00B0C and ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
-"\u00B0C. ") #  (Figure ", cnt_figures,")
-  
-  # <!-- Depth -->
-  str <- paste0(str, "
-
-They were found in waters with depths between ", 
-                as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
-                " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
-  
-  # <!-- Sizes lengths caught  -->
-  
-  if (nrow(length_maxyr0) != 0) {
-    
-    
-    unit <- unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
-                                    spp_code %in% 68000:69930 ~ 'mm'), 
-                   TRUE ~ 'NO MEASUREMENT')
-    
-    str <- paste0(str, "
-
-The ", 
-                  NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
-                  " of ", spp_print, 
-                  " measured during the ",maxyr," ",
-                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-                  " survey were between ", 
-                  # NMFSReports::xunits(
-                  (min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
-                  " and ", #NMFSReports::xunits
-                  (max(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
-                  " ", unit, ". ")
-  }
   
   
   # <!-- weight -->
@@ -797,6 +724,9 @@ The ",
   # " in biomass. ")
   
   
+  str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
+                   NMFSReports::text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
+  
   tempyr <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
   
   temp <- function(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
@@ -812,27 +742,33 @@ The ",
                    NMFSReports::pchange(start = sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE),
                                         end = sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)) , 
                    # compare to the year before these
-                   ". Previously, ",spp_print," ",metric_long," in ", 
+                   " (", str_table, "). ",
+                   "Previously, ",spp_print," ", metric_long," in ", 
                    compareyr, " experienced ",
                    NMFSReports::pchange(start = sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE),
                                         end = sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)), 
                    " when compared to ",metric_long," in ", 
-                   tempyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,").")
+                   tempyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
+                   "; ", str_table, ").")
     
     return(str0)
   }
   
+  str0 <- ""
   
   if ( (nrow(biomass_cpue_spp) != 0) ) {
     ## pchange_biomass
-    str <- paste0(str, "
-
-", temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
-        metric = "biomass", 
-        metric_long = "biomass", 
-        unit = " mt", SRVY000, spp_print))
+#     str <- paste0(str, "
+# 
+# ", temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
+#         metric = "biomass", 
+#         metric_long = "biomass", 
+#         unit = " mt", SRVY000, spp_print))
     
-    
+    str00 <- temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
+                 metric = "biomass", 
+                 metric_long = "biomass", 
+                 unit = " mt", SRVY000, spp_print)
     
     # pchange cpue
     #     str <- paste0(str, "
@@ -872,8 +808,11 @@ The ",
 In ",maxyr,", ",spp_print," comprised ",
                   xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)/
                                temp2$biomass[temp2$year == maxyr])*100)," (", 
-                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table",ifelse(length(SRVY000)>1, "s", "")," ",
-                  NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
+                  ", ", str_table, 
+                  # "Table",ifelse(length(SRVY000)>1, "s", "")," ",
+                  # NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
+                  # NMFSReports::text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey biomass. ",
@@ -881,8 +820,11 @@ In ",maxyr,", ",spp_print," comprised ",
                   "Previously, in ",compareyr,", ",spp_print," comprised ",
                   xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
                                temp2$biomass[temp2$year == compareyr])*100)," (", 
-                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,", Table",ifelse(length(SRVY000)>1, "s", "")," ",
-                  NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
+                  ", ", str_table, 
+                  # "Table",ifelse(length(SRVY000)>1, "s", "")," ",
+                  # NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
+                  # NMFSReports::text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey biomass. ")
@@ -902,6 +844,91 @@ In ",maxyr,", ",spp_print," comprised ",
     # A similar size composition was observed in 2010 and 2017 (Figure 23).
     
     
+  }
+  
+  
+  # <!-- how many stations -->
+  str <- paste0(str, "
+
+Out of the total number of successful hauls (", 
+                length(unique(haul_maxyr0$hauljoin)), ") ",  
+                spp_print, 
+                " were found during ", 
+                length(unique(haul_maxyr_spp$hauljoin)), 
+                " hauls (", 
+                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"), 
+                "% of stations). ")
+  
+  # different version of above
+  str <- paste0(str, "
+
+During the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""),
+                ", ", spp_print, " were present at ", 
+                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
+                        digits = 1, format = "f") , 
+                "% of stations (", 
+                # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000), " (", 
+                length(unique(haul_maxyr_spp$hauljoin)), " of ", 
+                length(unique(haul_maxyr0$hauljoin)), 
+                " stations). ")
+  
+  
+  # <!-- Depth -->
+  str <- paste0(str, "
+
+They were found in waters with depths between ", 
+                as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
+                " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
+  
+  # Compare biomass to compare year, if available
+  if (str00 != "") {
+  str <- paste0(str, "
+
+", str00)
+  }
+  
+  # <!-- bottom tempature -->
+  str <- paste0(str, "
+
+", stringr::str_to_sentence(spp_print), 
+" were found in bottom temperatures between ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
+"\u00B0C and ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
+"\u00B0C. ") #  (Figure ", cnt_figures,")
+  
+  # <!-- surface temperature -->
+  str <- paste0(str, "
+
+", stringr::str_to_sentence(spp_print), 
+" were found in areas where surface temperatures were between ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
+"\u00B0C and ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
+"\u00B0C. ") #  (Figure ", cnt_figures,")
+
+  # <!-- Sizes lengths caught  -->
+  
+  if (nrow(length_maxyr0) != 0) {
+    
+    
+    unit <- unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
+                                    spp_code %in% 68000:69930 ~ 'mm'), 
+                   TRUE ~ 'NO MEASUREMENT')
+    
+    str <- paste0(str, "
+
+The ", 
+                  NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
+                  " of ", spp_print, 
+                  " measured during the ",maxyr," ",
+                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+                  " survey were between ", 
+                  # NMFSReports::xunits(
+                  (min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+                  " and ", #NMFSReports::xunits
+                  (max(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+                  " ", unit, ". ")
   }
   
   return(str)

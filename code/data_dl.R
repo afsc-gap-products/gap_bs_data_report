@@ -36,14 +36,34 @@ locations<-c(
 # "HAEHNR.biomass_ebs_plusnw_safe", # no longer used
  "HAEHNR.biomass_ebs_plusnw",
  "HAEHNR.biomass_ebs_plusnw_grouped",
+ "EBSCRAB.EBSCRAB_ABUNDANCE_BIOMASS",
+ "CRAB.NBS_BK_BIO_NEWTS_V2022",
+ "CRAB.NBS_CO_MATFEM_BIO_NEWTS_V2022",
+ "CRAB.NBS_CB_MATFEM_BIO_NEWTS_V2022",
+ "CRAB.NBS_RK_MALE_BIO_NEWTS_V2022",
+ "CRAB.NBS_RK_FEMALE_BIO_NEWTS_V2022",
+ 
+ # NBS data provided in .csvs over email
  
   # # CPUE
  # "HAEHNR.cpue_nbs",
  # "HAEHNR.cpue_ebs_plusnw",
  # "HAEHNR.cpue_ebs_plusnw_grouped",
  "EBSSHELF.EBSSHELF_CPUE",
- "NBSSHELF.NBSSHELF_CPUE",
-  # 
+ "NBSSHELF.NBS_CPUE",
+ # "EBSCRAB.EBSCRAB_CPUE",  # pulled uniquely below
+ "CRAB.NBS_BK_CPUENUM_SIZEGROUP",
+ "CRAB.NBS_BK_CPUEWGT_SIZEGROUP",
+ "CRAB.NBS_CB_CPUENUM_SIZEGROUP",
+ "CRAB.NBS_CB_CPUEWGT_SIZEGROUP",
+ "CRAB.NBS_CO_CPUENUM_SIZEGROUP",
+ "CRAB.NBS_CO_CPUEWGT_SIZEGROUP",
+ "CRAB.NBS_RK_CPUENUM_SIZEGROUP_FEMALES",
+ "CRAB.NBS_RK_CPUENUM_SIZEGROUP_MALES",
+ "CRAB.NBS_RK_CPUEWGT_SIZEGROUP_FEMALES",
+ "CRAB.NBS_RK_CPUEWGT_SIZEGROUP_MALES",
+ # NBS data provided in .csvs over email
+ 
   # # Size Comps - the extrapolated size distributions of each fish
  "HAEHNR.sizecomp_nbs_stratum",
  "HAEHNR.sizecomp_ebs_plusnw_stratum",
@@ -131,5 +151,28 @@ for (i in 1:length(locations)){
 }
 
 sink()
+
+# Pull crazy crab data
+
+a <- RODBC::sqlQuery(channel, paste0("select survey_year,species_code,gis_station, mid_latitude, mid_longitude, hauljoin, vessel,
+sum (CASE
+        WHEN ((size_group = 'MALE_TOTAL') or (size_group = 'FEMALE_TOTAL'))  
+        THEN (crab_cpuewgt_mt)
+       ELSE 0
+       END) cpue_kgha,
+round ( sum (CASE
+        WHEN ((size_group = 'MALE_TOTAL') or (size_group = 'FEMALE_TOTAL'))  
+        THEN (crab_cpuenum)
+       ELSE 0
+       END)) cpue_noha
+from ebscrab.ebscrab_cpue
+where survey_year > 2009 and district_code = 'ALL'
+group by survey_year,species_code,gis_station, mid_latitude, mid_longitude, hauljoin, vessel
+order by survey_year,gis_station; "))
+
+write.csv(x = a, 
+          paste0("./data/oracle/ebscrab_cpue_modified.csv"))
+
+# a <- RODBC::sqlQuery(channel, "SELECT DISTINCT SIZE_GROUP FROM EBSCRAB.EBSCRAB_CPUE;")
 
 

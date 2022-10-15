@@ -33,6 +33,137 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 
 ```
 
+## fig_sizecomp_[taxon]_[spp]
+
+> need to think bout this for EBS-only. in 2016, included stratum-specific values
+
+```{r fig_sizecomp_[taxon]_[spp]}
+if (spp_plot_sizecomp) {
+  
+  height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 3.25) 
+  width <- full_page_portrait_width # 6.5
+  
+  nickname <- paste0("fig_sizecomp_", spp_taxon, "_", spp_file)
+  
+  length_data0 <- length_data %>%
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% SRVY1)# &
+  # SRVY %in% "NBS" & 
+  # year %in% nbsyr)
+  
+  type <- unique(length_data0$sentancefrag)
+  
+  table_raw <- sizecomp %>%
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% SRVY1 &
+                    year %in% c(compareyr, maxyr))
+  
+  if (SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
+    
+    table_raw <- dplyr::bind_rows(
+      table_raw, 
+      table_raw %>%
+        dplyr::filter(species_code %in% spp_code &
+                        SRVY %in% SRVY &
+                        year %in% nbsyr) %>% 
+        dplyr::group_by(year, taxon, species_code, sex, pop) %>% 
+        dplyr::summarise(length) %>% 
+        dplyr::mutate(SRVY = "EBS and NBS")) %>% 
+      dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE))
+    
+  } else if (SRVY == "NEBS" & length(unique(table_raw$SRVY))==1) { 
+    height <- 3.25 # 
+  }
+  
+  
+  header <- paste0("Total abundance-at-length estimates of ",
+                   spp_print, ifelse(is.na(spp_sci), "", 
+                                     paste0(" (",spp_sci,")")), 
+                   " by sex (",NMFSReports::text_list(tolower(unique(table_raw$sex))),
+                   ") observed during the ",
+                   compareyr," and ",maxyr," ",
+                   NMFSReports::text_list(unique(table_raw$SRVY)), 
+                   " shelf bottom trawl survey", 
+                   ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
+                   ".")
+  
+  figure <- plot_sizecomp(
+    sizecomp0 = table_raw,
+    spp_code = spp_code,
+    spp_print = stringr::str_to_sentence(spp_print),
+    type = type,
+    print_n = FALSE)
+  
+  # fig1 <- plot_sizecomp(
+  #   sizecomp0 = sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% "NBS" & 
+  #                   year %in% nbsyr),
+  #   spp_code = spp_code,
+  #   spp_print = paste0("NBS ", spp_print), 
+  #   type = type, 
+  #   print_n = FALSE)
+  # 
+  # fig2 <- plot_sizecomp(
+  #   sizecomp0 =  sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% "EBS" & 
+  #                   year %in% nbsyr),
+  #   spp_code = spp_code,
+  #   spp_print = paste0("EBS ", spp_print), 
+  #   type = type, 
+  #   print_n = FALSE)
+  # 
+  # fig3 <- plot_sizecomp(
+  #   sizecomp0 =  sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% c("NBS", "EBS") & 
+  #                   year %in% nbsyr),
+  #   spp_code = spp_code,
+  #   spp_print = paste0("EBS and NBS ", spp_print), 
+  #   type = type, 
+  #   print_n = FALSE)
+  # 
+  # sizecomp0 <- sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% "EBS")  
+  # 
+  #   if (nrow(sizecomp0) != 0) {
+  # 
+  #   type <- unique(length_data0$sentancefrag)  # get size unit/type
+  # 
+  # fig2 <- plot_sizecomp(
+  #   sizecomp0 = sizecomp %>% 
+  #   dplyr::filter(species_code %in% spp_code &
+  #                   SRVY %in% "EBS"),
+  #   length_data0 = length_data0, 
+  #   spp_code = spp_code,
+  #   spp_print = paste0("EBS ", spp_print), 
+  #   type = type, 
+  #   print_n = FALSE, 
+  #   ridgeline = TRUE)
+  # }  
+  # 
+  #   figure <- ggpubr::ggarrange(fig2, fig1, 
+  #           labels = c("A", "B"), nrow = 1)#, widths = c(2,1))
+  
+  
+  
+  # save yo' stuff and do a lot of behind the scenes work
+  # alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_figures[nickname][[1]]$res <- res
+  
+}
+```
+
+
 ## fig_idw_cpue_[taxon]_[spp]_[above and below]
 
 ```{r fig_idw_cpue_[taxon]_[spp]_[above and below]}
@@ -264,135 +395,6 @@ if (spp_plot_idw | spp_plot_pa) {
 
 ```
 
-## fig_sizecomp_[taxon]_[spp]
-
-> need to think bout this for EBS-only. in 2016, included stratum-specific values
-
-```{r fig_sizecomp_[taxon]_[spp]}
-if (spp_plot_sizecomp) {
-  
-  height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 3.25) 
-  width <- full_page_portrait_width # 6.5
-  
-  nickname <- paste0("fig_sizecomp_", spp_taxon, "_", spp_file)
-  
-  length_data0 <- length_data %>%
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% SRVY1)# &
-  # SRVY %in% "NBS" & 
-  # year %in% nbsyr)
-  
-  type <- unique(length_data0$sentancefrag)
-  
-  table_raw <- sizecomp %>%
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% SRVY1 &
-                    year %in% c(compareyr, maxyr))
-  
-  if (SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
-    
-    table_raw <- dplyr::bind_rows(
-      table_raw, 
-      table_raw %>%
-        dplyr::filter(species_code %in% spp_code &
-                        SRVY %in% SRVY &
-                        year %in% nbsyr) %>% 
-        dplyr::group_by(year, taxon, species_code, sex, pop) %>% 
-        dplyr::summarise(length) %>% 
-        dplyr::mutate(SRVY = "EBS and NBS")) %>% 
-      dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE))
-    
-  } else if (SRVY == "NEBS" & length(unique(table_raw$SRVY))==1) { 
-    height <- 3.25 # 
-  }
-  
-  
-  header <- paste0("Total abundance-at-length estimates of ",
-                   spp_print, ifelse(is.na(spp_sci), "", 
-                                     paste0(" (",spp_sci,")")), 
-                   " by sex (",NMFSReports::text_list(tolower(unique(table_raw$sex))),
-                   ") observed during the ",
-                   compareyr," and ",maxyr," ",
-                   NMFSReports::text_list(unique(table_raw$SRVY)), 
-                   " shelf bottom trawl survey", 
-                   ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
-                   ".")
-  
-  figure <- plot_sizecomp(
-    sizecomp0 = table_raw,
-    spp_code = spp_code,
-    spp_print = stringr::str_to_sentence(spp_print),
-    type = type,
-    print_n = FALSE)
-  
-  # fig1 <- plot_sizecomp(
-  #   sizecomp0 = sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% "NBS" & 
-  #                   year %in% nbsyr),
-  #   spp_code = spp_code,
-  #   spp_print = paste0("NBS ", spp_print), 
-  #   type = type, 
-  #   print_n = FALSE)
-  # 
-  # fig2 <- plot_sizecomp(
-  #   sizecomp0 =  sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% "EBS" & 
-  #                   year %in% nbsyr),
-  #   spp_code = spp_code,
-  #   spp_print = paste0("EBS ", spp_print), 
-  #   type = type, 
-  #   print_n = FALSE)
-  # 
-  # fig3 <- plot_sizecomp(
-  #   sizecomp0 =  sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% c("NBS", "EBS") & 
-  #                   year %in% nbsyr),
-  #   spp_code = spp_code,
-  #   spp_print = paste0("EBS and NBS ", spp_print), 
-  #   type = type, 
-  #   print_n = FALSE)
-  # 
-  # sizecomp0 <- sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% "EBS")  
-  # 
-  #   if (nrow(sizecomp0) != 0) {
-  # 
-  #   type <- unique(length_data0$sentancefrag)  # get size unit/type
-  # 
-  # fig2 <- plot_sizecomp(
-  #   sizecomp0 = sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% "EBS"),
-  #   length_data0 = length_data0, 
-  #   spp_code = spp_code,
-  #   spp_print = paste0("EBS ", spp_print), 
-  #   type = type, 
-  #   print_n = FALSE, 
-  #   ridgeline = TRUE)
-  # }  
-  # 
-  #   figure <- ggpubr::ggarrange(fig2, fig1, 
-  #           labels = c("A", "B"), nrow = 1)#, widths = c(2,1))
-  
-  
-  
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_fig.Rmd", 
-                         package = "NMFSReports")), 
-    quiet = TRUE
-  )
-  
-  list_figures[nickname][[1]]$res <- res
-  
-}
-```
 
 
 ## fig_timeseries_[taxon]_[spp]
