@@ -1320,7 +1320,7 @@ plot_pa_xbyx <- function(
         name = "", # key.title,
         values = reg_dat$survey.area$color,
         breaks = rev(reg_dat$survey.area$SURVEY), 
-        labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY)))
+        labels = rev((reg_dat$survey.area$SRVY)))
   # } else {
   #   figure <- figure   + 
   #     geom_point(data = dd, 
@@ -1713,7 +1713,7 @@ plot_idw_xbyx <- function(
         name = " ", 
         values = reg_dat$survey.area$color,
         breaks = rev(reg_dat$survey.area$SURVEY), 
-        labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY))) + 
+        labels = rev((reg_dat$survey.area$SRVY))) + 
       ggplot2::guides(
         size = guide_legend(override.aes = list(size = 10)), 
         fill = guide_legend(order = 1, 
