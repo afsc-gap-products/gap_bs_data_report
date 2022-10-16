@@ -347,3 +347,35 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_abstract_conclusion.docx"
 
 \pagebreak
 
+
+
+```{r tab_app_taxa_encountered_}
+list_tables0 <- list_tables[!grepl(pattern = "Appendix", 
+                                   x = sapply(list_tables0, "[[","header"), 
+                                   ignore.case = TRUE)]
+list_figures0 <- list_figures
+
+  str0 <- paste0('
+\\pagebreak
+**List of Tables**
+
+',
+NMFSReports::text_list(paste0("\n\n - ",
+                              sapply(list_tables0, "[[","header")), 
+                       oxford = FALSE, sep = " ", sep_last = " "),
+'
+\n\n\n
+\\pagebreak
+
+**List of Figures**
+
+',
+NMFSReports::text_list(paste0("\n\n - ", 
+                              sapply(list_figures0,  "[[","header")), 
+                       oxford = FALSE, sep = " ", sep_last = " "),
+'
+\n\n\n
+')
+```
+
+`r str0 `
