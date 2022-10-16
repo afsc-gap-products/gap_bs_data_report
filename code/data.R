@@ -1628,19 +1628,19 @@ biomass_strat <- SameColNames(df.ls)  %>%
 #               upperb = biomass+varbio,
 #               lowerb = biomass-varbio)
 
-a <- list.files(path = paste0(dir_data, "oracle/"), pattern = "BIOMASS_NEWTS", full.names = TRUE)
-
-for (i in 1:length(a)){
-  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
-  b <- janitor::clean_names(b)
-  if (names(b)[1] %in% "x1"){
-    b$x1<-NULL
-  }
-  b$file <- a[i]
-  df.ls[[i]]<-b
-  names(df.ls)[i]<-a[i]
-}
-
+# a <- list.files(path = paste0(dir_data, "oracle/"), pattern = "BIOMASS_NEWTS", full.names = TRUE)
+# 
+# for (i in 1:length(a)){
+#   b <- readr::read_csv(file = a[i], show_col_types = FALSE)
+#   b <- janitor::clean_names(b)
+#   if (names(b)[1] %in% "x1"){
+#     b$x1<-NULL
+#   }
+#   b$file <- a[i]
+#   df.ls[[i]]<-b
+#   names(df.ls)[i]<-a[i]
+# }
+# 
 # # Total biomass
 # biomass_strat_crab_nbs <- SameColNames(df.ls) %>%
 #   dplyr::mutate(SRVY = "NBS", 
