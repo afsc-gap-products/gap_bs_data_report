@@ -1701,7 +1701,7 @@ for (i in 1:length(a)){
 #     sdbio, 
 #     sdpop)
 
-bio <- biomass_strat %>% # dplyr::bind_rows(biomass_strat, biomass_strat_crab)  %>%
+biomass_strat <- biomass_strat %>% # dplyr::bind_rows(biomass_strat, biomass_strat_crab)  %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert"))
@@ -1877,3 +1877,58 @@ a<-calc_cpue_bio(catch_haul_cruises0 = catch_haul_cruises_maxyr)
 biomass_cpue_by_stratum <- cpue_by_stratum <- biomass_by_stratum <- a$biomass_cpue_by_stratum
 total_biomass <- a$total_biomass
 
+# Cite all papers in report ----------------------------------------------------
+
+files0<-list.files(path = paste0(dir.output, Sys.Date(), "/", maxyr, "/rawdata/"), pattern = ".docx", full.names = TRUE)
+files1 <- files0
+
+files0<-list.files(path = dir_code, pattern = ".Rmd", full.names = TRUE)
+files0<-files0[grep(pattern = "[0-9]+_", x = files0)]
+files0<-files0[!grepl(pattern = "presentation", x = files0)]
+files1 <- c(files1, files0)
+
+ee <- c(ref_compareyr, paste0("@NPFMC", maxyr))
+
+for (ii in 1:length(files1)){
+  if (grepl(pattern = ".docx", x = files1[ii], fixed = TRUE)) {
+    aa <- readtext(file = files1[ii])$text
+  } else {
+    aa <- readLines(con = files1[ii], warn = FALSE)
+  }
+  bb <- unlist(strsplit(x = aa, split = " ", fixed = TRUE))
+  bb <- unlist(strsplit(x = bb, split = "\n", perl = TRUE))
+  cc <- dd <- bb[grep(pattern = "@", x = bb)]
+  if (length(dd) != 0) {
+    remove <- c(";", "[", "]", ".", ",", ")", "(", '"') # , "\\" 
+    for (i in 1:length(remove)){
+      dd <- gsub(pattern = remove[i], replacement = "", x = dd, fixed = TRUE)
+    }
+  }
+  ee <- c(ee, dd)
+}
+
+ee <- unique(ee)
+ee <- ee[ee != "'@*'"]
+ee <- ee[substr(x = ee, start = 1, stop = 1)=="@"]
+ee <- sapply( strsplit(x = ee, split = "\\\n", perl = TRUE),"[[",1)
+
+
+bib <- readLines(con = "./cite/bibliography.bib", warn = FALSE)
+bib <- paste0(bib, collapse = "\n")
+bib <- unlist(strsplit(x = bib, split = "@"))
+
+ff <- c()
+for (i in 1:length(ee)) {
+  ff <- c(ff, 
+          grep(pattern = gsub(pattern = "@", replacement = "", x = ee[i], fixed = TRUE), 
+               x = bib, ignore.case = TRUE) )
+}
+bib <- paste0("@", bib[ff], collapse = "\n")
+
+utils::write.table(x = bib,
+                   file = paste0(dir_out_cite, "bib_report.bib"),
+                   row.names = FALSE,
+                   col.names = FALSE,
+                   quote = FALSE)
+
+# str0 <- paste0(ee, collapse = ", ")

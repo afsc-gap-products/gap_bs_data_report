@@ -133,62 +133,6 @@ file.copy(from = paste0(dir_out_rawdata, "bibliography_RPack.bib"),
           to = paste0(dir_cite,"/bibliography_RPack.bib"),
           overwrite = TRUE)
 
-# Cite all papers in report ----------------------------------------------------
-
-files0<-list.files(path = paste0(dir.output, Sys.Date(), "/", maxyr, "/rawdata/"), pattern = ".docx", full.names = TRUE)
-files1 <- files0
-
-files0<-list.files(path = dir_code, pattern = ".Rmd", full.names = TRUE)
-files0<-files0[grep(pattern = "[0-9]+_", x = files0)]
-files0<-files0[!grepl(pattern = "presentation", x = files0)]
-files1 <- c(files1, files0)
-
-ee <- c(ref_compareyr, paste0("@NPFMC", maxyr))
-
-for (ii in 1:length(files1)){
-  if (grepl(pattern = ".docx", x = files1[ii], fixed = TRUE)) {
-    aa <- readtext(file = files1[ii])$text
-  } else {
-    aa <- readLines(con = files1[ii], warn = FALSE)
-  }
-  bb <- unlist(strsplit(x = aa, split = " ", fixed = TRUE))
-  bb <- unlist(strsplit(x = bb, split = "\n", perl = TRUE))
-  cc <- dd <- bb[grep(pattern = "@", x = bb)]
-  if (length(dd) != 0) {
-    remove <- c(";", "[", "]", ".", ",", ")", "(", '"') # , "\\" 
-    for (i in 1:length(remove)){
-      dd <- gsub(pattern = remove[i], replacement = "", x = dd, fixed = TRUE)
-    }
-  }
-  ee <- c(ee, dd)
-}
-
-ee <- unique(ee)
-ee <- ee[ee != "'@*'"]
-ee <- ee[substr(x = ee, start = 1, stop = 1)=="@"]
-ee <- sapply( strsplit(x = ee, split = "\\\n", perl = TRUE),"[[",1)
-
-
-bib <- readLines(con = "./cite/bibliography.bib", warn = FALSE)
-bib <- paste0(bib, collapse = "\n")
-bib <- unlist(strsplit(x = bib, split = "@"))
-
-ff <- c()
-for (i in 1:length(ee)) {
-  ff <- c(ff, 
-          grep(pattern = gsub(pattern = "@", replacement = "", x = ee[i], fixed = TRUE), 
-               x = bib, ignore.case = TRUE) )
-}
-bib <- paste0("@", bib[ff], collapse = "\n")
-
-utils::write.table(x = bib,
-                   file = paste0(dir_out_cite, "bib_report.bib"),
-                   row.names = FALSE,
-                   col.names = FALSE,
-                   quote = FALSE)
-
-# str0 <- paste0(ee, collapse = ", ")
-
 # Housekeeping -----------------------------------------------------------------
 
 # Keep chapter content in a proper order
@@ -1362,7 +1306,7 @@ plot_pa_xbyx <- function(
                                group = as.factor(year)), 
                  color = mako(n = 1, begin = .25, end = .75),
                  shape = 16,
-                 size = 2,
+                 size = 1.5,
                  show.legend = TRUE,
                  na.rm = TRUE) +
       geom_sf(data = reg_dat$survey.area, # %>% 
@@ -1376,7 +1320,7 @@ plot_pa_xbyx <- function(
         name = "", # key.title,
         values = reg_dat$survey.area$color,
         breaks = rev(reg_dat$survey.area$SURVEY), 
-        labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY_long)))
+        labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY)))
   # } else {
   #   figure <- figure   + 
   #     geom_point(data = dd, 
@@ -1509,13 +1453,9 @@ plot_pa_xbyx <- function(
                                 breaks = reg_dat$lon.breaks) + 
     ggsn::scalebar(data = reg_dat$survey.grid,
                    location = "bottomleft",
-                   dist = ifelse(row0>2, 50, 100),
+                   dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   # st.dist = ifelse(row0 > 1, 0.08, 0.04),
-                   # height = ifelse(row0 > 1, 0.04, 0.02),
-                   # st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   # st.size = ifelse(row0 > 1, 2.5, 3)#, # 2.5
                    st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
                                               row0 == 2 ~ 0.06, 
                                               TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
@@ -1773,7 +1713,7 @@ plot_idw_xbyx <- function(
         name = " ", 
         values = reg_dat$survey.area$color,
         breaks = rev(reg_dat$survey.area$SURVEY), 
-        labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY_long))) + 
+        labels = rev(stringr::str_to_title(reg_dat$survey.area$SRVY))) + 
       ggplot2::guides(
         size = guide_legend(override.aes = list(size = 10)), 
         fill = guide_legend(order = 1, 
