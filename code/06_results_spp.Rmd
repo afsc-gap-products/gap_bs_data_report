@@ -38,10 +38,17 @@ haul0 <- catch_haul_cruises %>%
                   "survey_name", "SRVY", "year", "species_code", 
                   "weight", "number_fish", "hauljoin")
 
-biomass_cpue <- cpue_biomass_total %>% 
-  dplyr::select("year", "print_name", "SRVY", "weighted_CPUE", "biomass_mt") %>% 
-  dplyr::rename(biomass = biomass_mt, 
-                cpue_kgha = weighted_CPUE)
+# biomass_cpue <- cpue_biomass_total %>% 
+#   dplyr::select("year", "print_name", "SRVY", "weighted_CPUE", "biomass_mt") %>% 
+#   dplyr::rename(biomass = biomass_mt, 
+#                 cpue_kgha = weighted_CPUE)
+
+biomass_cpue <- biomass %>% 
+  dplyr::filter(species_code == spp_code[1]) %>%
+  dplyr::select(year, SRVY, varmnwgtcpue, biomass) %>% 
+  dplyr::rename(biomass = biomass, 
+                cpue_kgha = varmnwgtcpue) %>% 
+  dplyr::mutate(print_name = spp_print)
 
 length_maxyr0 <- length_data %>% 
   ungroup() %>% 

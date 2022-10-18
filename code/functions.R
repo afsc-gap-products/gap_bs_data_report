@@ -678,7 +678,7 @@ species_text <- function(
     
     str0 <- paste0("Compared with ", 
                    compareyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
-                   unit,"), ",spp_print," ",metric_long," in ", 
+                   unit,"), ",spp_print," estimated ",metric_long," in ", 
                    maxyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
                    unit,") in the ",
                    ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000)," experienced ",
@@ -686,11 +686,11 @@ species_text <- function(
                                         end = sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE)) , 
                    # compare to the year before these
                    " (", str_table, "). ",
-                   "Previously, ",spp_print," ", metric_long," in ", 
+                   "Previously, ",spp_print," estimated ", metric_long," in ", 
                    compareyr, " experienced ",
                    NMFSReports::pchange(start = sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE),
                                         end = sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)), 
-                   " when compared to ",metric_long," in ", 
+                   " when compared to estimated ",metric_long," in ", 
                    tempyr, " (", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
                    "; ", str_table, ").")
     
@@ -758,7 +758,7 @@ In ",maxyr,", ",spp_print," comprised ",
                   # NMFSReports::text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-                  " survey biomass. ",
+                  " survey estimated biomass. ",
                   
                   "Previously, in ",compareyr,", ",spp_print," comprised ",
                   xunitspct((sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE)/
@@ -770,7 +770,7 @@ In ",maxyr,", ",spp_print," comprised ",
                   # NMFSReports::text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-                  " survey biomass. ")
+                  " survey estimated biomass. ")
     
     
     
