@@ -28,7 +28,41 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 
 ```
 
+
+```{r lang}
+# Native Languages Names
+  lang <- ""
+
+if (report_title == "Community Report") {
+
+temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"))
+
+lang <- data.frame(lang_long = as.character(names(temp)[grepl(pattern = "lang_", x = temp[1,])]), 
+                   lang = as.character(temp[1,grepl(pattern = "lang_", x = temp[1,])]), 
+                   name = as.character(t(report_spp[jj,] %>% dplyr::select( dplyr::starts_with("lang_")) )) )
+
+lang <- rbind.data.frame(data.frame(name = c(ifelse(is.na(a$scientific_name_prev[a$print_name == spp_print][1]), NA, 
+                                                    paste0("*", a$scientific_name_prev[a$print_name == spp_print][1], "*")), 
+                                             ifelse(is.na(a$common_name_prev[a$print_name == spp_print][1]), NA, 
+                                                    a$common_name_prev[a$print_name == spp_print][1])), 
+                                    lang = c("scientific_name_prev", "common_name_prev"), 
+                                    lang_long = c("Previous Scientific Name", "Other Common Names")), 
+                         lang) %>%
+  dplyr::filter(!is.na(name))
+
+if (nrow(lang)>0) {
+  lang  <- paste(paste0("**",lang$lang_long,"**: ",lang$name,"\n\n"), sep = "", collapse = "")
+} else {
+  lang <- ""
+}
+}
+```
+
+\newpage
+
 ## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
+
+`r lang `
 
 ```{r data_wrangle}
 # find basic info about species
@@ -65,6 +99,12 @@ temp <- ""
 temp1 <- ""
 show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0)
 if (show) {
+  if (report_title == "Community Report") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange")
+  } else {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "table_est_wt", "table_est_num")
+  }
+  
 temp<-species_content(
   SURVEY000 = "eastern Bering Sea", 
   SRVY000 = "EBS", 
@@ -75,7 +115,7 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "table_est_wt", "table_est_num"))
+  biomass_cpue_tab_name = biomass_cpue_tab_name)
 
 temp1<-temp$table_spp
 temp <- temp$text_spp
@@ -95,6 +135,11 @@ temp <- ""
 temp1 <- ""
 show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
 if (show) {
+    if (report_title == "Community Report") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange")
+  } else {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_NBS", "table_est_wt", "table_est_num")
+  }
 temp<-species_content(
   SURVEY000 = "northern Bering Sea", 
   SRVY000 = "NBS", 
@@ -105,7 +150,7 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = c("tab_majortaxa_pchange_NBS", "table_est_wt", "table_est_num"))
+  biomass_cpue_tab_name = biomass_cpue_tab_name)
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
@@ -124,6 +169,12 @@ show <- refcontent &
   (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0 &
      nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
 if (show) {
+  if (report_title == "Community Report") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange")
+  } else {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "tab_majortaxa_pchange_NBS", 
+                              "table_est_wt", "table_est_num")
+  }
 temp<-species_content(
   SURVEY000 = "eastern and northern Bering Sea",
   SRVY000 = c("NBS", "EBS"),
@@ -134,7 +185,7 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "tab_majortaxa_pchange_NBS", "table_est_wt", "table_est_num"))
+  biomass_cpue_tab_name = biomass_cpue_tab_name)
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
@@ -149,8 +200,12 @@ temp <- temp$text_spp
 `r ifelse(refcontent & text_spp, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
 ```{r insert_text}
+
+
 insert<-""
 
+if (report_title == "Data Report") {
+  
   # Species specific
   table_est_both <- NMFSReports::crossref(
     list_obj = list_tables, 
@@ -247,15 +302,70 @@ if (text_spp) {
 land_start <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_START--->", "")
 land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "")
 
+# `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
+
+# `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
+
+}
+
+if (report_title == "Community Report") {
+
+# Main text
+fig_bot_temp_map <- NMFSReports::crossref(
+  list_obj = list_figures,
+  nickname = paste0("fig_bt_all_nebs_surveys"),
+  sublist = "number")
+
+fig_surf_temp_map <- NMFSReports::crossref(
+  list_obj = list_figures,
+  nickname = paste0("fig_st_all_nebs_surveys"),
+  sublist = "number")
+
+fig_both_temp_maps <- NMFSReports::crossref(
+  list_obj = list_figures,
+  nickname = paste0("fig_*_all_nebs_surveys"),
+  sublist = "number", 
+  exact = FALSE)
+
+tab_majortaxa_pchange <- NMFSReports::crossref(
+  list_obj = list_tables,
+  nickname = paste0("tab_majortaxa_pchange"),
+  sublist = "number")
+
+# Species specific
+if (spp_plot_sizecomp) {
+  fig_sizecomp <- NMFSReports::crossref(
+    list_obj = list_figures, 
+    nickname = paste0("fig_sizecomp_", spp_file), 
+    sublist = "number")
+} 
+
+if (spp_plot_idw) {
+  fig_idw <- NMFSReports::crossref(
+    list_obj = list_figures, 
+    nickname = paste0("fig_idw_", spp_file), 
+    sublist = "number")    
+}
+
+
+land_start <- ""
+land_end <- ""
+
+insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
+                    refcontent = refcontent)
+}
+
 ```
 
 `r paste0(insert, "\n\n") `
 
 <div id="refs"></div>
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
+`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*", spp_file), sublist = "res", exact = FALSE)`
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
+`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*", spp_file, "*"), sublist = "res", exact = FALSE)`
+
+<!-- data report only (shouldn't show up if table doesn't exist) -->
 
 `r land_start `
 
