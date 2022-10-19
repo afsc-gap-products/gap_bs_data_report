@@ -440,8 +440,8 @@ cpue_crab <- readr::read_csv(file = paste0(dir_data, "oracle/gap_ebs_nbs_crab_cp
                 cpue_noha = cpuenum_total,
                 year = survey_year) %>% 
   dplyr::left_join(
-    y = ., 
-    x = haul %>% 
+    x = ., 
+    y = haul %>% 
       dplyr::rename(latitude = start_latitude, 
                     longitude = start_longitude) %>%
       dplyr::select(vessel, SRVY, stratum, stationid, hauljoin, haul, cruise, latitude, longitude),
