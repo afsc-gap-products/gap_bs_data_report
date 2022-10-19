@@ -1545,26 +1545,33 @@ biomass_strat <- SameColNames(df.ls)  %>%
                 sdpop = sqrt(varpop))
 
 # crab biomass and abundance data
-# temp <- dplyr::bind_rows(
-#   ebscrab0 %>%
-#     dplyr::filter(!(cruise %in% unique(ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
-#     dplyr::mutate(SRVY = "EBS"),
-#   ebscrab_nbs0 %>%
-#     dplyr::mutate(SRVY = "NBS") ) %>% 
-#   dplyr::mutate(length = dplyr::case_when(
-#     species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
-#     TRUE ~ length)) %>%
-#   dplyr::filter(!is.na(length)) %>% # if NA, it was not lengthed!
-#   dplyr::select(hauljoin, SRVY, species_code, station) %>% 
-#   dplyr::distinct() %>%
-#   dplyr::left_join(
-#     x = ., 
-#     y = haul %>% 
-#       dplyr::select(hauljoin, stratum, year), 
-#     by = c("hauljoin")) %>%
-#   dplyr::group_by(SRVY, species_code, stratum, year) %>% 
-#   dplyr::summarise(lencount = n()) %>% 
-#   dplyr::filter(!is.na(stratum))
+temp <- dplyr::bind_rows(
+  ebscrab0 %>%
+    dplyr::filter(!(cruise %in% unique(ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
+    dplyr::mutate(SRVY = "EBS"),
+  ebscrab_nbs0 %>%
+    dplyr::mutate(SRVY = "NBS") ) %>%
+  dplyr::mutate(length = dplyr::case_when(
+    species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
+    TRUE ~ length)) %>%
+  dplyr::filter(!is.na(length)) %>% # if NA, it was not lengthed!
+  dplyr::select(hauljoin, SRVY, species_code, station) %>%
+  dplyr::distinct() %>%
+  dplyr::left_join(
+    x = .,
+    y = haul %>%
+      dplyr::select(hauljoin, stratum, year),
+    by = c("hauljoin")) %>%
+  dplyr::group_by(SRVY, species_code, stratum, year) %>%
+  dplyr::summarise(lencount = n()) %>%
+  dplyr::filter(!is.na(stratum))
+
+temp <- dplyr::bind_rows(
+  temp, 
+  temp %>% 
+    dplyr::group_by(SRVY, species_code, year) %>% 
+    dplyr::summarise(lencount = n()) %>% 
+    dplyr::mutate(stratum = 999)) # survey total
 
 a <- paste0(dir_data, "/oracle/", "gap_ebs_nbs_abundance_biomass.csv")
 biomass_tot_crab <- readr::read_csv(file = a, 
@@ -1583,41 +1590,30 @@ biomass_tot_crab <- readr::read_csv(file = a,
     x = ., 
     y = spp_info %>% 
       dplyr::select(species_code, common_name, species_name), 
-    by = "species_code") %>% 
-  # dplyr::left_join(x = ., 
-  #                  y = temp, 
-  #                  by = c("SRVY", "species_code", "stratum", "year")) %>% 
+    by = "species_code") %>%
   dplyr::arrange(desc(year)) %>% 
   dplyr::mutate(stratum = 999, 
-                file = a)
-
-
+                file = a) %>% 
+  dplyr::left_join(x = .,
+                   y = temp,
+                   by = c("SRVY", "species_code", "stratum", "year")) %>% 
+  dplyr::mutate(lencount = ifelse(is.na(lencount), 0, lencount))
 
 biomass_strat <-  dplyr::bind_rows(biomass_tot_crab, biomass_strat)  %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert"))
 
-
-
-temp <- dplyr::bind_rows(
-  temp, 
-  temp %>% 
-    dplyr::group_by(SRVY, species_code, year) %>% 
-    dplyr::summarise(lencount = n()) %>% 
-    dplyr::mutate(stratum = 999)) # survey total
-
-biomass_strat <- dplyr::bind_rows(
-  biomass_strat %>% # select crab data
-    dplyr::filter(species_code %in% unique(temp$species_code)) %>%
-    dplyr::select(-lencount) %>%
-    dplyr::left_join(x = ., 
-                     y = temp, 
-                     by = c("species_code", "SRVY", "stratum", "year")) %>% 
-    dplyr::mutate(lencount = ifelse(is.na(lencount), 0, lencount)), 
-  biomass_strat %>% 
-    dplyr::filter(!(species_code %in% unique(temp$species_code)))) %>% 
-  dplyr::filter(SRVY %in% SRVY1)
+# biomass_strat <- dplyr::bind_rows(
+#   biomass_strat %>% # select crab data
+#     dplyr::filter(species_code %in% unique(temp$species_code)) %>%
+#     dplyr::select(-lencount) %>%
+#     dplyr::left_join(x = ., 
+#                      y = temp, 
+#                      by = c("species_code", "SRVY", "stratum", "year")), 
+#   biomass_strat %>% 
+#     dplyr::filter(!(species_code %in% unique(temp$species_code)))) %>% 
+#   dplyr::filter(SRVY %in% SRVY1)
 
 
 biomass <- biomass_strat %>%
@@ -1749,6 +1745,7 @@ biomass_cpue_by_stratum <- cpue_by_stratum <- biomass_by_stratum <- a$biomass_cp
 total_biomass <- a$total_biomass
 
 # Cite all papers in report ----------------------------------------------------
+print("Cite all papers in report")
 
 files0<-list.files(path = paste0(dir.output, Sys.Date(), "/", maxyr, "/rawdata/"), pattern = ".docx", full.names = TRUE)
 files1 <- files0
