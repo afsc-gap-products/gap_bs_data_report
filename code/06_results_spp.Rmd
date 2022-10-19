@@ -19,13 +19,22 @@ spp_sci1 <- a$species_name1[1]
 spp_code <- a$species_code # eval(expr = parse(text = a$species_code[1]))
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
+spp_taxon <- a$taxon[1]
 
+# report_title == "Community Report"
 spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
+spp_plot_idw_coldwarm <- FALSE
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
-spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
-# spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
-text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
+spp_plot_pa <- FALSE
+spp_table_cpue <- FALSE
+text_spp <- TRUE
 
+if (report_title == "Data Report") {
+spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
+spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
+text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
+}
 ```
 
 
@@ -361,9 +370,9 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"),
 
 <div id="refs"></div>
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*", spp_file), sublist = "res", exact = FALSE)`
+`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*", spp_file, "*"), sublist = "res", exact = FALSE)`
+`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
 
 <!-- data report only (shouldn't show up if table doesn't exist) -->
 
