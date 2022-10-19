@@ -200,21 +200,21 @@ print("report_spp and spp_info")
 
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
                               skip = 1, show_col_types = FALSE) %>% 
-  dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Highlights", 
+  dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Community", 
                                                   x = report_title), "datar_", "community_")))) # %>%
 # dplyr::filter(!grepl(pattern = "other ", x = group) &
 #!grepl(pattern = "all ", x = group) &
 # !grepl(pattern = "egg ", x = group))
 
 names(report_spp)[
-  grepl(pattern = ifelse(grepl(pattern = "Highlights", 
+  grepl(pattern = ifelse(grepl(pattern = "Community", 
                                x = report_title), "community_", "datar_"), 
         x = names(report_spp))] <- 
-  gsub(pattern = ifelse(grepl(pattern = "Highlights", 
+  gsub(pattern = ifelse(grepl(pattern = "Community", 
                               x = report_title), "community_", "datar_"), 
        replacement = "", 
        x = names(report_spp)[
-         grepl(pattern = ifelse(grepl(pattern = "Highlights", 
+         grepl(pattern = ifelse(grepl(pattern = "Community", 
                                       x = report_title), "community_", "datar_"), 
                x = names(report_spp))])
 
