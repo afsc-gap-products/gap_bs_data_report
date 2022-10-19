@@ -431,91 +431,30 @@ cpue <-
 
 
 
-# # EBS Crab 
-# 
-# cpue_crab_ebs <- readr::read_csv(file = paste0(dir_data, "oracle/ebscrab_cpue_modified.csv"), 
-#                                  show_col_types = FALSE) %>%
-#   janitor::clean_names() %>% 
-#   dplyr::rename(stationid = gis_station, 
-#                 latitude = mid_latitude, 
-#                 longitude = mid_longitude, 
-#                 year = survey_year) %>% 
-#   dplyr::select(-x1)
-# 
-# 
-# 
-# # NBS Crab 
-# 
-# df.ls<-list()
-# 
-# a<-list.files(path = paste0(dir_data, "oracle/"),
-#               pattern = "_SIZEGROUP",
-#               full.names = TRUE)
-# 
-# for (i in 1:length(a)){
-#   b <- readr::read_csv(file = a[i], show_col_types = FALSE) %>%
-#     janitor::clean_names() %>% 
-#     dplyr::select(-dplyr::starts_with("female"), -dplyr::starts_with("male")) 
-#   
-#   if (sum(names(b) %in% "cpuenum_total")>0) {
-#     b <- b %>%
-#       dplyr::rename(cpue_noha = cpuenum_total)
-#   }
-#   
-#   if (sum(names(b) %in% "total_cpuenum")>0) {
-#     b <- b %>%
-#       dplyr::rename(cpue_noha = total_cpuenum)
-#   }
-#   
-#   if (sum(names(b) %in% "cpuewgt_total")>0) {
-#     b <- b %>%
-#       dplyr::rename(cpue_kgha = cpuewgt_total)
-#     
-#   }
-#   
-#   if (sum(names(b) %in% "total_cpuewgt")>0) {
-#     b <- b %>%
-#       dplyr::rename(cpue_kgha = total_cpuewgt)
-#   }
-#   
-#   
-#   
-#   names(b) <- gsub(pattern = "mid_", replacement = "", x = names(b))
-#   if (names(b)[1] %in% "x1"){
-#     b$x1<-NULL
-#   }
-#   # b$file <- a[i]
-#   df.ls[[i]]<-b
-#   names(df.ls)[i]<-a[i]
-# }
-# 
-# cpue_crab <- SameColNames(df.ls) %>% 
-#   # dplyr::select(-file) %>% 
-#   dplyr::rename(stationid = gis_station, 
-#                 year = survey_year) 
-# 
-# cpue_crab <- dplyr::full_join(
-#   x = cpue_crab %>% 
-#     dplyr::filter(!is.na(cpue_kgha)) %>% 
-#     dplyr::select(-cpue_noha), 
-#   y = cpue_crab %>% 
-#     dplyr::filter(!is.na(cpue_noha)) %>% 
-#     dplyr::select(-cpue_kgha), 
-#   by = c("vessel", "year", "species_code", "longitude", "latitude", 
-#          "hauljoin",  "haul", "cruise", "stationid")) %>%
-#   dplyr::mutate(SRVY = "NBS") %>% 
-#   dplyr::left_join(
-#     x = .,
-#     y = spp_info %>% 
-#       dplyr::select(species_code, common_name, species_name), 
-#     by = c("species_code")) %>% 
-#   dplyr::left_join(
-#     x = .,
-#     y = haul %>% 
-#       dplyr::select(hauljoin, stratum, SRVY), 
-#     by = c("hauljoin", "SRVY"))
+# EBS Crab
+cpue_crab <- readr::read_csv(file = paste0(dir_data, "oracle/gap_ebs_nbs_crab_cpue.csv"),
+                             show_col_types = FALSE) %>%
+  janitor::clean_names() %>%
+  dplyr::select(-x1) %>%
+  dplyr::rename(cpue_kgha = cpuewgt_total,
+                cpue_noha = cpuenum_total,
+                year = survey_year) %>% 
+  dplyr::left_join(
+    y = ., 
+    x = haul %>% 
+      dplyr::rename(latitude = start_latitude, 
+                    longitude = start_longitude) %>%
+      dplyr::select(vessel, SRVY, stratum, stationid, hauljoin, haul, cruise, latitude, longitude),
+    by = "hauljoin") %>% 
+  dplyr::left_join(
+    x = ., 
+    y = spp_info %>% 
+      dplyr::select(species_code, common_name, species_name), 
+    by = "species_code") %>% 
+  dplyr::arrange(desc(year))
 
-cpue <- cpue %>% #dplyr::bind_rows(cpue, cpue_crab)  %>%
+# bind cpue
+cpue <- dplyr::bind_rows(cpue_crab, cpue)  %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish",
     species_code >= 40001 ~ "invert"))
@@ -1576,14 +1515,11 @@ print("Load Biomass Design Based Estimates")
 
 df.ls<-list()
 
-a <- list.files(path = paste0(dir_data, "/oracle/"), 
-                pattern = paste0("biomass_"), 
-                full.names = TRUE)
-# a <- a[!grepl(pattern = "_safe", x = a)]
+a <- paste0(dir_data, "/oracle/", c("biomass_ebs_plusnw", "biomass_ebs_plusnw_grouped", "biomass_nbs_safe"), ".csv")
 
 for (i in 1:length(a)){
-  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
-  b <- janitor::clean_names(b)
+  b <- readr::read_csv(file = a[i], show_col_types = FALSE) %>%
+    janitor::clean_names()
   if (names(b)[1] %in% "x1"){
     b$x1<-NULL
   }
@@ -1593,7 +1529,6 @@ for (i in 1:length(a)){
   df.ls[[i]]<-b
   names(df.ls)[i]<-a[i]
 }
-# }
 
 biomass_strat <- SameColNames(df.ls)  %>%
   dplyr::filter(year <= maxyr &
@@ -1608,126 +1543,62 @@ biomass_strat <- SameColNames(df.ls)  %>%
                 sdcpuenum = sqrt(varmnnumcpue), 
                 sdbio = sqrt(varbio), 
                 sdpop = sqrt(varpop))
-# dplyr::group_by(species_code) %>% 
-# dplyr::mutate(meanpop_spp = mean(pop, na.rm = TRUE), 
-#               meanbio_spp = mean(pop, na.rm = TRUE)) %>% 
-# dplyr::ungroup() %>% 
-# dplyr::group_by(species_code, year) %>% 
-# dplyr::mutate(varpop = sqrt(sum(population - meanpop_spp)/(catcount-1)), # from 1 SD to Standard Error
-#               varbio = sqrt(sum(biomass - meanbio_spp)/(catcount-1)))  %>% # from 1 SD to Standard Error
-# dplyr::ungroup() %>% 
-# dplyr::mutate(upperp = population+varpop, 
-#               lowerp = population-varpop, 
-#               upperb = biomass+varbio, 
-#               lowerb = biomass-varbio) 
 
-# dplyr::mutate(varpop =  sqrt(varpop)/sqrt(catcount), # from 1 SD to Standard Error
-#               upperp = population+varpop,
-#               lowerp = population-varpop,
-#               varbio =  sqrt(varbio)/sqrt(catcount), # from 1 SD to Standard Error
-#               upperb = biomass+varbio,
-#               lowerb = biomass-varbio)
+# crab biomass and abundance data
+# temp <- dplyr::bind_rows(
+#   ebscrab0 %>%
+#     dplyr::filter(!(cruise %in% unique(ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
+#     dplyr::mutate(SRVY = "EBS"),
+#   ebscrab_nbs0 %>%
+#     dplyr::mutate(SRVY = "NBS") ) %>% 
+#   dplyr::mutate(length = dplyr::case_when(
+#     species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
+#     TRUE ~ length)) %>%
+#   dplyr::filter(!is.na(length)) %>% # if NA, it was not lengthed!
+#   dplyr::select(hauljoin, SRVY, species_code, station) %>% 
+#   dplyr::distinct() %>%
+#   dplyr::left_join(
+#     x = ., 
+#     y = haul %>% 
+#       dplyr::select(hauljoin, stratum, year), 
+#     by = c("hauljoin")) %>%
+#   dplyr::group_by(SRVY, species_code, stratum, year) %>% 
+#   dplyr::summarise(lencount = n()) %>% 
+#   dplyr::filter(!is.na(stratum))
 
-# a <- list.files(path = paste0(dir_data, "oracle/"), pattern = "BIOMASS_NEWTS", full.names = TRUE)
-# 
-# for (i in 1:length(a)){
-#   b <- readr::read_csv(file = a[i], show_col_types = FALSE)
-#   b <- janitor::clean_names(b)
-#   if (names(b)[1] %in% "x1"){
-#     b$x1<-NULL
-#   }
-#   b$file <- a[i]
-#   df.ls[[i]]<-b
-#   names(df.ls)[i]<-a[i]
-# }
-# 
-# # Total biomass
-# biomass_strat_crab_nbs <- SameColNames(df.ls) %>%
-#   dplyr::mutate(SRVY = "NBS", 
-#                 stratum = 999) %>% 
-#   dplyr::rename(year = survey_year, 
-#                 biomass = biomass_total) %>% 
-#   dplyr::select(-biomass_male_total, -biomass_female_total, -file)
-#   
-#   
-#   
-# biomass_strat_crab_ebs <- read.csv(file = paste0(dir_data, "/oracle/ebscrab_abundance_biomass.csv")) %>%
-#   dplyr::filter(DISTRICT_CODE == "ALL")
-#   janitor::clean_names() %>% 
-#   dplyr::select(-x,  -load_date) %>% 
-#   dplyr::rename(
-#     abn_bio_id, 
-#     year = survey_year, 
-#     species_id, 
-#     species_code, 
-#     district_id, 
-#     district_code, 
-#     sgd_id, 
-#     size_category, 
-#     size_group, 
-#     population = abundance, 
-#     abundance_cv, 
-#     abundance_ci, 
-#     biomass = biomass_mt, 
-#     biomass_mt_cv, 
-#     biomass_mt_ci, 
-#     biomass_lbs, 
-#     biomass_lbs_cv, 
-#     biomass_lbs_ci) %>% 
-#   dplyr::mutate(
-#     varpop, 
-#     varmnwgtcpue, 
-#     varmnnumcpuevar, 
-#     upperp, 
-#     upperb, 
-#     SRVY = "EBS", 
-#     stratum, 
-#     species_name, 
-#     species_code, 
-#     numcount, 
-#     meanwgtcpue, 
-#     meannumcpue, 
-#     lowerp, 
-#     lowerb, 
-#     lencount, 
-#     haulcount, 
-#     file = paste0(dir_data, "/oracle/ebscrab_abundance_biomass.csv"), 
-#     degreefwgt, 
-#     degreefnum, 
-#     common_name, 
-#     catcount, 
-#     sdcpuewt, 
-#     sdcpuenum, 
-#     sdbio, 
-#     sdpop)
+a <- paste0(dir_data, "/oracle/", "gap_ebs_nbs_abundance_biomass.csv")
+biomass_tot_crab <- readr::read_csv(file = a, 
+                                    show_col_types = FALSE) %>%
+  janitor::clean_names() %>% 
+  dplyr::select(-x1) %>%
+  dplyr::rename(biomass = biomass_total,
+                lowerb = biomass_lower_ci, 
+                upperb = biomass_upper_ci, 
+                population = abundance, 
+                upperp = abundance_lower_ci, 
+                lowerp = abundance_upper_ci, 
+                SRVY = survey_region,
+                year = survey_year) %>%
+  dplyr::left_join(
+    x = ., 
+    y = spp_info %>% 
+      dplyr::select(species_code, common_name, species_name), 
+    by = "species_code") %>% 
+  # dplyr::left_join(x = ., 
+  #                  y = temp, 
+  #                  by = c("SRVY", "species_code", "stratum", "year")) %>% 
+  dplyr::arrange(desc(year)) %>% 
+  dplyr::mutate(stratum = 999, 
+                file = a)
 
-biomass_strat <- biomass_strat %>% # dplyr::bind_rows(biomass_strat, biomass_strat_crab)  %>%
+
+
+biomass_strat <-  dplyr::bind_rows(biomass_tot_crab, biomass_strat)  %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert"))
 
 
-# TOLEDO - shouldn't have to do this!
-temp <- dplyr::bind_rows(
-  ebscrab0 %>%
-    dplyr::filter(!(cruise %in% unique(ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
-    dplyr::mutate(SRVY = "EBS"),
-  ebscrab_nbs0 %>%
-    dplyr::mutate(SRVY = "NBS") ) %>% 
-  dplyr::mutate(length = dplyr::case_when(
-    species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
-    TRUE ~ length)) %>%
-  dplyr::filter(!is.na(length)) %>% # if NA, it was not lengthed!
-  dplyr::select(hauljoin, SRVY, species_code, station) %>% 
-  dplyr::distinct() %>%
-  dplyr::left_join(
-    x = ., 
-    y = haul %>% 
-      dplyr::select(hauljoin, stratum, year), 
-    by = c("hauljoin")) %>%
-  dplyr::group_by(SRVY, species_code, stratum, year) %>% 
-  dplyr::summarise(lencount = n()) %>% 
-  dplyr::filter(!is.na(stratum))
 
 temp <- dplyr::bind_rows(
   temp, 
