@@ -1074,7 +1074,8 @@ add_report_spp <- function(spp_info,
                            expand = TRUE){
   
   temp <- report_spp %>% 
-    dplyr::select(-questions) 
+    dplyr::select(-questions) %>% 
+    dplyr::arrange((order))
   
   if (!lang) {
     temp <- temp %>%

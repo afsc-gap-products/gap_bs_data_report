@@ -1317,9 +1317,9 @@ cpue_biomass_station <- tidyr::crossing(
   ## checks catch_and_zeros table for species that are not in groups, if species are not grouped
   #### add group to assign_groups table
   ## calculates CPUE for each species group by station
-  mutate(effort = distance_fished * net_width/10) %>%
-  mutate(cpue_kgha = wt_kg_summed_by_station/effort) %>%
-  mutate(cpue_noha = ifelse(wt_kg_summed_by_station > 0 & num_summed_by_station == 0, NA,
+  dplyr::mutate(effort = distance_fished * net_width/10) %>%
+  dplyr::mutate(cpue_kgha = wt_kg_summed_by_station/effort) %>%
+  dplyr::mutate(cpue_noha = ifelse(wt_kg_summed_by_station > 0 & num_summed_by_station == 0, NA,
                             (cpue_no = num_summed_by_station/effort))) %>%
   #### this is to check CPUEs by group, station and year against the SQL code
   ## add area to CPUE table
