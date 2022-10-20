@@ -47,6 +47,7 @@ PKG <- c(
   "magrittr",
   "readr",
   "tidyr",
+  "readxl", 
   
   # Text Management
   "stringr",

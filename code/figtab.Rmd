@@ -762,7 +762,7 @@ l <- length_maxyr %>%
   # dplyr::mutate(common_name = gsub(pattern = " (juvenile)", replacement = "", x = common_name, fixed = TRUE)) %>% 
   dplyr::group_by(SRVY, species_code) %>% 
   dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
-  dplyr::ungroup()
+  dplyr::ungroup() 
 
 # age oto data - from oracle
 a <- specimen_maxyr %>% 
@@ -772,7 +772,7 @@ a <- specimen_maxyr %>%
   # also specimen_sample_type? 1 = otoliths, 
   # specimen_subsample_method 1=random, 2 = stratified?
   dplyr::summarise(age = as.numeric(n())) %>% 
-  dplyr::ungroup() #%>% 
+  dplyr::ungroup()
 
 # other collections not in oracle
 temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_other_field_collections.xlsx"), 
@@ -805,7 +805,8 @@ table_raw0 <-
                    by = c("SRVY", "common_name" = "print_name")) %>% 
   dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0))) %>%
   dplyr::select(-species_code) %>% 
-  dplyr::arrange(SRVY, common_name) 
+  dplyr::arrange(SRVY, common_name) %>% 
+  dplyr::filter(!grepl(pattern = " crab", x = common_name, ignore.case = TRUE))
 
 table_raw0$common_name[is.na(table_raw0$common_name)] <- "other" # TOLEDO
 
@@ -814,20 +815,11 @@ table_raw0 <-
                    table_raw0 %>% 
                      dplyr::group_by(SRVY) %>% 
                      dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
-                     # dplyr::summarise(
-                     #   length = sum(length, na.rm = TRUE),
-                     #   age = sum(age, na.rm = TRUE), 
-                     #   stomach = sum(stomach, na.rm = TRUE), 
-                     #   pathobio = sum(pathobio, na.rm = TRUE)) %>% 
-                     # dplyr::mutate(order = max(report_spp1$order)+1) %>% 
-                     dplyr::mutate(common_name = "Total") # %>% 
-                   # dplyr::left_join(x = ., y = temp)
-  ) %>% 
+                     dplyr::mutate(common_name = "Total") ) %>% 
   dplyr::relocate(SRVY, common_name, length, age) %>% 
   dplyr::rename("length_measurements" = length,
-                "otolith_age_structure_measurements" = age) %>%
+                "otolith_age_structure_samples" = age) %>%
   data.frame()
-
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
@@ -837,7 +829,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
                    haul_cruises_maxyr$SRVY[i],
-                   " shelf bottom trawl survey.")
+                   " shelf bottom trawl survey. The annual crab technical memorandum produced by the shelfish assessment program summarizes crab samples collected during the survey. ")
   
   table_raw <- table_raw0 %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i])
@@ -1613,12 +1605,13 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 nickname0 <- "tab_biomass_est_invert_"
 
+#     species_code >= 68000 & species_code <= 69549 ~ "Crustacea_crabs",
+
 # # Select data and make plot
 # place species codes into groups and major species
 exp0 <- ('DATAFRAME %>% dplyr::filter(species_code >= 40000 & 
                   species_code < 99991) %>% # groups greater than 99991 are empty shells, empty barnacles
   dplyr::mutate(group0 = dplyr::case_when(
-    species_code >= 68000 & species_code <= 69549 ~ "Crustacea_crabs",
     species_code >= 66000 & species_code <= 67499 ~ "Crustacea_shrimps",
     species_code >= 60000 & species_code <= 65999 ~ "Crustacea_other crustaceans",
     species_code >= 67500 & species_code <=	67999 ~ "Crustacea_other crustaceans",
@@ -1660,7 +1653,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   header <- paste0("Biomass estimates (mt) for major invertebrate taxa collected during the ", 
                    maxyr, " ", 
                    haul_cruises_maxyr$SRVY[i],
-                   " shelf bottom trawl survey.")
+                   " shelf bottom trawl survey. Crab data is summarized under other crustateans and discussed in detail in annual crab technical memorandum produced by the shelfish assessment program. ")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   
