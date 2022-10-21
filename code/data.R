@@ -1269,130 +1269,6 @@ coldpool_ebs_total_area <- coldpool_ebs_bin_area %>%
 #                                   labels = c("\u2264 2\u00b0C", "\u2264 1\u00b0C", "\u2264 0\u00b0C", "\u2264 -1\u00b0C")),
 #                 proportion = value/sebs_layers$survey.area$AREA_KM2)
 
-# *** Calculate Biomass and CPUE -----------------------------------------------------------
-
-print("Calculate Biomass and CPUE")
-
-report_spp1 <- add_report_spp(spp_info = spp_info, 
-                              spp_info_codes = "species_code", 
-                              report_spp = report_spp, 
-                              report_spp_col = "table_bio_spp", 
-                              report_spp_codes = "species_code")
-
-spp_info1 <- dplyr::left_join(
-  x = spp_info %>% 
-    dplyr::select(-species_name), 
-  y = report_spp1 %>% 
-    dplyr::select(order, file_name, print_name, common_name1, group, group_sci, 
-                  species_code, species_name, species_name1), 
-  by = "species_code")
-
-
-cpue_biomass_station <- tidyr::crossing(
-  haul_cruises_vess %>%
-    dplyr::filter(SRVY %in% c("NBS", "EBS")),
-  dplyr::distinct(
-    catch_haul_cruises %>%
-      dplyr::filter(SRVY %in% c("NBS", "EBS"))  %>%
-      dplyr::left_join(
-        x = .,
-        y = spp_info1 %>% 
-          # dplyr::mutate(group = species_name) %>% 
-          dplyr::select(species_code, group, species_name, species_name1, print_name, taxon),
-        by = "species_code"),
-    species_code, species_name, species_name1, group, print_name, taxon)) %>%
-  dplyr::left_join(
-    x = .,
-    y = catch_haul_cruises %>%
-      dplyr::select("cruisejoin", "hauljoin", "cruisejoin", "species_code",
-                    "weight", "number_fish", "SRVY"),
-    by = c("species_code", "hauljoin", "cruisejoin", "SRVY")) %>%
-  #### a check for species with weights greater then 0
-  ## sum catch weight (by groups) by station and join to haul table (again) to add on relevent haul data
-  dplyr::group_by(year, stationid, SRVY, species_name, species_name1, print_name, taxon, #species_code,
-                  group, hauljoin, stratum, distance_fished, net_width) %>%
-  dplyr::summarise(wt_kg_summed_by_station = sum(weight, na.rm = TRUE), # overwrite NAs in assign_group_zeros where data exists
-                   num_summed_by_station = sum(number_fish, na.rm = TRUE)) %>% # overwrite NAs in
-  
-  ## checks catch_and_zeros table for species that are not in groups, if species are not grouped
-  #### add group to assign_groups table
-  ## calculates CPUE for each species group by station
-  dplyr::mutate(effort = distance_fished * net_width/10) %>%
-  dplyr::mutate(cpue_kgha = wt_kg_summed_by_station/effort) %>%
-  dplyr::mutate(cpue_noha = ifelse(wt_kg_summed_by_station > 0 & num_summed_by_station == 0, NA,
-                            (cpue_no = num_summed_by_station/effort))) %>%
-  #### this is to check CPUEs by group, station and year against the SQL code
-  ## add area to CPUE table
-  dplyr::ungroup() %>% 
-  dplyr::left_join(x = .,
-                   y = stratum_info %>%
-                     dplyr::select(stratum, area),
-                   by = 'stratum')  %>% 
-  dplyr::left_join(x = ., 
-                   y = station_info, 
-                   by = c("stationid", "SRVY", "stratum")) %>% 
-  dplyr::rename(latitude = start_latitude, 
-                longitude = start_longitude) %>% 
-  dplyr::filter(!is.na(stationid))
-#   # total biomass excluding empty shells and debris for each year
-#   dplyr::filter(group != 'empty shells and debris')  %>%
-#   dplyr::mutate(type = ifelse(
-#     grepl(pattern = "@", x = (group), fixed = TRUE),
-#     # species_name == paste0(genus_taxon, " ", species_taxon),
-#     "ital", NA)) %>%
-#   tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
-#   dplyr::select(-extra) %>%
-#   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
-#                                     x = species_name, fixed = TRUE)) %>% 
-#   dplyr::ungroup()
-
-
-
-cpue_biomass_stratum <- cpue_biomass_station %>%
-  ## calculates mean CPUE (weight) by year, group, stratum, and area
-  dplyr::ungroup() %>%
-  dplyr::group_by(year, group, species_name, species_name1, print_name, 
-                  stratum, area, SRVY, taxon) %>%
-  dplyr::summarise(cpue_by_group_stratum = mean(cpue_kgha, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
-  ## creates column for meanCPUE per group/stratum/year*area of stratum
-  dplyr::mutate(mean_cpue_times_area = (cpue_by_group_stratum * area)) %>%
-  ## calculates sum of mean CPUE*area (over the 3 strata)
-  dplyr::ungroup() 
-
-cpue_biomass_total <- cpue_biomass_stratum %>%
-  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name, taxon) %>%
-  dplyr::summarise(mean_CPUE_all_strata_times_area =
-                     sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
-  
-  # calculates total area by adding up the unique area values (each strata has a different value)
-  dplyr::left_join(
-    x = ., 
-    y = cpue_biomass_station %>% 
-      dplyr::ungroup() %>%
-      dplyr::select(area, SRVY) %>% 
-      dplyr::distinct() %>%
-      dplyr::group_by(SRVY) %>% 
-      dplyr::summarise(total_area = sum(area, na.rm = TRUE)), 
-    by = "SRVY") %>%
-  
-  ## creates column with weighted CPUEs
-  dplyr::mutate(weighted_CPUE = (mean_CPUE_all_strata_times_area / total_area)) %>%
-  ### uses WEIGHTED CPUEs to calculate biomass
-  ## includes empty shells and debris
-  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name) %>%
-  dplyr::mutate(biomass_mt = weighted_CPUE*(total_area*.1)) %>%
-  # total biomass excluding empty shells and debris for each year
-  dplyr::filter(group != 'empty shells and debris')  %>%
-  # dplyr::mutate(type = ifelse(
-  #   grepl(pattern = "@", x = (group), fixed = TRUE),
-  #   # species_name == paste0(genus_taxon, " ", species_taxon),
-  #   "ital", NA)) %>%
-  # tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
-  # dplyr::select(-extra) %>%
-  # dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
-  #                                   x = species_name, fixed = TRUE)) %>% 
-  dplyr::ungroup()
-
 
 ## *** Load Size Comp Design Based Estimates ----------------------------------------------
 print("Load Size Comp Design Based Estimates")
@@ -1625,8 +1501,186 @@ biomass_maxyr<-biomass %>%
 biomass_compareyr<-biomass %>%
   dplyr::filter(year == compareyr[1])
 
+# *** Calculate Biomass and CPUE -----------------------------------------------------------
+
+print("Calculate Biomass and CPUE")
+
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "table_bio_spp", 
+                              report_spp_codes = "species_code")
+
+spp_info1 <- dplyr::left_join(
+  x = spp_info %>% 
+    dplyr::select(-species_name), 
+  y = report_spp1 %>% 
+    dplyr::select(order, file_name, print_name, common_name1, group, group_sci, 
+                  species_code, species_name, species_name1), 
+  by = "species_code")
+
+
+cpue_biomass_station <- tidyr::crossing(
+  haul_cruises_vess %>%
+    dplyr::filter(SRVY %in% c("NBS", "EBS")),
+  dplyr::distinct(
+    catch_haul_cruises %>%
+      dplyr::filter(SRVY %in% c("NBS", "EBS"))  %>%
+      dplyr::left_join(
+        x = .,
+        y = spp_info1 %>% 
+          # dplyr::mutate(group = species_name) %>% 
+          dplyr::select(species_code, group, species_name, species_name1, print_name, taxon),
+        by = "species_code"),
+    species_code, species_name, species_name1, group, print_name, taxon)) %>%
+  dplyr::left_join(
+    x = .,
+    y = catch_haul_cruises %>%
+      dplyr::select("cruisejoin", "hauljoin", "cruisejoin", "species_code",
+                    "weight", "number_fish", "SRVY"),
+    by = c("species_code", "hauljoin", "cruisejoin", "SRVY")) %>%
+  #### a check for species with weights greater then 0
+  ## sum catch weight (by groups) by station and join to haul table (again) to add on relevent haul data
+  dplyr::group_by(year, stationid, SRVY, species_name, species_name1, print_name, taxon, #species_code,
+                  group, hauljoin, stratum, distance_fished, net_width) %>%
+  dplyr::summarise(wt_kg_summed_by_station = sum(weight, na.rm = TRUE), # overwrite NAs in assign_group_zeros where data exists
+                   num_summed_by_station = sum(number_fish, na.rm = TRUE)) %>% # overwrite NAs in
+  
+  ## checks catch_and_zeros table for species that are not in groups, if species are not grouped
+  #### add group to assign_groups table
+  ## calculates CPUE for each species group by station
+  dplyr::mutate(effort = distance_fished * net_width/10) %>%
+  dplyr::mutate(cpue_kgha = wt_kg_summed_by_station/effort) %>%
+  dplyr::mutate(cpue_noha = ifelse(wt_kg_summed_by_station > 0 & num_summed_by_station == 0, NA,
+                            (cpue_no = num_summed_by_station/effort))) %>%
+  #### this is to check CPUEs by group, station and year against the SQL code
+  ## add area to CPUE table
+  dplyr::ungroup() %>% 
+  dplyr::left_join(x = .,
+                   y = stratum_info %>%
+                     dplyr::select(stratum, area),
+                   by = 'stratum')  %>% 
+  dplyr::left_join(x = ., 
+                   y = station_info, 
+                   by = c("stationid", "SRVY", "stratum")) %>% 
+  dplyr::rename(latitude = start_latitude, 
+                longitude = start_longitude) %>% 
+  dplyr::filter(!is.na(stationid))
+#   # total biomass excluding empty shells and debris for each year
+#   dplyr::filter(group != 'empty shells and debris')  %>%
+#   dplyr::mutate(type = ifelse(
+#     grepl(pattern = "@", x = (group), fixed = TRUE),
+#     # species_name == paste0(genus_taxon, " ", species_taxon),
+#     "ital", NA)) %>%
+#   tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
+#   dplyr::select(-extra) %>%
+#   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
+#                                     x = species_name, fixed = TRUE)) %>% 
+#   dplyr::ungroup()
+
+# bb <- dplyr::bind_rows(
+#   cpue_biomass_station %>% 
+#     dplyr::filter(!species_code %in% c(69323, 69322, 68580, 68560)), 
+#   cpue_biomass_station %>% 
+#     dplyr::filter(species_code %in% c(69323, 69322, 68580, 68560))
+# )
+
+if (report_title == "Community Report") {
+cpue_biomass_station <- dplyr::bind_rows(
+  dplyr::left_join(
+    x = cpue_biomass_station %>% 
+      dplyr::filter(print_name %in% c("blue king crab", "red king crab", "snow crab")) %>% 
+      dplyr::select(-cpue_kgha, -cpue_noha), 
+    y = cpue_crab %>% 
+      dplyr::mutate(print_name = dplyr::case_when(
+        species_code == 69323 ~ "blue king crab", 
+        species_code == 69322 ~ "red king crab", 
+        species_code == 68580 ~ "snow crab", 
+        # species_code == 68560 ~ "Tanner crab", 
+      )) %>% 
+      dplyr::select(print_name, year, hauljoin, cpue_kgha, cpue_noha), 
+    by = c("print_name", "year", "hauljoin")
+  ), 
+  cpue_biomass_station %>% 
+    dplyr::filter(!(print_name %in% c("blue king crab", "red king crab", "snow crab")) ) )
+}
+
+cpue_biomass_stratum <- cpue_biomass_station %>%
+  ## calculates mean CPUE (weight) by year, group, stratum, and area
+  dplyr::ungroup() %>%
+  dplyr::group_by(year, group, species_name, species_name1, print_name, 
+                  stratum, area, SRVY, taxon) %>%
+  dplyr::summarise(cpue_by_group_stratum = mean(cpue_kgha, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  ## creates column for meanCPUE per group/stratum/year*area of stratum
+  dplyr::mutate(mean_cpue_times_area = (cpue_by_group_stratum * area)) %>%
+  ## calculates sum of mean CPUE*area (over the 3 strata)
+  dplyr::ungroup()
+# we'll remove crab stuff from here soon
+
+cpue_biomass_total <- cpue_biomass_stratum %>%
+  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name, taxon) %>%
+  dplyr::summarise(mean_CPUE_all_strata_times_area =
+                     sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  
+  # calculates total area by adding up the unique area values (each strata has a different value)
+  dplyr::left_join(
+    x = ., 
+    y = cpue_biomass_station %>% 
+      dplyr::ungroup() %>%
+      dplyr::select(area, SRVY) %>% 
+      dplyr::distinct() %>%
+      dplyr::group_by(SRVY) %>% 
+      dplyr::summarise(total_area = sum(area, na.rm = TRUE)), 
+    by = "SRVY") %>%
+  
+  ## creates column with weighted CPUEs
+  dplyr::mutate(weighted_CPUE = (mean_CPUE_all_strata_times_area / total_area)) %>%
+  ### uses WEIGHTED CPUEs to calculate biomass
+  ## includes empty shells and debris
+  dplyr::group_by(year, group, SRVY, species_name, species_name1, print_name) %>%
+  dplyr::mutate(biomass_mt = weighted_CPUE*(total_area*.1)) %>%
+  # total biomass excluding empty shells and debris for each year
+  dplyr::filter(group != 'empty shells and debris')  %>%
+  # dplyr::mutate(type = ifelse(
+  #   grepl(pattern = "@", x = (group), fixed = TRUE),
+  #   # species_name == paste0(genus_taxon, " ", species_taxon),
+  #   "ital", NA)) %>%
+  # tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
+  # dplyr::select(-extra) %>%
+  # dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
+  #                                   x = species_name, fixed = TRUE)) %>% 
+  dplyr::ungroup()
+
+
+if (report_title == "Community Report") {
+  
+  cpue_biomass_total <- dplyr::bind_rows(
+    dplyr::left_join(
+      x = cpue_biomass_total %>% 
+        dplyr::filter(print_name %in% c("blue king crab", "red king crab", "snow crab")) %>% 
+        dplyr::select(-weighted_CPUE, -biomass_mt, -mean_CPUE_all_strata_times_area), 
+      y = biomass_tot_crab %>% 
+        dplyr::mutate(print_name = dplyr::case_when(
+          species_code == 69323 ~ "blue king crab", 
+          species_code == 69322 ~ "red king crab", 
+          species_code == 68580 ~ "snow crab", 
+          # species_code == 68560 ~ "Tanner crab", 
+        )) %>% 
+        dplyr::rename(biomas_mt = biomass) %>% 
+        dplyr::select(print_name, year, SRVY, biomas_mt), 
+      by = c("print_name", "year", "SRVY")
+    ), 
+    cpue_biomass_total %>% 
+      dplyr::filter(!(print_name %in% c("blue king crab", "red king crab", "snow crab"))) )
+  
+  cpue_biomass_stratum <- cpue_biomass_stratum %>%
+    # remove crab stuff because they use diff strata etc
+    dplyr::filter(!(print_name %in% c("blue king crab", "red king crab", "snow crab")))
+}
+
 
 ## *** Total Biomass ---------------------------------------------------------------
+
 print("Total Biomass")
 
 calc_cpue_bio <- function(catch_haul_cruises0){
@@ -1732,7 +1786,7 @@ calc_cpue_bio <- function(catch_haul_cruises0){
                     (species_code > 1 & 
                        species_code < 35000)) %>% 
     ungroup() %>%
-    dplyr::group_by(SRVY) %>% 
+    dplyr::group_by(SRVY, year) %>% 
     dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE))
   
   return(list("biomass_cpue_by_stratum" = biomass_cpue_by_stratum, 
@@ -1740,9 +1794,30 @@ calc_cpue_bio <- function(catch_haul_cruises0){
   
 }
 
-a<-calc_cpue_bio(catch_haul_cruises0 = catch_haul_cruises_maxyr)
-biomass_cpue_by_stratum <- cpue_by_stratum <- biomass_by_stratum <- a$biomass_cpue_by_stratum
-total_biomass <- a$total_biomass
+a <- calc_cpue_bio(catch_haul_cruises0 = catch_haul_cruises_maxyr)
+
+biomass_cpue_by_stratum <- cpue_by_stratum <- biomass_by_stratum <- 
+  a$biomass_cpue_by_stratum %>%  # remove crab totals, as they use different stratum
+    dplyr::filter(!(species_code %in% c(69323, 69322, 68580, 68560)))
+
+# subtract our-calculated crab totals so we can add the right total from SAP
+cc <- a$biomass_cpue_by_stratum %>% 
+  dplyr::filter((species_code %in% c(69323, 69322, 68580, 68560))) %>%
+  ungroup() %>%
+  dplyr::group_by(SRVY, year) %>%
+  dplyr::summarise(total_crab_wrong = sum(biomass_mt, na.rm = TRUE))
+
+total_biomass <- 
+  dplyr::left_join(x = a$total_biomass, 
+                   y = cc) %>% 
+  dplyr::left_join(x = ., 
+                   y = biomass_tot_crab %>% 
+                     dplyr::filter(stratum == 999) %>%
+                     ungroup() %>%
+                     dplyr::group_by(SRVY, year) %>% 
+                     dplyr::summarise(total_crab_correct = sum(biomass, na.rm = TRUE))) %>% 
+  dplyr::mutate(total = total - total_crab_wrong + total_crab_correct) %>% 
+  dplyr::select(-total_crab_wrong, -total_crab_correct)
 
 # Cite all papers in report ----------------------------------------------------
 print("Cite all papers in report")
