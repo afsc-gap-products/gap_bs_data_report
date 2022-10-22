@@ -56,7 +56,7 @@ if (report_title == "Data Report") {
   SRVY11 <- SRVY1
 } else if (report_title == "Community Report") {
   yrs <- nbsyr
-  height <- full_page_portrait_height-1
+  height <- full_page_portrait_height
   print_n <- TRUE
   SRVY11 <-"NBS"
 }
@@ -92,7 +92,7 @@ if (report_title == "Data Report") {
     height <- 3.25 
   }
   
-  header <- paste0("Total abundance-at-length estimates of ",
+  header <- paste0("Total abundance-at-size estimates of ",
                    spp_print, ifelse(is.na(spp_sci), "", 
                                      paste0(" (",spp_sci,")")), 
                    " by sex (",NMFSReports::text_list(tolower(unique(table_raw$sex))),
@@ -204,9 +204,7 @@ if (spp_plot_idw_coldwarm){
   table_raw0 <- cpue %>%
     dplyr::filter(!is.na(cpue_kgha)) %>% 
     dplyr::arrange(desc(year)) %>% 
-    dplyr::filter(species_code %in% spp_code #& 
-                  # dplyr::filter(common_name %in% spp_common & 
-                  # year %in% unlist(temps_avg_yr_abovebelow)
+    dplyr::filter(species_code %in% spp_code
     ) %>% 
     dplyr::mutate(SRVY_long = dplyr::case_when(
       SRVY == "EBS" ~ "Eastern Bering Sea", 
@@ -267,7 +265,7 @@ if (spp_plot_idw_coldwarm){
       grid = "extrapolation.grid",
       reg_dat = reg_dat, 
       region = map.area, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
+      key.title = paste0(stringr::str_to_sentence(spp_print), "\nweight CPUE (kg/ha)"),
       set.breaks = set.breaks, 
       row0 = row0) + 
       ggtitle(paste0("Weight CPUE in Years ",
@@ -357,8 +355,9 @@ if (report_title == "Data Report") {
   }
   
   if (spp_plot_idw) {
+    
     header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
-                     " distribution and relative biomass (kg/ha) from the ",
+                     " distribution and weight CPUE (kg/ha) (kg/ha) from the ",
                      NMFSReports::text_list(yrs), " ", 
                      NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
                      ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
@@ -384,7 +383,7 @@ if (report_title == "Data Report") {
       grid = "extrapolation.grid",
       reg_dat = reg_dat0, 
       region = map.area0, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
+      key.title = paste0(stringr::str_to_sentence(spp_print), "\nweight CPUE (kg/ha)"),
       set.breaks = set.breaks, 
       row0 = nrow0)
     
