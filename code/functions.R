@@ -2568,7 +2568,9 @@ plot_survey_stations <- function(reg_dat,
     
   if (bathymetry) { #else {
     figure <- figure  +
-      geom_sf(data = reg_dat$bathymetry, color = "transparent")
+      geom_sf(data = reg_dat$bathymetry, 
+              fill = NA, 
+              color = "grey50")
   }
   
   # figure <- figure  +
