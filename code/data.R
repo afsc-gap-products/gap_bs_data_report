@@ -1666,8 +1666,8 @@ if (report_title == "Community Report") {
           species_code == 68580 ~ "snow crab", 
           # species_code == 68560 ~ "Tanner crab", 
         )) %>% 
-        dplyr::rename(biomas_mt = biomass) %>% 
-        dplyr::select(print_name, year, SRVY, biomas_mt), 
+        dplyr::rename(biomass_mt = biomass) %>% 
+        dplyr::select(print_name, year, SRVY, biomass_mt), 
       by = c("print_name", "year", "SRVY")
     ), 
     cpue_biomass_total %>% 
