@@ -73,7 +73,13 @@ if (report_title == "Data Report") {
   table_raw <- sizecomp %>%
     dplyr::filter(species_code %in% spp_code &
                     SRVY %in% SRVY11 &
-                    year %in% yrs)
+                    year %in% yrs) %>% 
+    dplyr::mutate(sex = str_to_sentence(sex), 
+                  sex = factor(sex, 
+                               levels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"), 
+                               labels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"),
+                               ordered = TRUE)) %>% 
+    dplyr::arrange(sex)
   
   if (report_title != "Community Report" & SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
     

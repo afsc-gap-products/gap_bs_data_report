@@ -2143,21 +2143,14 @@ plot_sizecomp <- function(sizecomp0,
                           ridgeline = FALSE){
   
   table_raw <- sizecomp0 %>%
-    dplyr::mutate(sex = stringr::str_to_title(
-      gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) %>% 
-    dplyr::arrange(year, SRVY, sex, length)
-  
-  table_raw$year <- factor(
-    x = table_raw$year,
-    levels = as.character(sort(unique(table_raw$year))),
-    labels = as.character(sort(unique(table_raw$year))),
-    ordered = TRUE)
-  
-  table_raw$sex <- factor(
-    x = table_raw$sex,
-    levels = as.character(sort(unique(table_raw$sex), decreasing = TRUE)),
-    labels = as.character(sort(unique(table_raw$sex), decreasing = TRUE)),
-    ordered = TRUE)
+    # dplyr::mutate(sex = stringr::str_to_title(
+    #   gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) %>% 
+    dplyr::arrange(year, SRVY, sex, length) %>% 
+    dplyr::mutate(year <- factor(
+      x = table_raw$year,
+      levels = as.character(sort(unique(table_raw$year))),
+      labels = as.character(sort(unique(table_raw$year))),
+      ordered = TRUE))
   
   # find appropriate units
   a<-find_units(unit = "", unt = "", dat = max(table_raw$pop))
@@ -2278,7 +2271,7 @@ plot_sizecomp <- function(sizecomp0,
       levels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
       labels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
       ordered = TRUE)
-
+    
     figure <- ggplot(data = table_raw1, 
                      mapping = aes(x = length, 
                                    y = year, 
@@ -2321,7 +2314,7 @@ plot_sizecomp <- function(sizecomp0,
                        unlist()))
     
     dat_text$label <- gsub("\\s", " ", formatC(x = dat_text$label)) #, width=max(nchar(dat_text$label))))
-
+    
     figure <- 
       tag_facet(p = figure, 
                 x = Inf, y = Inf, 
@@ -2332,6 +2325,7 @@ plot_sizecomp <- function(sizecomp0,
   
   return(figure)
 }
+
 
 
 plot_timeseries <- function(

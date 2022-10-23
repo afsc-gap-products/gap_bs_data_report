@@ -838,10 +838,10 @@ length_crab <- dplyr::bind_rows(
   dplyr::mutate(year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
   dplyr::mutate(sex_code = sex, 
                 sex = dplyr::case_when(
-                  sex == 1 ~ "Males",
-                  sex == 0 ~ "Unsexed",
-                  (clutch_size == 0 & sex == 2) ~ "Immature females", 
-                  (clutch_size >= 1 & sex == 2) ~ "Mature females"), 
+                  sex == 1 ~ "males",
+                  sex == 0 ~ "unsexed",
+                  (clutch_size == 0 & sex == 2) ~ "immature females", 
+                  (clutch_size >= 1 & sex == 2) ~ "mature females"), 
                 length = dplyr::case_when(
                   species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
                   TRUE ~ length), 
@@ -1287,10 +1287,10 @@ sizecomp_crab <- SameColNames(df.ls) %>%
                       names_to = "sex", values_to = "pop") %>%
   dplyr::filter(!is.na(length) & !is.na(pop) & pop != 0 & !is.na(species_code)) %>% 
   dplyr::mutate(sex = dplyr::case_when(
-    sex == "unsexed" ~ "Unsexed",
-    sex == "males" ~ "Males",
-    sex == "females_immat" ~ "Immature females",
-    sex == "females_mat" ~ "Mature females",
+    sex == "unsexed" ~ "unsexed",
+    sex == "males" ~ "males",
+    sex == "females_immat" ~ "immature females",
+    sex == "females_mat" ~ "mature females",
     TRUE ~ sex
   )) %>%
   dplyr::group_by(sex, length, year, species_code, SRVY) %>% 
