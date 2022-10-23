@@ -96,14 +96,17 @@ if (report_title == "Data Report") {
                    spp_print, ifelse(is.na(spp_sci), "", 
                                      paste0(" (",spp_sci,")")), 
                    " by sex (",NMFSReports::text_list(tolower(unique(table_raw$sex))),
-                   ") observed during the ",
+                   ") in ",
+                   ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
+                          "centimeters (cm)", "millimeters (mm)"),
+                   " observed during the ",
                    NMFSReports::text_list(yrs)," ",
                    NMFSReports::text_list(unique(table_raw$SRVY)), 
                    " shelf bottom trawl survey", 
                    ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
                    ". Length distributions scaled up to total estimated population size. ", 
                    ifelse(print_n, 
-                          "Total number of individuals measured during the survey indicated in the upper right of each plot.", ""))
+                          "Total number of individuals measured during the survey indicated in the upper right corner of each plot.", ""))
   
   figure <- plot_sizecomp(
     sizecomp0 = table_raw,

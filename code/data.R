@@ -840,8 +840,8 @@ length_crab <- dplyr::bind_rows(
                 sex = dplyr::case_when(
                   sex == 1 ~ "Males",
                   sex == 0 ~ "Unsexed",
-                  (clutch_size == 0 & sex == 2) ~ "Females (Immature)", 
-                  (clutch_size >= 1 & sex == 2) ~ "Females (Mature)"), 
+                  (clutch_size == 0 & sex == 2) ~ "Immature females", 
+                  (clutch_size >= 1 & sex == 2) ~ "Mature females"), 
                 length = dplyr::case_when(
                   species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
                   TRUE ~ length), 
@@ -860,78 +860,7 @@ length_crab <- dplyr::bind_rows(
       TRUE ~ 7 # 7 - Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
     ) ) 
 
-# # Review
-# length_crab0 <- length_crab %>% 
-#   dplyr::filter(year == maxyr) %>% 
-#   dplyr::select(SRVY, species_code, frequency) %>% 
-#   dplyr::group_by(SRVY, species_code) %>% # also type?
-#   dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
-#   dplyr::ungroup() %>% 
-#   tidyr::pivot_wider(data = ., id_cols = "species_code", names_from = "SRVY", values_from = "length") %>%
-#   dplyr::left_join(
-#     x = ., 
-#     y = species0 %>% 
-#       dplyr::select(species_code, common_name, species_name), 
-#     by = "species_code") %>% 
-#   dplyr::mutate(species_code = as.factor(species_code)) %>% 
-#   dplyr::relocate(common_name, species_name, species_code, EBS, NBS) 
-
-# # load crab data
-# df.ls<-list()
-# a<-list.files(path = paste0(dir_data, "/crab/no_measured/"), 
-#               # pattern = paste0("sizecomp_"), 
-#               full.names = TRUE)
-# 
-# for (i in 1:length(a)){
-#   b <- read_csv(file = a[i])
-#   b <- janitor::clean_names(b)
-#   if (names(b)[1] %in% "x1"){
-#     b$x1<-NULL
-#   }
-#   b$file <- a[i]
-#   df.ls[[i]]<-b
-#   names(df.ls)[i]<-a[i]
-# }
-# 
-# length_crab <- SameColNames(df.ls) %>% 
-#   # dplyr::left_join(
-#   #   x = SameColNames(df.ls),
-#   # y = station_info %>%
-#   #   dplyr::select(stationid, stratum, SRVY) %>%
-#   #   unique(),
-#   # by = c("station" = "stationid")) %>%
-#   dplyr::mutate(SRVY = "NBS", 
-#                 year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
-#   dplyr::select(length, width, sex, #, file, unsexed, males, females, hauljoin, stratum, gis_station, #_mature, females_immature,
-#                 year, species_code, SRVY, 
-#                 clutch_size) %>%
-#   # dplyr::rename(length = width) %>%
-#   dplyr::mutate(sex_code = sex, 
-#                 sex = dplyr::case_when(
-#                   sex == 1 ~ "Males",
-#                   sex == 0 ~ "Unsexed",
-#                   (clutch_size == 0 & sex == 2) ~ "Females (Immature)", 
-#                   (clutch_size >= 1 & sex == 2) ~ "Females (Mature)"), 
-#                 length = dplyr::case_when(
-#                   species_code %in% c(68580) ~ width,  # "snow crab"
-#                   TRUE ~ length), 
-#                 frequency = 1) %>%
-#   dplyr::select(-width) %>% 
-#   dplyr::filter(!is.na(length)) %>% 
-#   dplyr::group_by(sex, sex_code, length, year, species_code, SRVY) %>%
-#   dplyr::summarise(frequency = n()) %>% 
-#   dplyr::ungroup() %>%
-#   dplyr::mutate(
-#     taxon = dplyr::case_when(
-#       species_code <= 31550 ~ "fish", 
-#       species_code >= 40001 ~ "invert"), 
-#     length_type = dplyr::case_when( # what are other crabs?
-#       species_code %in% c(69322, 69323) ~ 7, # 7 Length of carapace from back of right eye socket to end of carapace
-#       species_code %in% 68580 ~ 8)) # 8 Width of carapace 
-
-
 # Combine
-
 length_data <- SameColNames(list(
   "gf" = length_data, 
   "crab" = length_crab))  %>% 
@@ -1360,8 +1289,8 @@ sizecomp_crab <- SameColNames(df.ls) %>%
   dplyr::mutate(sex = dplyr::case_when(
     sex == "unsexed" ~ "Unsexed",
     sex == "males" ~ "Males",
-    sex == "females_immat" ~ "Females (Immature)",
-    sex == "females_mat" ~ "Females (Mature)",
+    sex == "females_immat" ~ "Immature females",
+    sex == "females_mat" ~ "Mature females",
     TRUE ~ sex
   )) %>%
   dplyr::group_by(sex, length, year, species_code, SRVY) %>% 
