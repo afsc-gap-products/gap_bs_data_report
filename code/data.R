@@ -200,22 +200,18 @@ print("report_spp and spp_info")
 
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
                               skip = 1, show_col_types = FALSE) %>% 
-  dplyr::select(!(dplyr::starts_with(ifelse(grepl(pattern = "Community", 
-                                                  x = report_title), "datar_", "community_")))) # %>%
+  dplyr::select(!(dplyr::starts_with(ifelse(report_title == "community", "datar_", "community_")))) # %>%
 # dplyr::filter(!grepl(pattern = "other ", x = group) &
 #!grepl(pattern = "all ", x = group) &
 # !grepl(pattern = "egg ", x = group))
 
 names(report_spp)[
-  grepl(pattern = ifelse(grepl(pattern = "Community", 
-                               x = report_title), "community_", "datar_"), 
+  grepl(pattern = ifelse(report_title == "community", "community_", "datar_"), 
         x = names(report_spp))] <- 
-  gsub(pattern = ifelse(grepl(pattern = "Community", 
-                              x = report_title), "community_", "datar_"), 
+  gsub(pattern = ifelse(report_title == "community", "community_", "datar_"), 
        replacement = "", 
        x = names(report_spp)[
-         grepl(pattern = ifelse(grepl(pattern = "Community", 
-                                      x = report_title), "community_", "datar_"), 
+         grepl(pattern = ifelse(report_title == "community", "community_", "datar_"), 
                x = names(report_spp))])
 
 spp_info <- 
@@ -1514,7 +1510,7 @@ cpue_biomass_station <- tidyr::crossing(
 #     dplyr::filter(species_code %in% c(69323, 69322, 68580, 68560))
 # )
 
-if (report_title == "Community Report") {
+if (report_title == "community") {
 cpue_biomass_station <- dplyr::bind_rows(
   dplyr::left_join(
     x = cpue_biomass_station %>% 
@@ -1581,7 +1577,7 @@ cpue_biomass_total <- cpue_biomass_stratum %>%
   dplyr::ungroup()
 
 
-if (report_title == "Community Report") {
+if (report_title == "community") {
   
   cpue_biomass_total <- dplyr::bind_rows(
     dplyr::left_join(

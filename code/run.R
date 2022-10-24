@@ -14,10 +14,11 @@
 #'                   output_file = "test.docx")
 #' ---------------------------------------------
 
-# START ------------------------------------------------------------------------
+# DATA REPORT ------------------------------------------------------------------
 
-# *** REPORT KNOWNS ------------------------------------------------------------
-report_title <- "Data Report" # Fake until I get a better idea of how to automate something down the line
+# *** Report knowns ------------------------------------------------------------
+
+report_title <- "data" # Fake until I get a better idea of how to automate something down the line
 workfaster <- FALSE # an attempt to satisfy limited patience
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
@@ -55,20 +56,18 @@ font0 <- "Arial Narrow"
 # ref_compareyr <- "@2019NEBS2022" # CHANGE
 # dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
- maxyr <- 2022
- compareyr <- 2021
- strat_yr <- 2022
- SRVY<-"NEBS"
- ref_compareyr <- "@2021NEBS2022" # CHANGE
- dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
-
-# *** SIGN INTO GOOGLE DRIVE----------------------------------------------------
+maxyr <- 2022
+compareyr <- 2021
+strat_yr <- 2022
+SRVY<-"NEBS"
+ref_compareyr <- "@2021NEBS2022" # CHANGE
+dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
 1
 
-# *** SOURCE SUPPORT SCRIPTS ---------------------------------------------------
+# *** Source support scripts ---------------------------------------------------
 
 source('./code/directories.R')
 
@@ -81,10 +80,7 @@ source('./code/data.R')
 # csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/american-fisheries-society.csl")
 # readr::write_lines(x = csl, file = "./cite/citestyle.csl")
 
-# RUN EACH REPORT SECTION ------------------------------------------------------
-
 # *** Figures and Tables ------------------------
-# run figures and tables before each chapter so everything works smoothly
 
 report_spp1 <- add_report_spp(spp_info = spp_info, 
                               spp_info_codes = "species_code", 
@@ -92,39 +88,37 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_col = "order", 
                               report_spp_codes = "species_code", 
                               lang = FALSE)
-# if (FALSE) {
-  # *** *** General figures ----------------------------------------------------
-  filename0<-paste0(cnt_chapt, "_")
-  rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
+
+# General figures
+filename0<-paste0(cnt_chapt, "_")
+rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
+                  output_dir = dir_out_ref,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+# Species figures
+for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
+  
+  print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
+  filename00<-paste0(cnt_chapt, "_spp_")
+  rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-  
-  # *** *** Species figures ----------------------------------------------------
-  
-  for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
-    
-    print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
-    filename00<-paste0(cnt_chapt, "_spp_")
-    rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                      output_dir = dir_out_ref,
-                      output_file = paste0(filename00, cnt_chapt_content, "_", 
-                                           unique(report_spp1$file_name)[jj],".docx"))
-  }
-  
-  # *** *** Appendix --------------------------------------------
-  filename0<-paste0(cnt_chapt, "_")
-  rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
-                    output_dir = dir_out_ref,
-                    output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-  
-  # *** *** Save --------------------------------------------
-  save(list_figures,
-       file=paste0(dir_out_figures, "/report_figures.rdata"))
-  
-  save(list_tables,
-       file=paste0(dir_out_tables, "/report_tables.rdata"))
-  
-# }
+                    output_file = paste0(filename00, cnt_chapt_content, "_", 
+                                         unique(report_spp1$file_name)[jj],".docx"))
+}
+
+# Appendix 
+filename0<-paste0(cnt_chapt, "_")
+rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
+                  output_dir = dir_out_ref,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+# Save
+save(list_figures,
+     file=paste0(dir_out_figures, "/report_figures.rdata"))
+
+save(list_tables,
+     file=paste0(dir_out_tables, "/report_tables.rdata"))
+
 # load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 # load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
@@ -198,17 +192,169 @@ rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
-# RUN EACH PRESENTATION SECTION ------------------------------------------------------
+# COMMUNITY HIGHLIGHTS ---------------------------------------------------------
 
-# *** 11 - Presentation ------------------------
+# *** Report knowns ------------------------------------------------------------
 
-  report_spp1 <- add_report_spp(spp_info = spp_info, 
-                                spp_info_codes = "species_code", 
-                                report_spp = report_spp, 
-                                report_spp_col = "order", 
-                                report_spp_codes = "species_code0", 
-                                lang = TRUE)
- 
+# report_title <- paste0(maxyr, ' Northern Bering Sea Groundfish and Crab Trawl Survey Highlights')
+report_title <- "community" # Fake until I get a better idea of how to automate something down the line
+workfaster <- FALSE # an attempt to satisfy limited patience
+refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
+googledrive_dl <- TRUE # redownload google drive tables and docs?
+indesign_flowin <- FALSE
+pres_img <- FALSE
+usePNGPDF <- "png"
+font0 <- "Arial Narrow"
+
+SRVY <- "NEBS"
+
+# # 2019
+# report_yr <- maxyr <- 2019
+# compareyr <- 2010
+# ref_compareyr_ebs <- "@RN976" # check
+# ref_compareyr_nbs <- "@RN909" # check
+
+# # 2021
+# report_yr <- maxyr <- 2021
+# compareyr <- c(2019)# , 2017, 2010)
+# ref_compareyr_ebs <- "@RN976" # check
+# ref_compareyr_nbs <- "@RN909" # check
+# id_googledrive <- googledrive::as_id("1bqXIlM9Er8MeITCkRQy8D52Yd46CLz3f")
+
+# 2022
+report_yr <- maxyr <- 2022
+compareyr <- 2021
+ref_compareyr_ebs <- ref_compareyr <- "@2021NEBS2022" # check
+ref_compareyr_nbs <- "@RN909" # check
+dir_googledrive <- "1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
+strat_yr <- 2022
+
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "order", 
+                              report_spp_codes = "species_code", 
+                              lang = FALSE)
+
+googledrive::drive_deauth()
+googledrive::drive_auth()
+1
+
+# *** Source support scripts ---------------------------------------------------
+
+source('./code/directories.R')
+
+source('./code/functions.R')
+
+# source('./code/data_dl.R') # Run when there is new data!
+
+source('./code/data.R')
+
+# *** Figures and Tables ------------------------
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "order", 
+                              report_spp_codes = "species_code", 
+                              lang = FALSE)
+# General figures
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_")
+rmarkdown::render(paste0(dir_code, "/figtab_c.Rmd"),
+                  output_dir = dir_out_ref,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+# Species figures
+for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
+  print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
+  filename00 <- paste0(cnt_chapt, "_spp_")
+  rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
+                    output_dir = dir_out_ref,
+                    output_file = paste0(filename00, cnt_chapt_content, "_", 
+                                         unique(report_spp1$file_name)[jj],".docx"))
+}
+
+# Save
+save(list_figures,
+     file=paste0(dir_out_figures, "/report_figures.rdata"))
+
+save(list_tables,
+     file=paste0(dir_out_tables, "/report_tables.rdata"))
+
+# load(file = paste0(dir_out_figures, "/report_figures.rdata"))
+# load(file = paste0(dir_out_tables, "/report_tables.rdata"))
+
+# *** 1 - Introduction ------------------------
+cnt_chapt<-auto_counter(cnt_chapt)
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_introduction_")
+rmarkdown::render(paste0(dir_code, "/c1_introduction.Rmd"),
+                  output_dir = dir_out_chapters,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+
+# *** 2 - Survey_design ------------------------
+cnt_chapt<-auto_counter(cnt_chapt)
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_survey_design_")
+rmarkdown::render(paste0(dir_code, "/c2_survey_design.Rmd"),
+                  output_dir = dir_out_chapters,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+# *** 3 - Survey_snapshot_compare ------------------------
+cnt_chapt<-auto_counter(cnt_chapt)
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_survey_snapshot_compare_")
+rmarkdown::render(paste0(dir_code, "/c3_survey_snapshot_compare.Rmd"),
+                  output_dir = dir_out_chapters,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+# *** 5 - Results_spp ------------------------
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "order", 
+                              report_spp_codes = "species_code", 
+                              lang = TRUE)
+cnt_chapt<-auto_counter(cnt_chapt)
+
+for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
+  
+  print(paste0(jj, " of ", length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))]), ": ", unique(report_spp1$file_name)[jj]))
+  
+  cnt_chapt_content<-auto_counter(cnt_chapt_content)
+  filename00<-paste0(cnt_chapt, "_spp_")
+  rmarkdown::render(input = paste0(dir_code, "/06_results_spp.Rmd"),
+                    output_dir = dir_out_chapters,
+                    output_file = paste0(filename00, cnt_chapt_content, "_", 
+                                         unique(report_spp1$file_name)[jj],".docx"))
+}
+
+# *** 7 - App_scientistprofiles ------------------------
+cnt_chapt<-auto_counter(cnt_chapt)
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_survey_team_bios_")
+file.copy(from = paste0(dir_out_rawdata, "0_survey_team_bios.docx"),
+          to = paste0(dir_out_chapters, filename0, cnt_chapt_content, ".docx"), 
+          overwrite = TRUE)
+
+# *** 6 - Endmatter ------------------------
+cnt_chapt<-auto_counter(cnt_chapt)
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_endmatter_")
+rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
+                  output_dir = dir_out_chapters,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+# PRESENTATION ------------------------------------------------------
+
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "order", 
+                              report_spp_codes = "species_code0", 
+                              lang = TRUE)
+
 # #  report_spp1 <- report_spp1 %>%
 #     dplyr::filter(!(file_name %in% c("sturgeon_poacher", "red_king_crab"
 #                                      ,"blue_king_crab","snow_crab"
@@ -236,37 +382,37 @@ report_spp1 <- report_spp1 %>%
                      "rex_sole"#,
                      # "arctic_cod",
                      # "saffron_cod"
-                     )))
-  
-  yrs <- sort(nbsyr, decreasing = FALSE)
-  
-# *** *** - Figures and Tables ------------------------
-# if (FALSE) {
-  
+                   )))
 
-  cnt_chapt_content<-"001"
-  filename0<-paste0(cnt_chapt, "_")
-  rmarkdown::render(paste0(dir_code, "/figtab_pres.Rmd"),
+yrs <- sort(nbsyr, decreasing = FALSE)
+
+# *** Figures and Tables ------------------------
+# if (FALSE) {
+
+
+cnt_chapt_content<-"001"
+filename0<-paste0(cnt_chapt, "_")
+rmarkdown::render(paste0(dir_code, "/figtab_pres.Rmd"),
+                  output_dir = dir_out_ref,
+                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+
+for (jj in 1:length(unique(report_spp1$file_name))) {
+  
+  print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
+  
+  filename00<-paste0(cnt_chapt, "_spp_")
+  rmarkdown::render(paste0(dir_code, "/figtab_spp_pres.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-  
-  for (jj in 1:length(unique(report_spp1$file_name))) {
-    
-    print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
-    
-    filename00<-paste0(cnt_chapt, "_spp_")
-    rmarkdown::render(paste0(dir_code, "/figtab_spp_pres.Rmd"),
-                      output_dir = dir_out_ref,
-                      output_file = paste0(filename00, cnt_chapt_content, "_", 
-                                           unique(report_spp1$file_name)[jj],".docx"))
-  }
-  
-  save(list_figures,
-       file=paste0(dir_out_figures, "/report_figures_pres.rdata"))
-  
-  save(list_tables,
-       file=paste0(dir_out_tables, "/report_tables_pres.rdata"))
-  
+                    output_file = paste0(filename00, cnt_chapt_content, "_", 
+                                         unique(report_spp1$file_name)[jj],".docx"))
+}
+
+save(list_figures,
+     file=paste0(dir_out_figures, "/report_figures_pres.rdata"))
+
+save(list_tables,
+     file=paste0(dir_out_tables, "/report_tables_pres.rdata"))
+
 # }
 
 cnt_chapt<-auto_counter(cnt_chapt)

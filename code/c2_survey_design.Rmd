@@ -1,0 +1,163 @@
+---
+output:
+  officedown::rdocx_document: 
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "https://raw.githubusercontent.com/EmilyMarkowitz-NOAA/gap_bs_data_report/main/cite/bibliography.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+# Survey Design, Execution, and Analysis
+
+```{r}
+
+# 4 options
+# 1. vessels started and ended on different dates
+# 2. vessels started and ended on the same dates
+# 3. vessels started on the same dates and ended on different dates
+# 4. vessels started on different dates and ended on the same dates
+# and this can be different for EBS vs NBS 
+
+str0 <- c()
+
+for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
+  
+  srvy <- unique(haul_cruises_vess_maxyr$SRVY)[i]
+  cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
+    dplyr::filter(SRVY %in% srvy &
+                    year %in% maxyr) %>% 
+    dplyr::select("year", "survey_name", "vessel", "vessel_name", 
+                  "vessel_ital", "SRVY", "SRVY_long", 
+                  "start_date_cruise", "end_date_cruise", 
+                  "start_date_haul", "end_date_haul") %>% 
+    unique() %>% 
+    group_by(year, survey_name, vessel, vessel_name, 
+             vessel_ital, SRVY, SRVY_long) %>% 
+    dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
+                     end_date_cruise = as.Date(max(end_date_cruise)), 
+                     start_date_haul = as.Date(min(start_date_haul), 
+                                               format = "%m/%d/%Y"), 
+                     end_date_haul = as.Date(max(end_date_haul), 
+                                             format = "%m/%d/%Y")) 
+  
+  temp <- "" # paste0("of the ", srvy, ", which ")
+  
+  if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
+      length(unique(cruises_maxyr0$end_date_haul)) != 1) { 
+    # 1. vessels started and ended on different dates
+    temp <- paste0(temp, 
+                   text_list(paste0("the ", cruises_maxyr0$vessel_ital, 
+                                    " started sampling on ", 
+                                    format((cruises_maxyr0$start_date_haul), format = date_format), 
+                                    " and ended on ", 
+                                    format((cruises_maxyr0$end_date_haul), format = date_format) )) )
+    # temp<-gsub(pattern = "and ,", replacement = "and,", x = temp)
+    
+  } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
+             length(unique(cruises_maxyr0$end_date_haul)) == 1) { 
+    # 2. vessels started and ended on the same dates
+    temp <- paste0(temp, 
+                   NMFSReports::text_list(cruises_maxyr0$vessel_ital), 
+                   # ifelse(length(unique(vessel_info0$vessel)) == 1, 
+                   #        "the vessel", "both vessels"), 
+                   " started sampling on ",
+                   format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
+                   " and ended sampling on ", 
+                   format(unique(cruises_maxyr0$end_date_haul), format = date_format))
+    
+  } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
+             length(unique(cruises_maxyr0$end_date_haul)) != 1) {
+    # 3. vessels started on the same dates and ended on different dates
+    temp <- paste0(temp, "started for ", 
+                   ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
+                          "the vessel", "both vessels"), 
+                   " on ",
+                   format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
+                   " and ended ", 
+                   NMFSReports::text_list(paste0("on ", 
+                                                 format(cruises_maxyr0$end_date_haul, 
+                                                        format = date_format) , 
+                                                 " for the ", cruises_maxyr0$vessel_ital) ))
+    
+  } else if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
+             length(unique(cruises_maxyr0$end_date_haul)) == 1) {
+    # 4. vessels started on different dates and ended on the same dates
+    temp <- paste0(temp, "the sampling started ", 
+                   NMFSReports::text_list(paste0("on ", 
+                                                 format(cruises_maxyr0$start_date_haul, 
+                                                        format = date_format) , 
+                                                 " for the ", cruises_maxyr0$vessel_ital) ), 
+                   " and ended for ", 
+                   ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
+                          "the vessel", "both vessels"), 
+                   " on ",
+                   format((unique(cruises_maxyr0$end_date_haul)), 
+                          format = date_format) )
+  }
+  str0 = c(str0, temp)
+}
+
+str <- str0 <- data.frame(str = str0, 
+                  SRVY = unique(cruises_maxyr$SRVY))
+
+
+
+nbs_insert  <- paste0(
+    "For the EBS shelf survey, ",
+    str$str[str$SRVY == "EBS"],
+    ". After the completion of the EBS shelf survey, both vessels transitioned into sampling survey stations in the southwest corner of the NBS survey region. The NBS shelf survey ", 
+    str$str[str$SRVY == "NBS"], 
+    ".")
+
+```
+
+The `r maxyr` EBS shelf and NBS bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r NMFSReports::text_list(cruises_maxyr0$vessel_ital)` (Figure `r crossref(list_obj = list_figures, nickname = "fig_vessels", sublist = "number")`). `r nbs_insert ` After the NBS survey was completed, both vessels returned to Dutch Harbor to offload survey equipment and specimens. The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50-m (`r round(50/divmforft, digits = 1)`-ft) isobath. 
+
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_vessels", sublist = "res") `
+
+```{r}
+insert <- readtext2(file = paste0(dir_out_rawdata, "/0_team_desc.docx"),
+                    refcontent = refcontent)
+```
+
+`r insert `Lead scientist profiles can be found at the end of this document.
+
+The NBS survey was designed as a continuation of the systematic 20 × 20 nautical mile (nmi) sampling grid that was coordinated along latitudinal and longitudinal axes and established for the annual EBS shelf survey, and has been used since 1982. This design resulted in a systematic grid of `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations in which each sampling station represents a geo-referenced area of 400 square nautical miles (nmi^2^; `r formatC(x = 400/divnmi2forkm2, digits = 0, format = "f", big.mark = ",") ` km^2^) distributed throughout the `r NMFSReports::xunits(sum(stratum_info$area_nmi2[stratum_info$SRVY == "NBS"], na.rm=TRUE))` nmi^2^ (`r NMFSReports::xunits(sum(stratum_info$area_km2[stratum_info$SRVY == "NBS"], na.rm=TRUE))` km^2^) that defines the NBS survey area. The EBS shelf survey area contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "EBS"] ` stations distributed over `r NMFSReports::xunits(sum(stratum_info$area_nmi2[stratum_info$SRVY == "EBS"], na.rm=TRUE))` nmi^2^ (`r NMFSReports::xunits(sum(stratum_info$area_km2[stratum_info$SRVY == "EBS"], na.rm=TRUE))` km^2^). The addition of the NBS survey expanded the overall survey coverage in the Bering Sea to `r NMFSReports::xunits(sum(stratum_info$area_nmi2, na.rm=TRUE))` nmi^2^ (`r NMFSReports::xunits(sum(stratum_info$area_km2, na.rm=TRUE))` km^2^). In `r maxyr`, the NBS stations had bottom depths ranging from `r round(min(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m). 
+
+All stations were sampled during daylight hours. In the EBS shelf survey, a fixed sampling station located at the center of each grid cell was typically sampled (Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). While this approach was also used for the NBS survey, shallow depths and untrawlable bottom types were encountered in some grid cells, which required the sampling location to be moved elsewhere within the cell (Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `).
+
+
+```{r}
+# area of nbs trawl stations
+# area =  l*w * number of areas
+# temp <- haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] * # number of stations
+#   (10 / 1852) * # width of trawl net (m/nmi -> nmi)
+#   1.5 # calculate distance nmi = velocity (3 knots) * time (30 min)
+
+temp <- sum((haul_maxyr$net_width[haul_maxyr$SRVY == "NBS"]/ 1852) * # net width in meters, divided 1852 (m->nmi)
+      ((haul_maxyr$distance_fished[haul_maxyr$SRVY == "NBS"] * 1000)/ 1852), # distance fished in km converted to m,  divided 1852 (m->nmi)
+    na.rm = TRUE) 
+```
+
+Both vessels were equipped with the standard 83/112 Eastern otter trawl that has been historically used for EBS shelf, Chukchi, and Beaufort Sea surveys (Figure `r crossref(list_obj = list_figures, nickname = "fig_bottom_trawl_net", sublist = "number")`). This trawl is significantly smaller and lighter in weight than trawls used for commercial fishing in Alaska. One 30-minute tow, at a vessel speed of 3 knots, was conducted at `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` stations. The cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` stations was about `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum_info$area_nmi2[stratum_info$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 3)`% of the total area of the NBS.
+
+`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_bottom_trawl_net", sublist = "res") `
+
+```{r}
+if (sum(!(unique(haul_maxyr$stationid[haul_maxyr$SRVY == "NBS" & haul_maxyr$abundance_haul == "Y"]) %in% 
+        unique(haul_compareyr$stationid[haul_compareyr$SRVY == "NBS" & haul_compareyr$abundance_haul == "Y"]) )) == 0) {
+  insert <- paste0("The same NBS stations were surveyed in ",maxyr," as in ",compareyr, ". ")
+}
+```
+
+`r insert`Catches of less than approximately 1,200 kg (2,500 lbs) were sorted and weighed in their entirety`r ifelse(nrow(haul[haul$subsample != 1 & haul$SRVY == "NBS" & haul$year == maxyr,])>0, " and larger catches were subsampled", "") `. Fishes, crabs, and other invertebrates were identified and sorted by species to the greatest extent possible. In cases where species identification was unknown, specimens were collected and returned to the lab for expert identification. After sorting, all caught species (except colonial species who cannot be individually counted) were counted and weighed. For the predominant fish species encountered, a subsample was weighed,  sorted by sex, and the fork length of all specimens in the subsample was measured to the nearest centimeter (cm). For the predominant crab species encountered, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Some of the species caught were grouped into higher taxa groups (common names for an assemblage of species) for analysis either because the catch size was very small for individual species or due to questionable identification. Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information that included their size, weight, sex, age, reproductive state, genetics, health (condition factor), and stomach content/diet.
+
+Trawl survey catch data were used to estimate 1) catch-per-unit-effort (CPUE), 2) population biomass, 3) population abundance, and 4) population abundance by size class for measured species. CPUE is an estimated measure of fish density and was calculated in kilograms (kg) or number of individuals per hectare (1 ha = 10,000 m^2^ = 0.003 nmi^2^) based on the area sampled by the bottom trawl. Mean CPUE values were calculated for the overall survey areas. Biomass and population estimates were derived for each survey area by multiplying the mean CPUE by the total survey area. For size composition estimates, the proportion of fish at each 1-cm length interval or crab at each 1-mm carapace width or length interval (collected from subsamples at each station) was weighted based upon the mean CPUE (number of a taxon per hectare) and then expanded to the total population for the NBS survey area. The area sampled, or area swept, was computed as the distance the trawl was towed multiplied by the mean width of the net during the tow. Net width during the tow was measured by acoustic sensors attached to the net. 
+
+Environmental data, including water temperature in °Celsius (°C)), depth in meters (m), salinity (parts per thousand), and underwater ambient light were also recorded at each sampling station. Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).
+

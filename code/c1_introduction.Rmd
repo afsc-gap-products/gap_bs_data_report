@@ -1,0 +1,63 @@
+---
+output:
+  officedown::rdocx_document: 
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "https://raw.githubusercontent.com/EmilyMarkowitz-NOAA/gap_bs_data_report/main/cite/bibliography.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+# Introduction
+
+```{r}
+# use haul_cruises_maxyr TOLEDO 
+
+temp <- haul_cruises_maxyr %>%
+  dplyr::filter(SRVY == "EBS") #%>% 
+  # dplyr::mutate(start_mo_long = format(x = as.POSIXlt(x = start_date_haul ), format="%B")) %>%
+  # dplyr::mutate(end_mo_long = format(x = as.POSIXlt(x = end_date_haul ), format="%B")) #%>%
+  # dplyr::select(start_mo_long, end_mo_long)
+
+nbs_insert <- ifelse(SRVY == "NEBS", 
+                      #NBS
+                      paste0("In addition, the ", maxyr, 
+                             " survey coverage was expanded to include the northern Bering Sea (NBS). This is only the ", 
+                             NMFSReports::numbers2words_th(
+                               haul_cruises_maxyr %>% 
+                                 dplyr::filter(SRVY == "NBS") %>%
+                                 dplyr::select(yrofsurvey )),
+                             " time since 2010 that the NBS survey was done. The expanded study area covered the entire Bering Sea continental shelf (hereafter referred to as the “NEBS”) from 20 m (",round(20/divmforft, 1)," ft) to 200 m (",round(200/divmforft, 1)," ft) bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
+                             # EBS
+                             "The study area covered the southeastern Bering Sea continental shelf from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and to approximately the latitude of St. Matthew Island (60° 50' N).")
+
+
+if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_completed) == 1) { # diff answers or only 1 srvy
+  temp_insert <- CapFirst(NMFSReports::text_list(
+    paste0(ifelse(haul_cruises_maxyr$stations_avail ==
+                    haul_cruises_maxyr$stations_completed, "all", "most"), 
+           " survey stations in the ", 
+           haul_cruises_maxyr$SRVY, 
+           " were sampled successfully")))
+} else { # answers both "Most" or "All"
+  temp_insert <- paste0(unique(ifelse(haul_cruises_maxyr$stations_avail ==
+                    haul_cruises_maxyr$stations_completed, "All", "Most")), 
+           " survey stations in the ",
+           NMFSReports::text_list(haul_cruises_maxyr$SRVY), 
+           " were sampled successfully")
+} 
+```
+
+In `r maxyr`, NOAA Fisheries' Alaska Fisheries Science Center conducted two surveys within U.S. territorial waters of the Bering Sea: the southeastern Bering Sea (EBS) shelf bottom trawl survey and the northern Bering Sea (NBS) bottom trawl survey. This is the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"] ``r haul_cruises_maxyr$stndth[haul_cruises_maxyr$SRVY == "EBS"] ` year of the EBS shelf survey and the `r NMFSReports::numbers2words_th(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "NBS"]) ` year of NBS survey using standardized sampling protocols. A rapid response survey for the NBS region was also conducted in 2018 using a modified spatial extent and sampling procedure and will not be covered here. The NBS survey region contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations in an area bounded by the Bering Strait, Norton Sound, and the U.S.–Russia Maritime Boundary (Figure `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). While the NBS region has been surveyed sporadically in the past, 2010 is considered the survey's inaugural year because it was the first year the region was sampled using the same standardized sampling methods as the EBS shelf survey.
+
+This region is a fundamental part of the Alaska Fisheries Science Center Loss of Sea Ice (LOSI) research plan, the primary purpose of which is to study the impacts of diminished sea ice on the marine ecosystem. In the NOAA LOSI research plan, the NBS was identified as a region of critical importance for increased scientific monitoring because this marine ecosystem may be rapidly altered by the changing climate. This survey represents one component of a multi-faceted research plan to create a long-term time series designed to identify, as well as track, environmental and ecological change throughout the Bering Sea. Beyond the potential impacts of climate change, the scale and extent of fish and crab movements may also vary from year to year in response to a variety of biological or environmental processes. These movements cause changes in distribution and abundance that extend beyond the traditional survey boundaries (e.g., EBS) and ultimately create an additional need for survey data that provides comprehensive coverage of the entire Bering Sea. 
+
+
+Here, we provide some of the results of the `r maxyr` NBS survey and offer some snapshot comparisons to what was observed in `r NMFSReports::text_list(nbsyr[nbsyr != maxyr])` when the region was also surveyed using the same methods. Continuation of the survey effort for a combined EBS and NBS bottom trawl survey will provide more comprehensive snapshots for investigating how fishes, crabs, and other bottom dwellers respond to biological and environmental processes on a large spatial scale over a multi-year time period. 
+
+`r list_figures$fig_sample_grid$res `
+

@@ -1,0 +1,345 @@
+---
+output:
+  word_document:
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "../cite/bibliography.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+
+# Introduction
+
+## fig_sample_grid
+
+
+```{r fig_sample_grid}
+# header <- paste0("Sampling grid and station identifiers for the ", maxyr, " eastern and northern Bering Sea continental shelf bottom trawl surveys.")
+
+header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined in the dark gray line are the NBS stations that were sampled in ",maxyr,". The dots within each area indicate station locations.") # TOLEDO
+nickname <- "fig_sample_grid"
+
+width <- 6
+height <- 6
+
+
+figure <- plot_survey_stations(reg_dat = reg_dat, 
+                               station_info = station_info, 
+                               haul_cruises_maxyr = haul_cruises_maxyr, 
+                               bathymetry = TRUE)
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res
+
+```
+
+## fig_vessels
+
+```{r fig_vessels}
+header <- paste0("Photographs of the fishing vessels ",
+                 NMFSReports::text_list(paste0(vessel_info$vessel_ital, 
+                                               " (", c("left", "right"), ")")),
+                 " contracted to assist the ",maxyr," ",
+                 NMFSReports::text_list(SRVY1),
+                 " bottom trawl survey.")
+nickname <- "fig_vessels"
+
+height <- 2.5
+width <- full_page_portrait_width # width <- 6.5
+
+# Select data and make plot
+p1 <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, vessel_info$img[1])), 
+                      scale = 0.9 )
+
+p2 <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, vessel_info$img[2])), 
+                      scale = 0.9 )
+
+figure <- cowplot::plot_grid(p1, p2,  
+                             ncol = 2, rel_heights = c(0.1, 1))
+
+# save yo' stuff and do a lot of behind the scenes work
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res
+
+```
+
+# Survey Design
+
+## fig_bottom_trawl_net
+
+```{r fig_bottom_trawl_net}
+header <- paste0("Diagram and specific characteristics of the 83/112 Eastern trawl net.")
+footnote<- NA
+nickname <- "fig_bottom_trawl_net"
+alttext <- "Diagram specifying standardized design and specific characteristics of the 83/112 Eastern trawl net."
+height = 4
+width <- 6
+
+# Select data and make plot
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "bottom_trawl_net.png")), scale = 0.9 )
+
+# save yo' stuff and do a lot of behind the scenes work
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res
+
+```
+
+# Survey Snapshot
+
+## fig_mean_temperature
+
+```{r fig_mean_temperature}
+
+# code orig from sean rohan's coldpool package! Jan 23 2021 
+
+nickname <- "fig_mean_temperature"
+header <- paste0("Average summer surface (light blue triangles) and bottom (dark blue circles) and long-term mean surface (dark blue dashed line) and bottom (light blue dashed line) temperatures (°C) on the EBS shelf, based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr,
+                 ifelse(SRVY == "NEBS", 
+                        paste0(" (left), and NBS shelf based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
+                 ". ")
+
+height = 3.25
+width <- full_page_portrait_width # 6.5
+
+a <- plot_mean_temperatures(maxyr, SRVY)
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res
+
+```
+
+## fig_cold_pool_area
+
+```{r fig_cold_pool_area}
+# header <- paste0("Percentage of the EBS shelf from 1982–",maxyr," bottom area that is occupied by the cold pool in one degree Celsius increments.")
+header <- paste0("Annual cold pool extent on the EBS shelf, based on observations from the EBS bottom trawl survey. Extent of the cold pool is shown in proportion to the total southern EBS shelf survey area. Shading denotes near-bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
+# alttext <- paste0("Annual cold pool extent on the EBS shelf, as measured using observations from the EBS bottom trawl survey. Extent of the cold pool in proportion to the total EBS shelf survey area from 1982–",maxyr,". Shading denotes near-bottom temperatures \u2264 2°C (aqua blue), \u2264 1°C (cerulean blue), \u2264 0°C (cobalt blue), and \u2264 -1°C (dark navy blue).")
+
+footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
+nickname <- "fig_cold_pool_area"
+
+height <- 3
+width <- full_page_portrait_width # 6.5
+
+figure <- plot_coldpool_area(coldpool_ebs_bin_area, maxyr)
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res
+
+```
+
+## fig_[st or bt]_all_nebs_surveys
+
+```{r fig_[st or bt]_all_nebs_surveys}
+
+if (SRVY == "NEBS") {
+  
+  for (i in 1:2) { # two cases, above and below
+    case <- ifelse(i==1, "bottom", "surface")
+    nickname <- paste0("fig_",ifelse(i==1, "bt", "st"),
+                       "_all_nebs_surveys")
+    
+    subobj <- TRUE
+    newobj <- ifelse(i==1, TRUE, FALSE)
+    
+    header <- paste0(stringr::str_to_title(case)," temperatures (°C) in the NBS and EBS during the ",
+                     NMFSReports::text_list(nbsyr),
+                     " surveys, which included the full NBS shelf bottom trawl survey. ")
+    
+    if (case == "surface") {
+      rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+                                    subset = paste0("ebs_ste_", nbsyr, "_surface_temperature"))
+    } else {
+      rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+                                    subset = paste0("ebs_ste_", nbsyr, "_gear_temperature"))
+      # rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+      #                               subset = paste0("ebs_ste_", nbsyr, "_surface_temperature"))    
+    }
+    
+    height <- ifelse(length(nbsyr)>2, full_page_portrait_height, 5)
+    width <- full_page_portrait_width
+    
+    figure <- plot_temps_facet(
+      rasterbrick = rasterbrick, 
+      key.title = ifelse(i==1, 
+                         expression(bold("Bottom Temperature (°C)")), 
+                         expression(bold("Surface Temperature (°C)"))), 
+      reg_dat = report_types$NEBS$reg_dat, 
+      colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+      row0 = ifelse(length(nbsyr)>2, 2, 1), 
+      viridis_palette_option = "H", 
+      title0 = paste0(stringr::str_to_title(case), " Temperature")) 
+    
+    # save yo' stuff and do a lot of behind the scenes work
+    # alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res
+  }
+}
+```
+
+## tab_majortaxa_pchange
+
+```{r tab_majortaxa_pchange}
+
+nickname <- "tab_majortaxa_pchange" 
+header <- paste0("Major taxa sampled in the NBS bottom trawl survey for ", 
+                 NMFSReports::text_list(nbsyr),
+                 ", and the percentage change in biomass (metric tons) from ",
+                 compareyr," to ",maxyr," in descending order of percent (%) change. Differences in sums of estimates and totals are due to rounding.")
+yrs <- nbsyr
+
+a<-table_change(dat = cpue_biomass_total %>% 
+                  dplyr::filter(SRVY == "NBS") %>%
+                  dplyr::rename(y = biomass_mt), 
+                yrs = nbsyr, 
+                maxyr = maxyr, 
+                compareyr = compareyr, 
+                remove_all = TRUE) 
+
+table_raw <- a$table_raw %>% 
+  dplyr::mutate(
+    print_name = gsub(
+      pattern = "smelts (*Osmeridae*) include eulachon, capelin, and rainbow smelt", 
+      replacement = "smelts", 
+      x = print_name, fixed = TRUE), 
+    group = print_name, 
+    ) %>% 
+  dplyr::rename(species_name = species_name1)
+
+if (TRUE) { # remove_all
+  table_raw$group <- gsub(pattern = "All ", replacement = "", 
+                          x = table_raw$group, fixed = TRUE)
+}
+
+# remove rows where biomass is 0 for all years
+table_raw <- table_raw[rowSums(table_raw[,c(as.character(nbsyr))])>0,]
+
+  table_raw <- table_raw %>% 
+    # find spp names that should and shouldnt be italicized
+    dplyr::mutate(
+      ital = dplyr::case_when(
+        grepl(pattern = " ", x = species_name, fixed = TRUE) ~ TRUE, 
+        grepl(pattern = "sp.", x = species_name, fixed = TRUE) ~ TRUE, 
+        grepl(pattern = "spp.", x = species_name, fixed = TRUE) ~ TRUE, 
+        TRUE ~ FALSE),    
+    # separate spp and sp from spp names because they should not be italicized
+      spp = dplyr::case_when(
+        grepl(pattern = "sp.", x = species_name, fixed = TRUE) ~ "sp.", 
+        grepl(pattern = "spp.", x = species_name, fixed = TRUE) ~ "spp.", 
+        TRUE ~ ""), 
+      # find spp names that should be italicized
+      species_name_ital = ifelse(ital, species_name, ""),
+      # find spp names that should NOT be italicized
+      species_name_noital = ifelse(!ital, species_name, ""),
+      # remove spp and sp from species names that should be italized
+      species_name_ital = 
+        gsub(pattern = " sp.", replacement = "", 
+             x = species_name_ital, fixed = TRUE), 
+      species_name_ital =
+        gsub(pattern = " spp.", replacement = "",
+             x = species_name_ital, fixed = TRUE)
+      )
+
+table_print <- table_raw %>%
+  dplyr::mutate(
+    across(starts_with("change"), 
+           formatC, big.mark=",", digits = 1, format = "f"), 
+    across(starts_with("change"), paste0, "%"), 
+    across(where(is.numeric), 
+           formatC, big.mark=",", digits = 0, format = "f"), 
+    dplyr::across(where(is.character), gsub, pattern = "NA%", replacement = ""), 
+    dplyr::across(where(is.character), gsub, pattern = "NA", replacement = "")) %>%
+  flextable::flextable(data = ., col_keys = c("group", #"print_name", 
+                                              "dummy", as.character(nbsyr),
+                                              # "species_name1", "species_name2", "spp", 
+                                              "change")) %>%
+  flextable::compose(j = "dummy",
+          value = as_paragraph(as_i(species_name_ital), species_name_noital, " ", spp)) %>% 
+  flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
+                   i = ~ grepl(pattern = "-", x = as.character(change)),
+                   j = "change") %>%
+  flextable::set_header_labels(x = ., 
+                               group = "Common name", 
+                               dummy = "",
+                               change = paste0("Change\n(", 
+                                               maxyr, ", ", compareyr, ")" ))  %>% 
+  flextable::theme_zebra(odd_header = "transparent")%>% 
+  NMFSReports::theme_flextable_nmfstm(x = ., 
+                                      font0 = font0, 
+                                      pad = 0, 
+                                      row_lines = FALSE, 
+                                      pgwidth = full_page_landscape_width) %>% 
+  flextable::align(x = ., j = c(as.character(yrs), "change"),
+                   align = "right", part = "all") %>%
+  flextable::padding(x = ., j = "change", padding.right = 5, part = "all") %>% 
+  flextable::padding(x = ., j = "dummy", padding.left = 5, part = "all")  %>% 
+  flextable::width(x = ., width = 1) %>%
+  flextable::width(x = ., j = c("group","dummy"), width = 2)
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_tab.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_tables[nickname][[1]]$res <- res
+
+```

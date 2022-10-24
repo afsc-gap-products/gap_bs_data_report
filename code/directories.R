@@ -25,7 +25,7 @@ for (i in 1:length(dirs)) {
 dir.output<-paste0(dir_in, "/output/")
 dir_out_todaysrun<-paste0(dir.output, "/",Sys.Date(),"/")
 dir.create(dir_out_todaysrun)
-dir_out_todaysrun<-paste0(dir_out_todaysrun,"/", maxyr, "/")
+dir_out_todaysrun<-paste0(dir_out_todaysrun,"/", maxyr, "_", report_title, "/")
 dir.create(dir_out_todaysrun)
 
 dirs <- c("chapters", "rawdata", "documentation", "code", "figures", "tables", "cite", "ref")
