@@ -1295,10 +1295,10 @@ plot_pa_xbyx <- function(
   figure <- ggplot() +
     geom_sf(data = reg_dat$akland,
             color = NA,
-            fill = "grey50") +
-    geom_sf(data = reg_dat$graticule,
-            color = "grey80",
-            alpha = 0.2)
+            fill = "grey50") #+
+    # geom_sf(data = reg_dat$graticule,
+    #         color = "grey80",
+    #         alpha = 0.2)
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure   + 
@@ -1431,7 +1431,7 @@ plot_pa_xbyx <- function(
       geom_sf(data = reg_dat$survey.strata,
               color = "grey50",
               size = 0.1,
-              alpha = 0,
+              # alpha = 0,
               fill = NA)
   }
   
@@ -1670,7 +1670,7 @@ plot_idw_xbyx <- function(
       geom_sf(data = reg_dat$survey.strata,
               color = "grey50",
               size = 0.1,
-              alpha = 0,
+              # alpha = 0,
               fill = NA)
   }
   
@@ -1678,9 +1678,9 @@ plot_idw_xbyx <- function(
     geom_sf(data = reg_dat$akland,
             color = NA,
             fill = "grey50")  +  
-    geom_sf(data = reg_dat$graticule,
-            color = "grey80",
-            alpha = 0.2) +
+    # geom_sf(data = reg_dat$graticule,
+    #         color = "grey80",
+    #         alpha = 0.2) +
     ggplot2::scale_y_continuous(name = "", #"Latitude", 
                                 limits = reg_dat$plot.boundary$y,
                                 breaks = reg_dat$lat.breaks) +
@@ -1835,14 +1835,14 @@ plot_temps_facet <- function(rasterbrick,
     geom_sf(data = reg_dat$survey.strata,
             color = "grey50",
             size = 0.1,
-            alpha = 0,
+            # alpha = 0,
             fill = NA) +
     geom_sf(data = reg_dat$akland, 
             color = NA, 
             fill = "grey50") +
-    geom_sf(data = reg_dat$graticule,
-            color = "grey80",
-            alpha = 0.2) +
+    # geom_sf(data = reg_dat$graticule,
+    #         color = "grey80",
+    #         alpha = 0.2) +
     ggplot2::scale_y_continuous(name = "", #"Latitude", 
                                 limits = reg_dat$plot.boundary$y,
                                 breaks = reg_dat$lat.breaks) +
@@ -2544,7 +2544,7 @@ plot_survey_stations <- function(reg_dat,
               show.legend = TRUE,
               color = "black",
               size = .5, 
-              alpha = .5,
+              # alpha = .5,
               na.rm = TRUE) +
       scale_fill_manual(
         name = "", #"Survey Vessels",
@@ -2557,7 +2557,9 @@ plot_survey_stations <- function(reg_dat,
   
   if (stratum_no) {
     figure <- figure  +
-      geom_sf(data = reg_dat$survey.strata, fill = NA, color = "grey50")
+      geom_sf(data = reg_dat$survey.strata, 
+              fill = NA, 
+              color = "grey50")
   }
     
   if (bathymetry) { #else {
@@ -2660,9 +2662,9 @@ plot_survey_stations <- function(reg_dat,
   
   figure <- figure +
     geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-    geom_sf(data = reg_dat$graticule,
-            color = "grey80",
-            alpha = 0.2)
+    geom_sf(data = reg_dat$graticule, 
+            color = NA,
+            fill = "grey50")
   
   if (station_pts_srvy) {
     figure <- figure +

@@ -360,29 +360,29 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
 #                                      ,"blue_king_crab","snow_crab"
 #                                      ,"tanner_crab","varigated_snailfish")))
 
-report_spp1 <- report_spp1 %>%
-  dplyr::filter((file_name %in% 
-                   c("walleye_pollock",
-                     "pacific_cod",
-                     "yellowfin_sole",
-                     "northern_rock_sole",
-                     "flathead_sole",
-                     "bering_flounder",
-                     "alaska_plaice",
-                     "greenland_turbot",
-                     "arrowtooth_flounder",
-                     "kamchatka_flounder",
-                     "pacific_halibut",
-                     "bering_skate",
-                     "alaska_skate",
-                     "plain_sculpin",
-                     "great_sculpin",
-                     "shorthorn_sculpin",
-                     "pacific_ocean_perch",
-                     "rex_sole"#,
-                     # "arctic_cod",
-                     # "saffron_cod"
-                   )))
+# report_spp1 <- report_spp1 %>%
+#   dplyr::filter((file_name %in% 
+#                    c("walleye_pollock",
+#                      "pacific_cod",
+#                      "yellowfin_sole",
+#                      "northern_rock_sole",
+#                      "flathead_sole",
+#                      "bering_flounder",
+#                      "alaska_plaice",
+#                      "greenland_turbot",
+#                      "arrowtooth_flounder",
+#                      "kamchatka_flounder",
+#                      "pacific_halibut",
+#                      "bering_skate",
+#                      "alaska_skate",
+#                      "plain_sculpin",
+#                      "great_sculpin",
+#                      "shorthorn_sculpin",
+#                      "pacific_ocean_perch",
+#                      "rex_sole"#,
+#                      # "arctic_cod",
+#                      # "saffron_cod"
+#                    )))
 
 yrs <- sort(nbsyr, decreasing = FALSE)
 

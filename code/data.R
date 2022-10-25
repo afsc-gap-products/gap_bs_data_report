@@ -423,9 +423,8 @@ cpue <-
                 cpue_kgha = wgtcpue, 
                 latitude = start_latitude, 
                 longitude = start_longitude) %>% 
+  dplyr::mutate(cpue_kgha = cpue_kgha/100) %>%
   dplyr::select(-effort, -number_fish, -catchjoin, -net_width, -distance_fished, -catchjoin, -file, -weight)
-
-
 
 # EBS Crab
 cpue_crab <- readr::read_csv(file = paste0(dir_data, "oracle/gap_ebs_nbs_crab_cpue.csv"),
