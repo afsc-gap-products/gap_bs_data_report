@@ -229,13 +229,6 @@ ref_compareyr_nbs <- "@RN909" # check
 dir_googledrive <- "1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
 strat_yr <- 2022
 
-report_spp1 <- add_report_spp(spp_info = spp_info, 
-                              spp_info_codes = "species_code", 
-                              report_spp = report_spp, 
-                              report_spp_col = "order", 
-                              report_spp_codes = "species_code", 
-                              lang = FALSE)
-
 googledrive::drive_deauth()
 googledrive::drive_auth()
 1
@@ -388,7 +381,6 @@ yrs <- sort(nbsyr, decreasing = FALSE)
 
 # *** Figures and Tables ------------------------
 # if (FALSE) {
-
 
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_")

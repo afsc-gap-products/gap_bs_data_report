@@ -29,9 +29,9 @@ source("Z:/Projects/ConnectToOracle.R")
 # 
 # odbcGetInfo(channel)
 
-##################DOWNLOAD CPUE and BIOMASS EST##################################
+# DOWNLOAD CPUE and BIOMASS EST ------------------------------------------------
 
-locations<-c(
+locations <- c(
   ## BIOMASS
  "HAEHNR.biomass_ebs_plusnw",# "HAEHNR.biomass_ebs_plusnw_safe", # no longer used
  "HAEHNR.biomass_ebs_plusnw_grouped",
