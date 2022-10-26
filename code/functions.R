@@ -2147,9 +2147,9 @@ plot_sizecomp <- function(sizecomp0,
     #   gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) %>% 
     dplyr::arrange(year, SRVY, sex, length) %>% 
     dplyr::mutate(year <- factor(
-      x = table_raw$year,
-      levels = as.character(sort(unique(table_raw$year))),
-      labels = as.character(sort(unique(table_raw$year))),
+      x = year,
+      levels = as.character(sort(unique(year))),
+      labels = as.character(sort(unique(year))),
       ordered = TRUE))
   
   # find appropriate units
