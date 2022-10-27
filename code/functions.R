@@ -1591,7 +1591,8 @@ plot_idw_xbyx <- function(
                             out.crs = as.character(reg_dat$crs)[1],
                             set.breaks = set.breaks,
                             grid.cell = grid.cell, 
-                            key.title = key.title)
+                            key.title = key.title, 
+                            use.survey.bathymetry = FALSE)
       
       temp0 <- temp1[grid][[1]]  
       
@@ -1704,8 +1705,7 @@ plot_idw_xbyx <- function(
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
     figure <- figure +
-      geom_sf(data = reg_dat$survey.area %>% 
-                dplyr::filter(SRVY %in% SRVY1), 
+      geom_sf(data = reg_dat$survey.area, 
               mapping = aes(color = SURVEY), 
               fill = NA, 
               shape = NA, 

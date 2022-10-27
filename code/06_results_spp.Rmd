@@ -21,7 +21,7 @@ spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
-# report_title == "Community"
+# report_title == "community"
 spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
 spp_plot_idw_coldwarm <- FALSE
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
@@ -29,7 +29,7 @@ spp_plot_pa <- FALSE
 spp_table_cpue <- FALSE
 text_spp <- TRUE
 
-if (report_title == "Data") {
+if (report_title == "data") {
 spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
 spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
 spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
@@ -40,9 +40,9 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 
 ```{r lang}
 # Native Languages Names
-  lang <- ""
+lang <- ""
 
-if (report_title == "Community") {
+if (report_title == "community") {
 
 temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"))
 
@@ -106,9 +106,9 @@ temp <- ""
 temp1 <- ""
 show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0)
 if (show) {
-  if (report_title == "Community") {
+  if (report_title == "community") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange")
-  } else {
+  } else (report_title == "data") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "table_est_wt", "table_est_num")
   }
   
@@ -142,9 +142,9 @@ temp <- ""
 temp1 <- ""
 show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
 if (show) {
-    if (report_title == "Community") {
+    if (report_title == "community") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange")
-  } else {
+  } else (report_title == "data") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange_NBS", "table_est_wt", "table_est_num")
   }
 temp<-species_content(
@@ -176,9 +176,9 @@ show <- refcontent &
   (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0 &
      nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
 if (show) {
-  if (report_title == "Community") {
+  if (report_title == "community") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange")
-  } else {
+  } else (report_title == "data") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "tab_majortaxa_pchange_NBS", 
                               "table_est_wt", "table_est_num")
   }
@@ -207,8 +207,6 @@ temp <- temp$text_spp
 `r ifelse(refcontent & text_spp, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
 ```{r insert_text}
-
-
 insert<-""
 
 if (report_title == "data") {
