@@ -2153,7 +2153,7 @@ plot_sizecomp <- function(sizecomp0,
       ordered = TRUE))
   
   # find appropriate units
-  a<-find_units(unit = "", unt = "", dat = max(table_raw$pop))
+  a<-find_units(unit = "", unt = "", dat = max(table_raw$pop, na.rm = TRUE))
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
   pop_unit <- divby
   pop_unit_word <- unit_word

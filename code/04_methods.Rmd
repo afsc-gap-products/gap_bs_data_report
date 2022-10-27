@@ -341,7 +341,7 @@ if (SRVY == "NEBS") {
   dplyr::select(SRVY, print_name) %>% 
   dplyr::group_by(SRVY) %>% 
   dplyr::summarise(species_code_n = unique(print_name)) %>% 
-  dplyr::summarise(n = length(all_of(SRVY))) 
+  dplyr::summarise(n = length((SRVY))) 
  
   str0 <- NMFSReports::text_list(paste0(temp$n, " fish species in the ", temp$SRVY))
  if (SRVY == "NEBS") {
@@ -414,7 +414,7 @@ Otolith samples collected during the survey were read for age estimates by Age a
 ```{r additional_research}
 temp <- list_tables$tab_special_projects$raw %>% 
   dplyr::group_by(SRVY) %>% 
-  dplyr::summarise(n = length(all_of(SRVY))) %>% 
+  dplyr::summarise(n = length((SRVY))) %>% 
   dplyr::mutate(SRVY = dplyr::case_when(
     SRVY == "EBS & NBS" ~ "both the EBS and NBS", 
     SRVY == "EBS" ~ "only the EBS",

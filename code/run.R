@@ -49,12 +49,12 @@ font0 <- "Arial Narrow"
 # ref_compareyr <- "@Lauth2019" # CHANGE
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
 
-# maxyr <- 2021
-# compareyr <- 2019
-# strat_yr <- 2019
-# SRVY <- "EBS" # "NEBS"
-# ref_compareyr <- "@2019NEBS2022" # CHANGE
-# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+maxyr <- 2021
+compareyr <- 2019
+strat_yr <- 2019
+SRVY <- "EBS" # "NEBS"
+ref_compareyr <- "@2019NEBS2022" # CHANGE
+dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
 maxyr <- 2022
 compareyr <- 2021

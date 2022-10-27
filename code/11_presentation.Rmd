@@ -123,7 +123,15 @@ ifelse(grepl(x = list_figures1$nickname[i], pattern = "biomass ") |
 
 ```{r print_spp_img}
 insert <- c()
-aa<-report_spp1$file_name[report_spp1$plot_idw_coldwarm == TRUE | report_spp1$plot_idw == TRUE ]
+
+if (report_title == "data") {
+  aa<-report_spp1$file_name[report_spp1$plot_idw_coldwarm == TRUE | report_spp1$plot_idw == TRUE ]
+}
+if (report_title == "community") {
+  aa<-report_spp1$file_name[report_spp1$plot_idw == TRUE ]
+}
+
+
 for (i in 1:length(unique( aa ))){
       insert <- paste0(insert, 
                      paste(paste0("## ", stringr::str_to_sentence(report_spp$print_name[i]), 

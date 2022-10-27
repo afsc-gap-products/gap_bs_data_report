@@ -20,14 +20,20 @@ spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
-spp_plot_sizecomp <- nrow(sizecomp_maxyr[sizecomp_maxyr$species_code %in% spp_code &
-                                           sizecomp_maxyr$SRVY %in% SRVY1,]) > 0 # ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
+# report_title == "community"
+spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
+spp_plot_idw_coldwarm <- FALSE
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
+spp_plot_pa <- FALSE
+spp_table_cpue <- FALSE
+text_spp <- TRUE
+
+if (report_title == "data") {
 spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
 spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
-spp_plot_idw <- ifelse(spp_plot_idw_coldwarm, TRUE, spp_plot_idw)
 spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
 text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
+}
 
 negative <- "#EDA247"
 positive <- "#57C4AD"
@@ -74,7 +80,7 @@ a <- table_change_pres(dat = bio,
 
 b <- a$table_raw %>% 
   dplyr::arrange(Survey) %>% 
-  dplyr::mutate(dplyr::across(dplyr::starts_with("20"), gsub, pattern = ",", replace = "")) %>% 
+  dplyr::mutate(dplyr::across(dplyr::everything(), gsub, pattern = ",", replace = "")) %>% 
   dplyr::filter(Survey %in% SRVY1)
 
 for (i in which(colnames(b) %in% yrs)) {
@@ -180,19 +186,14 @@ figure <- cowplot::plot_grid(figure, descr, nrow = 1, rel_widths = c(1, .4))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_fig.Rmd", 
-                       package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
-
-",res,"
-
-")
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_figures[nickname][[1]]$res <- res
 
 ```
 
@@ -236,7 +237,7 @@ a <- table_change_pres(dat = pop,
 
 b <- a$table_raw %>% 
   dplyr::arrange(Survey) %>% 
-  dplyr::mutate(dplyr::across(dplyr::starts_with("20"), 
+  dplyr::mutate(dplyr::across(dplyr::everything(), 
                               gsub, pattern = ",", replace = "")) %>% 
   dplyr::filter(Survey %in% SRVY1)
 
@@ -322,19 +323,14 @@ figure <- cowplot::plot_grid(figure, descr, nrow = 1, rel_widths = c(1, .4))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_fig.Rmd", 
-                       package = "NMFSReports")), 
-  quiet = TRUE
-)
-
-list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
-
-",res,"
-
-")
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_figures[nickname][[1]]$res <- res
 
 ```
 
@@ -412,7 +408,7 @@ if (spp_plot_sizecomp) {
         print_n = FALSE)
     }
     
-    if (sum(length_data0$SRVY == "EBS")>0) {
+    if (sum(sizecomp0$SRVY == "EBS")>0) {
       length_data_ebs <- length_data0 %>%
         dplyr::filter(SRVY %in% "EBS")
       
@@ -431,30 +427,25 @@ if (spp_plot_sizecomp) {
     
     
     
-    if (sum(length_data0$SRVY == "EBS")>0 & 
-        sum(length_data0$SRVY == "NBS")>0) {
+    if (sum(sizecomp0$SRVY == "EBS")>0 & 
+        sum(sizecomp0$SRVY == "NBS")>0) {
       figure <- cowplot::plot_grid(figure1, figure2, nrow = 1)
-    } else if (sum(length_data0$SRVY == "EBS")>0) {
+    } else if (sum(sizecomp0$SRVY == "EBS")>0) {
       figure <- figure2
-    } else if (sum(length_data0$SRVY == "NBS")>0) {
+    } else if (sum(sizecomp0$SRVY == "NBS")>0) {
       figure <- figure1
     }
     
     # save yo' stuff and do a lot of behind the scenes work
     # alt: this does the same thing as calling "child = " in the chunk header
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = system.file("rmd/_child_save_fig.Rmd", 
-                           package = "NMFSReports")), 
-      quiet = TRUE
-    )
-    
-    list_figures[nickname][[1]]$res <- res <- paste0("
-###### 
-
-",res,"
-
-")
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = system.file("rmd/_child_save_fig.Rmd", 
+                         package = "NMFSReports")), 
+    quiet = TRUE
+  )
+  
+  list_figures[nickname][[1]]$res <- res
   }
 }
 
