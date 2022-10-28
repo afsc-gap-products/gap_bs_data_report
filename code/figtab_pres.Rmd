@@ -13,6 +13,37 @@ bibliography: "../cite/bibliography.bib"
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
+
+## fig_pres_sample_grid1
+
+```{r fig_pres_sample_grid1}
+# header <- paste0("Sampling grid and station identifiers for the ", maxyr, " eastern and northern Bering Sea continental shelf bottom trawl surveys.")
+
+header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined by the dark gray line contains the NBS stations that were sampled in ",maxyr,". The dots within each area indicate station locations.") # TOLEDO
+nickname <- "fig_pres_sample_grid1"
+
+width <- 6
+height <- 6
+
+
+figure <- plot_survey_stations(reg_dat = reg_dat, 
+                               station_info = station_info, 
+                               haul_cruises_maxyr = haul_cruises_maxyr, 
+                               bathymetry = TRUE)
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res
+
+```
+
 ## fig_pres_sample_grid
 
 ```{r fig_pres_sample_grid}
@@ -599,8 +630,8 @@ header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS durin
   # rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
   #                             subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
 # } else if (SRVY == "EBS") {
-  rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
-                              subset = paste0("sebs_ste_", yrs, "_gear_temperature"))
+  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+                              subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
 # }
 
 figure <- plot_temps_facet(
@@ -697,7 +728,8 @@ a <- report_spp1 %>%
   dplyr::distinct() %>% 
   dplyr::mutate(include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
                                   FALSE, TRUE) ) %>% 
-  dplyr::filter(include == TRUE) 
+  dplyr::filter(include == TRUE &
+                  !(print_name %in% c("snailfishes", "jellyfish", "sea urchins", "sea peach")))
 
 temp11 <- function(a, dat0, y_long, unit, unt, yrs, y, maxyr, 
                    compareyr, divby = NULL){
@@ -762,7 +794,7 @@ temp11 <- function(a, dat0, y_long, unit, unt, yrs, y, maxyr,
   return(table_print)
 }
 
-SRVY1 <- "EBS"
+# SRVY1 <- "EBS"
 
 bio <- temp11(a = a, 
               dat0 = biomass %>% 
@@ -817,7 +849,7 @@ positive <- "#57C4AD"
 neutral <- "#E6E1BC"
 # fp_border0 <- fp_border(color = "black", style = "solid", width = 1)  
 
-if (SRVY1 %in% "EBS" & SRVY1 %in% "NBS") {
+if (SRVY == "NEBS") {
   table_print <- 
     flextable::flextable(data = table_raw, #hide_grouplabel = TRUE, 
                          col_keys = c("print_name", "year", 
@@ -928,7 +960,7 @@ if (SRVY1 %in% "EBS" & SRVY1 %in% "NBS") {
     flextable::hline_bottom(x = ., part = "body",
                             border = fp_border(color = "transparent", style = "solid", width = 1))
   
-} else if (SRVY1 %in% "EBS") {
+} else if (sum(SRVY1 %in% "EBS")>1) {
   
   table_print <- 
     flextable::flextable(data = table_raw, #hide_grouplabel = TRUE, 

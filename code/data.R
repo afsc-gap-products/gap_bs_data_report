@@ -732,7 +732,7 @@ temp <- function(cruises_, haul_, catch){
                       end_latitude, end_longitude, gear_depth, 
                       bottom_depth, gear_temperature, surface_temperature,
                       performance, 
-                      "duration", "distance_fished" ,"net_width" ,"net_measured", "net_height"), 
+                      duration, distance_fished ,net_width ,net_measured, net_height), 
       y = cruises_ %>% 
         dplyr::select(cruisejoin, survey_name, SRVY, year, cruise),  
       by = c("cruisejoin")) %>% 
