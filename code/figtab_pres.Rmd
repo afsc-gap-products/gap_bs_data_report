@@ -599,8 +599,8 @@ header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS durin
   # rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
   #                             subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
 # } else if (SRVY == "EBS") {
-  rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
-                              subset = paste0("sebs_ste_", yrs, "_gear_temperature"))
+  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+                              subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
 # }
 
 figure <- plot_temps_facet(
@@ -697,7 +697,8 @@ a <- report_spp1 %>%
   dplyr::distinct() %>% 
   dplyr::mutate(include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
                                   FALSE, TRUE) ) %>% 
-  dplyr::filter(include == TRUE) 
+  dplyr::filter(include == TRUE &
+                  !(print_name %in% c("snailfishes", "jellyfish", "sea urchins", "sea peach")))
 
 temp11 <- function(a, dat0, y_long, unit, unt, yrs, y, maxyr, 
                    compareyr, divby = NULL){

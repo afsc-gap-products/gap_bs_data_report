@@ -1377,7 +1377,7 @@ plot_pa_xbyx <- function(
     if (plot_coldpool) {
       temp_break <- 2 # 2*C
       
-      if (unique(dat$SRVY) %in% "EBS") {
+      if (sum(dat$SRVY %in% "EBS")>0) {
         cp <- coldpool::ebs_bottom_temperature
       } else if (unique(dat$SRVY) %in% "NBS") {
         cp <- coldpool::nbs_ebs_bottom_temperature
@@ -1406,9 +1406,9 @@ plot_pa_xbyx <- function(
       figure <- figure +
         geom_sf(data = outline %>%
                   sf::st_cast(x = ., to = "MULTIPOLYGON"), 
-                size = 1.5, 
-                fill = alpha(colour = "yellow", alpha = 0.3), 
-                color = alpha(colour = "yellow", alpha = 0.3))
+                size = 1, 
+                fill = NA, # alpha(colour = "red", alpha = 0.3),
+                color = alpha(colour = "red", alpha = 0.3))
     }
   
   if (length(yrs) == 0) { # if there is no data to plot
@@ -1458,16 +1458,17 @@ plot_pa_xbyx <- function(
                    dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
+                   st.dist = dplyr::case_when(row0 ==1 & length(yrs)>4 ~ 0.07,
+                                              row0 == 1 ~ 0.04, 
                                               row0 == 2 ~ 0.06, 
                                               TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
                    height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = dplyr::case_when(row0 == 1 & length(yrs) > 3~ 2, 
+                   st.size = dplyr::case_when(row0 ==1 & length(yrs) > 4 ~ 1.5,
+                                              row0 == 1 & length(yrs) > 3 ~ 2, 
                                               row0 == 1 ~ 3, 
                                               row0 == 2 ~ 2.25, 
-                                              TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
-    ) +
+                                              TRUE ~ 2)) + # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
     guides(
       color = guide_legend(title = key.title, 
                           title.position = "top", 
@@ -1479,8 +1480,7 @@ plot_pa_xbyx <- function(
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
-      axis.text = element_text(size = 8),
-      
+      axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
       strip.background = element_blank(), 
       strip.text = element_text(size = 10, face = "bold"), 
       # legend.title = ,element_blank(),
@@ -1619,7 +1619,7 @@ plot_idw_xbyx <- function(
   if (plot_coldpool) {
     temp_break <- 2 # 2*C
 
-    if (unique(dat$SRVY) %in% "EBS") {
+    if (sum(dat$SRVY %in% "EBS")>0) {
       cp <- coldpool::ebs_bottom_temperature
     } else if (unique(dat$SRVY) %in% "NBS") {
       cp <- coldpool::nbs_ebs_bottom_temperature
@@ -1648,9 +1648,11 @@ plot_idw_xbyx <- function(
     figure <- figure +
       geom_sf(data = outline %>%
                 sf::st_cast(x = ., to = "MULTIPOLYGON"), 
-              size = 1.5, 
-              fill = alpha(colour = "yellow", alpha = 0.3), 
-              color = alpha(colour = "yellow", alpha = 0.3))
+              size = 1, 
+              fill = NA, # alpha(colour = "red", alpha = 0.3),
+              color = alpha(colour = "red", alpha = 0.3))
+              # fill = alpha(colour = "yellow", alpha = 0.3), 
+              # color = alpha(colour = "yellow", alpha = 0.3))
   }
   
   if (length(yrs) == 0) {
@@ -1693,12 +1695,14 @@ plot_idw_xbyx <- function(
                    dist = 100,
                    dist_unit = dist_unit,
                    transform = FALSE,
-                   st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
+                   st.dist = dplyr::case_when(row0 ==1 & length(yrs)>4 ~ 0.07,
+                                              row0 == 1 ~ 0.04, 
                                               row0 == 2 ~ 0.06, 
                                               TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
                    height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = dplyr::case_when(row0 == 1 & length(yrs) > 3~ 2, 
+                   st.size = dplyr::case_when(row0 ==1 & length(yrs) > 4 ~ 1.5,
+                                              row0 == 1 & length(yrs) > 3 ~ 2, 
                                               row0 == 1 ~ 3, 
                                               row0 == 2 ~ 2.25, 
                                               TRUE ~ 2)) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
@@ -1766,7 +1770,7 @@ plot_idw_xbyx <- function(
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
-      axis.text = element_text(size = 8),
+      axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
       
       strip.background = element_blank(), 
       strip.text = element_text(size = 10, face = "bold"), 
@@ -2346,29 +2350,30 @@ plot_timeseries <- function(
       yr_missing, 
       data.frame(yr_missing = setdiff((min(temp$year):max(temp$year)),
                                       unique(temp$year)),
+                 col = unique(table_raw$col)[i], 
                  SRVY = unique(table_raw$SRVY)[i], 
                  SRVY_long = unique(table_raw$SRVY_long[table_raw$SRVY == unique(table_raw$SRVY)[i]])))
-
   }
   
   if (nrow(yr_missing) > 0) {
-  temp <- unique(table_raw[,c("print_name", "species_name1", "species_code", "taxon")])
-
-  temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*nrow(yr_missing),
-                             ncol = ncol(table_raw)))
-  names(temp1) <- names(table_raw)
-  temp1$print_name <- temp$print_name
-  temp1$species_name1 <- temp$species_name1
-  temp1$species_code <- temp$species_code
-  temp1$taxon <- temp$taxon
-  temp1 <- dplyr::arrange(temp1, SRVY)
-  temp1$year <- yr_missing$yr_missing
-  temp1$SRVY <- yr_missing$SRVY
-  temp1$SRVY_long <- yr_missing$SRVY_long
-  table_raw <- dplyr::bind_rows(temp1, table_raw)
+    temp <- unique(table_raw[,c("print_name", "species_name1", "species_code", "taxon")])
+  
+    temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*nrow(yr_missing),
+                               ncol = ncol(table_raw)))
+    names(temp1) <- names(table_raw)
+    temp1$print_name <- temp$print_name
+    temp1$species_name1 <- temp$species_name1
+    temp1$species_code <- temp$species_code
+    temp1$taxon <- temp$taxon
+    temp1 <- dplyr::arrange(temp1, SRVY)
+    temp1$year <- yr_missing$yr_missing
+    temp1$SRVY <- yr_missing$SRVY
+    temp1$SRVY_long <- yr_missing$SRVY_long
+    temp1$col <- yr_missing$col
+    table_raw <- dplyr::bind_rows(temp1, table_raw)
   }
   
-  pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
+  # pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
   
   # find appropriate units
   a<-find_units(unit, unt, dat = table_raw$y) # [table_raw$y > 0]
@@ -2419,19 +2424,14 @@ plot_timeseries <- function(
       by = "SRVY_long") %>% 
     dplyr::filter(SRVY %in% table_raw_mean$SRVY)
   
-  figure <- ggplot(mapping = aes(x = year, y = y, 
+  figure <- table_raw %>% 
+    ggplot(mapping = aes(x = year, y = y, 
                             color = SRVY_long1, 
-                            group = SRVY_long1), 
-              data = table_raw) +
+                            group = SRVY_long1)) +
     geom_line(size = 1) +
-    geom_point(size = 1.5)
+    geom_point(size = 1.5) + 
+    ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1, big.mark = "")) 
   
-  
-  figure <- ggplot(mapping = aes(x = year, y = y, 
-                                 color = SRVY_long1, group = SRVY_long1), 
-                   data = table_raw) +
-    geom_line(size = 1) +
-    geom_point(size = 1.5)
     # geom_errorbar(aes(ymin=lowervar, ymax=uppervar), 
     #               width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
     #                position=position_dodge(0.05)) +
@@ -2452,26 +2452,31 @@ plot_timeseries <- function(
     #                       end = .6,
     #                       na.value = "transparent") %>%
   figure <- figure +
-    scale_color_manual(values = pcol, breaks = unique(table_raw$SRVY_long1))
+    ggplot2::scale_color_manual(values = unique(table_raw$col))
   
   if (!is.na(anno)) {
     figure <- figure +
-      ggplot2::geom_text(x = Inf, y = -Inf, 
-                         hjust = 1.2, vjust = -.3, 
-                         label = anno, show.legend = FALSE, 
-                         size = 4, fontface = "italic",
+      ggplot2::geom_text(x = Inf, 
+                         y = -Inf, 
+                         hjust = 1.2, 
+                         vjust = -.3, 
+                         label = anno, 
+                         show.legend = FALSE, 
+                         size = 4, 
+                         fontface = "italic",
                          color = pcol_anno)
   }
   
   if (sum(dat$y == 0) > 0) {
     figure <- figure +
-      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), " ", y_long, unit_word), 
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
                                   labels = scales::comma) 
     
   } else {
     figure <- figure +
       ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
-                         breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1))))) 
+                                  # labels = scales::label_number(accuracy = 1))
+                         breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
   }
   
   figure <- figure +
@@ -3237,34 +3242,52 @@ table_change_pres <- function(dat,
     flextable::flextable(data = .)  %>%
     # red
     flextable::color(color = "red",
-                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[2])]), fixed = TRUE),
-                     j = as.character(nbsyr[2])) %>%
+                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[2])]), fixed = TRUE),
+                     j = as.character(yrs[2])) %>%
     flextable::color(color = "red",
-                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[3])]), fixed = TRUE),
-                     j = as.character(nbsyr[3])) %>%
+                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[3])]), fixed = TRUE),
+                     j = as.character(yrs[3])) %>%
     flextable::color(color = "red",
-                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[4])]), fixed = TRUE),
-                     j = as.character(nbsyr[4])) %>%
+                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[4])]), fixed = TRUE),
+                     j = as.character(yrs[4])) %>%
+    flextable::color(color = "red",
+                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[5])]), fixed = TRUE),
+                     j = as.character(yrs[5])) %>%
     
     # blue
     flextable::color(color = "blue",
-                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[2])]), fixed = TRUE)),
-                     j = as.character(nbsyr[2])) %>%
+                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[2])]), fixed = TRUE)),
+                     j = as.character(yrs[2])) %>%
     flextable::color(color = "blue",
-                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[3])]), fixed = TRUE)),
-                     j = as.character(nbsyr[3])) %>%
+                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[3])]), fixed = TRUE)),
+                     j = as.character(yrs[3])) %>%
     flextable::color(color = "blue",
-                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(nbsyr[4])]), fixed = TRUE)),
-                     j = as.character(nbsyr[4])) %>%
+                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[4])]), fixed = TRUE)),
+                     j = as.character(yrs[4])) %>%
+    flextable::color(color = "blue",
+                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[5])]), fixed = TRUE)),
+                     j = as.character(yrs[5])) %>%
     
     flextable::bold(x = ., bold = TRUE, part = "all") %>%
     
     flextable::set_header_labels(.,
-                                 Survey = paste0(y_long, 
-                                                 ifelse(trimws(unit_wrd) == "", "", paste0(" ",trimws(unit_wrd))))) %>%
+                                 # Survey = paste0(y_long, 
+                                 #                 ifelse(trimws(unit_wrd) == "", "", 
+                                 #                        paste0("\n(",trimws(unit_wrd), ")")))) %>%
+                                 Survey = paste0(ifelse(trimws(unit_wrd) == "", "", 
+                                                        paste0("(",trimws(unit_wrd), ")")))) %>%
     NMFSReports::theme_flextable_nmfstm(
-      x = ., row_lines = TRUE, body_size = 15, header_size = 25, 
-      font = "Arial", pgwidth = 9)  
+      x = ., 
+      row_lines = TRUE, 
+      body_size = 15, 
+      header_size = 18, 
+      font = "Arial", 
+      pgwidth = 9, 
+      spacing = 1.6) %>%
+    flextable::align(x = ., 
+                     part = "all",  
+                     j = as.character(yrs), 
+                     align = "right")
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw, 
