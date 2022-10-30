@@ -38,19 +38,16 @@ Seattle, WA 98195
 <div id="ref-2021Community" class="csl-entry">
 
 Britt, L. L., E. H. Markowitz, E. J. Dawson, N. Charriere, B. Prohaska,
-S. Rohan, D. E. Stevenson, and L. L. Britt. 2021. Results of the 2021
-eastern and northern bering sea continental shelf bottom trawl survey of
-groundfish and invertebrate fauna. U.S. Dep. Commer., NOAA Tech. Memo.
+S. Rohan, D. E. Stevenson, and L. L. Britt. 2021. 2021 northern Bering
+Sea groundfish and crab trawl survey highlights. Outreach.
 
 </div>
 
 <div id="ref-2022Community" class="csl-entry">
 
 Markowitz, E. H., E. J. Dawson, A. Anderson, N. Charriere, J. Richar, S.
-Rohan, B. Prohaska, R. Haehn, and D. E. Stevenson. 2022a. Results of the
-2021 eastern and northern bering sea continental shelf bottom trawl
-survey of groundfish and invertebrate fauna. U.S. Dep. Commer., NOAA
-Tech. Memo.
+Rohan, B. Prohaska, R. Haehn, and D. E. Stevenson. 2022a. 2022 northern
+Bering Sea groundfish and crab trawl survey highlights. Outreach.
 
 </div>
 
@@ -136,20 +133,36 @@ sessionInfo()
     ## Matrix products: default
     ## 
     ## locale:
-    ## [1] LC_COLLATE=English_United States.utf8 
-    ## [2] LC_CTYPE=English_United States.utf8   
-    ## [3] LC_MONETARY=English_United States.utf8
-    ## [4] LC_NUMERIC=C                          
+    ## [1] LC_COLLATE=English_United States.utf8  LC_CTYPE=English_United States.utf8    LC_MONETARY=English_United States.utf8 LC_NUMERIC=C                          
     ## [5] LC_TIME=English_United States.utf8    
     ## 
     ## attached base packages:
-    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
+    ## [1] grid      stats     graphics  grDevices utils     datasets  methods   base     
+    ## 
+    ## other attached packages:
+    ##  [1] RODBC_1.3-19           XML_3.99-0.12          flextable_0.8.2        httr_1.4.4             pingr_2.0.2            scales_1.2.1           reshape_0.8.9         
+    ##  [8] ps_1.7.2               ggsn_0.5.0             digest_0.6.30          rlist_0.4.6.2          coldpool_2.1           reshape2_1.4.4         rgdal_1.5-32          
+    ## [15] lubridate_1.8.0        fields_14.1            viridis_0.6.2          viridisLite_0.4.1      spam_2.9-1             here_1.0.1             ggthemes_4.2.4        
+    ## [22] akgfmaps_2.2.1         stars_0.5-6            abind_1.4-5            shadowtext_0.1.2       sf_1.0-8               raster_3.6-3           sp_1.5-0              
+    ## [29] gstat_2.1-0            ggspatial_1.1.6        classInt_0.4-8         readtext_0.81          stringr_1.4.1          readxl_1.4.1           tidyr_1.2.1           
+    ## [36] readr_2.1.3            magrittr_2.0.3         googledrive_2.0.0      dplyr_1.0.10           plyr_1.8.7             knitcitations_1.0.12   NMFSReports_0.0.1.3   
+    ## [43] ggridges_0.5.4         nmfspalette_0.0.0.9000 ggpubr_0.4.0           extrafont_0.18         magick_2.7.3           png_0.1-7              cowplot_1.1.1         
+    ## [50] ggplot2_3.3.6          officedown_0.2.4       officer_0.4.4          rmarkdown_2.17         knitr_1.40            
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] compiler_4.2.0  magrittr_2.0.3  fastmap_1.1.0   cli_3.4.1      
-    ##  [5] tools_4.2.0     htmltools_0.5.3 rstudioapi_0.14 yaml_2.3.5     
-    ##  [9] stringi_1.7.8   rmarkdown_2.17  knitr_1.40      stringr_1.4.1  
-    ## [13] xfun_0.33       digest_0.6.29   rlang_1.0.6     evaluate_0.17
+    ##  [1] uuid_1.1-0          backports_1.4.1     systemfonts_1.0.4   lwgeom_0.2-9        htmltools_0.5.3     fansi_1.0.3         memoise_2.0.1       tzdb_0.3.0         
+    ##  [9] vroom_1.6.0         xts_0.12.2          extrafontdb_1.0     askpass_1.1         jpeg_0.1-9          colorspace_2.0-3    rappdirs_0.3.3      xfun_0.34          
+    ## [17] crayon_1.5.2        jsonlite_1.8.3      zoo_1.8-11          glue_1.6.2          rvg_0.2.5           gtable_0.3.1        gargle_1.2.1        car_3.1-1          
+    ## [25] Rttf2pt1_1.3.11     maps_3.4.0          DBI_1.1.3           bibtex_0.5.0        rstatix_0.7.0       Rcpp_1.0.9          units_0.8-0         bit_4.0.4          
+    ## [33] foreign_0.8-83      proxy_0.4-27        dotCall64_1.0-2     intervals_0.15.2    FNN_1.1.3.1         wk_0.7.0            ellipsis_0.3.2      farver_2.1.1       
+    ## [41] pkgconfig_2.0.3     janitor_2.1.0       utf8_1.2.2          tidyselect_1.2.0    rlang_1.0.6         munsell_0.5.0       cellranger_1.1.0    tools_4.2.0        
+    ## [49] cachem_1.0.6        cli_3.4.1           generics_0.1.3      ggmap_3.0.0         broom_1.0.1         evaluate_0.17       fastmap_1.1.0       yaml_2.3.6         
+    ## [57] RefManageR_1.4.0    bit64_4.0.5         processx_3.8.0      fs_1.5.2            zip_2.2.2           s2_1.1.0            purrr_0.3.5         RgoogleMaps_1.4.5.3
+    ## [65] xml2_1.3.3          compiler_4.2.0      rstudioapi_0.14     curl_4.3.3          e1071_1.7-12        ggsignif_0.6.4      spacetime_1.2-8     tibble_3.1.8       
+    ## [73] stringi_1.7.8       gdtools_0.2.4       lattice_0.20-45     vctrs_0.5.0         pillar_1.8.1        lifecycle_1.0.3     data.table_1.14.4   bitops_1.0-7       
+    ## [81] maptools_1.1-5      R6_2.5.1            KernSmooth_2.23-20  gridExtra_2.3       codetools_0.2-18    assertthat_0.2.1    openssl_2.0.4       rprojroot_2.0.3    
+    ## [89] rjson_0.2.21        withr_2.5.0         parallel_4.2.0      hms_1.1.2           terra_1.6-17        class_7.3-20        snakecase_0.11.0    carData_3.0-5      
+    ## [97] base64enc_0.1-3
 
 ## NOAA README
 
