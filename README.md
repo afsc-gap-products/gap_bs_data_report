@@ -32,12 +32,67 @@ Seattle, WA 98195
 
 ## This code and the associated releases were used to develop the following reports, outreach documents, and presentations:
 
-<div id="refs">
+<div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-2021Community" class="csl-entry">
+
+Brit, L. L., E. H. Markowitz, E. J. Dawson, N. Charriere, B. Prohaska,
+S. Rohan, D. E. Stevenson, and L. L. Britt. 2022. Results of the 2021
+eastern and northern bering sea continental shelf bottom trawl survey of
+groundfish and invertebrate fauna. U.S. Dep. Commer., NOAA Tech. Memo.
 
 </div>
 
-**Annual Bering Sea Data Reports** \[@2022NEBS2022; @2021NEBS2022;
-@2019NEBS2022; @2018EBS2022\]
+<div id="ref-2022Community" class="csl-entry">
+
+Markowitz, E. H., E. J. Dawson, A. Anderson, N. Charriere, J. Richar, S.
+Rohan, B. Prohaska, R. Haehn, and D. E. Stevenson. 2022a. Results of the
+2021 eastern and northern bering sea continental shelf bottom trawl
+survey of groundfish and invertebrate fauna. U.S. Dep. Commer., NOAA
+Tech. Memo.
+
+</div>
+
+<div id="ref-2018EBS2022" class="csl-entry">
+
+Markowitz, E. H., E. J. Dawson, N. Charriere, B. Prohaska, S. Rohan, R.
+Haehn, D. E. Stevenson, and L. L. Britt. 2022b. Results of the 2018
+eastern bering sea continental shelf bottom trawl survey of groundfish
+and invertebrate fauna. U.S. Dep. Commer., NOAA Tech. Memo.
+
+</div>
+
+<div id="ref-2019NEBS2022" class="csl-entry">
+
+Markowitz, E. H., E. J. Dawson, N. Charriere, B. Prohaska, S. Rohan, D.
+E. Stevenson, and L. L. Britt. 2022e. Results of the 2019 eastern and
+northern bering sea continental shelf bottom trawl survey of groundfish
+and invertebrate fauna. U.S. Dep. Commer., NOAA Tech. Memo.
+
+</div>
+
+<div id="ref-2021NEBS2022" class="csl-entry">
+
+Markowitz, E. H., E. J. Dawson, N. Charriere, B. Prohaska, S. Rohan, D.
+E. Stevenson, and L. L. Britt. 2022d. Results of the 2021 eastern and
+northern bering sea continental shelf bottom trawl survey of groundfish
+and invertebrate fauna. U.S. Dep. Commer., NOAA Tech. Memo.
+
+</div>
+
+<div id="ref-2022NEBS2022" class="csl-entry">
+
+Markowitz, E. H., E. J. Dawson, N. Charriere, B. Prohaska, S. Rohan, D.
+E. Stevenson, and L. L. Britt. 2022c. Results of the 2022 eastern and
+northern bering sea continental shelf bottom trawl survey of groundfish
+and invertebrate fauna. U.S. Dep. Commer., NOAA Tech. Memo.
+
+</div>
+
+</div>
+
+**Annual Bering Sea Data Reports** (Markowitz et al. 2022c, 2022d,
+2022e, 2022b)
 
 -   [9/19-22/2021 North Pacific Fisheries Management Council Groundfish
     Plan Team Meeting
@@ -49,8 +104,8 @@ Seattle, WA 98195
     Page](https://meetings.npfmc.org/Meeting/Details/2949) and
     [Presentation](https://meetings.npfmc.org/CommentReview/DownloadFile?p=02e397c4-a1cc-46eb-b2ae-1c3cc368e682.pdf&fileName=2022_EBSsurvey_planteam.pdf)
 
-\*\* Northern Bering Sea Groundfish and Crab Trawl Survey Highlights
-\*\* \[@2022Community; 2021Community\]
+**Northern Bering Sea Groundfish and Crab Trawl Survey Highlights**
+(Brit et al. 2022; Markowitz et al. 2022a)
 
 -   [11/4/2021 Presentation at the University of Alaska Fairbanks Strait
     Science Seminar](https://youtu.be/putpYJtPRF8)
