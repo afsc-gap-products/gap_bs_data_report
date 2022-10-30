@@ -6,12 +6,15 @@ Previously named `AFSCDataReport` and `GAP_BS_DataReport`
 
 ## This code is primarally maintained by:
 
-**Emily Markowitz** (Emily.Markowitz AT noaa.gov;
-[@EmilyMarkowitz-NOAA](https://github.com/EmilyMarkowitz-NOAA)) **Liz
-Dawson** (Liz.Dawson AT noaa.gov;
-[@liz-dawson-NOAA](https://github.com/liz-dawson-NOAA)) Alaska Fisheries
-Science Center, National Marine Fisheries Service, National Oceanic and
-Atmospheric Administration,
+**Emily Markowitz** (Emily.Markowitz AT noaa.gov; [@EmilyMarkowitz-NOAA](https://github.com/EmilyMarkowitz-NOAA)) 
+
+**Liz Dawson** (Liz.Dawson AT noaa.gov; [@liz-dawson-NOAA](https://github.com/liz-dawson-NOAA)) 
+
+Alaska Fisheries Science Center,
+
+National Marine Fisheries Service, 
+
+National Oceanic and Atmospheric Administration,
 
 Seattle, WA 98195
 
