@@ -114,8 +114,10 @@ and invertebrate fauna. U.S. Dep. Commer., NOAA Tech. Memo.
 
 ## Suggestions and Comments
 
-If you feel that the data or metadata can be improved, please create a
-pull request, [submit an issue to the GitHub
+If you see that the data, product, or metadata can be improved, you are
+invited to create a [pull
+request](https://github.com/EmilyMarkowitz-NOAA/gap_bs_data_report/pulls),
+[submit an issue to the GitHub
 organization](https://github.com/afsc-gap-products/data-requests/issues),
 or [submit an issue to the code’s
 repository](%60r%20paste0(link_repo,%20%22/issues%22)%60).
