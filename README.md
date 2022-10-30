@@ -7,16 +7,11 @@ Previously named `AFSCDataReport` and `GAP_BS_DataReport`
 ## This code is primarally maintained by:
 
 **Emily Markowitz** (Emily.Markowitz AT noaa.gov;
-[@EmilyMarkowitz-NOAA](https://github.com/EmilyMarkowitz-NOAA))
-
-**Liz Dawson** (Liz.Dawson AT noaa.gov;
-[@liz-dawson-NOAA](https://github.com/liz-dawson-NOAA))
-
-Alaska Fisheries Science Center,
-
-National Marine Fisheries Service,
-
-National Oceanic and Atmospheric Administration,
+[@EmilyMarkowitz-NOAA](https://github.com/EmilyMarkowitz-NOAA)) **Liz
+Dawson** (Liz.Dawson AT noaa.gov;
+[@liz-dawson-NOAA](https://github.com/liz-dawson-NOAA)) Alaska Fisheries
+Science Center, National Marine Fisheries Service, National Oceanic and
+Atmospheric Administration,
 
 Seattle, WA 98195
 
@@ -94,14 +89,14 @@ and invertebrate fauna. U.S. Dep. Commer., NOAA Tech. Memo.
 **Annual Bering Sea Data Reports** (Markowitz et al. 2022c, 2022d,
 2022e, 2022b)
 
--   [9/19-22/2021 North Pacific Fisheries Management Council Groundfish
+-   9/19-22/2021 North Pacific Fisheries Management Council Groundfish
     Plan Team Meeting
-    Page](https://meetings.npfmc.org/Meeting/Details/2427) and
+    [Webpage](https://meetings.npfmc.org/Meeting/Details/2427) and
     [presentation](https://meetings.npfmc.org/CommentReview/DownloadFile?p=f48aa839-fdd1-4000-a556-2a3aa4521d8b.pdf&fileName=2021_EBSsurvey%20PRESENTATION.pdf)
 
--   [9/20-23/2022 North Pacific Fisheries Management Council Groundfish
+-   9/20-23/2022 North Pacific Fisheries Management Council Groundfish
     Plan Team Meeting
-    Page](https://meetings.npfmc.org/Meeting/Details/2949) and
+    [Webpage](https://meetings.npfmc.org/Meeting/Details/2949) and
     [Presentation](https://meetings.npfmc.org/CommentReview/DownloadFile?p=02e397c4-a1cc-46eb-b2ae-1c3cc368e682.pdf&fileName=2022_EBSsurvey_planteam.pdf)
 
 **Northern Bering Sea Groundfish and Crab Trawl Survey Highlights**
