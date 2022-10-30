@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ```{r fig_sampled_survey_stations}
 nickname <- "fig_sampled_survey_stations"
 header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of the ", maxyr," ",
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY),
+                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long),
                  " shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
                  ". The map also depicts the stations sampled by the ",
                  NMFSReports::text_list(paste0(vessel_info$vessel_ital, " (",
@@ -94,7 +94,7 @@ list_figures[nickname][[1]]$res <- res
 
 ```{r fig_sample_grid}
 header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY),
+                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long),
                  " continental shelf bottom trawl survey", 
                  ifelse(SRVY == "NEBS", "s", ""), 
                  ". ", ifelse(SRVY == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. "))
@@ -334,7 +334,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   }
   header <- paste0("Otolith collection types and counts during the ", 
                    maxyr, " ", 
-                   haul_cruises_maxyr$SRVY[i],
+                   haul_cruises_maxyr$SRVY_long[i],
                    " shelf bottom trawl survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
@@ -397,7 +397,7 @@ nickname <- paste0("tab_stomach_collection_scheme")
 header <- paste0("Stomach collection targets during the ", 
                  maxyr, " ", 
                  NMFSReports::text_list(paste0( 
-                   haul_cruises_maxyr$SRVY)),
+                   haul_cruises_maxyr$SRVY_long)),
                  " shelf bottom trawl survey.")
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_scheme.xlsx"), 
@@ -480,7 +480,7 @@ temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.x
 # nickname <- paste0(nickname0, "_", haul_cruises_maxyr$SRVY[i]) 
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY), 
+                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long), 
                  " shelf bottom trawl survey, sorted by principal investigator and agency.")
 
 table_raw <- temp %>%
@@ -593,7 +593,7 @@ list_figures[nickname][[1]]$res <- res
 
 ```{r fig_st_maxyr}
 # header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
-#                  # NMFSReports::text_list(haul_cruises_maxyr$SRVY),
+#                  # NMFSReports::text_list(haul_cruises_maxyr$SRVY_long),
 #                  "EBS", 
 #                  " shelf bottom trawl surveys.")
 # nickname <- "fig_st_maxyr"
@@ -828,7 +828,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   }
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
-                   haul_cruises_maxyr$SRVY[i],
+                   haul_cruises_maxyr$SRVY_long[i],
                    " shelf bottom trawl survey. The annual crab technical memorandum produced by the shelfish assessment program summarizes crab samples collected during the survey. ")
   
   table_raw <- table_raw0 %>% 
@@ -841,10 +841,10 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                   x = names(table_raw)[!(names(table_raw) %in% 
                                                            c("SRVY", "common_name"))], 
                                   fixed = TRUE))
-  names(table_raw)[names(table_raw) == "Otolith\nAge\nStructure\nMeasurements"] <- 
-    "Otolith Age\nStructure Measurements"
-  names(table_raw)[names(table_raw) == "Pathobiology\nBlood\nSample"] <- 
-    "Pathobiology\nBlood Sample"
+  names(table_raw)[names(table_raw) == "Otolith\nage\nstructure\nmeasurements"] <- 
+    "Otolith age\nstructure measurements"
+  names(table_raw)[names(table_raw) == "Pathobiology\nblood\nsample"] <- 
+    "Pathobiology\nblood sample"
   
   
   table_print <- table_raw %>% 
@@ -1567,7 +1567,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   }
   header <- paste0("Biomass estimates (t) for major fish taxa collected during the ", 
                    maxyr, " ", 
-                   haul_cruises_maxyr$SRVY[i],
+                   haul_cruises_maxyr$SRVY_long[i],
                    " shelf bottom trawl survey.")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
@@ -1653,7 +1653,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
   header <- paste0("Biomass estimates (t) for major invertebrate taxa collected during the ", 
                    maxyr, " ", 
-                   haul_cruises_maxyr$SRVY[i],
+                   haul_cruises_maxyr$SRVY_long[i],
                    " shelf bottom trawl survey. Crab data is summarized under other crustateans and discussed in detail in annual crab technical memorandum produced by the shelfish assessment program. ")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
@@ -1702,7 +1702,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   header <- paste0(
     "Total estimated biomass in metric tons (t) and the percent change between the ",
     compareyr," and ",maxyr," ", 
-    haul_cruises_maxyr$SRVY[i], 
+    haul_cruises_maxyr$SRVY_long[i], 
     " shelf bottom trawl surveys for predominant fish and invertebrate taxa.")
   
   a<-table_change(dat = cpue_biomass_total %>% 

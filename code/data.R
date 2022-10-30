@@ -260,8 +260,8 @@ cruises <- v_cruises0 %>%
                   year <= maxyr &
                   survey_definition_id %in% SRVY00) %>% 
   dplyr::mutate(vess_shape = substr(x = vessel_name, 1,1)) %>%
-  dplyr::mutate(vessel_ital = paste0("F/V *", stringr::str_to_title(vessel_name), "*")) %>%
-  dplyr::mutate(vessel_name = paste0("F/V ", stringr::str_to_title(vessel_name))) %>%
+  dplyr::mutate(vessel_ital = paste0("FV *", stringr::str_to_title(vessel_name), "*")) %>%
+  dplyr::mutate(vessel_name = paste0("FV ", stringr::str_to_title(vessel_name))) %>%
   dplyr::left_join(
     x = ., 
     y = data.frame(survey_definition_id = c(143, 98, 47), 
