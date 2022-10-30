@@ -419,8 +419,6 @@ rmarkdown::render(paste0(dir_code, "/11_presentation.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".pptx"))
 
 # SAVE METADATA ----------------------------------------------------------------
-
-
 rmarkdown::render(paste0("./README.Rmd"),
                   output_dir = "./",
                   output_file = paste0("README.md"))
