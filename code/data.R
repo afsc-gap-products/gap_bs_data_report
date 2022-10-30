@@ -303,6 +303,7 @@ temp <- dplyr::left_join(
   dplyr::mutate(year = as.numeric(format(as.Date(start_time, 
                                                  format="%m/%d/%Y"),"%Y"))) %>%
   dplyr::filter(year <= maxyr &
+                  year > 1981 & 
                   # abundance_haul == "Y", 
                   performance >= 0 &
                   !(is.null(stationid)) &
@@ -424,7 +425,13 @@ cpue <-
                 latitude = start_latitude, 
                 longitude = start_longitude) %>% 
   dplyr::mutate(cpue_kgha = cpue_kgha/100) %>%
-  dplyr::select(-effort, -number_fish, -catchjoin, -net_width, -distance_fished, -catchjoin, -file, -weight)
+  dplyr::select(-effort, -number_fish, -catchjoin, -net_width, 
+                -distance_fished, -catchjoin, -file, -weight) %>% 
+  # modify for spp
+  dplyr::filter(!(year < 1996 & species_code == 10261) &
+                !(year < 2000 & species_code == 435 ) &
+                !(year < 2000 & species_code == 471) ) # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
+              
 
 # EBS Crab
 cpue_crab <- readr::read_csv(file = paste0(dir_data, "oracle/gap_ebs_nbs_crab_cpue.csv"),
@@ -445,7 +452,8 @@ cpue_crab <- readr::read_csv(file = paste0(dir_data, "oracle/gap_ebs_nbs_crab_cp
     x = ., 
     y = spp_info %>% 
       dplyr::select(species_code, common_name, species_name), 
-    by = "species_code") %>% 
+    by = "species_code") %>%  
+  dplyr::filter(year > 1981) %>%
   dplyr::arrange(desc(year))
 
 # bind cpue
@@ -716,7 +724,7 @@ catch <-  catch0 %>%
   dplyr::group_by(region, cruisejoin, hauljoin, vessel, haul, species_code) %>% 
   dplyr::summarise(weight = sum(weight, na.rm = TRUE), 
                    number_fish = sum(number_fish, na.rm = TRUE)) %>% 
-  dplyr::ungroup()
+  dplyr::ungroup() 
 
 
 # *** catch_haul_cruises_maxyr + maxyr-1-----------------------------------------------
@@ -1227,8 +1235,12 @@ sizecomp <- SameColNames(df.ls)  %>%
     species_code <= 31550 ~ "fish", 
     species_code >= 40001 ~ "invert")) %>%
   dplyr::mutate(length = length/10) %>% 
-  dplyr::filter(length > 0)
-
+  dplyr::filter(length > 0 &
+                  # modify for spp
+                  !(year < 1996 & species_code == 10261) &
+                                  !(year < 2000 & species_code == 435 ) &
+                                  !(year < 2000 & species_code == 471) ) # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
+                                
 
 # Crab 
 df.ls<-list()
@@ -1252,12 +1264,7 @@ for (i in 1:length(a)){
 
 
 sizecomp_crab <- SameColNames(df.ls) %>% 
-  # dplyr::left_join(
-  #   x = SameColNames(df.ls),
-  #   y = station_info %>%
-  #     dplyr::select(stationid, stratum, SRVY) %>%
-  #     unique(),
-  #   by = c("gis_station" = "stationid")) %>%
+  dplyr::filter(survey_year > 1981) %>%
   dplyr::mutate(SRVY = "NBS", 
                 species_code = dplyr::case_when(
                   grepl(pattern = "_BKC_", x = file, ignore.case = TRUE) ~ 69323, # "blue king crab"
@@ -1336,8 +1343,10 @@ biomass_strat <- SameColNames(df.ls)  %>%
   dplyr::rename(SRVY = survey) %>% 
   dplyr::filter(!is.na(species_code)) %>% 
   # modify for spp
-  dplyr::filter(!(year < 1996 & common_name == "northern rock sole" )) %>% # 10263 NRS
-  dplyr::filter(!(year < 2000 & common_name == "Bering skate" ))  %>% 
+  dplyr::filter(!(year < 1996 & species_code == 10261) &
+                  !(year < 2000 & species_code == 435 ) &
+                  !(year < 2000 & species_code == 471) # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
+)  %>% 
   unique() %>%
   dplyr::mutate(sdcpuewt = sqrt(varmnwgtcpue), 
                 sdcpuenum = sqrt(varmnnumcpue), 
@@ -1386,6 +1395,7 @@ biomass_tot_crab <- readr::read_csv(file = a,
                 lowerp = abundance_upper_ci, 
                 SRVY = survey_region,
                 year = survey_year) %>%
+  dplyr::filter(year > 1981) %>%
   dplyr::left_join(
     x = ., 
     y = spp_info %>% 

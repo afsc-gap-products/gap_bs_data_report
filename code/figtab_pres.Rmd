@@ -432,8 +432,9 @@ a<-report_spp1 %>%
   dplyr::filter(include == TRUE) 
 
 table_raw <- specimen_maxyr %>% 
+  dplyr::filter(specimen_subsample_method %in% c(19, 6, 1) & 
+                  specimen_sample_type == 1) %>%
   dplyr::select(SRVY, specimen_subsample_method, species_code) %>% 
-  dplyr::filter(specimen_subsample_method %in% c(19, 6, 1)) %>% 
   dplyr::mutate(sample_type = dplyr::case_when(
     specimen_subsample_method %in% c(1, 19) ~ "random-by-haul",
     specimen_subsample_method == 6 ~ "length/region-stratified (cm/sex/southeast and northwest regions)" )) %>%
@@ -615,6 +616,74 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
+
+## fig_pres_bottom_surface_temperature_maxyr
+
+```{r fig_pres_bottom_surface_temperature_maxyr}
+nickname <- "fig_pres_bottom_surface_temperature_maxyr"
+height <- 4
+width <- 9
+
+header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
+                 NMFSReports::text_list(yrs),
+                 " surveys, which are the years when the survey included the full NBS shelf.")
+
+rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+                              subset = paste0("ebs_ste_", maxyr, "_gear_temperature"))
+  
+figure1 <- plot_temps_facet(
+  rasterbrick = rasterbrick, 
+  key.title = expression(bold("Bottom Temperature (°C)")), 
+  reg_dat = report_types$NEBS$reg_dat, 
+  colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+  viridis_palette_option = "H", 
+  row = 1, 
+  legend_seperate = TRUE) 
+
+  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+                              subset = paste0("ebs_ste_", maxyr, "_surface_temperature"))
+
+figure2 <- plot_temps_facet(
+  rasterbrick = rasterbrick, 
+  key.title = expression(bold("Temperature (°C)")), # expression(bold("Surface Temperature (°C)"))
+  reg_dat = report_types$NEBS$reg_dat, 
+  colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+  viridis_palette_option = "H", 
+  row = 1, 
+  legend_seperate = TRUE) 
+
+figure <- cowplot::plot_grid(figure2$figure + 
+                               ggtitle("Surface Temperature"), 
+                             figure1$figure + 
+                               ggtitle("Bottom Temperature") + 
+                               theme(axis.text.y = element_blank()), 
+                             nrow = 1, 
+                             rel_widths = c(0.5, 0.5))
+figure <- cowplot::plot_grid(figure, 
+                             figure2$legend, 
+                             nrow = 2, 
+                             rel_heights = c(0.8,0.2))
+
+
+# save yo' stuff and do a lot of behind the scenes work
+# alt: this does the same thing as calling "child = " in the chunk header
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = system.file("rmd/_child_save_fig.Rmd", 
+                       package = "NMFSReports")), 
+  quiet = TRUE
+)
+
+list_figures[nickname][[1]]$res <- res <- paste0("
+###### 
+
+",res,"
+
+")
+
+```
+
+
 ## fig_pres_bottom_temperature
 
 ```{r fig_pres_bottom_temperature}
@@ -640,7 +709,7 @@ figure <- plot_temps_facet(
   reg_dat = report_types$NEBS$reg_dat, 
   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
   viridis_palette_option = "H", 
-  row = 1) 
+  row = 2) 
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -693,7 +762,7 @@ figure <- plot_temps_facet(
   reg_dat = report_types$NEBS$reg_dat, 
   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
   viridis_palette_option = "H", 
-  row = 1) 
+  row = 2) 
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header

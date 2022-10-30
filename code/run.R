@@ -35,12 +35,12 @@ font0 <- "Arial Narrow"
 # # ref_compareyr <- "@RN909"
 # # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-# maxyr <- 2018 # NOTE RAPID RESPONCE
-# strat_yr <- 2019
-# compareyr <- 2016
-# SRVY<-"EBS"
-# ref_compareyr <- "@RN976" # CHANGE
-# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+maxyr <- 2018 # NOTE RAPID RESPONCE
+strat_yr <- 2019
+compareyr <- 2016
+SRVY<-"EBS"
+ref_compareyr <- "@RN976" # CHANGE
+dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 maxyr <- 2019
 compareyr <- 2017
@@ -394,6 +394,7 @@ for (jj in 1:length(unique(report_spp1$file_name))) {
   
   print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
   SRVY1 <- c("NBS", "EBS")
+  pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1) # TOLEDO - need to find out where this is outside of a function
   
   filename00<-paste0(cnt_chapt, "_spp_")
   rmarkdown::render(paste0(dir_code, "/figtab_spp_pres.Rmd"),

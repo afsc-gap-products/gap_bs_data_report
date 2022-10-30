@@ -1550,8 +1550,9 @@ plot_idw_xbyx <- function(
     region, 
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
-    plot_stratum = FALSE,
-    plot_coldpool = FALSE) {
+    plot_stratum = FALSE, 
+    plot_coldpool = FALSE, 
+    legend_srvy_reg = TRUE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   dat <- dat %>%
@@ -1662,6 +1663,11 @@ plot_idw_xbyx <- function(
                                        y = mean(reg_dat$lat.breaks), 
                                        label = "No data was available\nfor this species in this\nregion for this year."), 
                          fontface="bold")
+  } else if (length(yrs) == 1) {
+    figure <- figure +
+      coord_sf() +
+      ggtitle(maxyr) +
+      theme(plot.title = element_text(hjust = 0.5, size = 10, face = "bold"))
   } else if (length(yrs)>0) {
     figure <- figure +
       facet_wrap( ~ new_dim, nrow = row0) +
@@ -1714,12 +1720,12 @@ plot_idw_xbyx <- function(
               fill = NA, 
               shape = NA, 
               size = ifelse(row0 > 2, 0.25, 0.75),
-              show.legend = TRUE) +
+              show.legend = legend_srvy_reg) +
       scale_color_manual(
-        name = " ", 
+        name = " ",
         values = reg_dat$survey.area$color,
-        breaks = rev(reg_dat$survey.area$SURVEY), 
-        labels = rev((reg_dat$survey.area$SRVY))) + 
+        breaks = rev(reg_dat$survey.area$SURVEY),
+        labels = rev((reg_dat$survey.area$SRVY))) +
       ggplot2::guides(
         size = guide_legend(override.aes = list(size = 10)), 
         fill = guide_legend(order = 1, 
@@ -1812,7 +1818,8 @@ plot_temps_facet <- function(rasterbrick,
                              dist_unit = "nm", # nautical miles
                              viridis_palette_option = "H", 
                              row0 = 2, 
-                             title0 = NULL) {
+                             title0 = NULL, 
+                             legend_seperate = FALSE) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -1932,11 +1939,16 @@ plot_temps_facet <- function(rasterbrick,
              size = rel(3.2)) + 
     theme(plot.margin = unit(c(-5,5,5, 5), units = "mm"))
   
-  figure_and_legend <- cowplot::plot_grid(figure,
+  if (legend_seperate) { 
+    figure_and_legend <- list("figure" = figure, 
+                              "legend" = cbar_legend)
+    
+  } else {
+    figure_and_legend <- cowplot::plot_grid(figure,
                                           cbar_legend,
                                           nrow = 2,
                                           rel_heights = c(0.8,0.2))
-  
+  }
   return(figure_and_legend)
   
 }

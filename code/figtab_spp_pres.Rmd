@@ -401,7 +401,7 @@ if (spp_plot_sizecomp) {
         dplyr::filter(SRVY %in% "NBS" & 
                         year %in% yrs)  
       
-      figure1 <- plot_sizecomp(
+      figure_nbs_sizecomp <- figure1 <- plot_sizecomp(
         sizecomp0 = table_raw,
         length_data0 = length_data_nbs, 
         spp_code = spp_code,
@@ -417,7 +417,7 @@ if (spp_plot_sizecomp) {
       table_raw <- sizecomp_ebs <- sizecomp0 %>% 
         dplyr::filter(SRVY %in% "EBS") 
       
-      figure2 <- plot_sizecomp(
+      figure_ebs_sizecomp <- figure2 <- plot_sizecomp(
         sizecomp0 = table_raw,
         length_data0 = length_data_ebs, 
         spp_code = spp_code,
@@ -581,6 +581,7 @@ if (spp_plot_idw | spp_plot_pa) {
   nickname0 <- nickname
   table_raw0 <- table_raw
   header0 <- header
+  set.breaks0 <- set.breaks
   
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
@@ -597,28 +598,22 @@ if (spp_plot_idw | spp_plot_pa) {
 
 ```
 
+# fig_pres_sizecomp_idw_cpue
 
-
-## fig_pres_idw/pa_cpue_[spp]_cold_pool
-
-```{r fig_pres_idw_cpue_[spp]_cold_pool}
-
-if (spp_plot_idw | spp_plot_pa) {
-  
-  # yrs <- yrs[(length(yrs)-4):length(yrs)]
-  
-  nickname <- paste0(nickname0, "_cold_pool")
+```{r fig_pres_sizecomp_idw_cpue}
+  nickname <- paste0(nickname0, "_sizecomp")
   height <- height0
   width <- width0
   table_raw <- table_raw0
   header <- paste0(header0, " A yellow outline of the cold pool is featured for reference. ")
   yrs0 <- yrs[yrs %in% unique(table_raw$year)]
-  
+  set.breaks <- set.breaks0
+
   if (spp_plot_idw) {
     
-    figure <- plot_idw_xbyx(
-      yrs = yrs0,
-      dat = table_raw0, 
+    figure1 <- plot_idw_xbyx(
+      yrs = maxyr,
+      dat = table_raw, 
       lat = "latitude",
       lon = "longitude",
       var = "cpue_kgha",
@@ -629,23 +624,36 @@ if (spp_plot_idw | spp_plot_pa) {
       key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
       set.breaks = set.breaks,
       row0 = 1, 
-      plot_coldpool = TRUE)
+      legend_srvy_reg = FALSE) 
     
   } else if (spp_plot_pa) {
-    
-    figure <- plot_pa_xbyx(
-      yrs = yrs0,
-      dat = table_raw0,
+
+    figure1 <- plot_pa_xbyx(
+      yrs = maxyr,
+      dat = table_raw,
       lat = "latitude",
       lon = "longitude",
       year = "year",
       reg_dat = reg_dat0, 
       key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
-      row0 = 1, 
-      plot_coldpool = TRUE)
+      row0 = 1)
     
   }
-  
+
+  if  (sum(length_data0$SRVY == "NBS")>0 & report_title == "community" & spp_plot_sizecomp) {
+  figure <- cowplot::plot_grid(figure_nbs_sizecomp, 
+                               figure1, 
+                                   nrow = 1, 
+                                   rel_widths = c(0.5, 0.5))
+  } else if (sum(length_data0$SRVY == "EBS")>0 & report_title == "data" & spp_plot_sizecomp) { 
+  figure <- cowplot::plot_grid(figure_ebs_sizecomp, 
+                               figure1, 
+                                   nrow = 1, 
+                                   rel_widths = c(0.5, 0.5))
+  } else {
+    figure <- figure1
+  }
+        
   # save yo' stuff and do a lot of behind the scenes work
   # alt: this does the same thing as calling "child = " in the chunk header
   res <- knitr::knit_child(
@@ -656,8 +664,70 @@ if (spp_plot_idw | spp_plot_pa) {
   )
   
   list_figures[nickname][[1]]$res <- res
-  
-}
+
+
+```
+
+
+## fig_pres_idw/pa_cpue_[spp]_cold_pool
+
+```{r fig_pres_idw_cpue_[spp]_cold_pool}
+# 
+# if (spp_plot_idw | spp_plot_pa) {
+#   
+#   # yrs <- yrs[(length(yrs)-4):length(yrs)]
+#   
+#   nickname <- paste0(nickname0, "_cold_pool")
+#   height <- height0
+#   width <- width0
+#   table_raw <- table_raw0
+#   header <- paste0(header0, " A yellow outline of the cold pool is featured for reference. ")
+#   yrs0 <- yrs[yrs %in% unique(table_raw$year)]
+#   
+#   if (spp_plot_idw) {
+#     
+#     figure <- plot_idw_xbyx(
+#       yrs = yrs0,
+#       dat = table_raw0, 
+#       lat = "latitude",
+#       lon = "longitude",
+#       var = "cpue_kgha",
+#       year = "year",
+#       grid = "extrapolation.grid",
+#       reg_dat = reg_dat0, 
+#       region = map.area0, 
+#       key.title = paste0(stringr::str_to_sentence(spp_print), "\nrelative biomass (kg/ha)"),
+#       set.breaks = set.breaks,
+#       row0 = 1, 
+#       plot_coldpool = TRUE)
+#     
+#   } else if (spp_plot_pa) {
+#     
+#     figure <- plot_pa_xbyx(
+#       yrs = yrs0,
+#       dat = table_raw0,
+#       lat = "latitude",
+#       lon = "longitude",
+#       year = "year",
+#       reg_dat = reg_dat0, 
+#       key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
+#       row0 = 1, 
+#       plot_coldpool = TRUE)
+#     
+#   }
+#   
+#   # save yo' stuff and do a lot of behind the scenes work
+#   # alt: this does the same thing as calling "child = " in the chunk header
+#   res <- knitr::knit_child(
+#     text = knitr::knit_expand(
+#       file = system.file("rmd/_child_save_fig.Rmd", 
+#                          package = "NMFSReports")), 
+#     quiet = TRUE
+#   )
+#   
+#   list_figures[nickname][[1]]$res <- res
+#   
+# }
 
 ```
 
