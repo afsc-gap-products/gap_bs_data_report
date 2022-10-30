@@ -2248,7 +2248,7 @@ plot_sizecomp <- function(sizecomp0,
                                          fill = "transparent"),
         legend.key = element_rect(colour = "transparent",
                                   fill = "transparent"),
-        legend.position="bottom",
+        legend.position = "bottom",
         legend.box = "horizontal" # "horizontal" "vertical"
       )
     
