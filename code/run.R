@@ -420,6 +420,12 @@ rmarkdown::render(paste0(dir_code, "/11_presentation.Rmd"),
 
 # SAVE METADATA ----------------------------------------------------------------
 
+
+rmarkdown::render(paste0("./README.Rmd"),
+                  output_dir = "./",
+                  output_file = paste0("README.md"))
+
+
 con <- file(paste0(dir_out_todaysrun, "metadata.log"))
 sink(con, append=TRUE)
 sessionInfo()
