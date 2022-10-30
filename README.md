@@ -5,6 +5,9 @@
 This repository was previously named `AFSCDataReport` and
 `GAP_BS_DataReport`.
 
+The scripts therein reproducibly produce our annual data reports,
+presentations, and other outreach documents from data to data product.
+
 ## This code is primarally maintained by:
 
 **Emily Markowitz** (Emily.Markowitz AT noaa.gov;
