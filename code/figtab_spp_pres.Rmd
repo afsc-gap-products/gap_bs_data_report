@@ -234,8 +234,13 @@ temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_c
                                                 rep_len(x = "plain", 
                                                         length.out = ifelse(mean_in_legend, 4, 5))), 
                                                 length.out = length(text0)), 
-                                y = seq(from = 0.8, 
-                                        to = ifelse(length(text0) == ifelse(mean_in_legend, 5, 6), 0.7, 0.1), 
+                                y = seq(from = 0.9, 
+                                        to = dplyr::case_when(
+                                              length(text0) == 5 ~ 0.7,
+                                              length(text0) == 6 ~ 0.6,
+                                              length(text0) == 10 ~ 0.4,
+                                              length(text0) == 12 ~ 0.1,
+                                              TRUE ~ 0.5), 
                                         length.out = length(text0)),
                                 color = col0)
 
@@ -388,12 +393,14 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
-## fig_pres_sizecomp_[spp]
+## vars1
 
-```{r}
+```{r vars1}
 a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[jj], ]
 spp_code <- unique(a$species_code) # eval(expr = parse(text = a$species_code[1]))
 ```
+
+## fig_pres_sizecomp_[spp]
 
 
 ```{r fig_pres_sizecomp_}
@@ -715,6 +722,8 @@ if  (sum(length_data0$SRVY == "NBS")>0 & report_title == "community" & spp_plot_
                                nrow = 1, 
                                rel_widths = c(0.35, 0.65))
 } else {
+  height <- 6
+  width <- 5.5
   figure <- figure1
 }
 

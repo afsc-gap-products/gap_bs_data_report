@@ -14,13 +14,11 @@ PKG <- c(
   # For creating R Markdown Docs
   "knitr", # A general-purpose tool for dynamic report generation in R
   "rmarkdown", # R Markdown Document Conversion
+  "officer", 
   "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
-  # File Management
-  # "here", # For finding the root directory of your scripts and thus, find your files
-  # "officer",
-  
+
   # Keeping Organized
-  "devtools", # Package development tools for R; used here for downloading packages from GitHub
+  # "devtools", # Package development tools for R; used here for downloading packages from GitHub
   # "renv", # saves the packages in the R environment
   
   
@@ -57,41 +55,35 @@ PKG <- c(
   "akgfmaps", # devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
   "coldpool", # devtools::install_github("sean-rohan-noaa/coldpool")
   
-  
   # Spatial mapping
   "sf",
-  "rlist", 
-  "jsonlite", 
-  "prettymapr",
+  "rlist",
+  # "jsonlite", 
+  # "prettymapr",
   "rgdal", 
-  "rosm", 
-  "shadowtext", 
+  # "rosm", 
+  "shadowtext",
   "ggspatial", 
   "digest", 
   "ggsn",
   "rgdal", 
   "ps", 
-  "backports", 
-  "callr", 
-  "labeling", 
+  # "backports", 
+  # "callr", 
+  # "labeling", 
   "gstat", 
   "magrittr", 
   "raster", 
   "reshape", 
   "stars",
   "grid", 
+  "scales", # nicer lables in ggplot2
   
-  
-  "scales",
-  # library(rasterVis)
-  # library(ggthemes) # theme_map()
-  
-  # check website links
+  # # check website links
   "pingr",
   "httr",
   
   # Tables
-  "officer", 
   "flextable", 
   
   # For editing XML files
