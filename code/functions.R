@@ -121,12 +121,6 @@ full_page_portrait_height <- 7.5
 full_page_landscape_width <- 9.5
 
 # Cite R Packages --------------------------------------------------------------
-
-if (report_title != "Data Report") {
-  download.file(url = "https://raw.githubusercontent.com/EmilyMarkowitz-NOAA/gap_bs_data_report/main/cite/bibliography.bib", 
-                destfile = paste0(dir_cite, "bibliography.bib"))
-}
-
 knitr::write_bib(x = PKG,
                  file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
 
@@ -1819,15 +1813,21 @@ plot_temps_facet <- function(rasterbrick,
                              viridis_palette_option = "H", 
                              row0 = 2, 
                              title0 = NULL, 
-                             legend_seperate = FALSE) {
+                             legend_seperate = FALSE, 
+                             use_col_name = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
   temp_df <- as.data.frame(temp_spdf)
-  temp1 <- gsub(pattern = "[A-Za-z]+", 
-                replacement = "", 
-                x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
-  temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+  if (is.null(use_col_name)) {
+    temp1 <- gsub(pattern = "[A-Za-z]+", 
+                  replacement = "", 
+                  x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
+    temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+    colnames(temp_df) <- c(temp1, "x", "y")
+  } else {
+    temp1 <- use_col_name
+  }
   colnames(temp_df) <- c(temp1, "x", "y")
   temp_df <- temp_df %>% 
     tidyr::pivot_longer(values_to = "value", 
@@ -2249,7 +2249,7 @@ plot_sizecomp <- function(sizecomp0,
         legend.key = element_rect(colour = "transparent",
                                   fill = "transparent"),
         legend.position="bottom",
-        legend.box = "horizontal"
+        legend.box = "horizontal" # "horizontal" "vertical"
       )
     
     
@@ -2350,7 +2350,8 @@ plot_timeseries <- function(
     unt = "", 
     y_long = "", 
     error_bar = TRUE, 
-    spp_print = ""){
+    spp_print = "", 
+    mean_in_legend = TRUE){
   
   table_raw <- dat %>% 
     dplyr::arrange(-year)
@@ -2400,14 +2401,18 @@ plot_timeseries <- function(
     dplyr::group_by(SRVY_long, SRVY) %>% 
     dplyr::summarise(y = mean(y, na.rm = TRUE), 
                      minyr = min(year, na.rm = TRUE), 
-                     maxyr = max(year, na.rm = TRUE)) %>% 
-    dplyr::mutate(SRVY_long1 = paste0(SRVY_long, #"\n
+                     maxyr = max(year, na.rm = TRUE))  %>% 
+    dplyr::mutate(SRVY_long1 = SRVY_long,
+                  yy = y*divby) %>% 
+    dplyr::filter(yy>100)
+  
+  if (mean_in_legend){
+    table_raw_mean <- table_raw_mean %>% 
+      dplyr::mutate(SRVY_long1 = paste0(SRVY_long, #"\n
                                       " (mean = ", 
                                       formatC(x = y, digits = 1, big.mark = ",", format = "f"), " ",
-                                      unit_wrd, ")"), 
-                  yy = y*divby) %>% 
-    dplyr::filter(yy>100) # if there is too little data, don't bother plotting
-  
+                                      unit_wrd, ")"))
+  }
   anno<-NA
   temp<-setdiff(x = unique(table_raw$SRVY), 
                 y = unique(table_raw_mean$SRVY))
@@ -2451,12 +2456,16 @@ plot_timeseries <- function(
   figure <- figure  +
     geom_segment(data = table_raw_mean,
                  # yintercept=y,
-                 mapping = aes(x = minyr, xend = maxyr, y = y, yend = y,
-                               group = SRVY_long1, color = SRVY_long1),
+                 mapping = aes(x = minyr, 
+                               xend = maxyr, 
+                               y = y, 
+                               yend = y,
+                               group = SRVY_long1, 
+                               color = SRVY_long1),
                  linetype = "dashed", size = 1) +
     geom_errorbar(aes(ymin=lower, ymax=upper),
                   width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
-                  position=position_dodge(0.05))
+                  position = position_dodge(0.05))
   } 
     # scale_color_viridis_d(direction = -1,
     #                       option = "mako",
@@ -2481,12 +2490,14 @@ plot_timeseries <- function(
   
   if (sum(dat$y == 0) > 0) {
     figure <- figure +
-      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), 
+                                                " ", tolower(y_long), "\n", unit_word), 
                                   labels = scales::comma) 
     
   } else {
     figure <- figure +
-      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), 
+                                                " ", tolower(y_long), "\n", unit_word), 
                                   # labels = scales::label_number(accuracy = 1))
                          breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
   }
@@ -3170,7 +3181,7 @@ table_change <- function(dat,
                                  group = "Common name",
                                  dummy = "Taxon",
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>%
-    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = ., font = font)
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = ., font0 = font)
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw))
@@ -3190,7 +3201,7 @@ table_change_pres <- function(dat,
                               digits = 1) {
   
   yrs <- sort(yrs)
-  temp <- data.frame(var2 = yrs[-length(yrs)],
+  comb <- data.frame(var2 = yrs[-length(yrs)],
                      var1 = yrs[-1] )
   
   table_raw <- dat
@@ -3213,7 +3224,7 @@ table_change_pres <- function(dat,
   table_raw <- a$table_raw %>% 
     dplyr::select(Survey, print_name, 
                   dplyr::all_of(as.character(nbsyr)), 
-                  dplyr::all_of(paste0("change_", as.character(temp$var2), "_", as.character(temp$var1)))) %>% 
+                  dplyr::all_of(paste0("change_", as.character(comb$var2), "_", as.character(comb$var1)))) %>% 
     dplyr::filter(print_name %in% unique(report_spp1$print_name)) %>% 
     dplyr::mutate_if(is.numeric, formatC, digits = digits, format = "f", big.mark = ",") %>%
     dplyr::mutate(dplyr::across(dplyr::starts_with("change"), 
@@ -3223,12 +3234,12 @@ table_change_pres <- function(dat,
   
   table_print <- table_raw
   
-  for (i in 1:nrow(temp)) {
+  for (i in 1:nrow(comb)) {
     
-    table_print[,as.character(temp$var1)[i]] <- 
-      paste0(unlist(table_print[,as.character(temp$var1)[i]]), 
+    table_print[,as.character(comb$var1)[i]] <- 
+      paste0(unlist(table_print[,as.character(comb$var1)[i]]), 
              " (", 
-             unlist(table_print[,paste0("change_", as.character(temp$var2[i]), "_", as.character(temp$var1[i]))]), 
+             unlist(table_print[,paste0("change_", as.character(comb$var2[i]), "_", as.character(comb$var1[i]))]), 
              "%)")
   }
   
@@ -3303,6 +3314,7 @@ table_change_pres <- function(dat,
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw, 
+              "divby" = divby, 
               "unt" = paste0(#y_long,
                 # ifelse(trimws(unit_wrd) == "", "", paste0(" ",
                 trimws(unit_wrd)), #)),

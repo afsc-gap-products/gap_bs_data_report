@@ -11,6 +11,8 @@ bibliography: "../cite/bibliography.bib"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+height0 <- 6  
+width0 <- full_page_portrait_width # 6.5
 ```
 
 
@@ -22,8 +24,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined by the dark gray line contains the NBS stations that were sampled in ",maxyr,". The dots within each area indicate station locations.") # TOLEDO
 nickname <- "fig_pres_sample_grid1"
 
-width <- 6
-height <- 6
+height <- 6.5
+width <- width0
 
 
 figure <- plot_survey_stations(reg_dat = reg_dat, 
@@ -55,8 +57,8 @@ header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
 nickname <- "fig_pres_pres_sample_grid"
 subobj <- FALSE
 
-height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 6
-width <- full_page_portrait_width # width <- 6.5
+height <- 6.5
+width <- width0
 
 reg_dat0 <- reg_dat
 reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
@@ -95,9 +97,8 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 ```{r fig_pres_pres_sample_vess}
 header <- paste0("Map of the Bering Sea survey stations sampled in ",maxyr," during the EBS and NBS survey. The area enclosed within the light gray line contains the EBS shelf stations that have been sampled annually since 1982, whereas the area outlined in the dark gray line are the NBS stations that were sampled in ",maxyr,". The dots within each area indicate each station location.") # TOLEDO
 nickname <- "fig_pres_pres_sample_locations"
-width <- 6
-height <- 6
-
+height <- 6.5
+width <- width0
 
 figure <- plot_survey_stations(reg_dat = reg_dat, 
                                station_info = station_info, 
@@ -134,8 +135,8 @@ if (crab_resample) {
                    #                               vessel_info$vess_shape, ")")), 
                    ifelse(crab_resample == TRUE, " The map also depicts the stations where Bristol Bay crab resampling was conducted", ""), ". ")
   
-  height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 6
-  width <- full_page_portrait_width # width <- 6.5
+  height <- 6.5
+  width <- width0
   
   reg_dat0 <- reg_dat
   reg_dat0$survey.grid <- 
@@ -217,8 +218,8 @@ if (tow1530) {
                    ifelse(tow1530 == TRUE, " These are the stations where the 15-30 special project was done. ", ""))
   nickname <- "fig_pres_sampled_survey_1530"
   header <- ""
-  width <- 6
-  height <- 6
+  height <- 6.5
+  width <- width0
   
   reg_dat0 <- reg_dat
   reg_dat0$survey.grid <- 
@@ -569,8 +570,8 @@ header <- paste0("Average summer surface (light blue triangles) and bottom (dark
                         paste0(" (left), and NBS shelf based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
                  ". ")
 
-  height = 3.25
-  width <- full_page_portrait_width # 6.5
+height = 3.5
+width <- full_page_portrait_width # 6.5
 
 a <- plot_mean_temperatures(maxyr, SRVY)
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
@@ -598,7 +599,7 @@ header <- paste0("Annual cold pool extent on the EBS shelf, based on observation
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig_pres_cold_pool_area"
 
-height <- 3
+height <- 3.5
 width <- full_page_portrait_width # 6.5
 
 figure <- plot_coldpool_area(coldpool_ebs_bin_area, maxyr)
@@ -616,54 +617,31 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
-
 ## fig_pres_bottom_surface_temperature_maxyr
 
 ```{r fig_pres_bottom_surface_temperature_maxyr}
 nickname <- "fig_pres_bottom_surface_temperature_maxyr"
-height <- 4
-width <- 9
+height <- 5
+width <- width0
 
 header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
                  NMFSReports::text_list(yrs),
                  " surveys, which are the years when the survey included the full NBS shelf.")
 
-rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
-                              subset = paste0("ebs_ste_", maxyr, "_gear_temperature"))
-  
-figure1 <- plot_temps_facet(
+rasterbrick <- raster::brick(
+              raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+                              subset = paste0("ebs_ste_", maxyr, "_surface_temperature")), 
+              raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+                              subset = paste0("ebs_ste_", maxyr, "_gear_temperature")) )
+figure <- plot_temps_facet(
   rasterbrick = rasterbrick, 
-  key.title = expression(bold("Bottom Temperature (°C)")), 
+  key.title = expression(bold("Temperature (°C)")), 
   reg_dat = report_types$NEBS$reg_dat, 
   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
   viridis_palette_option = "H", 
   row = 1, 
-  legend_seperate = TRUE) 
-
-  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
-                              subset = paste0("ebs_ste_", maxyr, "_surface_temperature"))
-
-figure2 <- plot_temps_facet(
-  rasterbrick = rasterbrick, 
-  key.title = expression(bold("Temperature (°C)")), # expression(bold("Surface Temperature (°C)"))
-  reg_dat = report_types$NEBS$reg_dat, 
-  colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-  viridis_palette_option = "H", 
-  row = 1, 
-  legend_seperate = TRUE) 
-
-figure <- cowplot::plot_grid(figure2$figure + 
-                               ggtitle("Surface Temperature"), 
-                             figure1$figure + 
-                               ggtitle("Bottom Temperature") + 
-                               theme(axis.text.y = element_blank()), 
-                             nrow = 1, 
-                             rel_widths = c(0.5, 0.5))
-figure <- cowplot::plot_grid(figure, 
-                             figure2$legend, 
-                             nrow = 2, 
-                             rel_heights = c(0.8,0.2))
-
+  use_col_name = c(paste0(maxyr, " Surface Temperature"), 
+                      paste0(maxyr, " Bottom Temperature")))
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -688,18 +666,18 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ```{r fig_pres_bottom_temperature}
 nickname <- "fig_pres_bottom_temperature"
-height <- 4
-width <- 9
+height <- 5
+width <- width0
 
 header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
                  NMFSReports::text_list(yrs),
                  " surveys, which are the years when the survey included the full NBS shelf.")
 
 # if c(SRVY == "NEBS") {
-  # rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
-  #                             subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
+# rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+#                             subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
 # } else if (SRVY == "EBS") {
-  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
                               subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
 # }
 
@@ -738,15 +716,15 @@ header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
                  NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
 nickname <- "fig_pres_surface_temperature"
 
-height <- 4
-width <- 9
+height <- 5
+width <- width0
 
 # header <- paste0("Map showing surface temperatures (°C) in the NBS and EBS during the ",
 #                  NMFSReports::text_list(yrs),
 #                  " surveys, which are the years when the survey included the full NBS shelf.")
 
 # if (SRVY == "NEBS") {
-  rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
                               subset = paste0("ebs_ste_", yrs, "_surface_temperature"))
 # } else if (SRVY == "EBS") {
 #   rasterbrick <- raster::subset(x = coldpool:::ebs_surface_temperature,
