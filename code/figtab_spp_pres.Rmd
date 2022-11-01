@@ -51,7 +51,8 @@ width0 <- full_page_portrait_width # 6.5
 nickname0 <- paste0("fig_pres_",spp_file)
 
 table_raw0 <- biomass %>%
-  dplyr::filter(stratum == 999 & species_code %in% spp_code) %>% 
+  dplyr::filter(stratum == 999 & 
+                  species_code %in% spp_code) %>% 
   dplyr::select(SRVY, year, species_code, taxon, 
                 upperb, lowerb, varbio, biomass, 
                 upperp, lowerp, varpop, population) %>% 
@@ -176,6 +177,7 @@ temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_c
                                           " ", a$unt, "")) # , sep_last = "\n\n"
   
   figure0 <- plot_timeseries(dat = table_raw,
+                             yrs_plotted = c(2010:maxyr),
                             unit = unit,
                             unt = unt,
                             y_long = y_long,
@@ -277,8 +279,8 @@ y_long <- "Biomass"
 unit = "metric tons"
 unt = "mt"
 
-height <- 4
-width <- width0
+height <- 2.5
+width <- 9
 nickname <- paste0(nickname0,"_biomass")
 
 table_raw <- table_raw0 %>%
@@ -287,10 +289,10 @@ table_raw <- table_raw0 %>%
                 upper = upperb, 
                 var = varbio)
 
-a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, mean_in_legend = TRUE)
+# a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, mean_in_legend = TRUE)
+figure_bio <- a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE, mean_in_legend = FALSE)
 header <- a$header
 figure <- a$figure
-figure_bio <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -336,8 +338,8 @@ y_long <- "Abundance"
 unit = "individuals"
 unt = ""
 
-height <- 4
-width <- width0
+height <- 2.5
+width <- 9
 nickname <- paste0(nickname0,"_abundance")
 
 table_raw <- table_raw0 %>%
@@ -346,10 +348,10 @@ table_raw <- table_raw0 %>%
                 upper = upperp, 
                 var = varpop)
 
-a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, mean_in_legend = TRUE)
+figure_abund <- a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE, mean_in_legend = FALSE)
 header <- a$header
 figure <- a$figure
-figure_abund <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
+# temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header

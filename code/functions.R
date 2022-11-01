@@ -1868,7 +1868,8 @@ plot_temps_facet <- function(rasterbrick,
                                               TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
                    height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = dplyr::case_when(row0 == 1 & length(names(rasterbrick)) > 3~ 2, 
+                   st.size = dplyr::case_when(row0 == 1 & length(names(rasterbrick)) > 3 ~ 2, 
+                                              row0 == 2 & length(names(rasterbrick)) > 4 ~ 1.75, 
                                               row0 == 1 ~ 3, 
                                               row0 == 2 ~ 2.25, 
                                               TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
@@ -2343,7 +2344,8 @@ plot_timeseries <- function(
     y_long = "", 
     error_bar = TRUE, 
     spp_print = "", 
-    mean_in_legend = TRUE){
+    mean_in_legend = TRUE, 
+    yrs_plotted = NULL){
   
   table_raw <- dat %>% 
     dplyr::arrange(-year)
@@ -2432,14 +2434,26 @@ plot_timeseries <- function(
         dplyr::select(SRVY_long, SRVY_long1), 
       by = "SRVY_long") %>% 
     dplyr::filter(SRVY %in% table_raw_mean$SRVY)
+
   
-  figure <- table_raw %>% 
-    ggplot(mapping = aes(x = year, y = y, 
+  if (is.null(yrs_plotted)) {
+    yrs_plotted <- min(table_raw$year, na.rm = TRUE):max(table_raw$year, na.rm = TRUE)
+    # table_raw_mean <- table_raw_mean %>% 
+    #   dplyr::mutate(minyr = min(yrs_plotted, na.rm = TRUE))
+  }
+  
+  figure <-
+    ggplot(data = table_raw %>% 
+             dplyr::filter(year >= min(yrs_plotted, na.rm = TRUE) &
+                             year <= max(yrs_plotted, na.rm = TRUE)), 
+             mapping = aes(x = year, 
+                         y = y, 
                             color = SRVY_long1, 
                             group = SRVY_long1)) +
     geom_line(size = 1) +
     geom_point(size = 1.5) + 
-    ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1, big.mark = "")) 
+    ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1, big.mark = ""), 
+                                limits = range(yrs_plotted, na.rm = TRUE)) 
   
     # geom_errorbar(aes(ymin=lowervar, ymax=uppervar), 
     #               width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
@@ -2448,7 +2462,7 @@ plot_timeseries <- function(
   figure <- figure  +
     geom_segment(data = table_raw_mean,
                  # yintercept=y,
-                 mapping = aes(x = minyr, 
+                 mapping = aes(x = min(yrs_plotted, na.rm = TRUE),#minyr, 
                                xend = maxyr, 
                                y = y, 
                                yend = y,
@@ -2493,10 +2507,11 @@ plot_timeseries <- function(
                                   # labels = scales::label_number(accuracy = 1))
                          breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
   }
+
   
   figure <- figure +
     ggplot2::guides(color = guide_legend(title="", nrow = 2)) +
-    ggplot2::xlab("Year") +
+    ggplot2::xlab(label = "Year") +
     ggplot2::theme(
       # axis.line=element_line(),
       panel.background = element_rect(fill = "white"),
