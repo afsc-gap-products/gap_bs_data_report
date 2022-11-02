@@ -35,12 +35,12 @@ font0 <- "Arial Narrow"
 # # ref_compareyr <- "@RN909"
 # # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
 
-maxyr <- 2018 # NOTE RAPID RESPONCE
-strat_yr <- 2019
-compareyr <- 2016
-SRVY<-"EBS"
-ref_compareyr <- "@RN976" # CHANGE
-dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+# maxyr <- 2018 # NOTE RAPID RESPONCE
+# strat_yr <- 2019
+# compareyr <- 2016
+# SRVY<-"EBS"
+# ref_compareyr <- "@RN976" # CHANGE
+# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
 
 maxyr <- 2019
 compareyr <- 2017
@@ -56,12 +56,12 @@ dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.co
 # ref_compareyr <- "@2019NEBS2022" # CHANGE
 # dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
-maxyr <- 2022
-compareyr <- 2021
-strat_yr <- 2022
-SRVY<-"NEBS"
-ref_compareyr <- "@2021NEBS2022" # CHANGE
-dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
+# maxyr <- 2022
+# compareyr <- 2021
+# strat_yr <- 2022
+# SRVY<-"NEBS"
+# ref_compareyr <- "@2021NEBS2022" # CHANGE
+# dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
@@ -77,7 +77,7 @@ source('./code/functions.R')
 
 source('./code/data.R')
 
-# csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/american-fisheries-society.csl")
+# csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl")
 # readr::write_lines(x = csl, file = "./cite/citestyle.csl")
 
 # *** Figures and Tables ------------------------
