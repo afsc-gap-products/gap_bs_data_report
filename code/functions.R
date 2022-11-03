@@ -14,13 +14,11 @@ PKG <- c(
   # For creating R Markdown Docs
   "knitr", # A general-purpose tool for dynamic report generation in R
   "rmarkdown", # R Markdown Document Conversion
+  "officer", 
   "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
-  # File Management
-  # "here", # For finding the root directory of your scripts and thus, find your files
-  # "officer",
-  
+
   # Keeping Organized
-  "devtools", # Package development tools for R; used here for downloading packages from GitHub
+  # "devtools", # Package development tools for R; used here for downloading packages from GitHub
   # "renv", # saves the packages in the R environment
   
   
@@ -57,41 +55,35 @@ PKG <- c(
   "akgfmaps", # devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
   "coldpool", # devtools::install_github("sean-rohan-noaa/coldpool")
   
-  
   # Spatial mapping
   "sf",
-  "rlist", 
-  "jsonlite", 
-  "prettymapr",
+  "rlist",
+  # "jsonlite", 
+  # "prettymapr",
   "rgdal", 
-  "rosm", 
-  "shadowtext", 
+  # "rosm", 
+  "shadowtext",
   "ggspatial", 
   "digest", 
   "ggsn",
   "rgdal", 
   "ps", 
-  "backports", 
-  "callr", 
-  "labeling", 
+  # "backports", 
+  # "callr", 
+  # "labeling", 
   "gstat", 
   "magrittr", 
   "raster", 
   "reshape", 
   "stars",
   "grid", 
+  "scales", # nicer lables in ggplot2
   
-  
-  "scales",
-  # library(rasterVis)
-  # library(ggthemes) # theme_map()
-  
-  # check website links
+  # # check website links
   "pingr",
   "httr",
   
   # Tables
-  "officer", 
   "flextable", 
   
   # For editing XML files
@@ -121,12 +113,6 @@ full_page_portrait_height <- 7.5
 full_page_landscape_width <- 9.5
 
 # Cite R Packages --------------------------------------------------------------
-
-if (report_title != "Data Report") {
-  download.file(url = "https://raw.githubusercontent.com/EmilyMarkowitz-NOAA/gap_bs_data_report/main/cite/bibliography.bib", 
-                destfile = paste0(dir_cite, "bibliography.bib"))
-}
-
 knitr::write_bib(x = PKG,
                  file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
 
@@ -1273,20 +1259,35 @@ plot_pa_xbyx <- function(
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
     plot_coldpool = FALSE, 
-    plot_stratum = FALSE) {
+    plot_stratum = FALSE, 
+    plot_bubble = FALSE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
-  dat0 <- dat %>%
-    dplyr::rename(year = as.character(year), 
-                  lat = as.character(lat), 
-                  lon = as.character(lon)) %>% 
-    dplyr::select(year, lat, lon) %>% 
-    dplyr::mutate(year = as.numeric(year), 
-                  latdd = as.numeric(lat), 
-                  londd = as.numeric(lon))
+  if (plot_bubble){
+    dat0 <- dat %>%
+      dplyr::rename(year = as.character(year), 
+                    lat = as.character(lat), 
+                    lon = as.character(lon)) %>% 
+      dplyr::select(year, lat, lon, cpue_kgha) %>% 
+      dplyr::mutate(year = as.numeric(year), 
+                    latdd = as.numeric(lat), 
+                    londd = as.numeric(lon), 
+                    cpue_kgha = as.numeric(cpue_kgha))
+    d <- dat0[,c("londd", "latdd", "year", "cpue_kgha")]
+  } else {
+    dat0 <- dat %>%
+      dplyr::rename(year = as.character(year), 
+                    lat = as.character(lat), 
+                    lon = as.character(lon)) %>% 
+      dplyr::select(year, lat, lon) %>% 
+      dplyr::mutate(year = as.numeric(year), 
+                    latdd = as.numeric(lat), 
+                    londd = as.numeric(lon))
+    d <- dat0[,c("londd", "latdd", "year")]
+  }
   
-  d <- dat0[,c("londd", "latdd", "year")]
+  
   coordinates(d) <- c("londd", "latdd")
   sp::proj4string(d) <- CRS("+proj=longlat +datum=WGS84") 
   dd <- data.frame(sp::spTransform(d, CRS(as.character(reg_dat$crs)[1])))
@@ -1296,11 +1297,26 @@ plot_pa_xbyx <- function(
     geom_sf(data = reg_dat$akland,
             color = NA,
             fill = "grey50") #+
-    # geom_sf(data = reg_dat$graticule,
-    #         color = "grey80",
-    #         alpha = 0.2)
+  # geom_sf(data = reg_dat$graticule,
+  #         color = "grey80",
+  #         alpha = 0.2)
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
+  if (plot_bubble) {
+    figure <- figure   + 
+      geom_point(data = dd, 
+                 mapping = aes(x = londd, y = latdd,
+                               size = cpue_kgha,
+                               group = as.factor(year)), 
+                 color = mako(n = 1, begin = .25, end = .75),
+                 shape = 16,
+                 # size = 1.5,
+                 show.legend = TRUE,
+                 na.rm = TRUE) +
+      scale_size_continuous(
+        name = paste0(key.title, "weight CPUE (kg/ha)"), 
+        range = c(1,4))
+  } else {
     figure <- figure   + 
       geom_point(data = dd, 
                  mapping = aes(x = londd, y = latdd,
@@ -1310,19 +1326,22 @@ plot_pa_xbyx <- function(
                  shape = 16,
                  size = 1.5,
                  show.legend = TRUE,
-                 na.rm = TRUE) +
-      geom_sf(data = reg_dat$survey.area, # %>% 
-                # dplyr::filter(SRVY %in% SRVY1), 
-              mapping = aes(color = SURVEY), 
-              fill = NA, 
-              shape = NA, 
-              size = ifelse(row0 > 2, 0.25, 0.75),
-              show.legend = TRUE) +
-      scale_color_manual(
-        name = "", # key.title,
-        values = reg_dat$survey.area$color,
-        breaks = rev(reg_dat$survey.area$SURVEY), 
-        labels = rev((reg_dat$survey.area$SRVY)))
+                 na.rm = TRUE)    
+  }
+  
+  figure <- figure  +
+    geom_sf(data = reg_dat$survey.area, # %>% 
+            # dplyr::filter(SRVY %in% SRVY1), 
+            mapping = aes(color = SURVEY), 
+            fill = NA, 
+            shape = NA, 
+            size = ifelse(row0 > 2, 0.25, 0.75),
+            show.legend = TRUE) +
+    scale_color_manual(
+      name = "", # key.title,
+      values = reg_dat$survey.area$color,
+      breaks = rev(reg_dat$survey.area$SURVEY), 
+      labels = rev((reg_dat$survey.area$SRVY)))
   # } else {
   #   figure <- figure   + 
   #     geom_point(data = dd, 
@@ -1336,80 +1355,82 @@ plot_pa_xbyx <- function(
   #                na.rm = TRUE) 
   # }
   
-    # if (plot_coldpool) {
-    #   temp_break <- 2 # 2*C
-    #   
-    #   if (unique(dat$SRVY) %in% "EBS") {
-    #     cp <- coldpool::ebs_bottom_temperature
-    #   } else if (unique(dat$SRVY) %in% "NBS") {
-    #     cp <- coldpool::nbs_ebs_bottom_temperature
-    #   }
-    #   
-    #   coords <- raster::coordinates(cp)
-    #   
-    #   for(i in 1:length(yrs)) {
-    #     sel_layer_df <- data.frame(x = coords[,1],
-    #                                y = coords[,2],
-    #                                temperature = cp@data@values[,i])
-    #     sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
-    #     sel_layer_df$year <- yrs[i]
-    #     
-    #     if(i == 1) {
-    #       bt_year_df <- sel_layer_df
-    #     } else{
-    #       bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
-    #     }
-    #   }
-    #   
-    #   figure <- figure +
-    #     ggplot2::geom_tile(data = bt_year_df %>%
-    #                          dplyr::filter(temperature <= temp_break), #%>% 
-    #                          # dplyr::rename(new_dim = year),
-    #                        aes(x = x,
-    #                            y = y, 
-    #                            group = year),
-    #                        fill = "magenta", 
-    #                        alpha = 0.25, 
-    #                        show.legend = FALSE)
-    #   
-    # }  
+  # if (plot_coldpool) {
+  #   temp_break <- 2 # 2*C
+  #   
+  #   if (unique(dat$SRVY) %in% "EBS") {
+  #     cp <- coldpool::ebs_bottom_temperature
+  #   } else if (unique(dat$SRVY) %in% "NBS") {
+  #     cp <- coldpool::nbs_ebs_bottom_temperature
+  #   }
+  #   
+  #   coords <- raster::coordinates(cp)
+  #   
+  #   for(i in 1:length(yrs)) {
+  #     sel_layer_df <- data.frame(x = coords[,1],
+  #                                y = coords[,2],
+  #                                temperature = cp@data@values[,i])
+  #     sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
+  #     sel_layer_df$year <- yrs[i]
+  #     
+  #     if(i == 1) {
+  #       bt_year_df <- sel_layer_df
+  #     } else{
+  #       bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
+  #     }
+  #   }
+  #   
+  #   figure <- figure +
+  #     ggplot2::geom_tile(data = bt_year_df %>%
+  #                          dplyr::filter(temperature <= temp_break), #%>% 
+  #                          # dplyr::rename(new_dim = year),
+  #                        aes(x = x,
+  #                            y = y, 
+  #                            group = year),
+  #                        fill = "magenta", 
+  #                        alpha = 0.25, 
+  #                        show.legend = FALSE)
+  #   
+  # }  
+  
+  if (plot_coldpool) {
+    temp_break <- 2 # 2*C
     
-    if (plot_coldpool) {
-      temp_break <- 2 # 2*C
-      
-      if (sum(dat$SRVY %in% "EBS")>0) {
-        cp <- coldpool::ebs_bottom_temperature
-      } else if (unique(dat$SRVY) %in% "NBS") {
-        cp <- coldpool::nbs_ebs_bottom_temperature
-      }
-      
-      temp <- c()
-      outline <- c()
-      for (i in 1:length(yrs)){
-        #   temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
-        # }
-        temp <- which(grepl(pattern = yrs[i], x = names(cp)))
-        
-        cp0 <- cp[[temp]]#[[which(grepl(x = names(cp), pattern = 2019))]] # cp[[temp[2]]]
-        values(cp0)[values(cp0) <= temp_break] <- 1
-        values(cp0)[values(cp0) > temp_break] <- NA
-        pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
-        
-        outline <- rbind(outline, 
-                         pp %>% 
-                           sp::geometry(obj = .) %>% 
-                           sf::st_as_sf(x = .) %>% 
-                           dplyr::mutate(new_dim  = yrs[i]))
-        
-      }
-      
-      figure <- figure +
-        geom_sf(data = outline %>%
-                  sf::st_cast(x = ., to = "MULTIPOLYGON"), 
-                size = 1, 
-                fill = NA, # alpha(colour = "red", alpha = 0.3),
-                color = alpha(colour = "red", alpha = 0.3))
+    if (sum(dat$SRVY %in% "EBS")>0) {
+      cp <- coldpool::ebs_bottom_temperature
+    } else if (unique(dat$SRVY) %in% "NBS") {
+      cp <- coldpool::nbs_ebs_bottom_temperature
     }
+    
+    temp <- c()
+    outline <- c()
+    for (i in 1:length(yrs)){
+      #   temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
+      # }
+      temp <- which(grepl(pattern = yrs[i], x = names(cp)))
+      
+      cp0 <- cp[[temp]]#[[which(grepl(x = names(cp), pattern = 2019))]] # cp[[temp[2]]]
+      values(cp0)[values(cp0) <= temp_break] <- 1
+      values(cp0)[values(cp0) > temp_break] <- NA
+      pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
+      
+      outline <- rbind(outline, 
+                       pp %>% 
+                         sp::geometry(obj = .) %>% 
+                         sf::st_as_sf(x = .) %>% 
+                         dplyr::mutate(new_dim  = yrs[i]))
+      
+    }
+    
+    figure <- figure +
+      geom_sf(data = outline %>%
+                sf::st_cast(x = ., to = "MULTIPOLYGON"), 
+              size = 1, 
+              fill = NA, # alpha(colour = "red", alpha = 0.3),
+              color = alpha(colour = "red", alpha = 0.3))
+    # fill = alpha(colour = "yellow", alpha = 0.3), 
+    # color = alpha(colour = "yellow", alpha = 0.3))
+  }
   
   if (length(yrs) == 0) { # if there is no data to plot
     grid <- ""
@@ -1468,13 +1489,30 @@ plot_pa_xbyx <- function(
                                               row0 == 1 & length(yrs) > 3 ~ 2, 
                                               row0 == 1 ~ 3, 
                                               row0 == 2 ~ 2.25, 
-                                              TRUE ~ 2)) + # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
-    guides(
-      color = guide_legend(title = key.title, 
-                          title.position = "top", 
-                          label.position = "right",
-                          title.hjust = 0.5,
-                          nrow = 1)) +
+                                              TRUE ~ 2)) 
+  if (plot_bubble) {
+    figure <- figure +
+      guides(
+        size = guide_legend(order = 1, 
+                            title.position = "top", 
+                            label.position = "top",
+                            title.hjust = 0.5, 
+                            nrow = 1), 
+        color = guide_legend(order = 2, 
+                             label.position = "right",
+                             title.hjust = 0.5,
+                             nrow = 1)) 
+  } else {
+    figure <- figure +
+      guides(
+        color = guide_legend(title = key.title, 
+                             title.position = "top",  
+                             label.position = "right",
+                             title.hjust = 0.5,
+                             nrow = 1)) 
+  }
+  
+  figure <- figure +
     theme(  #set legend position and vertical arrangement
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
@@ -1490,7 +1528,7 @@ plot_pa_xbyx <- function(
       legend.key = element_rect(colour = "transparent", 
                                 fill = "transparent"),
       legend.position = "bottom",
-      legend.box = "horizontal")
+      legend.box = "horizontal")# ifelse(plot_bubble, "vertical", "horizontal"))
   
   
   return(figure)
@@ -1550,8 +1588,9 @@ plot_idw_xbyx <- function(
     region, 
     dist_unit = "nm", # nautical miles
     col_viridis = "mako", 
-    plot_stratum = FALSE,
-    plot_coldpool = FALSE) {
+    plot_stratum = FALSE, 
+    plot_coldpool = FALSE, 
+    legend_srvy_reg = TRUE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   dat <- dat %>%
@@ -1618,31 +1657,31 @@ plot_idw_xbyx <- function(
   
   if (plot_coldpool) {
     temp_break <- 2 # 2*C
-
+    
     if (sum(dat$SRVY %in% "EBS")>0) {
       cp <- coldpool::ebs_bottom_temperature
     } else if (unique(dat$SRVY) %in% "NBS") {
       cp <- coldpool::nbs_ebs_bottom_temperature
     }
-
+    
     temp <- c()
     outline <- c()
     for (i in 1:length(yrs)){
-    #   temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
-    # }
+      #   temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
+      # }
       temp <- which(grepl(pattern = yrs[i], x = names(cp)))
-
-    cp0 <- cp[[temp]]#[[which(grepl(x = names(cp), pattern = 2019))]] # cp[[temp[2]]]
-    values(cp0)[values(cp0) <= temp_break] <- 1
-    values(cp0)[values(cp0) > temp_break] <- NA
-    pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
-    
-    outline <- rbind(outline, 
-                 pp %>% 
-      sp::geometry(obj = .) %>% 
-      sf::st_as_sf(x = .) %>% 
-        dplyr::mutate(new_dim  = yrs[i]))
-    
+      
+      cp0 <- cp[[temp]]#[[which(grepl(x = names(cp), pattern = 2019))]] # cp[[temp[2]]]
+      values(cp0)[values(cp0) <= temp_break] <- 1
+      values(cp0)[values(cp0) > temp_break] <- NA
+      pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
+      
+      outline <- rbind(outline, 
+                       pp %>% 
+                         sp::geometry(obj = .) %>% 
+                         sf::st_as_sf(x = .) %>% 
+                         dplyr::mutate(new_dim  = yrs[i]))
+      
     }
     
     figure <- figure +
@@ -1651,8 +1690,8 @@ plot_idw_xbyx <- function(
               size = 1, 
               fill = NA, # alpha(colour = "red", alpha = 0.3),
               color = alpha(colour = "red", alpha = 0.3))
-              # fill = alpha(colour = "yellow", alpha = 0.3), 
-              # color = alpha(colour = "yellow", alpha = 0.3))
+    # fill = alpha(colour = "yellow", alpha = 0.3), 
+    # color = alpha(colour = "yellow", alpha = 0.3))
   }
   
   if (length(yrs) == 0) {
@@ -1662,6 +1701,11 @@ plot_idw_xbyx <- function(
                                        y = mean(reg_dat$lat.breaks), 
                                        label = "No data was available\nfor this species in this\nregion for this year."), 
                          fontface="bold")
+  } else if (length(yrs) == 1) {
+    figure <- figure +
+      coord_sf() +
+      ggtitle(maxyr) +
+      theme(plot.title = element_text(hjust = 0.5, size = 10, face = "bold"))
   } else if (length(yrs)>0) {
     figure <- figure +
       facet_wrap( ~ new_dim, nrow = row0) +
@@ -1708,31 +1752,31 @@ plot_idw_xbyx <- function(
                                               TRUE ~ 2)) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
-    figure <- figure +
-      geom_sf(data = reg_dat$survey.area, 
-              mapping = aes(color = SURVEY), 
-              fill = NA, 
-              shape = NA, 
-              size = ifelse(row0 > 2, 0.25, 0.75),
-              show.legend = TRUE) +
-      scale_color_manual(
-        name = " ", 
-        values = reg_dat$survey.area$color,
-        breaks = rev(reg_dat$survey.area$SURVEY), 
-        labels = rev((reg_dat$survey.area$SRVY))) + 
-      ggplot2::guides(
-        size = guide_legend(override.aes = list(size = 10)), 
-        fill = guide_legend(order = 1, 
-                            title.position = "top", 
-                            label.position = "bottom",
-                            title.hjust = 0.5, 
-                            override.aes = list(color = NA), 
-                            nrow = 1), 
-        color = guide_legend(order = 2, 
-                             label.position = "right",
-                             override.aes = list(size = 2), 
-                             title.hjust = 0.5,
-                             nrow = 2)) 
+  figure <- figure +
+    geom_sf(data = reg_dat$survey.area, 
+            mapping = aes(color = SURVEY), 
+            fill = NA, 
+            shape = NA, 
+            size = ifelse(row0 > 2, 0.25, 0.75),
+            show.legend = legend_srvy_reg) +
+    scale_color_manual(
+      name = " ",
+      values = reg_dat$survey.area$color,
+      breaks = rev(reg_dat$survey.area$SURVEY),
+      labels = rev((reg_dat$survey.area$SRVY))) +
+    ggplot2::guides(
+      size = guide_legend(override.aes = list(size = 10)), 
+      fill = guide_legend(order = 1, 
+                          title.position = "top", 
+                          label.position = "bottom",
+                          title.hjust = 0.5, 
+                          override.aes = list(color = NA), 
+                          nrow = 1), 
+      color = guide_legend(order = 2, 
+                           label.position = "right",
+                           override.aes = list(size = 2), 
+                           title.hjust = 0.5,
+                           nrow = 2)) 
   
   if (grid == "continuous.grid") {
     figure <- figure + 
@@ -1812,15 +1856,22 @@ plot_temps_facet <- function(rasterbrick,
                              dist_unit = "nm", # nautical miles
                              viridis_palette_option = "H", 
                              row0 = 2, 
-                             title0 = NULL) {
+                             title0 = NULL, 
+                             legend_seperate = FALSE, 
+                             use_col_name = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
   temp_df <- as.data.frame(temp_spdf)
-  temp1 <- gsub(pattern = "[A-Za-z]+", 
-                replacement = "", 
-                x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
-  temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+  if (is.null(use_col_name)) {
+    temp1 <- gsub(pattern = "[A-Za-z]+", 
+                  replacement = "", 
+                  x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
+    temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+    colnames(temp_df) <- c(temp1, "x", "y")
+  } else {
+    temp1 <- use_col_name
+  }
   colnames(temp_df) <- c(temp1, "x", "y")
   temp_df <- temp_df %>% 
     tidyr::pivot_longer(values_to = "value", 
@@ -1869,7 +1920,8 @@ plot_temps_facet <- function(rasterbrick,
                                               TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
                    height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
                    st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = dplyr::case_when(row0 == 1 & length(names(rasterbrick)) > 3~ 2, 
+                   st.size = dplyr::case_when(row0 == 1 & length(names(rasterbrick)) > 3 ~ 2, 
+                                              row0 == 2 & length(names(rasterbrick)) > 4 ~ 1.75, 
                                               row0 == 1 ~ 3, 
                                               row0 == 2 ~ 2.25, 
                                               TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
@@ -1932,11 +1984,16 @@ plot_temps_facet <- function(rasterbrick,
              size = rel(3.2)) + 
     theme(plot.margin = unit(c(-5,5,5, 5), units = "mm"))
   
-  figure_and_legend <- cowplot::plot_grid(figure,
+  if (legend_seperate) { 
+    figure_and_legend <- list("figure" = figure, 
+                              "legend" = cbar_legend)
+    
+  } else {
+    figure_and_legend <- cowplot::plot_grid(figure,
                                           cbar_legend,
                                           nrow = 2,
                                           rel_heights = c(0.8,0.2))
-  
+  }
   return(figure_and_legend)
   
 }
@@ -2144,13 +2201,14 @@ plot_sizecomp <- function(sizecomp0,
                           spp_print, 
                           type = "length", 
                           print_n = FALSE, 
-                          ridgeline = FALSE){
+                          ridgeline = FALSE, 
+                          unit = NULL){
   
   table_raw <- sizecomp0 %>%
     # dplyr::mutate(sex = stringr::str_to_title(
     #   gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) %>% 
     dplyr::arrange(year, SRVY, sex, length) %>% 
-    dplyr::mutate(year <- factor(
+    dplyr::mutate(year = factor(
       x = year,
       levels = as.character(sort(unique(year))),
       labels = as.character(sort(unique(year))),
@@ -2162,11 +2220,15 @@ plot_sizecomp <- function(sizecomp0,
   pop_unit <- divby
   pop_unit_word <- unit_word
   
-  # mm vs cm
-  len_unit_word <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
-                          #report_spp$taxon[jj] =="fish", 
-                          # max(table_raw$length)-min(table_raw$length)>45, 
-                          "cm", "mm")
+  if (is.null(unit)){
+    # mm vs cm
+    len_unit_word <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
+                            #report_spp$taxon[jj] =="fish", 
+                            # max(table_raw$length)-min(table_raw$length)>45, 
+                            "cm", "mm")
+  } else {
+    len_unit_word <- unit
+  }
   table_raw <- table_raw %>%
     dplyr::mutate(pop = pop/pop_unit, 
                   length = round(
@@ -2236,8 +2298,8 @@ plot_sizecomp <- function(sizecomp0,
                                          fill = "transparent"),
         legend.key = element_rect(colour = "transparent",
                                   fill = "transparent"),
-        legend.position="bottom",
-        legend.box = "horizontal"
+        legend.position = "bottom",
+        legend.box = "horizontal" # "horizontal" "vertical"
       )
     
     
@@ -2331,14 +2393,15 @@ plot_sizecomp <- function(sizecomp0,
 }
 
 
-
 plot_timeseries <- function(
     dat, 
     unit = "", 
     unt = "", 
     y_long = "", 
     error_bar = TRUE, 
-    spp_print = ""){
+    spp_print = "", 
+    mean_in_legend = TRUE, 
+    yrs_plotted = NULL){
   
   table_raw <- dat %>% 
     dplyr::arrange(-year)
@@ -2388,14 +2451,18 @@ plot_timeseries <- function(
     dplyr::group_by(SRVY_long, SRVY) %>% 
     dplyr::summarise(y = mean(y, na.rm = TRUE), 
                      minyr = min(year, na.rm = TRUE), 
-                     maxyr = max(year, na.rm = TRUE)) %>% 
-    dplyr::mutate(SRVY_long1 = paste0(SRVY_long, #"\n
+                     maxyr = max(year, na.rm = TRUE))  %>% 
+    dplyr::mutate(SRVY_long1 = SRVY_long,
+                  yy = y*divby) %>% 
+    dplyr::filter(yy>100)
+  
+  if (mean_in_legend){
+    table_raw_mean <- table_raw_mean %>% 
+      dplyr::mutate(SRVY_long1 = paste0(SRVY_long, #"\n
                                       " (mean = ", 
                                       formatC(x = y, digits = 1, big.mark = ",", format = "f"), " ",
-                                      unit_wrd, ")"), 
-                  yy = y*divby) %>% 
-    dplyr::filter(yy>100) # if there is too little data, don't bother plotting
-  
+                                      unit_wrd, ")"))
+  }
   anno<-NA
   temp<-setdiff(x = unique(table_raw$SRVY), 
                 y = unique(table_raw_mean$SRVY))
@@ -2423,14 +2490,26 @@ plot_timeseries <- function(
         dplyr::select(SRVY_long, SRVY_long1), 
       by = "SRVY_long") %>% 
     dplyr::filter(SRVY %in% table_raw_mean$SRVY)
+
   
-  figure <- table_raw %>% 
-    ggplot(mapping = aes(x = year, y = y, 
+  if (is.null(yrs_plotted)) {
+    yrs_plotted <- min(table_raw$year, na.rm = TRUE):max(table_raw$year, na.rm = TRUE)
+    # table_raw_mean <- table_raw_mean %>% 
+    #   dplyr::mutate(minyr = min(yrs_plotted, na.rm = TRUE))
+  }
+  
+  figure <-
+    ggplot(data = table_raw %>% 
+             dplyr::filter(year >= min(yrs_plotted, na.rm = TRUE) &
+                             year <= max(yrs_plotted, na.rm = TRUE)), 
+             mapping = aes(x = year, 
+                         y = y, 
                             color = SRVY_long1, 
                             group = SRVY_long1)) +
     geom_line(size = 1) +
     geom_point(size = 1.5) + 
-    ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1, big.mark = "")) 
+    ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1, big.mark = ""), 
+                                limits = range(yrs_plotted, na.rm = TRUE)) 
   
     # geom_errorbar(aes(ymin=lowervar, ymax=uppervar), 
     #               width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
@@ -2439,12 +2518,16 @@ plot_timeseries <- function(
   figure <- figure  +
     geom_segment(data = table_raw_mean,
                  # yintercept=y,
-                 mapping = aes(x = minyr, xend = maxyr, y = y, yend = y,
-                               group = SRVY_long1, color = SRVY_long1),
+                 mapping = aes(x = min(yrs_plotted, na.rm = TRUE),#minyr, 
+                               xend = maxyr, 
+                               y = y, 
+                               yend = y,
+                               group = SRVY_long1, 
+                               color = SRVY_long1),
                  linetype = "dashed", size = 1) +
     geom_errorbar(aes(ymin=lower, ymax=upper),
                   width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
-                  position=position_dodge(0.05))
+                  position = position_dodge(0.05))
   } 
     # scale_color_viridis_d(direction = -1,
     #                       option = "mako",
@@ -2469,19 +2552,22 @@ plot_timeseries <- function(
   
   if (sum(dat$y == 0) > 0) {
     figure <- figure +
-      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), 
+                                                " ", tolower(y_long), "\n", unit_word), 
                                   labels = scales::comma) 
     
   } else {
     figure <- figure +
-      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), "\n", y_long, unit_word), 
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), 
+                                                " ", tolower(y_long), "\n", unit_word), 
                                   # labels = scales::label_number(accuracy = 1))
                          breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
   }
+
   
   figure <- figure +
     ggplot2::guides(color = guide_legend(title="", nrow = 2)) +
-    ggplot2::xlab("Year") +
+    ggplot2::xlab(label = "Year") +
     ggplot2::theme(
       # axis.line=element_line(),
       panel.background = element_rect(fill = "white"),
@@ -2781,16 +2867,18 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
   
   yr_missing <- setdiff((min(table_raw$year):max(table_raw$year)), unique(table_raw$year))
   
-  temp <- unique(table_raw[,c("variable", "label")])
-  
-  temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*length(yr_missing), ncol = ncol(table_raw)))
-  names(temp1) <- names(table_raw)
-  temp1$variable <- temp$variable
-  temp1$label <- temp$label
-  temp1 <- dplyr::arrange(temp1, label)
-  temp1$year <- yr_missing
-  
-  table_raw <- dplyr::bind_rows(temp1, table_raw)
+  if (length(yr_missing)>0) {
+    temp <- unique(table_raw[,c("variable", "label")])
+    
+    temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*length(yr_missing), ncol = ncol(table_raw)))
+    names(temp1) <- names(table_raw)
+    temp1$variable <- temp$variable
+    temp1$label <- temp$label
+    temp1 <- dplyr::arrange(temp1, label)
+    temp1$year <- yr_missing
+    
+    table_raw <- dplyr::bind_rows(temp1, table_raw)
+  }
   
   table_raw$ymax <-table_raw$proportion
   table_raw$ymin <- 0
@@ -3158,7 +3246,7 @@ table_change <- function(dat,
                                  group = "Common name",
                                  dummy = "Taxon",
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>%
-    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = ., font = font)
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = ., font0 = font)
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw))
@@ -3178,7 +3266,7 @@ table_change_pres <- function(dat,
                               digits = 1) {
   
   yrs <- sort(yrs)
-  temp <- data.frame(var2 = yrs[-length(yrs)],
+  comb <- data.frame(var2 = yrs[-length(yrs)],
                      var1 = yrs[-1] )
   
   table_raw <- dat
@@ -3201,7 +3289,7 @@ table_change_pres <- function(dat,
   table_raw <- a$table_raw %>% 
     dplyr::select(Survey, print_name, 
                   dplyr::all_of(as.character(nbsyr)), 
-                  dplyr::all_of(paste0("change_", as.character(temp$var2), "_", as.character(temp$var1)))) %>% 
+                  dplyr::all_of(paste0("change_", as.character(comb$var2), "_", as.character(comb$var1)))) %>% 
     dplyr::filter(print_name %in% unique(report_spp1$print_name)) %>% 
     dplyr::mutate_if(is.numeric, formatC, digits = digits, format = "f", big.mark = ",") %>%
     dplyr::mutate(dplyr::across(dplyr::starts_with("change"), 
@@ -3211,12 +3299,12 @@ table_change_pres <- function(dat,
   
   table_print <- table_raw
   
-  for (i in 1:nrow(temp)) {
+  for (i in 1:nrow(comb)) {
     
-    table_print[,as.character(temp$var1)[i]] <- 
-      paste0(unlist(table_print[,as.character(temp$var1)[i]]), 
+    table_print[,as.character(comb$var1)[i]] <- 
+      paste0(unlist(table_print[,as.character(comb$var1)[i]]), 
              " (", 
-             unlist(table_print[,paste0("change_", as.character(temp$var2[i]), "_", as.character(temp$var1[i]))]), 
+             unlist(table_print[,paste0("change_", as.character(comb$var2[i]), "_", as.character(comb$var1[i]))]), 
              "%)")
   }
   
@@ -3291,6 +3379,7 @@ table_change_pres <- function(dat,
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw, 
+              "divby" = divby, 
               "unt" = paste0(#y_long,
                 # ifelse(trimws(unit_wrd) == "", "", paste0(" ",
                 trimws(unit_wrd)), #)),

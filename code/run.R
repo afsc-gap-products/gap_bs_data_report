@@ -56,12 +56,12 @@ dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.co
 # ref_compareyr <- "@2019NEBS2022" # CHANGE
 # dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
 
-maxyr <- 2022
-compareyr <- 2021
-strat_yr <- 2022
-SRVY<-"NEBS"
-ref_compareyr <- "@2021NEBS2022" # CHANGE
-dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
+# maxyr <- 2022
+# compareyr <- 2021
+# strat_yr <- 2022
+# SRVY<-"NEBS"
+# ref_compareyr <- "@2021NEBS2022" # CHANGE
+# dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
@@ -77,7 +77,7 @@ source('./code/functions.R')
 
 source('./code/data.R')
 
-# csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/american-fisheries-society.csl")
+# csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl")
 # readr::write_lines(x = csl, file = "./cite/citestyle.csl")
 
 # *** Figures and Tables ------------------------
@@ -394,6 +394,7 @@ for (jj in 1:length(unique(report_spp1$file_name))) {
   
   print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
   SRVY1 <- c("NBS", "EBS")
+  pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1) # TOLEDO - need to find out where this is outside of a function
   
   filename00<-paste0(cnt_chapt, "_spp_")
   rmarkdown::render(paste0(dir_code, "/figtab_spp_pres.Rmd"),
@@ -418,6 +419,10 @@ rmarkdown::render(paste0(dir_code, "/11_presentation.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".pptx"))
 
 # SAVE METADATA ----------------------------------------------------------------
+rmarkdown::render(paste0("./README.Rmd"),
+                  output_dir = "./",
+                  output_file = paste0("README.md"))
+
 
 con <- file(paste0(dir_out_todaysrun, "metadata.log"))
 sink(con, append=TRUE)
