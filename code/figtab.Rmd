@@ -839,15 +839,18 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   dplyr::select(where(~ any(. != 0)))
   
   names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
-    stringr::str_to_sentence(gsub(pattern = "_",
+    stringr::str_to_sentence(names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))])
+  
+  names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
+    (gsub(pattern = "_",
                                   replacement = "\n", 
                                   x = names(table_raw)[!(names(table_raw) %in% 
                                                            c("SRVY", "common_name"))], 
                                   fixed = TRUE))
-  names(table_raw)[names(table_raw) == "Otolith\nage\nstructure\nmeasurements"] <- 
-    "Otolith age\nstructure measurements"
-  names(table_raw)[names(table_raw) == "Pathobiology\nblood\nsample"] <- 
-    "Pathobiology\nblood sample"
+  names(table_raw)[names(table_raw) == "Otolith\nage\nstructure\nsamples"] <- 
+    "Otolith age\nstructure samples"
+  names(table_raw)[names(table_raw) == "Pathobiology\nblood\nsamples"] <- 
+    "Pathobiology\nblood samples"
   
   
   table_print <- table_raw %>% 
@@ -1657,7 +1660,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   header <- paste0("Biomass estimates (t) for major invertebrate taxa collected during the ", 
                    maxyr, " ", 
                    haul_cruises_maxyr$SRVY_long[i],
-                   " shelf bottom trawl survey. Crab data is summarized under other crustaceans and discussed in detail in the annual crab technical memorandum produced by the shellfish assessment program. ")
+                   " shelf bottom trawl survey. ")
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   
@@ -1706,7 +1709,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     "Total estimated biomass in metric tons (t) and the percent change between the ",
     compareyr," and ",maxyr," ", 
     haul_cruises_maxyr$SRVY_long[i], 
-    " shelf bottom trawl surveys for predominant fish and invertebrate taxa.")
+    " shelf bottom trawl surveys for predominant fish and invertebrate taxa. Crab data is summarized under other crustaceans and discussed in detail in the annual crab technical memorandum produced by the shellfish assessment program. ")
   
   a<-table_change(dat = cpue_biomass_total %>% 
                     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>%
