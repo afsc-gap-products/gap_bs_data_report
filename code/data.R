@@ -154,7 +154,8 @@ if (googledrive_dl) {
   
   # Spreadsheets
   # https://drive.google.com/drive/folders/1Vbe_mH5tlnE6eheuiSVAFEnsTJvdQGD_?usp=sharing
-  a <- googledrive::drive_ls(path = googledrive::as_id("1Vbe_mH5tlnE6eheuiSVAFEnsTJvdQGD_"), type = "spreadsheet")
+  a <- googledrive::drive_ls(path = googledrive::as_id("1Vbe_mH5tlnE6eheuiSVAFEnsTJvdQGD_"), 
+                             type = "spreadsheet")
   for (i in 1:nrow(a)){
     googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
                                 type = "xlsx", 
@@ -166,9 +167,9 @@ if (googledrive_dl) {
   a <- googledrive::drive_ls(path = id_googledrive)
   for (i in 1:nrow(a)){
     googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
-                                # type = "docx", 
+                                type = "docx",
                                 overwrite = TRUE, 
-                                path = paste0(dir_out_rawdata, "/", a$name[i]))
+                                path = paste0(dir_out_rawdata, "/", a$name[i], ".docx"))
   }
   
 }

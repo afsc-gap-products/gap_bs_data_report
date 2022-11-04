@@ -51,8 +51,7 @@ width0 <- full_page_portrait_width # 6.5
 nickname0 <- paste0("fig_pres_",spp_file)
 
 table_raw0 <- biomass %>%
-  dplyr::filter(stratum == 999 & 
-                  species_code %in% spp_code) %>% 
+  dplyr::filter(stratum == 999 & species_code %in% spp_code) %>% 
   dplyr::select(SRVY, year, species_code, taxon, 
                 upperb, lowerb, varbio, biomass, 
                 upperp, lowerp, varpop, population) %>% 
@@ -177,7 +176,6 @@ temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_c
                                           " ", a$unt, "")) # , sep_last = "\n\n"
   
   figure0 <- plot_timeseries(dat = table_raw,
-                             yrs_plotted = c(2010:maxyr),
                             unit = unit,
                             unt = unt,
                             y_long = y_long,
@@ -236,13 +234,8 @@ temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_c
                                                 rep_len(x = "plain", 
                                                         length.out = ifelse(mean_in_legend, 4, 5))), 
                                                 length.out = length(text0)), 
-                                y = seq(from = 0.9, 
-                                        to = dplyr::case_when(
-                                              length(text0) == 5 ~ 0.7,
-                                              length(text0) == 6 ~ 0.6,
-                                              length(text0) == 10 ~ 0.4,
-                                              length(text0) == 12 ~ 0.1,
-                                              TRUE ~ 0.5), 
+                                y = seq(from = 0.8, 
+                                        to = ifelse(length(text0) == ifelse(mean_in_legend, 5, 6), 0.7, 0.1), 
                                         length.out = length(text0)),
                                 color = col0)
 
@@ -279,8 +272,8 @@ y_long <- "Biomass"
 unit = "metric tons"
 unt = "mt"
 
-height <- 2.5
-width <- 9
+height <- 4
+width <- width0
 nickname <- paste0(nickname0,"_biomass")
 
 table_raw <- table_raw0 %>%
@@ -289,10 +282,10 @@ table_raw <- table_raw0 %>%
                 upper = upperb, 
                 var = varbio)
 
-# a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, mean_in_legend = TRUE)
-figure_bio <- a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE, mean_in_legend = FALSE)
+a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, mean_in_legend = TRUE)
 header <- a$header
 figure <- a$figure
+figure_bio <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -338,8 +331,8 @@ y_long <- "Abundance"
 unit = "individuals"
 unt = ""
 
-height <- 2.5
-width <- 9
+height <- 4
+width <- width0
 nickname <- paste0(nickname0,"_abundance")
 
 table_raw <- table_raw0 %>%
@@ -348,10 +341,10 @@ table_raw <- table_raw0 %>%
                 upper = upperp, 
                 var = varpop)
 
-figure_abund <- a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE, mean_in_legend = FALSE)
+a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, mean_in_legend = TRUE)
 header <- a$header
 figure <- a$figure
-# temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
+figure_abund <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
 
 # save yo' stuff and do a lot of behind the scenes work
 # alt: this does the same thing as calling "child = " in the chunk header
@@ -395,14 +388,12 @@ list_figures[nickname][[1]]$res <- res
 
 ```
 
-## vars1
+## fig_pres_sizecomp_[spp]
 
 ```{r vars1}
 a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[jj], ]
 spp_code <- unique(a$species_code) # eval(expr = parse(text = a$species_code[1]))
 ```
-
-## fig_pres_sizecomp_[spp]
 
 
 ```{r fig_pres_sizecomp_}
@@ -413,7 +404,6 @@ if (spp_plot_sizecomp) {
   width <- width0
   header <- ""
   nickname <- paste0("fig_pres_",spp_file,"_lengths")
-  
   
   length_data0 <- length_data %>%
     dplyr::filter(species_code %in% spp_code) %>% 
@@ -432,13 +422,16 @@ if (spp_plot_sizecomp) {
                      y = haul_cruises_maxyr %>% 
                        dplyr::select(SRVY, SRVY_long),
                      by = "SRVY") %>% 
-    dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) %>% 
-    dplyr::filter(species_code %in% spp_code) %>% 
-    dplyr::mutate(sex = str_to_sentence(sex), 
+    dplyr::filter(species_code %in% spp_code &
+                    SRVY %in% SRVY11 &
+                    year %in% yrs) %>% 
+    dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long), 
+                  sex = str_to_sentence(sex), 
                   sex = factor(sex, 
                                levels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"), 
                                labels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"),
-                               ordered = TRUE))
+                               ordered = TRUE)) %>% 
+    dplyr::arrange(sex)
   
   header <- paste0("Total abundance-at-length estimates of ",
                    spp_print, ifelse(is.na(spp_sci), "", 
@@ -674,7 +667,7 @@ if (spp_plot_idw | spp_plot_pa) {
 ```{r fig_pres_sizecomp_idw_cpue}
 nickname <- paste0(nickname0, "_sizecomp")
 height <- 6
-width <- width0+.5
+width <- width0
 table_raw <- table_raw0
 header <- paste0(header0, " A yellow outline of the cold pool is featured for reference. ")
 yrs0 <- yrs[yrs %in% unique(table_raw$year)]
@@ -712,9 +705,7 @@ if (spp_plot_idw) {
 }
 
 if  (sum(length_data0$SRVY == "NBS")>0 & report_title == "community" & spp_plot_sizecomp) {
-  figure <- cowplot::plot_grid(figure_nbs_sizecomp + 
-                                 theme(legend.box = "vertical") + 
-                                 guides(fill = guide_legend(nrow = length(unique(sizecomp$sex)))), #"vertical" "horizontal
+  figure <- cowplot::plot_grid(figure_nbs_sizecomp, 
                                figure1, 
                                nrow = 1, 
                                rel_widths = c(0.4, 0.6))
@@ -722,10 +713,8 @@ if  (sum(length_data0$SRVY == "NBS")>0 & report_title == "community" & spp_plot_
   figure <- cowplot::plot_grid(figure_ebs_sizecomp, 
                                figure1, 
                                nrow = 1, 
-                               rel_widths = c(0.35, 0.65))
+                               rel_widths = c(0.4, 0.6))
 } else {
-  height <- 6
-  width <- 5.5
   figure <- figure1
 }
 

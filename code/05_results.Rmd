@@ -849,7 +849,7 @@ if (SRVY == "NEBS") {
     list_tables$tab_majortaxa_pchange_EBS$raw, 
     list_tables$tab_majortaxa_pchange_NBS$raw) 
 } else {
-  temp <- list_tables$tab_majortaxa_pchange_EBS$raw
+  temp <- list_tables$tab_majortaxa_pchange_EBS$raw 
 }
   temp <- temp %>% 
     dplyr::select(print_name, species_name1, paste(maxyr)) %>% 
@@ -857,7 +857,8 @@ if (SRVY == "NEBS") {
     dplyr::group_by(print_name, species_name1) %>% 
     dplyr::summarise(bio = sum(bio, na.rm = TRUE)) %>% 
     dplyr::ungroup() %>%
-    dplyr::filter(!is.na(bio) &
+    dplyr::filter(print_name != "other crabs" & 
+                    bio != 0 &
                     bio == max(bio, na.rm = TRUE))
 
 if (length(unique(temp$print_name))==1) {
