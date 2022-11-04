@@ -1755,9 +1755,12 @@ total_biomass <-
   dplyr::select(-total_crab_wrong, -total_crab_correct)
 
 # Cite all papers in report ----------------------------------------------------
+
 print("Cite all papers in report")
 
-files0<-list.files(path = paste0(dir.output, Sys.Date(), "/", maxyr, "/rawdata/"), pattern = ".docx", full.names = TRUE)
+files0 <- list.files(path = dir_out_rawdata, 
+                   pattern = ".docx", 
+                   full.names = TRUE)
 files1 <- files0
 
 files0<-list.files(path = dir_code, pattern = ".Rmd", full.names = TRUE)
