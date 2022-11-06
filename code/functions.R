@@ -16,6 +16,7 @@ PKG <- c(
   "rmarkdown", # R Markdown Document Conversion
   "officer", 
   "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
+  "quarto", 
 
   # Keeping Organized
   # "devtools", # Package development tools for R; used here for downloading packages from GitHub
