@@ -14,7 +14,7 @@
     <category citation-format="author-date"/>
     <category field="psychology"/>
     <category field="generic-base"/>
-    <updated>2022-10-02T20:08:41+00:00</updated>
+    <updated>2022-01-31T14:30:00+00:00</updated>
     <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
   </info>
   <locale xml:lang="en">
@@ -584,7 +584,7 @@
     <choose>
       <if type="post webpage" match="any">
         <!-- Webpages are always italicized -->
-        <text variable="title"/>
+        <text variable="title" font-style="italic"/>
       </if>
       <else-if variable="container-title" match="any">
         <!-- Other types are italicized based on presence of container-title.
@@ -595,12 +595,12 @@
       <else>
         <choose>
           <if type="article-journal article-magazine article-newspaper post-weblog review review-book" match="any">
-            <text variable="title"/>
+            <text variable="title" font-style="italic"/>
           </if>
           <else-if type="paper-conference">
             <choose>
               <if variable="collection-editor editor editorial-director" match="any">
-                <group delimiter=": ">
+                <group delimiter=": " font-style="italic">
                   <text variable="title"/>
                   <!-- Replace with volume-title as that becomes available -->
                   <choose>
@@ -614,12 +614,12 @@
                 </group>
               </if>
               <else>
-                <text variable="title"/>
+                <text variable="title" font-style="italic"/>
               </else>
             </choose>
           </else-if>
           <else>
-            <group delimiter=": ">
+            <group delimiter=": " font-style="italic">
               <text variable="title"/>
               <!-- Replace with volume-title as that becomes available -->
               <choose>
@@ -645,7 +645,7 @@
         <!-- If a bill has no number or container-title, assume it is a hearing; italic -->
         <choose>
           <if variable="number container-title" match="none">
-            <text variable="title" form="short" text-case="title"/>
+            <text variable="title" form="short" font-style="italic" text-case="title"/>
           </if>
           <else-if variable="title">
             <text variable="title" form="short" text-case="title"/>
@@ -668,7 +668,7 @@
       </else-if>
       <else-if type="legal_case" match="any">
         <!-- Cases are italicized -->
-        <text variable="title"/>
+        <text variable="title" font-style="italic"/>
       </else-if>
       <else-if type="legislation treaty" match="any">
         <!-- Legislation and treaties not italicized or quoted -->
@@ -676,14 +676,14 @@
       </else-if>
       <else-if type="post webpage" match="any">
         <!-- Webpages are always italicized -->
-        <text variable="title" form="short" text-case="title"/>
+        <text variable="title" form="short" font-style="italic" text-case="title"/>
       </else-if>
       <else-if variable="container-title" match="any">
         <!-- Other types are italicized or quoted based on presence of container-title. As in title macro. -->
         <text variable="title" form="short" quotes="true" text-case="title"/>
       </else-if>
       <else>
-        <text variable="title" form="short" text-case="title"/>
+        <text variable="title" form="short" font-style="italic" text-case="title"/>
       </else>
     </choose>
   </macro>
@@ -1296,11 +1296,11 @@
       <if variable="reviewed-title">
         <!-- Not possible to distinguish TV series episode from other reviewed
               works [Ex. 69] -->
-        <text variable="reviewed-title"/>
+        <text variable="reviewed-title" font-style="italic"/>
       </if>
       <else>
         <!-- Assume title is title of reviewed work -->
-        <text variable="title"/>
+        <text variable="title" font-style="italic"/>
       </else>
     </choose>
   </macro>
@@ -1308,11 +1308,11 @@
     <choose>
       <if variable="reviewed-title">
         <!-- Not possible to distinguish TV series episode from other reviewed works [Ex. 69] -->
-        <text variable="reviewed-title" form="short" text-case="title"/>
+        <text variable="reviewed-title" form="short" font-style="italic" text-case="title"/>
       </if>
       <else>
         <!-- Assume title is title of reviewed work -->
-        <text variable="title" form="short" text-case="title"/>
+        <text variable="title" form="short" font-style="italic" text-case="title"/>
       </else>
     </choose>
   </macro>
@@ -1412,16 +1412,16 @@
   <macro name="container-periodical">
     <group delimiter=". ">
       <group delimiter=", ">
-        <text variable="container-title" text-case="title"/>
+        <text variable="container-title" font-style="italic" text-case="title"/>
         <choose>
           <if variable="volume">
             <group>
-              <text variable="volume"/>
+              <text variable="volume" font-style="italic"/>
               <text variable="issue" prefix="(" suffix=")"/>
             </group>
           </if>
           <else>
-            <text variable="issue"/>
+            <text variable="issue" font-style="italic"/>
           </else>
         </choose>
         <choose>
@@ -1465,7 +1465,7 @@
                 <names variable="container-author"/>
               </substitute>
             </names>
-            <group delimiter=": ">
+            <group delimiter=": " font-style="italic">
               <text variable="container-title"/>
               <!-- Replace with volume-title as that becomes available -->
               <choose>
@@ -1640,7 +1640,7 @@
             <choose>
               <if variable="number container-title" match="none">
                 <!-- If no number or container-title, then assume it is a hearing -->
-                <text variable="title"/>
+                <text variable="title" font-style="italic"/>
               </if>
               <else>
                 <text variable="title"/>
@@ -1860,15 +1860,15 @@
       <text variable="locator"/>
     </group>
   </macro>
-  <citation et-al-min="2" et-al-use-first="1" disambiguate-add-year-suffix="true" disambiguate-add-names="true" disambiguate-add-givenname="true" collapse="year" givenname-disambiguation-rule="primary-name-with-initials">
+  <citation et-al-min="3" et-al-use-first="1" disambiguate-add-year-suffix="true" disambiguate-add-names="true" disambiguate-add-givenname="true" collapse="year" givenname-disambiguation-rule="primary-name-with-initials">
     <sort>
-      <key macro="author-bib" names-min="2" names-use-first="1"/>
+      <key macro="author-bib" names-min="3" names-use-first="1"/>
       <key macro="date-sort-group"/>
       <key macro="date-sort-date" sort="ascending"/>
       <key variable="status"/>
     </sort>
     <layout prefix="(" suffix=")" delimiter="; ">
-      <group delimiter=" ">
+      <group delimiter=", ">
         <text macro="author-intext"/>
         <text macro="date-intext"/>
         <text macro="citation-locator"/>
