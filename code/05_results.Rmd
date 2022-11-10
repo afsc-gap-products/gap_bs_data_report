@@ -367,7 +367,7 @@ insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 ```
 
-A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (`r ifelse(SRVY == "NEBS", "Appendices", "Appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
+A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (`r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
 
 ```{r taxon_count}
 # count spp - invert
@@ -416,7 +416,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_title(NMFSReports::numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r ifelse(SRVY == "NEBS", "appendices", "appendix")` `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_sentence(NMFSReports::numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
@@ -618,7 +618,7 @@ if (SRVY == "NEBS") {
     temp3 <- paste0(temp3, 
                     paste0("In the ", SRVY1[i], ", ", 
                            substr(temp4, start = 1, stop = (nchar(temp4)-1)), # get rid of last ")" 
-                           "; ", 
+                           "; Tables ", 
                            NMFSReports::crossref(list_obj = list_tables, sublist = "number", 
                                                  nickname = "tab_biomass_est_fish_", exact = FALSE), 
                            "). "))
@@ -632,12 +632,9 @@ if (SRVY == "NEBS") {
     " of the total biomass, respectively), and the NBS (",
     NMFSReports::text_list(
       paste0(round(x = temp1$prop_NBS[1:2]*100, digits = 1), "%")), 
-    " of the total biomass, respectively; ", 
-    NMFSReports::crossref(list_obj = list_tables, sublist = "number", nickname = "tab_biomass_est_fish_EBS"), 
-    " and ", 
-    NMFSReports::crossref(list_obj = list_tables, sublist = "number", nickname = "tab_biomass_est_fish_NBS"), "). ", 
+    " of the total biomass, respectively; Tables ", 
+    NMFSReports::crossref(list_obj = list_tables, sublist = "number", nickname = "tab_biomass_est_fish_", exact = FALSE), "). ", 
     temp3)
-  
 }
 
 ```
@@ -829,7 +826,7 @@ temp2 <- report_spp1 %>%
 
 ```
 
-Plots of the spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE, text = FALSE))` major fish species caught during the `r NMFSReports::text_list(SRVY1)` continental shelf survey are presented in the subsections below (Figs. `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE)` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_fish_", sublist = "number", exact = FALSE)`). Differences in sums of estimates and totals are due to rounding. Total abundance-at-length and mean length estimates for major fish species are also presented in the subsections below (Figs. `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sizecomp_fish_", sublist = "number", exact = FALSE)`). Appendices `r NMFSReports::crossref(list_tables, "tab_app_principal_fish_", "number", exact = FALSE)` contain population estimates by sex and size class for `r nrow(temp0)` fish species.
+Plots of the spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE, text = FALSE))` major fish species caught during the `r NMFSReports::text_list(SRVY1)` continental shelf survey are presented in the subsections below (Figs. `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_fish_", sublist = "number", exact = FALSE)` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_fish_", sublist = "number", exact = FALSE)`). Differences in sums of estimates and totals are due to rounding. Total abundance-at-length and mean length estimates for major fish species are also presented in the subsections below (Figs. `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sizecomp_fish_", sublist = "number", exact = FALSE)`). `r NMFSReports::crossref(list_tables, "tab_app_principal_fish_", "number", exact = FALSE)` contain population estimates by sex and size class for `r nrow(temp0)` fish species.
 
 ### Selected Invertebrates Estimates
 
@@ -890,7 +887,7 @@ if (length(unique(temp$print_name))==1) {
                  "). Catch rates for the ",temp$print_name[1]," were highest in the ",
                  temp1$d2," (", #,temp1$d1,
                  # "; "
-                 "Figure ", 
+                 "Fig. ", 
                  NMFSReports::crossref(list_obj = list_figures, 
                                        nickname = paste0(report_spp1$file_name[report_spp1$print_name == temp$print_name[1]]), 
                                        sublist = "number", exact = FALSE), 

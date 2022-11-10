@@ -661,7 +661,7 @@ species_text <- function(
   tempyr <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
   
   temp <- function(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
-                   metric = "biomass", metric_long = "biomass", unit = " mt", 
+                   metric = "biomass", metric_long = "biomass", unit = " t", 
                    SRVY000, spp_print) {
     
     str0 <- paste0("Compared with ", 
@@ -694,12 +694,12 @@ species_text <- function(
 # ", temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
 #         metric = "biomass", 
 #         metric_long = "biomass", 
-#         unit = " mt", SRVY000, spp_print))
+#         unit = " t", SRVY000, spp_print))
     
     str00 <- temp(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
                  metric = "biomass", 
                  metric_long = "biomass", 
-                 unit = " mt", SRVY000, spp_print)
+                 unit = " t", SRVY000, spp_print)
     
     # pchange cpue
     #     str <- paste0(str, "
@@ -709,23 +709,23 @@ species_text <- function(
     
     
     # Yellowfin sole biomass increased by 22% between 2017 and 2019 in the NBS area.
-    # In 2019, the Alaska plaice exhibited a slight 0.8% decrease (321,571 mt; Table 1) in the total NBS survey biomass compared with 2017; however, biomass in 2019 was 24% greater than in 2010.
+    # In 2019, the Alaska plaice exhibited a slight 0.8% decrease (321,571 t; Table 1) in the total NBS survey biomass compared with 2017; however, biomass in 2019 was 24% greater than in 2010.
     # Biomass of the purple-orange sea star increased by 26% between 2017 and 2019 and by 40% between 2010 and 2019.
-    # The estimated biomass of the northern Neptune snail decreased by 18% (Table 1) between 2017 (327,678 mt) and 2019 (146,344 mt). However, the biomass was 32% greater in 2019 than in 2010.
+    # The estimated biomass of the northern Neptune snail decreased by 18% (Table 1) between 2017 (327,678 t) and 2019 (146,344 t). However, the biomass was 32% greater in 2019 than in 2010.
     # There was a 10% reduction in saffron cod biomass in 2019 from 2010 (Table 1), but a 6% increase in saffron cod biomass from 2017 to 2019.
     # Between 2010 and 2019, there was a 99.8% reduction in Arctic cod biomass in the NBS.
     # This represents a 5,421% increase from the biomass observed in 2010.
     # Biomass of this skate increased 24% from 2010 to 2019.
-    # 25% increase (2,827 mt) in the estimated biomass of red king crab compared to 2017 (2,256 mt). The increase in biomass in 2019 relative to 2010 was slightly less (13%) (Table 1). 
-    # Blue king crab biomass decreased by 79% from 2017 to 2019. Biomass in 2019 (1,212 mt) was more similar to 2010 (2,133 mt) (Table 1).
-    # Pacific halibut showed an estimated 42% increase in total biomass from 2017 (18,507 m) to 2019 (25,722 mt; Table 1). 
-    # Biomass of Bering flounder increased by 50% between 2010 and 2019 (12,355 mt to 18,526 mt; Table 1).
-    # The relative Pacific herring biomass increased 282% from 23,011 mt in 2010 to 87,918 mt in 2019 (Table 1).
+    # 25% increase (2,827 t) in the estimated biomass of red king crab compared to 2017 (2,256 t). The increase in biomass in 2019 relative to 2010 was slightly less (13%) (Table 1). 
+    # Blue king crab biomass decreased by 79% from 2017 to 2019. Biomass in 2019 (1,212 t) was more similar to 2010 (2,133 t) (Table 1).
+    # Pacific halibut showed an estimated 42% increase in total biomass from 2017 (18,507 m) to 2019 (25,722 t; Table 1). 
+    # Biomass of Bering flounder increased by 50% between 2010 and 2019 (12,355 t to 18,526 t; Table 1).
+    # The relative Pacific herring biomass increased 282% from 23,011 t in 2010 to 87,918 t in 2019 (Table 1).
     
     # ## p_mt_of_survey	
     metric <- "biomass"
     metric_long <- "biomass"
-    unit <- " mt"
+    unit <- " t"
     
     # total biomass
     temp2 <- biomass_cpue  %>%
@@ -762,9 +762,9 @@ In ",maxyr,", ",spp_print," comprised ",
     
     
     
-    # comprising 12% (520,029 mt; Table 1) of the total NBS survey area biomass - YFS
-    # In 2019, snow crab comprised 4% (167,124 mt, Table 1) of the NBS survey biomass... In 2017, snow crab comprised 5% (223,216 mt) of the NBS survey biomass
-    # This species of sea star made up 10% (414,423 mt, Table 1) of the 2019 total fish and invertebrate biomass in the NBS. 
+    # comprising 12% (520,029 t; Table 1) of the total NBS survey area biomass - YFS
+    # In 2019, snow crab comprised 4% (167,124 t, Table 1) of the NBS survey biomass... In 2017, snow crab comprised 5% (223,216 t) of the NBS survey biomass
+    # This species of sea star made up 10% (414,423 t, Table 1) of the 2019 total fish and invertebrate biomass in the NBS. 
     # Saffron cod represented almost 2% of the biomass in the 2019 NBS.
     # Arctic cod represented approximately 0.001% of the 2019 NBS biomass, 0.1% of the 2017 biomass and 1% of the 2010 biomass.
     # Pacific cod represented about 9% of the biomass in the 2019 NBS survey; this represents a 29% increase from 2017 NBS Pacific cod biomass.
