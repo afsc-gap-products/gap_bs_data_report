@@ -105,8 +105,6 @@ loadfonts(device = "win")
 
 # Knowns -----------------------------------------------------------------------
 
-date_format<- "%B %d, %Y"
-
 cnt_chapt_content<-"000"
 
 full_page_portrait_width <- 6.5
@@ -138,6 +136,12 @@ list_figures <- list()
 
 
 ######### General Stuff ########
+
+date_format<- "%B %d, %Y" # "%B %#d, %Y"
+
+date_formatter <- function(date = "1998-09-02", date_format = "%B %d, %Y") {
+  return(gsub("(\\D)0", "\\1", format(as.Date(date), date_format)))
+}
 
 SameColNames<-function(df.ls) {
   #All column names

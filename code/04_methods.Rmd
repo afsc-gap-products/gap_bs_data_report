@@ -21,9 +21,9 @@ The standardized `r SURVEY` bottom trawl survey`r ifelse(SRVY == "NEBS", "s are"
 
 The `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s were", " was")` conducted aboard the chartered commercial stern-trawlers `r NMFSReports::text_list(vessel_info$vessel_ital)`  (Fig. `r crossref(list_obj = list_figures, nickname = "fig_vessels", sublist = "number") `). `r ifelse(nrow(vessel_info) == 1, "The vessel", "Both vessels") ` are house-forward trawlers with stern ramps. The length overall of `r text_list(paste0("the ", vessel_info$vessel_ital, " is ", vessel_info$length_m, " m (", vessel_info$length_ft, " ft)") ) `. All fishing operations were conducted in compliance with national and regional protocols detailed in @RN933. Trawl sampling was conducted using 83-112 eastern otter trawls, each with a 25.3 m (83 ft) headrope and 34.1 m (112 ft) footrope (Fig. `r crossref(list_obj = list_figures, nickname = "fig_trawl_gear", sublist = "number") `). The net was attached to tail chains with 54.9 m (30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_vessels", sublist = "res") `
+`r list_figures$fig_vessels$res `
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_trawl_gear", sublist = "res") `
+`r list_figures$fig_trawl_gear$res `
 
 The Marport Deep Sea Technologies Inc. net mensuration system was used during each tow to record net spread and net height. Net spread was measured as the horizontal distance between two sensors attached immediately forward of the junction of the upper breastline and the dandyline, and net height was measured from the headrope to the seafloor. Mean net spread values for estimating area swept per tow were calculated according to methods described by @RN910. A custom-made AFSC bottom contact sensor (accelerometer) attached to the center of the footrope was used to determine tow duration based on footrope contact with the seafloor. 
 
@@ -198,9 +198,12 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
     temp <- paste0(temp, 
                    text_list(paste0("the ", cruises_maxyr0$vessel_ital, 
                                     " started sampling on ", 
-                                    format((cruises_maxyr0$start_date_haul), format = date_format), 
+                                    date_formatter(cruises_maxyr0$start_date_haul), 
+                                    # format((cruises_maxyr0$start_date_haul), format = date_format), 
                                     " and ended on ", 
-                                    format((cruises_maxyr0$end_date_haul), format = date_format) )) )
+                                    date_formatter(cruises_maxyr0$end_date_haul)
+                                    # format((cruises_maxyr0$end_date_haul), format = date_format)
+                                    )) )
     # temp<-gsub(pattern = "and ,", replacement = "and,", x = temp)
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
@@ -211,9 +214,9 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
                    # ifelse(length(unique(vessel_info0$vessel)) == 1, 
                    #        "the vessel", "both vessels"), 
                    " started sampling on ",
-                   format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
+                   date_formatter(unique(cruises_maxyr0$start_date_haul)), 
                    " and ended sampling on ", 
-                   format(unique(cruises_maxyr0$end_date_haul), format = date_format))
+                     date_formatter(unique(cruises_maxyr0$end_date_haul)) )
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
              length(unique(cruises_maxyr0$end_date_haul)) != 1) {
@@ -222,27 +225,25 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
                           "the vessel", "both vessels"), 
                    " on ",
-                   format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
-                   " and ended ", 
+                   date_formatter(unique(cruises_maxyr0$start_date_haul)), 
+                   " and ended ",
                    NMFSReports::text_list(paste0("on ", 
-                                                 format(cruises_maxyr0$end_date_haul, 
-                                                        format = date_format) , 
-                                                 " for the ", cruises_maxyr0$vessel_ital) ))
+                   date_formatter(unique(cruises_maxyr0$end_date_haul)), 
+                   " for the ", cruises_maxyr0$vessel_ital) ))
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
              length(unique(cruises_maxyr0$end_date_haul)) == 1) {
     # 4. vessels started on different dates and ended on the same dates
     temp <- paste0(temp, "the sampling started ", 
                    NMFSReports::text_list(paste0("on ", 
-                                                 format(cruises_maxyr0$start_date_haul, 
-                                                        format = date_format) , 
+                   date_formatter(unique(cruises_maxyr0$start_date_haul)), 
                                                  " for the ", cruises_maxyr0$vessel_ital) ), 
                    " and ended for ", 
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
                           "the vessel", "both vessels"), 
                    " on ",
-                   format((unique(cruises_maxyr0$end_date_haul)), 
-                          format = date_format) )
+                   date_formatter(unique(cruises_maxyr0$end_date_haul))
+                   )
   }
   str0 = c(str0, temp)
 }
@@ -430,9 +431,9 @@ temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.
                          skip = 1) %>% 
   dplyr::filter(year == maxyr) %>% 
   dplyr::select(solicitation_date) %>% 
-  dplyr::mutate(solicitation_date = 
-                  format(x = as.POSIXlt(x = solicitation_date), 
-                         format = date_format)) %>% 
+  dplyr::mutate(solicitation_date = date_formatter(solicitation_date)) %>% 
+                  # format(x = as.POSIXlt(x = solicitation_date), 
+                  #        format = date_format)) %>% 
   unlist()
 ```
 

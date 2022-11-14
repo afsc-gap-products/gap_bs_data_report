@@ -471,9 +471,9 @@ newobj <- TRUE
 temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
                            sheet = "projects", 
                            skip = 1)  %>% 
-  dplyr::filter(!is.na(`Project Title`) & 
+  dplyr::filter(!is.na(`Project title`) & 
                   year == maxyr) %>% 
-  dplyr::select(SRVY, `Project Title`, `Principal investigator`, Agency) %>% 
+  dplyr::select(SRVY, `Project title`, `Principal investigator`, Agency) %>% 
   dplyr::arrange(desc(SRVY))
 
 # for (i in 1:nrow(haul_cruises_maxyr)) {
@@ -488,7 +488,7 @@ header <- paste0("Special projects and collections undertaken during the ",
                  " shelf bottom trawl survey, sorted by principal investigator and agency.")
 
 table_raw <- temp %>%
-  dplyr::arrange(SRVY, Agency, `Principal investigator`, `Project Title`)
+  dplyr::arrange(SRVY, Agency, `Principal investigator`, `Project title`)
 
 temp1 <- places[places$Agency %in% unique(table_raw$Agency), ]
 
@@ -500,7 +500,7 @@ table_print <- table_raw %>%
   flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
   flextable::width(x = ., j = "Agency", width = 2, unit = "in") %>%
   flextable::width(x = ., j = "Principal investigator", width = 3, unit = "in") %>%
-  flextable::width(x = ., j = "Project Title", width = 4, unit = "in") %>% 
+  flextable::width(x = ., j = "Project title", width = 4, unit = "in") %>% 
   # flextable::set_header_labels(x = ., "SRVY" = "Region") %>%
   flextable::footnote(x = ., 
                       value = as_paragraph(footnote0), 
@@ -542,7 +542,7 @@ list_tables[nickname][[1]]$res <- res
 nickname <- "fig_mean_temperature"
 header <- paste0("Average summer surface (light blue triangles) and bottom (dark blue circles) and time-series average surface (dark blue dashed line) and bottom (light blue dashed line) temperatures (°C) on the EBS shelf, based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr,
                  ifelse(SRVY == "NEBS", 
-                        paste0(" (left), and NBS shelf based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
+                        paste0(" (left), and northern Bering Sea shelf based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
                  ". ")
 
 height = 3.25
@@ -649,7 +649,7 @@ for (i in 1:2) { # two cases, above and below
   case <- ifelse(i==1, "below", "above")
   years <- sort(temps_avg_yr_abovebelow[case][[1]])
   
-  header <- paste0("EBS shelf bottom trawl survey near-bottom temperatures in years ",
+  header <- paste0("Eastern Bering Sea shelf bottom trawl survey near-bottom temperatures in years ",
                    case,
                    " the time-series average (",
                    NMFSReports::text_list(years), ").")
@@ -712,9 +712,11 @@ if (SRVY == "NEBS") {
     subobj <- TRUE
     newobj <- ifelse(i==1, TRUE, FALSE)
     
-    header <- paste0(stringr::str_to_title(case)," temperatures (°C) in the NBS and EBS during the ",
+    header <- paste0(stringr::str_to_title(case)," temperatures (°C) in the ",
+                     NMFSReports::text_list(haul_cruises_maxyr$SRVY_long),
+                     " during the ",
                      NMFSReports::text_list(nbsyr),
-                     " surveys, which included the full NBS shelf bottom trawl survey. ")
+                     " surveys, which included the full northern Bering Sea shelf bottom trawl survey. ")
     
     if (case == "surface") {
       rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
@@ -821,8 +823,8 @@ table_raw0 <-
                      dplyr::mutate(common_name = "Total") ) %>% 
   dplyr::relocate(SRVY, common_name, length, age) %>% 
   dplyr::rename("length_measurements" = length,
-                "otolith_age_structure_samples" = age) %>%
-  data.frame()
+                "otolith_age_structure_samples" = age) #%>%
+  # data.frame()
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
