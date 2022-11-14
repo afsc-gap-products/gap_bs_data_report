@@ -90,7 +90,11 @@ if (report_title == "data") {
         dplyr::group_by(year, taxon, species_code, sex, pop) %>% 
         dplyr::summarise(length) %>% 
         dplyr::mutate(SRVY = "EBS and NBS")) %>% 
-      dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE))
+      dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE), 
+                    SRVY_long = dplyr::case_when(
+                      SRVY == "EBS" ~ "eastern Bering Sea", 
+                      SRVY == "NBS" ~ "northern Bering Sea", 
+                      SRVY == "EBS and NBS" ~ "combined eastern and northern Bering Sea" ))
     
   } else if (report_title != "community" & SRVY == "NEBS" & length(unique(table_raw$SRVY))==1) { 
     height <- 3.25 
@@ -105,7 +109,7 @@ if (report_title == "data") {
                           "centimeters (cm)", "millimeters (mm)"),
                    " observed during the ",
                    NMFSReports::text_list(yrs)," ",
-                   NMFSReports::text_list(unique(table_raw$SRVY)), 
+                   NMFSReports::text_list(paste0(unique(table_raw$SRVY_long), " (", unique(table_raw$SRVY), ")")), 
                    " shelf bottom trawl survey", 
                    ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
                    ". Length distributions scaled up to the total estimated population size. ", 
