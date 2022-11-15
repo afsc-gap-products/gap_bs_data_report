@@ -1,16 +1,3 @@
----
-output:
-  officedown::rdocx_document: 
-    pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: styles_reference.docx
-    df_print: kable
-csl: "../cite/citestyle.csl"
-bibliography: "../cite/bibliography.bib"
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, comment = FALSE)
-```
 
 # Results and Discussion
 
@@ -19,7 +6,7 @@ A total of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_complete
 
 ## Ocean Temperatures and the Cold Pool
 
-```{r ocean_temps}
+```{r results_ocean_temps}
 temp <- dplyr::left_join(
   x = temps_avg_yr %>% 
     dplyr::filter(year %in% c(maxyr)), 
@@ -83,7 +70,7 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 The size of the cold pool each summer is defined by the extent of bottom temperatures below 2°C and depends on sea ice coverage from the previous winter, the timing of sea ice retreat during the spring and early summer, as well as other oceanographic and meteorological conditions [@RN941]. During the coldest years, sea ice extended farther south and lasted later into spring resulting in cold pools that extended farther south through the middle domain into Bristol Bay and near the Alaska Peninsula (Figs. `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_below', sublist = 'number')` and `r crossref(list_obj = list_figures, nickname = 'fig_bt_temperature_ebs_above', sublist = 'number')`). Interannual variability in the dynamics of seasonal ice is a major environmental driver on the Bering Sea shelf [@RN930; @RN931; @RN932] that can change recruitment and migration patterns, as well as cause major distributional shifts in groundfish and crab species [@RN905; @RN913; @RN977].
 
-```{r cold_pool}
+```{r results_cold_pool}
 temp <- coldpool_ebs_total_area
 
 # A large cold pool year
@@ -137,7 +124,7 @@ During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r NMFSReport
 
 The `r compareyr` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys provided a quasi-synoptic view of the spatial pattern of bottom temperatures across the entire `r NMFSReports::text_list(SRVY1)` shelf, providing an index of annual differences in demersal fauna distribution patterns. The seasonal cold pool, which is a cold water mass that occupies the middle domain of the EBS shelf annually to a varying extent, may play a role in restricting the movements of some species both across the shelf (east-west) and along the inner domain of the shelf (north-south). Thus, tracking the position and spatial extent of this water mass is critically important.
 
-```{r cold_pool_insert}
+```{r results_cold_pool_insert}
 # insert <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
 insert <- readtext2(file = paste0(dir_out_rawdata, "/0_cold_pool_description.docx"), 
                     refcontent = refcontent)
@@ -159,7 +146,7 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_cold_pool_description.doc
 
 ## Survey Data and Specimen Collections
 
-```{r num_taxa}
+```{r results_num_taxa}
 temp0 <- function(cols, SRVY, report_spp1) {
   nspec <- c()
   ntaxa <- c()
@@ -226,7 +213,7 @@ Specimens collected during the `r NMFSReports::text_list(SRVY1)` shelf trawl sur
 
 ## Species Composition
 
-```{r species_composition}
+```{r results_species_composition}
 insert <- ""
 
 # count spp
@@ -369,7 +356,7 @@ insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (`r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
 
-```{r taxon_count}
+```{r results_taxon_count}
 # count spp - invert
 temp <- dplyr::left_join(
   x = catch_haul_cruises_maxyr %>% 
@@ -418,7 +405,7 @@ temp1 <- dplyr::bind_cols(
 
 `r stringr::str_to_sentence(NMFSReports::numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r NMFSReports::text_list(SRVY1)` survey (`r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r NMFSReports::text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
-```{r dummy}
+```{r results_dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
 ```
 
@@ -426,7 +413,7 @@ temp1 <- dplyr::bind_cols(
 
 ## Biomass, Abundance, and Catch per Unit Effort
 
-```{r tot_biomass}
+```{r results_tot_biomass}
 temp <- data.frame()
 temp0 <- tidyr::crossing(SRVY = SRVY1, type = c("fish", "invert"))
 for (i in 1:nrow(temp0)) {
@@ -516,7 +503,7 @@ str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 
 `r str0`
 
-```{r tot_biomass2}
+```{r results_tot_biomass2}
 str0 <- ""
 if (SRVY == "NEBS") {
   
@@ -641,7 +628,7 @@ if (SRVY == "NEBS") {
 
 `r str0`
 
-```{r benthic_community}
+```{r results_benthic_community}
 
 str0 <- paste0("Noticeable changes were observed in",ifelse(SRVY == "NEBS", " both", ""), " the ", NMFSReports::text_list(SRVY1)," the benthic communities between ",
                compareyr," and ", maxyr,". ")
@@ -725,7 +712,7 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 `r str0`While all efforts are made at standardizing catch processing over time, some inconsistencies may exist between years, vessels, and crews which may affect the interpretation of these differences.
 
-```{r top_10_taxon}
+```{r results_top_10_taxon}
 temp <- data.frame()
 for (i in 1:nrow(haul_cruises_maxyr)) {
   temp <- list_tables$tab_estimates_maxyr_spp_wt$raw %>% 
@@ -788,7 +775,7 @@ An interactive map of species CPUE can be found at <https://apps-st.fisheries.no
 
 ### Selected Fish Species Estimates
 
-```{r spatial_distribution_fish}
+```{r results_spatial_distribution_fish}
 # major fish 
 temp0 <- report_spp1 %>% 
   dplyr::filter(taxon == "fish" & 
@@ -830,7 +817,7 @@ Plots of the spatial distribution and tables of CPUE (kg/hectare and no./hectare
 
 ### Selected Invertebrates Estimates
 
-```{r spatial_distribution_invert}
+```{r results_spatial_distribution_invert}
 # invert 
 temp0 <- report_spp1 %>% 
   dplyr::filter(taxon == "invert") %>% 
@@ -841,7 +828,7 @@ temp0 <- report_spp1 %>%
 
 Plots of spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r xunits(length(NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE, text = FALSE)))` major invertebrate species caught during the `r NMFSReports::text_list(SRVY1)` continental shelf are presented below (Figs. `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_idw_cpue_invert_", sublist = "number", exact = FALSE)` and Tables `r NMFSReports::crossref(list_obj = list_tables, nickname = "tab_estimates_maxyr_invert_", sublist = "number", exact = FALSE)`). Differences in sums of estimates and totals are due to rounding. The crab species listed in this report and others are discussed and analyzed in more detail in a report prepared by the AFSC Shellfish Assessment Program [`r paste0("@SAPcrab", maxyr)`].
 
-```{r taxon_pchange}
+```{r results_taxon_pchange}
 if (SRVY == "NEBS") {
   temp <- dplyr::bind_rows(
     list_tables$tab_majortaxa_pchange_EBS$raw, 

@@ -123,75 +123,11 @@ save(list_tables,
 # load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 # load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
-# *** 01 - Abstract ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_abstract_")
-rmarkdown::render(input = paste0(dir_code, "/01_abstract.Rmd"),
+# Run data report --------------------------------------------------------------
+
+rmarkdown::render(input = paste0(dir_code, "00_full_report_data.Rmd"),
                   output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-# *** 02 - Introduction ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_introduction_")
-rmarkdown::render(paste0(dir_code, "/02_introduction.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-# *** 04 - Methods ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_methods_")
-rmarkdown::render(paste0(dir_code, "/04_methods.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-# *** 05 - Results ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_results_")
-rmarkdown::render(paste0(dir_code, "/05_results.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-# *** 06 - Results_spp ------------------------
-report_spp1 <- add_report_spp(spp_info = spp_info, 
-                              spp_info_codes = "species_code", 
-                              report_spp = report_spp, 
-                              report_spp_col = "order", 
-                              report_spp_codes = "species_code", 
-                              lang = TRUE)
-cnt_chapt<-auto_counter(cnt_chapt)
-
-for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
-  
-  print(paste0(jj, " of ", length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))]), ": ", unique(report_spp1$file_name)[jj]))
-  
-  cnt_chapt_content<-auto_counter(cnt_chapt_content)
-  filename00<-paste0(cnt_chapt, "_spp_")
-  rmarkdown::render(paste0(dir_code, "/06_results_spp.Rmd"),
-                    output_dir = dir_out_chapters,
-                    output_file = paste0(filename00, cnt_chapt_content, "_", 
-                                         unique(report_spp1$file_name)[jj],".docx"))
-}
-
-# *** 09 - Endmatter ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_endmatter_")
-rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-# *** 10 - Appendix ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_appendix_")
-rmarkdown::render(paste0(dir_code, "/09_appendix.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
+                  output_file = paste0("00_full_report_data_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
 # COMMUNITY HIGHLIGHTS ---------------------------------------------------------
 
@@ -279,67 +215,11 @@ save(list_tables,
 # load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 # load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
-# *** 1 - Introduction ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_introduction_")
-rmarkdown::render(paste0(dir_code, "/c1_introduction.Rmd"),
+# Run community highlights report -----------------------------------------------
+
+rmarkdown::render(input = paste0(dir_code, "00_full_report_community.Rmd"),
                   output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-
-# *** 2 - Survey_design ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_survey_design_")
-rmarkdown::render(paste0(dir_code, "/c2_survey_design.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-# *** 3 - Survey_snapshot_compare ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_survey_snapshot_compare_")
-rmarkdown::render(paste0(dir_code, "/c3_survey_snapshot_compare.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-# *** 5 - Results_spp ------------------------
-report_spp1 <- add_report_spp(spp_info = spp_info, 
-                              spp_info_codes = "species_code", 
-                              report_spp = report_spp, 
-                              report_spp_col = "order", 
-                              report_spp_codes = "species_code", 
-                              lang = TRUE)
-cnt_chapt<-auto_counter(cnt_chapt)
-
-for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
-  
-  print(paste0(jj, " of ", length(unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))]), ": ", unique(report_spp1$file_name)[jj]))
-  
-  cnt_chapt_content<-auto_counter(cnt_chapt_content)
-  filename00<-paste0(cnt_chapt, "_spp_")
-  rmarkdown::render(input = paste0(dir_code, "/06_results_spp.Rmd"),
-                    output_dir = dir_out_chapters,
-                    output_file = paste0(filename00, cnt_chapt_content, "_", 
-                                         unique(report_spp1$file_name)[jj],".docx"))
-}
-
-# *** 7 - App_scientistprofiles ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_survey_team_bios_")
-file.copy(from = paste0(dir_out_rawdata, "0_survey_team_bios.docx"),
-          to = paste0(dir_out_chapters, filename0, cnt_chapt_content, ".docx"), 
-          overwrite = TRUE)
-
-# *** 6 - Endmatter ------------------------
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_endmatter_")
-rmarkdown::render(paste0(dir_code, "/10_endmatter.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+                  output_file = paste0("00_full_report_community_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
 # PRESENTATION ------------------------------------------------------
 
@@ -350,39 +230,9 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               report_spp_codes = "species_code0", 
                               lang = TRUE)
 
-# #  report_spp1 <- report_spp1 %>%
-#     dplyr::filter(!(file_name %in% c("sturgeon_poacher", "red_king_crab"
-#                                      ,"blue_king_crab","snow_crab"
-#                                      ,"tanner_crab","varigated_snailfish")))
-
-# report_spp1 <- report_spp1 %>%
-#   dplyr::filter((file_name %in% 
-#                    c("walleye_pollock",
-#                      "pacific_cod",
-#                      "yellowfin_sole",
-#                      "northern_rock_sole",
-#                      "flathead_sole",
-#                      "bering_flounder",
-#                      "alaska_plaice",
-#                      "greenland_turbot",
-#                      "arrowtooth_flounder",
-#                      "kamchatka_flounder",
-#                      "pacific_halibut",
-#                      "bering_skate",
-#                      "alaska_skate",
-#                      "plain_sculpin",
-#                      "great_sculpin",
-#                      "shorthorn_sculpin",
-#                      "pacific_ocean_perch",
-#                      "rex_sole"#,
-#                      # "arctic_cod",
-#                      # "saffron_cod"
-#                    )))
-
 yrs <- sort(nbsyr, decreasing = FALSE)
 
 # *** Figures and Tables ------------------------
-# if (FALSE) {
 
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_")

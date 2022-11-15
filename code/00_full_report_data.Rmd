@@ -1,0 +1,51 @@
+---
+title: "`r paste0('Results of the ', maxyr, ' eastern Bering Sea continental shelf bottom trawl survey of groundfish and invertebrate fauna')`"
+date: "`r paste0('DRAFT: ', format(Sys.time(), '%B %d, %Y'))`"
+output:
+  officedown::rdocx_document: 
+    pandoc_args: ["--metadata-file=header.yaml"]
+    reference_docx: styles_reference.docx
+    df_print: kable
+csl: "../cite/citestyle.csl"
+bibliography: "../cite/bibliography.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+```{r abstract, child = paste0(dir_code, "01_abstract.Rmd"), results='asis'}
+```
+
+```{r introduction, child = paste0(dir_code, "02_introduction.Rmd"), results='asis'}
+```
+
+```{r methods, child = paste0(dir_code, "04_methods.Rmd"), results='asis'}
+```
+
+```{r results, child = paste0(dir_code, "05_results.Rmd"), results='asis'}
+```
+
+```{r results_spp, echo=FALSE, results='asis'}
+src <- list()
+
+for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
+  src[[jj]] <- knitr::knit_expand(paste0(dir_code, '06_results_spp.Rmd'))
+}
+
+# You can also do it using lapply (I wanted the for loop though because I'm setting a bunch of params)
+# src <- lapply(cyl.vec, function(cylcode){
+#   knitr::knit_expand(here::here('markdown','Template.Rmd'))
+# })
+
+res = knitr::knit_child(text = unlist(src), quiet = TRUE)
+cat(res, sep = '\n')
+```
+
+```{r endmatter, child = paste0(dir_code, "10_endmatter.Rmd")}
+```
+
+```{r abstract, child = paste0(dir_code, "09_appendix.Rmd")}
+```
+
+

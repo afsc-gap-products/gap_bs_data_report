@@ -1,18 +1,5 @@
----
-output:
-  officedown::rdocx_document: 
-    pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: styles_reference.docx
-    df_print: kable
-csl: "../cite/citestyle.csl"
-bibliography: "../cite/bibliography.bib"
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
-```
-
-```{r vars}
+```{r res_spp_vars_{{jj}} }
 a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[jj], ]
 
 spp_sci <- a$species_name[1]
@@ -39,7 +26,7 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 ```
 
 
-```{r lang}
+```{r res_spp_lang_{{jj}} }
 # Native Languages Names
 lang <- ""
 
@@ -72,7 +59,7 @@ if (nrow(lang)>0) {
 
 `r lang `
 
-```{r data_wrangle}
+```{r res_spp_data_wrangle_{{jj}} }
 # find basic info about species
 haul0 <- catch_haul_cruises %>% 
     dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
@@ -102,7 +89,7 @@ length_maxyr0 <- length_data %>%
 
 `r ifelse(refcontent & text_spp, "*REFERENCE MATERIAL FOR WRITERS - START*", "")`
 
-```{r ebs}
+```{r res_spp_ebs_{{jj}} }
 temp <- ""
 temp1 <- ""
 show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0)
@@ -138,7 +125,7 @@ temp <- temp$text_spp
 `r temp`
 
 
-```{r nbs}
+```{r res_spp_nbs_{{jj}} }
 temp <- ""
 temp1 <- ""
 show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
@@ -170,7 +157,7 @@ temp <- temp$text_spp
 
 `r temp`
 
-```{r nebs}
+```{r res_spp_nebs_{{jj}} }
 temp <- ""
 temp1 <- ""
 show <- refcontent & 
@@ -207,7 +194,7 @@ temp <- temp$text_spp
 
 `r ifelse(refcontent & text_spp, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
-```{r insert_text}
+```{r res_spp_insert_text_{{jj}} }
 insert<-""
 
 if (report_title == "data") {

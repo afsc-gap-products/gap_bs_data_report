@@ -1,20 +1,7 @@
----
-output:
-  officedown::rdocx_document: 
-    pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: styles_reference.docx
-    df_print: kable
-csl: "../cite/citestyle.csl"
-bibliography: "../cite/bibliography.bib"
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
-```
 
 # Abstract
 
-```{r}
+```{r survey_summary}
 
 nbs_str0 <- ifelse(SRVY == "NEBS", 
                       # NBS + EBS
@@ -50,7 +37,7 @@ str1 <- gsub(pattern = " ,", replacement = ",",
 In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` `r stringr::str_to_sentence(NMFSReports::numbers2words(nrow(vessel_info)))` stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r NMFSReports::text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$vessel_ital)) `, were chartered for `r ifelse(SRVY=="NEBS", "these surveys", "the survey")`. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r NMFSReports::text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition, length distribution, and age structure samples were collected from ecologically and commercially important species. `r str0 `. 
 
 
-```{r}
+```{r abstract_temperature}
 # long-term mean --------------------------------
 temp0 <- temps_avg_yr
 
@@ -132,7 +119,7 @@ str0 <- paste0(str0, str02)
 
 `r str0` 
 
-```{r species_counts}
+```{r abstract_species_counts}
 
 # count fish spp
 temp <- dplyr::left_join(
@@ -309,7 +296,7 @@ A total of `r fish_sp ` species of fishes were identified during the `r NMFSRepo
 
 This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` shelf bottom trawl surveys. For select and common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r NMFSReports::text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Appendices provide tables listing population estimates by sex and size group for principal fish species (Appendix Tables `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`) and species encountered during the `r NMFSReports::text_list(SRVY1)` survey`r ifelse(SRVY=="NEBS", "s", "")` (Appendix Tables `r NMFSReports::crossref(list_tables, "tab_app_principal_fish_", "number", exact = FALSE)`). 
 
-```{r biomass}
+```{r abstract_biomass}
 str0 <- ""
 if (SRVY == "NEBS") {
 
