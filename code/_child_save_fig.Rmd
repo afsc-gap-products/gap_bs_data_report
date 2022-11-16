@@ -1,0 +1,27 @@
+
+````{r}
+# Systematically save your plot with this function
+list_figures <- save_figures(
+  figure = figure, 
+  raw = ifelse(exists("table_raw", mode = "list"), table_raw, ""), 
+  header = ifelse(exists("header", mode = "character"), header, ""),
+  footnotes = unlist(ifelse(exists("footnotes", mode = "character"), list(footnotes), "")), 
+  alttext = ifelse(exists("alttext", mode = "character"), alttext, header),
+  filename0 = ifelse(exists("filename0", mode = "character"), filename0, nickname), 
+  nickname = ifelse(exists("nickname", mode = "character"), nickname, filename0),
+  width = ifelse(exists("width", mode = "numeric"), width, 6), 
+  height = ifelse(exists("height", mode = "numeric"), height, 6),
+  path = dir_out_figures)
+
+# make sure you dont mistakenly name other files with these names
+remove_who <- c()
+remove_who0 <- c("figure", "table_raw", "header", "footnotes", "subobj", "newobj", #"nickname", 
+                 "filename_desc", "alttext", "width", "height", "cnt_pre")
+for (i in 1:length(remove_who0)){
+  if(exists(remove_who0[i]) & !exists(remove_who0[i], mode = "function")){
+    remove_who <- c(remove_who, remove_who0[i])
+  }
+}
+remove(list = remove_who)
+
+```

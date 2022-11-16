@@ -19,7 +19,7 @@ if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
     dplyr::select(year) %>% 
     unlist()
   insert2 <- paste0(insert2,
-                         'The standardized NBS survey has only been conducted previously in ',NMFSReports::text_list(temp2),' [@RN909]. ')
+                         'The standardized NBS survey has only been conducted previously in ',text_list(temp2),' [@RN909]. ')
 }
 
 # insert <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
@@ -28,19 +28,19 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_introduction.docx"),
 
 temp <- haul_cruises_maxyr #%>%
 str1 <- gsub(pattern = " ,", replacement = ",", 
-             x = NMFSReports::text_list(paste0(temp$yrofsurvey, 
+             x = text_list(paste0(temp$yrofsurvey, 
                                                temp$stndth, " ", temp$survey_name, " (", temp$SRVY, ") from ", 
                                                temp$start_mo_long, " to ", temp$end_mo_long, " ", maxyr), 
                                         sep_last = ", as well as the "))
 ```
 
-The purpose of the `r NMFSReports::text_list(SRVY1)` shelf bottom trawl survey`r ifelse(SRVY=="NEBS", "s", "")` is to collect information about the fish and invertebrate populations and environmental conditions. In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of National Marine Fisheries Service's (NMFS') Alaska Fisheries Science Center AFSC conducted `r str1`. `r insert2` `r insert`
+The purpose of the `r text_list(SRVY1)` shelf bottom trawl survey`r ifelse(SRVY=="NEBS", "s", "")` is to collect information about the fish and invertebrate populations and environmental conditions. In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of National Marine Fisheries Service's (NMFS') Alaska Fisheries Science Center AFSC conducted `r str1`. `r insert2` `r insert`
 
 The data collected during these bottom trawl surveys are vital for managing fisheries resources and for ecosystem monitoring. Fishery-independent abundance estimates, in addition to other biological and oceanographic information from Bering Sea shelf bottom trawl surveys, are used by the AFSC, North Pacific Fishery Management Council (NPFMC), and the Alaska Department of Fish and Game (ADF&G). These organizations utilize the survey data products to manage groundfish and crab stocks, as well as conduct ecosystem forecast modeling, which are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act (https://www.fisheries.noaa.gov/topic/laws-policies). 
 
 Effective management of fisheries resources and healthy ecosystems are especially important to Alaska Native communities and to the tens of thousands of people who are employed by the Alaska fishing industry. The commercial fishing industry in Alaska generates billions of dollars for the U.S. economy annually (https://www.fisheries.noaa.gov/alaska/socioeconomics/alaska-economic-and-social-sciences-research; https://www.fisheries.noaa.gov/national/sustainable-fisheries/fisheries-economics-united-states).
 
-In this document, we compare the most recent and similar surveys within the same regions. Therefore, we compare `r NMFSReports::text_list(paste0("the ", maxyr, " ", SRVY1, " survey results with those from the ", compareyr, " ", SRVY1, " shelf bottom trawl survey"))` [@RN976]. For data referenced from previous surveys, refer to the AFSC Technical Memoranda here at the end of the report and listed on the AFSC website (https://www.fisheries.noaa.gov/resource/publication-database/alaska-fisheries-science-center-technical-memorandums).
+In this document, we compare the most recent and similar surveys within the same regions. Therefore, we compare `r text_list(paste0("the ", maxyr, " ", SRVY1, " survey results with those from the ", compareyr, " ", SRVY1, " shelf bottom trawl survey"))` [@RN976]. For data referenced from previous surveys, refer to the AFSC Technical Memoranda here at the end of the report and listed on the AFSC website (https://www.fisheries.noaa.gov/resource/publication-database/alaska-fisheries-science-center-technical-memorandums).
 
 ## History of Bering Sea Bottom Trawl Surveys
 
@@ -59,18 +59,26 @@ str0 <- readtext2(file = paste0(dir_out_rawdata, "/0_history.docx"),
 
 `r str0`
 
-```{r}
-# a <- list_figures$fig_sampled_survey_stations
-# 
-# ```{r fig_sampled_survey_stations, fig.cap = a$caption, fig.id = a$nickname,  tab.cap.style = "Figure Caption", fig.id = "fig_sampled_survey_stations"}
-# include_graphics(path = paste0(dir_out_figures, a$filename, ".png"))
-# ```
-# 
-# Fig. \@ref(fig:fig_sampled_survey_stations)
-# 
+Fig. \@ref(fig:fig-sampled-survey-stations))
+Fig. \@ref(fig:fig-sample-grid))
+
+```{r, fig-sampled-survey-stations}
+nickname <- "fig-sampled-survey-stations"
+caption <- readtext(file = paste0(dir_out_figures, nickname, ".txt"))$text
 ```
 
-`r list_figures$fig_sampled_survey_stations$res `
+```{r, echo = FALSE, fig.cap = caption, fig.id = "fig_sample_grid",  tab.cap.style = "Figure Caption"}
+knitr::include_graphics(paste0(dir_out_figures, nickname, ".png"))
+```
 
-`r list_figures$fig_sample_grid$res `
+![alt text here](C:/Users/emily.markowitz/Documents/Projects/gap_bs_data_report//output//2022-11-15//2022_data//figures/fig_sample_grid.png)
+
+```{r, fig_sample_grid}
+nickname <- "fig-sample-grid"
+caption <- readtext(file = paste0(dir_out_figures, nickname, ".txt"))$text
+```
+
+```{r, echo = FALSE, fig.cap = caption, fig.id = "fig_sample_grid",  tab.cap.style = "Figure Caption", out.width = "100%", out.height = "100%"}
+knitr::include_graphics(paste0(dir_out_figures, nickname, ".png"))
+```
 

@@ -36,13 +36,6 @@ for (i in 1:length(dirs)) {
   assign(x = paste0("dir_out_", dirs[i]), value = paste0(dir_out_todaysrun, "/",dirs[i],"/"))
 }
 
-# If loading in InDesign, table and figure headers need to be their own .docx. Here's a file that will do that for you.
-# TableFigureHeader<-system.file("rmd", "TableFigureHeader.Rmd", package = "RMarkReports")
-
-TableFigureHeader<-paste0(dir_code, "TableFigureHeader.Rmd")
-
-options("citation_format" = "pandoc")
-
 # SAVE ALL R FILES USED FOR EACH RUN -------------------------------------------
 listfiles<-list.files(path = dir_code)
 listfiles0<-c(listfiles[grepl(pattern = "\\.r",

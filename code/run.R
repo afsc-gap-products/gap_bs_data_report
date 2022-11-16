@@ -5,7 +5,6 @@
 #' start date: 2021-09-01
 #' date modified: 2022-09-01                                          # CHANGE
 #' Notes:  
-#' Compile master word doc using # https://support.microsoft.com/en-us/help/2665750/how-to-merge-multiple-word-documents-into-one
 #' create file that checks for errors in RMDs:
 #'    https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/test_rmds.R
 #'    https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/render%20dev%20report%20with%20errors.R
@@ -18,8 +17,7 @@
 
 # *** Report knowns ------------------------------------------------------------
 
-report_title <- "data" # Fake until I get a better idea of how to automate something down the line
-workfaster <- FALSE # an attempt to satisfy limited patience
+report_title <- "data" 
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
@@ -114,12 +112,12 @@ rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 # Save
-save(list_figures,
-     file=paste0(dir_out_figures, "/report_figures.rdata"))
-
-save(list_tables,
-     file=paste0(dir_out_tables, "/report_tables.rdata"))
-
+# save(list_figures,
+#      file=paste0(dir_out_figures, "/report_figures.rdata"))
+# 
+# save(list_tables,
+#      file=paste0(dir_out_tables, "/report_tables.rdata"))
+# 
 # load(file = paste0(dir_out_figures, "/report_figures.rdata"))
 # load(file = paste0(dir_out_tables, "/report_tables.rdata"))
 
@@ -129,13 +127,15 @@ rmarkdown::render(input = paste0(dir_code, "00_full_report_data.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0("00_full_report_data_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
+# quarto::quarto_render(input = paste0(dir_code, "00_full_report_data.qmd"),
+#                   output_file = paste0(dir_out_chapters, "00_full_report_data_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+
 # COMMUNITY HIGHLIGHTS ---------------------------------------------------------
 
 # *** Report knowns ------------------------------------------------------------
 
 # report_title <- paste0(maxyr, ' Northern Bering Sea Groundfish and Crab Trawl Survey Highlights')
-report_title <- "community" # Fake until I get a better idea of how to automate something down the line
-workfaster <- FALSE # an attempt to satisfy limited patience
+report_title <- "community" 
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE

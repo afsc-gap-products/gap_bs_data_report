@@ -16,7 +16,7 @@ PKG <- c(
   "rmarkdown", # R Markdown Document Conversion
   "officer", 
   "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
-  "quarto", 
+  # "quarto", 
 
   # Keeping Organized
   # "devtools", # Package development tools for R; used here for downloading packages from GitHub
@@ -34,10 +34,10 @@ PKG <- c(
   "ggridges",
   
   # Text
-  "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports", force = TRUE) # Package of my favorite grammar and file managment functions for writing reproducible reports
+  # "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports", force = TRUE) # Package of my favorite grammar and file managment functions for writing reproducible reports
   
   # Citations
-  "knitcitations", # devtools::install_github("cboettig/knitcitations")
+  # "knitcitations", # devtools::install_github("cboettig/knitcitations")
   
   # other tidyverse
   "plyr",
@@ -660,7 +660,7 @@ species_text <- function(
   
   
   str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
-                   NMFSReports::text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
+                   text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
   
   tempyr <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
   
@@ -746,8 +746,8 @@ In ",maxyr,", ",spp_print," comprised ",
                   xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
                   ", ", str_table, 
                   # "Table",ifelse(length(SRVY000)>1, "s", "")," ",
-                  # NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
-                  # NMFSReports::text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
+                  # text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
+                  # text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey estimated biomass. ",
@@ -758,8 +758,8 @@ In ",maxyr,", ",spp_print," comprised ",
                   xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
                   ", ", str_table, 
                   # "Table",ifelse(length(SRVY000)>1, "s", "")," ",
-                  # NMFSReports::text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
-                  # NMFSReports::text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
+                  # text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
+                  # text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey estimated biomass. ")
@@ -854,7 +854,7 @@ as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>
     str <- paste0(str, "
 
 The ", 
-                  NMFSReports::text_list(unique(length_maxyr0$sentancefrag)), 
+                  text_list(unique(length_maxyr0$sentancefrag)), 
                   " of ", spp_print, 
                   " measured during the ",maxyr," ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
@@ -1183,7 +1183,41 @@ add_report_spp <- function(spp_info,
 }
 
 
-
+#' Takes a string of words and combines them into a sentance that lists them.
+#'
+#' This function alows you to take a string of words and combine them into a sentance list. For example, 'apples', 'oranges', 'pears' would become 'apples, oranges, and pears'. This function uses oxford commas.
+#' @param x Character strings you want in your string.
+#' @param oxford T/F: would you like to use an oxford comma? Default = TRUE
+#' @param sep string. default = ", " but "; " or " " might be what you need!
+#' @param sep_last string. default = " and " but " & " or " , " might be what you need!
+#' @keywords strings
+#' @export
+#' @examples
+#' text_list(c(1,2,"hello",4,"world",6))
+#' text_list(c(1,"world"))
+#' text_list(c(1,2,"hello",4,"world",6), oxford = FALSE)
+#' paste0("here is a list of things: ",
+#'   text_list(paste0("list", 1:5), sep = " ", sep_last = ""))
+text_list<-function(x = "",
+                    oxford = TRUE,
+                    sep = ", ",
+                    sep_last = "and ") {
+  x<-x[which(x!="")]
+  # x<-x[which(!is.null(x))]
+  x<-x[which(!is.na(x))]
+  # x<-x[order(x)]
+  if (length(x)==2) {
+    str1<-paste(x, collapse = paste0(" ", sep_last))
+  } else if (length(x)>2) {
+    str1<-paste(x[1:(length(x)-1)], collapse = paste0(sep))
+    str1<-paste0(str1,
+                 ifelse(oxford == TRUE, sep, " "),
+                 sep_last, x[length(x)])
+  } else {
+    str1<-x
+  }
+  return(str1)
+}
 
 
 # Plotting ----------------------------
@@ -3393,4 +3427,210 @@ table_change_pres <- function(dat,
                 trimws(unit_word))))#))
   
 }
+
+
+# Save Tables and Figures ------------------------------------------------------
+
+save_figures<-function(figure,
+                       header = "",
+                       footnotes = "",
+                       filename0 = "x",
+                       path = "./",
+                       width = 6,
+                       height = 6,
+                       output_type = c("pdf", "png"),
+                       type = "Figure",
+                       alttext = "",
+                       filename_desc = "",
+                       nickname = "",
+                       raw = NULL
+                       ){
+  
+  caption<-trimws(header)
+  footnotes<-trimws(footnotes)
+  header<-ifelse(sum(footnotes %in% "") != 0,
+                  header,
+                  paste0(header, paste(paste0("^[", footnotes, "]"),
+                                       collapse = " ^,^ ")))
+  # Save
+  if (!is.null(path)){
+    
+    # Save Graphic/Figure
+    for (i in 1:length(output_type)){
+      ggplot2::ggsave( # save your plot
+        path = path,
+        dpi = 1200,
+        bg = "white",
+        filename = paste0(nickname, ".", output_type[i]), # Always save in pdf so you can make last minute edits in adobe acrobat!
+        plot = figure, # call the plot you are saving
+        width = width, height = height, units = "in") #recall, A4 pages are 8.5 x 11 in - 1 in margins
+      
+    }
+    
+    # raw
+    
+    # Save raw file (no rounding, no dividing)
+    if (!(is.null(raw)) &
+        (is.data.frame(raw) | is.matrix(raw))) {
+      # for (i in 1:length(output_type)){
+      utils::write.table(x = raw,
+                         file = paste0(path, nickname,
+                                       ".csv"),
+                         sep = ",",
+                         row.names=FALSE, col.names = TRUE, append = F)
+      # }
+    } else {
+      raw <- ""
+    }
+    
+  }
+  
+  write.table(x = caption, 
+              file = paste0(dir_out_figures, nickname, ".txt"), 
+              row.names = FALSE, 
+              col.names = FALSE, 
+              quote = FALSE)
+  
+  # Save Graphic/Figure as .rdata
+  obj <- list("figure" = figure,
+              "raw" = raw,
+              "caption" = caption,
+              "header" = header,
+              "nickname" = nickname,
+              "alttext" = alttext,
+              "footnotes" = footnotes,
+              "filename" = nickname)
+  
+  save(obj, 
+       file = paste0(path, nickname, ".rdata"))
+  
+}
+
+
+#' Systematically save your report tables for your report
+#'
+#' @param table_raw Optional. The data.frame that has no rounding and no dividing of numbers (good to save this for record keeping). Default = NA.
+#' @param table_print The data.frame as table will be seen in the report.
+#' @param list_tables Save tables in a list
+#' @param header The name and title of the figure. Default = "".
+#' @param footnotes Any footnote you want attached to this figure.
+#' @param filename0 The filename set at the begining of the chapter
+#' @param cnt_chapt_content The order number that this exists in the chapter.
+#' @param cnt The figure number
+#' @param path The path the file needs to be saved to. Default = "NULL", meaning it wont save anything and will override all other saving elements.
+#' @param output_type Default = c("csv"). Can be anything supported by utils::write.table.
+#' @param type Default = "Table", but can be anything that the element needs to be called (e.g., "Graphic", "Fig.", "Graph") to fit in the phrase "Table 1. This is my spreadsheet!".
+#' @param alttext String with what the alternative text is.
+#' @param filename_desc Additional description text for the filename that will be added at the name of file before the filename extention, before the "_raw" or "_print". Default = "". Can be use to add a species name, location, or anything else that would make it easier to know what that file shows.
+#' @param nickname A unique name that can be used to identify the figure so it can be referenced later in the report.
+#' @param message TRUE/FALSE. Default = FALSE. If TRUE, it will print information about where your plot has been saved to.
+#' @importFrom magrittr %>%
+#' @export
+#' @examples
+#' # Select data and make plot
+#' table_raw<-data.frame(x = rnorm(n = 10),
+#'                       y = rnorm(n = 10),
+#'                       col = rep_len(x = c("a", "b"), length.out = 5))
+#' table_print <- table_raw
+#' table_print[,c("x", "y")] <- NMFSReports::mod_number(table_print[,c("x", "y")],
+#'                                                      divideby = 1,
+#'                                                      comma_seperator = TRUE,
+#'                                                      digits = 2)
+#' save_tables(table_raw = table_raw,
+#'            table_print=table_print,
+#'            header = "Here is a table!",
+#'            footnote = "A footnote for this table!")
+save_tables<-function(table_raw = NULL,
+                      table_print = NULL,
+                      list_tables = c(),
+                      header = "",
+                      footnotes = "",
+                      filename0 = "x",
+                      cnt_chapt_content = "001",
+                      cnt = "1",
+                      path = NULL,
+                      output_type = c("csv"),
+                      type = "Table",
+                      alttext = "",
+                      filename_desc = "",
+                      nickname = "",
+                      message = FALSE) {
+  
+  if( sum(names(list_tables) %in% nickname)>0 ) warning('This nickname has already been used for a object in this list. Nicknames should not be reused. Please change the nickname.')
+  
+  
+  # Title
+  header<-trimws(header)
+  # header<-stringr::str_to_sentence(header)
+  header<-paste0(type, " [",cnt,"](){#",nickname,"}. -- ",
+                 ifelse(substr(x = header,
+                               start = nchar(header),
+                               stop = nchar(header)) %in%
+                          c(".", "!", "?", "...", "...."),
+                        header, paste0(header, ".")))
+  footnotes<-trimws(footnotes)
+  caption<-ifelse(sum(footnotes %in% "") != 0,
+                  header,
+                  paste0(header, paste(paste0("^[", footnotes, "]"),
+                                       collapse = " ^,^ ")))
+  filename00<-paste0(#filename0,
+    cnt_chapt_content, "_tab_",cnt,
+    ifelse(filename_desc!="", paste0("_", filename_desc), ""))
+  # Save
+  if (!is.null(path)){
+    
+    # raw
+    
+    # Save raw file (no rounding, no dividing)
+    if (!(is.null(table_raw))) {
+      for (i in 1:length(output_type)){
+        utils::write.table(x = table_raw,
+                           file = paste0(path, filename00,
+                                         "_raw.", output_type[i]),
+                           sep = ",",
+                           row.names=FALSE, col.names = TRUE, append = F)
+      }
+    } else {
+      table_raw <- ""
+    }
+    
+    # write.table can only save files that are 1) extant or 2) in a data.frame or matrix
+    if (!(is.null(table_print))) {
+      if ((class(table_print) %in% c("data.frame", "matrix"))) {
+        for (i in 1:length(output_type)){
+          utils::write.table(x = table_print,
+                             file = paste0(path, filename00,
+                                           "_print.", output_type[i]),
+                             sep = ",",
+                             row.names=FALSE, col.names = F, append = F)
+        }
+      } else { # save non-matrix or data.frames
+        save(table_print,
+             file = paste0(path, filename00, "_print.Rdata"))
+      }
+    } else {
+      table_print <- ""
+    }
+  }
+  
+  list_tables$temp <- list("raw" = table_raw,
+                           "print" = table_print,
+                           "caption" = caption,
+                           "header" = header,
+                           "nickname" = nickname,
+                           "alttext" = alttext,
+                           "number" = cnt,
+                           "footnotes" = footnotes,
+                           "filename" = filename00)
+  
+  names(list_tables)[names(list_tables) %in% "temp"] <- nickname
+  
+  if (message == TRUE) {
+    print(paste0("This table was saved to ", path, filename00, ".*"))
+  }
+  return(list_tables)
+  
+}
+
+
 

@@ -366,20 +366,16 @@ insert <- readtext2(file = paste0(dir_out_rawdata, "/0_abstract_conclusion.docx"
 ```
 
 
+Here are some results that repeat for each of several species. Here I will cross-reference to the first figure in this "chapter" (Figure \@ref(fig:fig_sampled_survey_stations)), and here I will cross reference to the second figure in this chapter (Figure \@ref(fig:fig_sampled_survey_stations)). You will notice that if you're reading the second parameterized chapter in the doc, these references will be Figure \@ref(fig:fig_sample_grid) and Figure \@ref(fig:fig_sample_grid). The index doesn't advance the same way the figure numbers in the captions do!
 
 ```{r fig_sampled_survey_stations}
 nickname <- "fig_sampled_survey_stations"
-caption <- readtext(file = paste0(dir_out_figures, nickname, ".txt"))$text
-path <- paste0(dir_out_figures, nickname, ".png")
-# res <- knitr::knit_child(
-#   text = knitr::knit_expand(
-#     file = paste0(dir_code, "_child_report_fig.Rmd")),
-#   quiet = TRUE
-# )
-```
 
-```{r, fig.cap = caption, fig.id = 'fig_sampled_survey_stations', tab.cap.style = "Figure Caption", fig.alt= caption, fig.path=path}
-# knitr::include_graphics(paste0(dir_out_figures, nickname, ".png"))
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_report_fig.Rmd")),
+  quiet = TRUE
+)
 ```
 
 
@@ -388,24 +384,19 @@ nickname <- "fig_sample_grid"
 caption <- readtext(file = paste0(dir_out_figures, nickname, ".txt"))$text
 ```
 
-```{r, fig.cap = caption, fig.id = 'figsamplegrid', tab.cap.style = "Figure Caption"}
+```{r, echo = FALSE, fig.cap = caption, fig.id = "fig_sample_grid",  tab.cap.style = "Figure Caption", out.width = "100%", out.height = "100%"}
 knitr::include_graphics(paste0(dir_out_figures, nickname, ".png"))
-# plot(x = 1, y = 1)
 ```
 
-```{r, fig.cap='Second figure.', fig.id='secondinchap',  tab.cap.style = "Figure Caption"}
-p2 <- subset(x = mtcars, cyl==4)
+
+
+```{r, echo=FALSE,fig.cap='Second figure in parameterized document -- the figure number is 3 the first time it shows up, and 5 the second time it shows up.', fig.id='secondinchap',  tab.cap.style = "Figure Caption"}
+p2 <- subset(x = mtcars,
+                   cyl==4)
 plot(p2$wt,p2$qsec,pch=19)
 ```
 
-
-```{r, tab.cap='It shows up.', tab.id = 'tab-ex',  tab.cap.style = "Table Caption"}
-flextable::flextable(head(mtcars))
-```
-
-
-
-Here are some results that repeat for each of several species. Here I will cross-reference to the first figure in this "chapter" (Figure \@ref(fig:fig_sampled_survey_stations)), (Figure \@ref(fig:figsamplegrid)) and here I will cross reference to the second figure in this chapter (Figure \@ref(fig:secondinchap)) (Table \@ref(tab:tab-ex)). 
+Here are some results that repeat for each of several species. Here I will cross-reference to the first figure in this "chapter" (Figure \@ref(fig:fig_sampled_survey_stations)), (Figure \@ref(fig:fig_sample_grid)) and here I will cross reference to the second figure in this chapter (Figure \@ref(fig:secondinchap)). 
 
 
 

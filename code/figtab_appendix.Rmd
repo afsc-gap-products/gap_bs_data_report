@@ -2,152 +2,11 @@
 output:
   word_document: 
     pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: styles_reference.docx
-    df_print: kable
-csl: "../cite/citestyle.csl"
-bibliography: "../cite/bibliography.bib"
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
-cnt_pre0 <- 0
-```
-
-# Appendix A
-
-## tab_hauls_catch_
-
-```{r tab_app_hauls_catch_}
-# nickname0 <- "tab_app_hauls_catch_" 
-# cnt_tables <- 0
-# 
-# temp <- tidyr::crossing(vessel_info %>% 
-#                           dplyr::select(vessel_name, vessel_ital), 
-#                         haul_cruises_maxyr %>% 
-#                           dplyr::select(SRVY_long, SRVY))
-# 
-# for (iii in 1:nrow(temp)) {
-#   table_raw <- catch_haul_cruises_maxyr %>% 
-#     dplyr::filter(year == maxyr &
-#                     SRVY == temp$SRVY[iii]) %>%
-#     dplyr::left_join(
-#       x = ., 
-#       y = report_spp1 %>% 
-#         dplyr::select(species_code, species_name, print_name), 
-#       by = "species_code") %>% 
-#     dplyr::filter(!is.na(print_name)) %>% 
-#     dplyr::select(stationid, start_time, haul, start_latitude, start_longitude, end_latitude, end_longitude, bottom_depth, duration, distance_fished, net_width, net_measured, performance, weight, print_name) %>% 
-#     dplyr::group_by(stationid, start_time, haul, start_latitude, start_longitude, end_latitude, end_longitude, bottom_depth, duration, distance_fished, net_width, net_measured, performance, print_name) %>% 
-#     dplyr::summarise(weight = as.character(round(sum(weight, na.rm  = TRUE), 0))) %>% 
-#     dplyr::ungroup() %>% 
-#     tidyr::pivot_wider(names_from = print_name, 
-#                        values_from = weight, 
-#                        values_fill = "-") %>%
-#     tidyr::separate(data = ., col = start_time, into = c("Date", "Time"), sep = " ", remove = TRUE) %>% 
-#     dplyr::mutate(across(where(is.numeric), 
-#                          formatC, big.mark=",", digits = 1, format = "f")) %>% 
-#     dplyr::rename(#"Start date and time"# and time" 
-#       #= start_time,
-#       "Haul number" = haul,
-#       "Start latitude" = start_latitude,
-#       "Start longitude" = start_longitude,
-#       "End latitude" = end_latitude,
-#       "End longitude" = end_longitude,
-#       "Bottom depth _m__" = bottom_depth,
-#       "Duration (_h__)" = duration,
-#       "Distance fished _km__" = distance_fished,
-#       "Net width _m__" = net_width,
-#       "Net measured___" = net_measured,
-#       "Performance" = performance) 
-#   
-#   table_raw <- data.frame(t(data.frame(table_raw)))
-#   names(table_raw) <- table_raw["stationid", ]
-#   table_raw <- table_raw[!(rownames(table_raw) %in% "stationid"), ]
-#   rownames(table_raw) <- gsub(
-#     pattern = ".", 
-#     replacement = " ", 
-#     x = rownames(table_raw), fixed = TRUE)
-#   rownames(table_raw) <- gsub(
-#     pattern = "___", 
-#     replacement = "?", 
-#     x = rownames(table_raw), fixed = TRUE)
-#   rownames(table_raw) <- gsub(
-#     pattern = "__", 
-#     replacement = ")", 
-#     x = rownames(table_raw), fixed = TRUE)
-#   rownames(table_raw) <- gsub(
-#     pattern = "_", 
-#     replacement = "(", 
-#     x = rownames(table_raw), fixed = TRUE)  
-#   
-#   table_print1 <- table_raw
-#   table_print1$row <- rownames(table_raw) 
-#   table_raw00 <- table_raw
-#   
-#   table_print1 <- table_print1 %>% 
-#     dplyr::relocate(row)
-#   
-#   c_start <- 1
-#   ncol_per_page <- 15 # how many columns should go on each page
-#   
-#   comb <- data.frame(c_start = seq(from = 1, to = ncol(table_print1), by = ncol_per_page)+1,
-#                      c_end = c(seq(from = ncol_per_page+1, to = ncol(table_print1), by = ncol_per_page), ncol(table_print1)))
-#   
-#   # if there are less than 3 columns in the last table, combine with table before because it looks messy 
-#   if (abs(comb$c_start[nrow(comb)]-comb$c_end[nrow(comb)]) < 3) {
-#     comb$c_end[nrow(comb)-1] <- comb$c_start[nrow(comb)]
-#     comb<-comb[1:(nrow(comb)-1),]
-#   }
-#   
-#   for (ii in 1:nrow(comb)) {
-#     cnt_pre <- "A"
-#     subobj <- TRUE
-#     newobj <- ifelse(ii == 1, TRUE, FALSE)
-#     table_raw <- table_raw00
-#     
-#     c_start <- comb$c_start[ii]
-#     c_end <- comb$c_end[ii]
-#     
-#     nickname <- paste0(nickname0, 
-#                        temp$SRVY[iii], 
-#                        "_",  
-#                        gsub(pattern = " ", replacement = "", perl = TRUE, 
-#                             x = gsub(pattern = "F/V ", replacement = "", 
-#                                      x = temp$vessel_name[iii], fixed = TRUE)), 
-#                        "_", iii,"_", ii)
-#     
-#     table_print <- table_print1[,c(1, c_start:c_end)] %>% 
-#       flextable::flextable(data = .) %>%
-#       flextable::bold(x = ., j = "row") %>%
-#       flextable::set_header_labels(., row = "") %>%
-#       NMFSReports::theme_flextable_nmfstm(x = ., 
-#                                           font0 = font0, 
-#                                           row_lines = FALSE,
-#                                           body_size = 7, 
-#                                           header_size = 7, 
-#                                           pad = 0, 
-#                                           pgwidth = full_page_landscape_width)
-#     
-#     header <- paste0("Haul and catch data for successfully completed tows by ", 
-#                      temp$vessel_ital[iii]," during the ", maxyr, " ", 
-#                      temp$SRVY[iii], 
-#                      " bottom trawl survey. In this table shows stations ", 
-#                      names(table_print1)[c_start], " through ", 
-#                      names(table_print1)[c_end], 
-#                      " are shown. ")
-#     
-#     # save yo' stuff and do a lot of behind the scenes work
-#     # alt: this does the same thing as calling "child = " in the chunk header
-#     res <- knitr::knit_child(
-#       text = knitr::knit_expand(
-#         file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
-#       quiet = TRUE
-#     )
-#     
-#     list_tables[nickname][[1]]$res <- res
-#   }
-# }
 ```
 
 # Appendix A and B
@@ -343,15 +202,12 @@ for (i in 1:length(list_tables0)) {
   a <- list_tables0[[i]]
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
   
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
-    quiet = TRUE
-  )
-  
-  list_tables[nickname][[1]]$res <- res
+# Save table
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+  quiet = TRUE
+)
 }
 
 ```
@@ -380,15 +236,12 @@ if (SRVY == "NEBS") {
     a <- list_tables0[[i]]
     for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
     
-    # save yo' stuff and do a lot of behind the scenes work
-    # alt: this does the same thing as calling "child = " in the chunk header
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
-      quiet = TRUE
-    )
-    
-    list_tables[nickname][[1]]$res <- res
+# Save table
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+  quiet = TRUE
+)
   }
   
 }
@@ -537,15 +390,12 @@ for (i in 1:length(list_tables0)) {
   a <- list_tables0[[i]]
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
   
-  # save yo' stuff and do a lot of behind the scenes work
-  # alt: this does the same thing as calling "child = " in the chunk header
-  res <- knitr::knit_child(
-    text = knitr::knit_expand(
-      file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
-    quiet = TRUE
-  )
-  
-  list_tables[nickname][[1]]$res <- res
+# Save table
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+  quiet = TRUE
+)
 }
 
 ```
@@ -577,15 +427,12 @@ if (SRVY == "NEBS") {
     a <- list_tables0[[i]]
     for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
     
-    # save yo' stuff and do a lot of behind the scenes work
-    # alt: this does the same thing as calling "child = " in the chunk header
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = system.file("rmd/_child_save_tab.Rmd", package = "NMFSReports")),
-      quiet = TRUE
-    )
-    
-    list_tables[nickname][[1]]$res <- res
+# Save table
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+  quiet = TRUE
+)
   }
   
 }
