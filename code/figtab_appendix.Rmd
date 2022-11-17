@@ -25,14 +25,14 @@ tab_taxa_encountered_ <- function(temp,
   list_tables0 <- list()
   
   cnt_tables <- 0
-  nickname0 <- "tab_app_taxa_encountered_" 
+  nickname0 <- "tab-app-taxa-encountered-" 
   
   for (i in 1:nrow(temp)) {
     cnt_tables <- cnt_tables + 1
     newobj <- TRUE
     nickname <- paste0(nickname0, 
                        temp$SRVY[i], 
-                       "_",  
+                       "-",  
                        temp$taxon[i])
     
     header <- paste0(stringr::str_to_sentence(temp$taxon[i]), 
@@ -146,7 +146,7 @@ tab_taxa_encountered_ <- function(temp,
       flextable::merge_at(x = ., j = c("common_name"), part = "header") %>%
       flextable::merge_at(x = ., j = c("spacer"), part = "header") %>%
       flextable::merge_at(x = ., j = c("stations_n"), part = "header") %>%
-      NMFSReports::theme_flextable_nmfstm(x = ., 
+      theme_flextable_nmfstm(x = ., 
                                           font0 = font0, 
                                           row_lines = TRUE, 
                                           # body_size = 8, 
@@ -183,7 +183,7 @@ tab_taxa_encountered_ <- function(temp,
 
 ## Appendix A (EBS)
 
-```{r tab_app_taxa_encountered_EBS}
+```{r tab-app-taxa-encountered-EBS}
 temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
                                    taxon0 = c("invert", "fish")), 
                         haul_cruises_maxyr %>% 
@@ -215,7 +215,7 @@ res <- knitr::knit_child(
 
 ## Appendix B (NBS)
 
-```{r tab_app_taxa_encountered_NBS}
+```{r tab-app-taxa-encountered-NBS}
 if (SRVY == "NEBS") {
   temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
                                      taxon0 = c("invert", "fish")), 
@@ -262,7 +262,7 @@ tab_app_principal_fish_ <- function(temp,
   
   list_tables0 <- list()
   
-  nickname0 <- "tab_app_principal_fish_" 
+  nickname0 <- "tab-app-principal-fish-" 
   cnt_tables <- 0
   
   temp0 <- report_spp1 %>% 
@@ -279,7 +279,7 @@ tab_app_principal_fish_ <- function(temp,
     
     nickname <- paste0(nickname0, 
                        temp$SRVY[i], 
-                       "_",  
+                       "-",  
                        temp$file_name[i])
     
     spp_code <- temp0$species_code[temp0$file_name == temp$file_name[i]]
@@ -329,7 +329,7 @@ tab_app_principal_fish_ <- function(temp,
                                      cumprop = "Cumulative proportion") %>%
         flextable::align(i = 1, align = "center", part = "header")  %>%  
         flextable::bold(x = ., i = nrow(table_raw), part = "body") %>%
-        NMFSReports::theme_flextable_nmfstm(x = ., 
+        theme_flextable_nmfstm(x = ., 
                                             font0 = font0, 
                                             row_lines = FALSE, 
                                             # body_size = 8, 
@@ -366,7 +366,7 @@ tab_app_principal_fish_ <- function(temp,
 
 ## Appendix C (or B if EBS only) (EBS)
 
-```{r tab_app_principal_fish_EBS}
+```{r tab-app-principal-fish-EBS}
 temp <- tidyr::crossing(haul_cruises_maxyr %>% 
                           dplyr::select(SRVY_long, SRVY) %>% 
                           dplyr::filter(SRVY == "EBS"), 
@@ -402,7 +402,7 @@ res <- knitr::knit_child(
 
 ## Appendix D (NBS)
 
-```{r tab_app_principal_fish_NBS}
+```{r tab-app-principal-fish-NBS}
 if (SRVY == "NEBS") {
   temp <- tidyr::crossing(haul_cruises_maxyr %>% 
                             dplyr::select(SRVY_long, SRVY) %>% 

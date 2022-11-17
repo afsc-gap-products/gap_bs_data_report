@@ -134,8 +134,189 @@ list_figures <- list()
 
 # Functions -------------------------------------------------------------
 
+## 
 
-######### General Stuff ########
+## Modify Numbers --------------------------------------------------------------
+
+#' Determine the appropriate unit for a value.
+#'
+#' Determine the appropriate unit for a value (e.g., 1000000 = '1 Million'.
+#' @param value A numeric value.
+#' @param val_under_x_words a numeric that defines what values should be words as opposed to characters in a text. For example, many styles prefer that all values from 0 to 10 are spelled out in words, so you would set this parameter to 10 (which is the default). Set this parameter to NULL for nothing to to be spelled out.
+#' @param words T/F. Default = TRUE. If TRUE, "1000000" would become "1 Million" and if FALSE would become "1,000,000".
+#' @keywords Modify number, units
+#' @export
+#' @examples
+#' xunits(value = NA)
+#' xunits(value = c(0, 1))
+#' xunits(value = c(0, 1), val_under_x_words = 0)
+#' xunits(value = 12)
+#' xunits(value = c(12345, 123456, 1234567))
+#' xunits(value = 123456789)
+#' xunits(value = 123456789, words = FALSE)
+xunits<-function(value,
+                 val_under_x_words = 10,
+                 words = TRUE
+                 #, combine=TRUE # #' @param combine Should this be combined in a single string (T) or as two seperate strings in a list (F). Default = T.
+                 
+) {
+  
+  f = file()
+  sink(file=f)
+  
+  combine <- TRUE
+  
+  out<-c()
+  
+  for (iii in 1:length(value)){
+    
+    value0<-sum(as.numeric(value[iii]))
+    
+    if (is.na(value0)) {
+      out0 <- NA
+    } else {
+      
+      if (words == FALSE) {
+        unit<-""
+        x<-formatC(x = value0, big.mark = ",", digits = 0, format = "f")
+      } else {
+        sigfig <- formatC(x = value0, digits = 3, format = "e")
+        sigfig0 <- as.numeric(strsplit(x = sigfig, split = "e", fixed = TRUE)[[1]][2])
+        
+        if (sigfig0==0) {
+          unit<-""
+          x<-formatC(x = value0, big.mark = ",", digits = 0, format = "f")
+          if (!is.null(val_under_x_words)) {
+            if (as.numeric(value0) <= val_under_x_words & as.numeric(value0) >= 0) {
+              x <- NMFSReports::numbers2words(x = as.numeric(value0))
+            }
+          }
+        } else if (sigfig0<=5) {
+          # if (sigfig0<4) {
+          unit<-""
+          x<-formatC(x = value0, big.mark = ",", digits = 0, format = "f")
+          # } else if (sigfig0>=4 & sigfig0<6) {
+          #   unit<-" thousand"
+          # x<-round(value0/1e3, digits = 1)
+          # } else if (sigfig0==5) {
+          #   unit<-" thousand"
+          #   x<-round(value0/1e3, digits = 0)
+        } else if (sigfig0>=6 & sigfig0<9) {
+          unit<-" million"
+          x<-round(value0/1e6, digits = 1)
+        } else if (sigfig0>=9 & sigfig0<12) {
+          unit<-" billion"
+          x<-round(value0/1e9, digits = 1)
+        } else if (sigfig0>=12) {
+          unit<-" trillion"
+          x<-round(value0/1e12, digits = 1)
+        }
+      }
+      out0<-ifelse(combine==TRUE, paste0(x, unit), list(x, unit))
+    }
+    
+    out<-c(out, out0)
+  }
+  
+  sink()
+  close(f)
+  
+  return(out)
+}
+
+
+#' Convert number to text string.
+#'
+#' Convert number to text string to the 'st, 'nd, 'rd, or 'th.
+#' @param x The numbers that need to be converted to string.
+#' @param type How the numbers should be converted. Default = "word" (which produces "fifty-third"), but you can also select "val_th" (which produces "53rd").
+#' @keywords Text editing
+#' @export
+#' @examples
+#' numbers2words_th(x = 3, type = "val_th")
+#' numbers2words_th(x = 3, type = "word")
+numbers2words_th<-function(x, type = "word"){
+  
+  # type = col name = c("val_th", "word")
+  
+  # First
+  first2twen<-data.frame(matrix(data = c("first",	"1st",
+                                         "second",	"2nd",
+                                         "third",	"3rd",
+                                         "fourth",	"4th",
+                                         "fifth",	"5th",
+                                         "sixth",	"6th",
+                                         "seventh",	"7th",
+                                         "eighth",	"8th",
+                                         "ninth",	"9th",
+                                         "tenth",	"10th",
+                                         "eleventh",	"11th",
+                                         "twelfth",	"12th",
+                                         "thirteenth",	"13th",
+                                         "fourteenth",	"14th",
+                                         "fifteenth",	"15th",
+                                         "sixteenth",	"16th",
+                                         "seventeenth",	"17th",
+                                         "eighteenth",	"18th",
+                                         "nineteenth",	"19th",
+                                         "twentieth",	"20th"), ncol = 2, byrow =  T))
+  names(first2twen)<-c("word", "val_th")
+  first2twen$val<-1:20
+  
+  # Tens
+  tens<-data.frame(matrix(data = c("twentieth", 20,
+                                   "thirtieth", 30,
+                                   "fortieth",	40,
+                                   "fiftieth",	50,
+                                   "sixtieth",	60,
+                                   "seventieth",	70,
+                                   "eightieth",	80,
+                                   "ninetieth",	90), ncol = 2, byrow =  T))
+  names(tens)<-c("word", "val")
+  tens$word0<-paste0(substr(x = tens$word, start = 1, stop = nchar(tens$word)-4), "y")
+  tens$val_th<-paste0(tens$val, "th")
+  
+  # Hundred
+  hund<-data.frame(matrix(data = c(
+    "hundredth", 100,
+    "thousandth", 1000,
+    "millionth",	1000000,
+    "billionth",	1000000000,
+    "trillionth",	1000000000000), ncol = 2, byrow =  T))
+  names(hund)<-c("word", "val")
+  hund$word0<-paste0(substr(x = hund$word, start = 1, stop = nchar(hund$word)-2), "")
+  tens$val_th<-paste0(tens$val, "th")
+  
+  if (x %in% 1:20) {
+    xx<-first2twen[first2twen$val %in% x, type]
+  } else if (substr(x = x, start = nchar(x), stop = nchar(x)) %in% 0) {
+    xx<-tens[tens$val %in% round(x = x, digits = -1), type]
+  } else {
+    
+    if (type %in% "word") {
+      xx<-paste0(tens[tens$val %in% as.numeric(paste0(substr(x = x, start = 1, stop = 1), 0)), "word0"],
+                 "-",
+                 first2twen[(first2twen$val %in% (x-as.numeric(paste0(substr(x = x, start = 1, stop = 1), 0)))), type])
+    } else {
+      x1<-substr(x = x, start = nchar(x), stop = nchar(x))
+      stndrdth<-"th"
+      if (x1 %in% 1) {
+        stndrdth<-"st"
+      } else if (x1 %in% 2) {
+        stndrdth<-"nd"
+      } else if (x1 %in% 3) {
+        stndrdth<-"rd"
+      }
+      xx<-paste0(x, stndrdth)
+      
+    }
+    
+    
+  }
+  
+  return(xx)
+  
+}
 
 date_format<- "%B %d, %Y" # "%B %#d, %Y"
 
@@ -218,7 +399,7 @@ CapFirst <- function(x) {
   return(xx)
 }
 
-
+## Load data files -------------------------------------------------------------
 
 readtext2 <- function(file, refcontent = FALSE){
   
@@ -337,6 +518,7 @@ url_exists <- function(x, non_2xx_return_value = FALSE, quiet = FALSE,...) {
 #   stringsAsFactors = FALSE
 # ) %>% dplyr::tbl_df() %>% print()
 
+# Converions -------------------------------------------------------------------
 
 find_units <- function(unit = "", unt = "", dat, divby = NULL){
   
@@ -392,7 +574,6 @@ find_units <- function(unit = "", unt = "", dat, divby = NULL){
               "unit_wrd" = unit_wrd))
 }
 
-# Converions --------------------------------------------
 
 
 # https://github.com/geanders/weathermetrics/blob/master/R/temperature_conversions.R
@@ -3106,6 +3287,85 @@ plot_mean_temperatures <- function(maxyr, SRVY){
 
 # Tables -----------------------------------------------------------------------
 
+# Adapted from flextable::theme_vanilla()
+
+#' @importFrom officer fp_border fp_par
+#' @export
+#' @title Apply vanilla theme
+#' @description Apply theme vanilla to a flextable:
+#' The external horizontal lines of the different parts of
+#' the table (body, header, footer) are black 2 points thick,
+#' the external horizontal lines of the different parts
+#' are black 0.5 point thick. Header text is bold,
+#' text columns are left aligned, other columns are
+#' right aligned.
+#' @param x a flextable object
+#' @param pgwidth a numeric. The width in inches the table should be. Default = 6, which is ideal for A4 (8.5x11 in) portrait paper.
+#' @param row_lines T/F. If True, draws a line between each row.
+#' @param font0 String. Default = "Times New Roman". Instead, you may want "Arial".
+#' @param body_size Numeric. default = 11.
+#' @param header_size Numeric. default = 11.
+#' @param spacing table spacing. default = 0.8.
+#' @param pad padding around each element. default = 0.1
+#' @family functions related to themes
+#' @examples
+#' ft <- flextable::flextable(head(airquality))
+#' ft <- NMFSReports::theme_flextable_nmfstm(ft)
+#' ft
+#' @section Illustrations:
+#'
+#' \if{html}{\figure{fig_theme_vanilla_1.png}{options: width=60\%}}
+theme_flextable_nmfstm <- function(x,
+                                   pgwidth = 6.5,
+                                   row_lines = TRUE,
+                                   body_size = 10,
+                                   header_size = 10,
+                                   font0 = "Times New Roman",
+                                   spacing = 0.6,
+                                   pad = 2) {
+  
+  if (!inherits(x, "flextable")) {
+    stop("theme_flextable_nmfstm supports only flextable objects.")
+  }
+  
+  FitFlextableToPage <- function(x, pgwidth = 6){
+    # https://stackoverflow.com/questions/57175351/flextable-autofit-in-a-rmarkdown-to-word-doc-causes-table-to-go-outside-page-mar
+    ft_out <- x %>% flextable::autofit()
+    
+    ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths*pgwidth /(flextable::flextable_dim(ft_out)$widths))
+    return(ft_out)
+  }
+  
+  std_b <- officer::fp_border(width = 2, color = "grey10")
+  thin_b <- officer::fp_border(width = 0.5, color = "grey10")
+  
+  x <- flextable::border_remove(x)
+  
+  if (row_lines == TRUE) {
+    x <- flextable::hline(x = x, border = thin_b, part = "body")
+  }
+  x <- flextable::hline_top(x = x, border = std_b, part = "header")
+  x <- flextable::hline_bottom(x = x, border = std_b, part = "header")
+  x <- flextable::hline_bottom(x = x, border = std_b, part = "body")
+  x <- flextable::bold(x = x, bold = TRUE, part = "header")
+  x <- flextable::align_text_col(x = x, align = "left", header = TRUE)
+  x <- flextable::align_nottext_col(x = x, align = "right", header = TRUE)
+  x <- flextable::padding(x = x, padding = pad, part = "all") # remove all line spacing in a flextable
+  x <- flextable::font(x = x, fontname = font0, part = "all")
+  x <- flextable::fontsize(x = x, size = body_size-2, part = "footer")
+  x <- flextable::fontsize(x = x, size = body_size, part = "body")
+  x <- flextable::fontsize(x = x, size = header_size, part = "header")
+  # x <- flextable::fit_to_width(x = x,
+  #                         max_width = pgwidth,
+  #                         unit = "in")
+  x <- FitFlextableToPage(x = x, pgwidth = pgwidth)
+  # x <- flextable::line_spacing(x = x, space = spacing, part = "all")
+  
+  x <- flextable::fix_border_issues(x = x)
+  
+  return(x)
+}
+
 table_change <- function(dat, 
                          yrs, 
                          maxyr, 
@@ -3446,12 +3706,18 @@ save_figures<-function(figure,
                        raw = NULL
                        ){
   
-  caption<-trimws(header)
+  header<-trimws(header)
+  header<-paste0(ifelse(substr(x = header,
+                               start = nchar(header),
+                               stop = nchar(header)) %in%
+                          c(".", "!", "?", "...", "...."),
+                        header, paste0(header, ".")))
   footnotes<-trimws(footnotes)
-  header<-ifelse(sum(footnotes %in% "") != 0,
+  caption<-ifelse(sum(footnotes %in% "") != 0,
                   header,
                   paste0(header, paste(paste0("^[", footnotes, "]"),
                                        collapse = " ^,^ ")))
+  
   # Save
   if (!is.null(path)){
     
@@ -3542,40 +3808,27 @@ save_figures<-function(figure,
 #'            footnote = "A footnote for this table!")
 save_tables<-function(table_raw = NULL,
                       table_print = NULL,
-                      list_tables = c(),
                       header = "",
                       footnotes = "",
                       filename0 = "x",
-                      cnt_chapt_content = "001",
-                      cnt = "1",
                       path = NULL,
                       output_type = c("csv"),
-                      type = "Table",
                       alttext = "",
                       filename_desc = "",
-                      nickname = "",
-                      message = FALSE) {
-  
-  if( sum(names(list_tables) %in% nickname)>0 ) warning('This nickname has already been used for a object in this list. Nicknames should not be reused. Please change the nickname.')
-  
+                      nickname = "") {
   
   # Title
   header<-trimws(header)
-  # header<-stringr::str_to_sentence(header)
-  header<-paste0(type, " [",cnt,"](){#",nickname,"}. -- ",
-                 ifelse(substr(x = header,
+  header<-paste0(ifelse(substr(x = header,
                                start = nchar(header),
                                stop = nchar(header)) %in%
                           c(".", "!", "?", "...", "...."),
                         header, paste0(header, ".")))
   footnotes<-trimws(footnotes)
   caption<-ifelse(sum(footnotes %in% "") != 0,
-                  header,
-                  paste0(header, paste(paste0("^[", footnotes, "]"),
-                                       collapse = " ^,^ ")))
-  filename00<-paste0(#filename0,
-    cnt_chapt_content, "_tab_",cnt,
-    ifelse(filename_desc!="", paste0("_", filename_desc), ""))
+                 header,
+                 paste0(header, paste(paste0("^[", footnotes, "]"),
+                                      collapse = " ^,^ ")))
   # Save
   if (!is.null(path)){
     
@@ -3585,7 +3838,7 @@ save_tables<-function(table_raw = NULL,
     if (!(is.null(table_raw))) {
       for (i in 1:length(output_type)){
         utils::write.table(x = table_raw,
-                           file = paste0(path, filename00,
+                           file = paste0(path, nickname,
                                          "_raw.", output_type[i]),
                            sep = ",",
                            row.names=FALSE, col.names = TRUE, append = F)
@@ -3599,36 +3852,38 @@ save_tables<-function(table_raw = NULL,
       if ((class(table_print) %in% c("data.frame", "matrix"))) {
         for (i in 1:length(output_type)){
           utils::write.table(x = table_print,
-                             file = paste0(path, filename00,
+                             file = paste0(path, nickname,
                                            "_print.", output_type[i]),
                              sep = ",",
                              row.names=FALSE, col.names = F, append = F)
         }
       } else { # save non-matrix or data.frames
         save(table_print,
-             file = paste0(path, filename00, "_print.Rdata"))
+             file = paste0(path, nickname, "_print.Rdata"))
       }
     } else {
       table_print <- ""
     }
   }
   
-  list_tables$temp <- list("raw" = table_raw,
-                           "print" = table_print,
-                           "caption" = caption,
-                           "header" = header,
-                           "nickname" = nickname,
-                           "alttext" = alttext,
-                           "number" = cnt,
-                           "footnotes" = footnotes,
-                           "filename" = filename00)
+  write.table(x = caption, 
+              file = paste0(dir_out_figures, nickname, ".txt"), 
+              row.names = FALSE, 
+              col.names = FALSE, 
+              quote = FALSE)
   
-  names(list_tables)[names(list_tables) %in% "temp"] <- nickname
+  # Save flextable etc as .rdata
+  obj <- list("raw" = table_raw,
+              "print" = table_print,
+              "caption" = caption,
+              "header" = header,
+              "nickname" = nickname,
+              "alttext" = alttext,
+              "footnotes" = footnotes,
+              "filename" = nickname)
   
-  if (message == TRUE) {
-    print(paste0("This table was saved to ", path, filename00, ".*"))
-  }
-  return(list_tables)
+  save(obj, 
+       file = paste0(path, nickname, ".rdata"))
   
 }
 

@@ -1,9 +1,8 @@
 ```{r, echo = FALSE}
 # Systematically save your table with this function
-list_tables<-NMFSReports::save_tables(
+save_tables(
   table_raw = table_raw, 
   table_print = table_print,
-  list_tables = list_tables, 
   header = ifelse(exists("header", mode = "character"), header, ""),
   footnotes = unlist(ifelse(exists("footnotes", mode = "character"), list(footnotes), "")), 
   alttext = ifelse(exists("alttext", mode = "character"), alttext, header),
@@ -11,97 +10,6 @@ list_tables<-NMFSReports::save_tables(
   nickname = ifelse(exists("nickname", mode = "character"), nickname, filename0),
   path = dir_out_tables)
 
-```
-
-```{r, echo = FALSE}
-
-if (class(table_print) %in% c("flextable")) {
-      
-      href <- gsub(pattern = "\\}", replacement = "", 
-                   gsub(pattern = "\\{", replacement = "", 
-                        x = unlist(regmatches(list_tables[[length(list_tables)]]$header, 
-                                              gregexpr("(\\{.*?\\})", 
-                                                       list_tables[[length(list_tables)]]$header)))))
-      
-      header0 <- list_tables[[length(list_tables)]]$alttext
-
-      header00 <- header0
-      header00 <- unlist(strsplit(x = header00, split = "**", fixed = TRUE))
-      header00 <- unlist(strsplit(x = header00, split = "*", fixed = TRUE))
-      header00 <- header00[header00 != ""]
-      for (zz in 1:length(header00)) {
-        if (grepl(pattern = paste0("**", header00[zz], "**"), x = header0, fixed = TRUE)) {
-          header00[zz] <-
-            #eval(parse(text = paste0(
-            paste0("flextable::as_b('", header00[zz], "')")#) ) )
-        } else if (grepl(pattern = paste0("*", header00[zz], "*"), x = header0, fixed = TRUE)) {
-          header00[zz] <- #eval(parse(text = paste0(
-            paste0("flextable::as_i('", header00[zz], "')")#) ) )
-        } else {
-          header00[zz] <- paste0("'", header00[zz], "'")
-        }
-      }
-      
-      
-      header00 <- paste0('list("Table ", flextable::hyperlink_text(x = list_tables[[length(list_tables)]]$number, url = href, props = officer::fp_text(color = "blue", font.family = font0) ),  ". -- ",', paste0(header00, collapse = ", "), ")")
-      
-
-      list_tables[[length(list_tables)]]$print <- 
-        list_tables[[length(list_tables)]]$print %>% 
-        flextable::set_caption(x = ., 
-                               caption = list_tables[[length(list_tables)]]$nickname)
-      
-      
-      
-      
-      list_tables[[length(list_tables)]]$print <- 
-        list_tables[[length(list_tables)]]$print %>%
-        flextable::add_header_lines(
-          x = .,
-          top = TRUE,
-          values = "") %>%
-        flextable::compose(
-          x = .,
-          # j = "dummy",
-          part = "header",
-          i = 1,
-          # top = TRUE,
-          value = flextable::as_paragraph(
-            list_values = eval(parse(text = header00))) ) %>%
-        flextable::hline_top(x = ., part = "header",
-                             border = officer::fp_border(color="white", width = 3)) %>%
-        flextable::align(x = ., i = 1, part = "header", align = "left") %>%
-        flextable::bold(x = ., i = 1, part = "header", bold = FALSE) %>%
-        flextable::font(x = ., i = 1, part = "header", fontname = font0) #%>% 
-      # flextable::style(x = ., i = 1, part = "header", )
-      
-      list_tables[[length(list_tables)]]$print
-      
-    } else {
-      # list_tables[[length(list_tables)]]$print
-      aaa <- list_tables[[length(list_tables)]]$print
-      if (names(list_tables[[length(list_tables)]]$print)[1]=="header") {
-        list_tables[[length(list_tables)]]$print
-      } else {
-        for (iii in 1:length(aaa)) { 
-          print(list_tables[[length(list_tables)]]$print[[iii]])
-        }
-      }
-    }
-  } else {
-    if ((class(table_print) %in% c("data.frame", "matrix"))) {
-      list_tables[[length(list_tables)]]$raw %>% 
-        knitr::kable(row.names = FALSE, booktabs = TRUE)
-    } else {
-      list_tables[[length(list_tables)]]$raw
-    }
-  }
-}
-
-```
-
-
-```{r}
 # make sure you dont mistakenly name other files with these names
 remove_who <- c()
 remove_who0 <- c("header", "footnotes", "subobj", "newobj", #"nickname", 
@@ -116,10 +24,3 @@ remove(list = remove_who)
 
 ```
 
-
-
-```{r}
-#| tab.id: bookmark_id
-#| tab.cap: caption text
-flextable(head(cars))
-```

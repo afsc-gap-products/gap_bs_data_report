@@ -296,7 +296,7 @@ invert_phyla <- xunits(temp1$phylum_taxon)
 
 A total of `r fish_sp ` species of fishes were identified during the `r text_list(SRVY1)` survey`r ifelse(SRVY=="NEBS", "s", "")`, representing `r fish_genera` genera and `r fish_family` families, as well as `r invert_spp ` invertebrate taxa. In total, organisms representing `r invert_phyla` phyla were identified in the catch.
 
-This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` shelf bottom trawl surveys. For select and common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Appendices provide tables listing population estimates by sex and size group for principal fish species (Appendix Tables `r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`) and species encountered during the `r text_list(SRVY1)` survey`r ifelse(SRVY=="NEBS", "s", "")` (Appendix Tables `r NMFSReports::crossref(list_tables, "tab_app_principal_fish_", "number", exact = FALSE)`). 
+This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` shelf bottom trawl surveys. For select and common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of bottom trawl survey biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Appendices provide tables listing population estimates by sex and size group for principal fish species (Appendix Tables \@ref(tab:tab-app-taxa-encountered-EBS-invertebrate) and \@ref(tab:tab-app-taxa-encountered-NBS-invertebrate)) and species encountered during the `r text_list(SRVY1)` survey`r ifelse(SRVY=="NEBS", "s", "")` (Appendix Tables \@ref(tab:tab-app-principal-fish-EBS) and \@ref(tab:tab-app-principal-fish-NBS)). 
 
 ```{r abstract_biomass}
 str0 <- ""
@@ -327,86 +327,16 @@ str0 <- paste0(str0, ". ")
 
 }
 
-# str0 <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
-insert <- readtext2(file = paste0(dir_out_rawdata, "/0_abstract_conclusion.docx"), 
-                    refcontent = refcontent)
+# # str0 <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
+# insert <- readtext2(file = paste0(dir_out_rawdata, "/0_abstract_conclusion.docx"), 
+#                     refcontent = refcontent)
 ```
 
-`r str0 ``r insert`
+```{r abstract_insert_text, child=paste0(dir_out_rawdata, "/0_abstract_conclusion.Rmd")}
+```
+`r insert`
 
 \pagebreak
-
-```{r list_tables_figures}
-# list_tables0 <- list_tables[!grepl(pattern = "Appendix", 
-#                                    x = sapply(list_tables0, "[[","header"), 
-#                                    ignore.case = TRUE)]
-# list_figures0 <- list_figures
-# 
-#   str0 <- paste0('
-# \\pagebreak
-# **List of Tables**
-# 
-# ',
-# text_list(paste0("\n\n - ",
-#                               sapply(list_tables0, "[[","header")), 
-#                        oxford = FALSE, sep = " ", sep_last = " "),
-# '
-# \n\n\n
-# \\pagebreak
-# 
-# **List of Figures**
-# 
-# ',
-# text_list(paste0("\n\n - ", 
-#                               sapply(list_figures0,  "[[","header")), 
-#                        oxford = FALSE, sep = " ", sep_last = " "),
-# '
-# \n\n\n
-# ')
-```
-
-
-
-```{r fig_sampled_survey_stations}
-nickname <- "fig_sampled_survey_stations"
-caption <- readtext(file = paste0(dir_out_figures, nickname, ".txt"))$text
-path <- paste0(dir_out_figures, nickname, ".png")
-# res <- knitr::knit_child(
-#   text = knitr::knit_expand(
-#     file = paste0(dir_code, "_child_report_fig.Rmd")),
-#   quiet = TRUE
-# )
-```
-
-```{r, fig.cap = caption, fig.id = 'fig_sampled_survey_stations', tab.cap.style = "Figure Caption", fig.alt= caption, fig.path=path}
-# knitr::include_graphics(paste0(dir_out_figures, nickname, ".png"))
-```
-
-
-```{r}
-nickname <- "fig_sample_grid"
-caption <- readtext(file = paste0(dir_out_figures, nickname, ".txt"))$text
-```
-
-```{r, fig.cap = caption, fig.id = 'figsamplegrid', tab.cap.style = "Figure Caption"}
-knitr::include_graphics(paste0(dir_out_figures, nickname, ".png"))
-# plot(x = 1, y = 1)
-```
-
-```{r, fig.cap='Second figure.', fig.id='secondinchap',  tab.cap.style = "Figure Caption"}
-p2 <- subset(x = mtcars, cyl==4)
-plot(p2$wt,p2$qsec,pch=19)
-```
-
-
-```{r, tab.cap='It shows up.', tab.id = 'tab-ex',  tab.cap.style = "Table Caption"}
-flextable::flextable(head(mtcars))
-```
-
-
-
-Here are some results that repeat for each of several species. Here I will cross-reference to the first figure in this "chapter" (Figure \@ref(fig:fig_sampled_survey_stations)), (Figure \@ref(fig:figsamplegrid)) and here I will cross reference to the second figure in this chapter (Figure \@ref(fig:secondinchap)) (Table \@ref(tab:tab-ex)). 
-
 
 
 

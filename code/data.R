@@ -167,12 +167,23 @@ if (googledrive_dl) {
   a <- googledrive::drive_ls(path = id_googledrive)
   for (i in 1:nrow(a)){
     googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
-                                type = "docx",
+                                type = "txt",
                                 overwrite = TRUE, 
-                                path = paste0(dir_out_rawdata, "/", a$name[i], ".docx"))
+                                path = paste0(dir_out_rawdata, "/", a$name[i], ".txt"))
   }
   
 }
+
+txtfiles <- list.files(path = paste0(dir_out_rawdata, "/"), pattern = ".txt")
+
+for (i in 1:length(txtfiles)) {
+  print(txtfiles[i])
+  pandoc_convert(input = paste0(dir_out_rawdata, paste(txtfiles[i])),
+                 to = "markdown",
+                 output = paste0(dir_out_rawdata, gsub(txtfiles[i], pattern = ".txt", replacement = ".Rmd")),
+                 citeproc = TRUE) # not sure if this is needed
+}
+
 # *** Load Main Oracle Data -------------------------------------------------------------
 
 a <- paste0(dir_data, "oracle/", c("catch", "haul", "length_types", 
