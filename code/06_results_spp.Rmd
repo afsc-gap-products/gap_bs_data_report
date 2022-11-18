@@ -321,22 +321,37 @@ if (spp_plot_idw) {
 land_start <- ""
 land_end <- ""
 
-insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
-                    refcontent = refcontent)
+# insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
+#                     refcontent = refcontent)
+# `r paste0(insert, "\n\n") `
 }
 
 ```
 
-`r paste0(insert, "\n\n") `
+```{r, child = paste0(dir_out_rawdata, spp_file, ".Rmd")}
+```
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
+```{r}
+nickname <- paste0("fig-sizecomp-*", spp_file)
+```
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
+```{r, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
 
-<!-- data report only (shouldn't show up if table doesn't exist) -->
+```{r}
+nickname <- paste0("fig-idw-cpue-*", spp_file)
+```
+
+```{r, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
 
 `r land_start `
 
-`r NMFSReports::crossref(list_obj = list_tables, nickname = paste0("tab_estimates_maxyr_*_", spp_file, "*"), sublist = "res", exact = FALSE) `
+```{r}
+nickname <- paste0("tab-estimates-maxyr-", spp_file)
+```
+
+```{r, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
 
 `r land_end `

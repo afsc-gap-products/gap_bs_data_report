@@ -3839,7 +3839,7 @@ save_tables<-function(table_raw = NULL,
       for (i in 1:length(output_type)){
         utils::write.table(x = table_raw,
                            file = paste0(path, nickname,
-                                         "_raw.", output_type[i]),
+                                         "-raw.", output_type[i]),
                            sep = ",",
                            row.names=FALSE, col.names = TRUE, append = F)
       }
@@ -3853,13 +3853,13 @@ save_tables<-function(table_raw = NULL,
         for (i in 1:length(output_type)){
           utils::write.table(x = table_print,
                              file = paste0(path, nickname,
-                                           "_print.", output_type[i]),
+                                           "-print.", output_type[i]),
                              sep = ",",
                              row.names=FALSE, col.names = F, append = F)
         }
       } else { # save non-matrix or data.frames
         save(table_print,
-             file = paste0(path, nickname, "_print.Rdata"))
+             file = paste0(path, nickname, "-print.Rdata"))
       }
     } else {
       table_print <- ""

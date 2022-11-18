@@ -128,6 +128,7 @@ reg_dat$graticule <- sf::st_transform(x = reg_dat$graticule, crs = CRS(as.charac
 
 
 # Load data --------------------------------------------------------------------
+
 print("Load data")
 
 # *** Load Documents from Google Drive -----------------------------------------
