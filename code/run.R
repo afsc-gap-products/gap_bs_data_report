@@ -69,6 +69,8 @@ googledrive::drive_auth()
 # *** Source support scripts ---------------------------------------------------
 
 source('./code/directories.R')
+dir_out_tables <- paste0(dir_output, "tables/")
+dir_out_figures <- paste0(dir_output, "figures/")
 
 source('./code/functions.R')
 
