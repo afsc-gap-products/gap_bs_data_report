@@ -843,6 +843,91 @@ species_text <- function(
   str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
                    text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
   
+  # <!-- how many stations -->
+  
+  str <- paste0(str, "
+", spp_print, " were present at ", 
+formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
+        digits = 1, format = "f") , 
+"% of stations (", 
+# ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000), " (", 
+length(unique(haul_maxyr_spp$hauljoin)), " of ", 
+length(unique(haul_maxyr0$hauljoin)), 
+" stations) ranging from ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
+" m to ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m during the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""), ". ")
+  
+  
+  
+  str <- paste0(str, "
+
+Out of the total number of successful hauls (",
+                length(unique(haul_maxyr0$hauljoin)), ") ",
+                spp_print,
+                " were found during ",
+                length(unique(haul_maxyr_spp$hauljoin)),
+                " hauls (",
+                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"),
+                "% of stations). ")
+  
+  # different version of above
+  str <- paste0(str, "
+
+During the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""),
+                ", ", spp_print, " were present at ",
+                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100,
+                        digits = 1, format = "f") ,
+                "% of stations (",
+                # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000), " (",
+                length(unique(haul_maxyr_spp$hauljoin)), " of ",
+                length(unique(haul_maxyr0$hauljoin)),
+                " stations). ")
+  
+  
+  # <!-- Depth -->
+  str <- paste0(str, "
+
+They were found in waters with depths between ",
+                as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) ,
+                " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
+  
+  
+  # <!-- bottom temperture -->
+  str <- paste0(str, "
+
+", stringr::str_to_sentence(spp_print), 
+" were found in bottom temperatures between ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
+"\u00B0C and ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
+"\u00B0C. ") #  (Figure ", cnt_figures,")
+  
+  # <!-- bottom temperature and depth -->
+  # Northern rock sole were found in areas where bottom temperatures were between -1.6°C and 11°C and depths between 15 m and 170 m.
+  
+  str <- paste0(str, "
+
+", stringr::str_to_sentence(spp_print), 
+" were found in areas where bottom temperatures between ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
+"\u00B0C and ", 
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
+"\u00B0C and depths between ",
+as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) ,
+" m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ") 
+  
+  
+  
+  #   # <!-- surface temperature -->
+  #   str <- paste0(str, "
+  # 
+  # ", stringr::str_to_sentence(spp_print), 
+  # " were found in areas where surface temperatures were between ", 
+  # as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
+  # "\u00B0C and ", 
+  # as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
+  # "\u00B0C. ") #  (Figure ", cnt_figures,")
+  
   tempyr <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
   
   temp <- function(biomass_cpue, biomass_cpue_spp, maxyr, compareyr, tempyr, 
@@ -919,6 +1004,26 @@ species_text <- function(
       dplyr::group_by(year) %>% 
       dplyr::summarise(biomass = sum(biomass, na.rm = T)) 
     
+#The estimated population of Alaska plaice in the NBS was 299,028 t and approximately 539 million fish (Tables \@ref(tab:tab-estimates-maxyr-{{spp_file}}-wt) and \@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)).    
+#Biomass with abundance
+    str <- paste0(str, "
+  
+The estimated biomass of ",spp_print," in the  ",
+                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+                  " was ", 
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
+                  " (Table \@ref(tab:tab-estimates-maxyr-{{spp_file}}-wt)) and ", xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, "abundance"], na.rm = TRUE), val_under_x_words = NULL), unit,
+                  " fish (Table \@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)).
+          
+                  
+                  Previously, in ",compareyr,", ",spp_print," biomass was estimated to be",
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
+                  " (Table \@ref(tab:",biomass_cpue_tab_name,")) and ", 
+                  xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, "abundance"], na.rm = TRUE), val_under_x_words = NULL), unit, "fish in the ",
+                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000), "(Table \@ref(tab:",biomass_cpue_tab_name,")).")
+    
+    
+# Biomass percentage of total    
     str <- paste0(str, "
   
 In ",maxyr,", ",spp_print," comprised ",
@@ -926,9 +1031,6 @@ In ",maxyr,", ",spp_print," comprised ",
                                temp2$biomass[temp2$year == maxyr])*100)," (", 
                   xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
                   ", ", str_table, 
-                  # "Table",ifelse(length(SRVY000)>1, "s", "")," ",
-                  # text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
-                  # text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey estimated biomass. ",
@@ -938,15 +1040,18 @@ In ",maxyr,", ",spp_print," comprised ",
                                temp2$biomass[temp2$year == compareyr])*100)," (", 
                   xunits(sum(biomass_cpue_spp[biomass_cpue_spp$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
                   ", ", str_table, 
-                  # "Table",ifelse(length(SRVY000)>1, "s", "")," ",
-                  # text_list(NMFSReports::crossref(list_obj = list_tables, nickname = biomass_cpue_tab_name, sublist = "number")),
-                  # text_list(paste0("`r ", biomass_cpue_tab_name, "``") ), 
                   ") of the ",
                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
                   " survey estimated biomass. ")
     
-    
-    
+    # Compare biomass to compare year, if available
+    if (str00 != "") {
+      str <- paste0(str, "
+
+", str00)
+    }
+
+        
     # comprising 12% (520,029 t; Table 1) of the total NBS survey area biomass - YFS
     # In 2019, snow crab comprised 4% (167,124 t, Table 1) of the NBS survey biomass... In 2017, snow crab comprised 5% (223,216 t) of the NBS survey biomass
     # This species of sea star made up 10% (414,423 t, Table 1) of the 2019 total fish and invertebrate biomass in the NBS. 
@@ -962,66 +1067,7 @@ In ",maxyr,", ",spp_print," comprised ",
     
   }
   
-  
-  # <!-- how many stations -->
-  str <- paste0(str, "
 
-Out of the total number of successful hauls (", 
-                length(unique(haul_maxyr0$hauljoin)), ") ",  
-                spp_print, 
-                " were found during ", 
-                length(unique(haul_maxyr_spp$hauljoin)), 
-                " hauls (", 
-                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"), 
-                "% of stations). ")
-  
-  # different version of above
-  str <- paste0(str, "
-
-During the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""),
-                ", ", spp_print, " were present at ", 
-                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
-                        digits = 1, format = "f") , 
-                "% of stations (", 
-                # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000), " (", 
-                length(unique(haul_maxyr_spp$hauljoin)), " of ", 
-                length(unique(haul_maxyr0$hauljoin)), 
-                " stations). ")
-  
-  
-  # <!-- Depth -->
-  str <- paste0(str, "
-
-They were found in waters with depths between ", 
-                as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
-                " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
-  
-  # Compare biomass to compare year, if available
-  if (str00 != "") {
-  str <- paste0(str, "
-
-", str00)
-  }
-  
-  # <!-- bottom tempature -->
-  str <- paste0(str, "
-
-", stringr::str_to_sentence(spp_print), 
-" were found in bottom temperatures between ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
-"\u00B0C and ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
-"\u00B0C. ") #  (Figure ", cnt_figures,")
-  
-  # <!-- surface temperature -->
-  str <- paste0(str, "
-
-", stringr::str_to_sentence(spp_print), 
-" were found in areas where surface temperatures were between ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
-"\u00B0C and ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
-"\u00B0C. ") #  (Figure ", cnt_figures,")
 
   # <!-- Sizes lengths caught  -->
   
