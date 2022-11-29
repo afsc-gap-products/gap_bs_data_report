@@ -63,7 +63,9 @@
 
 
 ```{r list_app_function}
-list_app <- function(nickname, dir_out_tables, descr_frag, abcd) {
+counter_letters <- 0
+
+list_app <- function(nickname, dir_out_tables, abcd, srvy, descr_short, descr_frag) {
   
   a <- list.files(path = dir_out_tables, 
                   pattern = nickname, 
@@ -73,6 +75,28 @@ list_app <- function(nickname, dir_out_tables, descr_frag, abcd) {
                     replacement = "", 
                     x = a[grepl(pattern = ".rdata", x = a)], 
                     ignore.case = TRUE)
+  
+  captions <- data.frame()
+  for (i in 1:length(nickname0)) {
+    a <- readtext(paste0(dir_out_tables, nickname0[i], ".txt"))
+    captions <- dplyr::bind_rows(
+      captions, 
+      data.frame(
+        "id" = nickname0[i], 
+        "capt" = a$text))
+  }
+  
+#   src <- list()
+# for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
+#   print(jj)
+#   src[[jj]] <- knitr::knit_expand(paste0(dir_code, '06_results_spp.Rmd'))
+# }
+# # You can also do it using lapply (I wanted the for loop though because I'm setting a bunch of params)
+# # src <- lapply(cyl.vec, function(cylcode){
+# #   knitr::knit_expand(here::here('markdown','Template.Rmd'))
+# # })
+# res = knitr::knit_child(text = unlist(src), quiet = TRUE)
+# cat(res, sep = '\n')
   
   # list_tables0 <- list_tables[grepl(x = names(list_tables), pattern = nickname0)]
   # srvy <- unlist(unique(lapply(X = strsplit(x =
@@ -92,19 +116,16 @@ list_app <- function(nickname, dir_out_tables, descr_frag, abcd) {
     # nickname00 <- nickname0[grepl(x = nickname0, pattern = srvy[i])]
     # unlist(lapply(list_tables0, `[[`, "number"))
     
-    str0 <- paste0(str0, ifelse(str0 == "", "", "\\pagebreak"), 
-                   '## Appendix ',abcd,': List of taxa encountered in the ', srvy[i], '
+    str0 <- paste0(#ifelse(str0 == "", "", "\\pagebreak"), 
+                   '## Appendix ',abcd,': List of ', descr_short,'
 
-Appendix ',abcd, ' lists all fish and invertebrate taxa taken during the AFSC’s ',
-srvy[i] ,
-' bottom trawl survey.
+Appendix ',abcd, " ", descr_frag, '
 
 **List of Tables**
 
 ',
-text_list(paste0("\n\n - Appendix ",#abcd[i]," ", 
-                 sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")],
-                        "[[","header")), 
+text_list(paste0("\n\n - Appendix ", "\\@ref(tab:", captions$id, "): ", captions$capt),
+                 # sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")], "[[","header")), 
           oxford = FALSE, sep = " ", sep_last = " "),
 '
 \n\n\n
@@ -122,63 +143,128 @@ text_list(paste0("\n\n - Appendix ",#abcd[i]," ",
 
 ```{r tab-app-taxa-encountered-EBS}
 nickname <- "tab-app-taxa-encountered-EBS"
-str0 <- list_app(nickname, dir_out_tables, descr_frag)
+str0 <- list_app(nickname = nickname, 
+                 dir_out_tables = dir_out_tables, 
+                 abcd = "A", 
+                 descr_short = "taxa encountered in the eastern Bering Sea", 
+                 descr_frag = paste0("lists all fish and invertebrate taxa taken during the AFSC’s eastern Bering Sea bottom trawl survey."))
 ```
 
 `r str0 `
 
-```{r tab-special-projects-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r setup1, include=FALSE}
+knitr::opts_chunk$set(tab.cap.pre = abcd)
 ```
 
+```{r tab-special-projects-EBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
 
+\pagebreak
+
+```{r tab-app-taxa-encountered-NBS}
+if (SRVY == "NEBS") {
+  evalTF <- TRUE
+  nickname <- "tab-app-taxa-encountered-NBS"
+abcd <- LETTERS[counter_letters + 1]
+str0 <- list_app(nickname = nickname, 
+                 dir_out_tables = dir_out_tables, 
+                 abcd = abcd, 
+                 descr_short = "taxa encountered in the northern Bering Sea", 
+                 descr_frag = paste0("lists all fish and invertebrate taxa taken during the AFSC’s northern Bering Sea bottom trawl survey."))
+}
+```
+
+`r str0 `
+
+```{r tab-special-projects-NBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=evalTF}
+```
+
+\pagebreak
+
+```{r tab-app-principal-fish-EBS-}
+nickname <- "tab-app-principal-fish-EBS-"
+abcd <- LETTERS[counter_letters + 1]
+str0 <- list_app(nickname = nickname, 
+                 dir_out_tables = dir_out_tables, 
+                 abcd = abcd, 
+                 descr_short = "population estimates by sex and size group for principal fish species in the eastern Bering Sea", 
+                 descr_frag = paste0("presents population estimates by sex and size group from the ", 
+                                     maxyr,
+                                     " eastern Bering Sea bottom trawl survey for principal fish species."))
+```
+
+`r str0 `
+
+```{r tab-app-principal-fish-EBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
+
+\pagebreak
+
+```{r tab-app-principal-fish-NBS-}
+if (SRVY == "NEBS") {
+  evalTF <- TRUE
+nickname <- "tab-app-principal-fish-NBS-"
+abcd <- LETTERS[counter_letters + 1]
+str0 <- list_app(nickname = nickname, 
+                 dir_out_tables = dir_out_tables, 
+                 abcd = abcd, 
+                 descr_short = "population estimates by sex and size group for principal fish species in the northern Bering Sea", 
+                 descr_frag = paste0("presents population estimates by sex and size group from the ", 
+                                     maxyr,
+                                     " northern Bering Sea bottom trawl survey for principal fish species."))
+}
+```
+
+`r str0 `
+
+```{r tab-app-principal-fish-NBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=evalTF}
+```
 
 \pagebreak
 
 ```{r tab_app_principal_fish_}
-nickname0 <- "tab_app_principal_fish_"
-
-list_tables0 <- list_tables[grepl(x = names(list_tables), pattern = nickname0)]
-srvy <- unlist(unique(lapply(X = strsplit(x =
-                                            gsub(pattern = nickname0,
-                                                 replacement = "",
-                                                 x = names(list_tables0)), split = "_"),
-                             `[[`, 1)))
-abcd <- unique(gsub(pattern = "[0-9]+", 
-                    replacement = "", 
-                    x = unlist(lapply(list_tables0, `[[`, "number"))))
-
-str0 <- ""
-
-for (i in 1:length(abcd)) {
-  
-  list_tables00 <- list_tables0[grepl(x = names(list_tables0), pattern = srvy[i])]
-  
-  str0 <- paste0(str0, ifelse(str0 == "", "", "\\pagebreak"), 
-                 '## Appendix',abcd[i],
-                 ': Population estimates by sex and size group for principal fish species in the ', srvy[i], '
-
-Appendix ',abcd[i],' presents population estimates by sex and size group from the ', maxyr,' ',
-srvy[i] , ' bottom trawl survey for principal fish species. 
-
-**List of Tables**
-
-',
-text_list(paste0("\n\n - Appendix ",#abcd[i]," ", 
-                 sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")],
-                        "[[","header")), 
-          oxford = FALSE, sep = " ", sep_last = " "),
-'
-\n\n\n
-'#, 
-# NMFSReports::crossref(list_obj = list_tables00, 
-#                       nickname = "", 
-#                       sublist = "res", exact = FALSE),
+# nickname0 <- "tab_app_principal_fish_"
+# 
+# list_tables0 <- list_tables[grepl(x = names(list_tables), pattern = nickname0)]
+# srvy <- unlist(unique(lapply(X = strsplit(x =
+#                                             gsub(pattern = nickname0,
+#                                                  replacement = "",
+#                                                  x = names(list_tables0)), split = "_"),
+#                              `[[`, 1)))
+# abcd <- unique(gsub(pattern = "[0-9]+", 
+#                     replacement = "", 
+#                     x = unlist(lapply(list_tables0, `[[`, "number"))))
+# 
+# str0 <- ""
+# 
+# for (i in 1:length(abcd)) {
+#   
+#   list_tables00 <- list_tables0[grepl(x = names(list_tables0), pattern = srvy[i])]
+#   
+#   str0 <- paste0(str0, ifelse(str0 == "", "", "\\pagebreak"), 
+#                  '## Appendix',abcd[i],
+#                  ': Population estimates by sex and size group for principal fish species in the ', srvy[i], '
+# 
+# Appendix ',abcd[i],' presents population estimates by sex and size group from the ', maxyr,' ',
+# srvy[i] , ' bottom trawl survey for principal fish species. 
+# 
+# **List of Tables**
+# 
+# ',
+# text_list(paste0("\n\n - Appendix ",#abcd[i]," ", 
+#                  sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")],
+#                         "[[","header")), 
+#           oxford = FALSE, sep = " ", sep_last = " "),
 # '
 # \n\n\n
-# '
-  )
-}
+# '#, 
+# # NMFSReports::crossref(list_obj = list_tables00, 
+# #                       nickname = "", 
+# #                       sublist = "res", exact = FALSE),
+# # '
+# # \n\n\n
+# # '
+#   )
+# }
 
 ```
-
-`r str0 `

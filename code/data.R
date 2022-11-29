@@ -1742,20 +1742,23 @@ calc_cpue_bio <- function(catch_haul_cruises0){
 }
 
 a <- calc_cpue_bio(catch_haul_cruises0 = catch_haul_cruises_maxyr)
+b <- calc_cpue_bio(catch_haul_cruises0 = catch_haul_cruises_compareyr)
 
 biomass_cpue_by_stratum <- cpue_by_stratum <- biomass_by_stratum <- 
   a$biomass_cpue_by_stratum %>%  # remove crab totals, as they use different stratum
     dplyr::filter(!(species_code %in% c(69323, 69322, 68580, 68560)))
 
 # subtract our-calculated crab totals so we can add the right total from SAP
-cc <- a$biomass_cpue_by_stratum %>% 
+cc <- dplyr::bind_rows(a$biomass_cpue_by_stratum, 
+                       b$biomass_cpue_by_stratum) %>% 
   dplyr::filter((species_code %in% c(69323, 69322, 68580, 68560))) %>%
   ungroup() %>%
   dplyr::group_by(SRVY, year) %>%
   dplyr::summarise(total_crab_wrong = sum(biomass_mt, na.rm = TRUE))
 
 total_biomass <- 
-  dplyr::left_join(x = a$total_biomass, 
+  dplyr::left_join(x = dplyr::bind_rows(a$total_biomass, 
+                                        b$total_biomass), 
                    y = cc) %>% 
   dplyr::left_join(x = ., 
                    y = biomass_tot_crab %>% 

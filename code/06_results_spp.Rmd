@@ -67,10 +67,19 @@ haul0 <- catch_haul_cruises %>%
                   "survey_name", "SRVY", "year", "species_code", 
                   "weight", "number_fish", "hauljoin")
 
-biomass_cpue <- cpue_biomass_total %>%
-  dplyr::select("year", "print_name", "SRVY", "weighted_CPUE", "biomass_mt") %>%
-  dplyr::rename(biomass = biomass_mt,
-                cpue_kgha = weighted_CPUE)
+biomass_cpue <- biomass %>% 
+  dplyr::filter(year %in% c(maxyr, compareyr) & 
+                  species_code %in% spp_code[1] &
+                  stratum %in% 999) %>%
+  dplyr::select(SRVY, year, biomass, population, meanwgtcpue, meannumcpue) %>% 
+  dplyr::mutate(print_name = spp_print) %>% 
+  dplyr::rename(cpue_kgha = meanwgtcpue, 
+                cpue_noha = meannumcpue)
+
+# biomass_cpue <- cpue_biomass_total %>%
+#   dplyr::select("year", "print_name", "SRVY", "weighted_CPUE", "biomass_mt") %>%
+#   dplyr::rename(biomass = biomass_mt,
+#                 cpue_kgha = weighted_CPUE)
 
 # biomass_cpue <- biomass %>% 
 #   dplyr::filter(species_code == spp_code[1]) %>%
@@ -89,7 +98,7 @@ length_maxyr0 <- length_data %>%
 
 `r ifelse(refcontent & text_spp, "*REFERENCE MATERIAL FOR WRITERS - START*", "")`
 
-```{r res_spp_ebs_{{jj}} }
+```{r res_spp_ebs_{{jj}}, results='asis'}
 temp <- ""
 temp1 <- ""
 show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0)
@@ -97,7 +106,7 @@ if (show) {
   if (report_title == "community") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange")
   } else if (report_title == "data") {
-    biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "table_est_wt", "table_est_num")
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS")
   }
   
 temp<-species_content(
@@ -110,11 +119,15 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = biomass_cpue_tab_name)
+  biomass_cpue_tab_name = biomass_cpue_tab_name, 
+  total_biomass = total_biomass)
 
-temp1<-temp$table_spp
-temp <- temp$text_spp
-
+temp1 <- temp$table_spp
+temp <- (temp$text_spp)
+names(temp) <-  NULL
+temp <- unlist(temp)
+# print(temp)
+temp <- (paste0(temp, collapse = "\n\n"))
 }
 ```
 
@@ -133,7 +146,7 @@ if (show) {
     if (report_title == "community") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange")
   } else if (report_title == "data") {
-    biomass_cpue_tab_name = c("tab_majortaxa_pchange_NBS", "table_est_wt", "table_est_num")
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_NBS")
   }
 temp<-species_content(
   SURVEY000 = "northern Bering Sea", 
@@ -145,7 +158,8 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = biomass_cpue_tab_name)
+  biomass_cpue_tab_name = biomass_cpue_tab_name, 
+  total_biomass = total_biomass)
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
@@ -167,8 +181,7 @@ if (show) {
   if (report_title == "community") {
     biomass_cpue_tab_name = c("tab_majortaxa_pchange")
   } else if (report_title == "data") {
-    biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "tab_majortaxa_pchange_NBS", 
-                              "table_est_wt", "table_est_num")
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "tab_majortaxa_pchange_NBS")
   }
 temp<-species_content(
   SURVEY000 = "eastern and northern Bering Sea",
@@ -180,7 +193,8 @@ temp<-species_content(
   spp_code = spp_code,
   maxyr = maxyr, 
   compareyr = compareyr, 
-  biomass_cpue_tab_name = biomass_cpue_tab_name)
+  biomass_cpue_tab_name = biomass_cpue_tab_name, 
+  total_biomass = total_biomass)
 temp1<-temp$table_spp
 temp <- temp$text_spp
 }
@@ -283,9 +297,9 @@ if (text_spp) {
   #       nickname = paste0("fig_idw_cpue_fish_", spp_file, "_below"), 
   #       sublist = "number")
   # }
-
-  insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
-                    refcontent = refcontent)
+# 
+  # insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
+  #                   refcontent = refcontent)
 }
 
   
@@ -332,14 +346,14 @@ land_end <- ""
 ```
 
 ```{r}
-nickname <- paste0("fig-sizecomp-*", spp_file)
+nickname <- paste0("fig-idw-cpue-*", spp_file)
 ```
 
 ```{r, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 ```{r}
-nickname <- paste0("fig-idw-cpue-*", spp_file)
+nickname <- paste0("fig-sizecomp-*", spp_file)
 ```
 
 ```{r, child = paste0(dir_code, "_child_report_figtab.Rmd")}

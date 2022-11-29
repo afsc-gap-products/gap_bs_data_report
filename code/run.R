@@ -18,7 +18,7 @@
 # *** Report knowns ------------------------------------------------------------
 
 report_title <- "data" 
-refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
+refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
@@ -113,15 +113,16 @@ rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                   output_dir = dir_out_ref,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
-# Save
-# save(list_figures,
-#      file=paste0(dir_out_figures, "/report_figures.rdata"))
-# 
-# save(list_tables,
-#      file=paste0(dir_out_tables, "/report_tables.rdata"))
-# 
-# load(file = paste0(dir_out_figures, "/report_figures.rdata"))
-# load(file = paste0(dir_out_tables, "/report_tables.rdata"))
+# Save figures and tables locally to working draft folder
+file.copy(from = dir_out_figures, 
+          to = dir_out_todaysrun, 
+          overwrite = TRUE, 
+          recursive = TRUE)
+
+file.copy(from = dir_out_tables, 
+          to = dir_out_todaysrun, 
+          overwrite = TRUE, 
+          recursive = TRUE)
 
 # Run data report --------------------------------------------------------------
 
