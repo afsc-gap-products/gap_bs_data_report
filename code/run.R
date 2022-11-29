@@ -18,7 +18,7 @@
 # *** Report knowns ------------------------------------------------------------
 
 report_title <- "data" 
-refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
+refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
@@ -91,7 +91,7 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               lang = FALSE)
 
 # General figures
-filename0<-paste0(cnt_chapt, "_")
+# filename0<-paste0(cnt_chapt, "_")
 rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_dir = dir_out_ref,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))

@@ -996,7 +996,7 @@ temp <- function(exp0,
                  maxyr, 
                  biomass_by_stratum0,
                  catch_haul_cruises_maxyr0,
-                 total_biomass0, 
+                 total_biomass0,
                  spp_code_rnge
 ) {
   
@@ -1004,6 +1004,8 @@ temp <- function(exp0,
     out <- qt(p = 0.025, df = num_hauls - 1, lower.tail = F) * sqrt(bio_var)
     return(out)
   }
+  
+  # total_biomass0 <- total_biomass0[total_biomass0$year == maxyr, ]
   
   # species level --------------------------------------------------------------
   
@@ -1075,7 +1077,7 @@ temp <- function(exp0,
   # group level --------------------------------------------------------------
   
   dat0 <- eval(parse(
-    text=gsub(pattern = "DATAFRAME",
+    text = gsub(pattern = "DATAFRAME",
               replacement = "catch_haul_cruises_maxyr0",
               x = exp0) ))  %>%
     ungroup() %>%
@@ -1297,7 +1299,8 @@ temp <- function(exp0,
   
   out <- dplyr::left_join(
     x = out, 
-    y = total_biomass, 
+    y = total_biomass0 %>% 
+      dplyr::filter(year == maxyr), 
     by = "SRVY") %>% 
     dplyr::mutate(CI95 = ci_999, 
                   # `999` = biomass_mt_999,
@@ -1473,18 +1476,15 @@ table_raw0 <- temp(exp0 = exp0,
                    maxyr = maxyr, 
                    biomass_by_stratum0 = biomass_by_stratum,
                    catch_haul_cruises_maxyr0 = catch_haul_cruises_maxyr,
-                   total_biomass0 = total_biomass, 
+                   total_biomass0 = total_biomass,
                    spp_code_rnge = "species_code < 35000")
-
-##find the 37kg that belong in other skate that is currently in other fish 
-## answer:skate egg cases are included in the skate biomass     
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   
-  if (nrow(haul_cruises_maxyr)>1) {
-    subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
-    newobj <- ifelse(i==1, TRUE, FALSE)
-  }
+  # if (nrow(haul_cruises_maxyr)>1) {
+  #   subobj <- ifelse(nrow(haul_cruises_maxyr)>1, TRUE, FALSE)
+  #   newobj <- ifelse(i==1, TRUE, FALSE)
+  # }
   header <- paste0("Biomass estimates (t) for major fish taxa collected during the ", 
                    maxyr, " ", 
                    haul_cruises_maxyr$SRVY_long[i],
@@ -1501,8 +1501,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   a <- temp1(table_raw = table_raw0 %>% 
                dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]), 
              strat = strat, 
-             total = total_biomass$total[total_biomass$SRVY ==
-                                           haul_cruises_maxyr$SRVY[i]])
+             total = total_biomass$total[
+               total_biomass$year == maxyr & 
+                 total_biomass$SRVY == haul_cruises_maxyr$SRVY[i]])
   table_raw <- a$table_raw
   table_print <- a$table_print
   
@@ -1584,8 +1585,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   a <- temp1(table_raw0 %>% 
                dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]), 
              strat, 
-             total = total_biomass$total[total_biomass$SRVY ==
-                                           haul_cruises_maxyr$SRVY[i]])
+             total = total_biomass$total[
+               total_biomass$year == maxyr & 
+                 total_biomass$SRVY == haul_cruises_maxyr$SRVY[i]])
   table_raw <- a$table_raw
   table_print <- a$table_print
   

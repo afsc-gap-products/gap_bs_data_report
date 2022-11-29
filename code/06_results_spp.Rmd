@@ -208,8 +208,8 @@ temp <- temp$text_spp
 
 `r ifelse(refcontent & text_spp, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
-```{r res_spp_insert_text_{{jj}} }
-insert<-""
+```{r res_spp_insert_text_{{jj}}}
+# insert<-""
 
 if (report_title == "data") {
   
@@ -230,8 +230,8 @@ if (report_title == "data") {
   #   sublist = "number", 
   #   exact = FALSE)
   
-if (text_spp) {
-  
+# if (text_spp) {
+  # 
   # # general coldpool figures
   # figure_coldpool_warm_stanza <- NMFSReports::crossref(
   #   list_obj = list_figures, 
@@ -300,7 +300,7 @@ if (text_spp) {
 # 
   # insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
   #                   refcontent = refcontent)
-}
+# }
 
   
 land_start <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_START--->", "")
@@ -312,60 +312,60 @@ land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "
 
 }
 
-if (report_title == "community") {
-
-# Main text
-fig_bot_temp_map <- "\@ref(fig:fig-bt-all-nebs-surveys)"
-
-fig_surf_temp_map <- "\@ref(fig:fig-st-all-nebs-surveys)"
-
-fig_both_temp_maps <- "\@ref(fig:fig-bt-all-nebs-surveys) and \@ref(fig:fig-st-all-nebs-surveys)"
-
-tab_majortaxa_pchange <- "\@ref(tab:tab-majortaxa-pchange)"
-
-# Species specific
-if (spp_plot_sizecomp) {
-  fig_sizecomp <- paste0("\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
-} 
-
-if (spp_plot_idw) {
-  fig_idw <- paste0("\@ref(fig:fig-idw-cpue-",spp_taxon,"-", spp_file, ")")
-}
-
-land_start <- ""
-land_end <- ""
-
-# insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
-#                     refcontent = refcontent)
-# `r paste0(insert, "\n\n") `
-}
+# if (report_title == "community") {
+# 
+# # Main text
+# fig_bot_temp_map <- "\@ref(fig:fig-bt-all-nebs-surveys)"
+# 
+# fig_surf_temp_map <- "\@ref(fig:fig-st-all-nebs-surveys)"
+# 
+# fig_both_temp_maps <- "\@ref(fig:fig-bt-all-nebs-surveys) and \@ref(fig:fig-st-all-nebs-surveys)"
+# 
+# tab_majortaxa_pchange <- "\@ref(tab:tab-majortaxa-pchange)"
+# 
+# # Species specific
+# if (spp_plot_sizecomp) {
+#   fig_sizecomp <- paste0("\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
+# } 
+# 
+# if (spp_plot_idw) {
+#   fig_idw <- paste0("\@ref(fig:fig-idw-cpue-",spp_taxon,"-", spp_file, ")")
+# }
+# 
+# land_start <- ""
+# land_end <- ""
+# 
+# # insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
+# #                     refcontent = refcontent)
+# # `r paste0(insert, "\n\n") `
+# }
 
 ```
 
-```{r, child = paste0(dir_out_rawdata, spp_file, ".Rmd")}
+```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file, ,".Rmd")}
 ```
 
-```{r}
+```{r fig-idw-cpue-{{jj}}}
 nickname <- paste0("fig-idw-cpue-*", spp_file)
 ```
 
-```{r, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r fig-idw-cpue-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r}
+```{r fig-sizecomp-{{jj}}}
 nickname <- paste0("fig-sizecomp-*", spp_file)
 ```
 
-```{r, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r fig-sizecomp-{{jj}}, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 `r land_start `
 
-```{r}
+```{r tab-estimates-maxyr-{{jj}}}
 nickname <- paste0("tab-estimates-maxyr-", spp_file)
 ```
 
-```{r, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-estimates-maxyr-{{jj}}, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 `r land_end `

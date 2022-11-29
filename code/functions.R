@@ -138,6 +138,69 @@ list_figures <- list()
 
 ## Modify Numbers --------------------------------------------------------------
 
+#' Find a range of numbers for text
+#'
+#' This function outputs the range of values (broken or continuous) as you would want to display it in text.
+#'
+#' @param x A numeric vector of any length. Any duplicates will be removed.
+#' @param dash A string that will go between consecutive values in the string output.
+#' @param oxford Default = TRUE. Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
+#' @param sep Default = ", ". Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
+#' @param sep_last Default = "and ". Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
+#'
+#' @return A string with the range of those values as might be included in a sentence ("1-3, 5, and 7-8").
+#' @export
+#'
+#' @examples
+#' # a typical example
+#' x <- c(2003:2005, 2007, 2010:2012)
+#' range_text(x)
+#' # example has duplicate values out of order and specifies for a different dash and no oxford comma
+#' x <- c(1,2,11,3,4,7,NA,8,3)
+#' range_text(x, dash = "--", oxford = FALSE)
+range_text <- function(x,
+                       dash = "-",
+                       oxford = TRUE,
+                       sep = ", ",
+                       sep_last = "and ") {
+  x <- x[!(is.na(x))]
+  x <- x[!duplicated(x)]
+  x <- sort(x)
+  y <- min(x):max(x)
+  z <- setdiff(y, x)
+  if (length(z)>0) { # if x is not continuous
+    # https://stat.ethz.ch/pipermail/r-help/2010-April/237031.html
+    vec <- y
+    vec[(vec %in% z)] <- NA
+    
+    # remove consecutive NAs
+    foo <- function( x ){
+      idx <- 1 + cumsum( is.na( x ) )
+      not.na <- ! is.na( x )
+      split( x[not.na], idx[not.na] )
+    }
+    ls <- foo(vec)
+    
+    str <- c()
+    for (i in 1:length(ls)) {
+      a <- ls[i][[1]]
+      if (length(a) == 1){
+        str <- c(str, paste0(a))
+      } else {
+        str <- c(str, paste0(min(a),dash,max(a)))
+      }
+    }
+    str <- NMFSReports::text_list(x = str,
+                                  oxford = oxford,
+                                  sep = sep,
+                                  sep_last = sep_last)
+  } else {
+    str <- paste0(min(x),dash,max(x))
+  }
+  return(str)
+}
+
+
 #' Determine the appropriate unit for a value.
 #'
 #' Determine the appropriate unit for a value (e.g., 1000000 = '1 Million'.
@@ -222,6 +285,71 @@ xunits<-function(value,
   close(f)
   
   return(out)
+}
+
+
+#' Convert number to text string.
+#'
+#' Function by John Fox found here: http://tolstoy.newcastle.edu.au/R/help/05/04/2715.html and https://github.com/ateucher/useful_code/blob/master/R/numbers2words.r
+#' @param x The numbers that need to be converted to string.
+#' @keywords Text editing
+#' @export
+#' @examples
+#' numbers2words(x = 1890)
+#' numbers2words(x = 3)
+#' numbers2words(x = 1800090)
+numbers2words <- function(x){
+  # Function by John Fox found here: http://tolstoy.newcastle.edu.au/R/help/05/04/2715.html and https://github.com/ateucher/useful_code/blob/master/R/numbers2words.r
+  if(x==0){
+    print( "zero")
+  } else{
+    helper <- function(x){
+      
+      digits <- rev(strsplit(as.character(x), "")[[1]])
+      nDigits <- length(digits)
+      if (nDigits == 1) as.vector(ones[digits])
+      else if (nDigits == 2)
+        if (x <= 19) as.vector(teens[digits[1]])
+      else trim(paste(tens[digits[2]],
+                      Recall(as.numeric(digits[1]))))
+      else if (nDigits == 3) trim(paste(ones[digits[3]], "hundred and",
+                                        Recall(makeNumber(digits[2:1]))))
+      else {
+        nSuffix <- ((nDigits + 2) %/% 3) - 1
+        if (nSuffix > length(suffixes)) stop(paste(x, "is too large!"))
+        trim(paste(Recall(makeNumber(digits[
+          nDigits:(3*nSuffix + 1)])),
+          suffixes[nSuffix],"," ,
+          Recall(makeNumber(digits[(3*nSuffix):1]))))
+      }
+    }
+    trim <- function(text){
+      #Tidy leading/trailing whitespace, space before comma
+      text=gsub("^\ ", "", gsub("\ *$", "", gsub("\ ,",",",text)))
+      #Clear any trailing " and"
+      text=gsub(" and$","",text)
+      #Clear any trailing comma
+      gsub("\ *,$","",text)
+    }
+    makeNumber <- function(...) as.numeric(paste(..., collapse=""))
+    #Disable scientific notation
+    opts <- options(scipen=100)
+    on.exit(options(opts))
+    ones <- c("", "one", "two", "three", "four", "five", "six", "seven",
+              "eight", "nine")
+    names(ones) <- 0:9
+    teens <- c("ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+               "sixteen", " seventeen", "eighteen", "nineteen")
+    names(teens) <- 0:9
+    tens <- c("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty",
+              "ninety")
+    names(tens) <- 2:9
+    x <- round(x)
+    suffixes <- c("thousand", "million", "billion", "trillion")
+    if (length(x) > 1) return(trim(sapply(x, helper)))
+    helper(x)
+  }
+  
 }
 
 
@@ -3784,7 +3912,7 @@ save_figures<-function(figure,
   }
   
   write.table(x = caption, 
-              file = paste0(dir_out_figures, nickname, ".txt"), 
+              file = paste0(path, nickname, ".txt"), 
               row.names = FALSE, 
               col.names = FALSE, 
               quote = FALSE)
@@ -3871,7 +3999,7 @@ save_tables<-function(table_raw = NULL,
       for (i in 1:length(output_type)){
         utils::write.table(x = table_raw,
                            file = paste0(path, nickname,
-                                         "-raw.", output_type[i]),
+                                         ".", output_type[i]),
                            sep = ",",
                            row.names=FALSE, col.names = TRUE, append = F)
       }
@@ -3880,23 +4008,23 @@ save_tables<-function(table_raw = NULL,
     }
     
     # write.table can only save files that are 1) extant or 2) in a data.frame or matrix
-    if (!(is.null(table_print))) {
-      if ((class(table_print) %in% c("data.frame", "matrix"))) {
-        for (i in 1:length(output_type)){
-          utils::write.table(x = table_print,
-                             file = paste0(path, nickname,
-                                           "-print.", output_type[i]),
-                             sep = ",",
-                             row.names=FALSE, col.names = F, append = F)
-        }
-      } else { # save non-matrix or data.frames
-        save(table_print,
-             file = paste0(path, nickname, "-print.Rdata"))
-      }
-    } else {
-      table_print <- ""
-    }
-  }
+  #   if (!(is.null(table_print))) {
+  #     if ((class(table_print) %in% c("data.frame", "matrix"))) {
+  #       for (i in 1:length(output_type)){
+  #         utils::write.table(x = table_print,
+  #                            file = paste0(path, nickname,
+  #                                          "-print.", output_type[i]),
+  #                            sep = ",",
+  #                            row.names=FALSE, col.names = F, append = F)
+  #       }
+  #     } else { # save non-matrix or data.frames
+  #       save(table_print,
+  #            file = paste0(path, nickname, "-print.Rdata"))
+  #     }
+  #   } else {
+  #     table_print <- ""
+  #   }
+  # }
   
   write.table(x = caption, 
               file = paste0(path, nickname, ".txt"), 

@@ -74,7 +74,7 @@ if (temp$rank[temp$year == maxyr] < 6) {
     dplyr::mutate(rank_ = "") %>% 
     dplyr::arrange(rank)
   for (i in 1:nrow(temp0)) {
-    temp0$rank_[i] <- NMFSReports::numbers2words_th(x = temp0$rank[i])
+    temp0$rank_[i] <- numbers2words_th(x = temp0$rank[i])
   }
   
   temp4 <- paste0(ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
@@ -89,7 +89,7 @@ if (abs(temp$rank[temp$year == maxyr]-length(temp$rank)) < 6) {
                   rank_ = "") %>% 
     dplyr::arrange(rank)
   for (i in 1:nrow(temp0)) {
-    temp0$rank_[i] <- NMFSReports::numbers2words_th(x = temp0$rank[i])
+    temp0$rank_[i] <- numbers2words_th(x = temp0$rank[i])
   }
   
   temp4 <- paste0(ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
@@ -113,7 +113,7 @@ if (temp$rank[temp$year == maxyr] < 6 | abs(temp$rank[temp$year == maxyr]-length
 
 ```
 
-During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Fig. \@ref(fig:fig-bt-temperature-ebs-below)), while `r NMFSReports::range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Fig. \@ref(fig:fig-bt-temperature-ebs-above)). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Fig. \@ref(fig:fig-cold-pool-area)). Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-year time series, the areal coverage of the summer survey cold pool in the EBS has varied in size from `r NMFSReports::xunits(min(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)]` to `r NMFSReports::xunits(max(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)]`, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Fig. \@ref(fig:fig-cold-pool-area)). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f")` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1)`%) of the EBS shelf survey area`r temp4`
+During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Fig. \@ref(fig:fig-bt-temperature-ebs-below)), while `r range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Fig. \@ref(fig:fig-bt-temperature-ebs-above)). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Fig. \@ref(fig:fig-cold-pool-area)). Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-year time series, the areal coverage of the summer survey cold pool in the EBS has varied in size from `r xunits(min(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)]` to `r xunits(max(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)]`, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Fig. \@ref(fig:fig-cold-pool-area)). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f")` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1)`%) of the EBS shelf survey area`r temp4`
 
 The `r compareyr` and `r maxyr` `r text_list(SRVY1)` surveys provided a quasi-synoptic view of the spatial pattern of bottom temperatures across the entire `r text_list(SRVY1)` shelf, providing an index of annual differences in demersal fauna distribution patterns. The seasonal cold pool, which is a cold water mass that occupies the middle domain of the EBS shelf annually to a varying extent, may play a role in restricting the movements of some species both across the shelf (east-west) and along the inner domain of the shelf (north-south). Thus, tracking the position and spatial extent of this water mass is critically important.
 
@@ -311,8 +311,8 @@ temp1 <- dplyr::bind_cols(
 
 if (SRVY == "NEBS") {
   # how many species in one survey area but noth the other?
-  
-  temp3 <- list_tables$tab_species_composition$raw %>%
+  load(file = paste0(dir_out_tables, "tab-species-composition.rdata"))
+  temp3 <- obj$raw %>%
     dplyr::left_join(x = .,
                      y = spp_info %>%
                        dplyr::select(species_code, order_taxon, species_name),
@@ -322,17 +322,10 @@ if (SRVY == "NEBS") {
     "Of the fish species found in the EBS, ",
     xunits(nrow(temp3[temp3$where == 
                         "Present in EBS but absent in NBS",])), 
-    " did not occur in the NBS (Table ",
-    crossref(list_obj = list_tables, 
-             nickname = "tab_species_composition", 
-             sublist = "number"),
-    "). In comparison, ",
+    " did not occur in the NBS (Table \\\\@ref(tab:tab-species-composition)). In comparison, ",
     xunits(nrow(temp3[temp3$where == 
                         "Present in the NBS but absent in EBS",])), 
-    " species were present in the NBS but absent in EBS (Table ", 
-    crossref(list_obj = list_tables, 
-             nickname = "tab_species_composition", 
-             sublist = "number"), "). ")
+    " species were present in the NBS but absent in EBS (Table \\\\@ref(tab:tab-species-composition)). ")
   
   # flatfish
   temp4 <- temp3[temp3$order_taxon %in% c("Pleuronectiformes"), ]
@@ -366,17 +359,14 @@ if (SRVY == "NEBS") {
                             temp5$including, ")"), 
                      # sep_last = ";", 
                      sep = "; "),
-                   " (Table ", 
-                   crossref(list_obj = list_tables, 
-                            nickname = "tab_species_composition", 
-                            sublist = "number"), ").")
+                   " (Table \\\\@ref(tab:tab-species-composition)).")
 }
 
 insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 ```
 
-A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (`r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_fish", "number", exact = FALSE)`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
+A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-encountered-EBS-fish)`r ifelse(SRVY == "NEBS", "and \\\\@ref(tab:tab-app-taxa-encountered-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
 
 ```{r results_taxon_count}
 # count spp - invert
@@ -425,7 +415,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(NMFSReports::numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (`r NMFSReports::crossref(list_tables, "tab_app_taxa_encountered_*_invertebrate", "number", exact = FALSE)`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-encountered-EBS-invertebrate)`r ifelse(SRVY == "NEBS", "and \\\\@ref(tab:tab-app-taxa-encountered-NBS-invertebrate)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r results_dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
@@ -448,11 +438,13 @@ nickname <- "tab-species-composition"
 temp <- data.frame()
 temp0 <- tidyr::crossing(SRVY = SRVY1, type = c("fish", "invert"))
 for (i in 1:nrow(temp0)) {
-  temp <- list_tables[names(list_tables) ==
-                        paste0("tab_biomass_est_",temp0$type[i],"_", temp0$SRVY[i])][[1]]$raw %>%
+  load(file = paste0(dir_out_tables, "tab-biomass-est-", temp0$type[i],"-", temp0$SRVY[i], ".rdata"))
+  
+  temp <- obj$raw %>%
     dplyr::filter(grepl(pattern = "Total", x = group, ignore.case = TRUE )) %>% 
     dplyr::mutate(SRVY = temp0$SRVY[i], 
-                  group = temp0$type[i]) %>%
+                  group = temp0$type[i]) %>% 
+    dplyr::distinct() %>%
     dplyr::select(SRVY, group, `999`) %>% 
     dplyr::bind_rows(temp, .)
 }
@@ -460,6 +452,7 @@ for (i in 1:nrow(temp0)) {
 temp2 <- dplyr::left_join(
   x = temp, 
   y = total_biomass %>% 
+    dplyr::filter(year == maxyr) %>%
     dplyr::group_by(SRVY),
   by = "SRVY") %>% 
   dplyr::mutate(
@@ -487,7 +480,7 @@ str0 <- paste0("The ",
                  "total demersal animal biomass for the ", 
                  total_biomass$SRVY, 
                  " was estimated at ", 
-                 NMFSReports::xunits(total_biomass$total), 
+                 xunits(total_biomass$total), 
                  " t")), ". " )
 
 str00 <- ""
@@ -500,18 +493,13 @@ for (ii in 1:length(temp2$SRVY)) {
                   paste0(temp2$SRVY[ii], 
                          ", the proportion of fishes (", 
                          temp2$perc_fish[ii], 
-                         "; Table ", crossref(list_obj = list_tables, 
-                                              nickname = paste0("tab_biomass_est_fish_", temp2$SRVY[ii]), 
-                                              sublist = "number"), 
-                         ") was ", str000,  
+                         "; Table \\\\@ref(tab:tab-biomass-est-fish-", temp2$SRVY[ii], 
+                         ")) was ", str000,  
                          ifelse(temp2$prop_fish[ii]>temp2$prop_invert[ii], "higher","lower"),
                          " than invertebrates (", 
                          temp2$perc_invert[ii], 
-                         "; Table ", 
-                         crossref(list_obj = list_tables, 
-                                  nickname = paste0("tab_biomass_est_invert_", temp2$SRVY[ii]), 
-                                  sublist = "number"), 
-                         ")"))
+                         "; Table \\\\@ref(tab:tab-biomass-est-invert-", temp2$SRVY[ii], 
+                         "))"))
 }
 str0 <- paste0(str0, str00, ". ")
 
@@ -520,11 +508,7 @@ if (SRVY == "NEBS") {
                  paste0(ifelse(temp1$prop[temp1$SRVY=="EBS"]>temp1$prop[temp1$SRVY=="NBS"], 
                                "The lower relative fish biomass in the NBS than in the EBS is consistent", 
                                "The higher relative fish biomass in the NBS than in the EBS is inconsistent"), 
-                        " with results of a broader analysis of all survey years in @RN936 showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf (Tables ", 
-                        text_list(crossref(list_obj = list_tables, 
-                                           nickname = "tab_biomass_est_fish_", 
-                                           sublist = "number", 
-                                           exact = FALSE)),"). This trend may change over time with warming ocean temperatures.", 
+                        " with results of a broader analysis of all survey years in @RN936 showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf (Tables \\\\@ref(tab:tab-biomass-est-fish-EBS) and \\\\@ref(tab:tab-biomass-est-fish-NBS)). This trend may change over time with warming ocean temperatures.", 
                         "") ) 
 }
 
@@ -541,9 +525,8 @@ if (SRVY == "NEBS") {
   #temp1
   temp1 <- data.frame()
   for (i in 1:length(SRVY1)) {
-    
-    temp1 <- list_tables[names(list_tables) ==
-                           paste0("tab_biomass_est_fish_", SRVY1[i])][[1]]$raw %>%
+    load(file = paste0(dir_out_tables, "tab-biomass-est-fish-", temp0$SRVY[i], ".rdata"))
+    temp1 <- obj$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
       dplyr::filter(is.na(taxon) |
                       grepl(pattern = "Total", x = taxon, ignore.case = TRUE )) %>% 
@@ -565,9 +548,9 @@ if (SRVY == "NEBS") {
   temp2 <- data.frame()
   
   for (i in 1:length(SRVY1)) {
-    
-    temp2 <- list_tables[names(list_tables) ==
-                           paste0("tab_biomass_est_fish_", SRVY1[i])][[1]]$raw %>%
+    load(file = paste0(dir_out_tables, "tab-biomass-est-fish-", temp0$SRVY[i], ".rdata"))
+
+    temp2 <- obj$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
       dplyr::filter(group %in% temp1$group[1:2] & 
                       !grepl(pattern = "Total ", x = taxon, ignore.case = TRUE )) %>% 
@@ -636,10 +619,7 @@ if (SRVY == "NEBS") {
     temp3 <- paste0(temp3, 
                     paste0("In the ", SRVY1[i], ", ", 
                            substr(temp4, start = 1, stop = (nchar(temp4)-1)), # get rid of last ")" 
-                           "; Tables ", 
-                           NMFSReports::crossref(list_obj = list_tables, sublist = "number", 
-                                                 nickname = "tab_biomass_est_fish_", exact = FALSE), 
-                           "). "))
+                           "; Tables \\\\@ref(tab:tab-biomass-est-fish-EBS) and \\\\@ref(tab:tab-biomass-est-fish-NBS)). "))
   }
   
   str0 <- paste0(
@@ -650,8 +630,7 @@ if (SRVY == "NEBS") {
     " of the total biomass, respectively), and the NBS (",
     text_list(
       paste0(round(x = temp1$prop_NBS[1:2]*100, digits = 1), "%")), 
-    " of the total biomass, respectively; Tables ", 
-    NMFSReports::crossref(list_obj = list_tables, sublist = "number", nickname = "tab_biomass_est_fish_", exact = FALSE), "). ", 
+    " of the total biomass, respectively; Tables \\\\@ref(tab:tab-biomass-est-fish-EBS) and \\\\@ref(tab:tab-biomass-est-fish-NBS)). ", 
     temp3)
 }
 
@@ -665,8 +644,9 @@ str0 <- paste0("Noticeable changes were observed in",ifelse(SRVY == "NEBS", " bo
                compareyr," and ", maxyr,". ")
 
 for (i in 1:length(SRVY1)) {
-  
-  temp0 <- list_tables[names(list_tables) %in% paste0("tab_majortaxa_pchange_", SRVY1[i])][[1]]$raw
+  load(file = paste0(dir_out_tables, "tab-majortaxa-pchange-", SRVY1[i], ".rdata"))
+
+  temp0 <- obj$raw
   
   temp <- dplyr::bind_rows(
     temp0 %>%
@@ -707,32 +687,21 @@ for (i in 1:length(SRVY1)) {
                  "The total estimated biomass in the ",SRVY1[i]," ", 
                  ifelse(temp1$compareyr<temp1$maxyr, "increased", "decreased"),
                  " from ",
-                 NMFSReports::xunits(temp1$compareyr)," t in ", compareyr," to ",
-                 NMFSReports::xunits(temp1$maxyr)," t in ", maxyr, ". ", 
+                 xunits(temp1$compareyr)," t in ", compareyr," to ",
+                 xunits(temp1$maxyr)," t in ", maxyr, ". ", 
                  
                  # taxa increased
                  "Taxa that significantly increased in biomass included ", 
                  text_list(paste0(temp$print_name[temp$case == "increased"],
                                   " (", formatC(x = temp$change[temp$case == "increased"], 
                                                 digits = 0, format = "f", big.mark = ","), "%)")), 
-                 " (Table ",
-                 NMFSReports::crossref(list_obj = list_tables, 
-                                       nickname = paste0("tab_majortaxa_pchange_", SRVY1[i]), sublist = "number"),
-                 "). ",
+                 " (Table \\\\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). ",
                  # taxa decreased
                  "Large decreases in biomass were observed for ", 
                  text_list(paste0(temp$print_name[temp$case == "decreased"],
                                   " (", formatC(x = temp$change[temp$case == "decreased"], 
                                                 digits = 0, format = "f", big.mark = ","), "%)")), 
-                 " (Table ",
-                 NMFSReports::crossref(list_obj = list_tables, 
-                                       nickname = paste0("tab_majortaxa_pchange_", SRVY1[i]), sublist = "number"),
-                 "). "
-                 # something else
-                 # "Although there were large percentage increases in biomass for many invertebrate taxa, there was relatively little change in the combined total biomass of invertebrates (-0.2 million t) compared to 2010 (Table ",
-                 # NMFSReports::crossref(list_obj = list_tables, 
-                 #                       nickname = "tab_majortaxa_pchange_NBS", sublist = "number"),
-                 # "). "
+                 " (Table \\\\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). "
   )
   
 }
@@ -746,7 +715,10 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 ```{r results_top_10_taxon}
 temp <- data.frame()
 for (i in 1:nrow(haul_cruises_maxyr)) {
-  temp <- list_tables$tab_estimates_maxyr_spp_wt$raw %>% 
+  
+  load(file = paste0(dir_out_tables, "tab-estimates-maxyr-spp-wt.rdata"))
+
+  temp <- obj$raw %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>%
     dplyr::select(meanwgtcpue , print_name) %>%
     dplyr::arrange(-meanwgtcpue) %>% 
@@ -771,7 +743,7 @@ temp <- biomass %>%
                 top_fish = paste0(round(x = (topfish/fish)*100, digits = 0), "%"), 
                 top_all = paste0(round(x = (topfish/(all))*100, digits = 0), "%"), 
                 dplyr::across(where(is.numeric), formatC, digits = 0, big.mark = ",", format = "f"))
-# temp[,1:4]<-NMFSReports::mod_number(x = temp[,1:4], comma_seperator = T, digits = 0)
+# temp[,1:4]<-mod_number(x = temp[,1:4], comma_seperator = T, digits = 0)
 # temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientific = F)
 
 str0 <- text_list(paste0(
@@ -781,10 +753,7 @@ str0 <- text_list(paste0(
   "of total mean fish and invertebrate CPUE (an average of ",
   temp$all," kg/ha per station) and ",
   temp$top_fish," of total mean fish CPUE (an average of ",temp$fish,
-  " kg/ha per station; Table ", NMFSReports::crossref(
-    list_obj = list_tables, 
-    nickname = "tab_estimates_maxyr_spp_wt",
-    sublist = "number"), ")."), sep = "", sep_last = "")
+  " kg/ha per station; Table \\\\@ref(tab:tab-estimates-maxyr-spp-wt))."), sep = "", sep_last = "")
 
 ```
 
@@ -855,7 +824,7 @@ Within this report plots of the spatial distribution and tables of CPUE (kg/hect
 
 ### Selected Invertebrates Estimates
 
-```{r results_spatial_distribution_fish}
+```{r results_spatial_distribution_inverts}
 # major fish 
 temp0 <- report_spp1 %>% 
   dplyr::filter(taxon == "invert" & 
@@ -954,7 +923,6 @@ if (length(unique(temp$print_name))==1) {
                  ifelse(SRVY == "NEBS", 
                         " \\@ref(fig:tab_majortaxa_pchange_EBS) and \\@ref(fig:tab_majortaxa_pchange_NBS)) ", 
                         " \\@ref(fig:tab_majortaxa_pchange_EBS) "),
-                 # NMFSReports::crossref(list_obj = list_tables, nicknasme = "tab_majortaxa_pchange_", sublist = "number", exact = FALSE),
                  "). Catch rates for the ",temp$print_name[1]," were highest in the ",
                  temp1$d2," (", #,temp1$d1,
                  # "; "
