@@ -5,7 +5,7 @@
 
 <!-- https://stackoverflow.com/questions/51335125/adding-figures-and-tables-after-bibliography-in-rmarkdown -->
 
-```{r}
+```{r app-dummy}
 ## Appendix A: Station and catch data
 # 
 # Appendix A contains station data by vessel for the `r text_list(paste0(haul_cruises_maxyr$stations_avail, " standard survey stations that were successfully completed in the ",haul_cruises_maxyr$SRVY))`. When using the tables, the following parameters should be noted:
@@ -114,9 +114,9 @@
 ```{r list_app_function}
 counter_letters <- 0
 evalTF <- ifelse(SRVY == "NEBS", TRUE, FALSE)
-list_app <- function(nickname, dir_out_tables, abcd, srvy, descr_short, descr_frag) {
+list_app <- function(nickname, dir_out_figtab, abcd, srvy, descr_short, descr_frag) {
   
-  a <- list.files(path = dir_out_tables, 
+  a <- list.files(path = dir_out_figtab, 
                   pattern = nickname, 
                   full.names = FALSE)
   
@@ -127,7 +127,7 @@ list_app <- function(nickname, dir_out_tables, abcd, srvy, descr_short, descr_fr
   
   captions <- data.frame()
   for (i in 1:length(nickname0)) {
-    a <- readtext(paste0(dir_out_tables, nickname0[i], ".txt"))
+    a <- readtext(paste0(dir_out_figtab, nickname0[i], ".txt"))
     captions <- dplyr::bind_rows(
       captions, 
       data.frame(
@@ -155,15 +155,11 @@ text_list(paste0("\n\n - Appendix **", abcd, "** \\\\@ref(tab:", captions$id, ")
 }
 ```
 
-```{r setup-a, include=FALSE}
-counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
-# knitr::opts_chunk$set(tab.cap.pre = abcd)
-```
-
 ```{r tab-app-taxa-encountered-EBS}
 nickname <- "tab-app-taxa-encountered-EBS"
+counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
 str0 <- list_app(nickname = nickname, 
-                 dir_out_tables = dir_out_tables, 
+                 dir_out_figtab = dir_out_figtab, 
                  abcd = abcd, 
                  descr_short = "taxa encountered in the eastern Bering Sea", 
                  descr_frag = paste0("lists all fish and invertebrate taxa taken during the AFSC’s eastern Bering Sea bottom trawl survey."))
@@ -174,15 +170,11 @@ str0 <- list_app(nickname = nickname,
 ```{r tab-special-projects-EBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), tab.lp = abcd}
 ```
 
-```{r setup-b, include=FALSE, eval = evalTF}
-counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
-# knitr::opts_chunk$set(tab.cap.pre = abcd)
-```
-
 ```{r tab-app-taxa-encountered-NBS, eval = evalTF, tab.lp = abcd}
 nickname <- "tab-app-taxa-encountered-NBS"
+counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
 str0 <- list_app(nickname = nickname, 
-                 dir_out_tables = dir_out_tables, 
+                 dir_out_figtab = dir_out_figtab, 
                  abcd = abcd, 
                  descr_short = "taxa encountered in the northern Bering Sea", 
                  descr_frag = paste0("lists all fish and invertebrate taxa taken during the AFSC’s northern Bering Sea bottom trawl survey."))
@@ -193,15 +185,11 @@ str0 <- list_app(nickname = nickname,
 ```{r tab-special-projects-NBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), tab.lp = abcd, eval=evalTF}
 ```
 
-```{r setup-c, include=FALSE, eval = evalTF}
-counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
-# knitr::opts_chunk$set(tab.cap.pre = abcd)
-```
-
 ```{r tab-app-principal-fish-EBS-}
 nickname <- "tab-app-principal-fish-EBS-"
+counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
 str0 <- list_app(nickname = nickname, 
-                 dir_out_tables = dir_out_tables, 
+                 dir_out_figtab = dir_out_figtab, 
                  abcd = abcd, 
                  descr_short = "population estimates by sex and size group for principal fish species in the eastern Bering Sea", 
                  descr_frag = paste0("presents population estimates by sex and size group from the ", 
@@ -214,15 +202,11 @@ str0 <- list_app(nickname = nickname,
 ```{r tab-app-principal-fish-EBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), tab.lp = abcd}
 ```
 
-```{r setup-d, include=FALSE, eval = evalTF}
-counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
-knitr::opts_chunk$set(tab.cap.pre = abcd)
-```
-
 ```{r tab-app-principal-fish-NBS-, eval = evalTF}
 nickname <- "tab-app-principal-fish-NBS-"
+counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
 str0 <- list_app(nickname = nickname, 
-                 dir_out_tables = dir_out_tables, 
+                 dir_out_figtab = dir_out_figtab, 
                  abcd = abcd, 
                  descr_short = "population estimates by sex and size group for principal fish species in the northern Bering Sea", 
                  descr_frag = paste0("presents population estimates by sex and size group from the ", 

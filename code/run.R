@@ -69,8 +69,7 @@ googledrive::drive_auth()
 # *** Source support scripts ---------------------------------------------------
 
 source('./code/directories.R')
-dir_out_tables <- paste0(dir_output, "tables/")
-dir_out_figures <- paste0(dir_output, "figures/")
+dir_out_figtab <- paste0(dir_output, "figtab/")
 
 source('./code/functions.R')
 
@@ -111,12 +110,7 @@ rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                   output_file = paste0(cnt_chapt_content, ".docx"))
 
 # Save figures and tables locally to working draft folder
-file.copy(from = dir_out_figures, 
-          to = dir_out_todaysrun, 
-          overwrite = TRUE, 
-          recursive = TRUE)
-
-file.copy(from = dir_out_tables, 
+file.copy(from = dir_out_figtab, 
           to = dir_out_todaysrun, 
           overwrite = TRUE, 
           recursive = TRUE)
@@ -173,6 +167,7 @@ googledrive::drive_auth()
 # *** Source support scripts ---------------------------------------------------
 
 source('./code/directories.R')
+dir_out_figtab <- paste0(dir_output, "figtab/")
 
 source('./code/functions.R')
 
@@ -203,15 +198,11 @@ for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$fil
                                          unique(report_spp1$file_name)[jj],".docx"))
 }
 
-# Save
-save(list_figures,
-     file=paste0(dir_out_figures, "/report_figures.rdata"))
-
-save(list_tables,
-     file=paste0(dir_out_tables, "/report_tables.rdata"))
-
-# load(file = paste0(dir_out_figures, "/report_figures.rdata"))
-# load(file = paste0(dir_out_tables, "/report_tables.rdata"))
+# Save figures and tables locally to working draft folder
+file.copy(from = dir_out_figtab, 
+          to = dir_out_todaysrun, 
+          overwrite = TRUE, 
+          recursive = TRUE)
 
 # Run community highlights report -----------------------------------------------
 

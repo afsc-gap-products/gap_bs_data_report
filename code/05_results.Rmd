@@ -162,12 +162,12 @@ temp0 <- function(cols, SRVY, report_spp1) {
   a$taxon[a$taxon == "invert" & 
             grepl(pattern = "crab", x = a$print_name)] <- "crab"
   
-  load(file = paste0(dir_out_tables, "tab-specimen-samples-EBS.Rdata"))
+  load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.Rdata"))
   obj_ebs <- obj
   
   if (SRVY == "NEBS") {
     
-    load(file = paste0(dir_out_tables, "tab-specimen-samples-NBS.Rdata"))
+    load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.Rdata"))
     obj_nbs <- obj
     temp <- dplyr::bind_rows(
       obj_ebs$raw, 
@@ -208,7 +208,7 @@ temp0 <- function(cols, SRVY, report_spp1) {
 }
 
 
-load(file = paste0(dir_out_tables, "tab-specimen-samples-EBS.Rdata"))
+load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.Rdata"))
 cols <- names(obj$raw)
 cols <- cols[!(cols %in% c("common_name", "SRVY"))]
 
@@ -311,7 +311,7 @@ temp1 <- dplyr::bind_cols(
 
 if (SRVY == "NEBS") {
   # how many species in one survey area but noth the other?
-  load(file = paste0(dir_out_tables, "tab-species-composition.rdata"))
+  load(file = paste0(dir_out_figtab, "tab-species-composition.rdata"))
   temp3 <- obj$raw %>%
     dplyr::left_join(x = .,
                      y = spp_info %>%
@@ -438,7 +438,7 @@ nickname <- "tab-species-composition"
 temp <- data.frame()
 temp0 <- tidyr::crossing(SRVY = SRVY1, type = c("fish", "invert"))
 for (i in 1:nrow(temp0)) {
-  load(file = paste0(dir_out_tables, "tab-biomass-est-", temp0$type[i],"-", temp0$SRVY[i], ".rdata"))
+  load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$type[i],"-", temp0$SRVY[i], ".rdata"))
   
   temp <- obj$raw %>%
     dplyr::filter(grepl(pattern = "Total", x = group, ignore.case = TRUE )) %>% 
@@ -525,7 +525,7 @@ if (SRVY == "NEBS") {
   #temp1
   temp1 <- data.frame()
   for (i in 1:length(SRVY1)) {
-    load(file = paste0(dir_out_tables, "tab-biomass-est-fish-", temp0$SRVY[i], ".rdata"))
+    load(file = paste0(dir_out_figtab, "tab-biomass-est-fish-", temp0$SRVY[i], ".rdata"))
     temp1 <- obj$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
       dplyr::filter(is.na(taxon) |
@@ -548,7 +548,7 @@ if (SRVY == "NEBS") {
   temp2 <- data.frame()
   
   for (i in 1:length(SRVY1)) {
-    load(file = paste0(dir_out_tables, "tab-biomass-est-fish-", temp0$SRVY[i], ".rdata"))
+    load(file = paste0(dir_out_figtab, "tab-biomass-est-fish-", temp0$SRVY[i], ".rdata"))
 
     temp2 <- obj$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
@@ -644,7 +644,7 @@ str0 <- paste0("Noticeable changes were observed in",ifelse(SRVY == "NEBS", " bo
                compareyr," and ", maxyr,". ")
 
 for (i in 1:length(SRVY1)) {
-  load(file = paste0(dir_out_tables, "tab-majortaxa-pchange-", SRVY1[i], ".rdata"))
+  load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-", SRVY1[i], ".rdata"))
 
   temp0 <- obj$raw
   
@@ -716,7 +716,7 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 temp <- data.frame()
 for (i in 1:nrow(haul_cruises_maxyr)) {
   
-  load(file = paste0(dir_out_tables, "tab-estimates-maxyr-spp-wt.rdata"))
+  load(file = paste0(dir_out_figtab, "tab-estimates-maxyr-spp-wt.rdata"))
 
   temp <- obj$raw %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>%
@@ -801,7 +801,7 @@ temp0 <- report_spp1 %>%
 # compile
 temp <- c()
 for (i in 1:nrow(temp0)) {
-  a <- list.files(path = dir_out_figures, 
+  a <- list.files(path = dir_out_figtab, 
                   pattern = paste0("fig-idw-cpue-fish-",temp0$file_name[i]), 
                   ignore.case = TRUE)
   a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
@@ -835,7 +835,7 @@ temp0 <- report_spp1 %>%
 # compile
 temp <- c()
 for (i in 1:nrow(temp0)) {
-  a <- list.files(path = dir_out_figures, 
+  a <- list.files(path = dir_out_figtab, 
                   pattern = paste0("fig-idw-cpue-invert-",temp0$file_name[i]), 
                   ignore.case = TRUE)
   a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
@@ -857,12 +857,12 @@ str0 <- text_list(temp)
 Plots of spatial distribution and tables of CPUE (kg/hectare and no./hectare) and tables for `r length(unique(report_spp1$file_name[report_spp1$taxon == "invert"]))` major invertebrate species caught during the `r text_list(SRVY1)` continental shelf are presented below (`r str0`). Differences in sums of estimates and totals are due to rounding. The crab species are discussed and analyzed in more detail in a report prepared by the AFSC Shellfish Assessment Program [`r paste0("@SAPcrab", maxyr)`].
 
 ```{r results_taxon_pchange}
-  load(file = paste0(dir_out_tables, "tab-majortaxa-pchange-EBS.Rdata"))
+  load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-EBS.Rdata"))
   obj_ebs <- obj
   
 if (SRVY == "NEBS") {
   
-  load(file = paste0(dir_out_tables, "tab-majortaxa-pchange-NBS.Rdata"))
+  load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.Rdata"))
   obj_nbs <- obj
   temp <- dplyr::bind_rows(
       obj_ebs$raw, 
@@ -882,7 +882,7 @@ temp <- temp %>%
 
 if (length(unique(temp$print_name))==1) {
   
-  load(file = paste0(dir_out_tables, "tab-estimates-maxyr-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt.Rdata"))
+  load(file = paste0(dir_out_figtab, "tab-estimates-maxyr-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt.Rdata"))
   
   # temp0 <- paste0("tab-estimates-maxyr-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt")
   
@@ -902,13 +902,13 @@ if (length(unique(temp$print_name))==1) {
                   d2 = gsub(pattern = "domain", replacement = "shelf", x = d2)) 
   
   
-  a <- list.files(path = dir_out_figures, 
+  a <- list.files(path = dir_out_figtab, 
                   pattern = report_spp1$file_name[report_spp1$print_name == temp$print_name[1]], 
                   ignore.case = TRUE)
   a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
   a <- strsplit(x = a, split = ".", fixed = TRUE)[[1]][1]
   
-  b <- list.files(path = dir_out_tables, 
+  b <- list.files(path = dir_out_figtab, 
                   pattern = report_spp1$file_name[report_spp1$print_name == temp$print_name[1]], 
                   ignore.case = TRUE)
   b <- b[grepl(pattern = ".rdata", x = b, ignore.case = TRUE)]
