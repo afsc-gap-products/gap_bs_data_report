@@ -15,13 +15,13 @@ spp_plot_idw_coldwarm <- FALSE
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
 spp_plot_pa <- FALSE
 spp_table_cpue <- FALSE
-text_spp <- TRUE
+spp_text <- TRUE
 
 if (report_title == "data") {
 spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
 spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
 spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
-text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
+spp_text <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 }
 ```
 
@@ -96,7 +96,7 @@ length_maxyr0 <- length_data %>%
 
 ```
 
-`r ifelse(refcontent & text_spp, "*REFERENCE MATERIAL FOR WRITERS - START*", "")`
+`r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - START*", "")`
 
 ```{r res_spp_ebs_{{jj}}, results='asis'}
 temp <- ""
@@ -123,12 +123,21 @@ temp<-species_content(
   total_biomass = total_biomass)
 
 temp1 <- temp$table_spp
-temp <- (temp$text_spp)
+temp <- (temp$spp_text)
 names(temp) <-  NULL
 temp <- unlist(temp)
 # print(temp)
 temp <- (paste0(temp, collapse = "\n\n"))
 }
+
+# biomass %>% 
+#   dplyr::filter(year %in% c(2021, 2022) & grepl(pattern = "snailfish", x = common_name) & SRVY == "NBS") %>% 
+#   dplyr::select(year, common_name, catcount) %>% 
+#   dplyr::group_by(year, common_name) %>% 
+#   dplyr::summarise(freq = sum(catcount)) %>% 
+#   dplyr::arrange(desc(freq)) %>% 
+#   tidyr::pivot_wider(data = ., id_cols = c("common_name"), names_from = "year", values_from = freq)
+
 ```
 
 `r ifelse(show, "**Eastern Bering Sea (EBS)**", "")`
@@ -161,7 +170,7 @@ temp<-species_content(
   biomass_cpue_tab_name = biomass_cpue_tab_name, 
   total_biomass = total_biomass)
 temp1<-temp$table_spp
-temp <- temp$text_spp
+temp <- temp$spp_text
 }
 ```
 
@@ -196,7 +205,7 @@ temp<-species_content(
   biomass_cpue_tab_name = biomass_cpue_tab_name, 
   total_biomass = total_biomass)
 temp1<-temp$table_spp
-temp <- temp$text_spp
+temp <- temp$spp_text
 }
 ```
 
@@ -206,13 +215,13 @@ temp <- temp$text_spp
 
 `r temp `
 
-`r ifelse(refcontent & text_spp, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
+`r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
 ```{r res_spp_insert_text_{{jj}}}
 # insert<-""
 
-if (report_title == "data") {
-  
+# if (report_title == "data") {
+  # 
   # # Species specific
   # table_est_both <- NMFSReports::crossref(
   #   list_obj = list_tables, 
@@ -230,7 +239,7 @@ if (report_title == "data") {
   #   sublist = "number", 
   #   exact = FALSE)
   
-# if (text_spp) {
+# if (spp_text) {
   # 
   # # general coldpool figures
   # figure_coldpool_warm_stanza <- NMFSReports::crossref(
@@ -303,14 +312,14 @@ if (report_title == "data") {
 # }
 
   
-land_start <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_START--->", "")
-land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "")
+land_start <- ifelse(report_title == "data", "<!---BLOCK_LANDSCAPE_START--->", "")
+land_end <- ifelse(report_title == "data", "<!---BLOCK_LANDSCAPE_STOP--->", "")
 
 # `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
 
 # `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
 
-}
+# }
 
 # if (report_title == "community") {
 # 
@@ -342,30 +351,32 @@ land_end <- ifelse(table_est_both != "[](#)", "<!---BLOCK_LANDSCAPE_STOP--->", "
 
 ```
 
-```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file, ,".Rmd")}
+```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text}
 ```
 
 ```{r fig-idw-cpue-{{jj}}}
-nickname <- paste0("fig-idw-cpue-*", spp_file)
+nickname <- paste0("fig-idw-cpue-",spp_taxon,"-", spp_file)
 ```
 
-```{r fig-idw-cpue-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r fig-idw-cpue-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=ifelse(spp_plot_idw | spp_plot_idw_coldwarm, TRUE, FALSE)}
+
+
 ```
 
 ```{r fig-sizecomp-{{jj}}}
-nickname <- paste0("fig-sizecomp-*", spp_file)
+nickname <- paste0("fig-sizecomp-",spp_taxon,"-", spp_file)
 ```
 
-```{r fig-sizecomp-{{jj}}, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r fig-sizecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_plot_sizecomp}
 ```
 
 `r land_start `
 
 ```{r tab-estimates-maxyr-{{jj}}}
-nickname <- paste0("tab-estimates-maxyr-", spp_file)
+nickname <- paste0("tab-estimates-maxyr-",spp_taxon,"-", spp_file)
 ```
 
-```{r tab-estimates-maxyr-{{jj}}, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-estimates-maxyr-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_table_cpue}
 ```
 
 `r land_end `

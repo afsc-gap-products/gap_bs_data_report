@@ -91,27 +91,24 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
                               lang = FALSE)
 
 # General figures
-# filename0<-paste0(cnt_chapt, "_")
 rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_dir = dir_out_ref,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+                  output_file = paste0(cnt_chapt_content, ".docx"))
 
 # Species figures
 for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
   
   print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
-  filename00<-paste0(cnt_chapt, "_spp_")
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = paste0(filename00, cnt_chapt_content, "_", 
+                    output_file = paste0(cnt_chapt_content, "_", 
                                          unique(report_spp1$file_name)[jj],".docx"))
 }
 
 # Appendix 
-filename0<-paste0(cnt_chapt, "_")
 rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                   output_dir = dir_out_ref,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+                  output_file = paste0(cnt_chapt_content, ".docx"))
 
 # Save figures and tables locally to working draft folder
 file.copy(from = dir_out_figures, 
@@ -193,18 +190,16 @@ report_spp1 <- add_report_spp(spp_info = spp_info,
 
 # General figures
 cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_")
 rmarkdown::render(paste0(dir_code, "/figtab_c.Rmd"),
                   output_dir = dir_out_ref,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
+                  output_file = paste0(cnt_chapt_content, ".docx"))
 
 # Species figures
 for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
   print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
-  filename00 <- paste0(cnt_chapt, "_spp_")
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = paste0(filename00, cnt_chapt_content, "_", 
+                    output_file = paste0(cnt_chapt_content, "_", 
                                          unique(report_spp1$file_name)[jj],".docx"))
 }
 

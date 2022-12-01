@@ -3990,7 +3990,7 @@ save_tables<-function(table_raw = NULL,
                   paste0(header, paste(paste0("^[", footnotes, "]"),
                                        collapse = " ^,^ ")))
   # Save
-  if (!is.null(path)){
+  # if (!is.null(path)){
     
     # raw
     
@@ -4003,10 +4003,10 @@ save_tables<-function(table_raw = NULL,
                            sep = ",",
                            row.names=FALSE, col.names = TRUE, append = F)
       }
-    } else {
-      table_raw <- ""
-    }
-    
+    # } else {
+    #   table_raw <- ""
+    # }
+  }
     # write.table can only save files that are 1) extant or 2) in a data.frame or matrix
   #   if (!(is.null(table_print))) {
   #     if ((class(table_print) %in% c("data.frame", "matrix"))) {
