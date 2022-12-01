@@ -45,14 +45,14 @@ str0 <- paste0(
   round(x = temp$st_1, digits = 1),"°C) and ", 
   round(x = temp$st_mean_diff*ifelse(temp$st_mean_diff > 0, 1, -1), digits = 1),"°C ", 
   ifelse((temp$st_mean_diff > 0), "lower", "higher"),
-  " than the time series mean (", round(x = temp$st_mean, digits = 1),"°C; Figs. \\\\@ref(fig:fig-mean-temperature), \\\\@ref(fig:fig-cold-pool-area), \\\\@ref(fig:fig-bt-temperature-ebs-below), and \\\\@ref(fig:fig-bt-temperature-ebs-above)", 
+  " than the time series mean (", round(x = temp$st_mean, digits = 1),"°C; Figs. \\@ref(fig:fig-mean-temperature), \\@ref(fig:fig-cold-pool-area), \\@ref(fig:fig-bt-temperature-ebs-below), and \\@ref(fig:fig-bt-temperature-ebs-above)", 
   ifelse(SRVY == "NEBS", 
          paste0(
            ifelse(a$coefficients[2]<0 & a$coefficients[8] <= 0.05, 
-                  paste0("In the EBS south of 60°N, surface temperatures increased from east to west across the shelf (Fig. \\\\@ref(fig:fig-temperature-nebs-surveys-bt)). "), ""),
+                  paste0("In the EBS south of 60°N, surface temperatures increased from east to west across the shelf (Fig. \\@ref(fig:fig-temperature-nebs-surveys-bt)). "), ""),
            "An average of ", 
            round(x = mean(temp2$surface_temperature), digits = 1),
-           "°C was observed in Norton Sound (Fig. \\\\@ref(fig:fig-temperature-nebs-surveys-bt))."), 
+           "°C was observed in Norton Sound (Fig. \\@ref(fig:fig-temperature-nebs-surveys-bt))."), 
          ""))
 
 str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
@@ -322,10 +322,10 @@ if (SRVY == "NEBS") {
     "Of the fish species found in the EBS, ",
     xunits(nrow(temp3[temp3$where == 
                         "Present in EBS but absent in NBS",])), 
-    " did not occur in the NBS (Table \\\\@ref(tab:tab-species-composition)). In comparison, ",
+    " did not occur in the NBS (Table \\@ref(tab:tab-species-composition)). In comparison, ",
     xunits(nrow(temp3[temp3$where == 
                         "Present in the NBS but absent in EBS",])), 
-    " species were present in the NBS but absent in EBS (Table \\\\@ref(tab:tab-species-composition)). ")
+    " species were present in the NBS but absent in EBS (Table \\@ref(tab:tab-species-composition)). ")
   
   # flatfish
   temp4 <- temp3[temp3$order_taxon %in% c("Pleuronectiformes"), ]
@@ -359,14 +359,14 @@ if (SRVY == "NEBS") {
                             temp5$including, ")"), 
                      # sep_last = ";", 
                      sep = "; "),
-                   " (Table \\\\@ref(tab:tab-species-composition)).")
+                   " (Table \\@ref(tab:tab-species-composition)).")
 }
 
 insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 ```
 
-A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-encountered-EBS-fish)`r ifelse(SRVY == "NEBS", "and \\\\@ref(tab:tab-app-taxa-encountered-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
+A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-encountered-EBS-fish)`r ifelse(SRVY == "NEBS", "and \\@ref(tab:tab-app-taxa-encountered-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
 
 ```{r results_taxon_count}
 # count spp - invert
@@ -415,7 +415,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-encountered-EBS-invertebrate)`r ifelse(SRVY == "NEBS", "and \\\\@ref(tab:tab-app-taxa-encountered-NBS-invertebrate)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-encountered-EBS-invertebrate)`r ifelse(SRVY == "NEBS", "and \\@ref(tab:tab-app-taxa-encountered-NBS-invertebrate)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r results_dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
@@ -493,12 +493,12 @@ for (ii in 1:length(temp2$SRVY)) {
                   paste0(temp2$SRVY[ii], 
                          ", the proportion of fishes (", 
                          temp2$perc_fish[ii], 
-                         "; Table \\\\@ref(tab:tab-biomass-est-fish-", temp2$SRVY[ii], 
+                         "; Table \\@ref(tab:tab-biomass-est-fish-", temp2$SRVY[ii], 
                          ")) was ", str000,  
                          ifelse(temp2$prop_fish[ii]>temp2$prop_invert[ii], "higher","lower"),
                          " than invertebrates (", 
                          temp2$perc_invert[ii], 
-                         "; Table \\\\@ref(tab:tab-biomass-est-invert-", temp2$SRVY[ii], 
+                         "; Table \\@ref(tab:tab-biomass-est-invert-", temp2$SRVY[ii], 
                          "))"))
 }
 str0 <- paste0(str0, str00, ". ")
@@ -508,7 +508,7 @@ if (SRVY == "NEBS") {
                  paste0(ifelse(temp1$prop[temp1$SRVY=="EBS"]>temp1$prop[temp1$SRVY=="NBS"], 
                                "The lower relative fish biomass in the NBS than in the EBS is consistent", 
                                "The higher relative fish biomass in the NBS than in the EBS is inconsistent"), 
-                        " with results of a broader analysis of all survey years in @RN936 showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf (Tables \\\\@ref(tab:tab-biomass-est-fish-EBS) and \\\\@ref(tab:tab-biomass-est-fish-NBS)). This trend may change over time with warming ocean temperatures.", 
+                        " with results of a broader analysis of all survey years in @RN936 showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf (Tables \\@ref(tab:tab-biomass-est-fish-EBS) and \\@ref(tab:tab-biomass-est-fish-NBS)). This trend may change over time with warming ocean temperatures.", 
                         "") ) 
 }
 
@@ -619,7 +619,7 @@ if (SRVY == "NEBS") {
     temp3 <- paste0(temp3, 
                     paste0("In the ", SRVY1[i], ", ", 
                            substr(temp4, start = 1, stop = (nchar(temp4)-1)), # get rid of last ")" 
-                           "; Tables \\\\@ref(tab:tab-biomass-est-fish-EBS) and \\\\@ref(tab:tab-biomass-est-fish-NBS)). "))
+                           "; Tables \\@ref(tab:tab-biomass-est-fish-EBS) and \\@ref(tab:tab-biomass-est-fish-NBS)). "))
   }
   
   str0 <- paste0(
@@ -630,7 +630,7 @@ if (SRVY == "NEBS") {
     " of the total biomass, respectively), and the NBS (",
     text_list(
       paste0(round(x = temp1$prop_NBS[1:2]*100, digits = 1), "%")), 
-    " of the total biomass, respectively; Tables \\\\@ref(tab:tab-biomass-est-fish-EBS) and \\\\@ref(tab:tab-biomass-est-fish-NBS)). ", 
+    " of the total biomass, respectively; Tables \\@ref(tab:tab-biomass-est-fish-EBS) and \\@ref(tab:tab-biomass-est-fish-NBS)). ", 
     temp3)
 }
 
@@ -695,13 +695,13 @@ for (i in 1:length(SRVY1)) {
                  text_list(paste0(temp$print_name[temp$case == "increased"],
                                   " (", formatC(x = temp$change[temp$case == "increased"], 
                                                 digits = 0, format = "f", big.mark = ","), "%)")), 
-                 " (Table \\\\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). ",
+                 " (Table \\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). ",
                  # taxa decreased
                  "Large decreases in biomass were observed for ", 
                  text_list(paste0(temp$print_name[temp$case == "decreased"],
                                   " (", formatC(x = temp$change[temp$case == "decreased"], 
                                                 digits = 0, format = "f", big.mark = ","), "%)")), 
-                 " (Table \\\\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). "
+                 " (Table \\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). "
   )
   
 }
@@ -753,7 +753,7 @@ str0 <- text_list(paste0(
   "of total mean fish and invertebrate CPUE (an average of ",
   temp$all," kg/ha per station) and ",
   temp$top_fish," of total mean fish CPUE (an average of ",temp$fish,
-  " kg/ha per station; Table \\\\@ref(tab:tab-estimates-maxyr-spp-wt))."), sep = "", sep_last = "")
+  " kg/ha per station; Table \\@ref(tab:tab-estimates-maxyr-spp-wt))."), sep = "", sep_last = "")
 
 ```
 
