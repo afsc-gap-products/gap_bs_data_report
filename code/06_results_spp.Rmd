@@ -11,7 +11,7 @@ spp_taxon <- a$taxon[1]
 
 # report_title == "community"
 spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
-spp_plot_idw_coldwarm <- FALSE
+spp_plot_idw_20 <- FALSE
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
 spp_plot_pa <- FALSE
 spp_table_cpue <- FALSE
@@ -19,10 +19,14 @@ spp_text <- TRUE
 
 if (report_title == "data") {
 spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
-spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+spp_plot_idw_20 <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
 spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
 spp_text <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 }
+
+land_start <- ifelse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_START--->", "")
+land_end <- ifelse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_STOP--->", "")
+
 ```
 
 
@@ -217,150 +221,34 @@ temp <- temp$spp_text
 
 `r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
-```{r res_spp_insert_text_{{jj}}}
-# insert<-""
+```{r}
+if (spp_plot_idw_20) {
+  fig_dist_above <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, "-above)")
+  fig_dist_below <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, "-below)")
+} 
 
-# if (report_title == "data") {
-  # 
-  # # Species specific
-  # table_est_both <- NMFSReports::crossref(
-  #   list_obj = list_tables, 
-  #   nickname = paste0("tab_estimates_maxyr_*", spp_file, "*"), 
-  #   sublist = "number", 
-  #   exact = FALSE)
-  # table_est_wt <- NMFSReports::crossref(
-  #   list_obj = list_tables, 
-  #   nickname = paste0("tab_estimates_maxyr_*", spp_file, "_wt"), 
-  #   sublist = "number", 
-  #   exact = FALSE)
-  # table_est_num <- NMFSReports::crossref(
-  #   list_obj = list_tables, 
-  #   nickname = paste0("tab_estimates_maxyr_*", spp_file, "_num"), 
-  #   sublist = "number", 
-  #   exact = FALSE)
-  
-# if (spp_text) {
-  # 
-  # # general coldpool figures
-  # figure_coldpool_warm_stanza <- NMFSReports::crossref(
-  #   list_obj = list_figures, 
-  #   nickname = paste0("fig_bt_temperature_ebs_above"), 
-  #   sublist = "number")
-  # figure_coldpool_cold_stanza <- NMFSReports::crossref(
-  #   list_obj = list_figures, 
-  #   nickname = paste0("fig_bt_temperature_ebs_below"), 
-  #   sublist = "number")
-  # figure_coldpool_both_stanza <- NMFSReports::crossref(
-  #   list_obj = list_figures, 
-  #   nickname = paste0("fig_bt_temperature_*"), 
-  #   sublist = "number", 
-  #   exact = FALSE)
-  # 
-  # # General biomass table
-  # tab_majortaxa_pchange_EBS <- "\@ref(tab:tab-majortaxa-pchange-EBS)"
-  #  table_bio_pchange_ebs <- table_bio_ebs <- NMFSReports::crossref(
-  #   list_obj = list_tables, 
-  #   nickname = paste0("tab_biomass_est_fish_EBS"), 
-  #   sublist = "number")
-  # table_bio_nbs <- table_bio_pchange_nbs <- ""
-  # 
-  # if (SRVY == "NEBS"){
-  # table_bio_pchange_nbs <- table_bio_nbs <- NMFSReports::crossref(
-  #   list_obj = list_tables, 
-  #   nickname = paste0("tab_biomass_est_fish_NBS"), 
-  #   sublist = "number")
-  # tab_majortaxa_pchange_NBS <- NMFSReports::crossref(
-  #   list_obj = list_tables, 
-  #   nickname = paste0("tab_majortaxa_pchange_NBS"), 
-  #   sublist = "number")
-  # }
-  # 
-  # 
-  # 
-  # if (spp_plot_sizecomp) {
-  #   figure_sizecomp <- NMFSReports::crossref(
-  #     list_obj = list_figures, 
-  #     nickname = paste0("fig_sizecomp_fish_", spp_file), 
-  #     sublist = "number")
-  #   } 
-  # 
-  # if (spp_plot_idw) {
-  #   figure_idw <- NMFSReports::crossref(
-  #     list_obj = list_figures, 
-  #     nickname = paste0("fig_idw_cpue_fish_", spp_file), 
-  #     sublist = "number")    
-  # }
-  # 
-  # if (spp_plot_idw_coldwarm) {
-  #     figure_idw_both_stanza <- NMFSReports::crossref(
-  #       list_obj = list_figures, 
-  #       nickname = paste0("fig_idw_cpue_fish_", spp_file, "_*"), 
-  #       sublist = "number", 
-  #       exact = FALSE)
-  #     figure_idw_warm_stanza <- NMFSReports::crossref(
-  #       list_obj = list_figures, 
-  #       nickname = paste0("fig_idw_cpue_fish_", spp_file, "_above"), 
-  #       sublist = "number")
-  #     figure_idw_cold_stanza <- NMFSReports::crossref(
-  #       list_obj = list_figures, 
-  #       nickname = paste0("fig_idw_cpue_fish_", spp_file, "_below"), 
-  #       sublist = "number")
-  # }
-# 
-  # insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
-  #                   refcontent = refcontent)
-# }
+if (spp_plot_idw) {
+  fig_dist <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, ")")
+}
 
-  
-land_start <- ifelse(report_title == "data", "<!---BLOCK_LANDSCAPE_START--->", "")
-land_end <- ifelse(report_title == "data", "<!---BLOCK_LANDSCAPE_STOP--->", "")
+if (spp_plot_sizecomp) {
+  fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
+} 
 
-# `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_sizecomp_*_", spp_file), sublist = "res", exact = FALSE)`
-
-# `r NMFSReports::crossref(list_obj = list_figures, nickname = paste0("fig_idw_cpue_*_", spp_file, "*"), sublist = "res", exact = FALSE)`
-
-# }
-
-# if (report_title == "community") {
-# 
-# # Main text
-# fig_bot_temp_map <- "\@ref(fig:fig-bt-all-nebs-surveys)"
-# 
-# fig_surf_temp_map <- "\@ref(fig:fig-st-all-nebs-surveys)"
-# 
-# fig_both_temp_maps <- "\@ref(fig:fig-bt-all-nebs-surveys) and \@ref(fig:fig-st-all-nebs-surveys)"
-# 
-# tab_majortaxa_pchange <- "\@ref(tab:tab-majortaxa-pchange)"
-# 
-# # Species specific
-# if (spp_plot_sizecomp) {
-#   fig_sizecomp <- paste0("\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
-# } 
-# 
-# if (spp_plot_idw) {
-#   fig_idw <- paste0("\@ref(fig:fig-idw-cpue-",spp_taxon,"-", spp_file, ")")
-# }
-# 
-# land_start <- ""
-# land_end <- ""
-# 
-# # insert <- readtext2(file = paste0(dir_out_rawdata, "/",spp_file,".docx"), 
-# #                     refcontent = refcontent)
-# # `r paste0(insert, "\n\n") `
-# }
-
+if (spp_table_cpue) {
+  tab_wt <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-wt)")
+  tab_no <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-num)")
+}
 ```
 
-```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text}
+```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
 ```
 
-```{r fig-idw-cpue-{{jj}}}
-nickname <- paste0("fig-idw-cpue-",spp_taxon,"-", spp_file)
+```{r fig-dist-{{jj}}}
+nickname <- paste0("fig-dist-",spp_taxon,"-", spp_file)
 ```
 
-```{r fig-idw-cpue-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=ifelse(spp_plot_idw | spp_plot_idw_coldwarm, TRUE, FALSE)}
-
-
+```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=ifelse(spp_plot_idw | spp_plot_idw_20, TRUE, FALSE)}
 ```
 
 ```{r fig-sizecomp-{{jj}}}

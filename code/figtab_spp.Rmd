@@ -187,128 +187,39 @@ if (report_title == "data") {
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
 }
 ```
 
+## fig-dist-[taxon]-[spp]
 
-## fig-idw-cpue-[taxon]-[spp]-[above and below]
+```{r fig-dist-[taxon]-[spp]}
 
-```{r fig-idw-cpue-[taxon]-[spp]-[above and below]}
-# if (report_title == "data") {
-if (spp_plot_idw_coldwarm){
-  
-  nickname0 <- paste0("fig-idw-cpue-",spp_taxon,"-", spp_file, "-")
-  
-  table_raw0 <- cpue %>%
-    dplyr::filter(!is.na(cpue_kgha)) %>% 
-    dplyr::arrange(desc(year)) %>% 
-    dplyr::filter(species_code %in% spp_code
-    ) %>% 
-    dplyr::mutate(SRVY_long = dplyr::case_when(
-      SRVY == "EBS" ~ "Eastern Bering Sea", 
-      SRVY == "NBS" ~ "Northern Bering Sea"))
-  
-  set.breaks <- set_breaks(dat = table_raw0, 
-                           var = "cpue_kgha")
-  
-  for (i in 1:2) { # two cases, above and below
-    subobj <- TRUE
-    newobj <- ifelse(i==1, TRUE, FALSE)
-    TF <- ifelse(i==1, FALSE, TRUE)
-    case <- ifelse(i==1, "below", "above")
-    years <- sort(temps_avg_yr_abovebelow[case][[1]])
-    
-    # height <- ifelse(length(years)>2, full_page_portrait_height, 5)
-    width <- full_page_portrait_width # 6.5
-    
-    header <- paste0(
-      "The distribution (weight CPUE (kg/ha)) of ", 
-                     spp_print, 
-                     ifelse(is.na(spp_sci), "", 
-                            paste0(" (",spp_sci,")")), 
-                     " in years when the survey mean bottom temperature was ",
-                     case,
-                     " the long-term mean ",
-                     NMFSReports::text_list(sort(years)),
-                     " during the Bering Sea shelf bottom trawl survey",
-                     ifelse(SRVY=="NEBS", "s", ""),".")
-    nickname <- paste0(nickname0, case)
-    
-        table_raw <- dplyr::left_join(
-      x = cpue %>%
-        dplyr::filter(year %in% years & 
-                        SRVY %in% SRVY1) %>%
-        dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
-        dplyr::distinct(), 
-      y = table_raw0 %>% 
-        dplyr::filter(year %in% years), 
-      by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
-        dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
-    
-    
-    if (length(years)<3) {
-      row0 <- 1
-      height <- 4 
-    } else if (length(years)<7) {
-      row0 <- 2
-      height <- full_page_portrait_height - 2
-    } else { # }  if (length(years)<10) {
-      row0 <- 3
-      height <- full_page_portrait_height 
-    }  
-    
-    figure <- plot_idw_xbyx(
-      yrs = years, 
-      dat = table_raw,
-      lat = "latitude",
-      lon = "longitude",
-      var = "cpue_kgha",
-      year = "year",
-      grid = "extrapolation.grid",
-      reg_dat = reg_dat, 
-      region = map.area, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/ha)"),
-      set.breaks = set.breaks, 
-      row0 = row0, 
-      legend_srvy_reg = FALSE) + 
-      ggtitle(paste0("Weight CPUE in Years ",
-                     stringr::str_to_sentence(case), 
-                     " Long-Term Mean Temperature"))
-    
-# Save figure
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
-  quiet = TRUE
-)
-
-}
-}
-```
-
-## fig-idw/pa-cpue-[taxon]-[spp]
-
-```{r fig-idw-cpue-[taxon]-[spp]}
-
-if (spp_plot_idw | spp_plot_pa) {
+if (spp_plot_idw | spp_plot_idw_coldwarm | spp_plot_pa) {
   
   width <- full_page_portrait_width # 6.5  
 
 if (report_title == "data") {
   yrs <- c(maxyr, compareyr)
   height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
-  nrow0 <- 1
+  row0 <- 1
 } else if (report_title == "community") {
   yrs <- nbsyr
   height <- full_page_portrait_height-1
-  nrow0 <- 2
+  row0 <- 2
+} 
+  
+if (spp_plot_idw_coldwarm) {
+  height <- full_page_portrait_height
+  yrs <- (maxyr-19):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
+  row0 <- 4
+  spp_plot_idw <- spp_plot_idw_coldwarm
 }
   
-  nickname <- paste0("fig-idw-cpue-", spp_taxon, "-", spp_file)
+  nickname <- paste0("fig-dist-", spp_taxon, "-", spp_file)
   
   if (spp_plot_idw) {
     
@@ -321,10 +232,9 @@ if (report_title == "data") {
     
     spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
     spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
-    
   }  
     
-    if (spp_plot_pa) {
+  if (spp_plot_pa) {
     
     table_raw <- catch_haul_cruises %>%
     dplyr::filter(!is.na(number_fish) & 
@@ -341,17 +251,6 @@ if (report_title == "data") {
   if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
     map.area0 <- ifelse(unique(table_raw$SRVY) == "EBS", "bs.south", "bs.north")
     reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
-    survey_reg_col <- gray.colors(length(unique(reg_dat0$survey.area$SURVEY))+2)
-    survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
-    reg_dat0$survey.area <- reg_dat0$survey.area %>%
-      dplyr::mutate(
-        SRVY = dplyr::case_when(
-          SURVEY == "EBS_SHELF" ~ "EBS", 
-          SURVEY == "NBS_SHELF" ~ "NBS"), 
-        color = alpha(colour = survey_reg_col, 0.7), 
-        SRVY_long = dplyr::case_when(
-          SRVY == "EBS" ~ "Eastern Bering Sea", 
-          SRVY == "NBS" ~ "Northern Bering Sea"))
     height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF" & 
                        report_title == "data", 4.25, 3.5)
   }
@@ -363,10 +262,10 @@ if (report_title == "data") {
                      ifelse(is.na(spp_sci), "", 
                             paste0(" (",spp_sci,")")), 
                      " from the ",
-                     NMFSReports::text_list(yrs), " ", 
-                     NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
-                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
-    set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
+                     text_list(yrs), " ", 
+                     ifelse(case1 == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
+                     " shelf bottom trawl survey", 
+                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),". ")
     
     table_raw <- dplyr::left_join(
       x = cpue %>%
@@ -378,19 +277,20 @@ if (report_title == "data") {
       by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
         dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
     
-    figure <- plot_idw_xbyx(
+    figure <- plot_idw_facet(
       yrs = yrs,
       dat = table_raw, 
       lat = "latitude",
       lon = "longitude",
       var = "cpue_kgha",
       year = "year",
-      grid = "extrapolation.grid",
+      grid = "continuous.grid", # "extrapolation.grid", #
       reg_dat = reg_dat0, 
       region = map.area0, 
       key.title = paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/ha)"),
-      set.breaks = set.breaks, 
-      row0 = nrow0)
+      row0 = row0, 
+      legend_srvy_reg = FALSE) 
+
     
   } else if (spp_plot_pa) {
     header <- paste0("The presence of ", 
@@ -414,7 +314,7 @@ if (report_title == "data") {
       dplyr::rename(latitude = start_latitude, 
                     longitude = start_longitude)
     
-    figure <- plot_pa_xbyx(
+    figure <- plot_pa_facet(
       yrs = yrs,
       dat = table_raw0,
       lat = "latitude",
@@ -422,7 +322,7 @@ if (report_title == "data") {
       year = "year",
       reg_dat = reg_dat0, 
       key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
-      row0 = nrow0)
+      row0 = row0)
     
   }
 
@@ -439,7 +339,7 @@ if (report_title == "data") {
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
   
@@ -583,7 +483,7 @@ if (spp_table_cpue) {
           population0 <- find_units(unit = "", unt = "", table_raw$population[table_raw$population != 0])
           sdpop0 <- find_units(unit = "", unt = "", table_raw$sdpop[table_raw$sdpop != 0])
           
-          header <- paste0("Mean Number CPUE ", meannumcpue0$unit_word,
+          header <- paste0("Mean Number CPUE", meannumcpue0$unit_word,
                            " with standard deviation", sdcpuenum0$unit_word,
                            ", and estimated population", population0$unit_word,
                            " with standard deviation", sdpop0$unit_word, 
@@ -707,7 +607,7 @@ if (spp_table_cpue) {
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 

@@ -1,5 +1,5 @@
 
-```{r}
+```{r, results='asis'}
 
 figtab <- dplyr::case_when(
   grepl(pattern = "fig-", x = nickname) ~ "fig",
@@ -17,7 +17,7 @@ nickname0 <- gsub(pattern = ".rdata",
                   x = a[grepl(pattern = ".rdata", x = a)], 
                   ignore.case = TRUE)
 
-src <- list()
+src_figtab <- list()
 for(i in 1:length(nickname0)){
   nickname00 <- nickname0[i]
   if (figtab == "tab"){
@@ -31,10 +31,10 @@ for(i in 1:length(nickname0)){
     img.asp <- image_info(img)$height / image_info(img)$width # calculate the figures aspect ratio
     fig.width <- 6.5
   }
-  src[[i]] <- knitr::knit_expand(file = paste0(dir_code, '_child_report_',figtab,'.Rmd'))
+  src_figtab[[i]] <- knitr::knit_expand(file = paste0(dir_code, '_child_report_',figtab,'.Rmd'))
 }
 
-res <- knitr::knit_child(text = paste0(unlist(src), collapse = ""), quiet = TRUE)
-cat(res, sep = '\n')
-
+res <- knitr::knit_child(text = paste0(unlist(src_figtab), collapse = ""), quiet = TRUE)
+cat(res, sep = ifelse(exists("sep0"), sep0, '\n')) # between can be "\\pagebreak" or similar
+remove(between)
 ```

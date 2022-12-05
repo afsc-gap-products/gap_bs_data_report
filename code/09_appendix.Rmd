@@ -135,9 +135,16 @@ list_app <- function(nickname, dir_out_figtab, abcd, srvy, descr_short, descr_fr
         "capt" = a$text))
   }
     # # (APPENDIX) Appendix {-}
-    str0 <- paste0('\\pagebreak
+    str0 <- paste0(
+    ifelse(abcd == "A", 
+'
 
-## Appendix ',abcd,': List of ', descr_short,'
+', 
+'\\pagebreak
+
+'),
+
+'## Appendix ',abcd,': List of ', descr_short,'
 
 Appendix ',abcd, " ", descr_frag, '
 
@@ -148,7 +155,9 @@ text_list(paste0("\n\n - Appendix **", abcd, "** \\@ref(tab:", captions$id, "): 
                  # sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")], "[[","header")), 
           oxford = FALSE, sep = " ", sep_last = " "),
 '
+
 \\pagebreak
+
 ' )
     
     return(str0)
