@@ -25,23 +25,16 @@ for (i in 1:length(dirs)) {
 dir.output<-paste0(dir_in, "/output/")
 dir_out_todaysrun<-paste0(dir.output, "/",Sys.Date(),"/")
 dir.create(dir_out_todaysrun)
-dir_out_todaysrun<-paste0(dir_out_todaysrun,"/", maxyr, "/")
+dir_out_todaysrun<-paste0(dir_out_todaysrun,"/", maxyr, "_", report_title, "/")
 dir.create(dir_out_todaysrun)
 
-dirs <- c("chapters", "rawdata", "documentation", "code", "figures", "tables", "cite", "ref")
+dirs <- c("chapters", "rawdata", "documentation", "code", "figtab", "cite", "ref")
 for (i in 1:length(dirs)) {
   if (dir.exists(paste0(dir_out_todaysrun, dirs[i])) == FALSE) {
     dir.create(paste0(dir_out_todaysrun, "/", dirs[i]))
   }
   assign(x = paste0("dir_out_", dirs[i]), value = paste0(dir_out_todaysrun, "/",dirs[i],"/"))
 }
-
-# If loading in InDesign, table and figure headers need to be their own .docx. Here's a file that will do that for you.
-# TableFigureHeader<-system.file("rmd", "TableFigureHeader.Rmd", package = "RMarkReports")
-
-TableFigureHeader<-paste0(dir_code, "TableFigureHeader.Rmd")
-
-options("citation_format" = "pandoc")
 
 # SAVE ALL R FILES USED FOR EACH RUN -------------------------------------------
 listfiles<-list.files(path = dir_code)
@@ -71,3 +64,4 @@ for (i in 1:length(listfiles0)){
 
 # CITATION STYLE ---------------------------------------------------------------
 options("citation_format" = "pandoc")
+

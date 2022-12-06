@@ -1,37 +1,13 @@
----
-output:
-  word_document:
-    pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: styles_reference.docx
-    df_print: kable
-csl: "../cite/citestyle.csl"
-bibliography: "../cite/bibliography.bib"
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
-```
 
 # Introduction
 
-> edit notes: 
-
-> need to update [@RN956]
-
-> in 2018, can't calculate 49 stations: length(unique(haul_cruises_maxyr$stationid[haul_cruises_maxyr$SRVY %in% "NBS"]))
-
-
-```{r}
-surv_insert1 <- paste0(ifelse(length(haul_cruises_maxyr$SRVY_long)>1, xunits(length(haul_cruises_maxyr$SRVY_long)), "a"), 
-       ' contiguous bottom trawl ', 
-       ifelse(length(haul_cruises_maxyr$SRVY_long)>1, 'surveys', 'survey'),
-       ' on the Bering Sea continental shelf: ', 
-              text_list(paste0('the ',haul_cruises_maxyr$yrofsurvey ,haul_cruises_maxyr$stndth, ' "',haul_cruises_maxyr$SRVY_long,'" (',haul_cruises_maxyr$SRVY,') survey')), '. ')
-
-surv_insert2 <- ""
+```{r intro_dates_surveyed}
+insert2 <- ""
 if (sum(haul_cruises_maxyr$SRVY %in% "EBS")>0) {
-  surv_insert2 <- paste0(surv_insert2, 
-                         'EBS in an annual time series that began in 1982 [@RN976]. ')
+  insert2 <- paste0(insert2, 
+                         'The EBS survey has occurred annually ', 
+                    ifelse(maxyr>2020, '(except in 2020 due to the COVID-19 pandemic) ', ''),
+                    'since 1982 and is the longest-running, standardized time series of fish and invertebrate data in the region [@RN976]. ')
 }
 
 if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
@@ -42,43 +18,58 @@ if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
     unique() %>% 
     dplyr::select(year) %>% 
     unlist()
-  surv_insert2 <- paste0(surv_insert2,
-                         'NBS has only been conducted in ',NMFSReports::text_list(temp2),' [@RN909]. ')
-  if (maxyr >= 2018 & maxyr > 2021) {
-      surv_insert2 <- paste0(surv_insert2,
-  'In 2018, the "Northern Bering Sea Rapid Response" (NBS) survey was conducted for the first time in response to warmer than average seafloor water temperatures and changes in historical fish and invertebrate distribution patterns observed during the NBS survey [@RN909]. The NBS standardized 20 x 20 nautical mile (nmi) sampling grid and survey station plan implemented in 2010 and 2017 was reduced in scope and resolution for 2018 to a 30 x 30 nmi grid and the survey extent was reduced by eliminating sampling in Norton Sound and near the Alaska coastline from near Nome, AK south towards Nunivak Island, AK (Figure ', crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number"),').') 
-      
-      haul_cruises_maxyr %>% 
-        dplyr::filter(SRVY %in% "NBS")
-      
-      length(unique(haul_cruises_maxyr$stationid[haul_cruises_maxyr$SRVY %in% "NBS"]))
-      
-    if (maxyr == 2018) {
-      surv_insert2 <- paste0(surv_insert2,
-  'The modified station grid resulted in 49 northern Bering Sea stations for sampling in ', maxyr,'. The NBS is a region of critical importance for increased scientific monitoring because it is a transitional zone between the NBS and Arctic Ocean that is transforming with the changing climate [@RN923]. In this document, we provide snapshots of survey results from 2018 for the NBS and rapid response NBS and compare NBS results with those from previous years.')
-    }
-
-  }
+  insert2 <- paste0(insert2,
+                         'The standardized NBS survey has only been conducted previously in ',text_list(temp2),' [@RN909]. ')
 }
 
+# insert <- readtext(file = paste0(dir_out_rawdata, "/doc_abstract_conclusion.docx"))
+# insert <- readtext2(file = paste0(dir_out_rawdata, "/0_introduction.docx"), 
+#                     refcontent = refcontent)
+# `r insert`
+
+temp <- haul_cruises_maxyr 
+str1 <- gsub(pattern = " ,", replacement = ",", 
+             x = text_list(paste0(temp$yrofsurvey, 
+                                               temp$stndth, " ", temp$survey_name, " (", temp$SRVY, ") from ", 
+                                               temp$start_mo_long, " to ", temp$end_mo_long, " ", maxyr), 
+                                        sep_last = ", as well as the "))
 ```
 
-In `r maxyr`, the National Marine Fisheries Service’s (NMFS) Resource Assessment and Conservation Engineering (RACE) Division of the Alaska Fisheries Science Center (AFSC) conducted `r surv_insert1`
+The purpose of the `r text_list(SRVY1)` shelf bottom trawl survey`r ifelse(SRVY=="NEBS", "s", "")` is to collect information about the fish and invertebrate populations and environmental conditions. In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of National Marine Fisheries Service's (NMFS') Alaska Fisheries Science Center AFSC conducted `r str1`. `r insert2` 
 
+```{r intro_insert_text, child=paste0(dir_out_rawdata, "/0_introduction.Rmd")}
+```
 
-`r surv_insert2` Both bottom trawl surveys are mission critical to the AFSC because the results are critical to managing fisheries resources, monitoring the ecosystem, and providing a valuable data time-series for doing basic fisheries research. Fishery-independent abundance estimates and other biological and oceanographic information from Bering Sea bottom trawl surveys are used by the AFSC, North Pacific Fishery Management Council (NPFMC) and the Alaska Department of Fish and Game (ADF&G) to manage groundfish and crab stocks and to do ecosystem forecast modeling that are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act. 
+The data collected during these bottom trawl surveys are vital for managing fisheries resources and for ecosystem monitoring. Fishery-independent abundance estimates, in addition to other biological and oceanographic information from Bering Sea shelf bottom trawl surveys, are used by the AFSC, North Pacific Fishery Management Council (NPFMC), and the Alaska Department of Fish and Game (ADF&G). These organizations utilize the survey data products to manage groundfish and crab stocks, as well as conduct ecosystem forecast modeling, which are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act ([https://www.fisheries.noaa.gov/topic/laws-policies](https://www.fisheries.noaa.gov/topic/laws-policies)). 
 
+Effective management of fisheries resources and healthy ecosystems are especially important to Alaska Native communities and to the tens of thousands of people who are employed by the Alaska fishing industry. The commercial fishing industry in Alaska generates billions of dollars for the U.S. economy annually (https://www.fisheries.noaa.gov/alaska/socioeconomics/alaska-economic-and-social-sciences-research; https://www.fisheries.noaa.gov/national/sustainable-fisheries/fisheries-economics-united-states).
 
-> **Moved the below paragraph from history section**
+In this document, we compare the most recent and similar surveys within the same regions. Therefore, we compare `r text_list(paste0("the ", maxyr, " ", SRVY1, " survey results with those from the ", compareyr, " ", SRVY1, " shelf bottom trawl survey"))` [@RN976]. For data referenced from previous surveys, refer to the AFSC Technical Memoranda here at the end of the report and listed on the AFSC website ([https://www.fisheries.noaa.gov/resource/publication-database/alaska-fisheries-science-center-technical-memorandums](https://www.fisheries.noaa.gov/resource/publication-database/alaska-fisheries-science-center-technical-memorandums)).
 
-> add notes on retow and 15/30 studys mentioned in (Figure `r crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `)
+## History of Bering Sea Bottom Trawl Surveys
 
-In this document, we will compare the `r NMFSReports::text_list(x = paste0(maxyr, " ", haul_cruises_maxyr$SRVY, " survey results with those from the ", haul_cruises_maxyr$compareyr, " ", haul_cruises_maxyr$SRVY, " survey [", haul_cruises_maxyr$compareyr_ref, "]"))`. `r ifelse(SRVY == "NEBS", paste0("To simplify the results and discussion from here forward, the terms “EBS” and “NBS” will be used to refer specifically to either the eastern or northern Bering Sea bottom trawl survey area, respectively, and “NEBS” will be used when referring to the combined EBS and NBS survey areas. The combined ", maxyr, ' NEBS survey will be compared with the ', min(haul_cruises_maxyr$compareyr) ," NEBS survey [", haul_cruises_maxyr$compareyr_ref[haul_cruises_maxyr$SRVY == "NBS"], "]."), "")` For survey results referenced from previous surveys herein, the reader should refer to the AFSC Technical Memoranda cited here.
+The Bering Sea continental shelf supports several of the most productive groundfish and crab fisheries in the world [@Fissel2021]. Although many species of groundfish are caught commercially in the Bering Sea, groundfish such as walleye pollock (*Gadus chalcogrammus*), Pacific cod (*Gadus macrocephalus*) and yellowfin sole (*Limanda aspera*) have been the primary target species among commercial catches. Of these catches, walleye pollock is the most abundant species. Commercial catches ranged from 0.8 million metric tons (t) in 2009 to 1.5 million t from 2003-2006 per year over the course of the EBS survey, and the marketed products represented 40% of the global whitefish market [@RN971]. Commercial crab stocks on the Bering Sea shelf include Tanner crab (*Chionoecetes bairdi*), snow crab (*Chionoecetes opilio*), red king crab (*Paralithodes camtschaticus*), blue king crab (*Paralithodes platypus*), and hair crab (*Erimacrus isenbeckii*; @RN956).
 
-Good management of fisheries resources and a healthy ecosystem are especially important to the Alaska Native communities as a way of life and to the tens of thousands of people who are employed by the Alaska fishing industry that generates billions of dollars for the U.S. economy.
+The federal government has conducted bottom trawl surveys of the eastern Bering Sea continental shelf since the 1940s. These early surveys were often exploratory efforts to locate commercial fisheries resources [@RN945] and led to the development of a valuable red king crab fishery. Bottom trawl surveys by the U.S. continued into the 1970s with private industry involvement to study the biology, distribution, abundance, and best fishing practices for red king crab [@RN945]. The first large-scale survey of the Bering Sea shelf was conducted in 1975 under contract from the U.S. Bureau of Land Management. The purpose was to collect baseline data for assessing the potential impact of the growth in the offshore oil industry on the development of Bering Sea groundfish and crab fishery resources [@RN920]. During the 1975 baseline survey, sampling was conducted over the shelf between the 20 m and 200 m isobaths from the Alaska Peninsula north to approximately 62°N.
 
+In subsequent years, the areal coverage of the annual survey`r ifelse(SRVY=="NEBS", "s", "")` was reduced. However, in 1979, a comprehensive survey of the Bering Sea shelf was undertaken in cooperation with the Japan Fisheries Agency [@RN978]. That survey encompassed the entire region sampled in the 1975 baseline study and included the upper continental slope waters between St. Matthew and St. Lawrence islands.
 
-`r list_figures$fig_sample_grid$res `
+Following the 1979 survey, annual bottom trawl surveys have re-sampled the same areas and stations established during the 1975 survey with slight modifications in sampling design in some years. Beginning in 1979 and continuing triennially until 1991, the survey was extended to include bottom trawl sampling of the continental slope and in the region between St. Matthew and St. Lawrence islands. After a hiatus from 1992 to 1999 due to lack of funding, the Bering Sea slope survey was resumed in 2002 as an independent, standardized bottom trawl survey series that has been conducted on a quasi-biennial basis dependent on funding [@RN979; @RN933; @RN898]. The most recent slope survey was conducted in 2016 [@RN979].
 
-`r list_figures$fig_sampled_survey_stations$res `
+```{r intro_history_text, child=paste0(dir_out_rawdata, "/0_history.Rmd")}
+```
+
+```{r fig-sampled-survey-stations}
+nickname <- "fig-sampled-survey-stations" # Fig. \@ref(fig:fig-sampled-survey-stations)
+```
+
+```{r fig-sampled-survey-stations-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
+
+```{r fig-sample-grid}
+nickname <- "fig-sample-grid" # Fig. \@ref(fig:fig-sample-grid)
+```
+
+```{r fig-sample-grid-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
 

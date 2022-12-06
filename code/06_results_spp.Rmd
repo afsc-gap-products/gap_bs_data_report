@@ -1,111 +1,270 @@
----
-output:
-  word_document:
-    pandoc_args: ["--metadata-file=header.yaml"]
-    reference_docx: styles_reference.docx
-    df_print: kable
-csl: "../cite/citestyle.csl"
-bibliography: "../cite/bibliography.bib"
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
+```{r res_spp_vars_{{jj}} }
+a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[{{jj}}], ]
+
+spp_sci <- a$species_name[1]
+spp_sci1 <- a$species_name1[1]
+spp_code <- a$species_code # eval(expr = parse(text = a$species_code[1]))
+spp_print <- a$print_name[1]
+spp_file <- a$file_name[1]
+spp_taxon <- a$taxon[1]
+
+# report_title == "community"
+spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
+spp_plot_idw_20 <- FALSE
+spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
+spp_plot_pa <- FALSE
+spp_table_cpue <- FALSE
+spp_text <- TRUE
+
+if (report_title == "data") {
+spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
+spp_plot_idw_20 <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
+spp_text <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
+}
+
+land_start <- ifelse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_START--->", "")
+land_end <- ifelse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_STOP--->", "")
+
 ```
 
-```{r}
-spp_sci <- report_spp$report_name_scientific[jj]
-spp_code <- eval(expr = parse(text = report_spp$species_code[jj]))
-spp_common<-report_spp$common_name[jj]
-spp_file <- report_spp$file_name[jj]
+
+```{r res_spp_lang_{{jj}} }
+# Native Languages Names
+lang <- ""
+
+if (report_title == "community") {
+
+temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"))
+
+lang <- data.frame(lang_long = as.character(names(temp)[grepl(pattern = "lang_", x = temp[1,])]), 
+                   lang = as.character(temp[1,grepl(pattern = "lang_", x = temp[1,])]), 
+                   name = as.character(t(report_spp[jj,] %>% dplyr::select( dplyr::starts_with("lang_")) )) )
+
+lang <- rbind.data.frame(data.frame(name = c(ifelse(is.na(a$scientific_name_prev[a$print_name == spp_print][1]), NA, 
+                                                    paste0("*", a$scientific_name_prev[a$print_name == spp_print][1], "*")), 
+                                             ifelse(is.na(a$common_name_prev[a$print_name == spp_print][1]), NA, 
+                                                    a$common_name_prev[a$print_name == spp_print][1])), 
+                                    lang = c("scientific_name_prev", "common_name_prev"), 
+                                    lang_long = c("Previous Scientific Name", "Other Common Names")), 
+                         lang) %>%
+  dplyr::filter(!is.na(name))
+
+if (nrow(lang)>0) {
+  lang  <- paste(paste0("**",lang$lang_long,"**: ",lang$name,"\n\n"), sep = "", collapse = "")
+} else {
+  lang <- ""
+}
+}
 ```
 
-### `r spp_common` (*`r spp_sci`*)
+## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
 
-```{r}
+`r lang `
+
+```{r res_spp_data_wrangle_{{jj}} }
 # find basic info about species
-haul_maxyr_spp<-catch_haul_cruises_maxyr %>% 
-  dplyr::filter(species_code %in% spp_code)
+haul0 <- catch_haul_cruises %>% 
+    dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
+                  "bottom_depth", "gear_temperature" ,"surface_temperature", 
+                  "survey_name", "SRVY", "year", "species_code", 
+                  "weight", "number_fish", "hauljoin")
 
-haul_compareyr_spp<-catch_haul_cruises_compareyr %>% 
-  dplyr::filter(species_code %in% spp_code)
+biomass_cpue <- biomass %>% 
+  dplyr::filter(year %in% c(maxyr, compareyr) & 
+                  species_code %in% spp_code[1] &
+                  stratum %in% 999) %>%
+  dplyr::select(SRVY, year, biomass, population, meanwgtcpue, meannumcpue) %>% 
+  dplyr::mutate(print_name = spp_print) %>% 
+  dplyr::rename(cpue_kgha = meanwgtcpue, 
+                cpue_noha = meannumcpue)
+
+# biomass_cpue <- cpue_biomass_total %>%
+#   dplyr::select("year", "print_name", "SRVY", "weighted_CPUE", "biomass_mt") %>%
+#   dplyr::rename(biomass = biomass_mt,
+#                 cpue_kgha = weighted_CPUE)
+
+# biomass_cpue <- biomass %>% 
+#   dplyr::filter(species_code == spp_code[1]) %>%
+#   dplyr::select(year, SRVY, varmnwgtcpue, biomass) %>% 
+#   dplyr::rename(biomass = biomass, 
+#                 cpue_kgha = varmnwgtcpue) %>% 
+#   dplyr::mutate(print_name = spp_print)
+
+length_maxyr0 <- length_data %>% 
+  ungroup() %>% 
+  dplyr::filter(species_code %in% spp_code) %>% 
+  dplyr::select(SRVY, species_code, frequency, sex, length,
+                length_type, name, sentancefrag)
+
 ```
 
-`r ifelse(refcontent, "## **EBS**", "")`
+`r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - START*", "")`
 
-```{r}
-if (refcontent) {
+```{r res_spp_ebs_{{jj}}, results='asis'}
+temp <- ""
+temp1 <- ""
+show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0)
+if (show) {
+  if (report_title == "community") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange")
+  } else if (report_title == "data") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS")
+  }
+  
 temp<-species_content(
   SURVEY000 = "eastern Bering Sea", 
   SRVY000 = "EBS", 
-  haul_maxyr, 
-  haul_compareyr_spp, 
-  haul_maxyr_spp, 
-  length_maxyr, 
-  length_type, 
-  spp_common, 
-  spp_code,
-  maxyr, 
-  compareyr)
+  haul0 = haul0,
+  biomass_cpue = biomass_cpue, 
+  length_maxyr0 = length_maxyr0,
+  spp_print = spp_print, 
+  spp_code = spp_code,
+  maxyr = maxyr, 
+  compareyr = compareyr, 
+  biomass_cpue_tab_name = biomass_cpue_tab_name, 
+  total_biomass = total_biomass)
+
+temp1 <- temp$table_spp
+temp <- (temp$spp_text)
+names(temp) <-  NULL
+temp <- unlist(temp)
+# print(temp)
+temp <- (paste0(temp, collapse = "\n\n"))
 }
+
+# biomass %>% 
+#   dplyr::filter(year %in% c(2021, 2022) & grepl(pattern = "snailfish", x = common_name) & SRVY == "NBS") %>% 
+#   dplyr::select(year, common_name, catcount) %>% 
+#   dplyr::group_by(year, common_name) %>% 
+#   dplyr::summarise(freq = sum(catcount)) %>% 
+#   dplyr::arrange(desc(freq)) %>% 
+#   tidyr::pivot_wider(data = ., id_cols = c("common_name"), names_from = "year", values_from = freq)
+
 ```
+
+`r ifelse(show, "**Eastern Bering Sea (EBS)**", "")`
+
+`r temp1`
 
 `r temp`
 
-`r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "## **NBS**", ""), "")`
 
-```{r}
-if (refcontent) {
-
-if (SRVY %in% "NEBS") {
+```{r res_spp_nbs_{{jj}} }
+temp <- ""
+temp1 <- ""
+show <- refcontent & (nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
+if (show) {
+    if (report_title == "community") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange")
+  } else if (report_title == "data") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_NBS")
+  }
 temp<-species_content(
   SURVEY000 = "northern Bering Sea", 
   SRVY000 = "NBS", 
-  haul_maxyr, 
-  haul_compareyr_spp, 
-  haul_maxyr_spp, 
-  length_maxyr, 
-  length_type, 
-  spp_common, 
-  spp_code,
-  maxyr, 
-  compareyr)
-}
+  haul0 = haul0,
+  biomass_cpue = biomass_cpue, 
+  length_maxyr0 = length_maxyr0,
+  spp_print = spp_print, 
+  spp_code = spp_code,
+  maxyr = maxyr, 
+  compareyr = compareyr, 
+  biomass_cpue_tab_name = biomass_cpue_tab_name, 
+  total_biomass = total_biomass)
+temp1<-temp$table_spp
+temp <- temp$spp_text
 }
 ```
 
+`r ifelse(show, ifelse(SRVY %in% "NEBS", "**Northern Bering Sea (NBS)**", ""), "")`
+
+`r temp1`
+
 `r temp`
 
-`r ifelse(refcontent, ifelse(SRVY %in% "NEBS", "## **NEBS**", ""), "")`
-
-```{r}
-if (refcontent) {
+```{r res_spp_nebs_{{jj}} }
+temp <- ""
+temp1 <- ""
+show <- refcontent & 
+  (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0 &
+     nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
+if (show) {
+  if (report_title == "community") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange")
+  } else if (report_title == "data") {
+    biomass_cpue_tab_name = c("tab_majortaxa_pchange_EBS", "tab_majortaxa_pchange_NBS")
+  }
 temp<-species_content(
-  SURVEY000 = SURVEY, 
-  SRVY000 = SRVY, 
-  haul_maxyr, 
-  haul_compareyr_spp, 
-  haul_maxyr_spp, 
-  length_maxyr, 
-  length_type, 
-  spp_common, 
-  spp_code,
-  maxyr, 
-  compareyr)
+  SURVEY000 = "eastern and northern Bering Sea",
+  SRVY000 = c("NBS", "EBS"),
+  haul0 = haul0,
+  biomass_cpue = biomass_cpue, 
+  length_maxyr0 = length_maxyr0,
+  spp_print = spp_print, 
+  spp_code = spp_code,
+  maxyr = maxyr, 
+  compareyr = compareyr, 
+  biomass_cpue_tab_name = biomass_cpue_tab_name, 
+  total_biomass = total_biomass)
+temp1<-temp$table_spp
+temp <- temp$spp_text
 }
 ```
 
-`r temp`
+`r ifelse(show, ifelse(SRVY %in% "NEBS", "**Northern and Eastern Bering Sea Combined (NEBS)**", ""), "")`
+
+`r temp1`
+
+`r temp `
+
+`r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
 ```{r}
-insert <- readtext(file = paste0(dir_out_rawdata, "/",spp_file,".docx"))
-insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert$text)
+if (spp_plot_idw_20) {
+  fig_dist_above <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, "-above)")
+  fig_dist_below <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, "-below)")
+} 
+
+if (spp_plot_idw) {
+  fig_dist <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, ")")
+}
+
+if (spp_plot_sizecomp) {
+  fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
+} 
+
+if (spp_table_cpue) {
+  tab_wt <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-wt)")
+  tab_no <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-num)")
+}
 ```
 
-`r list_figures[paste0("fig_idw_bottemp_", spp_file, "_above")]$res `
+```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
+```
 
-`r list_figures[paste0("fig_idw_bottemp_", spp_file, "_below")]$res `
+```{r fig-dist-{{jj}}}
+nickname <- paste0("fig-dist-",spp_taxon,"-", spp_file)
+```
 
-`r list_tables[paste0("tab_cpue_biomass_", spp_file)]$res `
+```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=ifelse(spp_plot_idw | spp_plot_idw_20, TRUE, FALSE)}
+```
 
+```{r fig-sizecomp-{{jj}}}
+nickname <- paste0("fig-sizecomp-",spp_taxon,"-", spp_file)
+```
 
+```{r fig-sizecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_plot_sizecomp}
+```
 
+`r land_start `
+
+```{r tab-estimates-maxyr-{{jj}}}
+nickname <- paste0("tab-estimates-maxyr-",spp_taxon,"-", spp_file)
+```
+
+```{r tab-estimates-maxyr-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_table_cpue}
+```
+
+`r land_end `

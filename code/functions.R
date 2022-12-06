@@ -1,6 +1,6 @@
 #' ---
 #' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-#' author: 'L. Britt, E. J. Dawson, R. Haehn and E. H. Markowitz'
+#' author: 'Markowitz, EH, EJ Dawson, B Prohaska, N Charriere, R Haehn, S Rohan, L Britt, and D Stevenson'
 #' purpose: Store functions
 #' start date: 2021-09-01
 #' date modified: 2021-03-03        # CHANGE
@@ -14,13 +14,12 @@ PKG <- c(
   # For creating R Markdown Docs
   "knitr", # A general-purpose tool for dynamic report generation in R
   "rmarkdown", # R Markdown Document Conversion
-  
-  # File Management
-  # "here", # For finding the root directory of your scripts and thus, find your files
-  # "officer",
+  "officer", 
+  "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
+  # "quarto", 
   
   # Keeping Organized
-  "devtools", # Package development tools for R; used here for downloading packages from GitHub
+  # "devtools", # Package development tools for R; used here for downloading packages from GitHub
   # "renv", # saves the packages in the R environment
   
   
@@ -28,22 +27,26 @@ PKG <- c(
   "ggplot2", # Create Elegant Data Visualisations Using the Grammar of Graphics
   "cowplot",
   "png",
+  "magick",
   "extrafont",
   "ggpubr",
   "nmfspalette",  # devtools::install_github("nmfs-general-modeling-tools/nmfspalette")
+  "ggridges",
   
   # Text
-  "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports") # Package of my favorite grammar and file managment functions for writing reproducible reports
+  # "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports", force = TRUE) # Package of my favorite grammar and file managment functions for writing reproducible reports
   
   # Citations
-  "knitcitations", # devtools::install_github("cboettig/knitcitations")
+  # "knitcitations", # devtools::install_github("cboettig/knitcitations")
   
   # other tidyverse
+  "plyr",
   "dplyr",
   "googledrive",
   "magrittr",
   "readr",
   "tidyr",
+  "readxl", 
   
   # Text Management
   "stringr",
@@ -53,46 +56,35 @@ PKG <- c(
   "akgfmaps", # devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
   "coldpool", # devtools::install_github("sean-rohan-noaa/coldpool")
   
-  
-  # Spatial
+  # Spatial mapping
   "sf",
-  "rlist", 
-  "jsonlite", 
-  "prettymapr",
+  "rlist",
+  # "jsonlite", 
+  # "prettymapr",
   "rgdal", 
-  "rosm", 
-  "shadowtext", 
+  # "rosm", 
+  "shadowtext",
   "ggspatial", 
   "digest", 
   "ggsn",
   "rgdal", 
   "ps", 
-  "backports", 
-  "callr", 
-  "labeling", 
+  # "backports", 
+  # "callr", 
+  # "labeling", 
   "gstat", 
   "magrittr", 
   "raster", 
   "reshape", 
   "stars",
   "grid", 
+  "scales", # nicer lables in ggplot2
   
-  # library(rasterVis)
-  # library(scales)
-  # library(ggthemes) # theme_map()
-  
-  
-  # Time
-  # "lubridate",
-  
-  # Species
-  # "taxize", 
-  
-  # For outputting JS files
-  # "jsonlite", 
+  # # check website links
+  "pingr",
+  "httr",
   
   # Tables
-  "officer", 
   "flextable", 
   
   # For editing XML files
@@ -111,20 +103,21 @@ for (p in PKG) {
 
 loadfonts(device = "win")
 
-# renv ------------------------------------------------------------------
+# Knowns -----------------------------------------------------------------------
 
-# renv::snapshot()
+cnt_chapt_content<-"000"
 
+full_page_portrait_width <- 6.5
+full_page_portrait_height <- 7.5
+full_page_landscape_width <- 9.5
 
-# Cite R Packages --------------------------------------------------------
-
+# Cite R Packages --------------------------------------------------------------
 knitr::write_bib(x = PKG,
                  file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
 
 file.copy(from = paste0(dir_out_rawdata, "bibliography_RPack.bib"),
           to = paste0(dir_cite,"/bibliography_RPack.bib"),
           overwrite = TRUE)
-
 
 # Housekeeping -----------------------------------------------------------------
 
@@ -141,8 +134,323 @@ list_figures <- list()
 
 # Functions -------------------------------------------------------------
 
+## 
 
-######### General Stuff ########
+## Modify Numbers --------------------------------------------------------------
+
+#' Find a range of numbers for text
+#'
+#' This function outputs the range of values (broken or continuous) as you would want to display it in text.
+#'
+#' @param x A numeric vector of any length. Any duplicates will be removed.
+#' @param dash A string that will go between consecutive values in the string output.
+#' @param oxford Default = TRUE. Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
+#' @param sep Default = ", ". Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
+#' @param sep_last Default = "and ". Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
+#'
+#' @return A string with the range of those values as might be included in a sentence ("1-3, 5, and 7-8").
+#' @export
+#'
+#' @examples
+#' # a typical example
+#' x <- c(2003:2005, 2007, 2010:2012)
+#' range_text(x)
+#' # example has duplicate values out of order and specifies for a different dash and no oxford comma
+#' x <- c(1,2,11,3,4,7,NA,8,3)
+#' range_text(x, dash = "--", oxford = FALSE)
+range_text <- function(x,
+                       dash = "-",
+                       oxford = TRUE,
+                       sep = ", ",
+                       sep_last = "and ") {
+  x <- x[!(is.na(x))]
+  x <- x[!duplicated(x)]
+  x <- sort(x)
+  y <- min(x):max(x)
+  z <- setdiff(y, x)
+  if (length(z)>0) { # if x is not continuous
+    # https://stat.ethz.ch/pipermail/r-help/2010-April/237031.html
+    vec <- y
+    vec[(vec %in% z)] <- NA
+    
+    # remove consecutive NAs
+    foo <- function( x ){
+      idx <- 1 + cumsum( is.na( x ) )
+      not.na <- ! is.na( x )
+      split( x[not.na], idx[not.na] )
+    }
+    ls <- foo(vec)
+    
+    str <- c()
+    for (i in 1:length(ls)) {
+      a <- ls[i][[1]]
+      if (length(a) == 1){
+        str <- c(str, paste0(a))
+      } else {
+        str <- c(str, paste0(min(a),dash,max(a)))
+      }
+    }
+    str <- NMFSReports::text_list(x = str,
+                                  oxford = oxford,
+                                  sep = sep,
+                                  sep_last = sep_last)
+  } else {
+    str <- paste0(min(x),dash,max(x))
+  }
+  return(str)
+}
+
+
+#' Determine the appropriate unit for a value.
+#'
+#' Determine the appropriate unit for a value (e.g., 1000000 = '1 Million'.
+#' @param value A numeric value.
+#' @param val_under_x_words a numeric that defines what values should be words as opposed to characters in a text. For example, many styles prefer that all values from 0 to 10 are spelled out in words, so you would set this parameter to 10 (which is the default). Set this parameter to NULL for nothing to to be spelled out.
+#' @param words T/F. Default = TRUE. If TRUE, "1000000" would become "1 Million" and if FALSE would become "1,000,000".
+#' @keywords Modify number, units
+#' @export
+#' @examples
+#' xunits(value = NA)
+#' xunits(value = c(0, 1))
+#' xunits(value = c(0, 1), val_under_x_words = 0)
+#' xunits(value = 12)
+#' xunits(value = c(12345, 123456, 1234567))
+#' xunits(value = 123456789)
+#' xunits(value = 123456789, words = FALSE)
+xunits<-function(value,
+                 val_under_x_words = 10,
+                 words = TRUE
+                 #, combine=TRUE # #' @param combine Should this be combined in a single string (T) or as two seperate strings in a list (F). Default = T.
+                 
+) {
+  
+  f = file()
+  sink(file=f)
+  
+  combine <- TRUE
+  
+  out<-c()
+  
+  for (iii in 1:length(value)){
+    
+    value0<-sum(as.numeric(value[iii]))
+    
+    if (is.na(value0)) {
+      out0 <- NA
+    } else {
+      
+      if (words == FALSE) {
+        unit<-""
+        x<-formatC(x = value0, big.mark = ",", digits = 0, format = "f")
+      } else {
+        sigfig <- formatC(x = value0, digits = 3, format = "e")
+        sigfig0 <- as.numeric(strsplit(x = sigfig, split = "e", fixed = TRUE)[[1]][2])
+        
+        if (sigfig0==0) {
+          unit<-""
+          x<-formatC(x = value0, big.mark = ",", digits = 0, format = "f")
+          if (!is.null(val_under_x_words)) {
+            if (as.numeric(value0) <= val_under_x_words & as.numeric(value0) >= 0) {
+              x <- NMFSReports::numbers2words(x = as.numeric(value0))
+            }
+          }
+        } else if (sigfig0<=5) {
+          # if (sigfig0<4) {
+          unit<-""
+          x<-formatC(x = value0, big.mark = ",", digits = 0, format = "f")
+          # } else if (sigfig0>=4 & sigfig0<6) {
+          #   unit<-" thousand"
+          # x<-round(value0/1e3, digits = 1)
+          # } else if (sigfig0==5) {
+          #   unit<-" thousand"
+          #   x<-round(value0/1e3, digits = 0)
+        } else if (sigfig0>=6 & sigfig0<9) {
+          unit<-" million"
+          x<-round(value0/1e6, digits = 1)
+        } else if (sigfig0>=9 & sigfig0<12) {
+          unit<-" billion"
+          x<-round(value0/1e9, digits = 1)
+        } else if (sigfig0>=12) {
+          unit<-" trillion"
+          x<-round(value0/1e12, digits = 1)
+        }
+      }
+      out0<-ifelse(combine==TRUE, paste0(x, unit), list(x, unit))
+    }
+    
+    out<-c(out, out0)
+  }
+  
+  sink()
+  close(f)
+  
+  return(out)
+}
+
+
+#' Convert number to text string.
+#'
+#' Function by John Fox found here: http://tolstoy.newcastle.edu.au/R/help/05/04/2715.html and https://github.com/ateucher/useful_code/blob/master/R/numbers2words.r
+#' @param x The numbers that need to be converted to string.
+#' @keywords Text editing
+#' @export
+#' @examples
+#' numbers2words(x = 1890)
+#' numbers2words(x = 3)
+#' numbers2words(x = 1800090)
+numbers2words <- function(x){
+  # Function by John Fox found here: http://tolstoy.newcastle.edu.au/R/help/05/04/2715.html and https://github.com/ateucher/useful_code/blob/master/R/numbers2words.r
+  if(x==0){
+    print( "zero")
+  } else{
+    helper <- function(x){
+      
+      digits <- rev(strsplit(as.character(x), "")[[1]])
+      nDigits <- length(digits)
+      if (nDigits == 1) as.vector(ones[digits])
+      else if (nDigits == 2)
+        if (x <= 19) as.vector(teens[digits[1]])
+      else trim(paste(tens[digits[2]],
+                      Recall(as.numeric(digits[1]))))
+      else if (nDigits == 3) trim(paste(ones[digits[3]], "hundred and",
+                                        Recall(makeNumber(digits[2:1]))))
+      else {
+        nSuffix <- ((nDigits + 2) %/% 3) - 1
+        if (nSuffix > length(suffixes)) stop(paste(x, "is too large!"))
+        trim(paste(Recall(makeNumber(digits[
+          nDigits:(3*nSuffix + 1)])),
+          suffixes[nSuffix],"," ,
+          Recall(makeNumber(digits[(3*nSuffix):1]))))
+      }
+    }
+    trim <- function(text){
+      #Tidy leading/trailing whitespace, space before comma
+      text=gsub("^\ ", "", gsub("\ *$", "", gsub("\ ,",",",text)))
+      #Clear any trailing " and"
+      text=gsub(" and$","",text)
+      #Clear any trailing comma
+      gsub("\ *,$","",text)
+    }
+    makeNumber <- function(...) as.numeric(paste(..., collapse=""))
+    #Disable scientific notation
+    opts <- options(scipen=100)
+    on.exit(options(opts))
+    ones <- c("", "one", "two", "three", "four", "five", "six", "seven",
+              "eight", "nine")
+    names(ones) <- 0:9
+    teens <- c("ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+               "sixteen", " seventeen", "eighteen", "nineteen")
+    names(teens) <- 0:9
+    tens <- c("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty",
+              "ninety")
+    names(tens) <- 2:9
+    x <- round(x)
+    suffixes <- c("thousand", "million", "billion", "trillion")
+    if (length(x) > 1) return(trim(sapply(x, helper)))
+    helper(x)
+  }
+  
+}
+
+
+#' Convert number to text string.
+#'
+#' Convert number to text string to the 'st, 'nd, 'rd, or 'th.
+#' @param x The numbers that need to be converted to string.
+#' @param type How the numbers should be converted. Default = "word" (which produces "fifty-third"), but you can also select "val_th" (which produces "53rd").
+#' @keywords Text editing
+#' @export
+#' @examples
+#' numbers2words_th(x = 3, type = "val_th")
+#' numbers2words_th(x = 3, type = "word")
+numbers2words_th<-function(x, type = "word"){
+  
+  # type = col name = c("val_th", "word")
+  
+  # First
+  first2twen<-data.frame(matrix(data = c("first",	"1st",
+                                         "second",	"2nd",
+                                         "third",	"3rd",
+                                         "fourth",	"4th",
+                                         "fifth",	"5th",
+                                         "sixth",	"6th",
+                                         "seventh",	"7th",
+                                         "eighth",	"8th",
+                                         "ninth",	"9th",
+                                         "tenth",	"10th",
+                                         "eleventh",	"11th",
+                                         "twelfth",	"12th",
+                                         "thirteenth",	"13th",
+                                         "fourteenth",	"14th",
+                                         "fifteenth",	"15th",
+                                         "sixteenth",	"16th",
+                                         "seventeenth",	"17th",
+                                         "eighteenth",	"18th",
+                                         "nineteenth",	"19th",
+                                         "twentieth",	"20th"), ncol = 2, byrow =  T))
+  names(first2twen)<-c("word", "val_th")
+  first2twen$val<-1:20
+  
+  # Tens
+  tens<-data.frame(matrix(data = c("twentieth", 20,
+                                   "thirtieth", 30,
+                                   "fortieth",	40,
+                                   "fiftieth",	50,
+                                   "sixtieth",	60,
+                                   "seventieth",	70,
+                                   "eightieth",	80,
+                                   "ninetieth",	90), ncol = 2, byrow =  T))
+  names(tens)<-c("word", "val")
+  tens$word0<-paste0(substr(x = tens$word, start = 1, stop = nchar(tens$word)-4), "y")
+  tens$val_th<-paste0(tens$val, "th")
+  
+  # Hundred
+  hund<-data.frame(matrix(data = c(
+    "hundredth", 100,
+    "thousandth", 1000,
+    "millionth",	1000000,
+    "billionth",	1000000000,
+    "trillionth",	1000000000000), ncol = 2, byrow =  T))
+  names(hund)<-c("word", "val")
+  hund$word0<-paste0(substr(x = hund$word, start = 1, stop = nchar(hund$word)-2), "")
+  tens$val_th<-paste0(tens$val, "th")
+  
+  if (x %in% 1:20) {
+    xx<-first2twen[first2twen$val %in% x, type]
+  } else if (substr(x = x, start = nchar(x), stop = nchar(x)) %in% 0) {
+    xx<-tens[tens$val %in% round(x = x, digits = -1), type]
+  } else {
+    
+    if (type %in% "word") {
+      xx<-paste0(tens[tens$val %in% as.numeric(paste0(substr(x = x, start = 1, stop = 1), 0)), "word0"],
+                 "-",
+                 first2twen[(first2twen$val %in% (x-as.numeric(paste0(substr(x = x, start = 1, stop = 1), 0)))), type])
+    } else {
+      x1<-substr(x = x, start = nchar(x), stop = nchar(x))
+      stndrdth<-"th"
+      if (x1 %in% 1) {
+        stndrdth<-"st"
+      } else if (x1 %in% 2) {
+        stndrdth<-"nd"
+      } else if (x1 %in% 3) {
+        stndrdth<-"rd"
+      }
+      xx<-paste0(x, stndrdth)
+      
+    }
+    
+    
+  }
+  
+  return(xx)
+  
+}
+
+date_format<- "%B %d, %Y" # "%B %#d, %Y"
+
+date_formatter <- function(date = "1998-09-02", date_format = "%B %d, %Y") {
+  return(gsub("(\\D)0", "\\1", format(as.Date(date), date_format)))
+}
 
 SameColNames<-function(df.ls) {
   #All column names
@@ -219,6 +527,204 @@ CapFirst <- function(x) {
   return(xx)
 }
 
+## Load data files -------------------------------------------------------------
+
+readtext2 <- function(file, refcontent = FALSE){
+  
+  # read in document
+  insert <- readtext(file = file)$text
+  
+  if (insert == "") { # if there is nothing in the doc, no problem!
+    insert <- ""
+  } else { # if there is something in the doc
+    
+    # remind reviewers what is code and what is not:
+    if (refcontent) { 
+      insert <- paste0("**Handwritten text from google drive**: ", 
+                       gsub(pattern = "\n", replacement = "\n\n\n **Handwritten text from google drive**:", x = insert), 
+                       "")
+    } else {
+      insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert)
+    }
+    
+    # incorportate r code in the text
+    # insert <- strsplit(x = insert, split = "`r")[[1]]
+    insert <- strsplit(x = insert, split = "`")[[1]]
+    insert[substr(start = 1, stop = 2, x = insert) != "r "] <-
+      paste0('"', insert[substr(start = 1, stop = 2, x = insert) != "r "], '",')
+    # paste0("'", insert[substr(start = 1, stop = 2, x = insert) != "r "], "',")
+    insert[substr(start = 1, stop = 2, x = insert) == "r "] <-
+      paste0(substr(x = insert[substr(start = 1, stop = 2, x = insert) == "r "] ,
+                    start = 3,
+                    stop = nchar(insert[substr(start = 1, stop = 2, x = insert) == "r "] )), ",")
+    insert <- paste0(insert, collapse = "")
+    insert<-paste0(substr(x = insert, start = 1, stop = nchar(insert)-1)) # get rid of ",)" at end of last paragraph
+    insert <- paste0("paste0(", insert, ")", collapse = "")
+    insert <- eval(parse( text= insert ))
+    
+  }
+  return(insert)
+}
+
+
+library(pingr)
+
+#' @param x a single URL
+#' @param non_2xx_return_value what to do if the site exists but the
+#'        HTTP status code is not in the `2xx` range. Default is to return `FALSE`.
+#' @param quiet if not `FALSE`, then every time the `non_2xx_return_value` condition
+#'        arises a warning message will be displayed. Default is `FALSE`.
+#' @param ... other params (`timeout()` would be a good one) passed directly
+#'        to `httr::HEAD()` and/or `httr::GET()`
+url_exists <- function(x, non_2xx_return_value = FALSE, quiet = FALSE,...) {
+  # https://stackoverflow.com/questions/52911812/check-if-url-exists-in-r
+  suppressPackageStartupMessages({
+    require("httr", quietly = FALSE, warn.conflicts = FALSE)
+  })
+  
+  # you don't need thse two functions if you're alread using `purrr`
+  # but `purrr` is a heavyweight compiled pacakge that introduces
+  # many other "tidyverse" dependencies and this doesnt.
+  
+  capture_error <- function(code, otherwise = NULL, quiet = TRUE) {
+    tryCatch(
+      list(result = code, error = NULL),
+      error = function(e) {
+        if (!quiet)
+          message("Error: ", e$message)
+        
+        list(result = otherwise, error = e)
+      },
+      interrupt = function(e) {
+        stop("Terminated by user", call. = FALSE)
+      }
+    )
+  }
+  
+  safely <- function(.f, otherwise = NULL, quiet = TRUE) {
+    function(...) capture_error(.f(...), otherwise, quiet)
+  }
+  
+  sHEAD <- safely(httr::HEAD)
+  sGET <- safely(httr::GET)
+  
+  # Try HEAD first since it's lightweight
+  res <- sHEAD(x, ...)
+  
+  if (is.null(res$result) || 
+      ((httr::status_code(res$result) %/% 200) != 1)) {
+    
+    res <- sGET(x, ...)
+    
+    if (is.null(res$result)) return(NA) # or whatever you want to return on "hard" errors
+    
+    if (((httr::status_code(res$result) %/% 200) != 1)) {
+      if (!quiet) warning(sprintf("Requests for [%s] responded but without an HTTP status code in the 200-299 range", x))
+      return(non_2xx_return_value)
+    }
+    
+    return(TRUE)
+    
+  } else {
+    return(TRUE)
+  }
+  
+}
+
+
+# c(
+#   "http://content.thief/",
+#   "http://rud.is/this/path/does/not_exist",
+#   "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords=content+theft", 
+#   "https://www.google.com/search?num=100&source=hp&ei=xGzMW5TZK6G8ggegv5_QAw&q=don%27t+be+a+content+thief&btnK=Google+Search&oq=don%27t+be+a+content+thief&gs_l=psy-ab.3...934.6243..7114...2.0..0.134.2747.26j6....2..0....1..gws-wiz.....0..0j35i39j0i131j0i20i264j0i131i20i264j0i22i30j0i22i10i30j33i22i29i30j33i160.mY7wCTYy-v0", 
+#   "https://rud.is/b/2018/10/10/geojson-version-of-cbc-quebec-ridings-hex-cartograms-with-example-usage-in-r/"
+# ) -> some_urls
+# 
+# data.frame(
+#   exists = sapply(some_urls, url_exists, USE.NAMES = FALSE),
+#   some_urls,
+#   stringsAsFactors = FALSE
+# ) %>% dplyr::tbl_df() %>% print()
+
+# Converions -------------------------------------------------------------------
+
+find_units <- function(unit = "", unt = "", dat, divby = NULL){
+  
+  # x <- ifelse(unit == "", "s", paste0(" ", unit))
+  x <- unit#ifelse(unit != "", paste0(" ", unit), unit)
+  x_ <- ifelse(unt =="", "", unt)
+  
+  # find appropriate units
+  
+  if (is.null(divby)) {
+    min_val <- min(dat, na.rm = TRUE)
+    min_val1 <- NMFSReports::xunits(value = min_val, words = TRUE)
+  } else {
+    min_val <- divby
+    min_val1 <- NMFSReports::xunits(value = divby, words = TRUE)
+  }
+  
+  # unit_word <- ""
+  # unit_wrd <- ""
+  if (min_val<1e3) {
+    divby <- 1
+    unit_word <- ifelse(unit == "", "", paste0(" (", x, ")"))
+    unit_wrd <- paste0("", x_)
+  } else if (min_val<1e6) {
+    divby <- 1e3
+    unit_word <- paste0(" (thousand",
+                        ifelse(unit == "", "s", paste0(" ", unit)),
+                        ")" )
+    unit_wrd <- paste0("K", x_)
+  } else if (grepl(pattern = "million", x = min_val1)) {
+    divby <- 1e6
+    unit_word <- paste0(" (million",
+                        ifelse(unit == "", "s", paste0(" ", unit)),
+                        ")")
+    unit_wrd <- paste0("M", x_)
+  } else if (grepl(pattern = "billion", x = min_val1)) {
+    divby <- 1e9
+    unit_word <- paste0(" (billion",
+                        ifelse(unit == "", "s", paste0(" ", unit)),
+                        ")")
+    unit_wrd <- paste0("B", x_)
+  } else if (grepl(pattern = "trillion", x = min_val1)) {
+    divby <- 1e12
+    unit_word <- paste0(" (trillion",
+                        ifelse(unit == "", "s", paste0(" ", unit)),
+                        ")")
+    unit_wrd <- paste0("T", x_)
+  }
+  
+  
+  return(list("divby" = divby, 
+              "unit_word" = unit_word, 
+              "unit_wrd" = unit_wrd))
+}
+
+
+
+# https://github.com/geanders/weathermetrics/blob/master/R/temperature_conversions.R
+c2f <- function (T.celsius, round = 2) {
+  T.fahrenheit <- (9/5) * T.celsius + 32
+  T.fahrenheit <- round(T.fahrenheit, digits = round)
+  return(T.fahrenheit)
+}
+
+# divkmfornmi <- 
+# 
+# divnmiforkm
+# 
+divnmi2forkm2 <- 1/3.429904
+
+divkm2fornmi2 <- 3.429904
+# divkm2fornmi2 <- 0.291160601164372384405766883164727405629748185875095639378254783272052516569336
+
+divkm2forha <- 100
+
+divmforft <- 0.3048
+
+divftform <- 3.28084
 
 # Species -----------------------------------------------
 
@@ -326,20 +832,51 @@ find_codes <- function(x, col = "common_name", str = NULL,
   return(out)
 }
 
-
-species_table <- function(haul_spp, spp_common, SURVEY0, SRVY0 = NA) {
+xunitspct<-function(value, sign = TRUE) {
+  out0<-c()
+  for (iii in 1:length(value)){
+    
+    if (is.na(value)) {
+      temp<-NA
+    } else if (value > -1 & value <= 0 | #negative values between 0 and -1
+               value < 1 & value >= 0) { #positive values between 1 and 0
+      temp<-as.numeric(formatC(x = value, digits = 0, big.mark = ",", 
+                               format = "f"))
+    } else {
+      temp<-as.numeric(round(value, digits = 0))
+    }
+    
+    if (sign == F | is.na(value)) {
+      out<-temp
+    } else {
+      out<-paste0(temp, "%")
+    }
+    out0<-c(out0, out)
+  }
   
-  # Edit This:
-  header <- paste0("Summary of environmental variables that ", NMFSReports::tolower2(spp_common), " (", spp_sci, ") have been found in across the ", SURVEY0, ifelse(SRVY0 %in% NA, paste0(" (", SRVY0, ")"), ""))
+  return(out0)
+  
+}
+
+species_table <- function(haul_spp, 
+                          spp_print, 
+                          # spp_sci,
+                          SURVEY000, 
+                          SRVY000 = NA) {
+  
+  header <- paste0("Summary of environmental variables that ", spp_print, " (", spp_sci, ") have been found in across the ", SURVEY000, ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", paste0(" (", SRVY000, ")")))
   
   # Select data and make plot
-  cols<-c("start_latitude", "start_longitude",  "weight", "number_fish", "bottom_depth", "gear_temperature", "surface_temperature")
+  cols<-c("start_latitude", "start_longitude",  #"weight", "number_fish", 
+          "bottom_depth", "gear_temperature", "surface_temperature")
   COLS<-c("Latitude", "Longitude", 
-          "Weight", "Abundance", 
+          # "Weight", "Abundance", 
           "Bottom Depth", "Bottom Temperature", "Surface Temperature")
   
   haul_spp <- haul_spp %>% 
-    dplyr::filter(SRVY %in% SRVY0)
+    dplyr::filter(SRVY %in% SRVY000)
+  
+  # if (nrow(haul_spp)==0) {
   
   # basiccontent0<-c()
   table_spp<-c()
@@ -348,372 +885,1455 @@ species_table <- function(haul_spp, spp_common, SURVEY0, SRVY0 = NA) {
     table_spp<-rbind.data.frame(table_spp, 
                                 data.frame(metric0 = cols[ii], 
                                            Metric = COLS[ii], 
-                                           Min = min(haul_spp[cols[ii]], na.rm = T), 
-                                           Max = max(haul_spp[cols[ii]], na.rm = T), 
-                                           Mean = sum(haul_spp[cols[ii]], na.rm = T)/nrow(haul_spp)
+                                           Min = ifelse((nrow(haul_spp)==0), NA, min(haul_spp[,cols[ii]], na.rm = T)), 
+                                           Max = ifelse((nrow(haul_spp)==0), NA, max(haul_spp[,cols[ii]], na.rm = T)), 
+                                           Mean = ifelse((nrow(haul_spp)==0), NA, sum(haul_spp[,cols[ii]], na.rm = T)/nrow(haul_spp))
                                 ))
   }
   
   table_spp_print <- table_spp
-  table_spp_print[, c("Min", "Max", "Mean")] <- 
-    NMFSReports::mod_number(x = table_spp_print[, c("Min", "Max", "Mean")], 
-                            comma_seperator = TRUE, 
-                            divideby = 1, 
-                            digits = 2)
+  
+  if (nrow(haul_spp) != 0) {
+    for (ii in c("Min", "Max", "Mean")){
+      table_spp_print[,ii] <- 
+        trimws(formatC(x = table_spp_print[,ii], 
+                       big.mark = ",", 
+                       digits = 2, format = "f"))
+    }
+  }
   table_spp_print$metric0<-NULL
   
-  table_raw = table_spp
-  table_print = table_spp_print
+  # table_raw = table_spp
+  # table_print = table_spp_print
   
   return(list("header" = header, 
-              "raw" = table_raw, 
-              "print" = table_print))
+              "raw" = table_spp, 
+              "print" = table_spp_print))
 }
 
 
-species_text <- function(haul_maxyr, haul_compareyr_spp, table_spp_print, 
-                         haul_maxyr_spp, length_maxyr, 
-                         length_type, 
-                         spp_common, spp_code, SRVY0, maxyr, compareyr) {
+species_text <- function(
+    table_spp_print, 
+    haul0, 
+    biomass_cpue,
+    length_maxyr0, 
+    # spp_sci,
+    spp_print, 
+    spp_code, 
+    SRVY000, 
+    maxyr, 
+    compareyr, 
+    biomass_cpue_tab_name, 
+    total_biomass) {
+  
+  haul_maxyr0 <- haul0 %>% 
+    dplyr::filter(SRVY %in% SRVY000 &
+                    year == maxyr) 
+  
+  haul_maxyr_spp <- haul_maxyr0 %>% 
+    dplyr::filter(species_code %in% spp_code)  
+  
+  haul_compareyr_spp <- haul0 %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000 &
+                    year == compareyr)  
+  
+  biomass_cpue <- biomass_cpue %>% 
+    dplyr::filter(SRVY %in% SRVY000)    
+  
+  str0 <- list()
+  
+  ## Number of stations/environmental data ---------------------------------------
+  
+  ### How many stations ----------------------------------------------------------
+  
+  str0$number_stations <- 
+    paste0("Out of the total number of successful hauls (",
+           length(unique(haul_maxyr0$hauljoin)), ") ",
+           spp_print,
+           " were found during ",
+           length(unique(haul_maxyr_spp$hauljoin)),
+           " hauls (",
+           formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"),
+           "% of stations). ") 
+  
+  str0$number_stations_alt <- 
+    paste0("During the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""),
+           ", ", spp_print, " were present at ",
+           formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100,
+                   digits = 1, format = "f") ,
+           "% of stations (",
+           length(unique(haul_maxyr_spp$hauljoin)), " of ",
+           length(unique(haul_maxyr0$hauljoin)),
+           " stations). ")
+  
+  ### How many stations + depth --------------------------------------------------
+  
+  str0$number_stations_depth <- 
+    paste0(spp_print, " were present at ", 
+           formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, 
+                   digits = 1, format = "f") , 
+           "% of stations (", 
+           length(unique(haul_maxyr_spp$hauljoin)), " of ", 
+           length(unique(haul_maxyr0$hauljoin)), 
+           " stations) ranging from ", 
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
+           " m to ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , 
+           " m during the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""), ". ")
+  
+  ### Depth ----------------------------------------------------------------------
+  
+  str0$depth <- 
+    paste0("They were found in waters with depths between ",
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) ,
+           " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
+  
+  ### Bottom temperature ---------------------------------------------------------
+  
+  str0$bottom_temperature <- 
+    paste0(stringr::str_to_sentence(spp_print), 
+           " were found in bottom temperatures between ", 
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
+           "\u00B0C and ", 
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
+           "\u00B0C. ") 
   
   
-  haul_maxyr <- haul_maxyr %>% 
-    dplyr::filter(SRVY %in% SRVY0)
+  ### Surface temperature ---------------------------------------------------------
   
-  haul_compareyr_spp <- haul_compareyr_spp %>% 
-    dplyr::filter(SRVY %in% SRVY0)  
+  #   # <!-- surface temperature -->
+  # str0$surface_temperature_depth <- 
+  # paste0(stringr::str_to_sentence(spp_print), 
+  # " were found in areas where surface temperatures were between ", 
+  # as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
+  # "\u00B0C and ", 
+  # as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
+  # "\u00B0C. ") #  (Figure ", cnt_figures,")
   
-  haul_maxyr_spp <- haul_maxyr_spp %>% 
-    dplyr::filter(SRVY %in% SRVY0)  
   
-  length_maxyr <- length_maxyr %>% 
-    dplyr::filter(SRVY %in% SRVY0)
+  ### Bottom temperature and depth -----------------------------------------------
   
-  str <- c()
+  # EX: "Northern rock sole were found in areas where bottom temperatures were between -1.6°C and 11°C and depths between 15 m and 170 m."
   
-  # <!-- how many stations -->
-  str <- paste0(str, 
-                "Out of the total number of successful hauls (", 
-                length(unique(haul_maxyr$hauljoin)), ") ",  
-                NMFSReports::tolower2(spp_common), 
-                " was found during ", 
-                length(unique(haul_maxyr_spp$hauljoin)), 
-                " hauls (", 
-                formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f"), 
-                "% of stations). ")
+  str0$bottom_temperature_depth <- 
+    paste0(stringr::str_to_sentence(spp_print), 
+           " were found in areas where bottom temperatures between ", 
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
+           "\u00B0C and ", 
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
+           "\u00B0C and depths between ",
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) ,
+           " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ") 
   
-  str <- paste0(str, "
-
-During the ", maxyr, 
-" survey, ", 
-NMFSReports::tolower2(spp_common), 
-" were present at ", 
-formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr$hauljoin)))*100, digits = 1, format = "f") , 
-"% of stations in the ", SRVY0, " (", 
-length(unique(haul_maxyr_spp$hauljoin)), " of ", 
-length(unique(haul_maxyr$hauljoin)), 
-" stations). ")
+  ## Biomass and abundance -------------------------------------------------------
   
-  # <!-- bottom tempature -->
-  str <- paste0(str, "
-
-", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
-" were found in bottom temperatures as warm as ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
-"°C and as cold as ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
-"°C (Figure ", cnt_figures,"). ")
+  # tempyr <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
   
-  # <!-- surface temperature -->
-  str <- paste0(str, "
-
-", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
-" were found in areas where surface temperatures were as warm as ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
-"°C and as cold as ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
-"°C (Figure ", cnt_figures,"). ")
+  # temp <- function(biomass_cpue, maxyr, compareyr, tempyr, 
+  #                  metric = "biomass", metric_long = "biomass", unit = " t", 
+  #                  SRVY000, spp_print) {
+  #   
+  #   str0 <- paste0("Compared with ", 
+  #                  compareyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
+  #                  unit,"), ",spp_print," estimated ",metric_long," in ", 
+  #                  maxyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
+  #                  unit,") in the ",
+  #                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000)," experienced ",
+  #                  NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE),
+  #                                       end = sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)) , 
+  #                  # compare to the year before these
+  #                  " (", str0_table, "). ",
+  #                  "Previously, ",spp_print," estimated ", metric_long," in ", 
+  #                  compareyr, " experienced ",
+  #                  NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE),
+  #                                       end = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)), 
+  #                  " when compared to estimated ",metric_long," in ", 
+  #                  tempyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
+  #                  "; ", str0_table, ").")
+  #   
+  #   return(str0)
+  # }
+  # 
+  # str0 <- ""
+  # 
+  # if ( (nrow(biomass_cpue) != 0) ) {
+  #   ## pchange_biomass
+  #   #     str0 <- paste0(str0, "
+  #   # 
+  #   # ", temp(biomass_cpue, biomass_cpue, maxyr, compareyr, tempyr, 
+  #   #         metric = "biomass", 
+  #   #         metric_long = "biomass", 
+  #   #         unit = " t", SRVY000, spp_print))
+  #   
+  #   str00 <- temp(biomass_cpue, biomass_cpue, maxyr, compareyr, tempyr, 
+  #                 metric = "biomass", 
+  #                 metric_long = "biomass", 
+  #                 unit = " t", SRVY000, spp_print)
+  #   
+  #   # pchange cpue
+  #   #     str0 <- paste0(str0, "
+  #   # 
+  #   # ", temp(biomass_cpue, biomass_cpue, maxyr, compareyr, tempyr, metric = "cpue_kgha", metric_long = "CPUE", unit = " kg/ha", SRVY000, spp_print))
+  #   
+  #   
+  #   
+  #   # Yellowfin sole biomass increased by 22% between 2017 and 2019 in the NBS area.
+  #   # In 2019, the Alaska plaice exhibited a slight 0.8% decrease (321,571 t; Table 1) in the total NBS survey biomass compared with 2017; however, biomass in 2019 was 24% greater than in 2010.
+  #   # Biomass of the purple-orange sea star increased by 26% between 2017 and 2019 and by 40% between 2010 and 2019.
+  #   # The estimated biomass of the northern Neptune snail decreased by 18% (Table 1) between 2017 (327,678 t) and 2019 (146,344 t). However, the biomass was 32% greater in 2019 than in 2010.
+  #   # There was a 10% reduction in saffron cod biomass in 2019 from 2010 (Table 1), but a 6% increase in saffron cod biomass from 2017 to 2019.
+  #   # Between 2010 and 2019, there was a 99.8% reduction in Arctic cod biomass in the NBS.
+  #   # This represents a 5,421% increase from the biomass observed in 2010.
+  #   # Biomass of this skate increased 24% from 2010 to 2019.
+  #   # 25% increase (2,827 t) in the estimated biomass of red king crab compared to 2017 (2,256 t). The increase in biomass in 2019 relative to 2010 was slightly less (13%) (Table 1). 
+  #   # Blue king crab biomass decreased by 79% from 2017 to 2019. Biomass in 2019 (1,212 t) was more similar to 2010 (2,133 t) (Table 1).
+  #   # Pacific halibut showed an estimated 42% increase in total biomass from 2017 (18,507 m) to 2019 (25,722 t; Table 1). 
+  #   # Biomass of Bering flounder increased by 50% between 2010 and 2019 (12,355 t to 18,526 t; Table 1).
+  #   # The relative Pacific herring biomass increased 282% from 23,011 t in 2010 to 87,918 t in 2019 (Table 1).
+  #   
+  #   # ## p_mt_of_survey	
+  #   metric <- "biomass"
+  #   metric_long <- "biomass"
+  #   unit <- " t"
+  #   
+  #   # total biomass
+  #   temp2 <- biomass_cpue  %>%
+  #     dplyr::ungroup() %>% 
+  #     dplyr::select(biomass, year) %>%
+  #     dplyr::group_by(year) %>% 
+  #     dplyr::summarise(biomass = sum(biomass, na.rm = T)) 
   
-  # <!-- Depth -->
-  str <- paste0(str, "
-
-They were found in waters with depths between ", 
-as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
-" m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
+  #The estimated population of Alaska plaice in the NBS was 299,028 t and approximately 539 million fish (Tables \@ref(tab:tab-estimates-maxyr-{{spp_file}}-wt) and \@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)).    
+  #Biomass with abundance
   
-  # <!-- Sizes caught  -->
-  str <- paste0(str, "
-
-The ", 
-NMFSReports::text_list(length_type$sentancefrag[length_type$length_type_id %in% unique(length_maxyr$length_type)]), 
-" of ", NMFSReports::tolower2(spp_common, capitalizefirst = TRUE), 
-" measured during the survey were between ", 
-NMFSReports::xunits(min(length_maxyr$length, na.rm = TRUE)), 
-" and ", NMFSReports::xunits(max(length_maxyr$length, na.rm = TRUE)), " ", 
-unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
-                        spp_code %in% 68000:69930 ~ 'mm'), 
-       TRUE ~ 'NO MEASUREMENT'), ". ")
+  total_biomass0 <- total_biomass %>% 
+    dplyr::filter(SRVY %in% SRVY000) %>% 
+    dplyr::group_by(year) %>%
+    dplyr::summarise(biomass = sum(total, na.rm = TRUE))
   
-  # <!-- weight -->
-  str <- paste0(str, "
-
-The total number of ", 
-NMFSReports::tolower2(spp_common), 
-" estimated to have been caught by the survey is ", 
-NMFSReports::xunits(value = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)), 
-" individuals, which equates to ", 
-NMFSReports::xunits(value = sum(haul_maxyr_spp$weight, na.rm = TRUE)), 
-" kg of biomass. ")
+  show <- sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE)/
+    total_biomass0$biomass[total_biomass0$year == maxyr]*100
   
-  str <- paste0(str, "
-
-Compared with ", compareyr, ", 
-abundance experienced ", 
-NMFSReports::pchange(start = sum(haul_compareyr_spp$number_fish, na.rm = TRUE), 
-                     end = sum(haul_maxyr_spp$number_fish, na.rm = TRUE)) ,
-" and there was ", 
-NMFSReports::pchange(start = sum(haul_compareyr_spp$weight, na.rm = TRUE), 
-                     end = sum(haul_maxyr_spp$weight, na.rm = TRUE)) , 
-" in biomass. ")
+  a <- list.files(path = dir_out_figures, 
+                  pattern = paste0("fig-idw-cpue-fish-", spp_file), 
+                  ignore.case = TRUE)
+  a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
+  a <- gsub(pattern = ".rdata", replacement = "", ignore.case = TRUE, x = a)
   
-  return(str)
+  str0$biomass_population <-
+    paste0("The estimated biomass of ",spp_print," in the ",
+           ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+           " was ",
+           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
+           ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
+           "Fig", ifelse(length(a)==1, ".", "s."), " ", text_list(paste0("` ` \\@ref(fig:",a,")` `")),
+           " and Tables ", text_list(c(paste0("`` `\\@ref(tab:",biomass_cpue_tab_name,")` `"),
+                                       "` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-wt)` `")),
+           " and estimated abundance was ",
+           xunits(sum(biomass_cpue$population[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " fish ",
+           "(Table ` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)` `). ",
+           # compare years
+           "Previously, in ",compareyr,", ",spp_print," biomass was estimated to be ",
+           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
+           ifelse(show>1,
+                  paste0(xunitspct((sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE)/
+                                      total_biomass0$biomass[total_biomass0$year == compareyr])*100),
+                         " of the total biomass; "),
+                  ""),
+           "Fig", ifelse(length(a)==1, ".", "s."), " ", text_list(paste0("` `\\@ref(fig:",a,")` `")),
+           " and Table",ifelse(length(biomass_cpue_tab_name)>1, "s", ""), " ",
+           text_list(paste0("` `\\@ref(tab:",biomass_cpue_tab_name,")` `")),
+           " and estimated abundance was ",
+           xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " fish [@",ref_compareyr,"]. ")
+  # 
+  #     # Biomass percentage of total    
+  #     str0$biomass_population_percent <- 
+  #       paste0("In ",maxyr,", ",spp_print," comprised ",
+  #                   xunitspct((sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)/
+  #                                temp2$biomass[temp2$year == maxyr])*100)," (", 
+  #                   xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
+  #                   ", ", str0_table, 
+  #                   ") of the ",
+  #                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+  #                   " survey estimated biomass. ",
+  #                   
+  #                   "Previously, in ",compareyr,", ",spp_print," comprised ",
+  #                   xunitspct((sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)/
+  #                                temp2$biomass[temp2$year == compareyr])*100)," (", 
+  #                   xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
+  #                   ", ", str0_table, 
+  #                   ") of the ",
+  #                   ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+  #                   " survey estimated biomass. ")
+  #     
+  #     # Compare biomass to compare year, if available
+  #     if (str00 != "") {
+  #       str0 <- paste0(str0, "
+  # 
+  # ", str00)
+  #     }
+  #     
+  
+  # comprising 12% (520,029 t; Table 1) of the total NBS survey area biomass - YFS
+  # In 2019, snow crab comprised 4% (167,124 t, Table 1) of the NBS survey biomass... In 2017, snow crab comprised 5% (223,216 t) of the NBS survey biomass
+  # This species of sea star made up 10% (414,423 t, Table 1) of the 2019 total fish and invertebrate biomass in the NBS. 
+  # Saffron cod represented almost 2% of the biomass in the 2019 NBS.
+  # Arctic cod represented approximately 0.001% of the 2019 NBS biomass, 0.1% of the 2017 biomass and 1% of the 2010 biomass.
+  # Pacific cod represented about 9% of the biomass in the 2019 NBS survey; this represents a 29% increase from 2017 NBS Pacific cod biomass.
+  # Walleye pollock represented 27% of the total NBS biomass in 2019.
+  
+  ## Size Comp -------------------------------------------------------------------
+  
+  # In 2010 and 2017, size compositions were similar with length cohort modes around 24 cm and 36 cm, while in 2019 the size class modes are less distinct and the smallest size class mode appears from 18-22cm (Figure 7).
+  # A similar size composition was observed in 2010 and 2017 (Figure 23).
+  
+  if (nrow(length_maxyr0) != 0) {
+    
+    unit <- unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
+                                    spp_code %in% 68000:69930 ~ 'mm'), 
+                   TRUE ~ 'NO MEASUREMENT')
+    
+    str0$sizecomp <- paste0(
+      "The ", text_list(unique(length_maxyr0$sentancefrag)), 
+      " of ", spp_print, 
+      " measured during the ",maxyr," ",
+      ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+      " survey were between ", 
+      (min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+      " and ",
+      (max(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+      " ", unit, " (Fig. `` `\\@ref(fig:fig-sizecomp-", ifelse(unit == "cm", "fish", "invert"), "-{{spp_file}})\\` ``). ")
+  }
+  
+  return(str0)
   
 }
 
 species_content <- function(SURVEY000, 
                             SRVY000, 
-                            haul_maxyr, 
-                            haul_compareyr_spp, 
-                            haul_maxyr_spp, 
-                            length_maxyr, 
-                            length_type, 
-                            spp_common, 
+                            haul0, 
+                            biomass_cpue,
+                            length_maxyr0,
+                            biomass, 
+                            spp_print, 
                             spp_code,
                             maxyr, 
-                            compareyr) {
+                            compareyr, 
+                            biomass_cpue_tab_name = "tab_majortaxa_pchange", 
+                            total_biomass) {
   
   
-  table_spp_maxyr <- species_table(haul_spp = haul_maxyr_spp, 
-                                   spp_common, 
-                                   SURVEY0 = SURVEY000, 
-                                   SRVY0 = SRVY000) 
+  # Data work up
   
-  table_spp_compareyr <- species_table(haul_spp = haul_compareyr_spp, 
-                                       spp_common, 
-                                       SURVEY0 = SURVEY000,
-                                       SRVY0 = SRVY000) 
+  # haul_maxyr0 <- haul0 %>% 
+  #   dplyr::filter(SRVY %in% SRVY000 &
+  #                   year == maxyr)
+  
+  
+  length_maxyr0 <- length_maxyr0 %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000)
+  
+  # tables from maxyr
+  table_spp_maxyr <- 
+    species_table(haul_spp = haul0 %>% 
+                    dplyr::filter(year == maxyr &
+                                    species_code %in% spp_code), 
+                  spp_print, 
+                  # spp_sci,
+                  SURVEY000 = SURVEY000, 
+                  SRVY000 = SRVY000) 
+  
+  # tables from compareyr
+  table_spp_compareyr <- 
+    species_table(haul_spp =  haul0 %>% 
+                    dplyr::filter(year == compareyr &
+                                    species_code %in% spp_code), 
+                  spp_print, 
+                  # spp_sci,
+                  SURVEY000 = SURVEY000,
+                  SRVY000 = SRVY000) 
   
   
   table_spp <- dplyr::full_join(
     x = table_spp_maxyr$print %>% 
       dplyr::rename(
-        Min_maxyr = Min, 
-        Max_maxyr = Max, 
-        Mean_maxyr = Mean), 
+        min_maxyr = Min, 
+        max_maxyr = Max, 
+        ean_maxyr = Mean), 
     y = table_spp_compareyr$print %>% 
       dplyr::rename(
-        Min_compareyr = Min, 
-        Max_compareyr = Max, 
-        Mean_compareyr = Mean), 
-    by = "Metric")
+        min_compareyr = Min, 
+        max_compareyr = Max, 
+        mean_compareyr = Mean), 
+    by = "Metric") %>% 
+    flextable::flextable(.) %>%
+    NMFSReports::theme_flextable_nmfstm()
   
-  text_spp <- species_text(haul_maxyr, haul_compareyr_spp, table_spp_print = table_spp_maxyr$print, haul_maxyr_spp, length_maxyr, length_type, spp_common, spp_code, SRVY0, maxyr, compareyr)
+  text_spp <- species_text(
+    haul0, 
+    biomass_cpue,
+    length_maxyr0, 
+    table_spp_print = table_spp_maxyr$print, 
+    # spp_sci,
+    spp_print, 
+    spp_code, 
+    SRVY000, 
+    maxyr, 
+    compareyr, 
+    biomass_cpue_tab_name, 
+    total_biomass)
   
-  return(paste0(table_spp$print, 
-                "
+  return(list("table_spp" = table_spp, 
+              "text_spp" = text_spp))
+}
 
 
-", text_spp))
+
+#' Make a string lower case except for stated (and common NOAA) proper nouns.
+#'
+#' Make a string lower case except for stated (and common NOAA) proper nouns.
+#' @param str0 The text string.
+#' @param capitalizefirst Default = FALSE
+#' @param add_cap A vector of strings that the user does not want capitalized
+#' @keywords Text editing
+#' @export
+#' @examples
+#' tolower2(str0 = "notice how there are built-in proper nouns are capitalized:
+#' alaska is not in the south atlantic.",
+#'          capitalizefirst = TRUE,
+#'          add_cap = "Proper nouns")
+# tolower2<-function(str0,
+#                    capitalizefirst = FALSE,
+#                    add_cap = "") {
+#   str2<-c()
+# 
+#   if (str0[1] %in% "") {
+#     str<-""
+#   } else {
+#     for (i in 1:length(str0)) {
+#       str1<-gsub(pattern = "\\(", replacement = "\\( ", x = tolower(str0[i]))
+#       str1<-gsub(pattern = "\\)", replacement = " \\)", x = str1)
+#       str1<-strsplit(x = str1, split = " ")[[1]]
+#       # str1<-gsub(pattern = "fw", replacement = "freshwater", x = str1, ignore.case = T)
+# 
+#       keywords <- c( add_cap, #user added
+#                      #State
+#                      "Alabama", "Alaska", "California", "Connecticut",
+#                      "Delaware", #"East Florida", "West Florida",
+#                      "Florida", "Georgia",
+#                      "Louisiana", "Maine", "Maryland", "Massachusetts",
+#                      "Mississippi", "New Hampshire", "New Jersey", "New York",
+#                      "North Carolina", "Oregon", "Rhode Island", "South Carolina",
+#                      "Texas",  "Virginia", "Washington",
+#                      #Region
+#                      "North Pacific", "Pacific", "Western Pacific (Hawai`i)", "Western Pacific",
+#                      "New England",
+#                      "Mid-Atlantic","Gulf of Mexico",
+#                      "South Atlantic",
+#                      #For specific Species
+#                      "Spanish", "Gulf", "Bringham's", "Von Siebold's", "Pfluger's", "African", "Eurpoean",
+#                      "Southern kingfish", "Southern flounder",
+#                      # Other
+#                      "Atlantic", "American",
+#                      # "Atka",
+#                      "Chinook", "Great Lakes")
+# 
+#       # keywords<-c(keywords, paste0("(", keywords), paste0(keywords, ")"))
+# 
+# 
+#       for (ii in 1:length(keywords)) {
+#         keywords1<-strsplit(x = keywords[ii], split = " ")[[1]]
+#         if (length(keywords1) %in% 1 &
+#             sum(grepl(x = str0, pattern = keywords1[1], ignore.case = T))>0) {
+#           str1[grep(x = str1, pattern = keywords[ii], ignore.case = T)]<-keywords[ii]
+#         } else if (length(keywords1) %in% 2 &
+#                    sum(grepl(x = str0, pattern = keywords1[1], ignore.case = T)>0) &
+#                    sum(grepl(x = str0, pattern = keywords1[2], ignore.case = T)>0)) {
+#           str1[grep(x = str1, pattern = keywords1[1], ignore.case = T)]<-keywords1[1]
+#           str1[grep(x = str1, pattern = keywords1[2], ignore.case = T)]<-keywords1[2]
+#         } else if (length(keywords1) %in% 3 &
+#                    grepl(x = str0, pattern = keywords1[1], ignore.case = T) &
+#                    grepl(x = str0, pattern = keywords1[2], ignore.case = T) &
+#                    grepl(x = str0, pattern = keywords1[3], ignore.case = T)) {
+#           str1[sum(grep(x = str1, pattern = keywords1[1], ignore.case = T)>0)]<-keywords1[1]
+#           str1[sum(grep(x = str1, pattern = keywords1[2], ignore.case = T)>0)]<-keywords1[2]
+#           str1[sum(grep(x = str1, pattern = keywords1[3], ignore.case = T)>0)]<-keywords1[3]
+#         }
+#       }
+# 
+#       # if (str1[1] == "von" & str1[2] == "siebolds") {
+#       #   str1<-str1[2:length(str1)]
+#       #   str1<-c("VonSiebold's", str1[3])
+#       # }
+# 
+#       # if (sum(grepl(pattern = "*A'u*", x = str1, ignore.case = T))>=1) {
+#       #   str1[grepl(pattern = "*A'u*", x = str1, ignore.case = T)]<-"*A\U02BBu*"
+#       # }
+#       #
+#       # if (sum(grepl(pattern = "*O'io*", x = str1, ignore.case = T))>=1) {
+#       #   str1[grepl(pattern = "*O'io*", x = str1, ignore.case = T)]<-"*O\U02BBio*"
+#       # }
+#       #
+#       # if (sum(grepl(pattern = "*'Ahi*", x = str1, ignore.case = T))>=1) {
+#       #   str1[grepl(pattern = "*'Ahi*", x = str1, ignore.case = T)]<-"*\U02BBAhi*"
+#       # }
+# 
+# 
+#       str1<-paste(str1, collapse = " ")
+#       str1<-gsub(pattern = "\\( ", replacement = "\\(", x = str1)
+#       str1<-gsub(pattern = " \\)", replacement = "\\)", x = str1)
+#       if (capitalizefirst==T) {
+#         str1<-paste(toupper(substr(str1, 1, 1)), substr(str1, 2, nchar(str1)), sep="")
+# 
+#       }
+# 
+#       str1<-gsub(pattern = "&", replacement = "and", x = str1)
+# 
+#       str2<-c(str2, str1)
+#     }
+#     str2<-trimws(str2)
+#   }
+#   return(str2)
+# }
+
+
+add_report_spp <- function(spp_info, 
+                           spp_info_codes = "species_code", 
+                           report_spp, 
+                           report_spp_col, 
+                           report_spp_codes = "species_code", 
+                           lang = TRUE, 
+                           expand = TRUE){
+  
+  temp <- report_spp %>% 
+    dplyr::select(-questions) %>% 
+    dplyr::arrange((order))
+  
+  if (!lang) {
+    temp <- temp %>%
+      dplyr::select(-dplyr::starts_with("lang_"))
+  }
+  
+  if (report_spp_col == "order") {
+    
+    report_spp_col <- "order1"
+    temp$order1<-NA
+    temp$order1[!is.na(temp$order)] <- TRUE
+    
+  }
+  
+  temp <- temp %>% 
+    dplyr::rename(col = all_of(report_spp_col)) %>% 
+    dplyr::filter(col == TRUE & 
+                    !is.na(species_code)) %>% 
+    dplyr::arrange((order)) 
+  
+  # expand google spreadsheet
+  temp1<-data.frame()
+  temp$species_code1 <- temp$species_code
+  temp$species_code <- NULL
+  for (i in 1:nrow(temp)){
+    # if (grepl(pattern = "c(", x = report_spp$species_code[i], fixed = TRUE)) {
+    temp2 <- eval(expr = parse(text = temp$species_code1[i]))
+    # for (ii in 1:length(temp2)) {
+    # temp1<-temp[i,]
+    # temp1$species_code <- temp2[ii]
+    temp1<-rbind.data.frame(temp1, 
+                            cbind.data.frame(temp[i,], 
+                                             species_code = temp2))
+    # }
+  }
+  
+  temp1$species_code1 <- NULL
+  temp1 <- unique(temp1)
+  
+  # all -> other
+  temp <- unique(temp1$print_name)[grepl(pattern = "all ", 
+                                         x = unique(temp1$print_name), 
+                                         ignore.case = TRUE)]
+  if (length(temp)>0) {
+    for (i in 1:length(temp)) {
+      temp2 <- intersect(temp1$species_code[temp1$print_name == temp[i]], 
+                         temp1$species_code[temp1$print_name != temp[i]]) # find which are duplicates 
+      if (length(temp2)>0) {
+        # and delete them from "all "
+        temp1 <- temp1[!(temp1$species_code %in% temp2 &
+                           temp1$print_name == temp[i]),]
+        # and change "all " to "other "
+        temp1$print_name[temp1$print_name == temp[i]] <- 
+          gsub(pattern = "all ", 
+               replacement = "other ", 
+               x = temp1$print_name[temp1$print_name == temp[i]], 
+               ignore.case = TRUE)
+      }
+    }
+  }
+  
+  if (sum(temp1$species_code[(duplicated(temp1$species_code))])>0) warning("There are still duplicates in the species split ups!")
+  
+  temp0 <-  
+    dplyr::left_join(x = temp1 %>% 
+                       dplyr::select(-col), 
+                     y = spp_info %>% 
+                       dplyr::select(species_code, 
+                                     genus_taxon, species_taxon) %>% 
+                       unique(), 
+                     by = "species_code")  %>% 
+    dplyr::mutate(taxon = dplyr::case_when(
+      species_code <= 31550 ~ "fish", 
+      species_code >= 40001 ~ "invert")) %>% 
+    dplyr::mutate(temp = trimws(gsub(pattern = "NA", 
+                                     replacement = "", 
+                                     paste0(genus_taxon, " ", species_taxon)))) %>% 
+    dplyr::mutate(temp = ifelse(temp == " ", "", temp)) %>%
+    dplyr::mutate(species_name = dplyr::case_when(
+      group_sci == "BLANK" ~ "",
+      !is.na(group_sci) ~ group_sci, 
+      is.na(group_sci) ~ temp, 
+      TRUE ~ "other"
+    )) %>%
+    dplyr::mutate(temp = trimws(paste0(group_sci, " (", print_name, ")"))) %>%
+    dplyr::mutate(temp = ifelse(temp == "NA ", "", temp)) %>%
+    dplyr::mutate(group = dplyr::case_when(
+      is.na(group_sci) ~ temp, 
+      TRUE ~ "other"
+    )) %>%
+    # dplyr::select(file_name, print_name, species_name, 
+    #   # report_name_scientific, 
+    #   taxon, group, species_code, 
+    #   scientific_name_prev, 
+    #   dplyr::starts_with("lang_"), dplyr::starts_with("plot_")) %>%
+    # dplyr::filter(!grepl(pattern = "other ", x = group) & 
+    #                 !grepl(pattern = "egg ", x = group)) %>% 
+    dplyr::distinct() %>% 
+    dplyr::mutate(type = ifelse(
+      grepl(pattern = " ", x = species_name, fixed = TRUE),
+      # species_name == paste0(genus_taxon, " ", species_taxon),
+      "ital", NA)) %>%
+    dplyr::ungroup() %>% 
+    dplyr::mutate(species_name0 = species_name, 
+                  species_name1 = species_name, 
+                  species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
+                  species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
+                  species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE), 
+                  species_name = species_name0) %>% 
+    dplyr::select(-type, -temp, -species_name0, -genus_taxon, -species_taxon)
+  
+  return(temp0)
+}
+
+
+#' Takes a string of words and combines them into a sentance that lists them.
+#'
+#' This function alows you to take a string of words and combine them into a sentance list. For example, 'apples', 'oranges', 'pears' would become 'apples, oranges, and pears'. This function uses oxford commas.
+#' @param x Character strings you want in your string.
+#' @param oxford T/F: would you like to use an oxford comma? Default = TRUE
+#' @param sep string. default = ", " but "; " or " " might be what you need!
+#' @param sep_last string. default = " and " but " & " or " , " might be what you need!
+#' @keywords strings
+#' @export
+#' @examples
+#' text_list(c(1,2,"hello",4,"world",6))
+#' text_list(c(1,"world"))
+#' text_list(c(1,2,"hello",4,"world",6), oxford = FALSE)
+#' paste0("here is a list of things: ",
+#'   text_list(paste0("list", 1:5), sep = " ", sep_last = ""))
+text_list<-function(x = "",
+                    oxford = TRUE,
+                    sep = ", ",
+                    sep_last = "and ") {
+  x<-x[which(x!="")]
+  # x<-x[which(!is.null(x))]
+  x<-x[which(!is.na(x))]
+  # x<-x[order(x)]
+  if (length(x)==2) {
+    str1<-paste(x, collapse = paste0(" ", sep_last))
+  } else if (length(x)>2) {
+    str1<-paste(x[1:(length(x)-1)], collapse = paste0(sep))
+    str1<-paste0(str1,
+                 ifelse(oxford == TRUE, sep, " "),
+                 sep_last, x[length(x)])
+  } else {
+    str1<-x
+  }
+  return(str1)
 }
 
 
 # Plotting ----------------------------
 
+
+# https://coolbutuseless.github.io/package/ggpattern/
+# https://github.com/trevorld/gridpattern
+
+
+set_breaks <- function(dat, var) {
+  set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
+                                          n = 5, style = "jenks")$brks
+  set.breaks <- c()
+  
+  for (i in 1:length(set.breaks0)) {
+    
+    if (i == length(set.breaks0)) {
+      set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)# #round(set.breaks0[i], digits = 0))
+    } else if (i == 1) {
+      set.breaks<-c(set.breaks, 0)
+    } else {    
+      set.breaks <- c(set.breaks, 
+                      plyr::round_any(x = set.breaks0[i], 
+                                      accuracy = ifelse(max(set.breaks0[i])>300, 100, 
+                                                        ifelse(max(set.breaks0[i])>100, 50, 
+                                                               ifelse(max(set.breaks0[i])>20, 10, 
+                                                                      1))), 
+                                      f = ceiling))    
+    }
+  }
+  set.breaks <- unique(set.breaks)
+  
+  return(set.breaks)
+}
+
+
+
 #' Plot IDW maps in x by x facet_wraps
 #'
 #' @param yrs The years, as a vector, that subplots should be created for
-#' @param dat The data that will be used to create the IDW plots
-#' @param cruises # cruise data
+#' @param dat The data that will be used to create the IDW plots, containing the data used in lat, lon, and var. 
 #' @param lat The name of the column in dat for latitude
 #' @param lon The name of the column in dat for longitude
-#' @param var The name of the column in dat for the variable
+#' @param year The name of the column in dat for year
 #' @param key.title A character string that will be used as the legend title
-#' @param grid "continuous.grid" or "extrapolation.grid"
-#' @set.breaks Suggested. Vector of break points to use for plotting. Feeds the akgfmaps::make_idw_map.  function. 
-#' @extrap.box Optional. Vector specifying the dimensions of the extrapolation grid. Elements of the vector should be named to specify the minimum and maximum x and y values c(xmn, xmx, ymn, ymx). If not provided, region will be used to set the extrapolation area. Feeds the akgfmaps::make_idw_map. 
-#' @param workfaster TRUE/FALSE. Cuts down work if TRUE. 
-#' @param nrow How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
+#' @param row0 How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
+#' @param region Defualt = "bs.south". Inherited from akgfmaps::make_idw_map. 
+#' @param dist_unit Default = "nm" (nautical miles). This is the unit that will be used for the map's scale bar.  
+#' @param viridis_palette_option Defauly = "mako". Inherited from ggplot2::scale_fill_viridis_c. This will be the color scheme for the inverse distance weighted plot. 
+#' @param plot_coldpool Default = TRUE Logical. Will plot cold pool outlines on the plot. 
+#' @param plot_stratum Default = FALSE. Logical. This will plot stratun areas on the plot. 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-plot_idw_xbyx <- function(
-  yrs, 
-  dat, 
-  cruises, 
-  lat,
-  lon,
-  var,
-  key.title, 
-  grid = "extrapolation.grid",
-  extrap.box, 
-  set.breaks = "jenks", #seq(from = -2, to = 20, by = 2),
-  workfaster = FALSE, 
-  nrow = 2, 
-  SRVY, 
-  col_viridis = "viridis"){
+#' figure <- plot_idw_xbyx(
+#'   yrs = c(2017), 
+#'   dat = akgfmaps:::YFS2017, 
+#'   lat = "LATITUDE",
+#'   lon = "LONGITUDE",
+#'   year = "YEAR",
+#'   key.title = "Yellowfin sole (kg/km2)", 
+#'   grid = "extrapolation.grid",
+#'   grid.cell = c(1.5, 1.5), # will take less time
+#'   row0 = 1, 
+#'   region = "bs.south") 
+#' figure
+plot_pa_facet <- function(
+    yrs, 
+    dat, 
+    lat,
+    lon,
+    year,
+    key.title = "", 
+    row0 = 2, 
+    reg_dat,
+    dist_unit = "nm", # nautical miles
+    viridis_palette_option = "mako", 
+    plot_coldpool = FALSE, 
+    plot_stratum = FALSE, 
+    plot_bubble = FALSE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
-  if(set.breaks =="auto"){
-    
-    set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var])), 
-                                            n = 5, style = "jenks")$brks
-    set.breaks <- c()
-    for (i in 1:length(set.breaks0)) {
-      if (i == length(set.breaks0)) {
-        set.breaks<-c(set.breaks, round(set.breaks0[i], digits = 0))
-      } else if (i == 1) {
-        set.breaks<-c(set.breaks, 0)
-      } else {    
-        set.breaks <- c(set.breaks, 
-                        plyr::round_any(x = set.breaks0[i], 
-                                        accuracy = ifelse(max(set.breaks0[i])>300, 100, 
-                                                          ifelse(max(set.breaks0[i])>100, 50, 
-                                                                 ifelse(max(set.breaks0[i])>20, 10, 
-                                                                        ifelse(max(set.breaks0[i])>10, 
-                                                                               round(set.breaks0[i], digits = 0), 
-                                                                               round(set.breaks0[i], digits = 1))))),
-                                        f = ceiling))    
-      }
-    }
-    set.breaks <- unique(set.breaks)
-  }
-  # if(set.breaks =="auto"){
-  #   set.breaks <- quantile(as.numeric(unlist(dat[dat$year %in% yrs,var])), probs = c(0, .95))
-  #   set.breaks <- plyr::round_any(x = set.breaks, 
-  #                                 accuracy = ifelse(max(set.breaks)>300, 100, ifelse(max(set.breaks)>100, 50, 10)),
-  #                                 f = ceiling)
-  #   set.breaks <- seq(from = min(set.breaks), to = max(set.breaks), length.out = 5)
-  # }
-  
-  # Select data and make plot
-  for (ii in ifelse(workfaster,2,length(yrs)):1) {
-    
-    region <- "bs.south"
-    if (SRVY == "NEBS"){
-      temp1 <- cruises %>%
-        dplyr::filter(year %in% yrs[ii]) %>%
-        dplyr::select(SRVY) %>%
-        unlist() %>%
-        unique()
-      region <- ifelse(sum(temp1 %in% "NBS")>0, "bs.all", "bs.south")
-    }
-    
-    temp <- dat %>%
-      dplyr::filter(year == yrs[ii]) 
-    
-    temp1 <- akgfmaps::make_idw_map(
-      LATITUDE = as.numeric(unlist(temp[,lat])),
-      LONGITUDE = as.numeric(unlist(temp[,lon])),
-      CPUE_KGHA = as.numeric(unlist(temp[,var])),
-      use.survey.bathymetry = FALSE,
-      region = region, 
-      out.crs = as.character(crs(reg_dat$bathymetry)),
-      extrap.box = extrap.box, 
-      set.breaks = set.breaks,
-      grid.cell = c(ifelse(workfaster, 1.5, 0.02), 
-                    ifelse(workfaster, 1.5, 0.02)), # 0.2x0.2 degree grid cells
-      key.title = key.title)
-    
-    temp0 <- temp1[grid][[1]]  
-    
-    if (ii == ifelse(workfaster,2,length(yrs))) {
-      stars_list <- temp0
-      names(stars_list)[names(stars_list) == "var1.pred"] <- paste0("y", yrs[ii])  
-    } else {
-      stars_list$temp <- temp0$var1.pred
-      names(stars_list)[names(stars_list) == "temp"] <- paste0("y", yrs[ii])   
-    }
+  if (plot_bubble){
+    dat0 <- dat %>%
+      dplyr::rename(year = as.character(year), 
+                    lat = as.character(lat), 
+                    lon = as.character(lon)) %>% 
+      dplyr::select(year, lat, lon, cpue_kgha) %>% 
+      dplyr::mutate(year = as.numeric(year), 
+                    latdd = as.numeric(lat), 
+                    londd = as.numeric(lon), 
+                    cpue_kgha = as.numeric(cpue_kgha))
+    d <- dat0[,c("londd", "latdd", "year", "cpue_kgha")]
+  } else {
+    dat0 <- dat %>%
+      dplyr::rename(year = as.character(year), 
+                    lat = as.character(lat), 
+                    lon = as.character(lon)) %>% 
+      dplyr::select(year, lat, lon) %>% 
+      dplyr::mutate(year = as.numeric(year), 
+                    latdd = as.numeric(lat), 
+                    londd = as.numeric(lon))
+    d <- dat0[,c("londd", "latdd", "year")]
   }
   
-  # figure <- plot_xbyx_maps(stars_list = stars_list, title="Bottom Temperature (°C)")
   
-  # https://rpubs.com/michaeldorman/646276
-  stars_list <- stars_list %>% 
-    dplyr::select(names(stars_list)[substr(start = 1, stop = 1, x = names(stars_list)) == "y"])
-  names(stars_list)<-gsub(pattern = "y", replacement = "", x = names(stars_list))
-  stars_list = st_redimension(stars_list)
-  names(stars_list) = "value"
+  coordinates(d) <- c("londd", "latdd")
+  sp::proj4string(d) <- CRS("+proj=longlat +datum=WGS84") 
+  dd <- data.frame(sp::spTransform(d, CRS(as.character(reg_dat$crs)[1])))
+  # dd <- as(res, "SpatialPoints") ## For a SpatialPoints object rather than a SpatialPointsDataFrame
   
   figure <- ggplot() +
-    # geom_sf(data = reg_dat$survey.area, color = "grey20", fill = NA, size = 0.5) +
-    geom_stars(data = stars_list) +
-    facet_wrap( ~ new_dim, nrow = nrow) +
-    coord_equal() +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-    scale_x_continuous(name = "Longitude",
-                       breaks = reg_dat$lon.breaks) +
-    scale_y_continuous(name = "Latitude",
-                       breaks = reg_dat$lat.breaks) +
-    coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y)
+    geom_sf(data = reg_dat$akland,
+            color = NA,
+            fill = "grey50") #+
+  # geom_sf(data = reg_dat$graticule,
+  #         color = "grey80",
+  #         alpha = 0.2)
   
-  if (grid == "continuous.grid") {
-    figure <- figure + 
-      scale_fill_viridis_c(option = col_viridis, 
-                           #limits = range(set.breaks),
-                           na.value = "transparent", 
-                           breaks = set.breaks,
-                           labels = set.breaks)  + 
-      guides(fill=guide_colourbar(title=key.title, 
-                                  title.position="top", 
-                                  title.hjust = 0.5))
+  # if (length(length(reg_dat$survey.area$color))>1 ) {
+  if (plot_bubble) {
+    figure <- figure   + 
+      geom_point(data = dd, 
+                 mapping = aes(x = londd, y = latdd,
+                               size = cpue_kgha,
+                               group = as.factor(year)), 
+                 color = mako(n = 1, begin = .25, end = .75),
+                 shape = 16,
+                 # size = 1.5,
+                 show.legend = TRUE,
+                 na.rm = TRUE) +
+      scale_size_continuous(
+        name = paste0(key.title, "weight CPUE (kg/ha)"), 
+        range = c(1,4))
+  } else {
+    figure <- figure   + 
+      geom_point(data = dd, 
+                 mapping = aes(x = londd, y = latdd,
+                               # shape = key.title,
+                               group = as.factor(year)), 
+                 color = mako(n = 1, begin = .25, end = .75),
+                 shape = 16,
+                 size = 1.5,
+                 show.legend = TRUE,
+                 na.rm = TRUE)    
+  }
+  
+  figure <- figure  +
+    geom_sf(data = reg_dat$survey.area, # %>% 
+            # dplyr::filter(SRVY %in% SRVY1), 
+            mapping = aes(color = SURVEY), 
+            fill = NA, 
+            shape = NA, 
+            size = ifelse(row0 > 2, 0.25, 0.75),
+            show.legend = TRUE) +
+    scale_color_manual(
+      name = "", # key.title,
+      values = reg_dat$survey.area$color,
+      breaks = rev(reg_dat$survey.area$SURVEY), 
+      labels = rev((reg_dat$survey.area$SRVY)))
+  # } else {
+  #   figure <- figure   + 
+  #     geom_point(data = dd, 
+  #                mapping = aes(x = londd, y = latdd, 
+  #                              shape = key.title,
+  #                              group = as.factor(year)), 
+  #                color = mako(n = 1, begin = .25, end = .75),
+  #                # shape = 16,
+  #                size = 2,
+  #                show.legend = TRUE,
+  #                na.rm = TRUE) 
+  # }
+  
+  # if (plot_coldpool) {
+  #   temp_break <- 2 # 2*C
+  #   
+  #   if (unique(dat$SRVY) %in% "EBS") {
+  #     cp <- coldpool::ebs_bottom_temperature
+  #   } else if (unique(dat$SRVY) %in% "NBS") {
+  #     cp <- coldpool::nbs_ebs_bottom_temperature
+  #   }
+  #   
+  #   coords <- raster::coordinates(cp)
+  #   
+  #   for(i in 1:length(yrs)) {
+  #     sel_layer_df <- data.frame(x = coords[,1],
+  #                                y = coords[,2],
+  #                                temperature = cp@data@values[,i])
+  #     sel_layer_df <- sel_layer_df[!is.na(sel_layer_df$temperature),]
+  #     sel_layer_df$year <- yrs[i]
+  #     
+  #     if(i == 1) {
+  #       bt_year_df <- sel_layer_df
+  #     } else{
+  #       bt_year_df <- dplyr::bind_rows(bt_year_df, sel_layer_df)
+  #     }
+  #   }
+  #   
+  #   figure <- figure +
+  #     ggplot2::geom_tile(data = bt_year_df %>%
+  #                          dplyr::filter(temperature <= temp_break), #%>% 
+  #                          # dplyr::rename(new_dim = year),
+  #                        aes(x = x,
+  #                            y = y, 
+  #                            group = year),
+  #                        fill = "magenta", 
+  #                        alpha = 0.25, 
+  #                        show.legend = FALSE)
+  #   
+  # }  
+  
+  if (plot_coldpool) {
+    temp_break <- 2 # 2*C
     
-  } else if (grid == "extrapolation.grid") {
-    # temp <- factor(x = temp0$var1.pred, levels = levels(temp0$var1.pred), labels = levels(temp0$var1.pred), ordered = T)
+    if (sum(dat$SRVY %in% "EBS")>0) {
+      cp <- coldpool::ebs_bottom_temperature
+    } else if (unique(dat$SRVY) %in% "NBS") {
+      cp <- coldpool::nbs_ebs_bottom_temperature
+    }
+    
+    temp <- c()
+    outline <- c()
+    for (i in 1:length(yrs)){
+      #   temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
+      # }
+      temp <- which(grepl(pattern = yrs[i], x = names(cp)))
+      
+      cp0 <- cp[[temp]]#[[which(grepl(x = names(cp), pattern = 2019))]] # cp[[temp[2]]]
+      values(cp0)[values(cp0) <= temp_break] <- 1
+      values(cp0)[values(cp0) > temp_break] <- NA
+      pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
+      
+      outline <- rbind(outline, 
+                       pp %>% 
+                         sp::geometry(obj = .) %>% 
+                         sf::st_as_sf(x = .) %>% 
+                         dplyr::mutate(new_dim  = yrs[i]))
+      
+    }
+    
     figure <- figure +
-      scale_fill_manual(
-        values=c("gray90", 
-                 viridis::mako(
-                   direction = -1, 
-                   n = temp1$n.breaks,
-                   begin = 0,
-                   end = 0.80)), 
-        name = key.title,
-        levels(temp0$var1.pred), 
-        levels(temp0$var1.pred))      
+      geom_sf(data = outline %>%
+                sf::st_cast(x = ., to = "MULTIPOLYGON"), 
+              size = 1, 
+              fill = NA, # alpha(colour = "red", alpha = 0.3),
+              color = alpha(colour = "red", alpha = 0.3))
+    # fill = alpha(colour = "yellow", alpha = 0.3), 
+    # color = alpha(colour = "yellow", alpha = 0.3))
+  }
+  
+  if (length(yrs) == 0) { # if there is no data to plot
+    grid <- ""
+    figure <- figure +
+      ggplot2::geom_text(mapping = aes(x = mean(reg_dat$lon.breaks), 
+                                       y = mean(reg_dat$lat.breaks), 
+                                       label = "No data was available\nfor this species in this\nregion for this year."), 
+                         fontface="bold")
+  } else if (length(yrs)>1) { # if there is data to plot
+    figure <- figure +
+      facet_wrap( ~ year, nrow = row0) +
+      coord_sf() # coord_equal() 
+  }
+  
+  
+  if (plot_stratum) {
+    
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.strata,
+              color = "grey50",
+              size = 0.1,
+              # alpha = 0,
+              fill = NA)
+  }
+  
+  # lon_break <- reg_dat$lon.breaks
+  # lat_break <- reg_dat$lat.breaks
+  # lon_label <- reg_dat$lon.label
+  # lat_label <- reg_dat$lat.label
+  # if (length(yrs) > 6) { # are there a lot of plots on the page? In which case we'd want detail
+  #   lon_break <- lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
+  #   lat_break <- lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
+  #   lon_label <- lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_label))]
+  #   lat_label <- lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_label))]
+  # }
+  
+  figure <- figure +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) #+ 
+  # ggsn::scalebar(data = reg_dat$survey.grid,
+  #                location = "bottomleft",
+  #                dist = 100,
+  #                dist_unit = dist_unit,
+  #                transform = FALSE,
+  #                st.dist = dplyr::case_when(row0 ==1 & length(yrs)>4 ~ 0.07,
+  #                                           row0 == 1 ~ 0.04, 
+  #                                           row0 == 2 ~ 0.06, 
+  #                                           TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+  #                height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
+  #                st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+  #                st.size = dplyr::case_when(row0 ==1 & length(yrs) > 4 ~ 1.5,
+  #                                           row0 == 1 & length(yrs) > 3 ~ 2, 
+  #                                           row0 == 1 ~ 3, 
+  #                                           row0 == 2 ~ 2.25, 
+  #                                           TRUE ~ 2)) 
+  if (plot_bubble) {
+    figure <- figure +
+      guides(
+        size = guide_legend(order = 1, 
+                            title.position = "top", 
+                            label.position = "top",
+                            title.hjust = 0.5, 
+                            nrow = 1), 
+        color = guide_legend(order = 2, 
+                             label.position = "right",
+                             title.hjust = 0.5,
+                             nrow = 1)) 
+  } else {
+    figure <- figure +
+      guides(
+        color = guide_legend(title = key.title, 
+                             title.position = "top",  
+                             label.position = "right",
+                             title.hjust = 0.5,
+                             nrow = 1)) 
   }
   
   figure <- figure +
-    guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
-      fill = guide_legend(title.position="top", 
-                          label.position = "bottom",
-                          title.hjust = 0.5, nrow = 1)) +
-    #set legend position and vertical arrangement
-    theme(
+    theme(  #set legend position and vertical arrangement
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
+      axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
       strip.background = element_blank(), 
-      strip.text = element_text(size = 12, face = "bold"),
-      legend.title = element_text(size = 12), 
+      strip.text = element_text(size = 10, face = "bold"), 
+      # legend.title = ,element_blank(),
       legend.text = element_text(size = 9),
-      legend.background = element_rect(colour = "transparent", fill = "transparent"),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
       legend.key = element_rect(colour = "transparent", 
                                 fill = "transparent"),
-      axis.text = element_blank(),
-      legend.position="bottom", 
-      legend.box.just = "left",
-      legend.key.width = unit(.5, "in"), 
-      legend.box = "horizontal"
-    )
+      legend.position = "bottom",
+      legend.box = "horizontal")# ifelse(plot_bubble, "vertical", "horizontal"))
+  
   
   return(figure)
   
 }
+
+
+#' Plot IDW maps in x by x facet_wraps
+#'
+#' @param yrs The years, as a vector, that subplots should be created for
+#' @param dat The data that will be used to create the IDW plots, containing the data used in lat, lon, and var. 
+#' @param lat The name of the column in dat for latitude
+#' @param lon The name of the column in dat for longitude
+#' @param var The name of the column in dat for the variable (e.g., cpue, temperature)
+#' @param year The name of the column in dat for year
+#' @param key.title A character string that will be used as the legend title
+#' @param grid "continuous.grid" or "extrapolation.grid"
+#' @param set.breaks Suggested. Vector of break points to use for plotting. Feeds the akgfmaps::make_idw_map.  function.  
+#' @param grid.cell Inherited from akgfmaps::make_idw_map. Numeric vector of length two, specifying the resolution for the extrapolation grid in degrees. Default c(0.05,0.05)
+#' @param row0 How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
+#' @param region Defualt = "bs.south". Inherited from akgfmaps::make_idw_map. 
+#' @param dist_unit Default = "nm" (nautical miles). This is the unit that will be used for the map's scale bar.  
+#' @param viridis_palette_option Defauly = "mako". Inherited from ggplot2::scale_fill_viridis_c. This will be the color scheme for the inverse distance weighted plot. 
+#' @param plot_coldpool Default = TRUE Logical. Will plot cold pool outlines on the plot. 
+#' @param plot_stratum Default = FALSE. Logical. This will plot stratun areas on the plot. 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' figure <- plot_idw_xbyx(
+#'   yrs = c(2017), 
+#'   dat = akgfmaps:::YFS2017, 
+#'   lat = "LATITUDE",
+#'   lon = "LONGITUDE",
+#'   var = "CPUE_KGHA",
+#'   year = "YEAR",
+#'   key.title = "Yellowfin sole (kg/km2)", 
+#'   grid = "extrapolation.grid",
+#'   grid.cell = c(1.5, 1.5), # will take less time
+#'   row0 = 1, 
+#'   region = "bs.south") 
+#' figure
+plot_idw_facet <- function(
+    yrs, 
+    dat, 
+    lat,
+    lon,
+    var,
+    year,
+    key.title = "", 
+    grid = "extrapolation.grid",
+    set.breaks = "auto", #seq(from = -2, to = 20, by = 2),
+    grid.cell = c(20000, 20000), # c(0.02, 0.02), for lat-lon 
+    row0 = 2, 
+    reg_dat,
+    region, 
+    dist_unit = "nm", # nautical miles
+    viridis_palette_option = "mako", 
+    plot_stratum = FALSE, 
+    plot_coldpool = FALSE, 
+    legend_srvy_reg = TRUE) {
+  
+  yrs <- as.numeric(sort(x = yrs, decreasing = FALSE))
+  dat <- dat %>%
+    dplyr::rename(year = as.character(year), 
+                  LATITUDE = as.character(lat), 
+                  LONGITUDE = as.character(lon), 
+                  CPUE_KGHA = as.character(var)) %>% 
+    dplyr::select(year, LATITUDE, LONGITUDE, CPUE_KGHA, SRVY) %>% 
+    dplyr::mutate(year = as.numeric(year), 
+                  CPUE_KGHA = as.numeric(CPUE_KGHA), 
+                  LATITUDE = as.numeric(LATITUDE), 
+                  LONGITUDE = as.numeric(LONGITUDE)) %>% 
+    dplyr::filter(year %in% yrs)
+  
+  figure <- ggplot() +
+    geom_sf(data = reg_dat$akland,
+            color = NA,
+            fill = "grey50")  +  
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks)+
+  ggplot2::geom_sf(
+    data = reg_dat$survey.area, 
+    mapping = aes(color = SURVEY, 
+                  geometry = geometry), 
+    fill = "transparent", 
+    # shape = NA, 
+    size = ifelse(row0 > 2, 1.5, 1),
+    show.legend = legend_srvy_reg) +
+    ggplot2::scale_color_manual(
+      name = " ", 
+      values = reg_dat$survey.area$color,
+      breaks = reg_dat$survey.area$SURVEY,
+      labels = reg_dat$survey.area$SRVY) 
+  
+  if (nrow(dat) != 0) {
+    if (set.breaks[1] =="auto") {
+      set.breaks <- set_breaks(dat = dat, var = "CPUE_KGHA")
+    }
+    # # reg_dat0 <- reg_dat
+    # if (length(unique(temp$SRVY))==1 & # is this species in only 1 of the 2 survey areas
+    #     length(unique(dat$SRVY))>1) { # (when SRVY == NEBS)?
+    #   region0 <- ifelse(unique(temp$SRVY) == "EBS", "bs.south", "bs.north")
+    # }
+    # 
+    # Select data and make plot
+    
+    dat_pred <- data.frame()
+    for (ii in 1:length(yrs)) {
+      
+      temp <- dat %>% 
+        dplyr::filter(year == yrs[ii]) 
+      
+      # region0 <- region
+      if (nrow(temp) == 0) {
+        # take the last one and apply NAs
+        temp1$extrapolation.grid$var1.pred <- NA
+        temp1$continuous.grid$var1.pred <- NA
+      } else {
+        temp1 <- make_idw_map(x = temp, # Pass data as a data frame
+                              region = region, #0,
+                              extrap.box = sf::st_bbox(reg_dat$survey.area),
+                              out.crs = as.character(reg_dat$crs)[1],
+                              set.breaks = set.breaks,
+                              grid.cell = grid.cell,
+                              key.title = key.title,
+                              use.survey.bathymetry = FALSE)
+
+        temp0 <- data.frame(temp1$extrapolation.grid)
+      }
+      temp0_e <- data.frame(temp1$extrapolation.grid)  
+      temp0_c <- data.frame(temp1$continuous.grid)  
+      
+      dat_pred <- dplyr::bind_rows(
+        dat_pred, 
+        dplyr::left_join(
+          temp0_e %>% 
+            dplyr::select(x, y, var1.pred, SURVEY) %>% 
+            dplyr::rename(bin = var1.pred), 
+          temp0_c %>% 
+            dplyr::select(x, y, var1.pred, SURVEY), 
+          by = c("x", "y", "SURVEY")) %>% 
+            dplyr::mutate(year = yrs[[ii]])
+        )
+      
+      # if (ii == length(yrs)) {
+      #   stars_list <- temp0
+      #   names(stars_list)[names(stars_list) == "var1.pred"] <- paste0("y", yrs[ii])
+      # } else {
+      #   stars_list$temp <- temp0$var1.pred
+      #   names(stars_list)[names(stars_list) == "temp"] <- paste0("y", yrs[ii])
+      # }
+    }
+    
+    # # https://rpubs.com/michaeldorman/646276
+    # stars_list <- stars_list %>%
+    #   dplyr::select(names(stars_list)[substr(start = 1, stop = 1, x = names(stars_list)) == "y"])
+    # names(stars_list)<-gsub(pattern = "y", replacement = "", x = names(stars_list))
+    # stars_list = stars::st_redimension(stars_list)
+    # names(stars_list) = "value"
+    # 
+    # figure <- figure +
+    #   geom_stars(data = stars_list)
+  }
+  
+  # if (set.breaks[1] =="auto") {
+    set.breaks0 <- set_breaks(dat = dat_pred, var = "var1.pred")
+  # }
+  
+  # set_breaks <- levels(temp1$extrapolation.grid$var1.pred)
+  # dat_pred <- dat_pred %>%
+  #   dplyr::mutate(bins = cut(var1.pred, breaks = set.breaks),
+  #                 bins  = ifelse(!is.na(SURVEY) & var1.pred == 0, "No catch", bins))
+  # cut(data1, breaks = c(1, 3.25, 5.50, 7.75, 10),
+  #     labels = c("1-3.25", "3.25-5.50", "5.50-7.75", "7.75-10"),
+  #     include.lowest = TRUE)
+  
+  
+  
+  # set.breaks[length(set.breaks)] <- set.breaks0[length(set.breaks0)]
+  # if (set.breaks[length(set.breaks)-1] > set.breaks[length(set.breaks)]) {
+  #   set.breaks <- set.breaks[c(1:(length(set.breaks)-2), length(set.breaks))]
+  # }
+  
+  
+  if (grid == "continuous.grid") {
+    # set.breaks0 <- levels(dat_pred$bin)
+    # 
+    # dat_pred <- dat_pred %>% 
+    #   dplyr::filter(!is.na(SURVEY))
+    # 
+    # cols <- data.frame(
+    #   bin = unique(dat_pred$bin), 
+    #   bin0  = factor(x = dat_pred$bin, 
+    #                 levels = unique(dat_pred$bin), 
+    #                 labels = unique(dat_pred$bin), 
+    #                 ordered = TRUE), 
+    #   cols = c("gray90",
+    #           viridis::viridis(
+    #             option = viridis_palette_option,
+    #             direction = -1,
+    #             n = length(set.breaks0)-1, # temp1$n.breaks,
+    #             begin = 0,
+    #             end = 0.80)))
+    # 
+    # 
+    # dat_pred <- dat_pred %>%
+    #   dplyr::mutate(bins = cut(var1.pred, breaks = set.breaks)#,
+    #                 # bins = ifelse(!is.na(SURVEY) & var1.pred == 0, "No catch", bins)
+    #                 ) %>% 
+    #   dplyr::left_join(x = ., y = cols, by = "bin") 
+    
+    dat_pred1 <- dat_pred %>% 
+      dplyr::filter(!is.na(SURVEY)) %>% 
+      # dplyr::arrange(bin) %>%
+      dplyr::mutate(
+        bin0 = bin, 
+        bin = as.character(bin), 
+        bin = ifelse(is.na(bin), "No catch", bin), 
+        var1.pred = ifelse(bin == "No catch", 0, var1.pred)#,
+        # var1.pred = var1.pred+1
+        ) %>% # because of 2020
+      dplyr::arrange(var1.pred) %>%
+      dplyr::mutate( 
+        bin = factor(x = as.character(bin), 
+                     levels = levels(dat_pred$bin),
+                     labels = levels(dat_pred$bin),
+                     ordered = TRUE))
+      
+      # dplyr::filter(!is.na(SURVEY))
+    set.breaks1 <- c(set.breaks)
+    figure <- figure +
+      ggplot2::geom_contour_filled(
+        data = dat_pred1, 
+        mapping = aes(x = x, 
+                      y = y, 
+                      z = var1.pred), 
+        breaks = set.breaks1,
+        # bins = length(unique(dat_pred1$bin)),
+        na.rm = FALSE,
+        show.legend = TRUE) + 
+      scale_fill_manual(
+        name = key.title, 
+        na.value = "transparent",
+        values=c("gray90",
+                 viridis::viridis(
+                   option = viridis_palette_option,
+                   direction = -1,
+                   n = length(set.breaks)-1, 
+                   begin = 0.20,
+                   end = 0.80)), 
+        drop = FALSE, 
+        # limits = range(set.breaks1),
+        # breaks = set.breaks,
+        labels = levels(dat_pred1$bin)) 
+    
+  } else if (grid == "extrapolation.grid") {
+    # temp <- factor(x = temp0$var1.pred, levels = levels(temp0$var1.pred), labels = levels(temp0$var1.pred), ordered = T)
+    figure <- figure +
+      geom_stars(data = stars_list) + 
+      scale_fill_manual(
+        name = key.title, 
+        na.value = "transparent",
+        limits = levels(temp0$var1.pred), 
+        values=c("gray90", 
+                 viridis::mako(
+                   direction = -1, 
+                   n = (length(levels(temp0$var1.pred))-1), # temp1$n.breaks,
+                   begin = 0,
+                   end = 0.80)), 
+        breaks = levels(temp0$var1.pred), 
+        labels = levels(temp0$var1.pred))      
+  }
+  
+  if (plot_coldpool) {
+    temp_break <- 2 # 2*C
+    
+    if (sum(dat$SRVY %in% "EBS")>0) {
+      cp <- coldpool::ebs_bottom_temperature
+    } else if (unique(dat$SRVY) %in% "NBS") {
+      cp <- coldpool::nbs_ebs_bottom_temperature
+    }
+    
+    temp <- c()
+    outline <- c()
+    for (i in 1:length(yrs)){
+      #   temp <- c(temp, which(grepl(pattern = yrs[i], x = names(cp))))
+      # }
+      temp <- which(grepl(pattern = yrs[i], x = names(cp)))
+      
+      cp0 <- cp[[temp]]#[[which(grepl(x = names(cp), pattern = 2019))]] # cp[[temp[2]]]
+      values(cp0)[values(cp0) <= temp_break] <- 1
+      values(cp0)[values(cp0) > temp_break] <- NA
+      pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
+      
+      outline <- rbind(outline, 
+                       pp %>% 
+                         sp::geometry(obj = .) %>% 
+                         sf::st_as_sf(x = .) %>% 
+                         dplyr::mutate(new_dim  = yrs[i]))
+      
+    }
+    
+    figure <- figure +
+      geom_sf(data = outline %>%
+                sf::st_cast(x = ., to = "MULTIPOLYGON"), 
+              size = 1, 
+              fill = NA, # alpha(colour = "red", alpha = 0.3),
+              color = alpha(colour = "red", alpha = 0.3))
+    # fill = alpha(colour = "yellow", alpha = 0.3), 
+    # color = alpha(colour = "yellow", alpha = 0.3))
+  }
+  
+  if (length(yrs) == 0) {
+    grid <- ""
+    figure <- figure +
+      ggplot2::geom_text(mapping = aes(x = mean(reg_dat$lon.breaks), 
+                                       y = mean(reg_dat$lat.breaks), 
+                                       label = "No data was available\nfor this species in this\nregion for this year."), 
+                         fontface="bold")
+  } else if (length(yrs) == 1) {
+    figure <- figure +
+      coord_sf() +
+      ggtitle(maxyr) +
+      theme(plot.title = element_text(hjust = 0.5, size = 10, face = "bold"))
+  } else if (length(yrs)>0) {
+    figure <- figure +
+      facet_wrap( ~ year, nrow = row0) + # new_dim
+      coord_sf()# coord_equal() 
+  }
+  
+  if (plot_stratum) {
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.strata,
+              color = "grey50",
+              size = 0.1,
+              # alpha = 0,
+              fill = NA)
+  }
+  
+  # figure <- figure +
+  #   ggplot2::scale_y_continuous(name = "", #"Latitude", 
+  #                               limits = reg_dat$plot.boundary$y,
+  #                               breaks = reg_dat$lat.breaks) +
+  #   ggplot2::scale_x_continuous(name = "", #"Longitude", 
+  #                               limits = reg_dat$plot.boundary$x,
+  #                               breaks = reg_dat$lon.breaks) # + 
+  # ggsn::scalebar(data = reg_dat$survey.grid,
+  #                location = "bottomleft",
+  #                dist = 100,
+  #                dist_unit = dist_unit,
+  #                transform = FALSE,
+  #                st.dist = dplyr::case_when(row0 ==1 & length(yrs)>4 ~ 0.07,
+  #                                           row0 == 1 ~ 0.04, 
+  #                                           row0 == 2 ~ 0.06, 
+  #                                           TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+  #                height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
+  #                st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+  #                st.size = dplyr::case_when(row0 ==1 & length(yrs) > 4 ~ 1.5,
+  #                                           row0 == 1 & length(yrs) > 3 ~ 2, 
+  #                                           row0 == 1 ~ 3, 
+  #                                           row0 == 2 ~ 2.25, 
+  #                                           TRUE ~ 2)) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
+  
+  # if (length(length(reg_dat$survey.area$color))>1 ) {
+  figure <- figure +
+    ggplot2::guides(
+      # size = guide_legend(override.aes = list(size = 10)),
+      fill = guide_legend(
+        order = 1, 
+        title.position = "top", 
+        label.position = "bottom",
+        title.hjust = 0.5, 
+        override.aes = list(color = NA),
+        nrow = 1), 
+      color = guide_legend(
+        order = 2, 
+        label.position = "right",
+        override.aes = list(#lwd = 10, 
+                            fill = reg_dat$survey.area$color, 
+                            color = reg_dat$survey.area$color), 
+        title.hjust = 0.5,
+        nrow = 2)) 
+  
+  
+  figure <- figure +
+    #set legend position and vertical arrangement
+    theme( 
+      # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
+      
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 10, face = "bold"), 
+      # legend.title = element_text(size = 12), #, vjust = .5, hjust = .3),
+      legend.text = element_text(size = 9),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      # legend.title.align = 0,#.1, 
+      legend.position = "bottom", 
+      # legend.box.just = "center",
+      # legend.key.width = unit(.5, "in"), 
+      legend.box = "horizontal") # ifelse(length(length(reg_dat$survey.area$color)>1), "horizontal", "vertical"))
+  
+  return(figure)
+  
+}
+
+
+
+
+
 
 #' Plot temperature facet grid
 #' 
@@ -725,57 +2345,124 @@ plot_idw_xbyx <- function(
 #' @param colorbar_breaks numeric vector of breaks to use for temperature plots
 #' @param viridi_palette_option Viridis palette option passed to viridis::viridis_pal(). Default = "H" (turbo)
 #' @export
-
 plot_temps_facet <- function(rasterbrick, 
                              key.title = "Temperature (°C)", 
                              reg_dat, 
                              colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-                             viridis_palette_option = "H") {
+                             dist_unit = "nm", # nautical miles
+                             viridis_palette_option = "B", 
+                             row0 = 2, 
+                             title0 = NULL, 
+                             legend_seperate = FALSE, 
+                             use_col_name = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
   temp_df <- as.data.frame(temp_spdf)
-  temp1 <- gsub(pattern = "[A-Za-z]+", 
-                replacement = "", 
-                x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
-  temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+  if (is.null(use_col_name)) {
+    temp1 <- gsub(pattern = "[A-Za-z]+", 
+                  replacement = "", 
+                  x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
+    temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
+    colnames(temp_df) <- c(temp1, "x", "y")
+  } else {
+    temp1 <- use_col_name
+  }
   colnames(temp_df) <- c(temp1, "x", "y")
   temp_df <- temp_df %>% 
     tidyr::pivot_longer(values_to = "value", 
                         names_to = "year", 
-                        cols = temp1)
+                        cols = dplyr::all_of(temp1))
   
   fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
   
   figure <- ggplot() +
-    geom_tile(data=temp_df, aes(x=x, y=y, fill=cut(value, breaks = colorbar_breaks)))  +
-    facet_wrap( ~ year, 
-                nrow = ifelse(length(names(rasterbrick))>=4, 2, 1)) +
-    coord_equal() +
-    scale_fill_manual(values = fig_palette) +
-  geom_sf(data = reg_dat$survey.strata, 
-          color = "grey50", 
-          size = 0.5,
-          fill = NA) +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
-    scale_x_continuous(name = "Longitude",
-                       breaks = reg_dat$lon.breaks) +
-    scale_y_continuous(name = "Latitude",
-                       breaks = reg_dat$lat.breaks) +
-    coord_sf(xlim = reg_dat$plot.boundary$x, 
-             ylim = reg_dat$plot.boundary$y) +
-    #set legend position and vertical arrangement
+    ggplot2::geom_sf(data = reg_dat$akland,
+                     color = NA,
+                     fill = "grey50")+  
+    ggplot2::geom_sf(data = reg_dat$graticule,
+                     color = "grey80",
+                     alpha = 0.2) +
+    ggplot2::geom_tile(data = temp_df, 
+                       mapping = aes(x=x, y=y, 
+                                     fill=cut(value, breaks = colorbar_breaks)))  +
+    ggplot2::facet_wrap( ~ year, 
+                         nrow = row0) +
+    # coord_equal() +
+    ggplot2::scale_fill_manual(values = fig_palette) +
+    # ggplot2::geom_sf(data = reg_dat$survey.strata,
+    #         color = "grey50",
+    #         size = 0.1,
+    #         # alpha = 0,
+    #         fill = NA) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y, # c(557292.9, 1744114.2), #1804888.0), #reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) 
+  
+  figure <- figure +
+    # ggsn::scalebar(
+    #   # facet.var = 'temp_df$year', 
+    #   # facet.lev = max(temp_df$year),
+    #   data = reg_dat$survey.grid,
+    #   location = "bottomleft",
+    #   dist = 100,
+    #   dist_unit = dist_unit,
+    #   transform = FALSE,
+    #   # st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+    #   # height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
+    #   # st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+  #   # st.size = ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
+  #   st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
+  #                              row0 == 2 ~ 0.06, 
+  #                              TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+  #   height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
+  #   st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+  #   st.size = dplyr::case_when(row0 == 1 & length(names(rasterbrick)) > 3 ~ 2, 
+  #                              row0 == 2 & length(names(rasterbrick)) > 4 ~ 1.75, 
+  #                              row0 == 1 ~ 3, 
+  #                              row0 == 2 ~ 2.25, 
+  #                              TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
+  #   
+  # ) +
+  #set legend position and vertical arrangement
+  guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+    fill = guide_legend(title.position="top", 
+                        label.position = "bottom",
+                        title.hjust = 0.5, nrow = 1)) +
+    
     theme(
+      legend.text = element_text(size = 9),
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
                                   colour = "grey20"), 
+      axis.text = element_text(size = 8),
       strip.background = element_blank(), 
-      strip.text = element_text(size = 12, face = "bold"),
-      legend.position = "none",
-      axis.text = element_blank()
+      strip.text = element_text(size = 10, face = "bold"),
+      legend.position = "none"
     )
   
+  
+  
+  if (!is.null(title0)) {
+    figure <- figure +
+      ggplot2::ggtitle(label = title0)
+  }
+  
+  
+  #   Turbo represents a tradeoff between interpretability and accessibility. If it seems like that won't be accessible because of how it's distributed (e.g., faxing), then by all means change it, because it doesn't have linear luminosity and chromaticity. For temperatures, I think it's pretty difficult to distinguish shades of blue. So if you're going to choose an alternative palette, I think it would be great if the cold pool is black (where < 0 is black; e.g., Which would be magma or inferno, whcih have a larger luminance gradient)
+  
+  # Turbo color map:
+  # https://github.com/sjmgarnier/viridis/issues/65
+  
+  # https://stackoverflow.com/questions/50506832/create-discrete-color-bar-with-varying-interval-widths-and-no-spacing-between-le
+  # https://stackoverflow.com/questions/64013935/custom-color-palette-for-scale-fill-fermenter
+  
+  # cold_pool_cbar 
+  # https://github.com/sean-rohan-NOAA/coldpool/blob/main/1_cold_pool_index.Rmd#L169 
   cbar_legend <- legend_discrete_cbar(breaks = colorbar_breaks,
                                       colors = fig_palette,
                                       legend_direction = "horizontal",
@@ -797,14 +2484,20 @@ plot_temps_facet <- function(rasterbrick,
              size = rel(3.2)) + 
     theme(plot.margin = unit(c(-5,5,5, 5), units = "mm"))
   
-  figure_and_legend <- cowplot::plot_grid(figure,
-                                          cbar_legend,
-                                          nrow = 2,
-                                          rel_heights = c(0.8,0.2))
-  
+  if (legend_seperate) { 
+    figure_and_legend <- list("figure" = figure, 
+                              "legend" = cbar_legend)
+    
+  } else {
+    figure_and_legend <- cowplot::plot_grid(figure,
+                                            cbar_legend,
+                                            nrow = 2,
+                                            rel_heights = c(0.8,0.2))
+  }
   return(figure_and_legend)
   
 }
+
 
 
 #' Discrete continuous bar
@@ -815,32 +2508,32 @@ plot_temps_facet <- function(rasterbrick,
 #' @param palette Character vector indicating the name of the RColorBrewer palette to use. Alternatively, can pass a vector of colors to the colors argument.
 #' @param colors A vector of colors
 #' @export
-
 legend_discrete_cbar <- function(
-  breaks, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
-  palette = "Greys", #
-  direction = 1, # Flip colors? Can be 1 or -1
-  colors = RColorBrewer::brewer.pal(length(breaks) - 1, palette),
-  spacing = "natural", # Spacing between labels. Can be "natural" or "constant"
-  border_color = NA, # NA = no border color
-  legend_title = NULL,
-  legend_direction = "horizontal", # Can be "horizontal" or "vertical"
-  font_size = 5,
-  expand_size.x = 1,
-  expand_size.y = 1,# Controls spacing around legend plot
-  expand.y = 1,
-  expand.x = 1,
-  spacing_scaling = 1, # Multiplicative factor for label and legend title spacing
-  width = 0.1, # Thickness of color bar
-  triangle_size = 0.1, # Relative width of +-Inf triangles
-  title_pos = NULL,
-  text.angle = NULL,
-  text.vjust = NULL,
-  text.hjust = NULL,
-  text.color = "black",
-  neat.labels = FALSE,
-  font.family = "serif"
-) {
+    breaks, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
+    palette = "Greys", #
+    direction = 1, # Flip colors? Can be 1 or -1
+    colors = RColorBrewer::brewer.pal(length(breaks) - 1, palette),
+    spacing = "natural", # Spacing between labels. Can be "natural" or "constant"
+    border_color = NA, # NA = no border color
+    legend_title = NULL,
+    legend_direction = "horizontal", # Can be "horizontal" or "vertical"
+    font_size = 5,
+    expand_size.x = 1,
+    expand_size.y = 1,# Controls spacing around legend plot
+    expand.y = 1,
+    expand.x = 1,
+    spacing_scaling = 1, # Multiplicative factor for label and legend title spacing
+    width = 0.1, # Thickness of color bar
+    triangle_size = 0.1, # Relative width of +-Inf triangles
+    title_pos = NULL,
+    text.angle = NULL,
+    text.vjust = NULL,
+    text.hjust = NULL,
+    text.color = "black",
+    neat.labels = FALSE,
+    font.family = "serif") {
+  
+  
   require(ggplot2)
   if (!(spacing %in% c("natural", "constant"))) stop("spacing must be either 'natural' or 'constant'")
   if (!(direction %in% c(1, -1))) stop("direction must be either 1 or -1")
@@ -987,3 +2680,1492 @@ legend_discrete_cbar <- function(
   
   return(cbar_plot)
 }
+
+
+#' plot_size_comp
+#'
+#' @param sizecomp0 data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
+#' @param length_data0 data.frame of sampled lengths
+#' @param spp_code numeric. 
+#' @param spp_print string. 
+#' @param print_n TRUE/FALSE. Default = FALSE. Will print n = number of the species counted. 
+#' @param ridgeline plot as ridgeline? Default = FALSE. 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_sizecomp <- function(sizecomp0,
+                          length_data0 = NULL,
+                          spp_code, 
+                          spp_print, 
+                          type = "length", 
+                          print_n = FALSE, 
+                          ridgeline = FALSE, 
+                          unit = NULL){
+  
+  table_raw <- sizecomp0 %>%
+    # dplyr::mutate(sex = stringr::str_to_title(
+    #   gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) %>% 
+    dplyr::arrange(year, SRVY, sex, length) %>% 
+    dplyr::mutate(year = factor(
+      x = year,
+      levels = as.character(sort(unique(year))),
+      labels = as.character(sort(unique(year))),
+      ordered = TRUE))
+  
+  # find appropriate units
+  a<-find_units(unit = "", unt = "", dat = max(table_raw$pop, na.rm = TRUE))
+  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  pop_unit <- divby
+  pop_unit_word <- unit_word
+  
+  if (is.null(unit)){
+    # mm vs cm
+    len_unit_word <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
+                            #report_spp$taxon[jj] =="fish", 
+                            # max(table_raw$length)-min(table_raw$length)>45, 
+                            "cm", "mm")
+  } else {
+    len_unit_word <- unit
+  }
+  table_raw <- table_raw %>%
+    dplyr::mutate(pop = pop/pop_unit, 
+                  length = round(
+                    x = length*ifelse(len_unit_word == "mm", 10, 1), digits = 0)) #%>%
+  len_unit_axis <- ifelse(max(table_raw$length)-min(table_raw$length)>150, 50, 
+                          ifelse(max(table_raw$length)-min(table_raw$length)>45, 10, 5))
+  
+  # figure 
+  if (!ridgeline) { # facet plot without ridgeline
+    
+    # if (length(unique(table_raw$SRVY))>1) {
+    
+    figure <- ggplot(data = table_raw,
+                     mapping = aes(x = length,
+                                   y = pop,
+                                   group = SRVY,
+                                   fill = sex)) +
+      geom_bar(position="stack", stat="identity", na.rm = TRUE) +
+      scale_fill_viridis_d(direction = -1, 
+                           option = "mako",
+                           begin = .2,
+                           end = .6,
+                           na.value = "transparent") +
+      guides(fill=guide_legend(title="")) +
+      scale_y_continuous(name = paste0(spp_print, #"\n
+                                       " population",pop_unit_word), 
+                         breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
+      scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
+                         breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
+      facet_grid(year ~ SRVY,
+                 scales = "free_x") 
+    
+    # } else {
+    # 
+    # figure <- ggplot(data = table_raw,
+    #                  mapping = aes(x = length,
+    #                                y = pop,
+    #                                fill = sex))+
+    #   geom_bar(position="stack", stat="identity", na.rm = TRUE) +
+    #   scale_fill_viridis_d(direction = -1, 
+    #                        option = "mako",
+    #                        begin = .2,
+    #                        end = .6,
+    #                        na.value = "transparent") +
+    #   guides(fill=guide_legend(title="")) +
+    #   scale_y_continuous(name = paste0(spp_print, "\npopulation",pop_unit_word), 
+    #                      breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
+    #   scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
+    #                      breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
+    #   facet_grid(year ~ .,
+    #              scales = "free_x")  
+    # }
+    figure <- figure +
+      guides(
+        fill = guide_legend(title.position = "top", 
+                            # label.position = "bottom",
+                            title.hjust = 0.5,
+                            nrow = 1
+        )) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.border = element_rect(fill = NA,
+                                    colour = "grey20"),
+        legend.title = element_blank(), 
+        legend.text = element_text(size = 10),
+        legend.background = element_rect(colour = "transparent", 
+                                         fill = "transparent"),
+        legend.key = element_rect(colour = "transparent",
+                                  fill = "transparent"),
+        legend.position = "bottom",
+        legend.box = "horizontal" # "horizontal" "vertical"
+      )
+    
+    
+  } else {
+    table_raw1 <- table_raw %>% 
+      dplyr::ungroup() %>% 
+      dplyr::group_by(year, #SRVY, 
+                      length) %>% 
+      dplyr::summarise(pop = sum(pop, na.rm = TRUE))
+    
+    temp <- setdiff(as.numeric(paste(min(table_raw1$year, na.rm = TRUE))):as.numeric(paste(max(table_raw1$year, na.rm = TRUE))), 
+                    as.numeric(paste(unique(table_raw1$year))))
+    if (length(temp)>0) {
+      table_raw1 <- rbind.data.frame(
+        data.frame(year = temp,
+                   # SRVY = , 
+                   length = 0, 
+                   pop = 0), 
+        table_raw1)
+    }
+    
+    table_raw1 <- table_raw1 %>% 
+      dplyr::arrange(desc(year)) #%>% 
+    # dplyr::mutate(
+    #   year = as.numeric(paste(table_raw$year)), 
+    #   year =  factor(
+    # x = year,
+    # levels = as.character(sort(unique(year), decreasing = TRUE)),
+    # labels = as.character(sort(unique(year), decreasing = TRUE)),
+    # ordered = TRUE))
+    
+    table_raw1$year <- as.numeric(paste(table_raw1$year))
+    table_raw1$year <- factor(
+      x = table_raw1$year,
+      levels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
+      labels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
+      ordered = TRUE)
+    
+    figure <- ggplot(data = table_raw1, 
+                     mapping = aes(x = length, 
+                                   y = year, 
+                                   fill = length, 
+                                   height = pop/mean(pop, na.rm = TRUE))) +
+      ggridges::geom_ridgeline_gradient() +
+      scale_fill_viridis_c(name = length, option = "G") +
+      ylab(paste0(spp_print, #"\n
+                  " population across years")) +
+      xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word, ")"))) +
+      theme(legend.position = "none", 
+            panel.grid.major.x = element_line(colour = "grey80"))
+  }
+  
+  figure <- figure + 
+    theme(panel.background = element_rect(fill = "white"),
+          panel.grid.major.y = element_line(colour = "grey80"),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          strip.background = element_blank(),
+          strip.text = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 9),
+          legend.key = element_rect(colour = "transparent",
+                                    fill = "transparent"),
+          axis.title = element_text(size = 10, face = "bold"),
+          axis.text = element_text(size = 10))
+  
+  
+  if (print_n & !is.null(length_data0)) {
+    
+    dat_text  <- data.frame(
+      label = paste0(c("# measured: ", rep_len(x = "", length.out = (length(unique(length_data0$year))-1))),   
+                     length_data0 %>% 
+                       dplyr::mutate(year = as.character(year)) %>% 
+                       dplyr::ungroup() %>% 
+                       dplyr::group_by((year)) %>% 
+                       dplyr::summarise(frequency = formatC(x = sum(frequency, na.rm = TRUE), 
+                                                            digits = 0, big.mark = ",", format = "f")) %>% 
+                       dplyr::select(frequency) %>% 
+                       unlist()))
+    
+    dat_text$label <- gsub("\\s", " ", formatC(x = dat_text$label)) #, width=max(nchar(dat_text$label))))
+    
+    figure <- 
+      tag_facet(p = figure, 
+                x = Inf, y = Inf, 
+                hjust = 1.25,
+                tag_pool = dat_text$label, 
+                open = "", close = "")
+  }
+  
+  return(figure)
+}
+
+
+plot_timeseries <- function(
+    dat, 
+    unit = "", 
+    unt = "", 
+    y_long = "", 
+    error_bar = TRUE, 
+    spp_print = "", 
+    mean_in_legend = TRUE, 
+    yrs_plotted = NULL){
+  
+  table_raw <- dat %>% 
+    dplyr::arrange(-year)
+  
+  yr_missing <- data.frame()
+  for (i in 1:length(unique(table_raw$SRVY))){
+    temp <- table_raw[table_raw$SRVY %in% unique(table_raw$SRVY)[i], ]
+    yr_missing <- dplyr::bind_rows(
+      yr_missing, 
+      data.frame(yr_missing = setdiff((min(temp$year):max(temp$year)),
+                                      unique(temp$year)),
+                 col = unique(table_raw$col)[i], 
+                 SRVY = unique(table_raw$SRVY)[i], 
+                 SRVY_long = unique(table_raw$SRVY_long[table_raw$SRVY == unique(table_raw$SRVY)[i]])))
+  }
+  
+  if (nrow(yr_missing) > 0) {
+    temp <- unique(table_raw[,c("print_name", "species_name1", "species_code", "taxon")])
+    
+    temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*nrow(yr_missing),
+                               ncol = ncol(table_raw)))
+    names(temp1) <- names(table_raw)
+    temp1$print_name <- temp$print_name
+    temp1$species_name1 <- temp$species_name1
+    temp1$species_code <- temp$species_code
+    temp1$taxon <- temp$taxon
+    temp1 <- dplyr::arrange(temp1, SRVY)
+    temp1$year <- yr_missing$yr_missing
+    temp1$SRVY <- yr_missing$SRVY
+    temp1$SRVY_long <- yr_missing$SRVY_long
+    temp1$col <- yr_missing$col
+    table_raw <- dplyr::bind_rows(temp1, table_raw)
+  }
+  
+  # pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
+  
+  # find appropriate units
+  a<-find_units(unit, unt, dat = table_raw$y) # [table_raw$y > 0]
+  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  
+  table_raw <- table_raw %>%
+    dplyr::mutate(y = y/divby, 
+                  upper = upper/divby, 
+                  lower = lower/divby)
+  
+  table_raw_mean <- table_raw %>% 
+    dplyr::group_by(SRVY_long, SRVY) %>% 
+    dplyr::summarise(y = mean(y, na.rm = TRUE), 
+                     minyr = min(year, na.rm = TRUE), 
+                     maxyr = max(year, na.rm = TRUE))  %>% 
+    dplyr::mutate(SRVY_long1 = SRVY_long,
+                  yy = y*divby) %>% 
+    dplyr::filter(yy>100)
+  
+  if (mean_in_legend){
+    table_raw_mean <- table_raw_mean %>% 
+      dplyr::mutate(SRVY_long1 = paste0(SRVY_long, #"\n
+                                        " (mean = ", 
+                                        formatC(x = y, digits = 1, big.mark = ",", format = "f"), " ",
+                                        unit_wrd, ")"))
+  }
+  anno<-NA
+  temp<-setdiff(x = unique(table_raw$SRVY), 
+                y = unique(table_raw_mean$SRVY))
+  if (length(temp) != 0) {
+    # Reduce(intersect, 
+    #        list(unique(table_raw$SRVY), 
+    #             (unique(table_raw_mean$SRVY))))
+    # setdiff(x = unique(table_raw$SRVY), 
+    #         y = unique(table_raw_mean$SRVY))
+    anno <- paste0("Data for this species in the\n", 
+                   temp, 
+                   " is too limited to plot.")
+    
+    which(unique(table_raw$SRVY)==temp)
+    
+    
+    pcol_anno <- pcol[which(unique(table_raw$SRVY)==temp)]
+    pcol <- pcol[which(unique(table_raw$SRVY)!=temp)]
+  }
+  
+  table_raw <- 
+    dplyr::left_join(
+      x = table_raw, 
+      y = table_raw_mean %>% 
+        dplyr::select(SRVY_long, SRVY_long1), 
+      by = "SRVY_long") %>% 
+    dplyr::filter(SRVY %in% table_raw_mean$SRVY)
+  
+  
+  if (is.null(yrs_plotted)) {
+    yrs_plotted <- min(table_raw$year, na.rm = TRUE):max(table_raw$year, na.rm = TRUE)
+    # table_raw_mean <- table_raw_mean %>% 
+    #   dplyr::mutate(minyr = min(yrs_plotted, na.rm = TRUE))
+  }
+  
+  figure <-
+    ggplot(data = table_raw %>% 
+             dplyr::filter(year >= min(yrs_plotted, na.rm = TRUE) &
+                             year <= max(yrs_plotted, na.rm = TRUE)), 
+           mapping = aes(x = year, 
+                         y = y, 
+                         color = SRVY_long1, 
+                         group = SRVY_long1)) +
+    geom_line(size = 1) +
+    geom_point(size = 1.5) + 
+    ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1, big.mark = ""), 
+                                limits = range(yrs_plotted, na.rm = TRUE)) 
+  
+  # geom_errorbar(aes(ymin=lowervar, ymax=uppervar), 
+  #               width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
+  #                position=position_dodge(0.05)) +
+  if (error_bar) {
+    figure <- figure  +
+      geom_segment(data = table_raw_mean,
+                   # yintercept=y,
+                   mapping = aes(x = min(yrs_plotted, na.rm = TRUE),#minyr, 
+                                 xend = maxyr, 
+                                 y = y, 
+                                 yend = y,
+                                 group = SRVY_long1, 
+                                 color = SRVY_long1),
+                   linetype = "dashed", size = 1) +
+      geom_errorbar(aes(ymin=lower, ymax=upper),
+                    width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
+                    position = position_dodge(0.05))
+  } 
+  # scale_color_viridis_d(direction = -1,
+  #                       option = "mako",
+  #                       begin = .2,
+  #                       end = .6,
+  #                       na.value = "transparent") %>%
+  figure <- figure +
+    ggplot2::scale_color_manual(values = unique(table_raw$col))
+  
+  if (!is.na(anno)) {
+    figure <- figure +
+      ggplot2::geom_text(x = Inf, 
+                         y = -Inf, 
+                         hjust = 1.2, 
+                         vjust = -.3, 
+                         label = anno, 
+                         show.legend = FALSE, 
+                         size = 4, 
+                         fontface = "italic",
+                         color = pcol_anno)
+  }
+  
+  if (sum(dat$y == 0) > 0) {
+    figure <- figure +
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), 
+                                                " ", tolower(y_long), "\n", unit_word), 
+                                  labels = scales::comma) 
+    
+  } else {
+    figure <- figure +
+      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), 
+                                                " ", tolower(y_long), "\n", unit_word), 
+                                  # labels = scales::label_number(accuracy = 1))
+                                  breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
+  }
+  
+  
+  figure <- figure +
+    ggplot2::guides(color = guide_legend(title="", nrow = 2)) +
+    ggplot2::xlab(label = "Year") +
+    ggplot2::theme(
+      # axis.line=element_line(),
+      panel.background = element_rect(fill = "white"),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey95"),
+      panel.border = element_rect(fill = NA,
+                                  colour = "grey20"),
+      # strip.background = element_blank(),
+      # strip.text = element_text(size = 12, face = "bold"),
+      legend.title = element_blank(), #element_text(size = 15),
+      legend.text = element_text(size = 14),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent",
+                                fill = "transparent"),
+      axis.title = element_text(size = 12, face = "bold"),
+      axis.text = element_text(size = 12),
+      legend.position = "bottom", # c(.7, .8), #
+      # legend.box.just = "left",
+      # legend.key.width = unit(.5, "in"),
+      legend.box = "horizontal"
+    )
+  # facet_wrap( ~ SRVY, 
+  #             ncol = 1) 
+  
+  return(figure)
+}
+
+
+# https://stackoverflow.com/questions/11889625/annotating-text-on-individual-facet-in-ggplot2
+tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, y = Inf, 
+                      hjust = -0.5, vjust = 1.5, fontface = 2, family = "", ...) {
+  
+  gb <- ggplot_build(p)
+  lay <- gb$layout$layout
+  tags <- cbind(lay, label = paste0(open, tag_pool[lay$PANEL], close), x = x, y = y)
+  p + geom_text(data = tags, aes_string(x = "x", y = "y", label = "label"), ..., hjust = hjust, 
+                vjust = vjust, fontface = fontface, family = family, inherit.aes = FALSE) 
+}
+
+plot_survey_stations <- function(reg_dat, 
+                                 station_info, 
+                                 haul_cruises_maxyr, 
+                                 station_grid = FALSE, 
+                                 stratum_no = FALSE, 
+                                 station_pts_srvy = TRUE, 
+                                 station_pts_vess = FALSE, 
+                                 bathymetry = FALSE, 
+                                 study = FALSE, 
+                                 dist_unit = "nm", 
+                                 place_labels = TRUE) {
+  
+  figure <- ggplot() 
+  
+  # if (station_pts_vess) {
+  if (study) {
+    
+    study <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
+    
+    figure <- figure  +
+      geom_sf(data = reg_dat$survey.grid %>% dplyr::filter(!is.na(study)),
+              mapping = aes(fill = study),
+              show.legend = TRUE,
+              color = "black",
+              size = .5, 
+              # alpha = .5,
+              na.rm = TRUE) +
+      scale_fill_manual(
+        name = "", #"Survey Vessels",
+        values = unique(reg_dat$survey.grid$study_col),
+        breaks = unique(reg_dat$survey.grid$study),
+        labels = unique(reg_dat$survey.grid$study_long),
+        na.value = "transparent")
+  }
+  # }
+  
+  if (stratum_no) {
+    figure <- figure  +
+      geom_sf(data = reg_dat$survey.strata, 
+              fill = NA, 
+              color = "grey50")
+  }
+  
+  if (bathymetry) { #else {
+    figure <- figure  +
+      geom_sf(data = reg_dat$bathymetry, 
+              fill = NA, 
+              color = "grey50")
+  }
+  
+  # figure <- figure  +
+  #   geom_sf(data = reg_dat$graticule,
+  #           color = "grey90",
+  #           alpha = 0.5)
+  
+  
+  if (station_pts_vess) {
+    
+    vess <- reg_dat$survey.grid %>% dplyr::filter(!is.na(vessel_name))
+    
+    figure <- figure  +
+      geom_sf(data = reg_dat$survey.area,# %>%
+              # dplyr::mutate(SURVEY = dplyr::case_when(
+              #   SURVEY == "EBS_SHELF" ~ "EBS",
+              #   SURVEY == "NBS_SHELF" ~ "NBS")),
+              aes(color = reg_dat$survey.area$SURVEY, 
+                  shape = reg_dat$survey.area$SURVEY
+              ), 
+              fill = NA, 
+              size = 2,
+              show.legend = TRUE) +
+      stat_sf_coordinates(data = vess,
+                          mapping = aes(color = vess_col, 
+                                        shape = vess_shape),
+                          size = 2, 
+                          show.legend = TRUE, 
+                          na.rm = TRUE) + 
+      scale_color_manual(
+        name = " ", #"Survey Region",
+        values = c(reg_dat$survey.area$color, 
+                   unique(vess$vess_col)),
+        breaks = c(rev(unique(reg_dat$survey.area$SURVEY)), 
+                   unique(vess$vess_col)), 
+        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+                   unique(vess$vessel_name)), 
+        na.value = "transparent")  +
+      
+      scale_shape_manual(
+        name = " ", #"Survey Vessels",
+        values = c(rep_len(x = "", length.out = length(unique(reg_dat$survey.area$SURVEY))),
+                   unique(vess$vess_shape)),
+        breaks = c(unique(reg_dat$survey.area$SURVEY),
+                   unique(vess$vess_shape)),
+        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+                   unique(vess$vessel_name))) +
+      ggplot2::guides(
+        colour = guide_legend(
+          # order = 1,# survey regions
+          override.aes = list(fill = NA,
+                              linetype = c(
+                                rep_len(x = 1, 
+                                        length.out = length(unique(haul_cruises_maxyr$SRVY))), 
+                                0, 0), # c(1,1,0,0),
+                              # shape = c(NA, NA, "A", "V"),
+                              size = 6)),
+        fill = guide_legend(
+          # order = 2,# survey regions
+          override.aes = list(
+            color = "black", 
+            linetype = c(1), 
+            shape = NA, 
+            size = .5)))
+  } else { # station_pts_vess == FALSE
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.area %>%
+                dplyr::mutate(SURVEY = dplyr::case_when(
+                  SURVEY == "EBS_SHELF" ~ "EBS", 
+                  SURVEY == "NBS_SHELF" ~ "NBS")) %>% 
+                dplyr::filter(SURVEY %in% SRVY1), 
+              aes(color = SURVEY), 
+              fill = NA, 
+              size = 1.5,
+              show.legend = TRUE) +
+      scale_color_manual(
+        name = "", #"Survey Region",
+        values = reg_dat$survey.area$color,
+        breaks = c(#rev(unique(station_info$SRVY)),
+          rev(unique(station_info$SRVY))), #TOLEDO rev
+        labels = c(#rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
+          rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))) #+
+    # scale_color_manual(
+    #   name = " ", #"Survey Region",
+    #   values = c(reg_dat$survey.area$color, 
+    #              unique(vess$vess_col)),
+    #   breaks = c(rev(unique(reg_dat$survey.area$SURVEY)),
+    #              unique(vess$vess_col)),
+    #   labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
+    #              unique(vess$vessel_name)),
+    #   na.value = "transparent")
+  }
+  
+  figure <- figure +
+    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    geom_sf(data = reg_dat$graticule, 
+            color = NA,
+            fill = "grey50")
+  
+  if (station_pts_srvy) {
+    figure <- figure +
+      stat_sf_coordinates(data = dplyr::left_join( x = reg_dat$survey.grid, 
+                                                   y = station_info, 
+                                                   by = c("STATIONID" = "stationid"))  %>% 
+                            dplyr::filter(in_maxyr == TRUE),
+                          mapping = aes(color = SRVY),
+                          shape = 16,
+                          size = 2, 
+                          show.legend = FALSE, 
+                          na.rm = TRUE)  
+  }
+  
+  if (stratum_no) {
+    figure <- figure +
+      geom_sf_text(data = reg_dat$survey.strata, 
+                   lineheight = 0.7,
+                   mapping = aes(label = reg_dat$survey.strata$Stratum),
+                   color = "black",
+                   size = 5,
+                   show.legend = FALSE)
+  }
+  
+  if (station_grid) {
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.grid, color = "grey20", fill = NA) +
+      geom_sf_text(data = reg_dat$survey.grid, 
+                   lineheight = 0.7,
+                   mapping = aes(label = gsub(x = STATIONID, 
+                                              replacement = "\n", 
+                                              pattern = "-")),
+                   color = "black", 
+                   size = 1.5, 
+                   show.legend = FALSE) #+
+    
+  }
+  
+  row0 <- 1
+  
+  figure <- figure +
+    ggplot2::scale_y_continuous(name = "Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) + 
+    ggsn::scalebar(data = reg_dat$survey.grid,
+                   location = "bottomleft",
+                   dist = 100,
+                   dist_unit = dist_unit,
+                   transform = FALSE,
+                   st.dist = ifelse(row0 > 1, 0.08, 0.02),
+                   height = ifelse(row0 > 1, 0.04, 0.02),
+                   st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+                   st.size = ifelse(row0 > 1, 2.5, 3) ) +#, # 2.5
+    
+    #set legend position and vertical arrangement
+    theme(#plot.background = element_rect(fill = "white"), 
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      strip.background = element_rect(fill = "grey85", 
+                                      colour = "grey20"),
+      legend.spacing.y = unit(-0.35, "cm"),
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 7),
+      # strip.background = element_rect(color = NA, fill = NA, size = 0),
+      legend.background=element_blank(),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = c(.15, .2),
+      # legend.justification = c("right"),
+      legend.box.just = "left",
+      # legend.margin = margin(6, 6, 6, 6), 
+      legend.box = "vertical"
+    )
+  
+  if (place_labels) {
+    figure <- figure +
+      geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
+                aes(x = x, y = y, label = lab), 
+                size = 7, group = 99) + 
+      geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
+                      aes(x = x, y = y, label = lab), size = 3, angle = 3, 
+                      bg.color = "white", color = "black", group = 99) + 
+      geom_shadowtext(
+        data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+        aes(x = x, y = y, label = lab), 
+        bg.color = "white", color = "black", 
+        size = 2, group = 99)
+  }
+  
+  return(figure)
+}
+
+plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
+  
+  # maxyr <- 2021
+  # 
+  # > coldpool_ebs_bin_area
+  # year variable  value area_km2  label   proportion        perc
+  # 1   1982   ≤ -1°C    425      425 ≤ -1°C 0.0008611844  0.08611844
+  # 2   1983   ≤ -1°C    750      750 ≤ -1°C 0.0015197372  0.15197372
+  # 3   1984   ≤ -1°C  17650    17650 ≤ -1°C 0.0357644815  3.57644815
+  
+  table_raw <- coldpool_ebs_bin_area#[!(coldpool_ebs_bin_area$year %in% 1990:1992),]
+  
+  yr_missing <- setdiff((min(table_raw$year):max(table_raw$year)), unique(table_raw$year))
+  
+  if (length(yr_missing)>0) {
+    temp <- unique(table_raw[,c("variable", "label")])
+    
+    temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*length(yr_missing), ncol = ncol(table_raw)))
+    names(temp1) <- names(table_raw)
+    temp1$variable <- temp$variable
+    temp1$label <- temp$label
+    temp1 <- dplyr::arrange(temp1, label)
+    temp1$year <- yr_missing
+    
+    table_raw <- dplyr::bind_rows(temp1, table_raw)
+  }
+  
+  table_raw$ymax <-table_raw$proportion
+  table_raw$ymin <- 0
+  zl <- levels(table_raw$variable)
+  for ( i in 2:length(zl) ) {
+    zi <- table_raw$variable==zl[i]
+    zi_1 <- table_raw$variable==zl[i-1]
+    table_raw$ymin[zi] <- table_raw$ymax[zi_1]
+    table_raw$ymax[zi] <- table_raw$ymin[zi] + table_raw$ymax[zi]
+  }
+  
+  
+  if (is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])) {
+    table_raw <- dplyr::bind_rows( 
+      table_raw[table_raw$year == (maxyr),] %>% 
+        dplyr::mutate(year = maxyr+.5), 
+      table_raw)
+  }
+  
+  # ggplot(table_raw, aes(x=x,ymax=ymax,ymin=ymin, fill=z)) + geom_ribbon()
+  
+  figure <- ggplot(data = table_raw, 
+                   mapping = aes(x = year,
+                                 ymax = ymax, 
+                                 ymin = ymin, 
+                                 fill = variable)) + 
+    geom_ribbon() + # geom_area() +
+    scale_fill_manual(name = "Temperature", 
+                      values = viridis::mako(5, direction = -1, end = .8)) +  
+    scale_y_continuous(name = "Proportion of EBS Shelf Survey Area",
+                       limits = c(0, 1),
+                       expand = c(0, 0),
+                       breaks = seq(0,1,0.1)) +
+    scale_x_continuous(name = "Year", 
+                       limits = c(minyr-0.5,
+                                  maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
+                       expand = c(0, 0),
+                       breaks = seq(minyr, floor(maxyr/10)*10, 10)) +
+    guides(fill = guide_legend(label.position = "right")) +
+    theme_bw() +
+    theme(
+      panel.background = element_rect(fill = "white", colour = NA), 
+      panel.border = element_rect(fill = NA, colour = "grey20"), 
+      panel.grid.minor = element_blank(),
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 12, face = "bold"), 
+      legend.text = element_text(size = 10),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = c(0.1, 0.8),
+      legend.title = element_blank(),
+      legend.box = "vertical")
+  
+  return(figure)
+}
+
+plot_mean_temperatures <- function(maxyr, SRVY){
+  
+  # EBS
+  sebs_temperatures <- coldpool:::cold_pool_index %>%
+    dplyr::filter(YEAR <= maxyr) %>%
+    dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
+    dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
+                  Surface = MEAN_SURFACE_TEMPERATURE) %>%
+    dplyr::mutate(#group = YEAR < 2020,
+      region = "Eastern Bering Sea") %>%
+    reshape2::melt(id.vars = c("YEAR", "region")) # "group", 
+  
+  temp0 <- setdiff(min(sebs_temperatures$YEAR):max(sebs_temperatures$YEAR), unique(sebs_temperatures$YEAR))
+  temp <- data.frame(matrix(data = NA, 
+                            ncol = ncol(sebs_temperatures), 
+                            nrow = length(temp0)*2 )) 
+  names(temp) <- names(sebs_temperatures)
+  temp <- temp %>% 
+    dplyr::mutate(YEAR = c(temp0, temp0), 
+                  region = "Eastern Bering Sea", 
+                  variable = c(rep_len(x = "Bottom", length.out = length(temp0)), 
+                               rep_len(x = "Surface", length.out = length(temp0))))
+  
+  sebs_temperatures <- dplyr::bind_rows(sebs_temperatures, temp)
+  
+  # NBS
+  nbs_temperatures <- coldpool:::nbs_mean_temperature %>%
+    dplyr::filter(YEAR <= maxyr) %>%
+    dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
+    dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
+                  Surface = MEAN_SURFACE_TEMPERATURE) %>%
+    dplyr::mutate(#group = YEAR,
+      region = "Northern Bering Sea") %>%
+    reshape2::melt(id.vars = c("YEAR", "region")) # "group", 
+  
+  
+  temp0 <- setdiff(min(nbs_temperatures$YEAR):max(nbs_temperatures$YEAR), unique(nbs_temperatures$YEAR))
+  temp <- data.frame(matrix(data = NA, 
+                            ncol = ncol(nbs_temperatures), 
+                            nrow = length(temp0)*2 )) 
+  names(temp) <- names(nbs_temperatures)
+  temp <- temp %>% 
+    dplyr::mutate(YEAR = c(temp0, temp0), 
+                  region = "Northern Bering Sea", 
+                  variable = c(rep_len(x = "Bottom", length.out = length(temp0)), 
+                               rep_len(x = "Surface", length.out = length(temp0))))
+  
+  nbs_temperatures <- dplyr::bind_rows(nbs_temperatures, temp)
+  
+  # mean temp
+  mean_temp <- data.frame(region = c(rep("Eastern Bering Sea", 2),
+                                     rep("Northern Bering Sea", 2)),
+                          variable = rep(c("Bottom", "Surface"), 2),
+                          value = c(mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"], 
+                                         na.rm = TRUE),
+                                    mean(sebs_temperatures$value[sebs_temperatures$variable == "Surface"],
+                                         na.rm = TRUE),
+                                    mean(nbs_temperatures$value[nbs_temperatures$variable == "Bottom"], 
+                                         na.rm = TRUE),
+                                    mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"], 
+                                         na.rm = TRUE)))
+  
+  if (SRVY == "NEBS") {
+    all_temperatures <- dplyr::bind_rows(sebs_temperatures,
+                                         nbs_temperatures)
+  } else if (SRVY == "EBS") {
+    all_temperatures <- dplyr::bind_rows(sebs_temperatures)
+    mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
+  } else if (SRVY == "NBS") {
+    all_temperatures <- dplyr::bind_rows(nbs_temperatures)
+    mean_temp <- mean_temp[mean_temp$region == "Northern Bering Sea",]
+  }
+  
+  all_temperatures$variable <- factor(all_temperatures$variable, 
+                                      levels=c('Surface','Bottom'))
+  
+  color_sst <- nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
+  color_bt <- nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
+  
+  figure <- ggplot(data = all_temperatures,
+                   mapping = aes(x = YEAR,
+                                 y = value,
+                                 color = variable,
+                                 shape = variable, 
+                                 group = paste0(variable))) +
+    facet_wrap(~region, scales = "free") +
+    geom_point(size = rel(2)) +
+    geom_line() +
+    geom_hline(data = mean_temp,
+               aes(yintercept = value,
+                   color = variable),
+               linetype = 2) +
+    scale_color_manual(values = c(color_bt, color_sst)) +
+    scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
+                       limits = c(0,11.2),
+                       breaks = seq(0,12,2),
+                       expand = c(0,0))  + 
+    scale_x_continuous(breaks = scales::pretty_breaks(), 
+                       name = "Year") +
+    guides(
+      fill = guide_legend(title.position = "top", 
+                          label.position = "bottom",
+                          title.hjust = 0.25,
+                          nrow = 1)) +
+    theme_bw() +
+    theme(
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      panel.grid.minor = element_blank(),
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 12, face = "bold"), 
+      legend.title = element_blank(), #, vjust = .5, hjust = .3),
+      legend.text = element_text(size = 10),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = "bottom",
+      legend.box = "horizontal")
+  
+  return(list("figure" = figure, 
+              "table_raw" = all_temperatures))
+  
+}
+
+
+# Tables -----------------------------------------------------------------------
+
+# Adapted from flextable::theme_vanilla()
+
+#' @importFrom officer fp_border fp_par
+#' @export
+#' @title Apply vanilla theme
+#' @description Apply theme vanilla to a flextable:
+#' The external horizontal lines of the different parts of
+#' the table (body, header, footer) are black 2 points thick,
+#' the external horizontal lines of the different parts
+#' are black 0.5 point thick. Header text is bold,
+#' text columns are left aligned, other columns are
+#' right aligned.
+#' @param x a flextable object
+#' @param pgwidth a numeric. The width in inches the table should be. Default = 6, which is ideal for A4 (8.5x11 in) portrait paper.
+#' @param row_lines T/F. If True, draws a line between each row.
+#' @param font0 String. Default = "Times New Roman". Instead, you may want "Arial".
+#' @param body_size Numeric. default = 11.
+#' @param header_size Numeric. default = 11.
+#' @param spacing table spacing. default = 0.8.
+#' @param pad padding around each element. default = 0.1
+#' @family functions related to themes
+#' @examples
+#' ft <- flextable::flextable(head(airquality))
+#' ft <- NMFSReports::theme_flextable_nmfstm(ft)
+#' ft
+#' @section Illustrations:
+#'
+#' \if{html}{\figure{fig_theme_vanilla_1.png}{options: width=60\%}}
+theme_flextable_nmfstm <- function(x,
+                                   pgwidth = 6.5,
+                                   row_lines = TRUE,
+                                   body_size = 10,
+                                   header_size = 10,
+                                   font0 = "Times New Roman",
+                                   spacing = 0.6,
+                                   pad = 2) {
+  
+  if (!inherits(x, "flextable")) {
+    stop("theme_flextable_nmfstm supports only flextable objects.")
+  }
+  
+  FitFlextableToPage <- function(x, pgwidth = 6){
+    # https://stackoverflow.com/questions/57175351/flextable-autofit-in-a-rmarkdown-to-word-doc-causes-table-to-go-outside-page-mar
+    ft_out <- x %>% flextable::autofit()
+    
+    ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths*pgwidth /(flextable::flextable_dim(ft_out)$widths))
+    return(ft_out)
+  }
+  
+  std_b <- officer::fp_border(width = 2, color = "grey10")
+  thin_b <- officer::fp_border(width = 0.5, color = "grey10")
+  
+  x <- flextable::border_remove(x)
+  
+  if (row_lines == TRUE) {
+    x <- flextable::hline(x = x, border = thin_b, part = "body")
+  }
+  x <- flextable::hline_top(x = x, border = std_b, part = "header")
+  x <- flextable::hline_bottom(x = x, border = std_b, part = "header")
+  x <- flextable::hline_bottom(x = x, border = std_b, part = "body")
+  x <- flextable::bold(x = x, bold = TRUE, part = "header")
+  x <- flextable::align_text_col(x = x, align = "left", header = TRUE)
+  x <- flextable::align_nottext_col(x = x, align = "right", header = TRUE)
+  x <- flextable::padding(x = x, padding = pad, part = "all") # remove all line spacing in a flextable
+  x <- flextable::font(x = x, fontname = font0, part = "all")
+  x <- flextable::fontsize(x = x, size = body_size-2, part = "footer")
+  x <- flextable::fontsize(x = x, size = body_size, part = "body")
+  x <- flextable::fontsize(x = x, size = header_size, part = "header")
+  # x <- flextable::fit_to_width(x = x,
+  #                         max_width = pgwidth,
+  #                         unit = "in")
+  x <- FitFlextableToPage(x = x, pgwidth = pgwidth)
+  # x <- flextable::line_spacing(x = x, space = spacing, part = "all")
+  
+  x <- flextable::fix_border_issues(x = x)
+  
+  return(x)
+}
+
+table_change <- function(dat, 
+                         yrs, 
+                         maxyr, 
+                         compareyr, 
+                         remove_all = TRUE, 
+                         font = "Times New Roman") { 
+  
+  # temp <- tidyr::crossing(
+  #   haul_cruises_vess %>%
+  #     dplyr::filter(SRVY == "NBS"),
+  #   dplyr::distinct(
+  #     catch_haul_cruises %>%
+  #       dplyr::filter(SRVY == "NBS")  %>%
+  #       dplyr::left_join(
+  #         x = .,
+  #         y = spp_info %>%
+  #           dplyr::select(species_code, group),
+  #         by = "species_code"),
+  #     species_code, group)) %>%
+  #   dplyr::left_join(
+  #     x = .,
+  #     y = catch_haul_cruises %>%
+  #       dplyr::select("cruisejoin", "hauljoin", "cruisejoin", "species_code",
+  #                     "weight", "number_fish",
+  #       ),
+  #     by = c("species_code", "hauljoin", "cruisejoin")) %>%
+  #   #### a check for species with weights greater then 0
+  #   ## sum catch weight (by groups) by station and join to haul table (again) to add on relevent haul data
+  #   dplyr::group_by(year, stationid, #species_code,
+  #                   group, hauljoin, stratum, distance_fished, net_width) %>%
+  #   dplyr::summarise(wt_kg_summed_by_station = sum(weight, na.rm = TRUE), # overwrite NAs in assign_group_zeros where data exists
+  #                    num_summed_by_station = sum(number_fish, na.rm = TRUE)) %>% # overwrite NAs in
+  # 
+  #   ## checks catch_and_zeros table for species that are not in groups, if species are not grouped
+  #   #### add group to assign_groups table
+  #   ## calculates CPUE for each species group by station
+  #   mutate(effort = distance_fished * net_width/10) %>%
+  #   mutate(CPUE_weight_kgperhect = wt_kg_summed_by_station/effort) %>%
+  #   mutate(CPUE_number_perhect = ifelse(wt_kg_summed_by_station > 0 & num_summed_by_station == 0, NA,
+  #                                       (CPUE_number = num_summed_by_station/effort))) %>%
+  #   #### this is to check CPUEs by group, station and year against the SQL code
+  #   ## add area to CPUE table
+  #   dplyr::left_join(x = .,
+  #                    y = stratum_info %>%
+  #                      dplyr::select(stratum, area),
+  #                    by = 'stratum') #%>%
+  # 
+  # # calculates total area by adding up the unique area values (each strata has a different value)
+  # total_area <- sum(unique(temp$area))
+  # 
+  # table_raw <- temp %>%
+  #   ## calculates mean CPUE (weight) by year, group, stratum, and area
+  #   dplyr::ungroup() %>%
+  #   dplyr::group_by(year, group, stratum, area) %>%
+  #   dplyr::summarise(CPUE_by_group_stratum = mean(CPUE_weight_kgperhect, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  #   ## creates column for meanCPUE per group/stratum/year*area of stratum
+  #   dplyr::mutate(mean_cpue_times_area = (CPUE_by_group_stratum * area)) %>%
+  #   ## calculates sum of mean CPUE*area (over the 3 strata)
+  #   dplyr::ungroup() %>%
+  #   dplyr::group_by(year, group) %>%
+  #   dplyr::summarise(mean_CPUE_all_strata_times_area =
+  #                      sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
+  #   ## creates column with weighted CPUEs
+  #   dplyr::mutate(weighted_CPUE = (mean_CPUE_all_strata_times_area / total_area)) %>%
+  #   ### uses WEIGHTED CPUEs to calculate biomass
+  #   ## includes empty shells and debris
+  #   dplyr::group_by(year, group) %>%
+  #   dplyr::mutate(biomass_mt = weighted_CPUE*(total_area*.1)) %>%
+  #   # total biomass excluding empty shells and debris for each year
+  #   dplyr::filter(group != 'empty shells and debris')  %>%
+  #   dplyr::mutate(type = ifelse(
+  #     grepl(pattern = "@", x = (group), fixed = TRUE),
+  #     # species_name == paste0(genus_taxon, " ", species_taxon),
+  #     "ital", NA)) %>%
+  #   tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
+  #   dplyr::select(-extra) %>%
+  #   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
+  #                                     x = species_name, fixed = TRUE)) %>%
+  table_raw <- dat %>% 
+    dplyr::filter(year %in% yrs) %>%
+    dplyr::select(SRVY, year, print_name, species_name1, y, taxon) %>%
+    ## creates a biomass column for each year
+    tidyr::pivot_wider(
+      id_cols = c("SRVY", "print_name", "species_name1", "taxon"),
+      names_from = "year",
+      values_from = c("y") )  %>%
+    dplyr::ungroup()
+  
+  ##  calculate percent change, seperate group (common name) and taxon, filter out groups
+  ## change symbols/percents to red text if negative 
+  temp <- expand.grid(yrs, yrs)
+  temp <- temp[temp$Var1 != temp$Var2,]
+  table_raw <- as.data.frame(table_raw)
+  for (i in 1:nrow(temp)) {
+    table_raw$change <- NMFSReports::pchange(
+      start = unlist(table_raw[,names(table_raw) == as.character(temp[i,1])]), 
+      end = unlist(table_raw[,names(table_raw) == as.character(temp[i,2])]), 
+      value_only = TRUE)
+    names(table_raw)[names(table_raw) == "change"] <- paste0("change_", temp[i,1], "_", temp[i,2]) 
+  }
+  table_raw$change <- table_raw[,paste0("change_", compareyr , "_", maxyr) ]
+  
+  table_raw <- table_raw %>%
+    dplyr::arrange(desc(SRVY), desc(change)) %>%
+    # dplyr::filter(change != Inf) %>%
+    # dplyr::mutate(change = ifelse(change == Inf, "", change)) %>%
+    dplyr::rename(Survey = SRVY)
+  
+  
+  # remove spp with all 0s
+  if (length(yrs) == 4) {
+    a<-Reduce(intersect, 
+              list(which(table_raw[,as.character(yrs)[1]]==0),
+                   which(table_raw[,as.character(yrs)[2]]==0),
+                   which(table_raw[,as.character(yrs)[3]]==0),
+                   which(table_raw[,as.character(yrs)[4]]==0)))
+  } else if (length(yrs) == 3) {
+    a<-Reduce(intersect, 
+              list(which(table_raw[,as.character(yrs)[1]]==0),
+                   which(table_raw[,as.character(yrs)[2]]==0),
+                   which(table_raw[,as.character(yrs)[3]]==0)))
+  } else if (length(yrs) == 2) {
+    a<-Reduce(intersect, 
+              list(which(table_raw[,as.character(yrs)[1]]==0),
+                   which(table_raw[,as.character(yrs)[2]]==0)))
+  } else {
+    a<-Reduce(intersect, 
+              list(which(table_raw[,as.character(yrs)[1]]==0)))
+  }
+  
+  
+  if (length(a)!=0) {
+    table_raw0 <- table_raw[-a,]
+  } else {
+    table_raw0<-table_raw
+  }
+  
+  table_print <- table_raw0 %>%
+    dplyr::select(-taxon, -starts_with("change_")) %>% 
+    dplyr::mutate_if(is.numeric, round, 0) %>%
+    dplyr::mutate(change = paste0(prettyNum(change, big.mark=","), "%")) %>% 
+    dplyr::mutate(group = stringr::str_to_title(print_name)) 
+  
+  if (remove_all) {
+    table_print$group <- gsub(pattern = "All ", replacement = "", 
+                              x = table_print$group, fixed = TRUE)
+  }
+  
+  table_print <- table_print %>% 
+    dplyr::mutate(spp = dplyr::case_when(
+      grepl(pattern = "sp.", x = species_name1, fixed = TRUE) ~ "sp.", 
+      grepl(pattern = "spp.", x = species_name1, fixed = TRUE) ~ "spp.", 
+      TRUE ~ "")) %>%
+    dplyr::mutate(
+      species_name = species_name1, 
+      species_name1 = 
+        gsub(pattern = " sp.", replacement = "", 
+             x = species_name1, fixed = TRUE), 
+      species_name1 =
+        gsub(pattern = " spp.", replacement = "",
+             x = species_name1, fixed = TRUE),
+      species_name2 = dplyr::case_when(
+        !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), 
+      species_name1 = dplyr::case_when(
+        grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1)) 
+  
+  table_print <- table_print %>%
+    flextable::flextable(data = ., col_keys = c(ifelse(length(unique(table_print$SRVY)) == 1, "", "Survey"), 
+                                                "group", "dummy", 
+                                                as.character(yrs), "change")) %>%
+    compose(j = "dummy", 
+            value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
+    flextable::color(color = "red", 
+                     i = grepl(pattern = "-", x = as.character(table_raw0$change)), 
+                     j = which(names(table_print) == "change")) %>% 
+    flextable::set_header_labels(.,
+                                 group = "Common name",
+                                 dummy = "Taxon",
+                                 change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>%
+    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = ., font0 = font)
+  
+  return(list("table_print" = table_print, 
+              "table_raw" = table_raw))
+}
+
+
+table_change_pres <- function(dat, 
+                              yrs, 
+                              maxyr, 
+                              compareyr, 
+                              remove_all = TRUE, 
+                              font = "Arial", 
+                              unit = "", 
+                              unt = "", 
+                              y_long = "", 
+                              divby = NULL, 
+                              digits = 1) {
+  
+  yrs <- sort(yrs)
+  comb <- data.frame(var2 = yrs[-length(yrs)],
+                     var1 = yrs[-1] )
+  
+  table_raw <- dat
+  
+  a<-find_units(unit = unit, unt = unt, dat = table_raw$y, divby = divby)
+  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  
+  table_raw <- table_raw %>% 
+    dplyr::select(SRVY, year, y, print_name, species_name1, taxon) %>%
+    dplyr::mutate(y = y/divby)
+  
+  
+  a <- table_change(dat = table_raw, 
+                    yrs = yrs, 
+                    maxyr = maxyr, 
+                    compareyr = compareyr, 
+                    remove_all = remove_all, 
+                    font = font) 
+  
+  table_raw <- a$table_raw %>% 
+    dplyr::select(Survey, print_name, 
+                  dplyr::all_of(as.character(nbsyr)), 
+                  dplyr::all_of(paste0("change_", as.character(comb$var2), "_", as.character(comb$var1)))) %>% 
+    dplyr::filter(print_name %in% unique(report_spp1$print_name)) %>% 
+    dplyr::mutate_if(is.numeric, formatC, digits = digits, format = "f", big.mark = ",") %>%
+    dplyr::mutate(dplyr::across(dplyr::starts_with("change"), 
+                                prettyNum, big.mark=",")) 
+  
+  # table_raw$SRVY[table_raw$SRVY == "EBS"] <- "SEBS"
+  
+  table_print <- table_raw
+  
+  for (i in 1:nrow(comb)) {
+    
+    table_print[,as.character(comb$var1)[i]] <- 
+      paste0(unlist(table_print[,as.character(comb$var1)[i]]), 
+             " (", 
+             unlist(table_print[,paste0("change_", as.character(comb$var2[i]), "_", as.character(comb$var1[i]))]), 
+             "%)")
+  }
+  
+  table_print <- table_print %>% 
+    dplyr::select(-starts_with("change_")) %>%
+    dplyr::filter(tolower(print_name) %in% tolower(report_spp$print_name)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::arrange(desc(Survey)) %>%  
+    dplyr::arrange((print_name))  
+  
+  
+  # biomass_tab<-list()
+  
+  # for (i in 1:length(unique(report_spp1$file_name))) {
+  
+  # spp_print <- unique(report_spp1$print_name)[i]
+  
+  table_print <- temp0<- table_print %>%
+    # dplyr::filter(tolower(print_name) == tolower(spp_print)) %>%
+    dplyr::select(-print_name)
+  
+  table_print <- table_print %>%
+    flextable::flextable(data = .)  %>%
+    # red
+    flextable::color(color = "red",
+                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[2])]), fixed = TRUE),
+                     j = as.character(yrs[2])) %>%
+    flextable::color(color = "red",
+                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[3])]), fixed = TRUE),
+                     j = as.character(yrs[3])) %>%
+    flextable::color(color = "red",
+                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[4])]), fixed = TRUE),
+                     j = as.character(yrs[4])) %>%
+    flextable::color(color = "red",
+                     i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[5])]), fixed = TRUE),
+                     j = as.character(yrs[5])) %>%
+    
+    # blue
+    flextable::color(color = "blue",
+                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[2])]), fixed = TRUE)),
+                     j = as.character(yrs[2])) %>%
+    flextable::color(color = "blue",
+                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[3])]), fixed = TRUE)),
+                     j = as.character(yrs[3])) %>%
+    flextable::color(color = "blue",
+                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[4])]), fixed = TRUE)),
+                     j = as.character(yrs[4])) %>%
+    flextable::color(color = "blue",
+                     i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[5])]), fixed = TRUE)),
+                     j = as.character(yrs[5])) %>%
+    
+    flextable::bold(x = ., bold = TRUE, part = "all") %>%
+    
+    flextable::set_header_labels(.,
+                                 # Survey = paste0(y_long, 
+                                 #                 ifelse(trimws(unit_wrd) == "", "", 
+                                 #                        paste0("\n(",trimws(unit_wrd), ")")))) %>%
+                                 Survey = paste0(ifelse(trimws(unit_wrd) == "", "", 
+                                                        paste0("(",trimws(unit_wrd), ")")))) %>%
+    NMFSReports::theme_flextable_nmfstm(
+      x = ., 
+      row_lines = TRUE, 
+      body_size = 15, 
+      header_size = 18, 
+      font = "Arial", 
+      pgwidth = 9, 
+      spacing = 1.6) %>%
+    flextable::align(x = ., 
+                     part = "all",  
+                     j = as.character(yrs), 
+                     align = "right")
+  
+  return(list("table_print" = table_print, 
+              "table_raw" = table_raw, 
+              "divby" = divby, 
+              "unt" = paste0(#y_long,
+                # ifelse(trimws(unit_wrd) == "", "", paste0(" ",
+                trimws(unit_wrd)), #)),
+              "unit" = paste0(#y_long, 
+                # ifelse(trimws(unit_word) == "", "", paste0(" ",
+                trimws(unit_word))))#))
+  
+}
+
+
+# Save Tables and Figures ------------------------------------------------------
+
+save_figures<-function(figure,
+                       header = "",
+                       footnotes = "",
+                       filename0 = "x",
+                       path = "./",
+                       width = 6,
+                       height = 6,
+                       output_type = c("pdf", "png"),
+                       type = "Figure",
+                       alttext = "",
+                       filename_desc = "",
+                       nickname = "",
+                       raw = NULL
+){
+  
+  header<-trimws(header)
+  header<-paste0(ifelse(substr(x = header,
+                               start = nchar(header),
+                               stop = nchar(header)) %in%
+                          c(".", "!", "?", "...", "...."),
+                        header, paste0(header, ".")))
+  footnotes<-trimws(footnotes)
+  caption<-ifelse(sum(footnotes %in% "") != 0,
+                  header,
+                  paste0(header, paste(paste0("^[", footnotes, "]"),
+                                       collapse = " ^,^ ")))
+  
+  # Save
+  if (!is.null(path)){
+    
+    # Save Graphic/Figure
+    for (i in 1:length(output_type)){
+      ggplot2::ggsave( # save your plot
+        path = path,
+        dpi = 1200,
+        bg = "white",
+        filename = paste0(nickname, ".", output_type[i]), # Always save in pdf so you can make last minute edits in adobe acrobat!
+        plot = figure, # call the plot you are saving
+        width = width, height = height, units = "in") #recall, A4 pages are 8.5 x 11 in - 1 in margins
+      
+    }
+    
+    # raw
+    
+    # Save raw file (no rounding, no dividing)
+    if (!(is.null(raw)) &
+        (is.data.frame(raw) | is.matrix(raw))) {
+      # for (i in 1:length(output_type)){
+      utils::write.table(x = raw,
+                         file = paste0(path, nickname,
+                                       ".csv"),
+                         sep = ",",
+                         row.names=FALSE, col.names = TRUE, append = F)
+      # }
+    } else {
+      raw <- ""
+    }
+    
+  }
+  
+  write.table(x = caption, 
+              file = paste0(path, nickname, ".txt"), 
+              row.names = FALSE, 
+              col.names = FALSE, 
+              quote = FALSE)
+  
+  # Save Graphic/Figure as .rdata
+  obj <- list("figure" = figure,
+              "raw" = raw,
+              "caption" = caption,
+              "header" = header,
+              "nickname" = nickname,
+              "alttext" = alttext,
+              "footnotes" = footnotes,
+              "filename" = nickname)
+  
+  save(obj, 
+       file = paste0(path, nickname, ".rdata"))
+  
+}
+
+
+#' Systematically save your report tables for your report
+#'
+#' @param table_raw Optional. The data.frame that has no rounding and no dividing of numbers (good to save this for record keeping). Default = NA.
+#' @param table_print The data.frame as table will be seen in the report.
+#' @param list_tables Save tables in a list
+#' @param header The name and title of the figure. Default = "".
+#' @param footnotes Any footnote you want attached to this figure.
+#' @param filename0 The filename set at the begining of the chapter
+#' @param cnt_chapt_content The order number that this exists in the chapter.
+#' @param cnt The figure number
+#' @param path The path the file needs to be saved to. Default = "NULL", meaning it wont save anything and will override all other saving elements.
+#' @param output_type Default = c("csv"). Can be anything supported by utils::write.table.
+#' @param type Default = "Table", but can be anything that the element needs to be called (e.g., "Graphic", "Fig.", "Graph") to fit in the phrase "Table 1. This is my spreadsheet!".
+#' @param alttext String with what the alternative text is.
+#' @param filename_desc Additional description text for the filename that will be added at the name of file before the filename extention, before the "_raw" or "_print". Default = "". Can be use to add a species name, location, or anything else that would make it easier to know what that file shows.
+#' @param nickname A unique name that can be used to identify the figure so it can be referenced later in the report.
+#' @param message TRUE/FALSE. Default = FALSE. If TRUE, it will print information about where your plot has been saved to.
+#' @importFrom magrittr %>%
+#' @export
+#' @examples
+#' # Select data and make plot
+#' table_raw<-data.frame(x = rnorm(n = 10),
+#'                       y = rnorm(n = 10),
+#'                       col = rep_len(x = c("a", "b"), length.out = 5))
+#' table_print <- table_raw
+#' table_print[,c("x", "y")] <- NMFSReports::mod_number(table_print[,c("x", "y")],
+#'                                                      divideby = 1,
+#'                                                      comma_seperator = TRUE,
+#'                                                      digits = 2)
+#' save_tables(table_raw = table_raw,
+#'            table_print=table_print,
+#'            header = "Here is a table!",
+#'            footnote = "A footnote for this table!")
+save_tables<-function(table_raw = NULL,
+                      table_print = NULL,
+                      header = "",
+                      footnotes = "",
+                      filename0 = "x",
+                      path = NULL,
+                      output_type = c("csv"),
+                      alttext = "",
+                      filename_desc = "",
+                      nickname = "") {
+  
+  # Title
+  header<-trimws(header)
+  header<-paste0(ifelse(substr(x = header,
+                               start = nchar(header),
+                               stop = nchar(header)) %in%
+                          c(".", "!", "?", "...", "...."),
+                        header, paste0(header, ".")))
+  footnotes<-trimws(footnotes)
+  caption<-ifelse(sum(footnotes %in% "") != 0,
+                  header,
+                  paste0(header, paste(paste0("^[", footnotes, "]"),
+                                       collapse = " ^,^ ")))
+  # Save
+  # if (!is.null(path)){
+  
+  # raw
+  
+  # Save raw file (no rounding, no dividing)
+  if (!(is.null(table_raw))) {
+    for (i in 1:length(output_type)){
+      utils::write.table(x = table_raw,
+                         file = paste0(path, nickname,
+                                       ".", output_type[i]),
+                         sep = ",",
+                         row.names=FALSE, col.names = TRUE, append = F)
+    }
+    # } else {
+    #   table_raw <- ""
+    # }
+  }
+  # write.table can only save files that are 1) extant or 2) in a data.frame or matrix
+  #   if (!(is.null(table_print))) {
+  #     if ((class(table_print) %in% c("data.frame", "matrix"))) {
+  #       for (i in 1:length(output_type)){
+  #         utils::write.table(x = table_print,
+  #                            file = paste0(path, nickname,
+  #                                          "-print.", output_type[i]),
+  #                            sep = ",",
+  #                            row.names=FALSE, col.names = F, append = F)
+  #       }
+  #     } else { # save non-matrix or data.frames
+  #       save(table_print,
+  #            file = paste0(path, nickname, "-print.Rdata"))
+  #     }
+  #   } else {
+  #     table_print <- ""
+  #   }
+  # }
+  
+  write.table(x = caption, 
+              file = paste0(path, nickname, ".txt"), 
+              row.names = FALSE, 
+              col.names = FALSE, 
+              quote = FALSE)
+  
+  # Save flextable etc as .rdata
+  obj <- list("raw" = table_raw,
+              "print" = table_print,
+              "caption" = caption,
+              "header" = header,
+              "nickname" = nickname,
+              "alttext" = alttext,
+              "footnotes" = footnotes,
+              "filename" = nickname)
+  
+  save(obj, 
+       file = paste0(path, nickname, ".rdata"))
+  
+}
+
+
+

@@ -1,0 +1,40 @@
+
+```{r, results='asis'}
+
+figtab <- dplyr::case_when(
+  grepl(pattern = "fig-", x = nickname) ~ "fig",
+  grepl(pattern = "tab-", x = nickname) ~ "tab"
+)
+
+dir0 <- dir_out_figtab
+
+a <- list.files(path = dir0, 
+                pattern = nickname, 
+                full.names = FALSE)
+
+nickname0 <- gsub(pattern = ".rdata", 
+                  replacement = "", 
+                  x = a[grepl(pattern = ".rdata", x = a)], 
+                  ignore.case = TRUE)
+
+src_figtab <- list()
+for(i in 1:length(nickname0)){
+  nickname00 <- nickname0[i]
+  if (figtab == "tab"){
+    path <- paste0(dir0, nickname00, ".Rdata", collapse = "")
+    load(path) 
+    caption <- obj$caption
+  } else if (figtab == "fig") {
+    caption <- readtext(file = paste0(dir0, nickname00, ".txt"))$text
+    dir00 <- paste0(dir0, nickname00, ".png")
+    img <- magick::image_read(path = dir00) # read the image using the magic library
+    img.asp <- image_info(img)$height / image_info(img)$width # calculate the figures aspect ratio
+    fig.width <- 6.5
+  }
+  src_figtab[[i]] <- knitr::knit_expand(file = paste0(dir_code, '_child_report_',figtab,'.Rmd'))
+}
+
+res <- knitr::knit_child(text = paste0(unlist(src_figtab), collapse = ""), quiet = TRUE)
+cat(res, sep = ifelse(exists("sep0"), sep0, '\n')) # between can be "\\pagebreak" or similar
+remove(between)
+```
