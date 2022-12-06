@@ -83,25 +83,29 @@ report_types <- list(
   )
 )
 
+for (ii in 1:length(report_types)) {
+  reg_dat <- report_types[[ii]]$reg_dat
+  # add color to survey.area
+  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
+  survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+  reg_dat$survey.area <- reg_dat$survey.area %>%
+    dplyr::mutate(
+      SRVY = dplyr::case_when(
+        SURVEY == "EBS_SHELF" ~ "EBS", 
+        SURVEY == "NBS_SHELF" ~ "NBS"), 
+      color = alpha(colour = survey_reg_col, 0.7), 
+      SRVY_long = dplyr::case_when(
+        SRVY == "EBS" ~ "Eastern Bering Sea", 
+        SRVY == "NBS" ~ "Northern Bering Sea") )
+  
+  # fix reg_dat$graticule
+  reg_dat$graticule <- sf::st_transform(x = reg_dat$graticule, crs = CRS(as.character(reg_dat$crs)[1]))
+  report_types[[ii]]$reg_dat <- reg_dat
+}
+
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
-
-# add color to survey.area
-survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
-survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
-reg_dat$survey.area <- reg_dat$survey.area %>%
-  dplyr::mutate(
-    SRVY = dplyr::case_when(
-      SURVEY == "EBS_SHELF" ~ "EBS", 
-      SURVEY == "NBS_SHELF" ~ "NBS"), 
-    color = alpha(colour = survey_reg_col, 0.7), 
-    SRVY_long = dplyr::case_when(
-      SRVY == "EBS" ~ "Eastern Bering Sea", 
-      SRVY == "NBS" ~ "Northern Bering Sea") )
-
-# fix reg_dat$graticule
-reg_dat$graticule <- sf::st_transform(x = reg_dat$graticule, crs = CRS(as.character(reg_dat$crs)[1]))
 
 # lon_label <- reg_dat$lon.breaks
 # lat_label <- reg_dat$lat.breaks

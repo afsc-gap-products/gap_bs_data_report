@@ -253,7 +253,7 @@ str0 <- data.frame(str = str0,
 At the beginning of the survey, scientists boarded the chartered vessels (`r text_list(vessel_info$vessel_ital)`) in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Fig. \@ref(fig:fig-sampled-survey-stations)). The east-to-west survey progression is intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. In the EBS, `r str0$str[str0$SRVY == "EBS"]`.
 
 ```{r methods_ebs_survey_area}
-load(file = paste0(dir_out_tables, "tab-stratum-areas.Rdata"))
+load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
 temp0 <- obj$raw %>% 
     dplyr::mutate(Region = paste0(SRVY, " ", Region))
 
@@ -276,7 +276,7 @@ nbs_insert <- ""
 
 if (SRVY == "NEBS") {
   
-  load(file = paste0(dir_out_tables, "tab-stratum-areas.Rdata"))
+  load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
   
   temp0 <- obj$raw %>% 
     dplyr::mutate(Region = paste0(SRVY, " ", Region))
@@ -293,10 +293,10 @@ if (SRVY == "NEBS") {
   nbs_insert <- paste0(
     "After the completion of the EBS shelf survey, both vessels transitioned into sampling survey stations in the southwest corner of the NBS survey region. In the NBS, ", 
     str0$str[str0$SRVY == "NBS"], 
-    ". After the NBS survey was completed, both vessels returned to Dutch Harbor. The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\\\@ref(fig:fig-sampled-survey-stations)). Sampling density was ", 
+    ". After the NBS survey was completed, both vessels returned to Dutch Harbor. The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-sampled-survey-stations)). Sampling density was ", 
     # Sampling density was 1,367 km2 /station for Stratum 70, 1,475 km2 /station for Stratum 71, 1,370 km2 /station for Stratum 81, 
     text_list(paste0(xunits(temp$density), " km^2^/station for stratum ", temp$stratum)), 
-    " and ", xunits(temp_tot$density), " km^2^/station for the total NBS (Table \\\\@ref(tab:tab-stratum-areas)).")
+    " and ", xunits(temp_tot$density), " km^2^/station for the total NBS (Table \\@ref(tab:tab-stratum-areas)).")
   
 }
 
@@ -322,7 +322,7 @@ Catches estimated to be less than approximately 1,200 kg (2,650 lbs) were entire
 All commercial crab species were weighed and enumerated from each catch. Other select species including Pacific halibut (*Hippoglossus stenolepis*), Greenland turbot (*Reinhardtius hippoglossoides*), large skates, rockfish (*Sebastes spp.*), Atka mackerel (*Pleurogrammus monopterygius*), prowfish (*Zaprora silenus*), Bering wolffish (*Anarhichas orientalis*), giant wrymouth (*Cryptacanthodes giganteus*), Pacific cod (*Gadus macrocephalus*), some sculpins, sharks, and any other large, rare species that are not represented in the subsample were completely sorted from the catch in most cases.
 
 ```{r tab-oto-collection-scheme-EBS}
-load(file = paste0(dir_out_tables, "tab-oto-collection-scheme-EBS.Rdata")) # creates object called 'obj'
+load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme-EBS.Rdata")) # creates object called 'obj'
 ```
 
 Length measurements were obtained from a random subsample of select fish species from every haul (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-oto-collection-scheme-EBS) and \@ref(tab:tab-oto-collection-scheme-NBS)). `r ifelse(sum(obj$raw$oto_samp_type %in% "random-by-haul")>0, paste0("The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of ", ifelse(maxyr>2021, "100", "300"), " specimens. "), "")`For each fish in a length subsample, sex was determined and then the fork length or total length (depending on the species) was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture`r ifelse(maxyr > 2020, "", " and 50% were randomly selected to receive a preopercle tag")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
@@ -334,9 +334,9 @@ Length measurements were obtained from a random subsample of select fish species
 #   dplyr::summarise(species_code_n = unique(species_code)) %>% 
 #   dplyr::summarise(n = length(all_of(SRVY)))   
 
-load(file = paste0(dir_out_tables, "tab-oto-collection-scheme-EBS.Rdata"))
+load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme-EBS.Rdata"))
 obj_ebs<-obj
-load(file = paste0(dir_out_tables, "tab-oto-collection-scheme-NBS.Rdata"))
+load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme-NBS.Rdata"))
 obj_nbs<-obj
 
 if (SRVY == "NEBS") {
@@ -398,20 +398,13 @@ if (SRVY == "NEBS") {
 
 ```
 
-Sagittal otoliths were collected from `r str0 ` (Tables \@ref(tab:tab-specimen-samples-EBS), \@ref(tab:tab-specimen-samples-NBS), \@ref(tab:tab-oto-collection-scheme-EBS), and \@ref(tab:tab-oto-collection-scheme-NBS)). Otolith samples were collected following `r str2 ` (Table \@ref(tab:tab-oto-collection-scheme-EBS) and \@ref(tab:tab-oto-collection-scheme-NBS)). Otoliths were preserved in a glycerol-thymol solution and then later shipped to the Age and Growth Program of the AFSC’s Resource Ecology and Fisheries Management (REFM) division for age determination. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, age structure sampling effort was further divided into low-density and high-density regions based on historical population densities and an isobath of approximately 70 m.  
+Sagittal otoliths were collected from `r str0 ` (Tables \@ref(tab:tab-oto-collection-scheme-EBS) and \@ref(tab:tab-oto-collection-scheme-NBS)). Otolith samples were collected following `r str2 ` (Table \@ref(tab:tab-oto-collection-scheme-EBS) and \@ref(tab:tab-oto-collection-scheme-NBS)). Otoliths were preserved in a glycerol-thymol solution and then later shipped to the Age and Growth Program of the AFSC’s Resource Ecology and Fisheries Management (REFM) division for age determination. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, age structure sampling effort was further divided into low-density and high-density regions based on historical population densities and an isobath of approximately 70 m.  
 
 ```{r methods_stomach_collection}
-load(file = paste0(dir_out_tables, "tab-stomach-collection-scheme.Rdata")) # creates object called 'obj'
+load(file = paste0(dir_out_figtab, "tab-stomach-collection-scheme.Rdata")) # creates object called 'obj'
 ```
 
-Stomachs were collected in the field from `r xunits(nrow(obj$raw))` fish species (Table \@ref(tab:tab-stomach-collection-scheme)) and were preserved in the field in 10% formalin. Arrowtooth flounder and Kamchatka flounder (*Atheresthes* spp.) stomachs were collected as one genus because they occupy a similar trophic niche in the Bering Sea. 
-
-```{rtab-specimen-samples-}
-nickname <- "tab-specimen-samples-"
-```
-
-```{r tab-specimen-samples--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
-```
+Stomachs were collected in the field from `r xunits(nrow(obj$raw))` fish species and were preserved in the field in 10% formalin (Table \@ref(tab:tab-stomach-collection-scheme)). Arrowtooth flounder and Kamchatka flounder (*Atheresthes* spp.) stomachs were collected as one genus because they occupy a similar trophic niche in the Bering Sea. 
 
 ```{r tab-oto-collection-scheme-}
 nickname <- "tab-oto-collection-scheme-"
@@ -440,7 +433,7 @@ Otolith samples collected during the survey were read for age estimates by Age a
 ## Additional Research Projects
 
 ```{r methods_additional_research}
-load(file = paste0(dir_out_tables, "tab-special-projects.Rdata"))
+load(file = paste0(dir_out_figtab, "tab-special-projects.Rdata"))
 temp <- obj$raw %>% 
   dplyr::group_by(SRVY) %>% 
   dplyr::summarise(n = length((SRVY))) %>% 
@@ -467,7 +460,7 @@ temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.
   unlist()
 ```
 
-In addition to standard survey operations, `r gsub(x = text_list(paste0(temp$n, " research project",ifelse(temp$n>1, "s were", " was")," undertaken in ", temp$SRVY), sep_last = ", and "), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). A solicitation for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC strategic science plans and mission and their expected impact on survey resources and available time to complete the project. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) designated in Table \@ref(tab:tab-special-projects).
+In addition to standard survey operations, `r gsub(x = text_list(paste0(temp$n, " research project", ifelse(temp$n>1, "s were", " was"), " undertaken in ", temp$SRVY), sep_last = " and "), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). A solicitation for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC strategic science plans and mission and their expected impact on survey resources and available time to complete the project. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) designated in Table \@ref(tab:tab-special-projects).
 
 
 ```{r tab-special-projects}

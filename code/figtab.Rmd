@@ -76,7 +76,7 @@ figure <- plot_survey_stations(
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 ```
@@ -114,7 +114,7 @@ figure <- plot_survey_stations(reg_dat = reg_dat0,
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -153,7 +153,7 @@ figure <- cowplot::plot_grid(p1, p2,
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -179,7 +179,7 @@ figure <-
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -279,15 +279,15 @@ table_print <- table_raw %>%
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
 ```
 
-## tab-oto-collection-scheme
+## tab-oto-collection-scheme-[SRVY]
 
-```{r tab-oto-collection-scheme-}
+```{r tab-oto-collection-scheme-[SRVY]}
 
 nickname0 <- paste0("tab-oto-collection-scheme-") 
 
@@ -363,7 +363,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 }
@@ -425,7 +425,7 @@ table_print <- flextable::flextable(table_raw %>%
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -496,7 +496,7 @@ table_print <- table_raw %>%
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -525,7 +525,7 @@ for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -549,123 +549,92 @@ figure <- plot_coldpool_area(coldpool_ebs_bin_area = coldpool_ebs_bin_area, maxy
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
 ```
 
+## fig-temperature-[SRVY]-[st/bt]
 
-## fig-bt-temperature-ebs-[above or below]
+```{r fig-temperature-[SRVY]-[st/bt]}
 
-```{r fig-bt-temperature-ebs-}
-# nickname0 <- "fig_idw_bottemp_longterm_mean_"
-nickname0 <- "fig-bt-temperature-ebs-"
-
-for (i in 1:2) { # two cases, above and below
-  
-  height <- full_page_portrait_height 
-  width <- full_page_portrait_width
-  
-  subobj <- TRUE
-  newobj <- ifelse(i==1, TRUE, FALSE)
-  TF <- ifelse(i==1, FALSE, TRUE)
-  case <- ifelse(i==1, "below", "above")
-  years <- sort(temps_avg_yr_abovebelow[case][[1]])
-  
-  header <- paste0("Eastern Bering Sea shelf bottom trawl survey near-bottom temperatures in years ",
-                   case,
-                   " the time-series average (",
-                   text_list(years), ").")
-  nickname <- paste0(nickname0, case)
-  
-  # Just EBS
-  rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
-                                subset = paste0("sebs_ste_", years, "_gear_temperature"))
-  names(rasterbrick) <- gsub(pattern = "_", replacement = "", 
-                             x = (gsub(x = names(rasterbrick), 
-                                       pattern = "[a-zA-Z]+", replacement = "")))
-  
-  if (length(years)<3) {
-    row0 <- 1
-    height <- full_page_portrait_height - 4.5
-  } else if (length(years)<7) {
-    row0 <- 2
-    height <- full_page_portrait_height - 2.5
-  } else { # }  if (length(years)<10) {
-    row0 <- 3
-    height <- full_page_portrait_height 
-  } 
-  
-  figure <- plot_temps_facet(
-    rasterbrick = rasterbrick,
-    key.title = expression(bold("Bottom Temperature (°C)")),
-    reg_dat = report_types$EBS$reg_dat,
-    colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-    viridis_palette_option = "H", 
-    row0 = row0, # ifelse(length(year)<10, 3, 4), 
-    title0 = paste0("Bottom Temperatures of Years ",
-                    stringr::str_to_sentence(case), 
-                    " Time-Series Average"))
-  
-# Save figure
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
-  quiet = TRUE
-)
-  
-}
-```
-
-## fig-temperature-nebs-surveys-[st or bt]
-
-```{r fig_[st or bt]-temperature-nebs-surveys}
-
+# if (SRVY == "NEBS") {
 if (SRVY == "NEBS") {
-  
-  for (i in 1:2) { # two cases, above and below
-    case <- ifelse(i==1, "bottom", "surface")
-    nickname <- paste0("fig-temperature-nebs-surveys-",
-                       ifelse(i==1, "bt", "st"))
-    
-    subobj <- TRUE
-    newobj <- ifelse(i==1, TRUE, FALSE)
-    
-    header <- paste0(stringr::str_to_title(case)," temperatures (°C) in the ",
-                     text_list(haul_cruises_maxyr$SRVY_long),
-                     " during the ",
-                     text_list(nbsyr),
-                     " surveys, which included the full northern Bering Sea shelf bottom trawl survey. ")
-    
-    if (case == "surface") {
-      rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
-                                    subset = paste0("ebs_ste_", nbsyr, "_surface_temperature"))
-    } else {
-      rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
-                                    subset = paste0("ebs_ste_", nbsyr, "_gear_temperature"))
-      # rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
-      #                               subset = paste0("ebs_ste_", nbsyr, "_surface_temperature"))    
+case1_ <- c("EBS", "NEBS") 
+} else {
+case1_ <- "EBS"
+}
+
+for (case1 in case1_) {
+  for (case in c("bottom", "surface")) {
+
+    header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", range_text(yrs),
+                     ifelse(case1 == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
+                     " shelf bottom trawl survey",
+                     ifelse(SRVY=="NEBS", "s", ""),". ")
+
+    # reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
+    if (case1 == "EBS") {
+      yrs <- (maxyr-19):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
+      row0 <- 4
+      reg_dat0 <- report_types$EBS$reg_dat
+      if (case == "surface") {
+        rasterbrick <- raster::subset(x = coldpool:::ebs_surface_temperature,
+                                      subset = paste0("sebs_ste_", yrs, "_surface_temperature"))
+        
+        a <- raster::subset(x = coldpool:::ebs_surface_temperature,
+               subset = paste0("sebs_ste_2021_surface_temperature"))
+      } else {
+        rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
+                                      subset = paste0("sebs_ste_", yrs, "_gear_temperature"))
+        
+        a <- raster::subset(x = coldpool:::ebs_bottom_temperature,
+               subset = paste0("sebs_ste_2021_gear_temperature"))      
+      }
+      
+        names(a) <- gsub(pattern = "_2021_", replacement = "_2020_", x = names(a))
+        a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
+        a@data@max <- a@data@min <- NA
+        a@data@names <- gsub(pattern = "_2021_", replacement = "_2020_", x = a@data@names)
+        rasterbrick$temp <- a
+        names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
+        
+        
+    } else if (case1 == "NEBS") { 
+      yrs <- nbsyr
+      row0 <- ifelse(length(yrs)>5, 3, 2)
+      reg_dat0 <- report_types$NEBS$reg_dat
+      
+      if (case == "surface") {
+        rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
+                                      subset = paste0("ebs_ste_", yrs, "_surface_temperature"))
+      } else {
+        rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
+                                      subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
+      }
     }
     
+    nickname <- paste0("fig-temperature-",case1,"-", ifelse(case=="bottom", "bt", "st"))
     height <- ifelse(length(nbsyr)>2, full_page_portrait_height, 5)
     width <- full_page_portrait_width
     
     figure <- plot_temps_facet(
       rasterbrick = rasterbrick, 
-      key.title = ifelse(i==1, 
+      key.title = ifelse(case == "bottom", 
                          expression(bold("Bottom Temperature (°C)")), 
                          expression(bold("Surface Temperature (°C)"))), 
-      reg_dat = report_types$NEBS$reg_dat, 
+      reg_dat = reg_dat0, 
       colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-      row0 = ifelse(length(nbsyr)>2, 2, 1), 
-      viridis_palette_option = "H", 
-      title0 = paste0(stringr::str_to_title(case), " Temperature")) 
+      row0 = row0, 
+      title0 = paste0("Eastern", ifelse(case1 == "NEBS", " and northern", ""), 
+                      " Bering Sea ", 
+                      stringr::str_to_title(case), " Temperature")) 
     
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_fig.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")),
   quiet = TRUE
 )
   }
@@ -805,7 +774,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -979,7 +948,7 @@ if (SRVY == "NEBS"){
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -1417,9 +1386,9 @@ temp1 <- function(table_raw, strat, total) {
 
 ```
 
-### tab-biomass-est-fish_ (EBS and NBS)
+### tab-biomass-est-fish_[SRVY]
 
-```{r tab-biomass-est-fish_}
+```{r tab-biomass-est-fish_[SRVY]}
 
 nickname0 <- "tab-biomass-est-fish-"
 
@@ -1510,7 +1479,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
@@ -1518,9 +1487,9 @@ res <- knitr::knit_child(
 
 ```
 
-### tab-biomass-est-invert\_ (EBS and NBS)
+### tab-biomass-est-invert_[SRVY]
 
-```{r tab-biomass-est-invert_}
+```{r tab-biomass-est-invert_[SRVY]}
 
 nickname0 <- "tab-biomass-est-invert-"
 
@@ -1594,16 +1563,16 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
   
 } 
 ```
 
-## tab-majortaxa-pchange-
+## tab-majortaxa-pchange-[SRVY]
 
-```{r tab-majortaxa-pchange-}
+```{r tab-majortaxa-pchange-[SRVY]}
 
 nickname0 <- "tab-majortaxa-pchange-" 
 yrs <- nbsyr
@@ -1730,16 +1699,16 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
 }
 ```
 
-## tab-estimates-maxyr-spp-
+## tab-estimates-maxyr-spp-[SRVY]
 
-```{r tab-estimates-maxyr-spp-}
+```{r tab-estimates-maxyr-spp-[SRVY]}
 
 nickname0 <- paste0("tab-estimates-maxyr-spp-") 
 
@@ -1948,7 +1917,7 @@ for (i in 1:2) {
 # Save table
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_tab.Rmd")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
 
