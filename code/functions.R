@@ -2372,7 +2372,26 @@ plot_temps_facet <- function(rasterbrick,
   temp_df <- temp_df %>% 
     tidyr::pivot_longer(values_to = "value", 
                         names_to = "year", 
-                        cols = dplyr::all_of(temp1))
+                        cols = dplyr::all_of(temp1)) %>%
+    tidyr::drop_na(value)
+  
+  # Setup data.frame for 2020 year with no survey
+  panel_extent <- reg_dat$plot.boundary |>
+    sf::st_as_sf(coords = c("x", "y")) |>
+    sf::st_buffer(dist = 1e6) |>
+    sf::st_bbox()
+    
+  panel_extent <- data.frame(x = panel_extent[c('xmin', 'xmax')],
+                             y = panel_extent[c('ymin', 'ymax')])
+  
+  label_2020 <- data.frame(x = mean(panel_extent$x),
+                           y = mean(panel_extent$y),
+                           label = "No\nSurvey",
+                           year = 2020)
+  
+  panel_extent <- data.frame(x = panel_extent$x[c(1,2,2,1,1)],
+                             y = panel_extent$y[c(1,1,2,2,1)],
+                             year = 2020)
   
   fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
   
@@ -2385,7 +2404,16 @@ plot_temps_facet <- function(rasterbrick,
                      alpha = 0.2) +
     ggplot2::geom_tile(data = temp_df, 
                        mapping = aes(x=x, y=y, 
-                                     fill=cut(value, breaks = colorbar_breaks)))  +
+                                     fill=cut(value, breaks = colorbar_breaks))) +
+    ggplot2::geom_polygon(data = panel_extent,
+                          aes(x = x,
+                              y = y),
+                          fill = "white") +
+    ggplot2::geom_label(data = label_2020,
+                        aes(x = x,
+                            y = y,
+                            label = label),
+                        label.size = NA) +
     ggplot2::facet_wrap( ~ year, 
                          nrow = row0) +
     # coord_equal() +
