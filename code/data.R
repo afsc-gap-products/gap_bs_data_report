@@ -422,7 +422,7 @@ for (i in 1:length(a)){
 }
 
 cpue <-
-  SameColNames(df.ls)  %>%
+  dplyr::bind_rows(df.ls)  %>%
   dplyr::rename(SRVY = survey) %>%
   dplyr::filter(SRVY %in% SRVY1 & 
                   !(species_code %in% c(69323, 69322, 68580, 68560)) &
@@ -478,6 +478,7 @@ cpue <- dplyr::bind_rows(cpue_crab, cpue)  %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code <= 31550 ~ "fish",
     species_code >= 40001 ~ "invert"))
+cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whelk"
 
 cpue_maxyr <- cpue %>%
   dplyr::filter(year == maxyr)
@@ -485,7 +486,6 @@ cpue_maxyr <- cpue %>%
 cpue_compareyr<- cpue %>%
   dplyr::filter(year == compareyr[1])
 
-cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whelk"
 
 # *** stratum_info (survey area) -------------------------------------------
 
@@ -881,7 +881,7 @@ length_crab <- dplyr::bind_rows(
     ) ) 
 
 # Combine
-length_data <- SameColNames(list(
+length_data <- dplyr::bind_rows(list(
   "gf" = length_data, 
   "crab" = length_crab))  %>% 
   dplyr::rename(SRVY = srvy) %>% 
@@ -1241,7 +1241,7 @@ for (i in 1:length(a)){
   names(df.ls)[i]<-a[i]
 }
 
-sizecomp <- SameColNames(df.ls)  %>%
+sizecomp <- dplyr::bind_rows(df.ls)  %>%
   dplyr::filter(year <= maxyr & 
                   stratum == 999999) %>% 
   dplyr::rename(SRVY = survey)  %>% 
@@ -1280,7 +1280,7 @@ for (i in 1:length(a)){
 }
 
 
-sizecomp_crab <- SameColNames(df.ls) %>% 
+sizecomp_crab <- dplyr::bind_rows(df.ls) %>% 
   dplyr::filter(survey_year > 1981) %>%
   dplyr::mutate(SRVY = "NBS", 
                 species_code = dplyr::case_when(
@@ -1322,7 +1322,7 @@ sizecomp_crab <- SameColNames(df.ls) %>%
 
 # Combine
 
-sizecomp <- SameColNames(list("gf" = sizecomp, 
+sizecomp <- dplyr::bind_rows(list("gf" = sizecomp, 
                               "crab" = sizecomp_crab)) %>% 
   dplyr::rename(SRVY = srvy)
 
@@ -1354,7 +1354,7 @@ for (i in 1:length(a)){
   names(df.ls)[i]<-a[i]
 }
 
-biomass_strat <- SameColNames(df.ls)  %>%
+biomass_strat <- dplyr::bind_rows(df.ls)  %>%
   dplyr::filter(year <= maxyr &
                   !(species_code %in% c(69323, 69322, 68580, 68560)) ) %>% 
   dplyr::rename(SRVY = survey) %>% 

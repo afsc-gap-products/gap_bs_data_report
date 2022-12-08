@@ -559,65 +559,101 @@ res <- knitr::knit_child(
 
 ```{r fig-temperature-[SRVY]-[st/bt]}
 
-# if (SRVY == "NEBS") {
-if (SRVY == "NEBS") {
-case1_ <- c("EBS", "NEBS") 
-} else {
-case1_ <- "EBS"
-}
-
-for (case1 in case1_) {
+    height <- full_page_portrait_height
+    width <- full_page_portrait_width
+    
   for (case in c("bottom", "surface")) {
-
-    header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", range_text(yrs),
-                     ifelse(case1 == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
-                     " shelf bottom trawl survey",
-                     ifelse(SRVY=="NEBS", "s", ""),". ")
-
-    # reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
-    if (case1 == "EBS") {
-      yrs <- (maxyr-19):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
-      row0 <- 4
-      reg_dat0 <- report_types$EBS$reg_dat
-      if (case == "surface") {
-        rasterbrick <- raster::subset(x = coldpool:::ebs_surface_temperature,
-                                      subset = paste0("sebs_ste_", yrs, "_surface_temperature"))
-        
-        a <- raster::subset(x = coldpool:::ebs_surface_temperature,
-               subset = paste0("sebs_ste_2021_surface_temperature"))
-      } else {
-        rasterbrick <- raster::subset(x = coldpool:::ebs_bottom_temperature,
-                                      subset = paste0("sebs_ste_", yrs, "_gear_temperature"))
-        
-        a <- raster::subset(x = coldpool:::ebs_bottom_temperature,
-               subset = paste0("sebs_ste_2021_gear_temperature"))      
-      }
-      
-        names(a) <- gsub(pattern = "_2021_", replacement = "_2020_", x = names(a))
-        a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
-        a@data@max <- a@data@min <- NA
-        a@data@names <- gsub(pattern = "_2021_", replacement = "_2020_", x = a@data@names)
-        rasterbrick$temp <- a
-        names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
-        
-        
-    } else if (case1 == "NEBS") { 
-      yrs <- nbsyr
-      row0 <- ifelse(length(yrs)>5, 3, 2)
+      yrs0 <- (maxyr-17):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
+      row0 <- 3
       reg_dat0 <- report_types$NEBS$reg_dat
       
+      for (case_yr in 1:2) {
+        if (case_yr == 1) {
+          yrs <- yrs0[1:(length(yrs0)/2)]
+        } else if (case_yr == 2) {
+          yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
+        }
       if (case == "surface") {
-        rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_surface_temperature,
-                                      subset = paste0("ebs_ste_", yrs, "_surface_temperature"))
-      } else {
-        rasterbrick <- raster::subset(x = coldpool:::nbs_ebs_bottom_temperature,
-                                      subset = paste0("ebs_ste_", yrs, "_gear_temperature"))
+        
+        sd_mean <- data.frame(year = coldpool::cold_pool_index$YEAR, 
+                                   sd = scale(coldpool::cold_pool_index$MEAN_SURFACE_TEMPERATURE)) # TOLEDO NOT SD
+          
+          
+        nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_surface_temperature, 
+                                      subset = names(coldpool::nbs_ebs_surface_temperature)[!grepl(
+                                        x = names(coldpool::nbs_ebs_surface_temperature),
+                                        pattern = 2018)])
+        
+        sebs_only <- names(coldpool::ebs_surface_temperature)[
+          which(!(names(coldpool::ebs_surface_temperature) %in% 
+                    paste0("s", names(nbs_no_2018))))]
+        
+        sebs_temp <- raster::subset(coldpool::ebs_surface_temperature,
+                                    subset = sebs_only) %>%
+          raster::projectRaster(coldpool::nbs_ebs_surface_temperature)
+        
+        rasterbrick <- raster::addLayer(sebs_temp, 
+                                        nbs_no_2018)
+
+      } else if (case == "bottom") {
+        
+        sd_mean <- data.frame(year = coldpool::cold_pool_index$YEAR, 
+                                   sd = scale(coldpool::cold_pool_index$MEAN_GEAR_TEMPERATURE)) # TOLEDO NOT SD
+        
+        nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_bottom_temperature, 
+                                      subset = names(coldpool::nbs_ebs_bottom_temperature)[!grepl(
+                                        x = names(coldpool::nbs_ebs_bottom_temperature),
+                                        pattern = 2018)])
+        
+        sebs_only <- names(coldpool::ebs_bottom_temperature)[
+          which(!(names(coldpool::ebs_bottom_temperature) %in% 
+                    paste0("s", names(nbs_no_2018))))]
+        
+        sebs_temp <- raster::subset(coldpool::ebs_bottom_temperature,
+                                    subset = sebs_only) %>%
+          raster::projectRaster(coldpool::nbs_ebs_bottom_temperature)
+        
+        rasterbrick <- raster::addLayer(sebs_temp, 
+                                        nbs_no_2018)
+        
+        # a <- raster::subset(x = rasterbrick,
+        #        subset = paste0("sebs_ste_2021_gear_temperature"))
       }
+        
+        sd_mean <- sd_mean %>%
+                  dplyr::mutate(sign = dplyr::case_when(
+                          (sd < 1 & sd > -1) ~ "", 
+                          sd <= -1 ~ "-", 
+                          sd >= 1 ~ "+"
+                        )) %>% 
+          dplyr::filter(year %in% yrs) 
+      
+      a_name <- names(rasterbrick)[length(names(rasterbrick))-1]
+      a <- raster::subset(x = rasterbrick,
+                          subset = a_name)
+      
+      names(a) <- gsub(pattern = gsub("[^0-9.-]", "", names(a)), 
+                       replacement = "2020", 
+                       x = names(a))
+      a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
+      a@data@max <- a@data@min <- NA
+      # a@data@names <- gsub(pattern = "_2021_", replacement = "_2020_", x = a@data@names)
+      rasterbrick$temp <- a
+      names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
     }
     
-    nickname <- paste0("fig-temperature-",case1,"-", ifelse(case=="bottom", "bt", "st"))
-    height <- ifelse(length(nbsyr)>2, full_page_portrait_height, 5)
-    width <- full_page_portrait_width
+    header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", range_text(yrs),
+                     ifelse(SRVY == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
+                     " shelf bottom trawl survey",
+                     ifelse(SRVY=="NEBS", "s", ""),". ")
+    
+    # Remove non-numeric characters from layer names for subsetting
+    names(rasterbrick) <- gsub("[^0-9.-]", "", names(rasterbrick))
+    
+    # Subset layers for the selected years
+    rasterbrick <- raster::subset(rasterbrick, subset = paste0("X", yrs))
+    
+    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-", case_yr)
     
     figure <- plot_temps_facet(
       rasterbrick = rasterbrick, 
@@ -627,16 +663,17 @@ for (case1 in case1_) {
       reg_dat = reg_dat0, 
       colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
       row0 = row0, 
-      title0 = paste0("Eastern", ifelse(case1 == "NEBS", " and northern", ""), 
+      title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
                       " Bering Sea ", 
-                      stringr::str_to_title(case), " Temperature")) 
+                      stringr::str_to_title(case), " Temperature (", range_text(yrs), ")"), 
+      sd_mean = sd_mean) 
     
-# Save figure
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")),
-  quiet = TRUE
-)
+    # Save figure
+    res <- knitr::knit_child(
+      text = knitr::knit_expand(
+        file = paste0(dir_code, "_child_save_figtab.Rmd")),
+      quiet = TRUE
+    )
   }
 }
 ```

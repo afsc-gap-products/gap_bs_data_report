@@ -30,10 +30,10 @@ spp_table_cpue <- FALSE
 text_spp <- TRUE
 
 if (report_title == "data") {
-spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
-spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
-spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
-text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
+  spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
+  spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
+  spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
+  text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 }
 ```
 
@@ -42,19 +42,19 @@ text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 ```{r fig-sizecomp-[taxon]-[spp]}
 if (spp_plot_sizecomp) {
   
-    width <- full_page_portrait_width # 6.5  
-
-if (report_title == "data") {
-  yrs <- c(maxyr, compareyr)
-  height <- ifelse(SRVY == "NEBS", full_page_portrait_height-1, 3.25) 
-  print_n <- FALSE
-  SRVY11 <- SRVY1
-} else if (report_title == "community") {
-  yrs <- nbsyr
-  height <- full_page_portrait_height
-  print_n <- TRUE
-  SRVY11 <-"NBS"
-}
+  width <- full_page_portrait_width # 6.5  
+  
+  if (report_title == "data") {
+    yrs <- c(maxyr, compareyr)
+    height <- ifelse(SRVY == "NEBS", full_page_portrait_height-1, 3.25) 
+    print_n <- FALSE
+    SRVY11 <- SRVY1
+  } else if (report_title == "community") {
+    yrs <- nbsyr
+    height <- full_page_portrait_height
+    print_n <- TRUE
+    SRVY11 <-"NBS"
+  }
   
   nickname <- paste0("fig-sizecomp-", spp_taxon, "-", spp_file)
   
@@ -122,7 +122,7 @@ if (report_title == "data") {
     print_n = print_n)
   
   if (!(pres_img) & report_title == "community") {
-
+    
     figure <-
       cowplot::ggdraw(figure) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
@@ -184,13 +184,13 @@ if (report_title == "data") {
   #   figure <- ggpubr::ggarrange(fig2, fig1, 
   #           labels = c("A", "B"), nrow = 1)#, widths = c(2,1))
   
-# Save figure
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
-
+  # Save figure
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
+  
 }
 ```
 
@@ -201,51 +201,53 @@ res <- knitr::knit_child(
 if (spp_plot_idw | spp_plot_idw_coldwarm | spp_plot_pa) {
   
   width <- full_page_portrait_width # 6.5  
-
-if (report_title == "data") {
-  yrs <- c(maxyr, compareyr)
-  height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
-  row0 <- 1
-} else if (report_title == "community") {
-  yrs <- nbsyr
-  height <- full_page_portrait_height-1
-  row0 <- 2
-} 
-  
-if (spp_plot_idw_coldwarm) {
-  height <- full_page_portrait_height
-  yrs <- (maxyr-19):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
-  row0 <- 4
-  spp_plot_idw <- spp_plot_idw_coldwarm
-}
+  case_yr0 <- 1
+  if (report_title == "data") {
+    yrs <- c(maxyr, compareyr)
+    height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
+    row0 <- 1
+  } else if (report_title == "community") {
+    yrs <- nbsyr
+    height <- full_page_portrait_height-1
+    row0 <- 2
+  } 
   
   nickname <- paste0("fig-dist-", spp_taxon, "-", spp_file)
+  
+  if (spp_plot_idw_coldwarm) {
+    case_yr0 <- 1:2
+    height <- full_page_portrait_height
+    yrs0 <- (maxyr-17):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
+    row0 <- 3
+    nickname <- paste0(nickname, "-", case_yr)
+    spp_plot_idw <- spp_plot_idw_coldwarm
+  }
   
   if (spp_plot_idw) {
     
     table_raw <- cpue %>%
-    dplyr::filter(!is.na(cpue_kgha) & 
-                    cpue_kgha != 0 & 
-                    species_code %in% spp_code & 
-                    year %in% yrs) %>% 
-    dplyr::arrange(desc(year))
+      dplyr::filter(!is.na(cpue_kgha) & 
+                      cpue_kgha != 0 & 
+                      species_code %in% spp_code & 
+                      year %in% yrs) %>% 
+      dplyr::arrange(desc(year))
     
     spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
     spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
   }  
-    
+  
   if (spp_plot_pa) {
     
     table_raw <- catch_haul_cruises %>%
-    dplyr::filter(!is.na(number_fish) & 
-                    number_fish != 0 & 
-                    species_code %in% spp_code & 
-                    year %in% yrs) %>% 
-    dplyr::arrange(desc(year))
-
+      dplyr::filter(!is.na(number_fish) & 
+                      number_fish != 0 & 
+                      species_code %in% spp_code & 
+                      year %in% yrs) %>% 
+      dplyr::arrange(desc(year))
+    
   }
   
-  # only if both species re only found in prt of the region, chnge the extrp.box
+  # only if both species are only found in prt of the region, chnge the extrp.box
   map.area0 <- map.area
   reg_dat0 <- reg_dat
   if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
@@ -255,94 +257,103 @@ if (spp_plot_idw_coldwarm) {
                        report_title == "data", 4.25, 3.5)
   }
   
-  if (spp_plot_idw) {
-    
-    header <- paste0("The distribution (weight CPUE (kg/ha)) of ", 
-                     spp_print, 
-                     ifelse(is.na(spp_sci), "", 
-                            paste0(" (",spp_sci,")")), 
-                     " from the ",
-                     text_list(yrs), " ", 
-                     ifelse(case1 == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
-                     " shelf bottom trawl survey", 
-                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),". ")
-    
-    table_raw <- dplyr::left_join(
-      x = cpue %>%
-        dplyr::filter(year %in% yrs & 
-                        SRVY %in% SRVY1) %>%
-        dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
-        dplyr::distinct(), 
-      y = table_raw, 
-      by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
-        dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
-    
-    figure <- plot_idw_facet(
-      yrs = yrs,
-      dat = table_raw, 
-      lat = "latitude",
-      lon = "longitude",
-      var = "cpue_kgha",
-      year = "year",
-      grid = "continuous.grid", # "extrapolation.grid", #
-      reg_dat = reg_dat0, 
-      region = map.area0, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/ha)"),
-      row0 = row0, 
-      legend_srvy_reg = FALSE) 
-
-    
-  } else if (spp_plot_pa) {
-    header <- paste0("The presence of ", 
-                     spp_print, 
-                     ifelse(is.na(spp_sci), "", 
-                            paste0(" (",spp_sci,")")), 
-                     " from the ",
-                     NMFSReports::text_list(yrs), " ", 
-                     NMFSReports::text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
-                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
-                     ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
-    
-    
-    table_raw0 <- catch_haul_cruises %>% 
-      dplyr::filter(!is.na(number_fish) &
-                      number_fish != 0 &
-                      species_code %in% spp_code & 
-                      year %in% yrs &
-                      SRVY %in% unique(table_raw$SRVY)) %>% 
-      dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
-      dplyr::rename(latitude = start_latitude, 
-                    longitude = start_longitude)
-    
-    figure <- plot_pa_facet(
-      yrs = yrs,
-      dat = table_raw0,
-      lat = "latitude",
-      lon = "longitude",
-      year = "year",
-      reg_dat = reg_dat0, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
-      row0 = row0)
-    
-  }
-
-  if (!(pres_img) & report_title == "community") {
-
-    figure <-
-      cowplot::ggdraw(figure) +
-      cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = 0.75, y = -0.05,
-                          hjust = 0, vjust = 0,
-                          width = .18)
+  for (case_yr in case_yr0) {
+    if (length(case_yr0)>1) {
+      if (case_yr == 1) {
+        yrs <- yrs0[1:(length(yrs0)/2)]
+      } else if (case_yr == 2) {
+        yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
+      }
     }
-  
-# Save figure
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
-  
+    
+    if (spp_plot_idw) {
+      
+      header <- paste0("The distribution (weight CPUE (kg/ha)) of ", 
+                       spp_print, 
+                       ifelse(is.na(spp_sci), "", 
+                              paste0(" (",spp_sci,")")), 
+                       " from the ",
+                       range_text(yrs), " ", 
+                       ifelse(case1 == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
+                       " shelf bottom trawl survey", 
+                       ifelse(length(unique(table_raw$SRVY))>1, "s", ""),". ")
+      
+      
+      table_raw <- dplyr::left_join(
+        x = cpue %>%
+          dplyr::filter(SRVY %in% SRVY1) %>%
+          dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
+          dplyr::distinct(), 
+        y = table_raw, 
+        by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
+        dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
+      
+      figure <- plot_idw_facet(
+        yrs = yrs,
+        dat = table_raw, 
+        lat = "latitude",
+        lon = "longitude",
+        var = "cpue_kgha",
+        year = "year",
+        grid = "continuous.grid", # "extrapolation.grid", #
+        reg_dat = reg_dat0, 
+        region = map.area0, 
+        key.title = paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/ha)"),
+        row0 = row0, 
+        legend_srvy_reg = FALSE) 
+      
+      
+    } else if (spp_plot_pa) {
+      header <- paste0("The presence of ", 
+                       spp_print, 
+                       ifelse(is.na(spp_sci), "", 
+                              paste0(" (",spp_sci,")")), 
+                       " from the ",
+                       range_text(yrs), " ", 
+                       text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
+                       ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
+                       ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
+      
+      
+      table_raw0 <- catch_haul_cruises %>% 
+        dplyr::filter(!is.na(number_fish) &
+                        number_fish != 0 &
+                        species_code %in% spp_code & 
+                        year %in% yrs &
+                        SRVY %in% unique(table_raw$SRVY)) %>% 
+        dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
+        dplyr::rename(latitude = start_latitude, 
+                      longitude = start_longitude)
+      
+      figure <- plot_pa_facet(
+        yrs = yrs,
+        dat = table_raw0,
+        lat = "latitude",
+        lon = "longitude",
+        year = "year",
+        reg_dat = reg_dat0, 
+        key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
+        row0 = row0)
+      
+    }
+    
+    if (!(pres_img) & report_title == "community") {
+      
+      figure <-
+        cowplot::ggdraw(figure) +
+        cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+                            x = 0.75, y = -0.05,
+                            hjust = 0, vjust = 0,
+                            width = .18)
+    }
+    
+    # Save figure
+    res <- knitr::knit_child(
+      text = knitr::knit_expand(
+        file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+      quiet = TRUE
+    )
+  }
 }
 ```
 
@@ -566,9 +577,9 @@ if (spp_table_cpue) {
           catcount = "Hauls with\nweights", 
           numcount = "Hauls with\ncounts")  %>%
         theme_flextable_nmfstm(row_lines = FALSE, 
-                                            font = font0, 
-                                            pad = 0, 
-                                            pgwidth = full_page_landscape_width)  %>%
+                               font = font0, 
+                               pad = 0, 
+                               pgwidth = full_page_landscape_width)  %>%
         flextable::width(x = ., width = 1, unit = "in") %>%
         flextable::width(x = ., width = .5, unit = "in", j = "stratum") %>%
         flextable::align(x = ., 
@@ -604,13 +615,13 @@ if (spp_table_cpue) {
           flextable::width(x = ., j = "population", width = 1.25, unit = "in")
       }
       
-# Save table
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
-
+      # Save table
+      res <- knitr::knit_child(
+        text = knitr::knit_expand(
+          file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+        quiet = TRUE
+      )
+      
     }
   }
 }

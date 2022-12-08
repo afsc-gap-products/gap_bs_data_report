@@ -452,37 +452,37 @@ date_formatter <- function(date = "1998-09-02", date_format = "%B %d, %Y") {
   return(gsub("(\\D)0", "\\1", format(as.Date(date), date_format)))
 }
 
-SameColNames<-function(df.ls) {
-  #All column names
-  colnames0<-c()
-  for (i in 1:length(df.ls)){
-    df0<-df.ls[[i]]
-    # colnames(df0)<-toupper(colnames(df0))
-    df0<-janitor::clean_names(df0)
-    df.ls[[i]]<-df0
-    colnames0<-c(colnames0, (colnames(df0)))
-  }
-  colnames0<-sort(unique(colnames0), decreasing = T)
-  
-  #New df's
-  df.ls0<-list()
-  df.rbind0<-c()
-  for (i in 1:length(df.ls)){
-    df0<-df.ls[[i]]
-    colnames.out<-colnames0[!(colnames0 %in% colnames(df0))]
-    if (length(colnames.out) != 0) {
-      for (ii in 1:length(colnames.out)){
-        df0[,(ncol(df0)+1)]<-NA
-        names(df0)[ncol(df0)]<-colnames.out[ii]
-      }
-    }
-    df0<-df0[,match(table =  colnames(df0), x = colnames0)]
-    df.ls0[[i]]<-df0
-    names(df.ls0)[i]<-names(df.ls)[i]
-    df.rbind0<-rbind.data.frame(df.rbind0, df0)
-  }
-  return(df.rbind0)
-}
+# SameColNames<-function(df.ls) {
+#   #All column names
+#   colnames0<-c()
+#   for (i in 1:length(df.ls)){
+#     df0<-df.ls[[i]]
+#     # colnames(df0)<-toupper(colnames(df0))
+#     df0<-janitor::clean_names(df0)
+#     df.ls[[i]]<-df0
+#     colnames0<-c(colnames0, (colnames(df0)))
+#   }
+#   colnames0<-sort(unique(colnames0), decreasing = T)
+#   
+#   #New df's
+#   df.ls0<-list()
+#   df.rbind0<-c()
+#   for (i in 1:length(df.ls)){
+#     df0<-df.ls[[i]]
+#     colnames.out<-colnames0[!(colnames0 %in% colnames(df0))]
+#     if (length(colnames.out) != 0) {
+#       for (ii in 1:length(colnames.out)){
+#         df0[,(ncol(df0)+1)]<-NA
+#         names(df0)[ncol(df0)]<-colnames.out[ii]
+#       }
+#     }
+#     df0<-df0[,match(table =  colnames(df0), x = colnames0)]
+#     df.ls0[[i]]<-df0
+#     names(df.ls0)[i]<-names(df.ls)[i]
+#     df.rbind0<-rbind.data.frame(df.rbind0, df0)
+#   }
+#   return(df.rbind0)
+# }
 
 
 # CapStr <- function(y) {
@@ -2000,7 +2000,8 @@ plot_idw_facet <- function(
     legend_srvy_reg = TRUE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = FALSE))
-  dat <- dat %>%
+  dat <- dat  %>% 
+    dplyr::filter(year %in% yrs) %>%
     dplyr::rename(year = as.character(year), 
                   LATITUDE = as.character(lat), 
                   LONGITUDE = as.character(lon), 
@@ -2009,8 +2010,7 @@ plot_idw_facet <- function(
     dplyr::mutate(year = as.numeric(year), 
                   CPUE_KGHA = as.numeric(CPUE_KGHA), 
                   LATITUDE = as.numeric(LATITUDE), 
-                  LONGITUDE = as.numeric(LONGITUDE)) %>% 
-    dplyr::filter(year %in% yrs)
+                  LONGITUDE = as.numeric(LONGITUDE))
   
   figure <- ggplot() +
     geom_sf(data = reg_dat$akland,
@@ -2381,7 +2381,8 @@ plot_temps_facet <- function(rasterbrick,
                              row0 = 2, 
                              title0 = NULL, 
                              legend_seperate = FALSE, 
-                             use_col_name = NULL) {
+                             use_col_name = NULL, 
+                             sd_mean = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -2399,7 +2400,26 @@ plot_temps_facet <- function(rasterbrick,
   temp_df <- temp_df %>% 
     tidyr::pivot_longer(values_to = "value", 
                         names_to = "year", 
-                        cols = dplyr::all_of(temp1))
+                        cols = dplyr::all_of(temp1)) %>%
+    tidyr::drop_na(value)
+  
+  # Setup data.frame for 2020 year with no survey
+  panel_extent <- reg_dat$plot.boundary |>
+    sf::st_as_sf(coords = c("x", "y")) |>
+    sf::st_buffer(dist = 1e6) |>
+    sf::st_bbox()
+  
+  panel_extent <- data.frame(x = panel_extent[c('xmin', 'xmax')],
+                             y = panel_extent[c('ymin', 'ymax')])
+  
+  label_2020 <- data.frame(x = mean(panel_extent$x),
+                           y = mean(panel_extent$y),
+                           label = "No\nSurvey",
+                           year = 2020)
+  
+  panel_extent <- data.frame(x = panel_extent$x[c(1,2,2,1,1)],
+                             y = panel_extent$y[c(1,1,2,2,1)],
+                             year = 2020)
   
   fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
   
@@ -2412,7 +2432,17 @@ plot_temps_facet <- function(rasterbrick,
                      alpha = 0.2) +
     ggplot2::geom_tile(data = temp_df, 
                        mapping = aes(x=x, y=y, 
-                                     fill=cut(value, breaks = colorbar_breaks)))  +
+                                     fill=cut(value, breaks = colorbar_breaks))) +
+    ggplot2::geom_polygon(data = panel_extent,
+                          aes(x = x,
+                              y = y),
+                          fill = "white") +
+    ggplot2::geom_label(data = label_2020,
+                        aes(x = x,
+                            y = y,
+                            label = label),
+                        label.size = NA, 
+                        fill = NA) +
     ggplot2::facet_wrap( ~ year, 
                          nrow = row0) +
     # coord_equal() +
@@ -2428,6 +2458,13 @@ plot_temps_facet <- function(rasterbrick,
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) 
+  
+  # if (! is.null(sd_mean)) {
+  #   figure <- figure +
+  #     ggplot2::geom_label(aes(label = sd_mean$sign, group = year, 
+  #                             x = quantile(x = reg_dat$plot.boundary$x, .7),
+  #                             y = quantile(x = reg_dat$plot.boundary$y, .7) ))
+  # }
   
   figure <- figure +
     # ggsn::scalebar(

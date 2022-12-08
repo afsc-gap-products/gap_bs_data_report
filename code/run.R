@@ -13,6 +13,13 @@
 #'                   output_file = "test.docx")
 #' ---------------------------------------------
 
+
+# NOTES
+
+# Sean - can you add SD of the mean to the coldpool::cold_pool_index table?
+
+
+
 # DATA REPORT ------------------------------------------------------------------
 
 # *** Report knowns ------------------------------------------------------------
