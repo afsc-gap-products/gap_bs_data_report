@@ -574,10 +574,6 @@ res <- knitr::knit_child(
           yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
         }
       if (case == "surface") {
-        
-        sd_mean <- data.frame(year = coldpool::cold_pool_index$YEAR, 
-                                   sd = scale(coldpool::cold_pool_index$MEAN_SURFACE_TEMPERATURE)) # TOLEDO NOT SD
-          
           
         nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_surface_temperature, 
                                       subset = names(coldpool::nbs_ebs_surface_temperature)[!grepl(
@@ -596,9 +592,6 @@ res <- knitr::knit_child(
                                         nbs_no_2018)
 
       } else if (case == "bottom") {
-        
-        sd_mean <- data.frame(year = coldpool::cold_pool_index$YEAR, 
-                                   sd = scale(coldpool::cold_pool_index$MEAN_GEAR_TEMPERATURE)) # TOLEDO NOT SD
         
         nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_bottom_temperature, 
                                       subset = names(coldpool::nbs_ebs_bottom_temperature)[!grepl(
@@ -620,13 +613,32 @@ res <- knitr::knit_child(
         #        subset = paste0("sebs_ste_2021_gear_temperature"))
       }
         
-        sd_mean <- sd_mean %>%
-                  dplyr::mutate(sign = dplyr::case_when(
-                          (sd < 1 & sd > -1) ~ "", 
-                          sd <= -1 ~ "-", 
-                          sd >= 1 ~ "+"
+        zscore <- coldpool::cold_pool_index %>% 
+          dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE"))) %>%
+          dplyr::select(YEAR, var) %>% 
+          janitor::clean_names() %>%
+          dplyr::filter(year <= maxyr) %>%
+          dplyr::mutate(
+            sd = sd(var, na.rm = TRUE), 
+            mean = mean(var, na.rm = TRUE), 
+            # group = YEAR < 2020,
+                # cpi_rank = rank(MEAN_GEAR_TEMPERATURE), 
+            zscore  = ((var-mean)/sd), # z = (x-μ)/σ
+                sign = dplyr::case_when(
+                          (zscore < 1 & zscore > -1) ~ "0", 
+                          zscore <= -1 ~ "-", 
+                          zscore >= 1 ~ "+"
                         )) %>% 
           dplyr::filter(year %in% yrs) 
+        
+        
+        cpi_df <- coldpool:::cold_pool_index %>%
+  dplyr::filter(YEAR <= maxyr) %>%
+  dplyr::mutate(group = YEAR < 2020,
+                var = "Cold Pool Index",
+                cpi_rank = rank(AREA_LTE2_KM2))
+cpi_sd <- sd(cpi_df$AREA_LTE2_KM2/1000)
+cpi_mean <- mean(cpi_df$AREA_LTE2_KM2/1000)
       
       a_name <- names(rasterbrick)[length(names(rasterbrick))-1]
       a <- raster::subset(x = rasterbrick,
@@ -666,7 +678,7 @@ res <- knitr::knit_child(
       title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
                       " Bering Sea ", 
                       stringr::str_to_title(case), " Temperature (", range_text(yrs), ")"), 
-      sd_mean = sd_mean) 
+      zscore = zscore) 
     
     # Save figure
     res <- knitr::knit_child(
@@ -675,7 +687,7 @@ res <- knitr::knit_child(
       quiet = TRUE
     )
   }
-}
+
 ```
 
 ## tab-specimen-samples

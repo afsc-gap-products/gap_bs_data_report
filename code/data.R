@@ -1777,8 +1777,8 @@ total_biomass <-
 # 
 # print("Cite all papers in report")
 # 
-# files0 <- list.files(path = dir_out_rawdata, 
-#                    pattern = ".docx", 
+# files0 <- list.files(path = dir_out_rawdata,
+#                    pattern = ".docx",
 #                    full.names = TRUE)
 # files1 <- files0
 # 
@@ -1799,7 +1799,7 @@ total_biomass <-
 #   bb <- unlist(strsplit(x = bb, split = "\n", perl = TRUE))
 #   cc <- dd <- bb[grep(pattern = "@", x = bb)]
 #   if (length(dd) != 0) {
-#     remove <- c(";", "[", "]", ".", ",", ")", "(", '"') # , "\\" 
+#     remove <- c(";", "[", "]", ".", ",", ")", "(", '"') # , "\\"
 #     for (i in 1:length(remove)){
 #       dd <- gsub(pattern = remove[i], replacement = "", x = dd, fixed = TRUE)
 #     }
@@ -1819,8 +1819,8 @@ total_biomass <-
 # 
 # ff <- c()
 # for (i in 1:length(ee)) {
-#   ff <- c(ff, 
-#           grep(pattern = gsub(pattern = "@", replacement = "", x = ee[i], fixed = TRUE), 
+#   ff <- c(ff,
+#           grep(pattern = gsub(pattern = "@", replacement = "", x = ee[i], fixed = TRUE),
 #                x = bib, ignore.case = TRUE) )
 # }
 # bib <- paste0("@", bib[ff], collapse = "\n")

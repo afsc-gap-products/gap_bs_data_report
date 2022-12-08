@@ -23,7 +23,6 @@ spp_taxon <- a$taxon[1]
 
 # report_title == "community"
 spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
-spp_plot_idw_coldwarm <- FALSE
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
 spp_plot_pa <- FALSE
 spp_table_cpue <- FALSE
@@ -31,7 +30,6 @@ text_spp <- TRUE
 
 if (report_title == "data") {
   spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
-  spp_plot_idw_coldwarm <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
   spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
   text_spp <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 }
@@ -198,7 +196,7 @@ if (spp_plot_sizecomp) {
 
 ```{r fig-dist-[taxon]-[spp]}
 
-if (spp_plot_idw | spp_plot_idw_coldwarm | spp_plot_pa) {
+if (spp_plot_idw | spp_plot_pa) {
   
   width <- full_page_portrait_width # 6.5  
   case_yr0 <- 1
@@ -214,23 +212,17 @@ if (spp_plot_idw | spp_plot_idw_coldwarm | spp_plot_pa) {
   
   nickname <- paste0("fig-dist-", spp_taxon, "-", spp_file)
   
-  if (spp_plot_idw_coldwarm) {
-    case_yr0 <- 1:2
-    height <- full_page_portrait_height
-    yrs0 <- (maxyr-17):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
-    row0 <- 3
-    nickname <- paste0(nickname, "-", case_yr)
-    spp_plot_idw <- spp_plot_idw_coldwarm
-  }
-  
   if (spp_plot_idw) {
     
     table_raw <- cpue %>%
-      dplyr::filter(!is.na(cpue_kgha) & 
+      dplyr::filter(
+        SRVY %in% SRVY1 &
+          !is.na(cpue_kgha) & 
                       cpue_kgha != 0 & 
                       species_code %in% spp_code & 
                       year %in% yrs) %>% 
-      dplyr::arrange(desc(year))
+      dplyr::arrange(desc(year)) %>% 
+      dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
     
     spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
     spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
@@ -240,6 +232,7 @@ if (spp_plot_idw | spp_plot_idw_coldwarm | spp_plot_pa) {
     
     table_raw <- catch_haul_cruises %>%
       dplyr::filter(!is.na(number_fish) & 
+        SRVY %in% SRVY1 &
                       number_fish != 0 & 
                       species_code %in% spp_code & 
                       year %in% yrs) %>% 
@@ -279,14 +272,15 @@ if (spp_plot_idw | spp_plot_idw_coldwarm | spp_plot_pa) {
                        ifelse(length(unique(table_raw$SRVY))>1, "s", ""),". ")
       
       
-      table_raw <- dplyr::left_join(
-        x = cpue %>%
-          dplyr::filter(SRVY %in% SRVY1) %>%
-          dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
-          dplyr::distinct(), 
-        y = table_raw, 
-        by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
-        dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
+      # table_raw <- #dplyr::left_join(
+      #   # x = cpue %>%
+      #   #   dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
+      #   #   dplyr::distinct(), 
+      #   # y = 
+      #   table_raw %>%
+      #     # dplyr::filter(SRVY %in% SRVY1) %>% #, 
+      #   # by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
+      #   dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
       
       figure <- plot_idw_facet(
         yrs = yrs,
@@ -315,14 +309,14 @@ if (spp_plot_idw | spp_plot_idw_coldwarm | spp_plot_pa) {
                        ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
       
       
-      table_raw0 <- catch_haul_cruises %>% 
+      table_raw0 <- catch_haul_cruises %>%
         dplyr::filter(!is.na(number_fish) &
                         number_fish != 0 &
-                        species_code %in% spp_code & 
+                        species_code %in% spp_code &
                         year %in% yrs &
-                        SRVY %in% unique(table_raw$SRVY)) %>% 
-        dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
-        dplyr::rename(latitude = start_latitude, 
+                        SRVY %in% unique(table_raw$SRVY)) %>%
+        dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>%
+        dplyr::rename(latitude = start_latitude,
                       longitude = start_longitude)
       
       figure <- plot_pa_facet(

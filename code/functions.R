@@ -1114,19 +1114,19 @@ species_text <- function(
   show <- sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE)/
     total_biomass0$biomass[total_biomass0$year == maxyr]*100
   
-  a <- list.files(path = dir_out_figures, 
-                  pattern = paste0("fig-idw-cpue-fish-", spp_file), 
-                  ignore.case = TRUE)
-  a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
-  a <- gsub(pattern = ".rdata", replacement = "", ignore.case = TRUE, x = a)
-  
+  # a <- list.files(path = dir_out_figtab, 
+  #                 pattern = paste0("fig-dist-fish-", spp_file), 
+  #                 ignore.case = TRUE)
+  # a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
+  # a <- gsub(pattern = ".rdata", replacement = "", ignore.case = TRUE, x = a)
+  a <- 1 # temporary
   str0$biomass_population <-
     paste0("The estimated biomass of ",spp_print," in the ",
            ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
            " was ",
            xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
-           "Fig", ifelse(length(a)==1, ".", "s."), " ", text_list(paste0("` ` \\@ref(fig:",a,")` `")),
+           "Fig", ifelse(length(a)==1, ".", "s."), " ` `r tab_dist` `",
            " and Tables ", text_list(c(paste0("`` `\\@ref(tab:",biomass_cpue_tab_name,")` `"),
                                        "` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-wt)` `")),
            " and estimated abundance was ",
@@ -1140,7 +1140,7 @@ species_text <- function(
                                       total_biomass0$biomass[total_biomass0$year == compareyr])*100),
                          " of the total biomass; "),
                   ""),
-           "Fig", ifelse(length(a)==1, ".", "s."), " ", text_list(paste0("` `\\@ref(fig:",a,")` `")),
+           "Fig", ifelse(length(a)==1, ".", "s."), " ", "` `r tab_dist` `",
            " and Table",ifelse(length(biomass_cpue_tab_name)>1, "s", ""), " ",
            text_list(paste0("` `\\@ref(tab:",biomass_cpue_tab_name,")` `")),
            " and estimated abundance was ",
@@ -2070,7 +2070,8 @@ plot_idw_facet <- function(
                               set.breaks = set.breaks,
                               grid.cell = grid.cell,
                               key.title = key.title,
-                              use.survey.bathymetry = FALSE)
+                              use.survey.bathymetry = FALSE, 
+                              return.continuous.grid = (grid == "continuous.grid"))
 
         temp0 <- data.frame(temp1$extrapolation.grid)
       }
@@ -2382,7 +2383,7 @@ plot_temps_facet <- function(rasterbrick,
                              title0 = NULL, 
                              legend_seperate = FALSE, 
                              use_col_name = NULL, 
-                             sd_mean = NULL) {
+                             zscore = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -2457,16 +2458,44 @@ plot_temps_facet <- function(rasterbrick,
                                 breaks = reg_dat$lat.breaks) +
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
-                                breaks = reg_dat$lon.breaks) 
+                                breaks = reg_dat$lon.breaks) + 
+    #set legend position and vertical arrangement
+  guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+    fill = guide_legend(title.position="top",
+                        label.position = "bottom",
+                        title.hjust = 0.5, nrow = 1)) +
+
+    theme(
+      legend.text = element_text(size = 9),
+      panel.background = element_rect(fill = "white",
+                                      colour = NA),
+      panel.border = element_rect(fill = NA,
+                                  colour = "grey20"),
+      axis.text = element_text(size = 8),
+      strip.background = element_blank(),
+      strip.text = element_text(size = 10, face = "bold"),
+      legend.position = "none"
+    )
   
-  # if (! is.null(sd_mean)) {
-  #   figure <- figure +
-  #     ggplot2::geom_label(aes(label = sd_mean$sign, group = year, 
-  #                             x = quantile(x = reg_dat$plot.boundary$x, .7),
-  #                             y = quantile(x = reg_dat$plot.boundary$y, .7) ))
-  # }
   
-  figure <- figure +
+  if (!is.null(title0)) {
+    figure <- figure +
+      ggplot2::ggtitle(label = title0)
+  }
+  
+  if (! is.null(zscore)) {
+    figure <- figure +
+      ggplot2::geom_text(data = zscore, 
+                         aes(label = sign, #group = year,
+                             color = sign,
+                              x = quantile(x = reg_dat$plot.boundary$x, .9),
+                              y = quantile(x = reg_dat$plot.boundary$y, .9) ), 
+                         show.legend = FALSE) #%>% 
+      # scale_color_manual(values = unique(zscore$sign), 
+      #                    breaks = unique(zscore$sign), )
+  }
+  
+  # figure <- figure +
     # ggsn::scalebar(
     #   # facet.var = 'temp_df$year', 
     #   # facet.lev = max(temp_df$year),
@@ -2490,31 +2519,7 @@ plot_temps_facet <- function(rasterbrick,
   #                              row0 == 2 ~ 2.25, 
   #                              TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
   #   
-  # ) +
-  #set legend position and vertical arrangement
-  guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
-    fill = guide_legend(title.position="top", 
-                        label.position = "bottom",
-                        title.hjust = 0.5, nrow = 1)) +
-    
-    theme(
-      legend.text = element_text(size = 9),
-      panel.background = element_rect(fill = "white", 
-                                      colour = NA), 
-      panel.border = element_rect(fill = NA, 
-                                  colour = "grey20"), 
-      axis.text = element_text(size = 8),
-      strip.background = element_blank(), 
-      strip.text = element_text(size = 10, face = "bold"),
-      legend.position = "none"
-    )
-  
-  
-  
-  if (!is.null(title0)) {
-    figure <- figure +
-      ggplot2::ggtitle(label = title0)
-  }
+  # ) 
   
   
   #   Turbo represents a tradeoff between interpretability and accessibility. If it seems like that won't be accessible because of how it's distributed (e.g., faxing), then by all means change it, because it doesn't have linear luminosity and chromaticity. For temperatures, I think it's pretty difficult to distinguish shades of blue. So if you're going to choose an alternative palette, I think it would be great if the cold pool is black (where < 0 is black; e.g., Which would be magma or inferno, whcih have a larger luminance gradient)

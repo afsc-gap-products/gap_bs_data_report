@@ -11,7 +11,6 @@ spp_taxon <- a$taxon[1]
 
 # report_title == "community"
 spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
-spp_plot_idw_20 <- FALSE
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
 spp_plot_pa <- FALSE
 spp_table_cpue <- FALSE
@@ -19,7 +18,6 @@ spp_text <- TRUE
 
 if (report_title == "data") {
 spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
-spp_plot_idw_20 <- ifelse(is.na(a$plot_idw_coldwarm[1]), FALSE, a$plot_idw_coldwarm[1])
 spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
 spp_text <- ifelse(is.na(a$text_spp[1]), FALSE, a$text_spp[1])
 }
@@ -102,6 +100,24 @@ length_maxyr0 <- length_data %>%
 
 `r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - START*", "")`
 
+```{r}
+# fig_dist <- fig_sizecomp <- tab_wt <- tab_no <- NA
+
+if (spp_plot_idw) {
+  fig_dist <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, ")")
+}
+
+if (spp_plot_sizecomp) {
+  fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
+} 
+
+if (spp_table_cpue) {
+  tab_wt <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-wt)")
+  tab_no <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-num)")
+}
+```
+
+
 ```{r res_spp_ebs_{{jj}}, results='asis'}
 temp <- ""
 temp1 <- ""
@@ -124,6 +140,11 @@ temp<-species_content(
   maxyr = maxyr, 
   compareyr = compareyr, 
   biomass_cpue_tab_name = biomass_cpue_tab_name, 
+  # figures = list("biomass_cpue_tab_name" = biomass_cpue_tab_name, 
+  #                "fig_dist" = fig_dist, 
+  #                "fig_sizecomp" = fig_sizecomp, 
+  #                "tab_wt" = tab_wt, 
+  #                "tab_no" = tab_no), 
   total_biomass = total_biomass)
 
 temp1 <- temp$table_spp
@@ -221,26 +242,6 @@ temp <- temp$spp_text
 
 `r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
-```{r}
-if (spp_plot_idw_20) {
-  fig_dist_above <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, "-above)")
-  fig_dist_below <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, "-below)")
-} 
-
-if (spp_plot_idw) {
-  fig_dist <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, ")")
-}
-
-if (spp_plot_sizecomp) {
-  fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
-} 
-
-if (spp_table_cpue) {
-  tab_wt <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-wt)")
-  tab_no <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-num)")
-}
-```
-
 ```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
 ```
 
@@ -248,7 +249,7 @@ if (spp_table_cpue) {
 nickname <- paste0("fig-dist-",spp_taxon,"-", spp_file)
 ```
 
-```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=ifelse(spp_plot_idw | spp_plot_idw_20, TRUE, FALSE)}
+```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=ifelse(spp_plot_idw, TRUE, FALSE)}
 ```
 
 ```{r fig-sizecomp-{{jj}}}
