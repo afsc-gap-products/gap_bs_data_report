@@ -1673,14 +1673,42 @@ plot_pa_facet <- function(
   dd <- data.frame(sp::spTransform(d, CRS(as.character(reg_dat$crs)[1])))
   # dd <- as(res, "SpatialPoints") ## For a SpatialPoints object rather than a SpatialPointsDataFrame
   
+  
   figure <- ggplot() +
     geom_sf(data = reg_dat$akland,
             color = NA,
-            fill = "grey50") #+
-  # geom_sf(data = reg_dat$graticule,
-  #         color = "grey80",
-  #         alpha = 0.2)
+            fill = "grey50")  +  
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) +
+    ggplot2::geom_sf(
+      data = reg_dat$survey.area, 
+      mapping = aes(color = SURVEY, 
+                    geometry = geometry), 
+      fill = "transparent", 
+      # shape = NA, 
+      size = ifelse(row0 > 2, 1.5, 1),
+      show.legend = legend_srvy_reg) +
+    ggplot2::scale_color_manual(
+      name = " ", 
+      values = reg_dat$survey.area$color,
+      breaks = reg_dat$survey.area$SURVEY,
+      labels = reg_dat$survey.area$SRVY) 
   
+  # figure <- ggplot() +
+  #   geom_sf(data = reg_dat$akland,
+  #           color = NA,
+  #           fill = "grey50") #+
+  # # geom_sf(data = reg_dat$graticule,
+  # #         color = "grey80",
+  # #         alpha = 0.2)
+  # 
   # if (length(length(reg_dat$survey.area$color))>1 ) {
   if (plot_bubble) {
     figure <- figure   + 
@@ -1709,19 +1737,19 @@ plot_pa_facet <- function(
                  na.rm = TRUE)    
   }
   
-  figure <- figure  +
-    geom_sf(data = reg_dat$survey.area, # %>% 
-            # dplyr::filter(SRVY %in% SRVY1), 
-            mapping = aes(color = SURVEY), 
-            fill = NA, 
-            shape = NA, 
-            size = ifelse(row0 > 2, 0.25, 0.75),
-            show.legend = TRUE) +
-    scale_color_manual(
-      name = "", # key.title,
-      values = reg_dat$survey.area$color,
-      breaks = rev(reg_dat$survey.area$SURVEY), 
-      labels = rev((reg_dat$survey.area$SRVY)))
+  # figure <- figure  +
+  #   geom_sf(data = reg_dat$survey.area, # %>% 
+  #           # dplyr::filter(SRVY %in% SRVY1), 
+  #           mapping = aes(color = SURVEY), 
+  #           fill = NA, 
+  #           shape = NA, 
+  #           size = ifelse(row0 > 2, 0.25, 0.75),
+  #           show.legend = TRUE) +
+  #   scale_color_manual(
+  #     name = "", # key.title,
+  #     values = reg_dat$survey.area$color,
+  #     breaks = rev(reg_dat$survey.area$SURVEY), 
+  #     labels = rev((reg_dat$survey.area$SRVY)))
   # } else {
   #   figure <- figure   + 
   #     geom_point(data = dd, 
@@ -1827,7 +1855,6 @@ plot_pa_facet <- function(
   
   
   if (plot_stratum) {
-    
     figure <- figure +
       geom_sf(data = reg_dat$survey.strata,
               color = "grey50",
@@ -1847,13 +1874,13 @@ plot_pa_facet <- function(
   #   lat_label <- lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_label))]
   # }
   
-  figure <- figure +
-    ggplot2::scale_y_continuous(name = "", #"Latitude", 
-                                limits = reg_dat$plot.boundary$y,
-                                breaks = reg_dat$lat.breaks) +
-    ggplot2::scale_x_continuous(name = "", #"Longitude", 
-                                limits = reg_dat$plot.boundary$x,
-                                breaks = reg_dat$lon.breaks) #+ 
+  # figure <- figure +
+  #   ggplot2::scale_y_continuous(name = "", #"Latitude", 
+  #                               limits = reg_dat$plot.boundary$y,
+  #                               breaks = reg_dat$lat.breaks) +
+  #   ggplot2::scale_x_continuous(name = "", #"Longitude", 
+  #                               limits = reg_dat$plot.boundary$x,
+  #                               breaks = reg_dat$lon.breaks) #+ 
   # ggsn::scalebar(data = reg_dat$survey.grid,
   #                location = "bottomleft",
   #                dist = 100,
@@ -1997,7 +2024,7 @@ plot_idw_facet <- function(
                                 breaks = reg_dat$lat.breaks) +
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
-                                breaks = reg_dat$lon.breaks)+
+                                breaks = reg_dat$lon.breaks) +
   ggplot2::geom_sf(
     data = reg_dat$survey.area, 
     mapping = aes(color = SURVEY, 
