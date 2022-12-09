@@ -2373,7 +2373,7 @@ plot_idw_facet <- function(
 #' @param colorbar_breaks numeric vector of breaks to use for temperature plots
 #' @param viridi_palette_option Viridis palette option passed to viridis::viridis_pal(). Default = "H" (turbo)
 #' @export
-plot_temps_facet <- function(rasterbrick, 
+plot_temperature_facet <- function(rasterbrick, 
                              key.title = "Temperature (°C)", 
                              reg_dat, 
                              colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
@@ -2383,7 +2383,7 @@ plot_temps_facet <- function(rasterbrick,
                              title0 = NULL, 
                              legend_seperate = FALSE, 
                              use_col_name = NULL, 
-                             zscore = NULL) {
+                             temperature_zscore = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -2413,14 +2413,9 @@ plot_temps_facet <- function(rasterbrick,
   panel_extent <- data.frame(x = panel_extent[c('xmin', 'xmax')],
                              y = panel_extent[c('ymin', 'ymax')])
   
-  label_2020 <- data.frame(x = mean(panel_extent$x),
-                           y = mean(panel_extent$y),
-                           label = "No\nSurvey",
-                           year = 2020)
-  
-  panel_extent <- data.frame(x = panel_extent$x[c(1,2,2,1,1)],
-                             y = panel_extent$y[c(1,1,2,2,1)],
-                             year = 2020)
+  # panel_extent <- data.frame(x = panel_extent$x[c(1,2,2,1,1)],
+  #                            y = panel_extent$y[c(1,1,2,2,1)],
+  #                            year = 2020)
   
   fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
   
@@ -2430,23 +2425,16 @@ plot_temps_facet <- function(rasterbrick,
                      fill = "grey50")+  
     ggplot2::geom_sf(data = reg_dat$graticule,
                      color = "grey80",
-                     alpha = 0.2) +
+                     alpha = 0.2)  +
     ggplot2::geom_tile(data = temp_df, 
                        mapping = aes(x=x, y=y, 
                                      fill=cut(value, breaks = colorbar_breaks))) +
-    ggplot2::geom_polygon(data = panel_extent,
-                          aes(x = x,
-                              y = y),
-                          fill = "white") +
-    ggplot2::geom_label(data = label_2020,
-                        aes(x = x,
-                            y = y,
-                            label = label),
-                        label.size = NA, 
-                        fill = NA) +
+    # ggplot2::geom_polygon(data = panel_extent,
+    #                       aes(x = x,
+    #                           y = y),
+    #                       fill = "white")  +
     ggplot2::facet_wrap( ~ year, 
                          nrow = row0) +
-    # coord_equal() +
     ggplot2::scale_fill_manual(values = fig_palette) +
     # ggplot2::geom_sf(data = reg_dat$survey.strata,
     #         color = "grey50",
@@ -2460,12 +2448,12 @@ plot_temps_facet <- function(rasterbrick,
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) + 
     #set legend position and vertical arrangement
-  guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
-    fill = guide_legend(title.position="top",
-                        label.position = "bottom",
-                        title.hjust = 0.5, nrow = 1)) +
-
-    theme(
+    ggplot2::guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+      fill = guide_legend(title.position="top",
+                          label.position = "bottom",
+                          title.hjust = 0.5, nrow = 1)) +
+    
+    ggplot2::theme(
       legend.text = element_text(size = 9),
       panel.background = element_rect(fill = "white",
                                       colour = NA),
@@ -2477,22 +2465,46 @@ plot_temps_facet <- function(rasterbrick,
       legend.position = "none"
     )
   
+  if (! is.null(temperature_zscore)) {
+    
+    figure <- figure +
+      ggplot2::geom_label(data = temperature_zscore, 
+                          aes(label = sign, #group = year,
+                              color = sign,
+                              x = quantile(x = reg_dat$plot.boundary$x, .96),
+                              y = quantile(x = reg_dat$plot.boundary$y, .96) ), 
+                          fontface = "bold", 
+                          fill = "grey20",
+                          label.size = NA,
+                          # size = .75, 
+                          # label.padding=unit(.1, "lines"), 
+                          show.legend = FALSE) +
+      scale_colour_manual(
+        na.value = "transparent",
+        breaks = (unique(temperature_zscore$sign)), 
+        labels = (unique(temperature_zscore$sign)), 
+        values = (unique(temperature_zscore$color)))
+  }
+  
+  if (sum(names(rasterbrick) %in% "X2020")==1)  {
+    
+    label_2020 <- data.frame(x = mean(panel_extent$x),
+                             y = mean(panel_extent$y),
+                             label = "No\nSurvey",
+                             year = 2020)
+    
+    figure <- figure +
+      ggplot2::geom_label(data = label_2020,
+                          aes(x = x,
+                              y = y,
+                              label = label),
+                          label.size = NA, 
+                          fill = NA)
+  }
   
   if (!is.null(title0)) {
     figure <- figure +
       ggplot2::ggtitle(label = title0)
-  }
-  
-  if (! is.null(zscore)) {
-    figure <- figure +
-      ggplot2::geom_text(data = zscore, 
-                         aes(label = sign, #group = year,
-                             color = sign,
-                              x = quantile(x = reg_dat$plot.boundary$x, .9),
-                              y = quantile(x = reg_dat$plot.boundary$y, .9) ), 
-                         show.legend = FALSE) #%>% 
-      # scale_color_manual(values = unique(zscore$sign), 
-      #                    breaks = unique(zscore$sign), )
   }
   
   # figure <- figure +

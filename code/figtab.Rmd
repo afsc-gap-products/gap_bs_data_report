@@ -19,7 +19,7 @@ header <- paste0("Sampled survey stations by vessel and the stratification schem
                  " shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
                  ". The map also depicts the stations sampled by the ",
                  text_list(paste0(vessel_info$vessel_ital, " (",
-                                               vessel_info$vess_shape, ")")), 
+                                  vessel_info$vess_shape, ")")), 
                  ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
 
 height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 6
@@ -127,7 +127,7 @@ res <- knitr::knit_child(
 ```{r fig-vessels}
 header <- paste0("Fishing vessels ",
                  text_list(paste0(vessel_info$vessel_ital, 
-                                               " (", c("left", "right"), ")")),
+                                  " (", c("left", "right"), ")")),
                  " contracted to assist with the ",maxyr," ",
                  text_list(SRVY1),
                  " bottom trawl survey.")
@@ -346,9 +346,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     #   value = as_paragraph(as_chunk(group))) %>%     # create a paragraph containing a chunk containing value of `var_group`
     # hline(i = ~ !is.na(SRVY), border = officer::fp_border() ) %>%
     theme_flextable_nmfstm(x = ., pad = 0, 
-                                        font0 = font0, 
-                                        row_lines = TRUE, 
-                                        pgwidth = full_page_portrait_width)  %>%
+                           font0 = font0, 
+                           row_lines = TRUE, 
+                           pgwidth = full_page_portrait_width)  %>%
     flextable::padding(x = .,
                        j = 1, i = ~ is.na(oto_samp_type),
                        padding.left = 5) %>%
@@ -359,13 +359,13 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::hline(x = ., i = ~ !is.na(oto_samp_type), 
                      border = fp_border(color = "white"), 
                      part = "body") 
-
-# Save table
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
+  
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
 }
 ```
 
@@ -412,10 +412,10 @@ table_print <- flextable::flextable(table_raw %>%
                                # species_name = "Scientific name", 
                                stomach_target = "Target collection number per survey") %>%
   theme_flextable_nmfstm(x = ., 
-                                      pad = 0, 
-                                      font0 = font0, 
-                                      row_lines = TRUE, 
-                                      pgwidth = full_page_portrait_width)  %>%
+                         pad = 0, 
+                         font0 = font0, 
+                         row_lines = TRUE, 
+                         pgwidth = full_page_portrait_width)  %>%
   flextable::align(x = ., j = c(SRVY1), 
                    align = "right", part = "all")   %>%
   flextable::width(x = ., width = (2.5/length(SRVY1)))  %>%
@@ -482,16 +482,16 @@ table_print <- table_raw %>%
                       part = "header", 
                       j = "Agency", i = 1)  %>%
   theme_flextable_nmfstm(x = ., 
-                                      font0 = font0, 
-                                      pad = 0, 
-                                      row_lines = TRUE, 
-                                      pgwidth = full_page_portrait_width) %>% 
+                         font0 = font0, 
+                         pad = 0, 
+                         row_lines = TRUE, 
+                         pgwidth = full_page_portrait_width) %>% 
   flextable::padding(x = .,
                      j = 1, i = ~ is.na(SRVY),
                      padding.left = 5) %>% 
-    flextable::hline(x = ., i = ~ !is.na(SRVY), 
-                     border = fp_border(color = "white"), 
-                     part = "body")
+  flextable::hline(x = ., i = ~ !is.na(SRVY), 
+                   border = fp_border(color = "white"), 
+                   part = "body")
 
 # Save table
 res <- knitr::knit_child(
@@ -559,134 +559,150 @@ res <- knitr::knit_child(
 
 ```{r fig-temperature-[SRVY]-[st/bt]}
 
-    height <- full_page_portrait_height
-    width <- full_page_portrait_width
-    
-  for (case in c("bottom", "surface")) {
-      yrs0 <- (maxyr-17):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
-      row0 <- 3
-      reg_dat0 <- report_types$NEBS$reg_dat
-      
-      for (case_yr in 1:2) {
-        if (case_yr == 1) {
-          yrs <- yrs0[1:(length(yrs0)/2)]
-        } else if (case_yr == 2) {
-          yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
-        }
-      if (case == "surface") {
-          
-        nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_surface_temperature, 
-                                      subset = names(coldpool::nbs_ebs_surface_temperature)[!grepl(
-                                        x = names(coldpool::nbs_ebs_surface_temperature),
-                                        pattern = 2018)])
-        
-        sebs_only <- names(coldpool::ebs_surface_temperature)[
-          which(!(names(coldpool::ebs_surface_temperature) %in% 
-                    paste0("s", names(nbs_no_2018))))]
-        
-        sebs_temp <- raster::subset(coldpool::ebs_surface_temperature,
-                                    subset = sebs_only) %>%
-          raster::projectRaster(coldpool::nbs_ebs_surface_temperature)
-        
-        rasterbrick <- raster::addLayer(sebs_temp, 
-                                        nbs_no_2018)
+height <- full_page_portrait_height
+width <- full_page_portrait_width
+yrs0 <- (maxyr-17):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
+row0 <- 3
+reg_dat0 <- report_types$NEBS$reg_dat
 
-      } else if (case == "bottom") {
-        
-        nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_bottom_temperature, 
-                                      subset = names(coldpool::nbs_ebs_bottom_temperature)[!grepl(
-                                        x = names(coldpool::nbs_ebs_bottom_temperature),
-                                        pattern = 2018)])
-        
-        sebs_only <- names(coldpool::ebs_bottom_temperature)[
-          which(!(names(coldpool::ebs_bottom_temperature) %in% 
-                    paste0("s", names(nbs_no_2018))))]
-        
-        sebs_temp <- raster::subset(coldpool::ebs_bottom_temperature,
-                                    subset = sebs_only) %>%
-          raster::projectRaster(coldpool::nbs_ebs_bottom_temperature)
-        
-        rasterbrick <- raster::addLayer(sebs_temp, 
-                                        nbs_no_2018)
-        
-        # a <- raster::subset(x = rasterbrick,
-        #        subset = paste0("sebs_ste_2021_gear_temperature"))
-      }
-        
-        zscore <- coldpool::cold_pool_index %>% 
-          dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE"))) %>%
-          dplyr::select(YEAR, var) %>% 
-          janitor::clean_names() %>%
-          dplyr::filter(year <= maxyr) %>%
-          dplyr::mutate(
-            sd = sd(var, na.rm = TRUE), 
-            mean = mean(var, na.rm = TRUE), 
-            # group = YEAR < 2020,
-                # cpi_rank = rank(MEAN_GEAR_TEMPERATURE), 
-            zscore  = ((var-mean)/sd), # z = (x-μ)/σ
-                sign = dplyr::case_when(
-                          (zscore < 1 & zscore > -1) ~ "0", 
-                          zscore <= -1 ~ "-", 
-                          zscore >= 1 ~ "+"
-                        )) %>% 
-          dplyr::filter(year %in% yrs) 
-        
-        
-        cpi_df <- coldpool:::cold_pool_index %>%
-  dplyr::filter(YEAR <= maxyr) %>%
-  dplyr::mutate(group = YEAR < 2020,
-                var = "Cold Pool Index",
-                cpi_rank = rank(AREA_LTE2_KM2))
-cpi_sd <- sd(cpi_df$AREA_LTE2_KM2/1000)
-cpi_mean <- mean(cpi_df$AREA_LTE2_KM2/1000)
+# for (viridis0 in LETTERS[1:8]) {
+#   print(viridis0)
+
+for (case in c("bottom", "surface")) {
+  
+  for (case_yr in c(1:2)) {
+    
+    if (case_yr == 1) {
+      yrs <- yrs0[1:(length(yrs0)/2)]
+    } else if (case_yr == 2) {
+      yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
+    }
+
+    if (case == "surface") {
       
-      a_name <- names(rasterbrick)[length(names(rasterbrick))-1]
-      a <- raster::subset(x = rasterbrick,
-                          subset = a_name)
+      nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_surface_temperature, 
+                                    subset = names(coldpool::nbs_ebs_surface_temperature)[!grepl(
+                                      x = names(coldpool::nbs_ebs_surface_temperature),
+                                      pattern = 2018)])
       
-      names(a) <- gsub(pattern = gsub("[^0-9.-]", "", names(a)), 
-                       replacement = "2020", 
-                       x = names(a))
-      a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
-      a@data@max <- a@data@min <- NA
-      # a@data@names <- gsub(pattern = "_2021_", replacement = "_2020_", x = a@data@names)
-      rasterbrick$temp <- a
-      names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
+      sebs_only <- names(coldpool::ebs_surface_temperature)[
+        which(!(names(coldpool::ebs_surface_temperature) %in% 
+                  paste0("s", names(nbs_no_2018))))]
+      
+      sebs_temp <- raster::subset(coldpool::ebs_surface_temperature,
+                                  subset = sebs_only) %>%
+        raster::projectRaster(coldpool::nbs_ebs_surface_temperature)
+      
+      rasterbrick <- raster::addLayer(sebs_temp, 
+                                      nbs_no_2018)
+      
+    } else if (case == "bottom") {
+      
+      nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_bottom_temperature, 
+                                    subset = names(coldpool::nbs_ebs_bottom_temperature)[!grepl(
+                                      x = names(coldpool::nbs_ebs_bottom_temperature),
+                                      pattern = 2018)])
+      
+      sebs_only <- names(coldpool::ebs_bottom_temperature)[
+        which(!(names(coldpool::ebs_bottom_temperature) %in% 
+                  paste0("s", names(nbs_no_2018))))]
+      
+      sebs_temp <- raster::subset(coldpool::ebs_bottom_temperature,
+                                  subset = sebs_only) %>%
+        raster::projectRaster(coldpool::nbs_ebs_bottom_temperature)
+      
+      rasterbrick <- raster::addLayer(sebs_temp, 
+                                      nbs_no_2018)
+      
+      # a <- raster::subset(x = rasterbrick,
+      #        subset = paste0("sebs_ste_2021_gear_temperature"))
     }
     
-    header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", range_text(yrs),
-                     ifelse(SRVY == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
-                     " shelf bottom trawl survey",
-                     ifelse(SRVY=="NEBS", "s", ""),". ")
+    temperature_zscore <- coldpool::cold_pool_index %>% 
+      dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE")), 
+                    year = YEAR) %>%
+      dplyr::select(year, var) %>% 
+      dplyr::filter(year <= maxyr) %>%
+      dplyr::arrange(var) %>% 
+      dplyr::mutate(
+        sd = sd(var, na.rm = TRUE), 
+        mean = mean(var, na.rm = TRUE), 
+        zscore  = ((var-mean)/sd), # z = (x-μ)/σ
+        sign = dplyr::case_when(
+          # (zscore < 1 & zscore > -1) ~ "0", 
+          zscore <= -1 ~ "-", 
+          zscore >= 1 ~ "+"), 
+        color = dplyr::case_when(
+          # sign == "0" ~ "black", 
+          sign == "+" ~ "#d8b365", 
+          sign == "-" ~ "#5ab4ac")) %>% 
+      dplyr::arrange(year) %>% 
+      dplyr::filter(year %in% yrs) 
     
-    # Remove non-numeric characters from layer names for subsetting
-    names(rasterbrick) <- gsub("[^0-9.-]", "", names(rasterbrick))
     
-    # Subset layers for the selected years
-    rasterbrick <- raster::subset(rasterbrick, subset = paste0("X", yrs))
     
-    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-", case_yr)
+    a_name <- names(rasterbrick)[length(names(rasterbrick))-1]
+    a <- raster::subset(x = rasterbrick,
+                        subset = a_name)
     
-    figure <- plot_temps_facet(
-      rasterbrick = rasterbrick, 
-      key.title = ifelse(case == "bottom", 
-                         expression(bold("Bottom Temperature (°C)")), 
-                         expression(bold("Surface Temperature (°C)"))), 
-      reg_dat = reg_dat0, 
-      colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
-      row0 = row0, 
-      title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
-                      " Bering Sea ", 
-                      stringr::str_to_title(case), " Temperature (", range_text(yrs), ")"), 
-      zscore = zscore) 
-    
-    # Save figure
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = paste0(dir_code, "_child_save_figtab.Rmd")),
-      quiet = TRUE
-    )
+    names(a) <- gsub(pattern = gsub("[^0-9.-]", "", names(a)), 
+                     replacement = "2020", 
+                     x = names(a))
+    a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
+    a@data@max <- a@data@min <- NA
+    # a@data@names <- gsub(pattern = "_2021_", replacement = "_2020_", x = a@data@names)
+    rasterbrick$temp <- a
+    names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
   }
+  
+  header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", range_text(yrs), " ", 
+                   ifelse(SRVY == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
+                   " shelf bottom trawl survey",
+                   ifelse(SRVY=="NEBS", "s", ""),
+                   ". Years where the mean ", case, 
+                   " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
+                   " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
+  
+  # Remove non-numeric characters from layer names for subsetting
+  names(rasterbrick) <- gsub("[^0-9.-]", "", names(rasterbrick))
+  
+  # Subset layers for the selected years
+  rasterbrick <- raster::subset(rasterbrick, subset = paste0("X", yrs))
+  
+  nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-", case_yr)
+  
+  key.title = ifelse(case == "bottom", 
+                     expression(bold("Bottom temperature (°C)")), 
+                     expression(bold("Surface temperature (°C)")))
+  reg_dat = reg_dat0
+  colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf)
+  title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
+                  " Bering Sea\n", 
+                  case, " temperature (", range_text(yrs), ")") # - ", viridis0)
+  
+  figure <- plot_temperature_facet(
+    # viridis_palette_option = viridis0, 
+    rasterbrick = rasterbrick, 
+    key.title = key.title, 
+    reg_dat = reg_dat0, 
+    colorbar_breaks = colorbar_breaks,
+    row0 = row0, 
+    title0 = title0, 
+    temperature_zscore = temperature_zscore) 
+  
+  #   print(nickname)
+  #   ggsave(filename = paste0(getwd(), "/", nickname, "-", viridis0, ".png"), plot = figure, height = height, width = width, bg = "white")
+  #   
+  #   
+  # }
+}
+# Save figure
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_figtab.Rmd")),
+  quiet = TRUE
+)
+
 
 ```
 
@@ -758,7 +774,7 @@ table_raw0 <-
   dplyr::relocate(SRVY, common_name, length, age) %>% 
   dplyr::rename("length_measurements" = length,
                 "otolith_age_structure_samples" = age) #%>%
-  # data.frame()
+# data.frame()
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   if (nrow(haul_cruises_maxyr)>1) {
@@ -772,17 +788,17 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
   table_raw <- table_raw0 %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-  dplyr::select(where(~ any(. != 0)))
+    dplyr::select(where(~ any(. != 0)))
   
   names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
     stringr::str_to_sentence(names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))])
   
   names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
     (gsub(pattern = "_",
-                                  replacement = "\n", 
-                                  x = names(table_raw)[!(names(table_raw) %in% 
-                                                           c("SRVY", "common_name"))], 
-                                  fixed = TRUE))
+          replacement = "\n", 
+          x = names(table_raw)[!(names(table_raw) %in% 
+                                   c("SRVY", "common_name"))], 
+          fixed = TRUE))
   names(table_raw)[names(table_raw) == "Otolith\nage\nstructure\nsamples"] <- 
     "Otolith age\nstructure samples"
   names(table_raw)[names(table_raw) == "Pathobiology\nblood\nsamples"] <- 
@@ -810,23 +826,23 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     # flextable::merge_v(j = "SRVY") %>%
     flextable::valign(valign = "top") %>%
     theme_flextable_nmfstm(x = ., 
-                                        pad = 0, 
-                                        spacing = 0.4,
-                                        font0 = font0, 
-                                        pgwidth = full_page_portrait_width) %>%
+                           pad = 0, 
+                           spacing = 0.4,
+                           font0 = font0, 
+                           pgwidth = full_page_portrait_width) %>%
     flextable::align(x = ., j = 2:ncol(table_print), 
                      align = "right", part = "all")  %>%
     # flextable::width(x = ., width = 1.5, unit = "in")   %>%
     flextable::width(x = ., width = (4.5/(ncol(table_raw)-2)), unit = "in") %>%
     flextable::width(x = ., j = "common_name", width = 2, unit = "in")
   
-# Save table
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
-
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
+  
   
 }
 
@@ -842,7 +858,7 @@ if (SRVY == "NEBS"){
   nickname <- "tab-species-composition" 
   header <- paste0("Fish taxa from survey catches in the ",
                    text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
-                                                 haul_cruises_maxyr$SRVY, ")")),". ")
+                                    haul_cruises_maxyr$SRVY, ")")),". ")
   
   height <- full_page_portrait_height # 7
   width <- full_page_portrait_width # 6.5
@@ -957,10 +973,10 @@ if (SRVY == "NEBS"){
                                              props = fp_text_default(italic = TRUE, bold = TRUE, 
                                                                      font.size = 10, font.family = font0)))) %>%  
     theme_flextable_nmfstm(x = ., 
-                                        font0 = font0, 
-                                        pad = 0, 
-                                        row_lines = FALSE, 
-                                        pgwidth = full_page_portrait_width) %>%
+                           font0 = font0, 
+                           pad = 0, 
+                           row_lines = FALSE, 
+                           pgwidth = full_page_portrait_width) %>%
     flextable::vline(x = ., j = "dummy_ebs", part = "all") %>%
     flextable::padding(x = ., j = "dummy_nbs", padding.left = 5, part = "all")
   
@@ -994,13 +1010,13 @@ if (SRVY == "NEBS"){
   #   flextable::vline(x = ., j = 2, part = "all") %>% 
   #   flextable::padding(x = ., j = "common_name", padding.left = 5, part = "all")
   
-# Save table
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
-
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
+  
 }
 
 ```
@@ -1096,8 +1112,8 @@ temp <- function(exp0,
   
   dat0 <- eval(parse(
     text = gsub(pattern = "DATAFRAME",
-              replacement = "catch_haul_cruises_maxyr0",
-              x = exp0) ))  %>%
+                replacement = "catch_haul_cruises_maxyr0",
+                x = exp0) ))  %>%
     ungroup() %>%
     tidyr::separate(
       col = group0,
@@ -1525,13 +1541,13 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   table_raw <- a$table_raw
   table_print <- a$table_print
   
-# Save table
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
-
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
+  
 } 
 
 ```
@@ -1609,12 +1625,12 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   table_raw <- a$table_raw
   table_print <- a$table_print
   
-# Save table
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
   
 } 
 ```
@@ -1734,10 +1750,10 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                                  "change " = paste0("Change (", maxyr, ", ", compareyr, ")" ), 
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
     theme_flextable_nmfstm(x = ., 
-                                        font0 = font0, 
-                                        pad = 0, 
-                                        row_lines = FALSE, 
-                                        pgwidth = full_page_landscape_width) %>% 
+                           font0 = font0, 
+                           pad = 0, 
+                           row_lines = FALSE, 
+                           pgwidth = full_page_landscape_width) %>% 
     flextable::vline(x = ., part = "all", j = "change ") %>%
     flextable::align(x = ., j = c(paste0(maxyr, " "), paste0(compareyr, " "), "change ",
                                   maxyr, compareyr, "change"), 
@@ -1745,13 +1761,13 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::padding(x = ., j = "change ", padding.right = 5, part = "all") %>% 
     flextable::padding(x = ., j = "Invertebrate taxon", padding.left = 5, part = "all")
   
-# Save table
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
-
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
+  
 }
 ```
 
@@ -1797,11 +1813,11 @@ for (i in 1:2) {
     
     header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for other common groundfish species for the ",
                      maxyr," ", text_list(paste0(SRVY1), 
-                     # text_list(paste0( 
-                     #   haul_cruises_maxyr$SRVY, " (",
-                     #   haul_cruises_maxyr$stations_completed,
-                     #   " stations completed)")),
-                     " shelf bottom trawl survey."))
+                                          # text_list(paste0( 
+                                          #   haul_cruises_maxyr$SRVY, " (",
+                                          #   haul_cruises_maxyr$stations_completed,
+                                          #   " stations completed)")),
+                                          " shelf bottom trawl survey."))
     
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
@@ -1872,10 +1888,10 @@ for (i in 1:2) {
     header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for other common groundfish species for the ", 
                      maxyr," ",
                      text_list(paste0(haul_cruises_maxyr$SRVY_long, 
-                                                   " shelf (", 
-                                                   haul_cruises_maxyr$SRVY, "; ",
-                                                   haul_cruises_maxyr$stations_completed,
-                                                   " stations completed)")),
+                                      " shelf (", 
+                                      haul_cruises_maxyr$SRVY, "; ",
+                                      haul_cruises_maxyr$stations_completed,
+                                      " stations completed)")),
                      " trawl surveys.")
     
     table_raw <- temp %>% 
@@ -1954,21 +1970,21 @@ for (i in 1:2) {
                        j = "print_name", part = "body") %>% 
     flextable::valign(valign = "top") %>%  
     theme_flextable_nmfstm(x = ., 
-                                        font0 = font0, 
-                                        pad = 0, 
-                                        row_lines = TRUE, 
-                                        pgwidth = full_page_landscape_width) %>%
+                           font0 = font0, 
+                           pad = 0, 
+                           row_lines = TRUE, 
+                           pgwidth = full_page_landscape_width) %>%
     flextable::align(x = ., align = "right", part = "all") %>%
     flextable::align(x = ., j = c("print_name"), #, "SRVY"
                      align = "left", part = "all") #%>%
   # flextable::hline(x = ., i = 1, part = "header")
   
-# Save table
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
-
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
+  
 }
 ```
