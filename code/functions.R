@@ -452,37 +452,37 @@ date_formatter <- function(date = "1998-09-02", date_format = "%B %d, %Y") {
   return(gsub("(\\D)0", "\\1", format(as.Date(date), date_format)))
 }
 
-SameColNames<-function(df.ls) {
-  #All column names
-  colnames0<-c()
-  for (i in 1:length(df.ls)){
-    df0<-df.ls[[i]]
-    # colnames(df0)<-toupper(colnames(df0))
-    df0<-janitor::clean_names(df0)
-    df.ls[[i]]<-df0
-    colnames0<-c(colnames0, (colnames(df0)))
-  }
-  colnames0<-sort(unique(colnames0), decreasing = T)
-  
-  #New df's
-  df.ls0<-list()
-  df.rbind0<-c()
-  for (i in 1:length(df.ls)){
-    df0<-df.ls[[i]]
-    colnames.out<-colnames0[!(colnames0 %in% colnames(df0))]
-    if (length(colnames.out) != 0) {
-      for (ii in 1:length(colnames.out)){
-        df0[,(ncol(df0)+1)]<-NA
-        names(df0)[ncol(df0)]<-colnames.out[ii]
-      }
-    }
-    df0<-df0[,match(table =  colnames(df0), x = colnames0)]
-    df.ls0[[i]]<-df0
-    names(df.ls0)[i]<-names(df.ls)[i]
-    df.rbind0<-rbind.data.frame(df.rbind0, df0)
-  }
-  return(df.rbind0)
-}
+# SameColNames<-function(df.ls) {
+#   #All column names
+#   colnames0<-c()
+#   for (i in 1:length(df.ls)){
+#     df0<-df.ls[[i]]
+#     # colnames(df0)<-toupper(colnames(df0))
+#     df0<-janitor::clean_names(df0)
+#     df.ls[[i]]<-df0
+#     colnames0<-c(colnames0, (colnames(df0)))
+#   }
+#   colnames0<-sort(unique(colnames0), decreasing = T)
+#   
+#   #New df's
+#   df.ls0<-list()
+#   df.rbind0<-c()
+#   for (i in 1:length(df.ls)){
+#     df0<-df.ls[[i]]
+#     colnames.out<-colnames0[!(colnames0 %in% colnames(df0))]
+#     if (length(colnames.out) != 0) {
+#       for (ii in 1:length(colnames.out)){
+#         df0[,(ncol(df0)+1)]<-NA
+#         names(df0)[ncol(df0)]<-colnames.out[ii]
+#       }
+#     }
+#     df0<-df0[,match(table =  colnames(df0), x = colnames0)]
+#     df.ls0[[i]]<-df0
+#     names(df.ls0)[i]<-names(df.ls)[i]
+#     df.rbind0<-rbind.data.frame(df.rbind0, df0)
+#   }
+#   return(df.rbind0)
+# }
 
 
 # CapStr <- function(y) {
@@ -1114,19 +1114,19 @@ species_text <- function(
   show <- sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE)/
     total_biomass0$biomass[total_biomass0$year == maxyr]*100
   
-  a <- list.files(path = dir_out_figures, 
-                  pattern = paste0("fig-idw-cpue-fish-", spp_file), 
-                  ignore.case = TRUE)
-  a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
-  a <- gsub(pattern = ".rdata", replacement = "", ignore.case = TRUE, x = a)
-  
+  # a <- list.files(path = dir_out_figtab, 
+  #                 pattern = paste0("fig-dist-fish-", spp_file), 
+  #                 ignore.case = TRUE)
+  # a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
+  # a <- gsub(pattern = ".rdata", replacement = "", ignore.case = TRUE, x = a)
+  a <- 1 # temporary
   str0$biomass_population <-
     paste0("The estimated biomass of ",spp_print," in the ",
            ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
            " was ",
            xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
-           "Fig", ifelse(length(a)==1, ".", "s."), " ", text_list(paste0("` ` \\@ref(fig:",a,")` `")),
+           "Fig", ifelse(length(a)==1, ".", "s."), " ` `r tab_dist` `",
            " and Tables ", text_list(c(paste0("`` `\\@ref(tab:",biomass_cpue_tab_name,")` `"),
                                        "` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-wt)` `")),
            " and estimated abundance was ",
@@ -1140,7 +1140,7 @@ species_text <- function(
                                       total_biomass0$biomass[total_biomass0$year == compareyr])*100),
                          " of the total biomass; "),
                   ""),
-           "Fig", ifelse(length(a)==1, ".", "s."), " ", text_list(paste0("` `\\@ref(fig:",a,")` `")),
+           "Fig", ifelse(length(a)==1, ".", "s."), " ", "` `r tab_dist` `",
            " and Table",ifelse(length(biomass_cpue_tab_name)>1, "s", ""), " ",
            text_list(paste0("` `\\@ref(tab:",biomass_cpue_tab_name,")` `")),
            " and estimated abundance was ",
@@ -1673,14 +1673,42 @@ plot_pa_facet <- function(
   dd <- data.frame(sp::spTransform(d, CRS(as.character(reg_dat$crs)[1])))
   # dd <- as(res, "SpatialPoints") ## For a SpatialPoints object rather than a SpatialPointsDataFrame
   
+  
   figure <- ggplot() +
     geom_sf(data = reg_dat$akland,
             color = NA,
-            fill = "grey50") #+
-  # geom_sf(data = reg_dat$graticule,
-  #         color = "grey80",
-  #         alpha = 0.2)
+            fill = "grey50")  +  
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) +
+    ggplot2::geom_sf(
+      data = reg_dat$survey.area, 
+      mapping = aes(color = SURVEY, 
+                    geometry = geometry), 
+      fill = "transparent", 
+      # shape = NA, 
+      size = ifelse(row0 > 2, 1.5, 1),
+      show.legend = legend_srvy_reg) +
+    ggplot2::scale_color_manual(
+      name = " ", 
+      values = reg_dat$survey.area$color,
+      breaks = reg_dat$survey.area$SURVEY,
+      labels = reg_dat$survey.area$SRVY) 
   
+  # figure <- ggplot() +
+  #   geom_sf(data = reg_dat$akland,
+  #           color = NA,
+  #           fill = "grey50") #+
+  # # geom_sf(data = reg_dat$graticule,
+  # #         color = "grey80",
+  # #         alpha = 0.2)
+  # 
   # if (length(length(reg_dat$survey.area$color))>1 ) {
   if (plot_bubble) {
     figure <- figure   + 
@@ -1709,19 +1737,19 @@ plot_pa_facet <- function(
                  na.rm = TRUE)    
   }
   
-  figure <- figure  +
-    geom_sf(data = reg_dat$survey.area, # %>% 
-            # dplyr::filter(SRVY %in% SRVY1), 
-            mapping = aes(color = SURVEY), 
-            fill = NA, 
-            shape = NA, 
-            size = ifelse(row0 > 2, 0.25, 0.75),
-            show.legend = TRUE) +
-    scale_color_manual(
-      name = "", # key.title,
-      values = reg_dat$survey.area$color,
-      breaks = rev(reg_dat$survey.area$SURVEY), 
-      labels = rev((reg_dat$survey.area$SRVY)))
+  # figure <- figure  +
+  #   geom_sf(data = reg_dat$survey.area, # %>% 
+  #           # dplyr::filter(SRVY %in% SRVY1), 
+  #           mapping = aes(color = SURVEY), 
+  #           fill = NA, 
+  #           shape = NA, 
+  #           size = ifelse(row0 > 2, 0.25, 0.75),
+  #           show.legend = TRUE) +
+  #   scale_color_manual(
+  #     name = "", # key.title,
+  #     values = reg_dat$survey.area$color,
+  #     breaks = rev(reg_dat$survey.area$SURVEY), 
+  #     labels = rev((reg_dat$survey.area$SRVY)))
   # } else {
   #   figure <- figure   + 
   #     geom_point(data = dd, 
@@ -1827,7 +1855,6 @@ plot_pa_facet <- function(
   
   
   if (plot_stratum) {
-    
     figure <- figure +
       geom_sf(data = reg_dat$survey.strata,
               color = "grey50",
@@ -1847,13 +1874,13 @@ plot_pa_facet <- function(
   #   lat_label <- lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_label))]
   # }
   
-  figure <- figure +
-    ggplot2::scale_y_continuous(name = "", #"Latitude", 
-                                limits = reg_dat$plot.boundary$y,
-                                breaks = reg_dat$lat.breaks) +
-    ggplot2::scale_x_continuous(name = "", #"Longitude", 
-                                limits = reg_dat$plot.boundary$x,
-                                breaks = reg_dat$lon.breaks) #+ 
+  # figure <- figure +
+  #   ggplot2::scale_y_continuous(name = "", #"Latitude", 
+  #                               limits = reg_dat$plot.boundary$y,
+  #                               breaks = reg_dat$lat.breaks) +
+  #   ggplot2::scale_x_continuous(name = "", #"Longitude", 
+  #                               limits = reg_dat$plot.boundary$x,
+  #                               breaks = reg_dat$lon.breaks) #+ 
   # ggsn::scalebar(data = reg_dat$survey.grid,
   #                location = "bottomleft",
   #                dist = 100,
@@ -1973,7 +2000,8 @@ plot_idw_facet <- function(
     legend_srvy_reg = TRUE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = FALSE))
-  dat <- dat %>%
+  dat <- dat  %>% 
+    dplyr::filter(year %in% yrs) %>%
     dplyr::rename(year = as.character(year), 
                   LATITUDE = as.character(lat), 
                   LONGITUDE = as.character(lon), 
@@ -1982,8 +2010,7 @@ plot_idw_facet <- function(
     dplyr::mutate(year = as.numeric(year), 
                   CPUE_KGHA = as.numeric(CPUE_KGHA), 
                   LATITUDE = as.numeric(LATITUDE), 
-                  LONGITUDE = as.numeric(LONGITUDE)) %>% 
-    dplyr::filter(year %in% yrs)
+                  LONGITUDE = as.numeric(LONGITUDE))
   
   figure <- ggplot() +
     geom_sf(data = reg_dat$akland,
@@ -1997,7 +2024,7 @@ plot_idw_facet <- function(
                                 breaks = reg_dat$lat.breaks) +
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
-                                breaks = reg_dat$lon.breaks)+
+                                breaks = reg_dat$lon.breaks) +
   ggplot2::geom_sf(
     data = reg_dat$survey.area, 
     mapping = aes(color = SURVEY, 
@@ -2043,7 +2070,8 @@ plot_idw_facet <- function(
                               set.breaks = set.breaks,
                               grid.cell = grid.cell,
                               key.title = key.title,
-                              use.survey.bathymetry = FALSE)
+                              use.survey.bathymetry = FALSE, 
+                              return.continuous.grid = (grid == "continuous.grid"))
 
         temp0 <- data.frame(temp1$extrapolation.grid)
       }
@@ -2345,7 +2373,7 @@ plot_idw_facet <- function(
 #' @param colorbar_breaks numeric vector of breaks to use for temperature plots
 #' @param viridi_palette_option Viridis palette option passed to viridis::viridis_pal(). Default = "H" (turbo)
 #' @export
-plot_temps_facet <- function(rasterbrick, 
+plot_temperature_facet <- function(rasterbrick, 
                              key.title = "Temperature (°C)", 
                              reg_dat, 
                              colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
@@ -2354,7 +2382,8 @@ plot_temps_facet <- function(rasterbrick,
                              row0 = 2, 
                              title0 = NULL, 
                              legend_seperate = FALSE, 
-                             use_col_name = NULL) {
+                             use_col_name = NULL, 
+                             temperature_zscore = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -2372,7 +2401,21 @@ plot_temps_facet <- function(rasterbrick,
   temp_df <- temp_df %>% 
     tidyr::pivot_longer(values_to = "value", 
                         names_to = "year", 
-                        cols = dplyr::all_of(temp1))
+                        cols = dplyr::all_of(temp1)) %>%
+    tidyr::drop_na(value)
+  
+  # Setup data.frame for 2020 year with no survey
+  panel_extent <- reg_dat$plot.boundary |>
+    sf::st_as_sf(coords = c("x", "y")) |>
+    sf::st_buffer(dist = 1e6) |>
+    sf::st_bbox()
+  
+  panel_extent <- data.frame(x = panel_extent[c('xmin', 'xmax')],
+                             y = panel_extent[c('ymin', 'ymax')])
+  
+  # panel_extent <- data.frame(x = panel_extent$x[c(1,2,2,1,1)],
+  #                            y = panel_extent$y[c(1,1,2,2,1)],
+  #                            year = 2020)
   
   fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
   
@@ -2382,13 +2425,16 @@ plot_temps_facet <- function(rasterbrick,
                      fill = "grey50")+  
     ggplot2::geom_sf(data = reg_dat$graticule,
                      color = "grey80",
-                     alpha = 0.2) +
+                     alpha = 0.2)  +
     ggplot2::geom_tile(data = temp_df, 
                        mapping = aes(x=x, y=y, 
-                                     fill=cut(value, breaks = colorbar_breaks)))  +
+                                     fill=cut(value, breaks = colorbar_breaks))) +
+    # ggplot2::geom_polygon(data = panel_extent,
+    #                       aes(x = x,
+    #                           y = y),
+    #                       fill = "white")  +
     ggplot2::facet_wrap( ~ year, 
                          nrow = row0) +
-    # coord_equal() +
     ggplot2::scale_fill_manual(values = fig_palette) +
     # ggplot2::geom_sf(data = reg_dat$survey.strata,
     #         color = "grey50",
@@ -2400,9 +2446,68 @@ plot_temps_facet <- function(rasterbrick,
                                 breaks = reg_dat$lat.breaks) +
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
-                                breaks = reg_dat$lon.breaks) 
+                                breaks = reg_dat$lon.breaks) + 
+    #set legend position and vertical arrangement
+    ggplot2::guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+      fill = guide_legend(title.position="top",
+                          label.position = "bottom",
+                          title.hjust = 0.5, nrow = 1)) +
+    
+    ggplot2::theme(
+      legend.text = element_text(size = 9),
+      panel.background = element_rect(fill = "white",
+                                      colour = NA),
+      panel.border = element_rect(fill = NA,
+                                  colour = "grey20"),
+      axis.text = element_text(size = 8),
+      strip.background = element_blank(),
+      strip.text = element_text(size = 10, face = "bold"),
+      legend.position = "none"
+    )
   
-  figure <- figure +
+  if (! is.null(temperature_zscore)) {
+    
+    figure <- figure +
+      ggplot2::geom_label(data = temperature_zscore, 
+                          aes(label = sign, #group = year,
+                              color = sign,
+                              x = quantile(x = reg_dat$plot.boundary$x, .96),
+                              y = quantile(x = reg_dat$plot.boundary$y, .96) ), 
+                          fontface = "bold", 
+                          fill = "grey20",
+                          label.size = NA,
+                          # size = .75, 
+                          # label.padding=unit(.1, "lines"), 
+                          show.legend = FALSE) +
+      scale_colour_manual(
+        na.value = "transparent",
+        breaks = (unique(temperature_zscore$sign)), 
+        labels = (unique(temperature_zscore$sign)), 
+        values = (unique(temperature_zscore$color)))
+  }
+  
+  if (sum(names(rasterbrick) %in% "X2020")==1)  {
+    
+    label_2020 <- data.frame(x = mean(panel_extent$x),
+                             y = mean(panel_extent$y),
+                             label = "No\nSurvey",
+                             year = 2020)
+    
+    figure <- figure +
+      ggplot2::geom_label(data = label_2020,
+                          aes(x = x,
+                              y = y,
+                              label = label),
+                          label.size = NA, 
+                          fill = NA)
+  }
+  
+  if (!is.null(title0)) {
+    figure <- figure +
+      ggplot2::ggtitle(label = title0)
+  }
+  
+  # figure <- figure +
     # ggsn::scalebar(
     #   # facet.var = 'temp_df$year', 
     #   # facet.lev = max(temp_df$year),
@@ -2426,31 +2531,7 @@ plot_temps_facet <- function(rasterbrick,
   #                              row0 == 2 ~ 2.25, 
   #                              TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
   #   
-  # ) +
-  #set legend position and vertical arrangement
-  guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
-    fill = guide_legend(title.position="top", 
-                        label.position = "bottom",
-                        title.hjust = 0.5, nrow = 1)) +
-    
-    theme(
-      legend.text = element_text(size = 9),
-      panel.background = element_rect(fill = "white", 
-                                      colour = NA), 
-      panel.border = element_rect(fill = NA, 
-                                  colour = "grey20"), 
-      axis.text = element_text(size = 8),
-      strip.background = element_blank(), 
-      strip.text = element_text(size = 10, face = "bold"),
-      legend.position = "none"
-    )
-  
-  
-  
-  if (!is.null(title0)) {
-    figure <- figure +
-      ggplot2::ggtitle(label = title0)
-  }
+  # ) 
   
   
   #   Turbo represents a tradeoff between interpretability and accessibility. If it seems like that won't be accessible because of how it's distributed (e.g., faxing), then by all means change it, because it doesn't have linear luminosity and chromaticity. For temperatures, I think it's pretty difficult to distinguish shades of blue. So if you're going to choose an alternative palette, I think it would be great if the cold pool is black (where < 0 is black; e.g., Which would be magma or inferno, whcih have a larger luminance gradient)

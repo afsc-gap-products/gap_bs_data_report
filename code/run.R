@@ -1,4 +1,120 @@
- 
+#' ---------------------------------------------
+#' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
+#' author: E. H. Markowitz, E. J. Dawson
+#' purpose: Run Scripts and R Markdown Files
+#' start date: 2021-09-01
+#' date modified: 2022-09-01                                          # CHANGE
+#' Notes:  
+#' create file that checks for errors in RMDs:
+#'    https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/test_rmds.R
+#'    https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/render%20dev%20report%20with%20errors.R
+#'    # rmarkdown::render(input = "./notforgit/test.Rmd",
+#'                   output_dir = dir_out_chapters,
+#'                   output_file = "test.docx")
+#' ---------------------------------------------
+
+
+# NOTES
+
+# Sean - can you add SD of the mean to the coldpool::cold_pool_index table?
+
+
+
+# DATA REPORT ------------------------------------------------------------------
+
+# *** Report knowns ------------------------------------------------------------
+
+report_title <- "data" 
+refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
+googledrive_dl <- FALSE # redownload google drive tables and docs?
+indesign_flowin <- FALSE
+pres_img <- FALSE
+usePNGPDF <- "png"
+font0 <- "Arial Narrow"
+font_size0 <- 12
+
+# maxyr <- 2017 # or the year of the report, for example
+# compareyr <- 2010
+# strat_yr <- 2010
+# SRVY<-"NEBS"
+# ref_compareyr <- "@RN976"
+# # ref_compareyr <- "@RN909"
+# # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
+
+# maxyr <- 2018 # NOTE RAPID RESPONCE
+# strat_yr <- 2019
+# compareyr <- 2016
+# SRVY<-"EBS"
+# ref_compareyr <- "@RN976" # CHANGE
+# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
+
+# maxyr <- 2019
+# compareyr <- 2017
+# strat_yr <- 2019
+# SRVY<-"NEBS"
+# ref_compareyr <- "@Lauth2019" # CHANGE
+# dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
+
+# maxyr <- 2021
+# compareyr <- 2019
+# strat_yr <- 2019
+# SRVY <- "NEBS" # "NEBS"
+# ref_compareyr <- "@2019NEBS2022" # CHANGE
+# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+
+maxyr <- 2022
+compareyr <- 2021
+strat_yr <- 2022
+SRVY<-"NEBS"
+ref_compareyr <- "@2021NEBS2022" # CHANGE
+dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
+
+googledrive::drive_deauth()
+googledrive::drive_auth()
+1
+
+# *** Source support scripts ---------------------------------------------------
+
+source('./code/directories.R')
+dir_out_figtab <- paste0(dir_output, "figtab/")
+
+source('./code/functions.R')
+
+# source('./code/data_dl.R') # Run when there is new data!
+
+source('./code/data.R')
+
+# csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl")
+# readr::write_lines(x = csl, file = "./cite/citestyle.csl")
+
+# *** Figures and Tables ------------------------
+
+report_spp1 <- add_report_spp(spp_info = spp_info, 
+                              spp_info_codes = "species_code", 
+                              report_spp = report_spp, 
+                              report_spp_col = "order", 
+                              report_spp_codes = "species_code", 
+                              lang = FALSE)
+
+# General figures
+rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
+                  output_dir = dir_out_ref,
+                  output_file = paste0(cnt_chapt_content, ".docx"))
+
+# Species figures
+for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
+  
+  print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
+  rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
+                    output_dir = dir_out_ref,
+                    output_file = paste0(cnt_chapt_content, "_", 
+                                         unique(report_spp1$file_name)[jj],".docx"))
+}
+
+# Appendix 
+rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
+                  output_dir = dir_out_ref,
+                  output_file = paste0(cnt_chapt_content, ".docx"))
 
 # Save figures and tables locally to working draft folder
 file.copy(from = dir_out_figtab, 
@@ -160,4 +276,3 @@ sink(con, append=TRUE)
 sessionInfo()
 sink() # Restore output to console
 # cat(readLines("notes.log"), sep="\n") # Look at the log
-
