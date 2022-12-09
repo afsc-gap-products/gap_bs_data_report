@@ -2012,32 +2012,7 @@ plot_idw_facet <- function(
                   LATITUDE = as.numeric(LATITUDE), 
                   LONGITUDE = as.numeric(LONGITUDE))
   
-  figure <- ggplot() +
-    geom_sf(data = reg_dat$akland,
-            color = NA,
-            fill = "grey50")  +  
-    geom_sf(data = reg_dat$graticule,
-            color = "grey80",
-            alpha = 0.2) +
-    ggplot2::scale_y_continuous(name = "", #"Latitude", 
-                                limits = reg_dat$plot.boundary$y,
-                                breaks = reg_dat$lat.breaks) +
-    ggplot2::scale_x_continuous(name = "", #"Longitude", 
-                                limits = reg_dat$plot.boundary$x,
-                                breaks = reg_dat$lon.breaks) +
-  ggplot2::geom_sf(
-    data = reg_dat$survey.area, 
-    mapping = aes(color = SURVEY, 
-                  geometry = geometry), 
-    fill = "transparent", 
-    # shape = NA, 
-    size = ifelse(row0 > 2, 1.5, 1),
-    show.legend = legend_srvy_reg) +
-    ggplot2::scale_color_manual(
-      name = " ", 
-      values = reg_dat$survey.area$color,
-      breaks = reg_dat$survey.area$SURVEY,
-      labels = reg_dat$survey.area$SRVY) 
+  extrap.grid <- c()
   
   if (nrow(dat) != 0) {
     if (set.breaks[1] =="auto") {
@@ -2075,20 +2050,30 @@ plot_idw_facet <- function(
 
         temp0 <- data.frame(temp1$extrapolation.grid)
       }
-      temp0_e <- data.frame(temp1$extrapolation.grid)  
-      temp0_c <- data.frame(temp1$continuous.grid)  
       
       dat_pred <- dplyr::bind_rows(
         dat_pred, 
         dplyr::left_join(
-          temp0_e %>% 
+          temp1$extrapolation.grid %>% 
+            data.frame() %>% 
             dplyr::select(x, y, var1.pred, SURVEY) %>% 
             dplyr::rename(bin = var1.pred), 
-          temp0_c %>% 
+          temp1$continuous.grid %>% 
+            data.frame() %>% 
             dplyr::select(x, y, var1.pred, SURVEY), 
           by = c("x", "y", "SURVEY")) %>% 
             dplyr::mutate(year = yrs[[ii]])
         )
+      
+      extrap.grid <- dplyr::bind_rows(
+        extrap.grid, 
+        temp1$continuous.grid |>
+          sf::st_as_sf() |>
+          dplyr::select(-var1.var) |>
+          dplyr::group_by(var1.pred) |>
+          dplyr::summarise(n = n()) |>
+          sf::st_intersection(reg_dat$survey.area) %>% 
+          dplyr::mutate(year = yrs[ii]))
       
       # if (ii == length(yrs)) {
       #   stars_list <- temp0
@@ -2110,101 +2095,59 @@ plot_idw_facet <- function(
     #   geom_stars(data = stars_list)
   }
   
-  # if (set.breaks[1] =="auto") {
-    set.breaks0 <- set_breaks(dat = dat_pred, var = "var1.pred")
-  # }
-  
-  # set_breaks <- levels(temp1$extrapolation.grid$var1.pred)
-  # dat_pred <- dat_pred %>%
-  #   dplyr::mutate(bins = cut(var1.pred, breaks = set.breaks),
-  #                 bins  = ifelse(!is.na(SURVEY) & var1.pred == 0, "No catch", bins))
-  # cut(data1, breaks = c(1, 3.25, 5.50, 7.75, 10),
-  #     labels = c("1-3.25", "3.25-5.50", "5.50-7.75", "7.75-10"),
-  #     include.lowest = TRUE)
-  
-  
-  
-  # set.breaks[length(set.breaks)] <- set.breaks0[length(set.breaks0)]
-  # if (set.breaks[length(set.breaks)-1] > set.breaks[length(set.breaks)]) {
-  #   set.breaks <- set.breaks[c(1:(length(set.breaks)-2), length(set.breaks))]
-  # }
-  
+  figure <- ggplot() +
+    geom_sf(data = reg_dat$akland,
+            color = NA,
+            fill = "grey50")  +  
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) 
   
   if (grid == "continuous.grid") {
-    # set.breaks0 <- levels(dat_pred$bin)
-    # 
-    # dat_pred <- dat_pred %>% 
-    #   dplyr::filter(!is.na(SURVEY))
-    # 
-    # cols <- data.frame(
-    #   bin = unique(dat_pred$bin), 
-    #   bin0  = factor(x = dat_pred$bin, 
-    #                 levels = unique(dat_pred$bin), 
-    #                 labels = unique(dat_pred$bin), 
-    #                 ordered = TRUE), 
-    #   cols = c("gray90",
-    #           viridis::viridis(
-    #             option = viridis_palette_option,
-    #             direction = -1,
-    #             n = length(set.breaks0)-1, # temp1$n.breaks,
-    #             begin = 0,
-    #             end = 0.80)))
-    # 
-    # 
-    # dat_pred <- dat_pred %>%
-    #   dplyr::mutate(bins = cut(var1.pred, breaks = set.breaks)#,
-    #                 # bins = ifelse(!is.na(SURVEY) & var1.pred == 0, "No catch", bins)
-    #                 ) %>% 
-    #   dplyr::left_join(x = ., y = cols, by = "bin") 
     
-    dat_pred1 <- dat_pred %>% 
-      dplyr::filter(!is.na(SURVEY)) %>% 
-      # dplyr::arrange(bin) %>%
-      dplyr::mutate(
-        bin0 = bin, 
-        bin = as.character(bin), 
-        bin = ifelse(is.na(bin), "No catch", bin), 
-        var1.pred = ifelse(bin == "No catch", 0, var1.pred)#,
-        # var1.pred = var1.pred+1
-        ) %>% # because of 2020
-      dplyr::arrange(var1.pred) %>%
-      dplyr::mutate( 
-        bin = factor(x = as.character(bin), 
-                     levels = levels(dat_pred$bin),
-                     labels = levels(dat_pred$bin),
-                     ordered = TRUE))
-      
-      # dplyr::filter(!is.na(SURVEY))
-    set.breaks1 <- c(set.breaks)
+    extrap.grid1 <- extrap.grid |>
+      dplyr::select(var1.pred, n, SURVEY, geometry, year) %>% 
+      dplyr::mutate(bins = cut(var1.pred, breaks = c(set.breaks)))
+    
     figure <- figure +
-      ggplot2::geom_contour_filled(
-        data = dat_pred1, 
-        mapping = aes(x = x, 
-                      y = y, 
-                      z = var1.pred), 
-        breaks = set.breaks1,
-        # bins = length(unique(dat_pred1$bin)),
-        na.rm = FALSE,
-        show.legend = TRUE) + 
-      scale_fill_manual(
+      ggplot2::geom_sf(data = extrap.grid1,
+                       mapping = aes(fill = bins),
+                       color = NA, 
+                       na.rm = FALSE,
+                       show.legend = TRUE)  +
+      ggplot2::scale_fill_manual(
         name = key.title, 
-        na.value = "transparent",
-        values=c("gray90",
-                 viridis::viridis(
-                   option = viridis_palette_option,
-                   direction = -1,
-                   n = length(set.breaks)-1, 
-                   begin = 0.20,
-                   end = 0.80)), 
-        drop = FALSE, 
-        # limits = range(set.breaks1),
-        # breaks = set.breaks,
-        labels = levels(dat_pred1$bin)) 
+        values =  c("gray90",
+                    viridis::viridis(
+                      option = viridis_palette_option,
+                      direction = -1,
+                      n = length(set.breaks)-1,
+                      begin = 0.20,
+                      end = 0.80)),
+        # breaks  = set.breaks,
+        labels = levels(dat_pred$bin),
+        # values = c("white", RColorBrewer::brewer.pal(9, name = "Blues")[c(2,4,6,8,9)]),
+        # limits = range(dat_pred$var1.pred, na.rm = TRUE),
+        na.translate = FALSE, # Don't use NA
+        drop = FALSE) #+ # Keep all levels in the plot
+      # ggplot2::facet_wrap(. ~ year)
     
   } else if (grid == "extrapolation.grid") {
     # temp <- factor(x = temp0$var1.pred, levels = levels(temp0$var1.pred), labels = levels(temp0$var1.pred), ordered = T)
     figure <- figure +
-      geom_stars(data = stars_list) + 
+      ggplot2::geom_tile(data = dat_pred,
+                         mapping = aes(fill = bin, x = x, y = y),
+                         # color = NA,
+                         na.rm = FALSE,
+                         drop = FALSE, 
+                         show.legend = TRUE) +
+      # geom_stars(data = stars_list) + 
       scale_fill_manual(
         name = key.title, 
         na.value = "transparent",
@@ -2311,6 +2254,19 @@ plot_idw_facet <- function(
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
   figure <- figure +
+    ggplot2::geom_sf(
+      data = reg_dat$survey.area, 
+      mapping = aes(color = SURVEY, 
+                    geometry = geometry), 
+      fill = "transparent", 
+      # shape = NA, 
+      size = ifelse(row0 > 2, 1.5, 2), # 1
+      show.legend = legend_srvy_reg) +
+    ggplot2::scale_color_manual(
+      name = " ", 
+      values = reg_dat$survey.area$color,
+      breaks = reg_dat$survey.area$SURVEY,
+      labels = reg_dat$survey.area$SRVY) +
     ggplot2::guides(
       # size = guide_legend(override.aes = list(size = 10)),
       fill = guide_legend(
@@ -3463,14 +3419,14 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
   
   table_raw$ymax <-table_raw$proportion
   table_raw$ymin <- 0
-  zl <- levels(table_raw$variable)
-  for ( i in 2:length(zl) ) {
+  zl <- rev(levels(table_raw$variable))
+  
+  for (i in 2:length(zl)) {
     zi <- table_raw$variable==zl[i]
     zi_1 <- table_raw$variable==zl[i-1]
     table_raw$ymin[zi] <- table_raw$ymax[zi_1]
     table_raw$ymax[zi] <- table_raw$ymin[zi] + table_raw$ymax[zi]
   }
-  
   
   if (is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])) {
     table_raw <- dplyr::bind_rows( 
@@ -3479,14 +3435,22 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
       table_raw)
   }
   
+  # table_raw1 <- table_raw %>% 
+  #   dplyr::arrange(desc(variable)) %>%
+  #   dplyr::mutate(
+  #        variable =  factor(x = as.character(variable), 
+  #        levels = unique(as.character(variable)), 
+  #        labels = unique(as.character(variable)), ordered = TRUE))
+  
+  
   # ggplot(table_raw, aes(x=x,ymax=ymax,ymin=ymin, fill=z)) + geom_ribbon()
   
-  figure <- ggplot(data = table_raw, 
+  figure <- ggplot2::ggplot(data = table_raw, 
                    mapping = aes(x = year,
                                  ymax = ymax, 
                                  ymin = ymin, 
                                  fill = variable)) + 
-    geom_ribbon() + # geom_area() +
+    geom_ribbon() + 
     scale_fill_manual(name = "Temperature", 
                       values = viridis::mako(5, direction = -1, end = .8)) +  
     scale_y_continuous(name = "Proportion of EBS Shelf Survey Area",
@@ -3494,10 +3458,10 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                        expand = c(0, 0),
                        breaks = seq(0,1,0.1)) +
     scale_x_continuous(name = "Year", 
-                       limits = c(minyr-0.5,
+                       limits = c(min(table_raw$year)-0.5,
                                   maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
                        expand = c(0, 0),
-                       breaks = seq(minyr, floor(maxyr/10)*10, 10)) +
+                       breaks = seq(min(table_raw$year), floor(maxyr/10)*10, 10)) +
     guides(fill = guide_legend(label.position = "right")) +
     theme_bw() +
     theme(

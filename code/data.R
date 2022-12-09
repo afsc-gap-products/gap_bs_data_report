@@ -881,10 +881,10 @@ length_crab <- dplyr::bind_rows(
     ) ) 
 
 # Combine
-length_data <- dplyr::bind_rows(list(
-  "gf" = length_data, 
-  "crab" = length_crab))  %>% 
-  dplyr::rename(SRVY = srvy) %>% 
+length_data <- dplyr::bind_rows(
+  length_data, 
+  length_crab)  %>% 
+  # dplyr::rename(SRVY = srvy) %>% 
   dplyr::left_join(x = .,
                    y = spp_info %>% 
                      dplyr::select(species_code, common_name, species_name),
@@ -1322,16 +1322,15 @@ sizecomp_crab <- dplyr::bind_rows(df.ls) %>%
 
 # Combine
 
-sizecomp <- dplyr::bind_rows(list("gf" = sizecomp, 
-                              "crab" = sizecomp_crab)) %>% 
-  dplyr::rename(SRVY = srvy)
+sizecomp <- dplyr::bind_rows(
+  sizecomp, 
+  sizecomp_crab) 
 
 sizecomp_maxyr<-sizecomp %>%
   dplyr::filter(year == maxyr)
 
 sizecomp_compareyr<-sizecomp %>%
   dplyr::filter(year == compareyr[1])
-
 
 # *** Load Biomass Design Based Estimates ----------------------------------------------
 

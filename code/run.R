@@ -26,7 +26,7 @@
 
 report_title <- "data" 
 refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
-googledrive_dl <- FALSE # redownload google drive tables and docs?
+googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
 usePNGPDF <- "png"
