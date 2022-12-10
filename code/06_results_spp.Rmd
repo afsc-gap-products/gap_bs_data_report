@@ -115,6 +115,10 @@ if (spp_table_cpue) {
   tab_wt <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-wt)")
   tab_no <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-num)")
 }
+
+fig_bt <- "\\@ref(fig:fig-temperature-bt-1) and \\@ref(fig:fig-temperature-bt-2)"
+fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
+
 ```
 
 
@@ -147,30 +151,17 @@ temp<-species_content(
   #                "tab_no" = tab_no), 
   total_biomass = total_biomass)
 
-temp1 <- temp$table_spp
+tab0 <- temp$table_spp
 temp <- (temp$spp_text)
 names(temp) <-  NULL
-temp <- unlist(temp)
-# print(temp)
-temp <- (paste0(temp, collapse = "\n\n"))
+str0 <- (paste0(unlist(temp), collapse = "\n\n"))
 }
-
-# biomass %>% 
-#   dplyr::filter(year %in% c(2021, 2022) & grepl(pattern = "snailfish", x = common_name) & SRVY == "NBS") %>% 
-#   dplyr::select(year, common_name, catcount) %>% 
-#   dplyr::group_by(year, common_name) %>% 
-#   dplyr::summarise(freq = sum(catcount)) %>% 
-#   dplyr::arrange(desc(freq)) %>% 
-#   tidyr::pivot_wider(data = ., id_cols = c("common_name"), names_from = "year", values_from = freq)
-
+# `r tab0`
 ```
 
 `r ifelse(show, "**Eastern Bering Sea (EBS)**", "")`
 
-`r temp1`
-
-`r temp`
-
+`r str0`
 
 ```{r res_spp_nbs_{{jj}} }
 temp <- ""
@@ -194,16 +185,17 @@ temp<-species_content(
   compareyr = compareyr, 
   biomass_cpue_tab_name = biomass_cpue_tab_name, 
   total_biomass = total_biomass)
-temp1<-temp$table_spp
-temp <- temp$spp_text
+tab0 <-temp$table_spp
+temp <- (temp$spp_text)
+names(temp) <-  NULL
+str0 <- (paste0(unlist(temp), collapse = "\n\n"))
 }
+# `r tab0`
 ```
 
 `r ifelse(show, ifelse(SRVY %in% "NEBS", "**Northern Bering Sea (NBS)**", ""), "")`
 
-`r temp1`
-
-`r temp`
+`r str0`
 
 ```{r res_spp_nebs_{{jj}} }
 temp <- ""
@@ -229,16 +221,17 @@ temp<-species_content(
   compareyr = compareyr, 
   biomass_cpue_tab_name = biomass_cpue_tab_name, 
   total_biomass = total_biomass)
-temp1<-temp$table_spp
-temp <- temp$spp_text
+tab0 <- temp$table_spp
+temp <- (temp$spp_text)
+names(temp) <-  NULL
+str0 <- (paste0(unlist(temp), collapse = "\n\n"))
 }
+# `r tab0`
 ```
 
 `r ifelse(show, ifelse(SRVY %in% "NEBS", "**Northern and Eastern Bering Sea Combined (NEBS)**", ""), "")`
 
-`r temp1`
-
-`r temp `
+`r str0 `
 
 `r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 

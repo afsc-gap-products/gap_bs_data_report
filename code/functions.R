@@ -943,6 +943,9 @@ species_text <- function(
   
   str0 <- list()
   
+  # str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
+  #                     NMFSReports::text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
+  
   ## Number of stations/environmental data ---------------------------------------
   
   ### How many stations ----------------------------------------------------------
@@ -955,7 +958,7 @@ species_text <- function(
            length(unique(haul_maxyr_spp$hauljoin)),
            " hauls (",
            formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"),
-           "% of stations). ") 
+           "% of stations; Fig. `` `r fig_dist` ``). ") 
   
   str0$number_stations_alt <- 
     paste0("During the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""),
@@ -965,7 +968,7 @@ species_text <- function(
            "% of stations (",
            length(unique(haul_maxyr_spp$hauljoin)), " of ",
            length(unique(haul_maxyr0$hauljoin)),
-           " stations). ")
+           " stations; Fig. `` `r fig_dist` ``). ")
   
   ### How many stations + depth --------------------------------------------------
   
@@ -976,7 +979,7 @@ species_text <- function(
            "% of stations (", 
            length(unique(haul_maxyr_spp$hauljoin)), " of ", 
            length(unique(haul_maxyr0$hauljoin)), 
-           " stations) ranging from ", 
+           " stationsFig. `` `r fig_dist` ``) ranging from ", 
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
            " m to ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , 
            " m during the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""), ". ")
@@ -996,19 +999,18 @@ species_text <- function(
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
            "\u00B0C and ", 
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
-           "\u00B0C. ") 
+           "\u00B0C (Figs. `` `r fig_bt` ``). ") 
   
   
   ### Surface temperature ---------------------------------------------------------
   
-  #   # <!-- surface temperature -->
-  # str0$surface_temperature_depth <- 
-  # paste0(stringr::str_to_sentence(spp_print), 
-  # " were found in areas where surface temperatures were between ", 
-  # as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
-  # "\u00B0C and ", 
-  # as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
-  # "\u00B0C. ") #  (Figure ", cnt_figures,")
+  str0$surface_temperature <- 
+    paste0(stringr::str_to_sentence(spp_print), 
+           " were found in surface temperatures between ", 
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
+           "\u00B0C and ", 
+           as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
+           "\u00B0C (Figs. `` `r fig_st` ``). ") 
   
   
   ### Bottom temperature and depth -----------------------------------------------
@@ -1119,19 +1121,35 @@ species_text <- function(
   #                 ignore.case = TRUE)
   # a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
   # a <- gsub(pattern = ".rdata", replacement = "", ignore.case = TRUE, x = a)
-  a <- 1 # temporary
+  
+  # if (spp_plot_idw) {
+  #   fig_dist <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, ")")
+  # }
+  # 
+  # if (spp_plot_sizecomp) {
+  #   fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
+  # } 
+  # 
+  # if (spp_table_cpue) {
+  #   tab_wt <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-wt)")
+  #   tab_no <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-num)")
+  # }
+  # 
+  #            str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
+  #                              NMFSReports::text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
+  
+  
   str0$biomass_population <-
     paste0("The estimated biomass of ",spp_print," in the ",
            ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
            " was ",
            xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
-           "Fig", ifelse(length(a)==1, ".", "s."), " ` `r tab_dist` `",
-           " and Tables ", text_list(c(paste0("`` `\\@ref(tab:",biomass_cpue_tab_name,")` `"),
-                                       "` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-wt)` `")),
+           "Tables `` `r biomass_cpue_tab_name` `` and `` `r tab_wt` ``)",
            " and estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " fish ",
-           "(Table ` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)` `). ",
+           # "(Table ` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)` `). ",
+           "(Table `` `r tab_no` ``). ",
            # compare years
            "Previously, in ",compareyr,", ",spp_print," biomass was estimated to be ",
            xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
@@ -1140,9 +1158,9 @@ species_text <- function(
                                       total_biomass0$biomass[total_biomass0$year == compareyr])*100),
                          " of the total biomass; "),
                   ""),
-           "Fig", ifelse(length(a)==1, ".", "s."), " ", "` `r tab_dist` `",
-           " and Table",ifelse(length(biomass_cpue_tab_name)>1, "s", ""), " ",
-           text_list(paste0("` `\\@ref(tab:",biomass_cpue_tab_name,")` `")),
+           # "Fig. `` `r fig_dist` `` and ", # 
+           "Table",ifelse(length(biomass_cpue_tab_name)>1, "s", ""), " `` `r biomass_cpue_tab_name` ``)",
+           # text_list(paste0("` `\\@ref(tab:",biomass_cpue_tab_name,")` `")),
            " and estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " fish [@",ref_compareyr,"]. ")
   # 
@@ -1202,7 +1220,7 @@ species_text <- function(
       (min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
       " and ",
       (max(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
-      " ", unit, " (Fig. `` `\\@ref(fig:fig-sizecomp-", ifelse(unit == "cm", "fish", "invert"), "-{{spp_file}})\\` ``). ")
+      " ", unit, " (Fig. `` `r fig_sizecomp` ``). ")
   }
   
   return(str0)
@@ -3461,7 +3479,7 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                        limits = c(min(table_raw$year)-0.5,
                                   maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
                        expand = c(0, 0),
-                       breaks = seq(min(table_raw$year), floor(maxyr/10)*10, 10)) +
+                       breaks = c(1982, seq(1980, floor(maxyr/10)*10, 10))) +
     guides(fill = guide_legend(label.position = "right")) +
     theme_bw() +
     theme(

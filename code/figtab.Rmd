@@ -561,16 +561,13 @@ res <- knitr::knit_child(
 
 height <- full_page_portrait_height
 width <- full_page_portrait_width
-yrs0 <- (maxyr-17):maxyr # sort(sort(c(unique(cruises$year), 2020), decreasing = TRUE)[1:20])
+yrs0 <- (maxyr-17):maxyr 
 row0 <- 3
 reg_dat0 <- report_types$NEBS$reg_dat
 
-# for (viridis0 in LETTERS[1:8]) {
-#   print(viridis0)
-
 for (case in c("bottom", "surface")) {
   
-  for (case_yr in c(1:2)) {
+  for (case_yr in c(1,2)) {
     
     if (case_yr == 1) {
       yrs <- yrs0[1:(length(yrs0)/2)]
@@ -613,9 +610,6 @@ for (case in c("bottom", "surface")) {
       
       rasterbrick <- raster::addLayer(sebs_temp, 
                                       nbs_no_2018)
-      
-      # a <- raster::subset(x = rasterbrick,
-      #        subset = paste0("sebs_ste_2021_gear_temperature"))
     }
     
     temperature_zscore <- coldpool::cold_pool_index %>% 
@@ -650,10 +644,8 @@ for (case in c("bottom", "surface")) {
                      x = names(a))
     a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
     a@data@max <- a@data@min <- NA
-    # a@data@names <- gsub(pattern = "_2021_", replacement = "_2020_", x = a@data@names)
     rasterbrick$temp <- a
     names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
-  }
   
   header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", range_text(yrs), " ", 
                    ifelse(SRVY == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
@@ -678,10 +670,9 @@ for (case in c("bottom", "surface")) {
   colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf)
   title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
                   " Bering Sea\n", 
-                  case, " temperature (", range_text(yrs), ")") # - ", viridis0)
+                  case, " temperature (", range_text(yrs), ")") 
   
   figure <- plot_temperature_facet(
-    # viridis_palette_option = viridis0, 
     rasterbrick = rasterbrick, 
     key.title = key.title, 
     reg_dat = reg_dat0, 
@@ -690,19 +681,14 @@ for (case in c("bottom", "surface")) {
     title0 = title0, 
     temperature_zscore = temperature_zscore) 
   
-  #   print(nickname)
-  #   ggsave(filename = paste0(getwd(), "/", nickname, "-", viridis0, ".png"), plot = figure, height = height, width = width, bg = "white")
-  #   
-  #   
-  # }
-}
 # Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
     file = paste0(dir_code, "_child_save_figtab.Rmd")),
-  quiet = TRUE
-)
-
+  quiet = TRUE)  
+  
+  }
+}
 
 ```
 
