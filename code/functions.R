@@ -2433,7 +2433,7 @@ plot_temperature_facet <- function(rasterbrick,
                                       colour = NA),
       panel.border = element_rect(fill = NA,
                                   colour = "grey20"),
-      axis.text = element_text(size = 8),
+      axis.text = element_text(size = 6),
       strip.background = element_blank(),
       strip.text = element_text(size = 10, face = "bold"),
       legend.position = "none"
@@ -3479,7 +3479,7 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                        limits = c(min(table_raw$year)-0.5,
                                   maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
                        expand = c(0, 0),
-                       breaks = c(1982, seq(1980, floor(maxyr/10)*10, 10))) +
+                       breaks = c(seq(1980, maxyr, 5))) +
     guides(fill = guide_legend(label.position = "right")) +
     theme_bw() +
     theme(
