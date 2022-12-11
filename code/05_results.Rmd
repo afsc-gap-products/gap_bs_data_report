@@ -124,6 +124,13 @@ The `r compareyr` and `r maxyr` `r text_list(SRVY1)` surveys provided a quasi-sy
 
 \newpage
 
+```{r fig-bt-temperature-}
+nickname <- "fig-temperature-"
+```
+
+```{r temperature--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
+
 ```{r fig-mean-temperature}
 nickname <- "fig-mean-temperature"
 ```
@@ -138,12 +145,6 @@ nickname <- "fig-cold-pool-area"
 ```{r fig-cold-pool-area-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r fig-bt-temperature-}
-nickname <- "fig-temperature-"
-```
-
-```{r temperature--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
-```
 
 ## Survey Data and Specimen Collections
 
@@ -790,8 +791,7 @@ An interactive map of species CPUE can be found at <https://apps-st.fisheries.no
 ```{r results_spatial_distribution_fish}
 # major fish 
 temp0 <- report_spp1 %>% 
-  dplyr::filter(taxon == "fish" & 
-                  text_spp == TRUE) %>% 
+  dplyr::filter(taxon == "fish") %>% 
   dplyr::select(file_name, print_name) %>% 
   dplyr::distinct()
 
@@ -807,10 +807,10 @@ for (i in 1:nrow(temp0)) {
             paste0(
               temp0$print_name[i], 
               " (Fig", ifelse(length(a)>1, "s.", "."),
-              ifelse(length(a)>1, 
-                     paste0(" \\@ref(fig:fig-dist-fish-",temp0$file_name[i], "-above) and",
-                            " \\@ref(fig:fig-dist-fish-",temp0$file_name[i],"-below)"), 
-                     paste0(" \\@ref(fig:fig-dist-fish-",temp0$file_name[i],")") ),
+              # ifelse(length(a)>1, 
+              #        paste0(" \\@ref(fig:fig-dist-fish-",temp0$file_name[i], "-above) and",
+              #               " \\@ref(fig:fig-dist-fish-",temp0$file_name[i],"-below)"), 
+                     (paste0(" \\@ref(fig:fig-dist-fish-",temp0$file_name[i],")") ),
               " and Tables \\@ref(tab:tab-estimates-maxyr-fish-",temp0$file_name[i],"-wt) and",
               " \\@ref(tab:tab-estimates-maxyr-fish-",temp0$file_name[i],"-num))"))
 }
@@ -822,10 +822,9 @@ Within this report plots of the spatial distribution and tables of CPUE (kg/hect
 ### Selected Invertebrates Estimates
 
 ```{r results_spatial_distribution_inverts}
-# major fish 
+# major invert 
 temp0 <- report_spp1 %>% 
-  dplyr::filter(taxon == "invert" & 
-                  text_spp == TRUE) %>% 
+  dplyr::filter(taxon == "invert") %>% 
   dplyr::select(file_name, print_name) %>% 
   dplyr::distinct()
 
@@ -841,10 +840,10 @@ for (i in 1:nrow(temp0)) {
             paste0(
               temp0$print_name[i], 
               " (Fig", ifelse(length(a)>1, "s.", "."),
-              ifelse(length(a)>1, 
-                     paste0(" \\@ref(fig:fig-dist-invert-",temp0$file_name[i], "-above) and",
-                            " \\@ref(fig:fig-dist-invert-",temp0$file_name[i],"-below)"), 
-                     paste0(" \\@ref(fig:fig-dist-invert-",temp0$file_name[i],")") ),
+              # ifelse(length(a)>1, 
+                     # paste0(" \\@ref(fig:fig-dist-invert-",temp0$file_name[i], "-above) and",
+                     #        " \\@ref(fig:fig-dist-invert-",temp0$file_name[i], "-below)"), 
+                    ( paste0(" \\@ref(fig:fig-dist-invert-",temp0$file_name[i],")") ),
               " and Tables \\@ref(tab:tab-estimates-maxyr-invert-",temp0$file_name[i],"-wt) and",
               " \\@ref(tab:tab-estimates-maxyr-invert-",temp0$file_name[i],"-num))"))
 }

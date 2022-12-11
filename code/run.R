@@ -84,9 +84,6 @@ source('./code/functions.R')
 
 source('./code/data.R')
 
-# csl <- readLines("https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl")
-# readr::write_lines(x = csl, file = "./cite/citestyle.csl")
-
 # *** Figures and Tables ------------------------
 
 report_spp1 <- add_report_spp(spp_info = spp_info, 

@@ -1373,13 +1373,15 @@ temp1 <- function(table_raw, strat, total) {
                                          "Estimated biomass by stratum (t)"), 
                               colwidths = c(2,2,1,length(strat))) %>% 
     flextable::width(x = .,  
-                     width = ifelse(length(strat)>3, 0.7, 1.25), unit = "in") %>%
+                     width = ifelse(length(strat)>3, 0.7, 1.25),
+                     unit = "in") %>%
     flextable::width(x = ., j = "prop", 
                      width = 0.8, unit = "in") %>%
     flextable::width(x = ., j = c("group"), 
                      width = 1, unit = "in") %>%    
     flextable::width(x = ., j = c("taxon"), 
-                     width = 1.6, unit = "in") %>% 
+                     ifelse(length(strat)>3, 1.5, 1), 
+                     unit = "in") %>% 
     flextable::footnote(x = ., part = "header", i = 1, j = 5, ref_symbols = "1",
                         value = as_paragraph(footnote0)) %>%
     flextable::bold(x = ., i = ~ (grepl(pattern = "Total", x = group) )) %>%
@@ -1728,8 +1730,8 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::color(color = "red", 
                      i = grepl(pattern = "-", x = as.character(table_print[, "change "])), 
                      j = "change ") %>% 
-    flextable::width(x = ., j = "Fish taxon", width = 3) %>% 
-    flextable::width(x = ., j = "Invertebrate taxon", width = 3) %>% 
+    flextable::width(x = ., j = "Fish taxon", width = 2.75) %>% 
+    flextable::width(x = ., j = "Invertebrate taxon", width = 2.75) %>% 
     flextable::width(x = ., j = "change ", width = 1) %>% 
     flextable::width(x = ., j = "change", width = 1) %>% 
     flextable::set_header_labels(.,

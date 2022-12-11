@@ -144,9 +144,9 @@ list_figures <- list()
 #'
 #' @param x A numeric vector of any length. Any duplicates will be removed.
 #' @param dash A string that will go between consecutive values in the string output.
-#' @param oxford Default = TRUE. Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
-#' @param sep Default = ", ". Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
-#' @param sep_last Default = "and ". Will only be used if the vector x provided is not continuous. Inherited from NMFSReports::text_list().
+#' @param oxford Default = TRUE. Will only be used if the vector x provided is not continuous. Inherited from text_list().
+#' @param sep Default = ", ". Will only be used if the vector x provided is not continuous. Inherited from text_list().
+#' @param sep_last Default = "and ". Will only be used if the vector x provided is not continuous. Inherited from text_list().
 #'
 #' @return A string with the range of those values as might be included in a sentence ("1-3, 5, and 7-8").
 #' @export
@@ -190,7 +190,7 @@ range_text <- function(x,
         str <- c(str, paste0(min(a),dash,max(a)))
       }
     }
-    str <- NMFSReports::text_list(x = str,
+    str <- text_list(x = str,
                                   oxford = oxford,
                                   sep = sep,
                                   sep_last = sep_last)
@@ -251,7 +251,7 @@ xunits<-function(value,
           x<-formatC(x = value0, big.mark = ",", digits = 0, format = "f")
           if (!is.null(val_under_x_words)) {
             if (as.numeric(value0) <= val_under_x_words & as.numeric(value0) >= 0) {
-              x <- NMFSReports::numbers2words(x = as.numeric(value0))
+              x <- numbers2words(x = as.numeric(value0))
             }
           }
         } else if (sigfig0<=5) {
@@ -300,6 +300,8 @@ xunits<-function(value,
 #' numbers2words(x = 1800090)
 numbers2words <- function(x){
   # Function by John Fox found here: http://tolstoy.newcastle.edu.au/R/help/05/04/2715.html and https://github.com/ateucher/useful_code/blob/master/R/numbers2words.r
+  out <- c()
+  for (ii in 1:length(x)) {
   if(x==0){
     print( "zero")
   } else{
@@ -347,9 +349,12 @@ numbers2words <- function(x){
     x <- round(x)
     suffixes <- c("thousand", "million", "billion", "trillion")
     if (length(x) > 1) return(trim(sapply(x, helper)))
-    helper(x)
+    
+    
+    out <- c(out, helper(x))
   }
-  
+  }
+  return(out)
 }
 
 
@@ -658,10 +663,10 @@ find_units <- function(unit = "", unt = "", dat, divby = NULL){
   
   if (is.null(divby)) {
     min_val <- min(dat, na.rm = TRUE)
-    min_val1 <- NMFSReports::xunits(value = min_val, words = TRUE)
+    min_val1 <- xunits(value = min_val, words = TRUE)
   } else {
     min_val <- divby
-    min_val1 <- NMFSReports::xunits(value = divby, words = TRUE)
+    min_val1 <- xunits(value = divby, words = TRUE)
   }
   
   # unit_word <- ""
@@ -924,14 +929,16 @@ species_text <- function(
     maxyr, 
     compareyr, 
     biomass_cpue_tab_name, 
-    total_biomass) {
+    total_biomass, 
+    spp_info) {
   
   haul_maxyr0 <- haul0 %>% 
     dplyr::filter(SRVY %in% SRVY000 &
                     year == maxyr) 
   
-  haul_maxyr_spp <- haul_maxyr0 %>% 
-    dplyr::filter(species_code %in% spp_code)  
+  haul_maxyr_spp <- haul0 %>% 
+    dplyr::filter(species_code %in% spp_code &
+                    year == maxyr)  
   
   haul_compareyr_spp <- haul0 %>% 
     dplyr::filter(species_code %in% spp_code & 
@@ -944,7 +951,7 @@ species_text <- function(
   str0 <- list()
   
   # str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
-  #                     NMFSReports::text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
+  #                     text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
   
   ## Number of stations/environmental data ---------------------------------------
   
@@ -979,7 +986,7 @@ species_text <- function(
            "% of stations (", 
            length(unique(haul_maxyr_spp$hauljoin)), " of ", 
            length(unique(haul_maxyr0$hauljoin)), 
-           " stationsFig. `` `r fig_dist` ``) ranging from ", 
+           " stations; Fig. `` `r fig_dist` ``) ranging from ", 
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) , 
            " m to ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , 
            " m during the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""), ". ")
@@ -999,7 +1006,7 @@ species_text <- function(
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
            "\u00B0C and ", 
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
-           "\u00B0C (Figs. `` `r fig_bt` ``). ") 
+           "\u00B0C (Fig. `` `r fig_bt` ``). ") 
   
   
   ### Surface temperature ---------------------------------------------------------
@@ -1010,7 +1017,7 @@ species_text <- function(
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
            "\u00B0C and ", 
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
-           "\u00B0C (Figs. `` `r fig_st` ``). ") 
+           "\u00B0C (Fig. `` `r fig_st` ``). ") 
   
   
   ### Bottom temperature and depth -----------------------------------------------
@@ -1041,13 +1048,13 @@ species_text <- function(
   #                  maxyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
   #                  unit,") in the ",
   #                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000)," experienced ",
-  #                  NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE),
+  #                  pchange(start = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE),
   #                                       end = sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)) , 
   #                  # compare to the year before these
   #                  " (", str0_table, "). ",
   #                  "Previously, ",spp_print," estimated ", metric_long," in ", 
   #                  compareyr, " experienced ",
-  #                  NMFSReports::pchange(start = sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE),
+  #                  pchange(start = sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE),
   #                                       end = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)), 
   #                  " when compared to estimated ",metric_long," in ", 
   #                  tempyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
@@ -1136,7 +1143,7 @@ species_text <- function(
   # }
   # 
   #            str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
-  #                              NMFSReports::text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
+  #                              text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
   
   
   str0$biomass_population <-
@@ -1200,6 +1207,64 @@ species_text <- function(
   # Pacific cod represented about 9% of the biomass in the 2019 NBS survey; this represents a 29% increase from 2017 NBS Pacific cod biomass.
   # Walleye pollock represented 27% of the total NBS biomass in 2019.
   
+  
+  ## if multiple spp_code, how many of each ------------------------------------
+  
+  # The species of snailfish most commonly encountered during the 2010, 2017, 2019, 2021 and 2022 NBS surveys was the variegated snailfish (*Liparis gibbus*), with 45 individuals captured in 2022. 
+  # The other species of snailfish captured during the 2022 NBS survey were one monster snailfish, one nebulous snailfish, and six kelp snailfish. The 2010 NBS survey encountered the dusty, festive, kelp, monster, and variegated snailfish species, as well as some unidentified *Liparis* species. The 2017 NBS survey encountered festive, kelp, monster, peachskin, salmon and variegated snailfish species, as well as some unidentified *Liparis* species. In the 2019 NBS survey only monster and variegated snailfish were observed. During the 2021 NBS survey, unidentified snailfish were caught, as well as festive, kelp, monster, nebulous, peachskin and variegated snailfishes. Species information was added to this report by request of tribal councils.
+
+  if (length(spp_code) > 1) {
+
+    temp <- haul0 %>%
+      dplyr::filter(species_code %in% spp_code &
+                      year %in% c(maxyr, compareyr) &
+                      SRVY %in% SRVY000) %>%
+      dplyr::select(species_code, year, number_fish) %>%
+      dplyr::group_by(species_code, year) %>%
+      dplyr::summarise(number_fish = sum(number_fish, na.rm = TRUE)) %>%
+      dplyr::ungroup() %>%
+      dplyr::arrange(-(year), -(number_fish)) %>%
+      dplyr::left_join(
+        x = .,
+        y = spp_info %>%
+          dplyr::select(common_name, species_code, species_name) %>%
+          dplyr::distinct(),
+        by = "species_code") %>%
+      dplyr::mutate(use_sci_name = TRUE, 
+                    count_words = "")
+
+    temp$use_sci_name[temp$year == compareyr] <- ifelse(temp$species_code[temp$year == compareyr] %in%
+                                                  temp$species_code[temp$year == maxyr], FALSE, TRUE)
+    
+    for (ii in 1:nrow(temp)) {
+      temp$count_words[[ii]] <- ifelse(temp$count_words[[ii]]>10, 
+                                   numbers2words(temp$number_fish[[ii]]), 
+                                   temp$count_words[[ii]])
+    }
+
+      str0$spp_code_count <- paste0(
+        # "The species of ", spp_print," most commonly encountered during the ",
+        # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+        # " shelf bottom trawl survey was the ",temp$common_name[1]," (\*",temp$species_name[1],"\*). ",
+        stringr::str_to_sentence(spp_print), " comprises of a few species. ",
+        "During the ", maxyr, " ",
+        ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+        " shelf bottom trawl survey, ",
+        text_list(paste0(temp$count_words[temp$year == maxyr], " ",
+                         temp$common_name[temp$year == maxyr],
+                         " (\\*",temp$species_name[temp$year == maxyr],"\\*)")),
+        " were caught (Fig. `` `r fig_dist` ``). ", 
+        "Likewise, during the ", compareyr, " ",
+        # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+        " survey, ",
+        text_list(paste0(temp$count_words[temp$year == compareyr], " ",
+                         temp$common_name[temp$year == compareyr],
+                         ifelse(temp$use_sci_name[temp$year == compareyr], "", 
+                          paste0(" (\\*",temp$species_name[temp$year == compareyr],"\\*)")))), 
+                  " were caught (Fig. `` `r fig_dist` ``). ")
+  }
+
+  
   ## Size Comp -------------------------------------------------------------------
   
   # In 2010 and 2017, size compositions were similar with length cohort modes around 24 cm and 36 cm, while in 2019 the size class modes are less distinct and the smallest size class mode appears from 18-22cm (Figure 7).
@@ -1238,7 +1303,8 @@ species_content <- function(SURVEY000,
                             maxyr, 
                             compareyr, 
                             biomass_cpue_tab_name = "tab_majortaxa_pchange", 
-                            total_biomass) {
+                            total_biomass, 
+                            spp_info) {
   
   
   # Data work up
@@ -1286,7 +1352,7 @@ species_content <- function(SURVEY000,
         mean_compareyr = Mean), 
     by = "Metric") %>% 
     flextable::flextable(.) %>%
-    NMFSReports::theme_flextable_nmfstm()
+    theme_flextable_nmfstm()
   
   text_spp <- species_text(
     haul0, 
@@ -1300,7 +1366,8 @@ species_content <- function(SURVEY000,
     maxyr, 
     compareyr, 
     biomass_cpue_tab_name, 
-    total_biomass)
+    total_biomass, 
+    spp_info)
   
   return(list("table_spp" = table_spp, 
               "text_spp" = text_spp))
@@ -1658,7 +1725,8 @@ plot_pa_facet <- function(
     viridis_palette_option = "mako", 
     plot_coldpool = FALSE, 
     plot_stratum = FALSE, 
-    plot_bubble = FALSE) {
+    plot_bubble = FALSE, 
+    legend_srvy_reg = TRUE) {
   
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
@@ -3653,7 +3721,7 @@ plot_mean_temperatures <- function(maxyr, SRVY){
 #' @family functions related to themes
 #' @examples
 #' ft <- flextable::flextable(head(airquality))
-#' ft <- NMFSReports::theme_flextable_nmfstm(ft)
+#' ft <- theme_flextable_nmfstm(ft)
 #' ft
 #' @section Illustrations:
 #'
@@ -3803,7 +3871,7 @@ table_change <- function(dat,
   temp <- temp[temp$Var1 != temp$Var2,]
   table_raw <- as.data.frame(table_raw)
   for (i in 1:nrow(temp)) {
-    table_raw$change <- NMFSReports::pchange(
+    table_raw$change <- pchange(
       start = unlist(table_raw[,names(table_raw) == as.character(temp[i,1])]), 
       end = unlist(table_raw[,names(table_raw) == as.character(temp[i,2])]), 
       value_only = TRUE)
@@ -3888,7 +3956,7 @@ table_change <- function(dat,
                                  group = "Common name",
                                  dummy = "Taxon",
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>%
-    NMFSReports::theme_flextable_nmfstm(row_lines = FALSE, x = ., font0 = font)
+    theme_flextable_nmfstm(row_lines = FALSE, x = ., font0 = font)
   
   return(list("table_print" = table_print, 
               "table_raw" = table_raw))
@@ -4006,7 +4074,7 @@ table_change_pres <- function(dat,
                                  #                        paste0("\n(",trimws(unit_wrd), ")")))) %>%
                                  Survey = paste0(ifelse(trimws(unit_wrd) == "", "", 
                                                         paste0("(",trimws(unit_wrd), ")")))) %>%
-    NMFSReports::theme_flextable_nmfstm(
+    theme_flextable_nmfstm(
       x = ., 
       row_lines = TRUE, 
       body_size = 15, 
@@ -4141,7 +4209,7 @@ save_figures<-function(figure,
 #'                       y = rnorm(n = 10),
 #'                       col = rep_len(x = c("a", "b"), length.out = 5))
 #' table_print <- table_raw
-#' table_print[,c("x", "y")] <- NMFSReports::mod_number(table_print[,c("x", "y")],
+#' table_print[,c("x", "y")] <- mod_number(table_print[,c("x", "y")],
 #'                                                      divideby = 1,
 #'                                                      comma_seperator = TRUE,
 #'                                                      digits = 2)
