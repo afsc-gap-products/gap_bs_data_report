@@ -138,6 +138,94 @@ list_figures <- list()
 
 ## Modify Numbers --------------------------------------------------------------
 
+
+#' Calculate the percent change.
+#'
+#' Calculate the percent change.
+#' @param start The value it started with.
+#' @param end The value it ended with.
+#' @param ending A text string. Default "".
+#' @param percent_first Options: T/F. Puts the percent first in the sentance.
+#' @param value_only Options: T/F. Will only provide the value, and no text. percent_first is over-ridden.
+#' @keywords Modify number
+#' @export
+#' @examples
+#' pchange(start = 8, end = 1)
+#' pchange(start = 3, end = 6, ending = " in fish landings", percent_first = TRUE)
+#' pchange(start = 3, end = 4, ending = " in fish landings", percent_first = FALSE)
+#' pchange(start = 3, end = 4, ending = " in fish landings", value_only = TRUE)
+pchange<-function(start, end,
+                  ending="",
+                  percent_first = TRUE,
+                  value_only = FALSE){
+  
+  # if(length(start) != length(end)) stop("start and end need to be the same length")
+  
+  start0<-start
+  end0<-end
+  final1 <- c()
+  
+  if(length(start0) != length(end0) &
+     !(length(start0) == 1 | length(end0) == 1 )) stop('start and end must be the same length, one can be any length and the other length of 1, or both must be the length of 1')
+  
+  if (length(start0)>1 & length(end0)==1) {
+    end0 <- rep_len(x = end0, length.out = length(start0))
+  } else if (length(end0)>1 & length(start0)==1) {
+    start0 <- rep_len(x = start0, length.out = length(end0))
+  }
+  
+  #calculate percent change:
+  for (i in 1:length(start0)) {
+    start <- start0[i]
+    end <- end0[i]
+    
+    if (is.na(start) | is.na(end)) {
+      final<- ifelse(value_only, NA, paste0(NA, "%"))
+    } else if ((start == 0) & (end == 0)) {
+      final <- ifelse(value_only, 0, "0%")
+    } else if (value_only == TRUE) {
+      start<-sum(as.numeric(start))
+      end<-sum(as.numeric(end))
+      final <- (100*(end-start)/start)
+    } else if (value_only == FALSE) {
+      start<-sum(as.numeric(start))
+      end<-sum(as.numeric(end))
+      p<-round(100*(end-start)/start)
+      p<-ifelse(is.nan(p), 0, p)
+      # decide direction, Omit if percent = 0:
+      x<-p
+      if (x<0) {
+        txt<-paste0(" decrease",ending)
+        p<-paste0("a ", abs(p),"%")
+      } else if (x>0) {
+        txt<-paste0(" increase",ending)
+        p<-paste0("a ", abs(p),"%")
+      } else if (round(x)==0){
+        txt<-paste0("remains",ending," unchanged")
+        p<-"" #ending must be "s" or "ed" here
+      }
+      
+      # decide print order:
+      if(percent_first) {
+        final<-paste0(p,txt)
+      } else {
+        final<-paste0(txt," of ",p)
+      }
+      
+      if (round(x)!=0) {
+        if (sum(substr(x = numbers2words(abs(x)), start = 0, stop = 1) ==
+                c("a", "e", "i", "o", "u"))==T & !(x %in% c(1, 100:199))) {
+          final<-sub(pattern = "a ", replacement = "an ", x = final)
+        }
+      }
+    }
+    final1 <- c(final1, final)
+  }
+  return(final1)
+}
+
+
+
 #' Find a range of numbers for text
 #'
 #' This function outputs the range of values (broken or continuous) as you would want to display it in text.
@@ -1006,7 +1094,7 @@ species_text <- function(
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Min)) , 
            "\u00B0C and ", 
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Temperature") %>% dplyr::select(Max)) , 
-           "\u00B0C (Fig. `` `r fig_bt` ``). ") 
+           "\u00B0C (Figs. `` `r fig_bt` ``). ") 
   
   
   ### Surface temperature ---------------------------------------------------------
@@ -1017,7 +1105,7 @@ species_text <- function(
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Min)) , 
            "\u00B0C and ", 
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Surface Temperature") %>% dplyr::select(Max)) , 
-           "\u00B0C (Fig. `` `r fig_st` ``). ") 
+           "\u00B0C (Figs. `` `r fig_st` ``). ") 
   
   
   ### Bottom temperature and depth -----------------------------------------------
@@ -1169,7 +1257,8 @@ species_text <- function(
            "Table",ifelse(length(biomass_cpue_tab_name)>1, "s", ""), " `` `r biomass_cpue_tab_name` ``)",
            # text_list(paste0("` `\\@ref(tab:",biomass_cpue_tab_name,")` `")),
            " and estimated abundance was ",
-           xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " fish [@",ref_compareyr,"]. ")
+           xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), 
+           " fish \\[\\@\\",ref_compareyr,"\\]. ")
   # 
   #     # Biomass percentage of total    
   #     str0$biomass_population_percent <- 
@@ -1208,61 +1297,61 @@ species_text <- function(
   # Walleye pollock represented 27% of the total NBS biomass in 2019.
   
   
-  ## if multiple spp_code, how many of each ------------------------------------
-  
-  # The species of snailfish most commonly encountered during the 2010, 2017, 2019, 2021 and 2022 NBS surveys was the variegated snailfish (*Liparis gibbus*), with 45 individuals captured in 2022. 
-  # The other species of snailfish captured during the 2022 NBS survey were one monster snailfish, one nebulous snailfish, and six kelp snailfish. The 2010 NBS survey encountered the dusty, festive, kelp, monster, and variegated snailfish species, as well as some unidentified *Liparis* species. The 2017 NBS survey encountered festive, kelp, monster, peachskin, salmon and variegated snailfish species, as well as some unidentified *Liparis* species. In the 2019 NBS survey only monster and variegated snailfish were observed. During the 2021 NBS survey, unidentified snailfish were caught, as well as festive, kelp, monster, nebulous, peachskin and variegated snailfishes. Species information was added to this report by request of tribal councils.
-
-  if (length(spp_code) > 1) {
-
-    temp <- haul0 %>%
-      dplyr::filter(species_code %in% spp_code &
-                      year %in% c(maxyr, compareyr) &
-                      SRVY %in% SRVY000) %>%
-      dplyr::select(species_code, year, number_fish) %>%
-      dplyr::group_by(species_code, year) %>%
-      dplyr::summarise(number_fish = sum(number_fish, na.rm = TRUE)) %>%
-      dplyr::ungroup() %>%
-      dplyr::arrange(-(year), -(number_fish)) %>%
-      dplyr::left_join(
-        x = .,
-        y = spp_info %>%
-          dplyr::select(common_name, species_code, species_name) %>%
-          dplyr::distinct(),
-        by = "species_code") %>%
-      dplyr::mutate(use_sci_name = TRUE, 
-                    count_words = "")
-
-    temp$use_sci_name[temp$year == compareyr] <- ifelse(temp$species_code[temp$year == compareyr] %in%
-                                                  temp$species_code[temp$year == maxyr], FALSE, TRUE)
-    
-    for (ii in 1:nrow(temp)) {
-      temp$count_words[[ii]] <- ifelse(temp$count_words[[ii]]>10, 
-                                   numbers2words(temp$number_fish[[ii]]), 
-                                   temp$count_words[[ii]])
-    }
-
-      str0$spp_code_count <- paste0(
-        # "The species of ", spp_print," most commonly encountered during the ",
-        # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-        # " shelf bottom trawl survey was the ",temp$common_name[1]," (\*",temp$species_name[1],"\*). ",
-        stringr::str_to_sentence(spp_print), " comprises of a few species. ",
-        "During the ", maxyr, " ",
-        ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-        " shelf bottom trawl survey, ",
-        text_list(paste0(temp$count_words[temp$year == maxyr], " ",
-                         temp$common_name[temp$year == maxyr],
-                         " (\\*",temp$species_name[temp$year == maxyr],"\\*)")),
-        " were caught (Fig. `` `r fig_dist` ``). ", 
-        "Likewise, during the ", compareyr, " ",
-        # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-        " survey, ",
-        text_list(paste0(temp$count_words[temp$year == compareyr], " ",
-                         temp$common_name[temp$year == compareyr],
-                         ifelse(temp$use_sci_name[temp$year == compareyr], "", 
-                          paste0(" (\\*",temp$species_name[temp$year == compareyr],"\\*)")))), 
-                  " were caught (Fig. `` `r fig_dist` ``). ")
-  }
+  # ## if multiple spp_code, how many of each ------------------------------------
+  # 
+  # # The species of snailfish most commonly encountered during the 2010, 2017, 2019, 2021 and 2022 NBS surveys was the variegated snailfish (*Liparis gibbus*), with 45 individuals captured in 2022. 
+  # # The other species of snailfish captured during the 2022 NBS survey were one monster snailfish, one nebulous snailfish, and six kelp snailfish. The 2010 NBS survey encountered the dusty, festive, kelp, monster, and variegated snailfish species, as well as some unidentified *Liparis* species. The 2017 NBS survey encountered festive, kelp, monster, peachskin, salmon and variegated snailfish species, as well as some unidentified *Liparis* species. In the 2019 NBS survey only monster and variegated snailfish were observed. During the 2021 NBS survey, unidentified snailfish were caught, as well as festive, kelp, monster, nebulous, peachskin and variegated snailfishes. Species information was added to this report by request of tribal councils.
+  # 
+  # if (length(spp_code) > 1) {
+  # 
+  #   temp <- haul0 %>%
+  #     dplyr::filter(species_code %in% spp_code &
+  #                     year %in% c(maxyr, compareyr) &
+  #                     SRVY %in% SRVY000) %>%
+  #     dplyr::select(species_code, year, number_fish) %>%
+  #     dplyr::group_by(species_code, year) %>%
+  #     dplyr::summarise(number_fish = sum(number_fish, na.rm = TRUE)) %>%
+  #     dplyr::ungroup() %>%
+  #     dplyr::arrange(-(year), -(number_fish)) %>%
+  #     dplyr::left_join(
+  #       x = .,
+  #       y = spp_info %>%
+  #         dplyr::select(common_name, species_code, species_name) %>%
+  #         dplyr::distinct(),
+  #       by = "species_code") %>%
+  #     dplyr::mutate(use_sci_name = TRUE, 
+  #                   count_words = "")
+  # 
+  #   temp$use_sci_name[temp$year == compareyr] <- ifelse(temp$species_code[temp$year == compareyr] %in%
+  #                                                 temp$species_code[temp$year == maxyr], FALSE, TRUE)
+  #   
+  #   for (ii in 1:nrow(temp)) {
+  #     temp$count_words[[ii]] <- ifelse(temp$number_fish[[ii]]>10, 
+  #                                  numbers2words(temp$number_fish[[ii]]), 
+  #                                  temp$number_fish[[ii]])
+  #   }
+  # 
+  #     str0$spp_code_count <- paste0(
+  #       # "The species of ", spp_print," most commonly encountered during the ",
+  #       # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+  #       # " shelf bottom trawl survey was the ",temp$common_name[1]," (\*",temp$species_name[1],"\*). ",
+  #       stringr::str_to_sentence(spp_print), " comprises of a few species. ",
+  #       "During the ", maxyr, " ",
+  #       ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+  #       " shelf bottom trawl survey, ",
+  #       text_list(paste0(temp$count_words[temp$year == maxyr], " ",
+  #                        temp$common_name[temp$year == maxyr],
+  #                        " (\\*",temp$species_name[temp$year == maxyr],"\\*)")),
+  #       " were caught (Fig. `` `r fig_dist` ``). ", 
+  #       "Likewise, during the ", compareyr, " ",
+  #       # ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+  #       " survey, ",
+  #       text_list(paste0(temp$count_words[temp$year == compareyr], " ",
+  #                        temp$common_name[temp$year == compareyr],
+  #                        ifelse(temp$use_sci_name[temp$year == compareyr], "", 
+  #                         paste0(" (\\*",temp$species_name[temp$year == compareyr],"\\*)")))), 
+  #                 " were caught (Fig. `` `r fig_dist` ``). ")
+  # }
 
   
   ## Size Comp -------------------------------------------------------------------
