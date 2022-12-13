@@ -1016,7 +1016,7 @@ species_text <- function(
     SRVY000, 
     maxyr, 
     compareyr, 
-    biomass_cpue_tab_name, 
+    tab_majorspp_bio, 
     total_biomass, 
     spp_info) {
   
@@ -1039,7 +1039,7 @@ species_text <- function(
   str0 <- list()
   
   # str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
-  #                     text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
+  #                     text_list(paste0("`` `r ", tab_majorspp_bio, "` ``") ) )
   
   ## Number of stations/environmental data ---------------------------------------
   
@@ -1231,7 +1231,7 @@ species_text <- function(
   # }
   # 
   #            str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
-  #                              text_list(paste0("`` `r ", biomass_cpue_tab_name, "` ``") ) )
+  #                              text_list(paste0("`` `r ", tab_majorspp_bio, "` ``") ) )
   
   
   str0$biomass_population <-
@@ -1240,7 +1240,7 @@ species_text <- function(
            " was ",
            xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
-           "Tables `` `r biomass_cpue_tab_name` `` and `` `r tab_wt` ``)",
+           "Tables `` `r tab_majorspp_bio` `` and `` `r tab_wt` ``)",
            " and estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " fish ",
            # "(Table ` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)` `). ",
@@ -1254,11 +1254,11 @@ species_text <- function(
                          " of the total biomass; "),
                   ""),
            # "Fig. `` `r fig_dist` `` and ", # 
-           "Table",ifelse(length(biomass_cpue_tab_name)>1, "s", ""), " `` `r biomass_cpue_tab_name` ``)",
-           # text_list(paste0("` `\\@ref(tab:",biomass_cpue_tab_name,")` `")),
+           "Table",ifelse(length(tab_majorspp_bio)>1, "s", ""), " `` `r tab_majorspp_bio` ``)",
+           # text_list(paste0("` `\\@ref(tab:",tab_majorspp_bio,")` `")),
            " and estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), 
-           " fish \\[\\@\\",ref_compareyr,"\\]. ")
+           " fish [`` `r paste0(@", ref_compareyr, ")` ``]. ")
   # 
   #     # Biomass percentage of total    
   #     str0$biomass_population_percent <- 
@@ -1391,7 +1391,7 @@ species_content <- function(SURVEY000,
                             spp_code,
                             maxyr, 
                             compareyr, 
-                            biomass_cpue_tab_name = "tab_majortaxa_pchange", 
+                            tab_majorspp_bio = "tab_majortaxa_pchange", 
                             total_biomass, 
                             spp_info) {
   
@@ -1454,7 +1454,7 @@ species_content <- function(SURVEY000,
     SRVY000, 
     maxyr, 
     compareyr, 
-    biomass_cpue_tab_name, 
+    tab_majorspp_bio, 
     total_biomass, 
     spp_info)
   
@@ -2507,7 +2507,7 @@ plot_idw_facet <- function(
 plot_temperature_facet <- function(rasterbrick, 
                              key.title = "Temperature (°C)", 
                              reg_dat, 
-                             colorbar_breaks = c(-Inf, seq(from = 0, to = 14, by = 2), Inf),
+                             colorbar_breaks = c(-Inf, seq(from = 0, to = 8, by = 2), Inf),
                              dist_unit = "nm", # nautical miles
                              viridis_palette_option = "B", 
                              row0 = 2, 
@@ -2544,11 +2544,8 @@ plot_temperature_facet <- function(rasterbrick,
   panel_extent <- data.frame(x = panel_extent[c('xmin', 'xmax')],
                              y = panel_extent[c('ymin', 'ymax')])
   
-  # panel_extent <- data.frame(x = panel_extent$x[c(1,2,2,1,1)],
-  #                            y = panel_extent$y[c(1,1,2,2,1)],
-  #                            year = 2020)
-  
-  fig_palette <- viridis::viridis_pal(option = viridis_palette_option)(length(colorbar_breaks)-1)
+  fig_palette <- viridis::viridis_pal(end = 0.9, 
+                                      option = viridis_palette_option)(length(colorbar_breaks)-1)
   
   figure <- ggplot() +
     ggplot2::geom_sf(data = reg_dat$akland,
@@ -2567,11 +2564,10 @@ plot_temperature_facet <- function(rasterbrick,
     ggplot2::facet_wrap( ~ year, 
                          nrow = row0) +
     ggplot2::scale_fill_manual(values = fig_palette) +
-    # ggplot2::geom_sf(data = reg_dat$survey.strata,
-    #         color = "grey50",
-    #         size = 0.1,
-    #         # alpha = 0,
-    #         fill = NA) +
+    ggplot2::geom_sf(data = reg_dat$survey.area,
+                    color = "grey50",
+                     fill = NA,
+                     size = rel(0.2)) + 
     ggplot2::scale_y_continuous(name = "", #"Latitude", 
                                 limits = reg_dat$plot.boundary$y, # c(557292.9, 1744114.2), #1804888.0), #reg_dat$plot.boundary$y,
                                 breaks = reg_dat$lat.breaks) +

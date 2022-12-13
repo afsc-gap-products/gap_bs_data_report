@@ -113,11 +113,11 @@ rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                   output_dir = dir_out_ref,
                   output_file = paste0(cnt_chapt_content, ".docx"))
 
-# Save figures and tables locally to working draft folder
-file.copy(from = dir_out_figtab, 
-          to = dir_out_todaysrun, 
-          overwrite = TRUE, 
-          recursive = TRUE)
+# # Save figures and tables locally to working draft folder
+# file.copy(from = dir_out_figtab, 
+#           to = dir_out_todaysrun, 
+#           overwrite = TRUE, 
+#           recursive = TRUE)
 
 # Run data report --------------------------------------------------------------
 
