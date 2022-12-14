@@ -106,7 +106,6 @@ for (ii in 1:length(report_types)) {
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
-
 # lon_label <- reg_dat$lon.breaks
 # lat_label <- reg_dat$lat.breaks
 # # get the lon and lat breaks in the right projection
@@ -179,10 +178,24 @@ if (googledrive_dl) {
   
 }
 
+
+# Make google doc txts into .rmds
 txtfiles <- list.files(path = paste0(dir_out_rawdata, "/"), pattern = ".txt")
 
 for (i in 1:length(txtfiles)) {
   print(txtfiles[i])
+  
+  # get rid of comments
+  a <- readLines(con = paste0(dir_out_rawdata, txtfiles[i]), warn = FALSE)
+  comment_id <- paste0(sapply(X = strsplit(x = a[which(lapply(a, FUN = substr, start = 1, stop = 1) == "[")], 
+                         split = "]", 
+                         fixed = TRUE),"[[",1), "]")
+  a <- a[which(lapply(a, FUN = substr, start = 1, stop = 1) != "[")]
+  for (ii in 1:length(comment_id)){
+    a <- gsub(pattern = comment_id[ii], replacement = "", x = a, fixed = TRUE)
+  }
+  write.table(x = a, file = txtfiles[i], quote = FALSE, row.names = FALSE, append = FALSE, )
+  
   pandoc_convert(input = paste0(dir_out_rawdata, paste(txtfiles[i])),
                  to = "markdown",
                  output = paste0(dir_out_rawdata, gsub(txtfiles[i], pattern = ".txt", replacement = ".Rmd")),

@@ -1238,16 +1238,16 @@ species_text <- function(
     paste0("The estimated biomass of ",spp_print," in the ",
            ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
            " was ",
-           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " kg (",
+           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr]/1000, na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
            "Tables `` `r tab_majorspp_bio` `` and `` `r tab_wt` ``)",
-           " and an estimated abundance was ",
+           " and the estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " fish ",
            # "(Table ` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)` `). ",
            "(Table `` `r tab_no` ``). ",
            # compare years
            "Previously, in ",compareyr,", ",spp_print," biomass was estimated to be ",
-           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " kg (",
+           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr]/1000, na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1,
                   paste0(xunitspct((sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE)/
                                       total_biomass0$biomass[total_biomass0$year == compareyr])*100),
@@ -1256,7 +1256,7 @@ species_text <- function(
            # "Fig. `` `r fig_dist` `` and ", # 
            "Table",ifelse(length(tab_majorspp_bio)>1, "s", ""), " `` `r tab_majorspp_bio` ``)",
            # text_list(paste0("` `\\@ref(tab:",tab_majorspp_bio,")` `")),
-           " and an estimated abundance was ",
+           " and the estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), 
            " fish [`` `r ", ref_compareyr, " ` ``]. ")
   # 
@@ -2556,14 +2556,13 @@ plot_temperature_facet <- function(rasterbrick,
                      alpha = 0.2)  +
     ggplot2::geom_tile(data = temp_df, 
                        mapping = aes(x=x, y=y, 
-                                     fill=cut(value, breaks = colorbar_breaks))) +
-    # ggplot2::geom_polygon(data = panel_extent,
-    #                       aes(x = x,
-    #                           y = y),
-    #                       fill = "white")  +
+                                     fill=cut(value, 
+                                              breaks = colorbar_breaks))) +
     ggplot2::facet_wrap( ~ year, 
                          nrow = row0) +
-    ggplot2::scale_fill_manual(values = fig_palette) +
+    ggplot2::scale_fill_manual(values = fig_palette, 
+                               drop = FALSE, 
+                               na.translate = FALSE) +
     ggplot2::geom_sf(data = reg_dat$survey.area,
                     color = "grey50",
                      fill = NA,
@@ -3623,7 +3622,7 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                                  fill = variable)) + 
     geom_ribbon() + 
     scale_fill_manual(name = "Temperature", 
-                      values = viridis::mako(5, direction = -1, end = .8)) +  
+                      values = viridis::inferno(4, direction = -1, begin = 0.2, end = .8)) +  
     scale_y_continuous(name = "Proportion of EBS Shelf Survey Area",
                        limits = c(0, 1),
                        expand = c(0, 0),
@@ -3729,8 +3728,9 @@ plot_mean_temperatures <- function(maxyr, SRVY){
   all_temperatures$variable <- factor(all_temperatures$variable, 
                                       levels=c('Surface','Bottom'))
   
-  color_sst <- nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
-  color_bt <- nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
+  col <- viridis::inferno(2, direction = -1, begin = .3, end = .5)
+  color_sst <- col[2] #nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
+  color_bt <- col[1] #nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
   
   figure <- ggplot(data = all_temperatures,
                    mapping = aes(x = YEAR,

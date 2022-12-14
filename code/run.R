@@ -25,7 +25,7 @@
 # *** Report knowns ------------------------------------------------------------
 
 report_title <- "data" 
-refcontent <- FALSE# produce extra summary text and tables for each spp to help with writing
+refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
