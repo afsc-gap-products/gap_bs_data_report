@@ -1,7 +1,26 @@
+---
+header-includes: 
+  \usepackage{float} \floatplacement{figure}{H} 
+  \newcommand{\beginsupplementappA}{\setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
+  \newcommand{\beginsupplementappB}{\setcounter{table}{0}  \renewcommand{\thetable}{B\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{B\arabic{figure}}}
+  \newcommand{\beginsupplementappB}{\setcounter{table}{0}  \renewcommand{\thetable}{C\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{C\arabic{figure}}}
+  \newcommand{\beginsupplementappB}{\setcounter{table}{0}  \renewcommand{\thetable}{D\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{D\arabic{figure}}}
+---
+
+```{r}
+# \newcommand{\beginsupplement}{%
+#   \setcounter{table}{0}
+#   \renewcommand{\thetable}{A\arabic{table}}%
+#   \setcounter{figure}{0}
+#   \renewcommand{\thefigure}{A\arabic{figure}}%
+# }
+#      
+# \section{Supplementary Material}
+```
 
 \pagebreak
 
-# Appendices {-}
+# Appendices
 
 <!-- https://stackoverflow.com/questions/51335125/adding-figures-and-tables-after-bibliography-in-rmarkdown -->
 
@@ -162,7 +181,13 @@ text_list(paste0("\n\n - Appendix **", abcd, "** \\@ref(tab:", captions$id, "): 
     
     return(str0)
 }
+
+# https://support.authorea.com/en-us/article/how-to-create-an-appendix-section-or-supplementary-information-1g25i5a/
+# Appendices {-}
+
 ```
+
+\beginsupplementappA
 
 ```{r tab-app-taxa-encountered-EBS}
 nickname <- "tab-app-taxa-encountered-EBS"
@@ -179,6 +204,8 @@ str0 <- list_app(nickname = nickname,
 ```{r tab-special-projects-EBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
+\beginsupplementappB
+
 ```{r tab-app-taxa-encountered-NBS, eval = evalTF}
 nickname <- "tab-app-taxa-encountered-NBS"
 counter_letters <- counter_letters + 1; abcd <- LETTERS[counter_letters]
@@ -193,6 +220,8 @@ str0 <- list_app(nickname = nickname,
 
 ```{r tab-special-projects-NBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=evalTF}
 ```
+
+`r ifelse(evalTF, "\\beginsupplementappC", "")`
 
 ```{r tab-app-principal-fish-EBS-}
 nickname <- "tab-app-principal-fish-EBS-"
@@ -210,6 +239,8 @@ str0 <- list_app(nickname = nickname,
 
 ```{r tab-app-principal-fish-EBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
+
+`r ifelse(evalTF, "\\beginsupplementappD", "")`
 
 ```{r tab-app-principal-fish-NBS-, eval = evalTF}
 nickname <- "tab-app-principal-fish-NBS-"

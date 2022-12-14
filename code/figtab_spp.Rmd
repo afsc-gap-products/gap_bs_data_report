@@ -214,15 +214,15 @@ if (spp_plot_idw | spp_plot_pa) {
   
   if (spp_plot_idw) {
     
-    table_raw <- cpue %>%
+    table_raw <- cpue %>% 
+      dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha)) %>%
       dplyr::filter(
         SRVY %in% SRVY1 &
-          !is.na(cpue_kgha) & 
-                      cpue_kgha != 0 & 
+          # !is.na(cpue_kgha) & 
+          #             cpue_kgha != 0 &
                       species_code %in% spp_code & 
                       year %in% yrs) %>% 
-      dplyr::arrange(desc(year)) %>% 
-      dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
+      dplyr::arrange(desc(year))
     
     spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
     spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)

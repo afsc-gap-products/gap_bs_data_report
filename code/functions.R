@@ -1238,16 +1238,16 @@ species_text <- function(
     paste0("The estimated biomass of ",spp_print," in the ",
            ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
            " was ",
-           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
+           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " kg (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
            "Tables `` `r tab_majorspp_bio` `` and `` `r tab_wt` ``)",
-           " and estimated abundance was ",
+           " and an estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " fish ",
            # "(Table ` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)` `). ",
            "(Table `` `r tab_no` ``). ",
            # compare years
            "Previously, in ",compareyr,", ",spp_print," biomass was estimated to be ",
-           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
+           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " kg (",
            ifelse(show>1,
                   paste0(xunitspct((sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE)/
                                       total_biomass0$biomass[total_biomass0$year == compareyr])*100),
@@ -1256,9 +1256,9 @@ species_text <- function(
            # "Fig. `` `r fig_dist` `` and ", # 
            "Table",ifelse(length(tab_majorspp_bio)>1, "s", ""), " `` `r tab_majorspp_bio` ``)",
            # text_list(paste0("` `\\@ref(tab:",tab_majorspp_bio,")` `")),
-           " and estimated abundance was ",
+           " and an estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), 
-           " fish [`` `r paste0(@", ref_compareyr, ")` ``]. ")
+           " fish [`` `r ", ref_compareyr, " ` ``]. ")
   # 
   #     # Biomass percentage of total    
   #     str0$biomass_population_percent <- 
@@ -2288,11 +2288,11 @@ plot_idw_facet <- function(
     
     extrap.grid1 <- extrap.grid |>
       dplyr::select(var1.pred, n, SURVEY, geometry, year) %>% 
-      dplyr::mutate(bins = cut(var1.pred, breaks = c(set.breaks)))
+      dplyr::mutate(bins = cut(var1.pred, breaks = c(-0.01, set.breaks)))
     
     figure <- figure +
       ggplot2::geom_sf(data = extrap.grid1,
-                       mapping = aes(fill = bins),
+                       mapping = aes(fill = bins), # bins),
                        color = NA, 
                        na.rm = FALSE,
                        show.legend = TRUE)  +
@@ -2305,7 +2305,7 @@ plot_idw_facet <- function(
                       n = length(set.breaks)-1,
                       begin = 0.20,
                       end = 0.80)),
-        # breaks  = set.breaks,
+        # breaks  = levels(dat_pred$bin), # set.breaks,
         labels = levels(dat_pred$bin),
         # values = c("white", RColorBrewer::brewer.pal(9, name = "Blues")[c(2,4,6,8,9)]),
         # limits = range(dat_pred$var1.pred, na.rm = TRUE),

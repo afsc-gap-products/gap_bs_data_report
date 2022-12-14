@@ -121,9 +121,14 @@ rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
 
 # Run data report --------------------------------------------------------------
 
-rmarkdown::render(input = paste0(dir_code, "00_full_report_data.Rmd"),
+rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_dir = dir_out_chapters,
-                  output_file = paste0("00_full_report_data_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+                  output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+
+# rmarkdown::render(input = paste0(dir_code, "00_data_report_appendix.Rmd"),
+#                   output_dir = dir_out_chapters,
+#                   output_file = paste0("00_data_report_appendix_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+
 
 # quarto::quarto_render(input = paste0(dir_code, "00_full_report_data.qmd"),
 #                   output_file = paste0(dir_out_chapters, "00_full_report_data_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
