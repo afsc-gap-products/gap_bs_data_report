@@ -187,12 +187,16 @@ for (i in 1:length(txtfiles)) {
   
   # get rid of comments
   a <- readLines(con = paste0(dir_out_rawdata, txtfiles[i]), warn = FALSE)
-  comment_id <- paste0(sapply(X = strsplit(x = a[which(lapply(a, FUN = substr, start = 1, stop = 1) == "[")], 
-                         split = "]", 
-                         fixed = TRUE),"[[",1), "]")
-  a <- a[which(lapply(a, FUN = substr, start = 1, stop = 1) != "[")]
-  for (ii in 1:length(comment_id)){
-    a <- gsub(pattern = comment_id[ii], replacement = "", x = a, fixed = TRUE)
+  comment_id <-sapply(X = strsplit(x = a[which(lapply(a, FUN = substr, start = 1, stop = 1) == "[")], 
+                                   split = "]", 
+                                   fixed = TRUE),"[[",1)
+  if (length(comment_id) > 0) {
+    comment_id <- paste0(comment_id, "]")
+    a <- a[which(lapply(a, FUN = substr, start = 1, stop = 1) != "[")]
+    a <- a[which(lapply(a, FUN = substr, start = 1, stop = 1) != "_")]
+    for (ii in 1:length(comment_id)){
+      a <- gsub(pattern = comment_id[ii], replacement = "", x = a, fixed = TRUE)
+    }
   }
   write.table(x = a, 
               file = paste0(dir_out_rawdata, txtfiles[i]), 

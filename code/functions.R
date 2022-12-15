@@ -1138,7 +1138,7 @@ species_text <- function(
            " was ",
            xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
-           "Tables `` `r tab_majorspp_bio` `` and `` `r tab_wt` ``)",
+           "Tables ", text_list(paste0("\\@ref(tab:tab_majortaxa_pchange_",SRVY000,")"), "`` `r tab_wt` ``"), ")", 
            " and the estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " fish ",
            # "(Table ` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)` `). ",
@@ -1152,7 +1152,7 @@ species_text <- function(
                          " of the total biomass; "),
                   ""),
            # "Fig. `` `r fig_dist` `` and ", # 
-           "Table",ifelse(length(tab_majorspp_bio)>1, "s", ""), " `` `r tab_majorspp_bio` ``)",
+           "Tables ", text_list(paste0("\\@ref(tab:tab_majortaxa_pchange_",SRVY000,")"), "`` `r tab_wt` ``"), ")", 
            # text_list(paste0("` `\\@ref(tab:",tab_majorspp_bio,")` `")),
            " and the estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), 
@@ -3863,6 +3863,7 @@ table_change <- function(dat,
   table_raw$change <- table_raw[,paste0("change_", compareyr , "_", maxyr) ]
   
   table_raw <- table_raw %>%
+    dplyr::mutate(change = ifelse(change == Inf, 100, change)) %>% 
     dplyr::arrange(desc(SRVY), desc(change)) %>%
     # dplyr::filter(change != Inf) %>%
     # dplyr::mutate(change = ifelse(change == Inf, "", change)) %>%
