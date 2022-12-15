@@ -194,7 +194,12 @@ for (i in 1:length(txtfiles)) {
   for (ii in 1:length(comment_id)){
     a <- gsub(pattern = comment_id[ii], replacement = "", x = a, fixed = TRUE)
   }
-  write.table(x = a, file = paste0(dir_out_rawdata, txtfiles[i]), quote = FALSE, row.names = FALSE, append = FALSE, )
+  write.table(x = a, 
+              file = paste0(dir_out_rawdata, txtfiles[i]), 
+              quote = FALSE, 
+              row.names = FALSE, 
+              col.names = FALSE, 
+              append = FALSE, )
   
   pandoc_convert(input = paste0(dir_out_rawdata, paste(txtfiles[i])),
                  to = "markdown",

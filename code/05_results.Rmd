@@ -6,7 +6,7 @@ A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_
 
 ## Ocean Temperatures and the Cold Pool
 
-```{r results_ocean_temps}
+```{r results_ocean_temps, eval = FALSE}
 temp <- dplyr::left_join(
   x = temps_avg_yr %>% 
     dplyr::filter(year %in% c(maxyr)), 
@@ -59,11 +59,13 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 ```
 
-`r str0` During the EBS time series (`r haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY == "EBS"]`--`r maxyr`), mean summer bottom temperatures were highly variable, ranging from a low of `r round(x = min(temps_avg_yr$bt), digits = 1)`°C to a high of `r round(x = max(temps_avg_yr$bt), digits = 1)`°C. The grand mean for all years was `r round(x = min(temps_avg_yr$bt_mean[1]), digits = 1)`°C (Fig. \@ref(fig:fig-mean-temperature)). The mean survey bottom temperature for the EBS in `r maxyr` was `r round(x = (temps_avg_yr_maxyr$bt), digits = 1)`°C (Fig. \@ref(fig:fig-mean-temperature)), which was `r round(x = abs(temp$bt_mean_diff), digits = 1)`°C `r ifelse(temps_avg_yr_maxyr$bt_above_mean, "warmer", "colder")` than the long term mean [@RohanColdPool].
+```{r results-temperature-dummy1, eval = FALSE}
+# `r str0` During the EBS time series (`r haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY == "EBS"]`--`r maxyr`), mean summer bottom temperatures were highly variable, ranging from a low of `r round(x = min(temps_avg_yr$bt), digits = 1)`°C to a high of `r round(x = max(temps_avg_yr$bt), digits = 1)`°C. The grand mean for all years was `r round(x = min(temps_avg_yr$bt_mean[1]), digits = 1)`°C (Fig. \@ref(fig:fig-mean-temperature)). The mean survey bottom temperature for the EBS in `r maxyr` was `r round(x = (temps_avg_yr_maxyr$bt), digits = 1)`°C (Fig. \@ref(fig:fig-mean-temperature)), which was `r round(x = abs(temp$bt_mean_diff), digits = 1)`°C `r ifelse(temps_avg_yr_maxyr$bt_above_mean, "warmer", "colder")` than the long term mean [@RohanColdPool].
+# 
+# The size of the cold pool each summer is defined by the extent of bottom temperatures below 2°C and depends on sea ice coverage from the previous winter, the timing of sea ice retreat during the spring and early summer, as well as other oceanographic and meteorological conditions [@RN941]. During the coldest years, sea ice extended farther south and lasted later into spring resulting in cold pools that extended farther south through the middle domain into Bristol Bay and near the Alaska Peninsula (Figs. \@ref(fig:fig-bt-temperature-ebs-below) and \@ref(fig:fig-bt-temperature-ebs-above)). Interannual variability in the dynamics of seasonal ice is a major environmental driver on the Bering Sea shelf [@RN930; @RN931; @RN932] that can change recruitment and migration patterns, as well as cause major distributional shifts in groundfish and crab species [@RN905; @RN913; @RN977].
+```
 
-The size of the cold pool each summer is defined by the extent of bottom temperatures below 2°C and depends on sea ice coverage from the previous winter, the timing of sea ice retreat during the spring and early summer, as well as other oceanographic and meteorological conditions [@RN941]. During the coldest years, sea ice extended farther south and lasted later into spring resulting in cold pools that extended farther south through the middle domain into Bristol Bay and near the Alaska Peninsula (Figs. \@ref(fig:fig-bt-temperature-ebs-below) and \@ref(fig:fig-bt-temperature-ebs-above)). Interannual variability in the dynamics of seasonal ice is a major environmental driver on the Bering Sea shelf [@RN930; @RN931; @RN932] that can change recruitment and migration patterns, as well as cause major distributional shifts in groundfish and crab species [@RN905; @RN913; @RN977].
-
-```{r results_cold_pool}
+```{r results_cold_pool, evale = FALSE}
 temp <- coldpool_ebs_total_area
 
 # A large cold pool year
@@ -113,13 +115,14 @@ if (temp$rank[temp$year == maxyr] < 6 | abs(temp$rank[temp$year == maxyr]-length
 
 ```
 
-During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Fig. \@ref(fig:fig-bt-temperature-ebs-below)), while `r range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Fig. \@ref(fig:fig-bt-temperature-ebs-above)). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Fig. \@ref(fig:fig-cold-pool-area)). Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-year time series, the areal coverage of the summer survey cold pool in the EBS has varied in size from `r xunits(min(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)]` to `r xunits(max(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)]`, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Fig. \@ref(fig:fig-cold-pool-area)). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f")` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1)`%) of the EBS shelf survey area`r temp4`
 
-The `r compareyr` and `r maxyr` `r text_list(SRVY1)` surveys provided a quasi-synoptic view of the spatial pattern of bottom temperatures across the entire `r text_list(SRVY1)` shelf, providing an index of annual differences in demersal fauna distribution patterns. The seasonal cold pool, which is a cold water mass that occupies the middle domain of the EBS shelf annually to a varying extent, may play a role in restricting the movements of some species both across the shelf (east-west) and along the inner domain of the shelf (north-south). Thus, tracking the position and spatial extent of this water mass is critically important.
+```{r results-temperature-dummy, eval = FALSE}
+# During the last `r length(unlist(temps_avg_yr_abovebelow))` years, `r range_text(x = temps_avg_yr_abovebelow$below)` were colder than average ("cold stanza"; Fig. \@ref(fig:fig-bt-temperature-ebs-below)), while `r range_text(x = temps_avg_yr_abovebelow$above)` were warmer than average ("warm stanza"; Fig. \@ref(fig:fig-bt-temperature-ebs-above)). `r ifelse((maxyr>2020 & maxyr<(2021+length(unlist(temps_avg_yr_abovebelow)))), "There was no survey in 2020 due to the COVID-19 pandemic.", "")` The highly variable survey bottom temperatures in the EBS shelf are related to the area occupied by the summer cold pool (Fig. \@ref(fig:fig-cold-pool-area)). Over the period of the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == "EBS"]`-year time series, the areal coverage of the summer survey cold pool in the EBS has varied in size from `r xunits(min(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)]` to `r xunits(max(temp$area_km2, na.rm = TRUE))` km^2^ in `r temp$year[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)]`, respectively comprising `r round(temp$perc[temp$area_km2 == min(temp$area_km2, na.rm = TRUE)], digits = 1)`% to `r round(temp$perc[temp$area_km2 == max(temp$area_km2, na.rm = TRUE)], digits = 1)`% of EBS shelf area (Fig. \@ref(fig:fig-cold-pool-area)). In `r maxyr`, the cold pool covered `r formatC(temp$area_km2[temp$year == maxyr], digits = 0, big.mark = ",", format = "f")` km^2^ (`r round(temp$perc[temp$year == maxyr], digits = 1)`%) of the EBS shelf survey area`r temp4`
+# 
+# The `r compareyr` and `r maxyr` `r text_list(SRVY1)` surveys provided a quasi-synoptic view of the spatial pattern of bottom temperatures across the entire `r text_list(SRVY1)` shelf, providing an index of annual differences in demersal fauna distribution patterns. The seasonal cold pool, which is a cold water mass that occupies the middle domain of the EBS shelf annually to a varying extent, may play a role in restricting the movements of some species both across the shelf (east-west) and along the inner domain of the shelf (north-south). Thus, tracking the position and spatial extent of this water mass is critically important.
+```
 
-### INSERT COLD POOL TEXT HERE WHEN SEAN IS READY
-
-```{r results_cold_pool_insert, child=paste0(dir_out_rawdata, "/0_cold_pool_description.Rmd"), eval = FALSE}
+```{r results_cold_pool_insert, child=paste0(dir_out_rawdata, "/0_cold_pool_description.Rmd")}
 ```
 
 \newpage

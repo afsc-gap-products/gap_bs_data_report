@@ -1122,86 +1122,7 @@ species_text <- function(
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) ,
            " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ") 
   
-  ## Biomass and abundance -------------------------------------------------------
-  
-  # tempyr <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
-  
-  # temp <- function(biomass_cpue, maxyr, compareyr, tempyr, 
-  #                  metric = "biomass", metric_long = "biomass", unit = " t", 
-  #                  SRVY000, spp_print) {
-  #   
-  #   str0 <- paste0("Compared with ", 
-  #                  compareyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
-  #                  unit,"), ",spp_print," estimated ",metric_long," in ", 
-  #                  maxyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE), val_under_x_words = NULL), 
-  #                  unit,") in the ",
-  #                  ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000)," experienced ",
-  #                  pchange(start = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE),
-  #                                       end = sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)) , 
-  #                  # compare to the year before these
-  #                  " (", str0_table, "). ",
-  #                  "Previously, ",spp_print," estimated ", metric_long," in ", 
-  #                  compareyr, " experienced ",
-  #                  pchange(start = sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE),
-  #                                       end = sum(biomass_cpue[biomass_cpue$year == compareyr, metric], na.rm = TRUE)), 
-  #                  " when compared to estimated ",metric_long," in ", 
-  #                  tempyr, " (", xunits(sum(biomass_cpue[biomass_cpue$year == tempyr, metric], na.rm = TRUE), val_under_x_words = NULL), unit,
-  #                  "; ", str0_table, ").")
-  #   
-  #   return(str0)
-  # }
-  # 
-  # str0 <- ""
-  # 
-  # if ( (nrow(biomass_cpue) != 0) ) {
-  #   ## pchange_biomass
-  #   #     str0 <- paste0(str0, "
-  #   # 
-  #   # ", temp(biomass_cpue, biomass_cpue, maxyr, compareyr, tempyr, 
-  #   #         metric = "biomass", 
-  #   #         metric_long = "biomass", 
-  #   #         unit = " t", SRVY000, spp_print))
-  #   
-  #   str00 <- temp(biomass_cpue, biomass_cpue, maxyr, compareyr, tempyr, 
-  #                 metric = "biomass", 
-  #                 metric_long = "biomass", 
-  #                 unit = " t", SRVY000, spp_print)
-  #   
-  #   # pchange cpue
-  #   #     str0 <- paste0(str0, "
-  #   # 
-  #   # ", temp(biomass_cpue, biomass_cpue, maxyr, compareyr, tempyr, metric = "cpue_kgha", metric_long = "CPUE", unit = " kg/ha", SRVY000, spp_print))
-  #   
-  #   
-  #   
-  #   # Yellowfin sole biomass increased by 22% between 2017 and 2019 in the NBS area.
-  #   # In 2019, the Alaska plaice exhibited a slight 0.8% decrease (321,571 t; Table 1) in the total NBS survey biomass compared with 2017; however, biomass in 2019 was 24% greater than in 2010.
-  #   # Biomass of the purple-orange sea star increased by 26% between 2017 and 2019 and by 40% between 2010 and 2019.
-  #   # The estimated biomass of the northern Neptune snail decreased by 18% (Table 1) between 2017 (327,678 t) and 2019 (146,344 t). However, the biomass was 32% greater in 2019 than in 2010.
-  #   # There was a 10% reduction in saffron cod biomass in 2019 from 2010 (Table 1), but a 6% increase in saffron cod biomass from 2017 to 2019.
-  #   # Between 2010 and 2019, there was a 99.8% reduction in Arctic cod biomass in the NBS.
-  #   # This represents a 5,421% increase from the biomass observed in 2010.
-  #   # Biomass of this skate increased 24% from 2010 to 2019.
-  #   # 25% increase (2,827 t) in the estimated biomass of red king crab compared to 2017 (2,256 t). The increase in biomass in 2019 relative to 2010 was slightly less (13%) (Table 1). 
-  #   # Blue king crab biomass decreased by 79% from 2017 to 2019. Biomass in 2019 (1,212 t) was more similar to 2010 (2,133 t) (Table 1).
-  #   # Pacific halibut showed an estimated 42% increase in total biomass from 2017 (18,507 m) to 2019 (25,722 t; Table 1). 
-  #   # Biomass of Bering flounder increased by 50% between 2010 and 2019 (12,355 t to 18,526 t; Table 1).
-  #   # The relative Pacific herring biomass increased 282% from 23,011 t in 2010 to 87,918 t in 2019 (Table 1).
-  #   
-  #   # ## p_mt_of_survey	
-  #   metric <- "biomass"
-  #   metric_long <- "biomass"
-  #   unit <- " t"
-  #   
-  #   # total biomass
-  #   temp2 <- biomass_cpue  %>%
-  #     dplyr::ungroup() %>% 
-  #     dplyr::select(biomass, year) %>%
-  #     dplyr::group_by(year) %>% 
-  #     dplyr::summarise(biomass = sum(biomass, na.rm = T)) 
-  
-  #The estimated population of Alaska plaice in the NBS was 299,028 t and approximately 539 million fish (Tables \@ref(tab:tab-estimates-maxyr-{{spp_file}}-wt) and \@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)).    
-  #Biomass with abundance
+  ### Biomass and abundance -------------------------------------------------------
   
   total_biomass0 <- total_biomass %>% 
     dplyr::filter(SRVY %in% SRVY000) %>% 
@@ -1210,35 +1131,12 @@ species_text <- function(
   
   show <- sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE)/
     total_biomass0$biomass[total_biomass0$year == maxyr]*100
-  
-  # a <- list.files(path = dir_out_figtab, 
-  #                 pattern = paste0("fig-dist-fish-", spp_file), 
-  #                 ignore.case = TRUE)
-  # a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
-  # a <- gsub(pattern = ".rdata", replacement = "", ignore.case = TRUE, x = a)
-  
-  # if (spp_plot_idw) {
-  #   fig_dist <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, ")")
-  # }
-  # 
-  # if (spp_plot_sizecomp) {
-  #   fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
-  # } 
-  # 
-  # if (spp_table_cpue) {
-  #   tab_wt <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-wt)")
-  #   tab_no <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-num)")
-  # }
-  # 
-  #            str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
-  #                              text_list(paste0("`` `r ", tab_majorspp_bio, "` ``") ) )
-  
-  
+
   str0$biomass_population <-
     paste0("The estimated biomass of ",spp_print," in the ",
            ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
            " was ",
-           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr]/1000, na.rm = TRUE), val_under_x_words = NULL), " t (",
+           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
            "Tables `` `r tab_majorspp_bio` `` and `` `r tab_wt` ``)",
            " and the estimated abundance was ",
@@ -1247,7 +1145,7 @@ species_text <- function(
            "(Table `` `r tab_no` ``). ",
            # compare years
            "Previously, in ",compareyr,", ",spp_print," biomass was estimated to be ",
-           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr]/1000, na.rm = TRUE), val_under_x_words = NULL), " t (",
+           xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1,
                   paste0(xunitspct((sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE)/
                                       total_biomass0$biomass[total_biomass0$year == compareyr])*100),
@@ -1258,9 +1156,9 @@ species_text <- function(
            # text_list(paste0("` `\\@ref(tab:",tab_majorspp_bio,")` `")),
            " and the estimated abundance was ",
            xunits(sum(biomass_cpue$population[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), 
-           " fish [`` `r ", ref_compareyr, " ` ``]. ")
+           " fish [",ref_compareyr,"]. ")
   # 
-  #     # Biomass percentage of total    
+  #     # Biomass percentage of totSal    
   #     str0$biomass_population_percent <- 
   #       paste0("In ",maxyr,", ",spp_print," comprised ",
   #                   xunitspct((sum(biomass_cpue[biomass_cpue$year == maxyr, metric], na.rm = TRUE)/
