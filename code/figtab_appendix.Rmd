@@ -11,11 +11,11 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 # Appendix A and B
 
-## tab_taxa_encountered_*_prep
+## tab_taxa_found_*_prep
 
-```{r tab_app_taxa_encountered_*_prep}
+```{r tab_app_taxa_found_*_prep}
 
-tab_taxa_encountered_ <- function(temp, 
+tab_taxa_found_ <- function(temp, 
                                   nickname0, 
                                   # cnt_pre, 
                                   maxyr, 
@@ -25,7 +25,7 @@ tab_taxa_encountered_ <- function(temp,
   list_tables0 <- list()
   
   cnt_tables <- 0
-  nickname0 <- "tab-app-taxa-encountered-" 
+  nickname0 <- "tab-app-taxa-found-" 
   
   for (i in 1:nrow(temp)) {
     cnt_tables <- cnt_tables + 1
@@ -183,7 +183,7 @@ tab_taxa_encountered_ <- function(temp,
 
 ## Appendix A (EBS)
 
-```{r tab-app-taxa-encountered-EBS}
+```{r tab-app-taxa-found-EBS}
 temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
                                    taxon0 = c("invert", "fish")), 
                         haul_cruises_maxyr %>% 
@@ -191,7 +191,7 @@ temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"),
                           dplyr::filter(SRVY == "EBS"))
 
 # cnt_pre0 <- cnt_pre0 + 1; cnt_pre1 <- LETTERS[cnt_pre0]
-list_tables0 <- tab_taxa_encountered_(temp = temp, 
+list_tables0 <- tab_taxa_found_(temp = temp, 
                                       # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
                                       maxyr = maxyr, 
                                       catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
@@ -215,7 +215,7 @@ for (i in 1:length(list_tables0)) {
 
 ## Appendix B (NBS)
 
-```{r tab-app-taxa-encountered-NBS}
+```{r tab-app-taxa-found-NBS}
 if (SRVY == "NEBS") {
   temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
                                      taxon0 = c("invert", "fish")), 
@@ -224,7 +224,7 @@ if (SRVY == "NEBS") {
                             dplyr::filter(SRVY == "NBS"))
   
   # cnt_pre0 <- cnt_pre0 + 1; cnt_pre1 <- LETTERS[cnt_pre0]
-  list_tables0 <- tab_taxa_encountered_(temp = temp, 
+  list_tables0 <- tab_taxa_found_(temp = temp, 
                                         # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
                                         maxyr = maxyr, 
                                         catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
@@ -249,11 +249,11 @@ if (SRVY == "NEBS") {
 
 # Appendix C and D
 
-## tab_principal_fish_*_prep
+## tab_fish_*_prep
 
 ```{r tab_app_principal_fish_*_prep}
 
-tab_app_principal_fish_ <- function(temp, 
+tab_app_fish_ <- function(temp, 
                                     # cnt_pre, 
                                     maxyr, 
                                     haul_cruises_maxyr, 
@@ -262,7 +262,7 @@ tab_app_principal_fish_ <- function(temp,
   
   list_tables0 <- list()
   
-  nickname0 <- "tab-app-principal-fish-" 
+  nickname0 <- "tab-app-fish-" 
   cnt_tables <- 0
   
   temp0 <- report_spp1 %>% 
@@ -373,7 +373,7 @@ if (nrow(table_raw) != 0) {
 
 ## Appendix C (or B if EBS only) (EBS)
 
-```{r tab-app-principal-fish-EBS}
+```{r tab-app-fish-EBS}
 temp <- tidyr::crossing(haul_cruises_maxyr %>% 
                           dplyr::select(SRVY_long, SRVY) %>% 
                           dplyr::filter(SRVY == "EBS"), 
@@ -409,7 +409,7 @@ for (i in 1:length(list_tables0)) {
 
 ## Appendix D (NBS)
 
-```{r tab-app-principal-fish-NBS}
+```{r tab-app-fish-NBS}
 if (SRVY == "NEBS") {
   temp <- tidyr::crossing(haul_cruises_maxyr %>% 
                             dplyr::select(SRVY_long, SRVY) %>% 

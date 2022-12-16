@@ -100,6 +100,33 @@ length_maxyr0 <- length_data %>%
 
 
 
+```{r}
+# fig_dist <- fig_sizecomp <- tab_wt <- tab_no <- NA
+
+if (spp_plot_idw) {
+  fig_dist <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, ")")
+}
+
+if (spp_plot_sizecomp) {
+  fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
+} 
+
+if (spp_table_cpue) {
+  tab_wt <- paste0("\\@ref(tab:tab-est-",spp_taxon,"-", spp_file, "-wt)")
+  tab_no <- paste0("\\@ref(tab:tab-est-",spp_taxon,"-", spp_file, "-num)")
+}
+
+fig_bt <- "\\@ref(fig:fig-temperature-bt-1) and \\@ref(fig:fig-temperature-bt-2)"
+fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
+
+  if (report_title == "community") {
+    tab_majorspp_bio = c("\\@ref(tab_majortaxa_pchange)")
+  } else if (report_title == "data") {
+    tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
+    tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
+  }
+
+```
 
 
 ```{r res_spp_ebs_{{jj}}, results='asis'}
@@ -109,7 +136,7 @@ if (show) {
   if (report_title == "community") {
     tab_majorspp_bio = c("tab_majortaxa_pchange")
   } else if (report_title == "data") {
-    tab_majorspp_bio = "\\@ref(tab:tab_majortaxa_pchange_EBS)"
+    tab_majorspp_bio = tab_majorspp_bio_EBS
   }
   
 temp <- species_content(
@@ -146,7 +173,7 @@ if (show) {
     if (report_title == "community") {
     tab_majorspp_bio = c("tab_majortaxa_pchange")
   } else if (report_title == "data") {
-    tab_majorspp_bio = "\\@ref(tab:tab_majortaxa_pchange_NBS)"
+    tab_majorspp_bio = tab_majorspp_bio_NBS
   }
 temp <- species_content(
   SURVEY000 = "northern Bering Sea", 
@@ -183,8 +210,7 @@ if (show) {
   if (report_title == "community") {
     tab_majorspp_bio = c("tab_majortaxa_pchange")
   } else if (report_title == "data") {
-    tab_majorspp_bio = "\\@ref(tab:tab_majortaxa_pchange_EBS) and \\@ref(tab:tab_majortaxa_pchange_NBS)"
-
+    tab_majorspp_bio = paste0(tab_majorspp_bio_EBS, " and ", tab_majorspp_bio_NBS)
   }
 temp <- species_content(
   SURVEY000 = "eastern and northern Bering Sea",
@@ -214,35 +240,6 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 
 `r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
-```{r}
-# fig_dist <- fig_sizecomp <- tab_wt <- tab_no <- NA
-
-if (spp_plot_idw) {
-  fig_dist <- paste0("\\@ref(fig:fig-dist-",spp_taxon,"-", spp_file, ")")
-}
-
-if (spp_plot_sizecomp) {
-  fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-",spp_taxon,"-", spp_file, ")")
-} 
-
-if (spp_table_cpue) {
-  tab_wt <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-wt)")
-  tab_no <- paste0("\\@ref(tab:tab-estimates-maxyr-",spp_taxon,"-", spp_file, "-num)")
-}
-
-fig_bt <- "\\@ref(fig:fig-temperature-bt-1) and \\@ref(fig:fig-temperature-bt-2)"
-fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
-
-  if (report_title == "community") {
-    tab_majorspp_bio = c("\\@ref(tab_majortaxa_pchange)")
-  } else if (report_title == "data") {
-    tab_majorspp_bio = "\\@ref(tab:tab_majortaxa_pchange_EBS) and \\@ref(tab:tab_majortaxa_pchange_NBS)"
-    tab_majorspp_bio_EBS <- "\\@ref(tab:tab_majortaxa_pchange_EBS)"
-    tab_majorspp_bio_NBS <- "\\@ref(tab:tab_majortaxa_pchange_NBS)"
-  }
-
-```
-
 ```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
 ```
 
@@ -262,11 +259,18 @@ nickname <- paste0("fig-sizecomp-",spp_taxon,"-", spp_file)
 
 `r land_start `
 
-```{r tab-estimates-maxyr-{{jj}}}
-nickname <- paste0("tab-estimates-maxyr-",spp_taxon,"-", spp_file)
+```{r tab-est-{{jj}}-wt}
+nickname <- paste0("tab-est-",spp_taxon,"-", spp_file, "-wt")
 ```
 
-```{r tab-estimates-maxyr-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_table_cpue}
+```{r tab-est-{{jj}}-wt-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_table_cpue}
+```
+
+```{r tab-est-{{jj}}-num}
+nickname <- paste0("tab-est-",spp_taxon,"-", spp_file, "-num")
+```
+
+```{r tab-est-{{jj}}-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_table_cpue}
 ```
 
 `r land_end `

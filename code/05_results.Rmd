@@ -361,7 +361,7 @@ insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 ```
 
-A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-encountered-EBS-fish)`r ifelse(SRVY == "NEBS", " and \\@ref(tab:tab-app-taxa-encountered-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
+A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(SRVY == "NEBS", " and \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
 
 ```{r results_taxon_count}
 # count spp - invert
@@ -410,7 +410,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-encountered-EBS-invertebrate)`r ifelse(SRVY == "NEBS", " and \\@ref(tab:tab-app-taxa-encountered-NBS-invertebrate)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(SRVY == "NEBS", " and \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " taxa of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r results_dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
@@ -711,7 +711,7 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 temp <- data.frame()
 for (i in 1:nrow(haul_cruises_maxyr)) {
   
-  load(file = paste0(dir_out_figtab, "tab-estimates-maxyr-spp-wt.rdata"))
+  load(file = paste0(dir_out_figtab, "tab-est-spp-wt.rdata"))
 
   temp <- obj$raw %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>%
@@ -748,7 +748,7 @@ str0 <- text_list(paste0(
   "of total mean fish and invertebrate CPUE (an average of ",
   temp$all," kg/ha per station) and ",
   temp$top_fish," of total mean fish CPUE (an average of ",temp$fish,
-  " kg/ha per station; Table \\@ref(tab:tab-estimates-maxyr-spp-wt))."), sep = "", sep_last = "")
+  " kg/ha per station; Table \\@ref(tab:tab-est-spp-wt))."), sep = "", sep_last = "")
 
 ```
 
@@ -776,11 +776,11 @@ sep0 <- "\\pagebreak"
 
 \pagebreak
 
-```{r tab-estimates-maxyr-spp-}
-nickname <- "tab-estimates-maxyr-spp-"
+```{r tab-est-spp-}
+nickname <- "tab-est-spp-"
 ```
 
-```{r tab-estimates-maxyr-spp--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-est-spp--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 <!---BLOCK_LANDSCAPE_STOP--->
@@ -811,12 +811,13 @@ for (i in 1:nrow(temp0)) {
             paste0(
               temp0$print_name[i], 
               " (Fig. \\@ref(fig:fig-dist-",taxon0,"-",temp0$file_name[i],")",
-              ifelse(is.na(report_spp1$table_cpue[report_spp1$file_name == temp0$file_name[i]]), 
+              ifelse(is.na(report_spp1$table_cpue[report_spp1$file_name == temp0$file_name[i]])[1], 
                      ")", 
-                     paste0(" and Tables \\@ref(tab:tab-estimates-maxyr-",taxon0,"-",temp0$file_name[i],"-wt) and",
-                            " \\@ref(tab:tab-estimates-maxyr-",taxon0,"-",temp0$file_name[i],"-num))")) ) )
+                     paste0(" and Tables \\@ref(tab:tab-est-",taxon0,"-",temp0$file_name[i],"-wt) and",
+                            " \\@ref(tab:tab-est-",taxon0,"-",temp0$file_name[i],"-num))")) ) )
 }
 str0 <- text_list(temp)
+
 ```
 
 Plots of the spatial distribution and tables of CPUE (kg/hectare and no./hectare) for `r length(unique(report_spp1$file_name[report_spp1$taxon == "fish"]))` major species caught during the `r text_list(SRVY1)` continental shelf survey are presented below including `r str0`. Differences in sums of estimates and totals are due to rounding. Total abundance-at-length and mean length estimates for major fish species are also presented in the subsections below. Population estimates by sex and size class for `r length(unique(report_spp1$file_name[report_spp1$plot_sizecomp == TRUE]))` fish species.
@@ -849,8 +850,8 @@ for (i in 1:nrow(temp0)) {
               " (Fig. \\@ref(fig:fig-dist-",taxon0,"-",temp0$file_name[i],")",
               ifelse(is.na(report_spp1$table_cpue[report_spp1$file_name == temp0$file_name[i]]), 
                      ")", 
-                     paste0(" and Tables \\@ref(tab:tab-estimates-maxyr-",taxon0,"-",temp0$file_name[i],"-wt) and",
-                            " \\@ref(tab:tab-estimates-maxyr-",taxon0,"-",temp0$file_name[i],"-num))")) ) )
+                     paste0(" and Tables \\@ref(tab:tab-est-",taxon0,"-",temp0$file_name[i],"-wt) and",
+                            " \\@ref(tab:tab-est-",taxon0,"-",temp0$file_name[i],"-num))")) ) )
 }
 str0 <- text_list(temp)
 ```
@@ -883,9 +884,9 @@ temp <- temp %>%
 
 if (length(unique(temp$print_name))==1) {
   
-  load(file = paste0(dir_out_figtab, "tab-estimates-maxyr-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt.Rdata"))
+  load(file = paste0(dir_out_figtab, "tab-est-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt.Rdata"))
   
-  # temp0 <- paste0("tab-estimates-maxyr-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt")
+  # temp0 <- paste0("tab-est-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt")
   
   temp1 <- obj$raw %>% 
     dplyr::select(SRVY, stratum, meanwgtcpue) %>% 

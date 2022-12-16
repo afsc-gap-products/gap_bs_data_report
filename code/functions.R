@@ -1025,7 +1025,8 @@ species_text <- function(
                     year == maxyr) 
   
   haul_maxyr_spp <- haul0 %>% 
-    dplyr::filter(species_code %in% spp_code &
+    dplyr::filter(SRVY %in% SRVY000 &
+                    species_code %in% spp_code &
                     year == maxyr)  
   
   haul_compareyr_spp <- haul0 %>% 
@@ -1045,24 +1046,34 @@ species_text <- function(
   
   ### How many stations ----------------------------------------------------------
   
+  num_stations <- haul0 %>% 
+    dplyr::filter(SRVY %in% SRVY000 &
+                    year == maxyr) %>% 
+    dplyr::select(stationid) %>% 
+      dplyr::distinct() %>% 
+    nrow()
+  
+  num_stations_spp <- haul0 %>% 
+    dplyr::filter(SRVY %in% SRVY000 &
+                    species_code %in% spp_code &
+                    year == maxyr) %>% 
+    dplyr::select(stationid) %>% 
+    dplyr::distinct() %>% 
+    nrow()
+  
   str0$number_stations <- 
-    paste0("Out of the total number of successful hauls (",
-           length(unique(haul_maxyr0$hauljoin)), ") ",
+    paste0("Out of the total number of successful hauls (", num_stations, ") ",
            spp_print,
-           " were found during ",
-           length(unique(haul_maxyr_spp$hauljoin)),
-           " hauls (",
-           formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100, digits = 1, format = "f"),
+           " were found during ", num_stations_spp, " hauls (",
+           formatC(x = (num_stations_spp/num_stations)*100, digits = 1, format = "f"),
            "% of stations; Fig. `` `r fig_dist` ``). ") 
   
   str0$number_stations_alt <- 
     paste0("During the ", maxyr, " ", text_list(SRVY000), " survey",ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "s", ""),
            ", ", spp_print, " were present at ",
-           formatC(x = (length(unique(haul_maxyr_spp$hauljoin))/length(unique(haul_maxyr0$hauljoin)))*100,
-                   digits = 1, format = "f") ,
+           formatC(x = (num_stations_spp/num_stations)*100, digits = 1, format = "f"),
            "% of stations (",
-           length(unique(haul_maxyr_spp$hauljoin)), " of ",
-           length(unique(haul_maxyr0$hauljoin)),
+           num_stations_spp, " of ", num_stations,
            " stations; Fig. `` `r fig_dist` ``). ")
   
   ### How many stations + depth --------------------------------------------------
