@@ -2,6 +2,9 @@
 title: "`r paste0('Results of the ', maxyr, ' eastern ', ifelse(SRVY == 'NEBS', 'and northern ', '') ,'Bering Sea continental shelf bottom trawl survey of groundfish and invertebrate fauna')`"
 date: "`r paste0('DRAFT: ', format(Sys.time(), '%B %d, %Y'))`"
 output:
+  pdf_document:
+    citation_package: biblatex
+    latex_engine: xelatex
   officedown::rdocx_document: 
     pandoc_args: ["--metadata-file=header.yaml"]
     reference_docx: styles_reference.docx
@@ -16,6 +19,9 @@ bibliography: "https://raw.githubusercontent.com/afsc-gap-products/citations/mai
 
 ```{r setup, include=FALSE}
 # "https://github.com/afsc-gap-products/citations/blob/main/cite/bibliography.bib"
+    # sansfont: Arial Narrow
+    # fontsize: 11pt
+    # geometry: margin=1in
 
 knitr::opts_chunk$set(
   echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, 
@@ -41,13 +47,13 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r abstract, child = paste0(dir_code, "01_abstract.Rmd"), results='asis', eval = FALSE}
+```{r abstract, child = paste0(dir_code, "01_abstract.Rmd"), results='asis'}
 ```
 
-```{r introduction, child = paste0(dir_code, "02_introduction.Rmd"), results='asis', eval = FALSE}
+```{r introduction, child = paste0(dir_code, "02_introduction.Rmd"), results='asis'}
 ```
 
-```{r methods, child = paste0(dir_code, "04_methods.Rmd"), results='asis', eval = FALSE}
+```{r methods, child = paste0(dir_code, "04_methods.Rmd"), results='asis'}
 ```
 
 ```{r results, child = paste0(dir_code, "05_results.Rmd"), results='asis'}
@@ -66,8 +72,36 @@ res = knitr::knit_child(text = unlist(src), quiet = TRUE)
 cat(res, sep = '\n')
 ```
 
-```{r endmatter, child = paste0(dir_code, "10_endmatter.Rmd"), results='asis', eval = FALSE}
+```{r endmatter, child = paste0(dir_code, "10_endmatter.Rmd"), results='asis'}
 ```
 
-```{r appendix, child = paste0(dir_code, "09_appendix.Rmd"), results='asis', eval = FALSE}
+
+```{r setup_app, include=FALSE}
+# "https://github.com/afsc-gap-products/citations/blob/main/cite/bibliography.bib"
+
+knitr::opts_chunk$set(
+  echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, 
+  tab.cap.style = "Table Caption", 
+  tab.cap.pre = "Appendix Table", 
+  tab.cap.sep = ".-- ",
+  # tab.cap.align = "left",
+  fig.cap.style = "Image Caption",
+  fig.cap.pre = "Appendix Fig. ",
+  fig.cap.sep = ".-- ",
+  fig.align = 'center')
+# plots:
+#   caption:
+#     style: Image Caption
+#     pre: 'Fig. '
+#     sep: '-- '
+# tables:
+#   caption:
+#     style: Table Caption
+#     pre: 'Table '
+#     sep: '.-- '
+# "--lua-filter", "figure_caption_patch.lua",
+```
+
+
+```{r appendix, child = paste0(dir_code, "09_appendix.Rmd"), results='asis'}
 ```
