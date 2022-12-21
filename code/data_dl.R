@@ -78,6 +78,7 @@ sink("./data/metadata.txt")
 
 print(Sys.Date())
 
+error_loading <- c()
 for (i in 1:length(locations)){
   print(locations[i])
   if (locations[i] == "RACEBASE.HAUL") { # that way I can also extract TIME
@@ -91,6 +92,10 @@ for (i in 1:length(locations)){
   } else {
     a <- RODBC::sqlQuery(channel, paste0("SELECT * FROM ", locations[i]))
   }
+  
+  if (length(a)>1) {
+    error_loading <- c(error_loading, locations[i])
+  } else {
   write.csv(x = a, 
             paste0("./data/oracle/",
                    tolower(gsub(pattern = '\\"', 
@@ -100,7 +105,9 @@ for (i in 1:length(locations)){
                                              fixed = TRUE)[[1]][2], 
                                 perl = TRUE)),
                    ".csv"))
+    }
   remove(a)
 }
-
+error_loading
 sink()
+error_loading
