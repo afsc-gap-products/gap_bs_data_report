@@ -76,7 +76,8 @@ biomass_cpue <- biomass %>%
   dplyr::select(SRVY, year, biomass, population, meanwgtcpue, meannumcpue) %>% 
   dplyr::mutate(print_name = spp_print) %>% 
   dplyr::rename(cpue_kgha = meanwgtcpue, 
-                cpue_noha = meannumcpue)
+                cpue_noha = meannumcpue) %>% 
+  dplyr::filter((biomass !=0))
 
 # biomass_cpue <- cpue_biomass_total %>%
 #   dplyr::select("year", "print_name", "SRVY", "weighted_CPUE", "biomass_mt") %>%
@@ -90,8 +91,7 @@ biomass_cpue <- biomass %>%
 #                 cpue_kgha = varmnwgtcpue) %>% 
 #   dplyr::mutate(print_name = spp_print)
 
-length_maxyr0 <- length_data %>% 
-  ungroup() %>% 
+length_maxyr0 <- length_maxyr %>% 
   dplyr::filter(species_code %in% spp_code) %>% 
   dplyr::select(SRVY, species_code, frequency, sex, length,
                 length_type, name, sentancefrag)
@@ -160,6 +160,7 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 }
 # `r tab0`
 ```
+
 `r ifelse(show, "*REFERENCE MATERIAL FOR WRITERS - START*", "")`
 
 `r ifelse(show, "**Eastern Bering Sea (EBS)**", "")`

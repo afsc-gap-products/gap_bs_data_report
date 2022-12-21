@@ -1064,7 +1064,7 @@ species_text <- function(
   str0$number_stations <- 
     paste0("Out of the total number of successful hauls (", num_stations, ") ",
            spp_print,
-           " were found during ", num_stations_spp, " hauls (",
+           " were found during ", num_stations_spp, " haul",ifelse(num_stations_spp>1, "s", "")," (",
            formatC(x = (num_stations_spp/num_stations)*100, digits = 1, format = "f"),
            "% of stations; Fig. `` `r fig_dist` ``). ") 
   
@@ -1270,8 +1270,8 @@ species_text <- function(
   
   if (nrow(length_maxyr0) != 0) {
     
-    unit <- unique(dplyr::case_when(spp_code %in% 1:31550 ~ 'cm', 
-                                    spp_code %in% 68000:69930 ~ 'mm'), 
+    unit <- unique(dplyr::case_when(length_maxyr0$species_code[1] %in% 1:31550 ~ 'cm', 
+                                    length_maxyr0$species_code[1] %in% 68000:69930 ~ 'mm'), 
                    TRUE ~ 'NO MEASUREMENT')
     
     str0$sizecomp <- paste0(
