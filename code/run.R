@@ -131,7 +131,7 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
 rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 
-                  output_format = pdf_document, 
+                  output_format = "pdf_document", 
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 

@@ -852,7 +852,8 @@ length_data <- v_extract_final_lengths0 %>%
       region == SRVY0) %>% # Remove special project tows
   dplyr::select(-region, -abundance_haul, -haul_type, -sample_type, -cruise) %>%
   dplyr::group_by(sex, sex_code, length, year,  species_code, SRVY, taxon, length_type) %>%
-  dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) # Total for each species
+  dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) %>% # Total for each species
+  ungroup() 
 # dplyr::select(species_code, total_lengths) 
 
 
@@ -900,7 +901,8 @@ length_crab <- dplyr::bind_rows(
     length_type = dplyr::case_when( # what are other crabs?
       species_code %in% c(68580, 68590, 68560) ~ 8,  # 8 - Width of carapace 
       TRUE ~ 7 # 7 - Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
-    ) ) 
+    ) )  %>% 
+  ungroup()
 
 # Combine
 length_data <- dplyr::bind_rows(
