@@ -1037,6 +1037,9 @@ species_text <- function(
   biomass_cpue <- biomass_cpue %>% 
     dplyr::filter(SRVY %in% SRVY000)    
   
+  length_maxyr0 <- length_maxyr0 %>% 
+    dplyr::filter(SRVY %in% SRVY000)  
+  
   str0 <- list()
   
   # str_table <- paste0("Table",ifelse(length(SRVY000)>1, "s", "")," ",
@@ -1146,7 +1149,7 @@ species_text <- function(
   str0$biomass_population <-
     paste0("The estimated biomass of ",spp_print," in the ",
            ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
-           " was ",
+           " for ", maxyr, " was ",
            xunits(sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1, paste0(xunitspct(show), " of the total biomass; "), ""),
            "Tables ", text_list(c(paste0("`` `r tab_majorspp_bio_",SRVY000,"` ``"), "`` `r tab_wt` ``")), ")", 
@@ -2870,7 +2873,7 @@ plot_sizecomp <- function(sizecomp0,
                            na.value = "transparent") +
       guides(fill=guide_legend(title="")) +
       scale_y_continuous(name = paste0(spp_print, #"\n
-                                       " population",pop_unit_word), 
+                                       " population\n",pop_unit_word), 
                          breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
       scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
                          breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
