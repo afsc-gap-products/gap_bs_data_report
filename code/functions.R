@@ -1155,7 +1155,7 @@ species_text <- function(
            # "(Table ` `\\@ref(tab:tab-estimates-maxyr-{{spp_file}}-num)` `). ",
            "(Table `` `r tab_no` ``). ",
            # compare years
-           "Previously, in ",compareyr,", ",spp_print," biomass was estimated to be ",
+           "Previously in ",compareyr,", ",spp_print," biomass was estimated to be ",
            xunits(sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE), val_under_x_words = NULL), " t (",
            ifelse(show>1,
                   paste0(xunitspct((sum(biomass_cpue$biomass[biomass_cpue$year == compareyr], na.rm = TRUE)/
