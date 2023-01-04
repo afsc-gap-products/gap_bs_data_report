@@ -152,74 +152,76 @@ nickname <- "fig-cold-pool-area"
 ## Survey Data and Specimen Collections
 
 ```{r results_num_taxa}
-temp0 <- function(cols, SRVY, report_spp1) {
-  nspec <- c()
-  ntaxa <- c()
-  ntaxa0 <- c()
-  ctaxa <- c()
-  a <- report_spp1
-  a$taxon[a$taxon == "invert" & 
-            grepl(pattern = "crab", x = a$print_name)] <- "crab"
-  
-  load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.Rdata"))
-  obj_ebs <- obj
-  
-  if (SRVY == "NEBS") {
-    
-    load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.Rdata"))
-    obj_nbs <- obj
-    temp <- dplyr::bind_rows(
-      obj_ebs$raw, 
-      obj_nbs$raw)      
-  } else {
-    temp <- obj_ebs$raw      
-  }  
-  
-  for (i in 1:length(cols)){
-    col <- cols[i]
-    
-    temp <- temp[temp[,col]!=0,]
-    
-    nspec <- c(nspec, 
-               xunits(sum(temp[temp$common_name == "Total", 
-                               which(names(temp) %in% col)], 
-                          na.rm = TRUE))) # how many specimen
-    
-    ntaxa0 <- c(ntaxa0, 
-                length(unique(temp$common_name)[unique(temp$common_name) != "Total"])) # number of taxa
-    
-    ntaxa <- c(ntaxa, 
-               xunits(length(unique(temp$common_name)[unique(temp$common_name) != "Total"]))) # number of taxa
-    
-    ctaxa <- c(ctaxa,
-               text_list(unique(a$taxon[a$print_name %in% 
-                                          unique(temp$common_name)])) )
-  }
-  
-  cols <- gsub(pattern = "\n", replacement = " ", x = cols)
-  cols <- gsub(pattern = " Measurements", replacement = "s", x = cols)
-  
-  return(list("col" = tolower(cols), 
-              "nspec" = nspec, 
-              "ctaxa" = ctaxa, # kinds of taxa
-              "ntaxa0" = ntaxa0, # kinds of taxa
-              "ntaxa" = ntaxa))
-}
+# temp0 <- function(cols, SRVY, report_spp1) {
+#   nspec <- c()
+#   ntaxa <- c()
+#   ntaxa0 <- c()
+#   ctaxa <- c()
+#   a <- report_spp1
+#   a$taxon[a$taxon == "invert" & 
+#             grepl(pattern = "crab", x = a$print_name)] <- "crab"
+#   
+#   load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.Rdata"))
+#   obj_ebs <- obj
+#   
+#   if (SRVY == "NEBS") {
+#     
+#     load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.Rdata"))
+#     obj_nbs <- obj
+#     temp <- dplyr::bind_rows(
+#       obj_ebs$raw, 
+#       obj_nbs$raw)      
+#   } else {
+#     temp <- obj_ebs$raw      
+#   }  
+#   
+#   for (i in 1:length(cols)){
+#     col <- cols[i]
+#     
+#     temp <- temp[temp[,col]!=0,]
+#     
+#     nspec <- c(nspec, 
+#                xunits(sum(temp[temp$common_name == "Total", 
+#                                which(names(temp) %in% col)], 
+#                           na.rm = TRUE))) # how many specimen
+#     
+#     ntaxa0 <- c(ntaxa0, 
+#                 length(unique(temp$common_name)[unique(temp$common_name) != "Total"])) # number of taxa
+#     
+#     ntaxa <- c(ntaxa, 
+#                xunits(length(unique(temp$common_name)[unique(temp$common_name) != "Total"]))) # number of taxa
+#     
+#     ctaxa <- c(ctaxa,
+#                text_list(unique(a$taxon[a$print_name %in% 
+#                                           unique(temp$common_name)])) )
+#   }
+#   
+#   cols <- gsub(pattern = "\n", replacement = " ", x = cols)
+#   cols <- gsub(pattern = " Measurements", replacement = "s", x = cols)
+#   
+#   return(list("col" = tolower(cols), 
+#               "nspec" = nspec, 
+#               "ctaxa" = ctaxa, # kinds of taxa
+#               "ntaxa0" = ntaxa0, # kinds of taxa
+#               "ntaxa" = ntaxa))
+# }
+# 
+# 
+# load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.Rdata"))
+# cols <- names(obj$raw)
+# cols <- cols[!(cols %in% c("common_name", "SRVY"))]
+# 
+# # "", "stomachs collected"	count_pathobiology_samples	count_fecundity_and_maturity_(ovaries)_samples
+# 
+# temp <- temp0(cols, SRVY, report_spp1)
+# 
+# str0 <- paste0("A total of ", text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, " ", ifelse(temp$ntaxa0==1, "taxon", "taxa"))), ". ")
 
 
-load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.Rdata"))
-cols <- names(obj$raw)
-cols <- cols[!(cols %in% c("common_name", "SRVY"))]
-
-# "", "stomachs collected"	count_pathobiology_samples	count_fecundity_and_maturity_(ovaries)_samples
-
-temp <- temp0(cols, SRVY, report_spp1)
-
-str0 <- paste0("A total of ", text_list(sep="; ", paste0(temp$nspec, " ", temp$col, " were collected from ", temp$ntaxa, " ", temp$ctaxa, " ", ifelse(temp$ntaxa0==1, "taxon", "taxa"))), ". ")
-
+ # `r str0`
 ```
 
-Specimens collected during the `r text_list(SRVY1)` shelf trawl survey are shown in Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(fig:tab-specimen-samples-ebs) and \@ref(fig:tab-specimen-samples-nbs). `r str0` Other special collections are listed in Table \@ref(tab:tab-special-projects).
+Specimens collected during the `r maxyr` `r text_list(SRVY1)` shelf trawl survey are shown in Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(fig:tab-specimen-samples-ebs) and \@ref(fig:tab-specimen-samples-nbs). Other special collections are listed in Table \@ref(tab:tab-special-projects).
 
 ```{r tab-specimen-samples-}
 nickname <- "tab-specimen-samples-"
@@ -503,7 +505,7 @@ if (SRVY == "NEBS") {
                  paste0(ifelse(temp1$prop[temp1$SRVY=="EBS"]>temp1$prop[temp1$SRVY=="NBS"], 
                                "The lower relative fish biomass in the NBS than in the EBS is consistent", 
                                "The higher relative fish biomass in the NBS than in the EBS is inconsistent"), 
-                        " with results of a broader analysis of all survey years in @RN936 showing decreasing fish biomass with increasing latitude on the Bering Sea continental shelf (Tables \\@ref(tab:tab-biomass-est-fish-EBS) and \\@ref(tab:tab-biomass-est-fish-NBS)). This trend may change over time with warming ocean temperatures.", 
+                        " with results of a broader analysis of all survey years presented by @RN936 which showed decreasing fish biomass with increasing latitude on the Bering Sea continental shelf. ", 
                         "") ) 
 }
 
