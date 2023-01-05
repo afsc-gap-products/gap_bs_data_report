@@ -416,7 +416,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(SRVY == "NEBS", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " invertebrate taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level", c(",", "")))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(SRVY == "NEBS", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " invertebrate taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"), sep_last2 = "; ")`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r results_dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
@@ -606,7 +606,7 @@ if (SRVY == "NEBS") {
     }
   }
   
-  temp0$group0 <- paste0(" the family ", temp0$group0)
+  temp0$group0 <- paste0("the family ", temp0$group0)
   
   temp0$str0 <- gsub(pattern = "*NA*, ", replacement = "", x = temp0$str0, fixed = TRUE)
   temp0$str0 <- gsub(pattern = "  ", replacement = " ", x = temp0$str0, fixed = TRUE)
@@ -616,12 +616,9 @@ if (SRVY == "NEBS") {
     temp4 <- text_list(paste0(
       temp0$group0[temp0$SRVY == SRVY1[i]], 
       " was primarily comprised of ", 
-      temp0$str0[temp0$SRVY == SRVY1[i]]), sep_last = "")
+      temp0$str0[temp0$SRVY == SRVY1[i]]), sep_last2 = "; ")
     temp3 <- paste0(temp3, 
-                    paste0("In the ", SRVY1[i], ", ", 
-                           substr(temp4, start = 1, stop = (nchar(temp4)-1)), # get rid of last ")" 
-                           "). "))
-                           # "; Tables \\@ref(tab:tab-biomass-est-fish-EBS) and \\@ref(tab:tab-biomass-est-fish-NBS)). "))
+                    paste0("In the ", SRVY1[i], ", ", temp4, ". "))
   }
   
   str0 <- paste0(
@@ -712,7 +709,7 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 ```
 
-`r str0`While all efforts are made at standardizing catch processing over time, some inconsistencies may exist between years, vessels, and crews, which may affect the interpretation of these differences.
+`r str0`While all efforts are made at standardizing catch processing over time, some inconsistencies may exist between years, vessels, and crews which may affect the interpretation of these differences.
 
 ```{r results_top_10_taxon}
 temp <- data.frame()
@@ -745,8 +742,6 @@ temp <- biomass %>%
                 top_fish = paste0(round(x = (topfish/fish)*100, digits = 0), "%"), 
                 top_all = paste0(round(x = (topfish/(all))*100, digits = 0), "%"), 
                 dplyr::across(where(is.numeric), formatC, digits = 0, big.mark = ",", format = "f"))
-# temp[,1:4]<-mod_number(x = temp[,1:4], comma_seperator = T, digits = 0)
-# temp[,2:5] <- format(temp[,2:5], digits = 0, trim = F, big.mark = ",", scientific = F)
 
 str0 <- text_list(paste0(
   "The top 10 fish taxa in the ",temp$SRVY,
@@ -755,7 +750,7 @@ str0 <- text_list(paste0(
   "of total mean fish and invertebrate CPUE (an average of ",
   temp$all," kg/ha per station) and ",
   temp$top_fish," of total mean fish CPUE (an average of ",temp$fish,
-  " kg/ha per station; Table \\@ref(tab:tab-est-spp-wt))."), sep = "", sep_last = "")
+  " kg/ha per station; Tables \\@ref(tab:tab-est-spp-wt) and \\@ref(tab:tab-est-spp-num))."), sep = "", sep_last = "")
 
 ```
 

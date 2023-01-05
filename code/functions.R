@@ -232,9 +232,9 @@ pchange<-function(start, end,
 #'
 #' @param x A numeric vector of any length. Any duplicates will be removed.
 #' @param dash A string that will go between consecutive values in the string output.
-#' @param oxford Default = TRUE. Will only be used if the vector x provided is not continuous. Inherited from text_list().
 #' @param sep Default = ", ". Will only be used if the vector x provided is not continuous. Inherited from text_list().
 #' @param sep_last Default = "and ". Will only be used if the vector x provided is not continuous. Inherited from text_list().
+#' @param sep_last2 Default = "and ". Will only be used if the vector x provided is not continuous. Inherited from text_list().
 #'
 #' @return A string with the range of those values as might be included in a sentence ("1-3, 5, and 7-8").
 #' @export
@@ -243,14 +243,14 @@ pchange<-function(start, end,
 #' # a typical example
 #' x <- c(2003:2005, 2007, 2010:2012)
 #' range_text(x)
-#' # example has duplicate values out of order and specifies for a different dash and no oxford comma
+#' # example has duplicate values out of order and specifies for a different dash
 #' x <- c(1,2,11,3,4,7,NA,8,3)
-#' range_text(x, dash = "--", oxford = FALSE)
+#' range_text(x, dash = "--")
 range_text <- function(x,
                        dash = "-",
-                       oxford = TRUE,
                        sep = ", ",
-                       sep_last = "and ") {
+                       sep_last2 = " and ",
+                       sep_last = ", and ") {
   x <- x[!(is.na(x))]
   x <- x[!duplicated(x)]
   x <- sort(x)
@@ -279,9 +279,9 @@ range_text <- function(x,
       }
     }
     str <- text_list(x = str,
-                                  oxford = oxford,
-                                  sep = sep,
-                                  sep_last = sep_last)
+                     sep = sep,
+                     sep_last2 = sep_last2, 
+                     sep_last = sep_last)
   } else {
     str <- paste0(min(x),dash,max(x))
   }
@@ -390,57 +390,57 @@ numbers2words <- function(x){
   # Function by John Fox found here: http://tolstoy.newcastle.edu.au/R/help/05/04/2715.html and https://github.com/ateucher/useful_code/blob/master/R/numbers2words.r
   out <- c()
   for (ii in 1:length(x)) {
-  if(x==0){
-    print( "zero")
-  } else{
-    helper <- function(x){
-      
-      digits <- rev(strsplit(as.character(x), "")[[1]])
-      nDigits <- length(digits)
-      if (nDigits == 1) as.vector(ones[digits])
-      else if (nDigits == 2)
-        if (x <= 19) as.vector(teens[digits[1]])
-      else trim(paste(tens[digits[2]],
-                      Recall(as.numeric(digits[1]))))
-      else if (nDigits == 3) trim(paste(ones[digits[3]], "hundred and",
-                                        Recall(makeNumber(digits[2:1]))))
-      else {
-        nSuffix <- ((nDigits + 2) %/% 3) - 1
-        if (nSuffix > length(suffixes)) stop(paste(x, "is too large!"))
-        trim(paste(Recall(makeNumber(digits[
-          nDigits:(3*nSuffix + 1)])),
-          suffixes[nSuffix],"," ,
-          Recall(makeNumber(digits[(3*nSuffix):1]))))
+    if(x==0){
+      print( "zero")
+    } else{
+      helper <- function(x){
+        
+        digits <- rev(strsplit(as.character(x), "")[[1]])
+        nDigits <- length(digits)
+        if (nDigits == 1) as.vector(ones[digits])
+        else if (nDigits == 2)
+          if (x <= 19) as.vector(teens[digits[1]])
+        else trim(paste(tens[digits[2]],
+                        Recall(as.numeric(digits[1]))))
+        else if (nDigits == 3) trim(paste(ones[digits[3]], "hundred and",
+                                          Recall(makeNumber(digits[2:1]))))
+        else {
+          nSuffix <- ((nDigits + 2) %/% 3) - 1
+          if (nSuffix > length(suffixes)) stop(paste(x, "is too large!"))
+          trim(paste(Recall(makeNumber(digits[
+            nDigits:(3*nSuffix + 1)])),
+            suffixes[nSuffix],"," ,
+            Recall(makeNumber(digits[(3*nSuffix):1]))))
+        }
       }
+      trim <- function(text){
+        #Tidy leading/trailing whitespace, space before comma
+        text=gsub("^\ ", "", gsub("\ *$", "", gsub("\ ,",",",text)))
+        #Clear any trailing " and"
+        text=gsub(" and$","",text)
+        #Clear any trailing comma
+        gsub("\ *,$","",text)
+      }
+      makeNumber <- function(...) as.numeric(paste(..., collapse=""))
+      #Disable scientific notation
+      opts <- options(scipen=100)
+      on.exit(options(opts))
+      ones <- c("", "one", "two", "three", "four", "five", "six", "seven",
+                "eight", "nine")
+      names(ones) <- 0:9
+      teens <- c("ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+                 "sixteen", " seventeen", "eighteen", "nineteen")
+      names(teens) <- 0:9
+      tens <- c("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty",
+                "ninety")
+      names(tens) <- 2:9
+      x <- round(x)
+      suffixes <- c("thousand", "million", "billion", "trillion")
+      if (length(x) > 1) return(trim(sapply(x, helper)))
+      
+      
+      out <- c(out, helper(x))
     }
-    trim <- function(text){
-      #Tidy leading/trailing whitespace, space before comma
-      text=gsub("^\ ", "", gsub("\ *$", "", gsub("\ ,",",",text)))
-      #Clear any trailing " and"
-      text=gsub(" and$","",text)
-      #Clear any trailing comma
-      gsub("\ *,$","",text)
-    }
-    makeNumber <- function(...) as.numeric(paste(..., collapse=""))
-    #Disable scientific notation
-    opts <- options(scipen=100)
-    on.exit(options(opts))
-    ones <- c("", "one", "two", "three", "four", "five", "six", "seven",
-              "eight", "nine")
-    names(ones) <- 0:9
-    teens <- c("ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
-               "sixteen", " seventeen", "eighteen", "nineteen")
-    names(teens) <- 0:9
-    tens <- c("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty",
-              "ninety")
-    names(tens) <- 2:9
-    x <- round(x)
-    suffixes <- c("thousand", "million", "billion", "trillion")
-    if (length(x) > 1) return(trim(sapply(x, helper)))
-    
-    
-    out <- c(out, helper(x))
-  }
   }
   return(out)
 }
@@ -1053,7 +1053,7 @@ species_text <- function(
     dplyr::filter(SRVY %in% SRVY000 &
                     year == maxyr) %>% 
     dplyr::select(stationid) %>% 
-      dplyr::distinct() %>% 
+    dplyr::distinct() %>% 
     nrow()
   
   num_stations_spp <- haul0 %>% 
@@ -1145,7 +1145,7 @@ species_text <- function(
   
   show <- sum(biomass_cpue$biomass[biomass_cpue$year == maxyr], na.rm = TRUE)/
     total_biomass0$biomass[total_biomass0$year == maxyr]*100
-
+  
   str0$biomass_population <-
     paste0("The estimated biomass of ",spp_print," in the ",
            ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
@@ -1264,7 +1264,7 @@ species_text <- function(
   #                         paste0(" (\\*",temp$species_name[temp$year == compareyr],"\\*)")))), 
   #                 " were caught (Fig. `` `r fig_dist` ``). ")
   # }
-
+  
   
   ## Size Comp -------------------------------------------------------------------
   
@@ -1614,8 +1614,8 @@ add_report_spp <- function(spp_info,
 #'
 #' This function alows you to take a string of words and combine them into a sentance list. For example, 'apples', 'oranges', 'pears' would become 'apples, oranges, and pears'. This function uses oxford commas.
 #' @param x Character strings you want in your string.
-#' @param oxford T/F: would you like to use an oxford comma? Default = TRUE
 #' @param sep string. default = ", " but "; " or " " might be what you need!
+#' @param sep_last2 string. default = " and " but " & " or " , " might be what you need!
 #' @param sep_last string. default = " and " but " & " or " , " might be what you need!
 #' @keywords strings
 #' @export
@@ -1626,19 +1626,20 @@ add_report_spp <- function(spp_info,
 #' paste0("here is a list of things: ",
 #'   text_list(paste0("list", 1:5), sep = " ", sep_last = ""))
 text_list<-function(x = "",
-                    oxford = TRUE,
-                    sep = ", ",
-                    sep_last = "and ") {
+                    # oxford = TRUE,
+                    sep = ", ", 
+                    sep_last2 = " and ", 
+                    sep_last = ", and ") {
   x<-x[which(x!="")]
   # x<-x[which(!is.null(x))]
   x<-x[which(!is.na(x))]
   # x<-x[order(x)]
   if (length(x)==2) {
-    str1<-paste(x, collapse = paste0(" ", sep_last))
+    str1<-paste(x, collapse = paste0(sep_last2))
   } else if (length(x)>2) {
     str1<-paste(x[1:(length(x)-1)], collapse = paste0(sep))
     str1<-paste0(str1,
-                 ifelse(oxford == TRUE, sep, " "),
+                 # sep, 
                  sep_last, x[length(x)])
   } else {
     str1<-x
@@ -2134,7 +2135,7 @@ plot_idw_facet <- function(
                               key.title = key.title,
                               use.survey.bathymetry = FALSE, 
                               return.continuous.grid = (grid == "continuous.grid"))
-
+        
         temp0 <- data.frame(temp1$extrapolation.grid)
       }
       
@@ -2149,8 +2150,8 @@ plot_idw_facet <- function(
             data.frame() %>% 
             dplyr::select(x, y, var1.pred, SURVEY), 
           by = c("x", "y", "SURVEY")) %>% 
-            dplyr::mutate(year = yrs[[ii]])
-        )
+          dplyr::mutate(year = yrs[[ii]])
+      )
       
       extrap.grid <- dplyr::bind_rows(
         extrap.grid, 
@@ -2223,7 +2224,7 @@ plot_idw_facet <- function(
         # limits = range(dat_pred$var1.pred, na.rm = TRUE),
         na.translate = FALSE, # Don't use NA
         drop = FALSE) #+ # Keep all levels in the plot
-      # ggplot2::facet_wrap(. ~ year)
+    # ggplot2::facet_wrap(. ~ year)
     
   } else if (grid == "extrapolation.grid") {
     # temp <- factor(x = temp0$var1.pred, levels = levels(temp0$var1.pred), labels = levels(temp0$var1.pred), ordered = T)
@@ -2367,8 +2368,8 @@ plot_idw_facet <- function(
         order = 2, 
         label.position = "right",
         override.aes = list(#lwd = 10, 
-                            fill = reg_dat$survey.area$color, 
-                            color = reg_dat$survey.area$color), 
+          fill = reg_dat$survey.area$color, 
+          color = reg_dat$survey.area$color), 
         title.hjust = 0.5,
         nrow = 2)) 
   
@@ -2417,16 +2418,16 @@ plot_idw_facet <- function(
 #' @param viridi_palette_option Viridis palette option passed to viridis::viridis_pal(). Default = "H" (turbo)
 #' @export
 plot_temperature_facet <- function(rasterbrick, 
-                             key.title = "Temperature (°C)", 
-                             reg_dat, 
-                             colorbar_breaks = c(-Inf, seq(from = 0, to = 8, by = 2), Inf),
-                             dist_unit = "nm", # nautical miles
-                             viridis_palette_option = "B", 
-                             row0 = 2, 
-                             title0 = NULL, 
-                             legend_seperate = FALSE, 
-                             use_col_name = NULL, 
-                             temperature_zscore = NULL) {
+                                   key.title = "Temperature (°C)", 
+                                   reg_dat, 
+                                   colorbar_breaks = c(-Inf, seq(from = 0, to = 8, by = 2), Inf),
+                                   dist_unit = "nm", # nautical miles
+                                   viridis_palette_option = "B", 
+                                   row0 = 2, 
+                                   title0 = NULL, 
+                                   legend_seperate = FALSE, 
+                                   use_col_name = NULL, 
+                                   temperature_zscore = NULL) {
   
   temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
   temp_spdf <- as(temp, "SpatialPixelsDataFrame")
@@ -2476,7 +2477,7 @@ plot_temperature_facet <- function(rasterbrick,
                                drop = FALSE, 
                                na.translate = FALSE) +
     ggplot2::geom_sf(data = reg_dat$survey.area,
-                    color = "grey50",
+                     color = "grey50",
                      fill = NA,
                      size = rel(0.2)) + 
     ggplot2::scale_y_continuous(name = "", #"Latitude", 
@@ -2546,17 +2547,17 @@ plot_temperature_facet <- function(rasterbrick,
   }
   
   # figure <- figure +
-    # ggsn::scalebar(
-    #   # facet.var = 'temp_df$year', 
-    #   # facet.lev = max(temp_df$year),
-    #   data = reg_dat$survey.grid,
-    #   location = "bottomleft",
-    #   dist = 100,
-    #   dist_unit = dist_unit,
-    #   transform = FALSE,
-    #   # st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
-    #   # height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
-    #   # st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+  # ggsn::scalebar(
+  #   # facet.var = 'temp_df$year', 
+  #   # facet.lev = max(temp_df$year),
+  #   data = reg_dat$survey.grid,
+  #   location = "bottomleft",
+  #   dist = 100,
+  #   dist_unit = dist_unit,
+  #   transform = FALSE,
+  #   # st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
+  #   # height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
+  #   # st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
   #   # st.size = ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
   #   st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
   #                              row0 == 2 ~ 0.06, 
@@ -3528,10 +3529,10 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
   # ggplot(table_raw, aes(x=x,ymax=ymax,ymin=ymin, fill=z)) + geom_ribbon()
   
   figure <- ggplot2::ggplot(data = table_raw, 
-                   mapping = aes(x = year,
-                                 ymax = ymax, 
-                                 ymin = ymin, 
-                                 fill = variable)) + 
+                            mapping = aes(x = year,
+                                          ymax = ymax, 
+                                          ymin = ymin, 
+                                          fill = variable)) + 
     geom_ribbon() + 
     scale_fill_manual(name = "Temperature", 
                       values = viridis::inferno(4, direction = -1, begin = 0.2, end = .8)) +  
