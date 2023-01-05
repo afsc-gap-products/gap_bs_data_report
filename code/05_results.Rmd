@@ -620,7 +620,8 @@ if (SRVY == "NEBS") {
     temp3 <- paste0(temp3, 
                     paste0("In the ", SRVY1[i], ", ", 
                            substr(temp4, start = 1, stop = (nchar(temp4)-1)), # get rid of last ")" 
-                           "; Tables \\@ref(tab:tab-biomass-est-fish-EBS) and \\@ref(tab:tab-biomass-est-fish-NBS)). "))
+                           "). "))
+                           # "; Tables \\@ref(tab:tab-biomass-est-fish-EBS) and \\@ref(tab:tab-biomass-est-fish-NBS)). "))
   }
   
   str0 <- paste0(
@@ -641,7 +642,7 @@ if (SRVY == "NEBS") {
 
 ```{r results_benthic_community}
 
-str0 <- paste0("Noticeable changes were observed in",ifelse(SRVY == "NEBS", " both", ""), " the ", text_list(SRVY1)," the benthic communities between ",
+str0 <- paste0("Noticeable changes were observed in",ifelse(SRVY == "NEBS", " both", ""), " ", text_list(SRVY1)," the benthic communities between ",
                compareyr," and ", maxyr,". ")
 
 for (i in 1:length(SRVY1)) {
@@ -692,13 +693,13 @@ for (i in 1:length(SRVY1)) {
                  xunits(temp1$maxyr)," t in ", maxyr, ". ", 
                  
                  # taxa increased
-                 "Taxa that significantly increased in biomass included ", 
+                 "Taxa that significantly increased in biomass in the ", SRVY1[i], " included ", 
                  text_list(paste0(temp$print_name[temp$case == "increased"],
                                   " (", formatC(x = temp$change[temp$case == "increased"], 
                                                 digits = 0, format = "f", big.mark = ","), "%)")), 
                  " (Table \\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). ",
                  # taxa decreased
-                 "Large decreases in biomass were observed for ", 
+                 "Large decreases in ", SRVY1[i], " biomass were observed for ", 
                  text_list(paste0(temp$print_name[temp$case == "decreased"],
                                   " (", formatC(x = temp$change[temp$case == "decreased"], 
                                                 digits = 0, format = "f", big.mark = ","), "%)")), 
@@ -711,7 +712,7 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 ```
 
-`r str0`While all efforts are made at standardizing catch processing over time, some inconsistencies may exist between years, vessels, and crews which may affect the interpretation of these differences.
+`r str0`While all efforts are made at standardizing catch processing over time, some inconsistencies may exist between years, vessels, and crews, which may affect the interpretation of these differences.
 
 ```{r results_top_10_taxon}
 temp <- data.frame()
