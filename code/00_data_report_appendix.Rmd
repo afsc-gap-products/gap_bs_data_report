@@ -1,0 +1,151 @@
+---
+title: "`r paste0('Results of the ', maxyr, ' eastern ', ifelse(SRVY == 'NEBS', 'and northern ', '') ,'Bering Sea continental shelf bottom trawl survey of groundfish and invertebrate fauna')`"
+date: "`r paste0('DRAFT: ', format(Sys.time(), '%B %d, %Y'))`"
+output:
+  pdf_document:
+    citation_package: biblatex
+    latex_engine: xelatex
+  officedown::rdocx_document: 
+    reference_docx: styles_reference.docx   
+csl: "https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl"
+bibliography: "https://raw.githubusercontent.com/afsc-gap-products/citations/main/cite/bibliography.bib"
+link-citations: true
+keywords:
+  - Bering Sea
+  - Alaska
+  - fisheries
+  - NOAA
+  - groundfish
+---
+
+```{r, include=FALSE}
+# "https://github.com/afsc-gap-products/citations/blob/main/cite/bibliography.bib"
+
+knitr::opts_chunk$set(
+  echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, 
+  tab.cap.style = "Table Caption", 
+  tab.cap.pre = paste0("Appendix Table ", abcd), 
+  tab.cap.sep = ".-- ",
+  # tab.cap.align = "left",
+  fig.cap.style = "Image Caption",
+  fig.cap.pre = paste0("Appendix Figure ", abcd, " "),
+  fig.cap.sep = ".-- ",
+  fig.align = 'center')
+```
+
+# Appendices
+
+```{r}
+list_app <- function(nickname, dir_out_figtab, abcd, srvy, descr_short, descr_frag) {
+  
+  a <- list.files(path = dir_out_figtab, 
+                  pattern = nickname, 
+                  full.names = FALSE)
+  
+  nickname0 <- gsub(pattern = ".rdata",  
+                    replacement = "", 
+                    x = a[grepl(pattern = ".rdata", x = a)], 
+                    ignore.case = TRUE)
+  
+  captions <- data.frame()
+  for (i in 1:length(nickname0)) {
+    a <- readtext(paste0(dir_out_figtab, nickname0[i], ".txt"))
+    captions <- dplyr::bind_rows(
+      captions, 
+      data.frame(
+        "id" = nickname0[i], 
+        "capt" = a$text))
+  }
+    # # (APPENDIX) Appendix {-}
+    str0 <- paste0(
+    ifelse(abcd == "A", 
+'
+
+', 
+'\\pagebreak
+
+'),
+
+'## Appendix ',abcd,': List of ', descr_short,'
+
+Appendix ',abcd, " ", descr_frag, '
+
+**List of Tables**
+
+',
+text_list(paste0("\n\n - Appendix **", abcd, "** \\@ref(tab:", captions$id, "): ", captions$capt),
+                 # sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")], "[[","header")), 
+          oxford = FALSE, sep = " ", sep_last = " "),
+'
+
+\\pagebreak
+
+' )
+    
+    return(str0)
+}
+
+# https://support.authorea.com/en-us/article/how-to-create-an-appendix-section-or-supplementary-information-1g25i5a/
+# Appendices {-}
+
+str0 <- ""
+
+```
+
+```{r tab-app-taxa-found-EBS, eval = (abcd == "A")}
+nickname <- "tab-app-taxa-found-EBS"
+str0 <- list_app(nickname = nickname, 
+                 dir_out_figtab = dir_out_figtab, 
+                 abcd = abcd, 
+                 descr_short = "taxa encountered in the eastern Bering Sea", 
+                 descr_frag = paste0("lists all fish and invertebrate taxa taken during the AFSC’s eastern Bering Sea bottom trawl survey."))
+```
+
+```{r tab-app-taxa-found-NBS, eval = (abcd == "B" & SRVY == "NEBS")}
+nickname <- "tab-app-taxa-found-NBS"
+str0 <- list_app(nickname = nickname, 
+                 dir_out_figtab = dir_out_figtab, 
+                 abcd = abcd, 
+                 descr_short = "taxa encountered in the northern Bering Sea", 
+                 descr_frag = paste0("lists all fish and invertebrate taxa taken during the AFSC’s northern Bering Sea bottom trawl survey."))
+```
+
+```{r tab-app-fish-EBS-, eval = (abcd == "C" & SRVY == "NEBS" | abcd == "B" & SRVY == "EBS")}
+nickname <- "tab-app-fish-EBS-"
+str0 <- list_app(nickname = nickname, 
+                 dir_out_figtab = dir_out_figtab, 
+                 abcd = abcd, 
+                 descr_short = "population estimates by sex and size group for principal fish species in the eastern Bering Sea", 
+                 descr_frag = paste0("presents population estimates by sex and size group from the ", 
+                                     maxyr,
+                                     " eastern Bering Sea bottom trawl survey for principal fish species."))
+```
+
+```{r tab-app-fish-NBS-, eval = (abcd == "D" & SRVY == "NEBS")}
+nickname <- "tab-app-fish-NBS-"
+str0 <- list_app(nickname = nickname, 
+                 dir_out_figtab = dir_out_figtab, 
+                 abcd = abcd, 
+                 descr_short = "population estimates by sex and size group for principal fish species in the northern Bering Sea", 
+                 descr_frag = paste0("presents population estimates by sex and size group from the ", 
+                                     maxyr,
+                                     " northern Bering Sea bottom trawl survey for principal fish species."))
+```
+
+`r str0 `
+
+```{r tab-special-projects-EBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (abcd == "A")}
+```
+
+
+```{r tab-special-projects-NBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (abcd == "B" & SRVY == "NEBS")}
+```
+
+
+```{r tab-app-fish-EBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (abcd == "C" & SRVY == "NEBS" | abcd == "B" & SRVY == "EBS")}
+```
+
+
+```{r tab-app-fish-NBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (abcd == "D" & SRVY == "NEBS")}
+```
+

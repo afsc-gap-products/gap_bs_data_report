@@ -316,13 +316,17 @@ if (SRVY == "NEBS") {
                      by = c("species_code"))
   
   insert <- paste0( 
-    "Of the fish species found in the EBS, ",
+    "Of the ", 
+    xunits(nrow(temp[temp$SRVY == "EBS",])),
+    " fish species found in the EBS, ",
     xunits(nrow(temp3[temp3$where == 
                         "Present in EBS but absent in NBS",])), 
     " did not occur in the NBS (Table \\@ref(tab:tab-species-composition)). In comparison, ",
+    xunits(nrow(temp[temp$SRVY == "NBS",])),
+    " of the ",
     xunits(nrow(temp3[temp3$where == 
-                        "Present in the NBS but absent in EBS",])), 
-    " species present in the NBS were absent in EBS (Table \\@ref(tab:tab-species-composition)). ")
+                        "Present in NBS but absent in EBS",])), 
+    " fish species present in the NBS were absent in EBS (Table \\@ref(tab:tab-species-composition)). ")
   
   # flatfish
   temp4 <- temp3[temp3$order_taxon %in% c("Pleuronectiformes"), ]
@@ -412,7 +416,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(SRVY == "NEBS", " and \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " invertebrate taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(SRVY == "NEBS", " and \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " invertebrate taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level", c(",", "")))`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r results_dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.

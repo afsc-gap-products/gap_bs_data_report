@@ -25,7 +25,7 @@
 # *** Report knowns ------------------------------------------------------------
 
 report_title <- "data" 
-refcontent <- TRUE # produce extra summary text and tables for each spp to help with writing
+refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 googledrive_dl <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
@@ -125,6 +125,15 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+
+for (abcd in LETTERS[1:(ifelse(SRVY == "NEBS", 4, 2))]) {
+
+  rmarkdown::render(input = paste0(dir_code, "00_data_report_appendix.Rmd"), 
+                  output_format = "officedown::rdocx_document", 
+                  output_dir = dir_out_chapters, 
+                  output_file = paste0("00_data_report_app_", abcd, ".docx"))
+}
+
 
 # rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 
 #                   output_format = "pdf_document", 

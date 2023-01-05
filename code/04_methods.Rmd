@@ -100,10 +100,10 @@ if (sum(!is.na(temp$vessel)) == nrow(temp)) {
   str0 <- paste0(str0, 
                 "In the ",unique(temp$SRVY)[i],
                 ", the net mensuration system failed to record data for ", 
-                text_list(paste0(xunits(temp0$N), " tow on the ", temp0$vessel_ital)), ". ")
+                text_list(paste0(xunits(temp0$N), " tow", ifelse(temp0$N>1, "s", "")," on the ", temp0$vessel_ital)), ". ")
   }
   
-  str0 <- paste0(str0, "To estimate missing net width values, the mgcv package in R [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows following the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), $s$ is the scope, and $\\epsilon$ represents the modeled error.
+  str0 <- paste0(str0, "To estimate missing net width values, the *mgcv* R package [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows following the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), $s$ is the scope, and $\\epsilon$ represents the modeled error.
 
 $$ w \\sim {s}^{-1} + h + \\frac{h}{s} + \\epsilon $$
 
@@ -188,7 +188,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
                      end_date_haul = as.Date(max(end_date_haul), 
                                              format = "%m/%d/%Y")) 
   
-  temp <- "" # paste0("of the ", srvy, ", which ")
+  temp <- "" 
   
   if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
       length(unique(cruises_maxyr0$end_date_haul)) != 1) { 
@@ -197,23 +197,18 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
                    text_list(paste0("the ", cruises_maxyr0$vessel_ital, 
                                     " started sampling on ", 
                                     date_formatter(cruises_maxyr0$start_date_haul), 
-                                    # format((cruises_maxyr0$start_date_haul), format = date_format), 
-                                    " and ended on ", 
+                                    ". Sampling ended on ", 
                                     date_formatter(cruises_maxyr0$end_date_haul)
-                                    # format((cruises_maxyr0$end_date_haul), format = date_format)
                                     )) )
-    # temp<-gsub(pattern = "and ,", replacement = "and,", x = temp)
-    
+
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
              length(unique(cruises_maxyr0$end_date_haul)) == 1) { 
     # 2. vessels started and ended on the same dates
     temp <- paste0(temp, 
                    text_list(cruises_maxyr0$vessel_ital), 
-                   # ifelse(length(unique(vessel_info0$vessel)) == 1, 
-                   #        "the vessel", "both vessels"), 
                    " started sampling on ",
                    date_formatter(unique(cruises_maxyr0$start_date_haul)), 
-                   " and ended sampling on ", 
+                   ". Sampling ended on ", 
                      date_formatter(unique(cruises_maxyr0$end_date_haul)) )
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
@@ -224,7 +219,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
                           "the vessel", "both vessels"), 
                    " on ",
                    date_formatter(unique(cruises_maxyr0$start_date_haul)), 
-                   " and ended ",
+                   ". Sampling ended ",
                    text_list(paste0("on ", 
                    date_formatter(unique(cruises_maxyr0$end_date_haul)), 
                    " for the ", cruises_maxyr0$vessel_ital) ))
@@ -236,7 +231,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
                    text_list(paste0("on ", 
                    date_formatter(unique(cruises_maxyr0$start_date_haul)), 
                                                  " for the ", cruises_maxyr0$vessel_ital) ), 
-                   " and ended for ", 
+                   ". Sampling ended for ", 
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
                           "the vessel", "both vessels"), 
                    " on ",
@@ -296,7 +291,7 @@ if (SRVY == "NEBS") {
     ". After the NBS survey was completed, both vessels returned to Dutch Harbor. The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-sampled-survey-stations)). Sampling density was ", 
     # Sampling density was 1,367 km2 /station for Stratum 70, 1,475 km2 /station for Stratum 71, 1,370 km2 /station for Stratum 81, 
     text_list(paste0(xunits(temp$density), " km^2^/station for stratum ", temp$stratum)), 
-    " and ", xunits(temp_tot$density), " km^2^/station for the total NBS (Table \\@ref(tab:tab-stratum-areas)).")
+    ". Overall sampling density for the NBS survey area was ", xunits(temp_tot$density), " km^2^/station (Table \\@ref(tab:tab-stratum-areas)).")
   
 }
 
@@ -325,7 +320,7 @@ All commercial crab species were weighed and enumerated from each catch. Other s
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme-EBS.Rdata")) # creates object called 'obj'
 ```
 
-Length measurements were obtained from a random subsample of select fish species from every haul (Table`r ifelse(SRVY == "NEBS", "s", "")` \@ref(tab:tab-oto-collection-scheme-EBS) and \@ref(tab:tab-oto-collection-scheme-NBS)). `r ifelse(sum(obj$raw$oto_samp_type %in% "random-by-haul")>0, paste0("The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of ", ifelse(maxyr>2021, "100", "300"), " specimens. "), "")`For each fish in a length subsample, sex was determined and then the fork length or total length (depending on the species) was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture`r ifelse(maxyr > 2020, "", " and 50% were randomly selected to receive a preopercle tag")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
+Length measurements were obtained from a random subsample of select fish species from every haul. `r ifelse(sum(obj$raw$oto_samp_type %in% "random-by-haul")>0, paste0("The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of ", ifelse(maxyr>2021, "100", "300"), " specimens. "), "")`For each fish in a length subsample, sex was determined and then the fork length or total length (depending on the species) was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture`r ifelse(maxyr > 2020, "", " and 50% were randomly selected to receive a preopercle tag")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
 
 ```{r methods_collection_scheme}
 # wrong in 2021 because includes artic and saffron cod, which were special projects
@@ -398,7 +393,7 @@ if (SRVY == "NEBS") {
 
 ```
 
-Sagittal otoliths were collected from `r str0 ` (Tables \@ref(tab:tab-oto-collection-scheme-EBS) and \@ref(tab:tab-oto-collection-scheme-NBS)). Otolith samples were collected following `r str2 ` (Table \@ref(tab:tab-oto-collection-scheme-EBS) and \@ref(tab:tab-oto-collection-scheme-NBS)). Otoliths were preserved in a glycerol-thymol solution and then later shipped to the Age and Growth Program of the AFSC’s Resource Ecology and Fisheries Management (REFM) division for age determination. Individual fish weights and lengths were collected for each fish from which age structures were taken. For walleye pollock, age structure sampling effort was further divided into low-density and high-density regions based on historical population densities and an isobath of approximately 70 m.  
+Sagittal otoliths were collected from `r str0 ` (Tables \@ref(tab:tab-oto-collection-scheme-EBS) and \@ref(tab:tab-oto-collection-scheme-NBS)). Otolith samples were collected following `r str2 `. Otoliths were preserved in a glycerol-thymol solution and then later shipped to the Age and Growth Program of the AFSC’s Resource Ecology and Fisheries Management (REFM) division for age determination. Weight and length were collected for each fish from which age structures were taken. For walleye pollock, age structure sampling effort was further divided into low-density and high-density regions based on historical population densities and an isobath of approximately 70 m.  
 
 ```{r methods_stomach_collection}
 load(file = paste0(dir_out_figtab, "tab-stomach-collection-scheme.Rdata")) # creates object called 'obj'
