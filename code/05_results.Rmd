@@ -758,21 +758,12 @@ str0 <- text_list(paste0(
 
 <!---BLOCK_LANDSCAPE_START--->
 
-```{r tab-biomass-est-wt}
-nickname <- "tab-biomass-est-wt"
+```{r tab-biomass-est-}
+nickname <- "tab-biomass-est-"
 sep0 <- "\\pagebreak"
 ```
 
-```{r tab-biomass-est-wt-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
-```
-
-
-```{r tab-biomass-est-num}
-nickname <- "tab-biomass-est-num"
-sep0 <- "\\pagebreak"
-```
-
-```{r tab-biomass-est-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-biomass-est--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 \pagebreak
@@ -787,11 +778,18 @@ sep0 <- "\\pagebreak"
 
 \pagebreak
 
-```{r tab-est-spp-}
-nickname <- "tab-est-spp-"
+```{r tab-est-spp-wt}
+nickname <- "tab-est-spp-wt"
 ```
 
-```{r tab-est-spp--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-est-spp-wt-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
+
+```{r tab-est-spp-num}
+nickname <- "tab-est-spp-num"
+```
+
+```{r tab-est-spp-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 <!---BLOCK_LANDSCAPE_STOP--->
@@ -893,61 +891,60 @@ temp <- temp %>%
                   bio != 0 &
                   bio == max(bio, na.rm = TRUE))
 
-if (length(unique(temp$print_name))==1) {
-  
-  load(file = paste0(dir_out_figtab, "tab-est-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt.Rdata"))
-  
-  # temp0 <- paste0("tab-est-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt")
-  
-  temp1 <- obj$raw %>% 
-    dplyr::select(SRVY, stratum, meanwgtcpue) %>% 
-    dplyr::filter(!grepl(pattern = "Total", x = stratum, ignore.case = TRUE) & 
-                    meanwgtcpue == max(meanwgtcpue, na.rm = TRUE)) %>% 
-    dplyr::left_join(x = ., 
-                     y = stratum_info %>% 
-                       dplyr::select(stratum, description) %>% 
-                       dplyr::mutate(stratum = as.character(stratum)), 
-                     by = "stratum") %>% 
-    dplyr::mutate(tidyr::separate(data = ., col = description, 
-                                  sep = "- ", into = c("d1", "d2"), 
-                                  remove = TRUE), 
-                  d2 = stringr::str_to_lower(d2), 
-                  d2 = gsub(pattern = "domain", replacement = "shelf", x = d2)) 
-  
-  
-  a <- list.files(path = dir_out_figtab, 
-                  pattern = report_spp1$file_name[report_spp1$print_name == temp$print_name[1]], 
-                  ignore.case = TRUE)
-  a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
-  a <- strsplit(x = a, split = ".", fixed = TRUE)[[1]][1]
-  
-  b <- list.files(path = dir_out_figtab, 
-                  pattern = report_spp1$file_name[report_spp1$print_name == temp$print_name[1]], 
-                  ignore.case = TRUE)
-  b <- b[grepl(pattern = ".rdata", x = b, ignore.case = TRUE)]
-  b <- b[!grepl(pattern = "-print", x = b, ignore.case = TRUE)]
-  b <- sapply(X = strsplit(x = b, split = ".", fixed = TRUE), "[[", 1)
-  
-  str0 <- paste0("The ",temp$print_name[1]," (*",temp$species_name1[1],"*) is common in the Bering ",
-                 ifelse(temp$species_name1[1] == "Asterias amurensis", 
-                        "and Chukchi seas [@Hamazakietal2005; @Federetal2005]", "") , 
-                 " and was the invertebrate taxon with the highest catch rate by weight in the " , 
-                 text_list(SRVY1)," (Table",ifelse(SRVY == "NEBS", "s", ""),
-                 ifelse(SRVY == "NEBS", 
-                        " \\@ref(fig:tab-majortaxa-pchange-EBS) and \\@ref(fig:tab-majortaxa-pchange-NBS))", 
-                        " \\@ref(fig:tab-majortaxa-pchange-EBS)"),
-                 "). Catch rates for the ",temp$print_name[1]," were highest in the ",
-                 temp1$d2," (", #,temp1$d1,
-                 # "; "
-                 "Fig. \\@ref(fig:",a,") and Tables ", text_list(paste0("\\@ref(tab:",b,")")),").")
-  
-} else {
-  str0<-""
-}
+# if (length(unique(temp$print_name))==1) {
+#   
+#   load(file = paste0(dir_out_figtab, "tab-est-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt.Rdata"))
+#   
+#   # temp0 <- paste0("tab-est-invert-",report_spp1$file_name[report_spp1$print_name == temp$print_name[1]],"-wt")
+#   
+#   temp1 <- obj$raw %>% 
+#     dplyr::select(SRVY, stratum, meanwgtcpue) %>% 
+#     dplyr::filter(!grepl(pattern = "Total", x = stratum, ignore.case = TRUE) & 
+#                     meanwgtcpue == max(meanwgtcpue, na.rm = TRUE)) %>% 
+#     dplyr::left_join(x = ., 
+#                      y = stratum_info %>% 
+#                        dplyr::select(stratum, description) %>% 
+#                        dplyr::mutate(stratum = as.character(stratum)), 
+#                      by = "stratum") %>% 
+#     dplyr::mutate(tidyr::separate(data = ., col = description, 
+#                                   sep = "- ", into = c("d1", "d2"), 
+#                                   remove = TRUE), 
+#                   d2 = stringr::str_to_lower(d2), 
+#                   d2 = gsub(pattern = "domain", replacement = "shelf", x = d2)) 
+#   
+#   
+#   a <- list.files(path = dir_out_figtab, 
+#                   pattern = report_spp1$file_name[report_spp1$print_name == temp$print_name[1]], 
+#                   ignore.case = TRUE)
+#   a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
+#   a <- strsplit(x = a, split = ".", fixed = TRUE)[[1]][1]
+#   
+#   b <- list.files(path = dir_out_figtab, 
+#                   pattern = report_spp1$file_name[report_spp1$print_name == temp$print_name[1]], 
+#                   ignore.case = TRUE)
+#   b <- b[grepl(pattern = ".rdata", x = b, ignore.case = TRUE)]
+#   b <- b[!grepl(pattern = "-print", x = b, ignore.case = TRUE)]
+#   b <- sapply(X = strsplit(x = b, split = ".", fixed = TRUE), "[[", 1)
+#   
+#   str0 <- paste0("The ",temp$print_name[1]," (*",temp$species_name1[1],"*) is common in the Bering ",
+#                  ifelse(temp$species_name1[1] == "Asterias amurensis", 
+#                         "and Chukchi seas [@Hamazakietal2005; @Federetal2005]", "") , 
+#                  " and was the invertebrate taxon with the highest catch rate by weight in the " , 
+#                  text_list(SRVY1)," (Table",ifelse(SRVY == "NEBS", "s", ""),
+#                  ifelse(SRVY == "NEBS", 
+#                         " \\@ref(fig:tab-majortaxa-pchange-EBS) and \\@ref(fig:tab-majortaxa-pchange-NBS))", 
+#                         " \\@ref(fig:tab-majortaxa-pchange-EBS)"),
+#                  "). Catch rates for the ",temp$print_name[1]," were highest in the ",
+#                  temp1$d2," (", #,temp1$d1,
+#                  # "; "
+#                  "Fig. \\@ref(fig:",a,") and Tables ", text_list(paste0("\\@ref(tab:",b,")")),").")
+#   
+# } else {
+#   str0<-""
+# }
 
+# `r str0`
 ```
-
-`r str0`
 
 Detailed information on bottom trawl survey results for commercial crab species are reported elsewhere [@SAPcrab`r maxyr`; @RNChilton2011; @RN973]. Commercial crab stocks are managed by the ADF&G with federal oversight by NOAA Fisheries. The most recent modeling results on the status of these commercial crab stocks are reported in the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC [`r paste0("@NPFMC", maxyr)`].
 
