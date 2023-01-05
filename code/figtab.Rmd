@@ -1049,35 +1049,12 @@ temp <- function(exp0,
                      ci = confint(num_hauls, bio_var)) %>% 
     dplyr::ungroup()
   
-  
-  #   dat <- eval(parse( 
-  # text=gsub(pattern = "DATAFRAME", 
-  #           replacement = "biomass_by_stratum0", 
-  #           x = exp0) )) %>% 
-  # ungroup() %>% 
-  # tidyr::separate(
-  #   col = group0, 
-  #   into = c("group", "taxon"), 
-  #   sep = "_", 
-  #   remove = FALSE) %>% 
-  # dplyr::select(SRVY, strata, group, group0, taxon, biomass_mt, ci, num_hauls, bio_var) %>% 
-  # dplyr::group_by(SRVY, strata, group, group0, taxon) %>% 
-  # dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-  #                  bio_var = sum(bio_var, na.rm = TRUE), 
-  #                  num_hauls = sum(num_hauls, na.rm = TRUE), 
-  #                  ci = confint(num_hauls, bio_var)) %>% 
-  # dplyr::ungroup()
-  
   biomass_spp_bystrata <- dat %>%
-    # dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
     dplyr::group_by(SRVY, strata, group, taxon) %>% # , num_hauls
     dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE),
                      bio_var = sum(bio_var, na.rm = TRUE),
                      num_hauls = mean(num_hauls, na.rm = TRUE)) %>% # TOLEDO
-    dplyr::mutate(ci = confint(num_hauls, bio_var)#, 
-                  # taxon = paste0("total ", tolower(group)), 
-                  # order = 1
-    )
+    dplyr::mutate(ci = confint(num_hauls, bio_var))
   
   biomass_spp_999 <- dat %>%
     dplyr::group_by(SRVY, group, taxon) %>% # , num_hauls
@@ -1154,7 +1131,7 @@ temp <- function(exp0,
                      num_hauls = sum(num_hauls, na.rm = TRUE)  # do I need to sum num_hauls from all spp or sum of tows where any of those species ever occured
     ) %>%
     dplyr::mutate(ci = confint(num_hauls, bio_var), 
-                  taxon = paste0("total ", (group)))
+                  taxon = paste0("total ", gsub("\\s*\\([^\\)]+\\)","",as.character(group))))
   
   biomass_group_999 <- dat %>%  ## summarize by group to compare to prior years tech memo    
     dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
@@ -1551,7 +1528,7 @@ exp0 <- ('DATAFRAME %>% dplyr::filter(species_code >= 40000 &
   dplyr::mutate(group0 = dplyr::case_when(
     species_code >= 66000 & species_code <= 67499 ~ "Crustacea_shrimps",
     species_code >= 60000 & species_code <= 65999 ~ "Crustacea_other crustaceans",
-    species_code >= 67500 & species_code <=	67999 ~ "Crustacea_other crustaceans",
+    species_code >= 67500 & species_code <=	69999 ~ "Crustacea_other crustaceans", # 67999, now includes crabs
     species_code >= 69550	& species_code <= 69999 ~ "Crustacea_other crustaceans",
     species_code >= 71000 & species_code <= 73999 ~ "Mollusca_Gastropoda (snails)",
     species_code >= 74000 & species_code <= 75799 ~ "Mollusca_Pelecypoda (bivalves)",
@@ -1572,7 +1549,7 @@ exp0 <- ('DATAFRAME %>% dplyr::filter(species_code >= 40000 &
     species_code >= 99990 & species_code <=	99992 ~ "Other",
     species_code >= 77011 & species_code <= 77012 ~ "Other",
     species_code == 99987 ~ "Porifera (sponges)",
-    TRUE ~ "find my group"))')
+    TRUE ~ "Other"))')
 
 table_raw0 <- temp(exp0 = exp0, 
                    maxyr = maxyr, 
