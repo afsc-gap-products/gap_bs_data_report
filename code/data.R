@@ -147,7 +147,7 @@ print("Load data")
 
 id_googledrive <- googledrive::as_id(dir_googledrive)
 
-if (googledrive_dl) {
+if (access_to_internet ) {
   
   # Species Covered
   # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing

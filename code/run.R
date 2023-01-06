@@ -26,10 +26,8 @@
 
 report_title <- "data" 
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
-googledrive_dl <- TRUE # redownload google drive tables and docs?
-indesign_flowin <- FALSE
+access_to_internet  <- TRUE # redownload google drive tables and docs?
 pres_img <- FALSE
-usePNGPDF <- "png"
 font0 <- "Arial Narrow"
 font_size0 <- 12
 
@@ -127,7 +125,6 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
 for (abcd in LETTERS[1:(ifelse(SRVY == "NEBS", 4, 2))]) {
-
   rmarkdown::render(input = paste0(dir_code, "00_data_report_appendix.Rmd"), 
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_chapters, 
@@ -147,7 +144,7 @@ for (abcd in LETTERS[1:(ifelse(SRVY == "NEBS", 4, 2))]) {
 # report_title <- paste0(maxyr, ' Northern Bering Sea Groundfish and Crab Trawl Survey Highlights')
 report_title <- "community" 
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
-googledrive_dl <- TRUE # redownload google drive tables and docs?
+access_to_internet  <- TRUE # redownload google drive tables and docs?
 indesign_flowin <- FALSE
 pres_img <- FALSE
 usePNGPDF <- "png"
