@@ -322,10 +322,10 @@ if (SRVY == "NEBS") {
     xunits(nrow(temp3[temp3$where == 
                         "Present in EBS but absent in NBS",])), 
     " did not occur in the NBS (Table \\@ref(tab:tab-species-composition)). In comparison, ",
-    xunits(nrow(temp[temp$SRVY == "NBS",])),
-    " of the ",
     xunits(nrow(temp3[temp3$where == 
                         "Present in NBS but absent in EBS",])), 
+    " of the ",
+    xunits(nrow(temp[temp$SRVY == "NBS",])),
     " fish species present in the NBS were absent in EBS (Table \\@ref(tab:tab-species-composition)). ")
   
   # flatfish
@@ -439,7 +439,7 @@ nickname <- "tab-species-composition"
 temp <- data.frame()
 temp0 <- tidyr::crossing(SRVY = SRVY1, type = c("fish", "invert"))
 for (i in 1:nrow(temp0)) {
-  load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$type[i],"-", temp0$SRVY[i], ".rdata"))
+  load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i],"-", ", temp0$type[i].rdata"))
   
   temp <- obj$raw %>%
     dplyr::filter(grepl(pattern = "Total", x = group, ignore.case = TRUE )) %>% 
@@ -479,9 +479,9 @@ temp1 <- left_join(
 str0 <- paste0("The ", 
                text_list(paste0(
                  "total demersal animal biomass for the ", 
-                 total_biomass$SRVY, 
+                 total_biomass$SRVY[total_biomass$year == maxyr], 
                  " was estimated at ", 
-                 xunits(total_biomass$total), 
+                 xunits(total_biomass$total[total_biomass$year == maxyr]), 
                  " t")), ". " )
 
 str00 <- ""
@@ -494,13 +494,13 @@ for (ii in 1:length(temp2$SRVY)) {
                   paste0(temp2$SRVY[ii], 
                          ", the proportion of fishes (", 
                          temp2$perc_fish[ii], 
-                         "; Table \\@ref(tab:tab-biomass-est-fish-", temp2$SRVY[ii], 
-                         ")) was ", str000,  
+                         "; Table \\@ref(tab:tab-biomass-est-",  temp2$SRVY[ii],
+                         "-fish)) was ", str000,  
                          ifelse(temp2$prop_fish[ii]>temp2$prop_invert[ii], "higher","lower"),
                          " than invertebrates (", 
                          temp2$perc_invert[ii], 
-                         "; Table \\@ref(tab:tab-biomass-est-invert-", temp2$SRVY[ii], 
-                         "))"))
+                         "; Table \\@ref(tab:tab-biomass-est-", temp2$SRVY[ii], 
+                         "-invert))"))
 }
 str0 <- paste0(str0, str00, ". ")
 
@@ -526,7 +526,7 @@ if (SRVY == "NEBS") {
   #temp1
   temp1 <- data.frame()
   for (i in 1:length(SRVY1)) {
-    load(file = paste0(dir_out_figtab, "tab-biomass-est-fish-", temp0$SRVY[i], ".rdata"))
+    load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i], "-fish.rdata"))
     temp1 <- obj$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
       dplyr::filter(is.na(taxon) |
@@ -549,7 +549,7 @@ if (SRVY == "NEBS") {
   temp2 <- data.frame()
   
   for (i in 1:length(SRVY1)) {
-    load(file = paste0(dir_out_figtab, "tab-biomass-est-fish-", temp0$SRVY[i], ".rdata"))
+    load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i], "-fish.rdata"))
 
     temp2 <- obj$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
@@ -629,7 +629,7 @@ if (SRVY == "NEBS") {
     " of the total biomass, respectively), and the NBS (",
     text_list(
       paste0(round(x = temp1$prop_NBS[1:2]*100, digits = 1), "%")), 
-    " of the total biomass, respectively; Tables \\@ref(tab:tab-biomass-est-fish-EBS) and \\@ref(tab:tab-biomass-est-fish-NBS)). ", 
+    " of the total biomass, respectively; Tables \\@ref(tab:tab-biomass-est-EBS-fish) and \\@ref(tab:tab-biomass-est-NBS-fish)). ", 
     temp3)
 }
 
