@@ -26,7 +26,7 @@
 
 report_title <- "data" 
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
-access_to_internet  <- TRUE # redownload google drive tables and docs?
+access_to_internet  <- FALSE # redownload google drive tables and docs?
 pres_img <- FALSE
 font0 <- "Arial Narrow"
 font_size0 <- 12

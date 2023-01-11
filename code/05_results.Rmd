@@ -439,7 +439,7 @@ nickname <- "tab-species-composition"
 temp <- data.frame()
 temp0 <- tidyr::crossing(SRVY = SRVY1, type = c("fish", "invert"))
 for (i in 1:nrow(temp0)) {
-  load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i],"-", ", temp0$type[i].rdata"))
+  load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i],"-", temp0$type[i],".rdata"))
   
   temp <- obj$raw %>%
     dplyr::filter(grepl(pattern = "Total", x = group, ignore.case = TRUE )) %>% 
@@ -523,10 +523,10 @@ str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 str0 <- ""
 if (SRVY == "NEBS") {
   
-  #temp1
-  temp1 <- data.frame()
+  temp1 <- temp2 <- temp3 <- data.frame()
+  
   for (i in 1:length(SRVY1)) {
-    load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i], "-fish.rdata"))
+    load(file = paste0(dir_out_figtab, "tab-biomass-est-", SRVY1[i], "-fish.rdata"))
     temp1 <- obj$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
       dplyr::filter(is.na(taxon) |
@@ -537,20 +537,7 @@ if (SRVY == "NEBS") {
       dplyr::arrange(-prop) %>% 
       dplyr::mutate(order = 1:nrow(.)) %>% 
       dplyr::bind_rows(temp1, .)
-  }
-  
-  temp1 <- temp1 %>% 
-    tidyr::pivot_wider(id_cols = c("group"), 
-                       names_from = "SRVY", 
-                       values_from = c("999", "prop", "order")) %>%
-    dplyr::mutate(same = ifelse(order_EBS == order_NBS, TRUE, FALSE))
-  
-  # temp2
-  temp2 <- data.frame()
-  
-  for (i in 1:length(SRVY1)) {
-    load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i], "-fish.rdata"))
-
+    
     temp2 <- obj$raw %>%
       dplyr::mutate(SRVY = SRVY1[i]) %>%
       dplyr::filter(group %in% temp1$group[1:2] & 
@@ -559,7 +546,16 @@ if (SRVY == "NEBS") {
       dplyr::arrange(-prop) %>% 
       dplyr::mutate(order = 1:nrow(.)) %>% 
       dplyr::bind_rows(temp2, .)
+    
   }
+  
+  temp1 <- temp1 %>% 
+    tidyr::pivot_wider(id_cols = c("group"), 
+                       names_from = "SRVY", 
+                       values_from = c("999", "prop", "order")) %>%
+    dplyr::mutate(same = ifelse(order_EBS == order_NBS, TRUE, FALSE)) %>% 
+    dplyr::filter(!(is.na(SRVY)))
+
   
   temp2 <- temp2 %>% 
     tidyr::pivot_wider(id_cols = c("group", "taxon"), 
@@ -573,28 +569,29 @@ if (SRVY == "NEBS") {
       by = c("taxon" = "common_name")  )
   
   # temp3: top 3 spp in each group
-  temp3 <- data.frame()
   temp0 <- tidyr::crossing(group = unique(temp2$group), 
                            SRVY = SRVY1) %>% 
     dplyr::arrange(SRVY, group) %>% 
     dplyr::mutate(str0 = NA)
   
   for (i in 1:nrow(temp0)) {
+    
     temp3 <- temp2 %>% 
-      dplyr::rename(prop = paste0("prop_", temp0$SRVY[i]), 
+      dplyr::rename(prop = paste0("prop_", temp0$SRVY[i]),
                     order = paste0("order_", temp0$SRVY[i])) %>%
-      dplyr::filter(#order %in% c(1:3) & 
+      dplyr::filter(#SRVY == temp0$SRVY[i] & #order %in% c(1:3) & 
         group == temp0$group[i]) %>% 
       head(3) %>%
       dplyr::mutate(prop = paste0(round(x = prop*100, digits = 1), "%"), 
                     SRVY = temp0$SRVY[i]) %>%
       dplyr::arrange(order) %>% 
-      dplyr::select(SRVY, group, taxon, species_name, prop) %>% 
-      dplyr::filter(prop != "0%")
-    # dplyr::bind_rows(temp3, .)
+      dplyr::select(SRVY, group, taxon, species_name, prop) %>% # 
+      dplyr::filter(prop != "0%") #%>%
+      # dplyr::bind_rows(temp3, .)
     
     if (nrow(temp3)>1) {
-      temp0$str0[temp0$SRVY == temp0$SRVY[i] & temp0$group == temp0$group[i]] <- 
+      temp0$str0[temp0$SRVY == temp0$SRVY[i] & 
+                   temp0$group == temp0$group[i]] <- 
         text_list(paste0(temp3$taxon, " (*", temp3$species_name, 
                          "*, ",temp3$prop,")"))
       temp0$group1 <- unlist(regmatches(temp0$group,
@@ -677,9 +674,14 @@ for (i in 1:length(SRVY1)) {
     ) %>% 
     dplyr::mutate(print_name = gsub(pattern = "include", replacement = ", which", x = print_name))
   
-  temp1 <- data.frame(maxyr = sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == SRVY1[i]]), 
-                      compareyr = sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == SRVY1[i]]))
-  
+  # temp1 <- data.frame(maxyr = sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == SRVY1[i]]), 
+  #                     compareyr = sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == SRVY1[i]]))
+    temp1 <- data.frame(maxyr = sum(total_biomass$total[
+    total_biomass$SRVY == SRVY1[i] & 
+      total_biomass$year == maxyr], na.rm = TRUE), 
+    compareyr = sum(total_biomass$total[
+      total_biomass$SRVY == SRVY1[i] & 
+        total_biomass$year == compareyr], na.rm = TRUE))
   
   str0 <- paste0(str0, 
                  
