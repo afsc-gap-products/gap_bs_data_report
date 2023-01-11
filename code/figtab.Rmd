@@ -577,7 +577,8 @@ for (case in c("bottom", "surface")) {
       nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_surface_temperature, 
                                     subset = names(coldpool::nbs_ebs_surface_temperature)[!grepl(
                                       x = names(coldpool::nbs_ebs_surface_temperature),
-                                      pattern = 2018)])
+                                      pattern = 2018)]) %>%
+        raster::projectRaster(crs = crs(coldpool::nbs_ebs_surface_temperature))
       
       sebs_only <- names(coldpool::ebs_surface_temperature)[
         which(!(names(coldpool::ebs_surface_temperature) %in% 
@@ -585,17 +586,17 @@ for (case in c("bottom", "surface")) {
       
       sebs_temp <- raster::subset(coldpool::ebs_surface_temperature,
                                   subset = sebs_only) %>%
-        raster::projectRaster(coldpool::nbs_ebs_surface_temperature)
+        raster::projectRaster(crs = crs(coldpool::nbs_ebs_surface_temperature))
       
-      rasterbrick <- raster::addLayer(sebs_temp, 
-                                      nbs_no_2018)
+      rasterbrick <- raster::addLayer(sebs_temp, nbs_no_2018)
       
     } else if (case == "bottom") {
       
       nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_bottom_temperature, 
                                     subset = names(coldpool::nbs_ebs_bottom_temperature)[!grepl(
                                       x = names(coldpool::nbs_ebs_bottom_temperature),
-                                      pattern = 2018)])
+                                      pattern = 2018)])  %>%
+        raster::projectRaster(crs = crs(coldpool::nbs_ebs_bottom_temperature))
       
       sebs_only <- names(coldpool::ebs_bottom_temperature)[
         which(!(names(coldpool::ebs_bottom_temperature) %in% 
@@ -603,7 +604,7 @@ for (case in c("bottom", "surface")) {
       
       sebs_temp <- raster::subset(coldpool::ebs_bottom_temperature,
                                   subset = sebs_only) %>%
-        raster::projectRaster(coldpool::nbs_ebs_bottom_temperature)
+        raster::projectRaster(crs = crs(coldpool::nbs_ebs_bottom_temperature))
       
       rasterbrick <- raster::addLayer(sebs_temp, 
                                       nbs_no_2018)
