@@ -28,10 +28,19 @@ if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
 #                     refcontent = refcontent)
 # `r insert`
 
-temp <- haul_cruises_maxyr 
+temp <- haul_cruises_maxyr %>% 
+  dplyr::mutate(survey_name = 
+                  gsub(pattern = "Eastern Bering Sea ", 
+                                   replacement = paste0("Eastern Bering Sea (EBS) "), 
+                                   x = survey_name), 
+                survey_name = 
+                  gsub(pattern = "Northern Bering Sea ", 
+                                   replacement = paste0("Northern Bering Sea (NBS) "), 
+                                   x = survey_name))
+
 str1 <- gsub(pattern = " ,", replacement = ",", 
              x = text_list(paste0(temp$yrofsurvey, 
-                                               temp$stndth, " ", temp$survey_name, " (", temp$SRVY, ") from ", 
+                                               temp$stndth, " ", temp$survey_name, " from ", 
                                                temp$start_mo_long, " to ", temp$end_mo_long, " ", maxyr), 
                                         sep_last = ", as well as the "))
 ```
