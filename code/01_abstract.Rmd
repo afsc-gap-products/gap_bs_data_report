@@ -5,7 +5,7 @@
 
 nbs_str0 <- ifelse(SRVY == "NEBS", 
                    # NBS + EBS
-                   paste0("The survey covered the Bering Sea continental shelf (bottom depths between approximately 20 and 200 m) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
+                   paste0("The survey covered the eastern Bering Sea continental shelf (bottom depths between approximately 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait."), 
                    # EBS
                    paste0("The EBS bottom trawl survey covers the Bering Sea continental shelf (bottom depths between approximately 20 and 200 m) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude."))#, 
 # "The study area covered the eastern Bering Sea continental shelf from approximately 20 to 200 m bottom depth. Geographically, this area spans from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude.")
@@ -36,7 +36,7 @@ str1 <- gsub(pattern = " ,", replacement = ",",
                            sep_last = ", as well as the "))
 ```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` `r stringr::str_to_sentence(NMFSReports::numbers2words(nrow(vessel_info)))` stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$vessel_ital)) `, were chartered for `r ifelse(SRVY=="NEBS", "these surveys", "the survey")`. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition, length distribution, and age structure samples were collected from ecologically and commercially important species. 
+In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessel_info)))` chartered commercial stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition, sex and length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
 
 
 ```{r }
@@ -54,7 +54,7 @@ for (i in 1:length(unique(temp0$SRVY))){
   # if (sum(temp$nthyr > 1)>(nrow(temp)-1)) { 
     str01 <- paste0(str01, 
                     text_list(
-                      paste0("The recent trend of ",
+                      paste0("Environmental data, including temperature, salinity, and irradiance, were collected at every survey station. The recent trend of ",
                              ifelse(grepl(pattern = "warm", x = temp$case), "higher", "lower"),
                              "-than-average ocean temperatures continued on the ", temp$SRVY, " shelf for the ",
                              numbers2words_th(x = temp$nthyr, type = "word"),
@@ -92,7 +92,7 @@ if ((temp$warmest_rank > (nrow(temp0)-6)) |  (temp$warmest_rank < 6)) {
   if (temp$warmest_rank > (nrow(temp0)-6)) { # is it of the 5 coldest
     str0 <- paste0(str0, 
                    ifelse(temp$warmest_rank != nrow(temp0), 
-                          paste0(NMFSReports::numbers2words_th(temp$warmest_rank), " "), 
+                          paste0(numbers2words_th(temp$warmest_rank), " "), 
                           ""),
                    "coldest")
   }
@@ -100,7 +100,7 @@ if ((temp$warmest_rank > (nrow(temp0)-6)) |  (temp$warmest_rank < 6)) {
   if (temp$warmest_rank < 6) {  # or is it of the 5 warmest?
     str0 <- paste0(str0, 
                    ifelse(temp$warmest_rank != 1, 
-                          paste0(NMFSReports::numbers2words_th(nrow(temp0)-temp$warmest_rank), " "), 
+                          paste0(numbers2words_th(nrow(temp0)-temp$warmest_rank), " "), 
                           ""),
                    "warmest")
   }
@@ -300,17 +300,17 @@ str00 <- ""
     srvy <- sort(unique(cruises_maxyr$SRVY))[i]
   
   str0 <- paste0(
-    "The total estimated biomass in the ", srvy ," ",
+    "The estimated total biomass in the ", srvy ," ",
     ifelse(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == srvy]) < 
              sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == srvy]), 
            "increased", "decreased"),
     " from ", 
-    NMFSReports::xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == srvy], na.rm = TRUE)) ,
-    " metric tons (t) ", #"(", NMFSReports::xunits(sum(biomass_compareyr$sdbio[biomass_compareyr$SRVY == "NBS"], na.rm = TRUE)) ,
+    xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == srvy], na.rm = TRUE)) ,
+    ifelse(i == 1, " metric tons (t) ", " t "), #"(", xunits(sum(biomass_compareyr$sdbio[biomass_compareyr$SRVY == "NBS"], na.rm = TRUE)) ,
     # " standard deviation (SD) t) ", 
     "in ", compareyr, " to ", 
-    NMFSReports::xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == srvy], na.rm = TRUE)),
-    " t", # "(", NMFSReports::xunits(sum(biomass_maxyr$sdbio[biomass_maxyr$SRVY == "NBS"], na.rm = TRUE)) ,
+    xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == srvy], na.rm = TRUE)),
+    " t", # "(", xunits(sum(biomass_maxyr$sdbio[biomass_maxyr$SRVY == "NBS"], na.rm = TRUE)) ,
     # " SD t)", 
     " in ", maxyr)
   
@@ -319,9 +319,9 @@ str00 <- ""
 }
 ```
 
-`r str00`A total of `r fish_sp ` species of fishes were identified during the `r text_list(SRVY1)` survey`r ifelse(SRVY=="NEBS", "s", "")`, as well as `r invert_spp ` invertebrate taxa.
+`r str00`A total of `r fish_sp ` species of fish and `r invert_spp ` invertebrate taxa were identified during the `r text_list(SRVY1)` survey`r ifelse(SRVY=="NEBS", "s", "")`.
 
-This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` shelf bottom trawl surveys. For select and common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Appendices provide tables listing population estimates by sex and size group for principal fish species and species encountered during the `r text_list(SRVY1)` survey`r ifelse(SRVY=="NEBS", "s", "")`. 
+This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` shelf bottom trawl surveys. For common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Tables in the appendix list population estimates by sex and size group for principal fish species and species encountered during the survey`r ifelse(SRVY=="NEBS", "s", "")`. 
 
 ```{r abstract_insert_text, child=paste0(dir_out_rawdata, "/0_abstract_conclusion.Rmd")}
 ```
