@@ -1,7 +1,7 @@
 
 # Results and Discussion
 
-A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY, " stations"))` were successfully sampled in `r maxyr` (Fig. \@ref(fig:fig-sampled-survey-stations)). Haul and catch sample data for successfully trawled stations used in the analyses can be found and downloaded from the Fisheries One Stop Shop [@FOSSAFSCData].
+A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY, " stations"))` were successfully sampled in `r maxyr` (Fig. \@ref(fig:fig-sampled-survey-stations)). Haul and catch data from successfully trawled stations that were used for analyses in this section are available for download from the Fisheries One Stop Shop [@FOSSAFSCData].
 
 
 ## Ocean Temperatures and the Cold Pool
@@ -307,7 +307,7 @@ temp1 <- dplyr::bind_cols(
 # dplyr::mutate(perc = round(((species_code - species_taxon)/species_code)*100, digits = 2))
 
 if (SRVY == "NEBS") {
-  # how many species in one survey area but noth the other?
+  # how many species encountered in one survey area but noth the other?
   load(file = paste0(dir_out_figtab, "tab-species-composition.rdata"))
   temp3 <- obj$raw %>%
     dplyr::left_join(x = .,
@@ -320,18 +320,18 @@ if (SRVY == "NEBS") {
     xunits(nrow(temp[temp$SRVY == "EBS",])),
     " fish species found in the EBS, ",
     xunits(nrow(temp3[temp3$where == 
-                        "Present in EBS but absent in NBS",])), 
+                        "Encountered in EBS but not encountered in NBS",])), 
     " did not occur in the NBS (Table \\@ref(tab:tab-species-composition)). In comparison, ",
     xunits(nrow(temp3[temp3$where == 
-                        "Present in NBS but absent in EBS",])), 
+                        "Encountered in NBS but not encountered in EBS",])), 
     " of the ",
     xunits(nrow(temp[temp$SRVY == "NBS",])),
-    " fish species present in the NBS were absent in EBS (Table \\@ref(tab:tab-species-composition)). ")
+    " fish species encountered in the NBS were not encountered in EBS (Table \\@ref(tab:tab-species-composition)). ")
   
   # flatfish
   temp4 <- temp3[temp3$order_taxon %in% c("Pleuronectiformes"), ]
   temp5 <- temp4 %>% 
-    dplyr::filter(where != "Present in the EBS and the NBS") %>% 
+    dplyr::filter(where != "Encountered in the EBS and the NBS") %>% 
     dplyr::group_by(where) %>% 
     dplyr::summarise(n = n()) %>% 
     dplyr::mutate(where = paste0(tolower(substr(x = where, start = 1, stop = 1)), 
@@ -367,7 +367,7 @@ insert <- gsub(pattern = ") (", replacement = "; ", x = insert, fixed = TRUE)
 
 ```
 
-A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (Appendix Table`r ifelse(SRVY == "NEBS", "s", "")` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(SRVY == "NEBS", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species-level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
+A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family_taxon)` families and `r xunits(temp1$genus_taxon)` genera were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (Appendix Table`r ifelse(SRVY == "NEBS", "s", "")` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(SRVY == "NEBS", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r insert`
 
 ```{r results_taxon_count}
 # count spp - invert
@@ -416,7 +416,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey (Appendix Table`r ifelse(SRVY == "NEBS", "s", "")` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(SRVY == "NEBS", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded a total of ", xunits(temp0$species_code), " invertebrate taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"), sep_last2 = "; ")`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
+`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum_taxon)` phyla were identified during the `r maxyr` `r text_list(SRVY1)` survey`r ifelse(length(SRVY1)>1, "s", "")` (Appendix Table`r ifelse(SRVY == "NEBS", "s", "")` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(SRVY == "NEBS", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " invertebrate taxa, of which ", xunits(temp0$species_taxon), " were identified to the species level"), sep_last2 = "; ")`. The remaining invertebrate taxa `r ifelse(SRVY == "NEBS", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. Additionally, trawl catchability of small invertebrates is not known.
 
 ```{r results_dummy}
 # All species are identified using as Eschmeyer’s Catalog of Fishes (found at https://www.calacademy.org/scientists/projects/eschmeyers-catalog-of-fishes) which is regularly updated [@Frickeetal2022] and An Annotated Checklist of the Marine Macroinvertebrates of Alaska [@Drummetal2016] and logged in AFSC’s databases.
@@ -509,7 +509,7 @@ if (SRVY == "NEBS") {
                  paste0(ifelse(temp1$prop[temp1$SRVY=="EBS"]>temp1$prop[temp1$SRVY=="NBS"], 
                                "The lower relative fish biomass in the NBS than in the EBS is consistent", 
                                "The higher relative fish biomass in the NBS than in the EBS is inconsistent"), 
-                        " with results of a broader analysis of all survey years presented by @RN936 which showed decreasing fish biomass with increasing latitude on the Bering Sea continental shelf. ", 
+                        " with results of a broader analysis of all survey years presented by @RN936 which showed decreasing fish biomass with increasing latitude on the eastern Bering Sea continental shelf. ", 
                         "") ) 
 }
 
@@ -620,7 +620,7 @@ if (SRVY == "NEBS") {
   
   str0 <- paste0(
     text_list(temp1$group[1:2]),
-    " were the fish families with greatest biomass in both the EBS (",
+    " were the fish families with highest biomass in both the EBS (",
     text_list(
       paste0(round(x = temp1$prop_EBS[1:2]*100, digits = 1), "%")), 
     " of the total biomass, respectively), and the NBS (",
@@ -711,7 +711,7 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 ```
 
-`r str0`While all efforts are made at standardizing catch processing over time, some inconsistencies may exist between years, vessels, and crews which may affect the interpretation of these differences.
+`r str0`While exhaustive efforts are made to standardize catch processing and data collection, some inconsistencies may exist between years, vessels, and crews which may affect the interpretation of these differences.
 
 ```{r results_top_10_taxon}
 temp <- data.frame()
@@ -746,7 +746,7 @@ temp <- biomass %>%
                 dplyr::across(where(is.numeric), formatC, digits = 0, big.mark = ",", format = "f"))
 
 str0 <- text_list(paste0(
-  "The top 10 fish taxa in the ",temp$SRVY,
+  "The 10 most abundant fish taxa in the ",temp$SRVY,
   " accounted for ",temp$top_all,
   " (an average of ",temp$topfish," kg/ha per station) ", 
   "of total mean fish and invertebrate CPUE (an average of ",
