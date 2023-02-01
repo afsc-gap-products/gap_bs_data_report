@@ -1096,7 +1096,7 @@ species_text <- function(
   ### Depth ----------------------------------------------------------------------
   
   str0$depth <- 
-    paste0("They were found in waters with depths between ",
+    paste0("They were found at bottom depths between ",
            as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Min)) ,
            " m and ", as.numeric(table_spp_print %>% dplyr::filter(Metric == "Bottom Depth") %>% dplyr::select(Max)) , " m. ")
   
