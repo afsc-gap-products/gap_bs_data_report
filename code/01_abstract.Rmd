@@ -27,9 +27,9 @@ nbs_str0 <- ifelse(SRVY == "NEBS",
 # } 
 
 temp <- haul_cruises_maxyr # %>%
-  # dplyr::mutate(
-  #   survey_name_extra = unlist(lapply(X = strsplit(x = survey_name, split = " - ", fixed = TRUE), "[[", 1)), 
-  #   survey_name_extra = unlist(lapply(X = strsplit(x = survey_name_extra, split = "Bering Sea ", fixed = TRUE), "[[", 2)))
+# dplyr::mutate(
+#   survey_name_extra = unlist(lapply(X = strsplit(x = survey_name, split = " - ", fixed = TRUE), "[[", 1)), 
+#   survey_name_extra = unlist(lapply(X = strsplit(x = survey_name_extra, split = "Bering Sea ", fixed = TRUE), "[[", 2)))
 str1 <- gsub(pattern = " ,", replacement = ",", 
              x = text_list(paste0(temp$yrofsurvey, 
                                   temp$stndth, " ", temp$SRVY_long, " (", temp$SRVY, ") Crab/Groundfish Bottom Trawl Survey"), 
@@ -42,81 +42,76 @@ In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) divisi
 ```{r }
 #| label: abstract_temperature
 
-temp0 <- temps_avg_yr
+temp0 <- temps_avg_yr %>% 
+  dplyr::filter(year == maxyr) %>% 
+  dplyr::mutate(
+    dplyr::across(is.numeric, round, digits = 1), 
+    bt_case = dplyr::case_when( 
+      bt_case == "average" ~ "near", 
+      bt_case == "warmer" ~ "above", 
+      bt_case == "colder" ~ "below"), 
+    st_case = dplyr::case_when(
+      st_case == "average" ~ "near", 
+      st_case == "warmer" ~ "above", 
+      st_case == "colder" ~ "below"))
 
-str01 <- ""
-# warmer than previous year/how many consecutive years?
-for (i in 1:length(unique(temp0$SRVY))){
-  
-  temp <- temp0 %>% 
-    dplyr::filter(year == maxyr)
-  
-  # if (sum(temp$nthyr > 1)>(nrow(temp)-1)) { 
-    str01 <- paste0(str01, 
-                    text_list(
-                      paste0("Environmental data, including temperature, salinity, and irradiance, were collected at every survey station. The recent trend of ",
-                             ifelse(grepl(pattern = "warm", x = temp$case), "higher", "lower"),
-                             "-than-average ocean temperatures continued on the ", temp$SRVY, " shelf for the ",
-                             numbers2words_th(x = temp$nthyr, type = "word"),
-                             " consecutive year. ")))
-  # }
-  
-  # were both sst and bt both warmer/colder?
-  if (grepl(pattern = "both", x = temp$case)) { # they were both...
-    str01 <- paste0(str01, "In ", maxyr,", both the mean surface (",
-                    round(x = temp$st, digits = 1),
-                    "°C) and bottom (",
-                    round(x = temp$bt, digits = 1),
-                    "°C) water temperatures were ", 
-                    ifelse(grepl(pattern = "warm", x = temp$case), "warmer", "colder"))
-  } else { # they were not both...
-    str01 <- paste0(str01, "In ", maxyr,", the surface (",
-                    round(x = temp$st, digits = 1),
-                    "°C) were ",
-                    ifelse(temp$st_mean, "warmer", "colder"),
-                    " and bottom (",
-                    round(x = temp$bt, digits = 1),
-                    "°C) water temperatures were ", 
-                    ifelse(temp$bt_mean, "warmer", "colder"))
+if (temp0$bt_case == temp0$st_case) {
+
+str0 <- paste0("The ", maxyr, " mean bottom and surface temperatures in the EBS (",
+                temp0$bt, "°C and ", temp0$st, "°C) was ",
+                temp0$bt_case, # only need to list one
+                " the ",
+       temp0$bt_mean, "°C and ", temp0$st_mean, 
+       "°C time-series average in ",
+       maxyr, ", respectively. ")
+
+} else {
+  str0 <- ""
+  for (i in c("bottom", "surface")){
+  str0 <- paste0(str0, 
+                  ifelse(i == "bottom", paste0("The ", maxyr), ", while"), 
+                  " mean ",i," temperature in the EBS (",
+                temp0[ifelse(i == "surface", "st", "bt")], "°C) was ",
+                temp0[ifelse(i == "surface", "st_case", "bt_case")]," the ",
+       temp0[ifelse(i == "surface", "st_mean", "bt_mean")],
+       "°C time-series")
   }
+  str0 <- paste0(str01, ". ")
 }
 
-str0 <- paste0(str01,
-               " than the survey long-term averages. ")
-
-if ((temp$warmest_rank > (nrow(temp0)-6)) |  (temp$warmest_rank < 6)) {
+if ((temp0$warmest_rank > (nrow(temps_avg_yr)-6)) |  (temp0$warmest_rank < 6)) {
   str0 <- paste0(str0, 
-                 "The ", maxyr, " mean bottom temperatures were the ")
+                 "The mean bottom temperatures were the ")
   
   # if this year is within the 6th warmest or coldest years...
-  if (temp$warmest_rank > (nrow(temp0)-6)) { # is it of the 5 coldest
+  if (temp0$warmest_rank > (nrow(temps_avg_yr)-6)) { # is it of the 5 coldest
     str0 <- paste0(str0, 
-                   ifelse(temp$warmest_rank != nrow(temp0), 
-                          paste0(numbers2words_th(temp$warmest_rank), " "), 
+                   ifelse(temp0$warmest_rank != nrow(temps_avg_yr), 
+                          paste0(numbers2words_th(temp0$warmest_rank), " "), 
                           ""),
                    "coldest")
   }
   
   if (temp$warmest_rank < 6) {  # or is it of the 5 warmest?
     str0 <- paste0(str0, 
-                   ifelse(temp$warmest_rank != 1, 
-                          paste0(numbers2words_th(nrow(temp0)-temp$warmest_rank), " "), 
+                   ifelse(temp0$warmest_rank != 1, 
+                          paste0(numbers2words_th(nrow(temps_avg_yr)-temp0$warmest_rank), " "), 
                           ""),
                    "warmest")
   }
-
-str0 <- paste0(str0, 
-               " observed since the beginning of the EBS shelf bottom trawl survey time series in 1982. ")
+  
+  str0 <- paste0(str0, 
+                 " observed since the beginning of the EBS shelf bottom trawl survey time series in 1982. ")
 }
-str0 <- paste0(str0, 
-               paste0("NBS mean surface and bottom temperatures were not calculated because the NBS has only been surveyed ",
-                  numbers2words(x = haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY %in% "NBS"]),
-                  " times since ",
-                  haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY %in% "NBS"],". ") )
+# str0 <- paste0(str0, 
+#                paste0("NBS mean surface and bottom temperatures were not calculated because the NBS has only been surveyed ",
+#                       numbers2words(x = haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY %in% "NBS"]),
+#                       " times since ",
+#                       haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY %in% "NBS"],". ") )
 
 ```
 
-`r str0` 
+Environmental data, including temperature, salinity, and irradiance, were collected at every survey station. `r str0` 
 
 ```{r abstract_species_counts}
 
@@ -295,9 +290,9 @@ invert_phyla <- xunits(temp1$phylum_taxon)
 ```{r abstract_biomass}
 str00 <- ""
 # if (SRVY == "NEBS") {
-  for (i in 1:length(unique(cruises_maxyr$SRVY))){
-
-    srvy <- sort(unique(cruises_maxyr$SRVY))[i]
+for (i in 1:length(unique(cruises_maxyr$SRVY))){
+  
+  srvy <- sort(unique(cruises_maxyr$SRVY))[i]
   
   str0 <- paste0(
     "The estimated total biomass in the ", srvy ," ",

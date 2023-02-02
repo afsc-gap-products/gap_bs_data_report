@@ -715,10 +715,10 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 
 ```{r results_top_10_taxon}
 temp <- data.frame()
+load(file = paste0(dir_out_figtab, "tab-est-spp-wt.rdata"))
+
 for (i in 1:nrow(haul_cruises_maxyr)) {
   
-  load(file = paste0(dir_out_figtab, "tab-est-spp-wt.rdata"))
-
   temp <- obj$raw %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>%
     dplyr::select(meanwgtcpue , print_name) %>%
@@ -741,18 +741,20 @@ temp <- biomass %>%
   dplyr::bind_rows(temp, .) %>% 
   pivot_wider(data = ., id_cols = "SRVY", names_from = taxon, values_from = meanwgtcpue ) %>% 
   dplyr::mutate(all = fish + invert, 
-                top_fish = paste0(round(x = (topfish/fish)*100, digits = 0), "%"), 
-                top_all = paste0(round(x = (topfish/(all))*100, digits = 0), "%"), 
-                dplyr::across(where(is.numeric), formatC, digits = 0, big.mark = ",", format = "f"))
+                perc_topfish = paste0(round(x = (topfish/all)*100, digits = 1), "%"), # the % of the top 10 fish caught out of the survey
+                perc_topfishoffish = paste0(round(x = (topfish/fish)*100, digits = 1), "%"), # the % of the top 10 fish caught out of the survey
+                perc_invert = paste0(round(x = (invert/all)*100, digits = 1), "%"), 
+                perc_fish = paste0(round(x = (fish/all)*100, digits = 1), "%"), 
+                dplyr::across(where(is.numeric), formatC, digits = 1, big.mark = ",", format = "f"))
 
 str0 <- text_list(paste0(
   "The 10 most abundant fish taxa in the ",temp$SRVY,
-  " accounted for ",temp$top_all,
+  " accounted for ", temp$perc_topfish,
   " (an average of ",temp$topfish," kg/ha per station) ", 
   "of total mean fish and invertebrate CPUE (an average of ",
   temp$all," kg/ha per station) and ",
-  temp$top_fish," of total mean fish CPUE (an average of ",temp$fish,
-  " kg/ha per station; Tables \\@ref(tab:tab-est-spp-wt) and \\@ref(tab:tab-est-spp-num))."), sep = "", sep_last = "")
+  temp$perc_topfishoffish," of total mean fish CPUE (an average of ",temp$fish,
+  " kg/ha per station; Tables \\@ref(tab:tab-est-spp-wt) and \\@ref(tab:tab-est-spp-num))."), sep = "", sep_last = "", sep_last2 = "")
 
 ```
 
