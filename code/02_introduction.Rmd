@@ -2,9 +2,9 @@
 # Introduction
 
 ```{r intro_dates_surveyed}
-insert2 <- ""
+str2 <- ""
 if (sum(haul_cruises_maxyr$SRVY %in% "EBS")>0) {
-  insert2 <- paste0(insert2, 
+  str2 <- paste0(str2, 
                          'The EBS survey has occurred annually ', 
                     ifelse(maxyr>2020, '(except in 2020 due to the COVID-19 pandemic) ', ''),
                     'since 1982 and is the longest-running, standardized time series of fish and invertebrate data in the region [@RN976]. ')
@@ -19,7 +19,7 @@ if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
     dplyr::select(year) %>% 
     dplyr::arrange(year) %>%
     unlist()
-  insert2 <- paste0(insert2,
+  str2 <- paste0(str2,
                          'The standardized NBS survey [@RN909] has only been conducted in ',text_list(temp2),'. ')
 }
 
@@ -30,8 +30,8 @@ if (sum(haul_cruises_maxyr$SRVY %in% "NBS")>0) {
 
 temp <- haul_cruises_maxyr %>% 
   dplyr::mutate(survey_name = 
-                  gsub(pattern = "Eastern Bering Sea ", 
-                                   replacement = paste0("Eastern Bering Sea (EBS) "), 
+                  gsub(pattern = "Eastern Bering Sea Crab", 
+                                   replacement = paste0("Eastern Bering Sea (EBS) Crab"), 
                                    x = survey_name), 
                 survey_name = 
                   gsub(pattern = "Northern Bering Sea ", 
@@ -45,7 +45,7 @@ str1 <- gsub(pattern = " ,", replacement = ",",
                                         sep_last = ", as well as the "))
 ```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of National Marine Fisheries Service's (NMFS') Alaska Fisheries Science Center (AFSC) conducted the `r str1`. The `r text_list(SRVY1)` shelf bottom trawl survey`r ifelse(SRVY=="NEBS", "s", "")` collect`r ifelse(SRVY=="NEBS", "", "s")` information about fish and invertebrate populations and environmental conditions to support fisheries stock assessment and management. `r insert2` 
+In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of National Marine Fisheries Service's (NMFS') Alaska Fisheries Science Center (AFSC) conducted the `r str1`. The `r text_list(SRVY1)` shelf bottom trawl survey`r ifelse(SRVY=="NEBS", "s", "")` collect`r ifelse(SRVY=="NEBS", "", "s")` information about fish and invertebrate populations and environmental conditions to support fisheries stock assessment and management. `r str2` 
 
 ```{r intro_insert_text, child=paste0(dir_out_rawdata, "/0_introduction.Rmd")}
 ```
@@ -53,7 +53,7 @@ In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Divisi
 The data collected during the `r text_list(SRVY1)` bottom trawl surveys are vital for managing fisheries resources and for ecosystem monitoring. Fishery-independent abundance estimates, in addition to other biological and oceanographic information from Bering Sea shelf bottom trawl surveys, are used by the AFSC, North Pacific Fishery Management Council (NPFMC), and the Alaska Department of Fish and Game (ADF&G). These organizations use the survey data products to manage groundfish and crab stocks, as well as conduct ecosystem forecast modeling, which are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act (https://www.fisheries.noaa.gov/topic/laws-policies). 
 
 
-This Technical Memorandum compares results from the `r maxyr` survey with results from the prior year's survey`r ifelse(SRVY=="NEBS", "s", "")` in the same region`r ifelse(SRVY=="NEBS", "s", "")`[`r ref_compareyr`]. Specifically, `r text_list(paste0("the ", maxyr, " ", SRVY1, " survey results are compared with those from the ", compareyr, " ", SRVY1, " shelf bottom trawl survey"))` [`r ref_compareyr`]. For data referenced from previous surveys, refer to the AFSC Technical Memoranda cited at the end of the report and listed on the AFSC website ([https://www.fisheries.noaa.gov/resource/publication-database/alaska-fisheries-science-center-technical-memorandums](https://www.fisheries.noaa.gov/resource/publication-database/alaska-fisheries-science-center-technical-memorandums)).
+This Technical Memorandum compares results from the `r maxyr` survey with results from the prior year's survey`r ifelse(SRVY=="NEBS", "s", "")` in the same region`r ifelse(SRVY=="NEBS", "s", "")` [`r ref_compareyr`]. Specifically, `r text_list(paste0("the ", maxyr, " ", SRVY1, " survey results are compared with those from the ", compareyr, " ", SRVY1, " shelf bottom trawl survey"))` [`r ref_compareyr`]. For data referenced from previous surveys, refer to the AFSC Technical Memoranda cited at the end of the report and listed on the AFSC website ([https://www.fisheries.noaa.gov/resource/publication-database/alaska-fisheries-science-center-technical-memorandums](https://www.fisheries.noaa.gov/resource/publication-database/alaska-fisheries-science-center-technical-memorandums)).
 
 ## History of Bering Sea Bottom Trawl Surveys
 
