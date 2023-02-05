@@ -825,9 +825,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 if (SRVY == "NEBS"){
   
   nickname <- "tab-species-composition" 
-  header <- paste0("Fish taxa from survey catches in the ",
+  header <- paste0("Composition of fish taxa encountered in the ",
                    text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
-                                    haul_cruises_maxyr$SRVY, ")")),". ")
+                                    haul_cruises_maxyr$SRVY, ")"))," survey catches. ")
   
   height <- full_page_portrait_height # 7
   width <- full_page_portrait_width # 6.5
@@ -846,9 +846,9 @@ if (SRVY == "NEBS"){
                        values_from = c(above_60),#, lat_min, lat_max), 
                        values_fill = NA) %>% 
     dplyr::mutate(where = dplyr::case_when(
-      !is.na(EBS) & !is.na(NBS) ~ "Present in EBS and NBS", 
-      is.na(NBS) & !is.na(EBS)~ "Present in EBS but absent in NBS", 
-      is.na(EBS) & !is.na(NBS) ~ "Present in NBS but absent in EBS")) %>% 
+      !is.na(EBS) & !is.na(NBS) ~ "Encountered in EBS and NBS", 
+      is.na(NBS) & !is.na(EBS)~ "Encountered in EBS but not in NBS", 
+      is.na(EBS) & !is.na(NBS) ~ "Encountered in NBS but not in EBS")) %>% 
     dplyr::left_join(x = ., 
                      y = spp_info, #%>% 
                      # dplyr::rename(common_name = print_name), 
@@ -865,13 +865,13 @@ if (SRVY == "NEBS"){
     dplyr::select(-species_code)
   
   temp1 <- temp %>% 
-    dplyr::filter(where == "Present in EBS but absent in NBS" & 
+    dplyr::filter(where == "Encountered in EBS but not in NBS" & 
                     !is.na(common_name)) %>% 
     dplyr::select(-where, -NBS) %>% 
     dplyr::rename(above_60 = EBS)
   
   temp2 <- temp %>% 
-    dplyr::filter(where == "Present in NBS but absent in EBS" & 
+    dplyr::filter(where == "Encountered in NBS but not in EBS" & 
                     !is.na(common_name)) %>% 
     dplyr::select(-where, -EBS) %>% 
     dplyr::rename(above_60 = NBS)
@@ -932,12 +932,12 @@ if (SRVY == "NEBS"){
                                          paste0(" (", report_name_scientific, ")"), ""),
                                   props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
     flextable::compose(x = ., i = 1, j = "dummy_ebs", part = "header",
-                       as_paragraph("Present in EBS but absent in NBS\nCommon Name ", 
+                       as_paragraph("Encountered in EBS but not in NBS\nCommon Name ", 
                                     as_chunk(paste0("(Scientific Name)"),
                                              props = fp_text_default(italic = TRUE, bold = TRUE, 
                                                                      font.size = 10, font.family = font0)))) %>%  
     flextable::compose(x = ., i = 1, j = "dummy_nbs", part = "header",
-                       as_paragraph("Present in NBS but absent in EBS\nCommon Name ", 
+                       as_paragraph("Encountered in NBS but not in EBS\nCommon Name ", 
                                     as_chunk(paste0("(Scientific Name)"),
                                              props = fp_text_default(italic = TRUE, bold = TRUE, 
                                                                      font.size = 10, font.family = font0)))) %>%  
@@ -1118,7 +1118,8 @@ temp <- function(exp0,
                      num_hauls = sum(num_hauls, na.rm = TRUE)  # do I need to sum num_hauls from all spp or sum of tows where any of those species ever occured
     ) %>%
     dplyr::mutate(ci = confint(num_hauls, bio_var), 
-                  taxon = paste0("total ", gsub("\\s*\\([^\\)]+\\)","",as.character(group))))
+                  taxon = paste0("total ", gsub("\\s*\\([^\\)]+\\)","",as.character(group)))) %>% 
+    dplyr::ungroup()
   
   biomass_group_999 <- dat %>%  ## summarize by group to compare to prior years tech memo    
     dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
@@ -1133,9 +1134,11 @@ temp <- function(exp0,
       ci = confint(num_hauls, bio_var), 
       # up_ci_bio_tot = biomass_mt + ci,
       # ci_percent = ((1-(biomass_mt/up_ci_bio_tot))*100), 
-      taxon = paste0("total ", (group)), 
+      taxon = paste0("total ", gsub("\\s*\\([^\\)]+\\)","", as.character(group))), 
+      # taxon = paste0("total ", (group)), 
       strata = 999) %>% 
-    dplyr::select(-num)
+    dplyr::select(-num) %>% 
+    dplyr::ungroup()
   
   
   
