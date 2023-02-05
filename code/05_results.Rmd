@@ -66,52 +66,52 @@ str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
 ```
 
 ```{r results_cold_pool, evale = FALSE}
-temp <- coldpool_ebs_total_area
-
-# A large cold pool year
-temp4 <- ""
-if (temp$rank[temp$year == maxyr] < 6) {
-  
-  temp0 <- temp[temp$rank <= temp$rank[temp$year == maxyr],] %>% 
-    dplyr::mutate(rank_ = "") %>% 
-    dplyr::arrange(rank)
-  for (i in 1:nrow(temp0)) {
-    temp0$rank_[i] <- numbers2words_th(x = temp0$rank[i])
-  }
-  
-  temp4 <- paste0(ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
-                         paste0(temp0$rank_[temp0$year == maxyr], " "), ""),
-                  "highest") 
-} 
-
-# A small cold pool year
-if (abs(temp$rank[temp$year == maxyr]-length(temp$rank)) < 6) {
-  temp0 <- temp[temp$rank >= temp$rank[temp$year == maxyr],] %>% 
-    dplyr::mutate(rank = abs(rank-(nrow(temp)+1)), 
-                  rank_ = "") %>% 
-    dplyr::arrange(rank)
-  for (i in 1:nrow(temp0)) {
-    temp0$rank_[i] <- numbers2words_th(x = temp0$rank[i])
-  }
-  
-  temp4 <- paste0(ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
-                         paste0(temp0$rank_[temp0$year == maxyr], " "), ""),
-                  "lowest") 
-}
-
-# put sentence together
-if (temp$rank[temp$year == maxyr] < 6 | abs(temp$rank[temp$year == maxyr]-length(temp$rank)) < 6) {
-  
-  temp4a <- ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
-                   paste0(" followed by ", text_list(paste0(temp0$year[temp0$year != maxyr], 
-                                                            " (", temp0$rank_[temp0$year != maxyr], ")"))), 
-                   "")
-  
-  temp4 <- paste0(", which was the ", temp4," areal coverage in the ", 
-                  haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == 'EBS'], 
-                  "-year time series", 
-                  temp4a, ". ")
-}
+# temp <- coldpool_ebs_total_area
+# 
+# # A large cold pool year
+# temp4 <- ""
+# if (temp$rank[temp$year == maxyr] < 6) {
+#   
+#   temp0 <- temp[temp$rank <= temp$rank[temp$year == maxyr],] %>% 
+#     dplyr::mutate(rank_ = "") %>% 
+#     dplyr::arrange(rank)
+#   for (i in 1:nrow(temp0)) {
+#     temp0$rank_[i] <- numbers2words_th(x = temp0$rank[i])
+#   }
+#   
+#   temp4 <- paste0(ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
+#                          paste0(temp0$rank_[temp0$year == maxyr], " "), ""),
+#                   "highest") 
+# } 
+# 
+# # A small cold pool year
+# if (abs(temp$rank[temp$year == maxyr]-length(temp$rank)) < 6) {
+#   temp0 <- temp[temp$rank >= temp$rank[temp$year == maxyr],] %>% 
+#     dplyr::mutate(rank = abs(rank-(nrow(temp)+1)), 
+#                   rank_ = "") %>% 
+#     dplyr::arrange(rank)
+#   for (i in 1:nrow(temp0)) {
+#     temp0$rank_[i] <- numbers2words_th(x = temp0$rank[i])
+#   }
+#   
+#   temp4 <- paste0(ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
+#                          paste0(temp0$rank_[temp0$year == maxyr], " "), ""),
+#                   "lowest") 
+# }
+# 
+# # put sentence together
+# if (temp$rank[temp$year == maxyr] < 6 | abs(temp$rank[temp$year == maxyr]-length(temp$rank)) < 6) {
+#   
+#   temp4a <- ifelse(temp0$rank_[temp0$year == maxyr] != "first", 
+#                    paste0(" followed by ", text_list(paste0(temp0$year[temp0$year != maxyr], 
+#                                                             " (", temp0$rank_[temp0$year != maxyr], ")"))), 
+#                    "")
+#   
+#   temp4 <- paste0(", which was the ", temp4," areal coverage in the ", 
+#                   haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == 'EBS'], 
+#                   "-year time series", 
+#                   temp4a, ". ")
+# }
 
 ```
 

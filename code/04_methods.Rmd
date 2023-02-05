@@ -316,8 +316,9 @@ Catches estimated to be less than approximately 1,200 kg (2,650 lbs) were fully 
 
 All commercial crab species were sorted from the entire catch and weighed. Other select species including Pacific halibut (*Hippoglossus stenolepis*), Greenland turbot (*Reinhardtius hippoglossoides*), large skates, rockfish (*Sebastes spp.*), Atka mackerel (*Pleurogrammus monopterygius*), prowfish (*Zaprora silenus*), Bering wolffish (*Anarhichas orientalis*), giant wrymouth (*Cryptacanthodes giganteus*), Pacific cod (*Gadus macrocephalus*), some sculpins, sharks, and any other large, rare species that are not represented in the subsample were completely sorted from the catch in most cases.
 
-```{r tab-oto-collection-scheme}
-load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata")) %>% # creates object called 'obj'
+```{r tab-oto-collection-scheme-data}
+load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
+obj$raw <- obj$raw %>% # creates object called 'obj'
   dplyr::filter(SRVY == "EBS")
 ```
 
@@ -372,11 +373,11 @@ load(file = paste0(dir_out_figtab, "tab-stomach-collection-scheme.Rdata")) # cre
 
 Stomachs were collected from `r xunits(nrow(obj$raw))` fish species and preserved in 10% formalin for later laboratory diet analysis (Table \@ref(tab:tab-stomach-collection-scheme)). Arrowtooth flounder and Kamchatka flounder (*Atheresthes* spp.) stomachs were collected as one genus because they occupy a similar trophic niche in the Bering Sea [@YangandLivingston1986]. 
 
-```{r tab-oto-collection-scheme-}
-nickname <- "tab-oto-collection-scheme-"
+```{r tab-oto-collection-scheme}
+nickname <- "tab-oto-collection-scheme"
 ```
 
-```{r tab-oto-collection-scheme--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-oto-collection-scheme-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 ```{r tab-stomach-collection-scheme}
@@ -406,8 +407,7 @@ temp <- obj$raw %>%
   dplyr::mutate(SRVY = dplyr::case_when(
     SRVY == "EBS & NBS" ~ "both the EBS and NBS", 
     SRVY == "EBS" ~ "uniquely the EBS",
-    SRVY == "NBS" ~ "specifically the NBS",
-    TRUE ~ SRVY
+    SRVY == "NBS" ~ "specifically the NBS"
   )) %>% 
   dplyr::arrange(-n)
 
