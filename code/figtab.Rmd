@@ -844,9 +844,9 @@ if (SRVY == "NEBS"){
                        values_from = c(above_60),#, lat_min, lat_max), 
                        values_fill = NA) %>% 
     dplyr::mutate(where = dplyr::case_when(
-      !is.na(EBS) & !is.na(NBS) ~ "Encountered in EBS and NBS", 
-      is.na(NBS) & !is.na(EBS)~ "Encountered in EBS but not in NBS", 
-      is.na(EBS) & !is.na(NBS) ~ "Encountered in NBS but not in EBS")) %>% 
+      !is.na(EBS) & !is.na(NBS) ~ "both", 
+      is.na(NBS) & !is.na(EBS)~ "ebs", 
+      is.na(EBS) & !is.na(NBS) ~ "nbs")) %>% 
     dplyr::left_join(x = ., 
                      y = spp_info, #%>% 
                      # dplyr::rename(common_name = print_name), 
@@ -863,13 +863,13 @@ if (SRVY == "NEBS"){
     dplyr::select(-species_code)
   
   temp1 <- temp %>% 
-    dplyr::filter(where == "Encountered in EBS but not in NBS" & 
+    dplyr::filter(where == "ebs" & 
                     !is.na(common_name)) %>% 
     dplyr::select(-where, -NBS) %>% 
     dplyr::rename(above_60 = EBS)
   
   temp2 <- temp %>% 
-    dplyr::filter(where == "Encountered in NBS but not in EBS" & 
+    dplyr::filter(where == "nbs" & 
                     !is.na(common_name)) %>% 
     dplyr::select(-where, -EBS) %>% 
     dplyr::rename(above_60 = NBS)
