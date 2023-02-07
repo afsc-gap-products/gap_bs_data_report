@@ -332,9 +332,14 @@ if (SRVY == "NEBS") {
     dplyr::filter(where != "both") %>% 
     dplyr::group_by(where) %>% 
     dplyr::summarise(n = n()) %>% 
-    dplyr::mutate(where = paste0(tolower(substr(x = where, start = 1, stop = 1)), 
-                                 substr(x = where, start = 2, stop = nchar(where))), 
-                  including = NA)
+    dplyr::mutate(
+      # where = paste0(tolower(substr(x = where, start = 1, stop = 1)), 
+      #                            substr(x = where, start = 2, stop = nchar(where))), 
+                  including = NA, 
+                  where0 = dplyr::case_when(
+                    where == "nbs" ~ "encountered in the NBS but not in the EBS",
+                    where == "ebs" ~ "encountered in the EBS but not in the NBS"
+                  ))
   for (i in 1:nrow(temp5)) {
     temp5$including[i] <- 
       text_list(
@@ -354,7 +359,7 @@ if (SRVY == "NEBS") {
                    text_list(
                      paste0(xunits(temp5$n), 
                             " flatfish species ", ifelse(temp5$n>1, "were", "was"), " ", 
-                            temp5$where, " (",
+                            temp5$where0, " (",
                             temp5$including, ")"), 
                      # sep_last = ";", 
                      sep = "; "),
