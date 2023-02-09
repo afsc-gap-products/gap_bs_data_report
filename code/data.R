@@ -755,7 +755,7 @@ haul_cruises_compareyr <- temp(haul_cruises_vess_compareyr)
 print("catch")
 
 # ## there should only be one species_code observation per haul event, however
-# ## there are occassionally multiple (with unique catchjoins). 
+# ## there are occasionally multiple (with unique catchjoins). 
 # ## I suspect that this is because a species_code was updated or changed, 
 # ## so we will need to sum those counts and weights
 
@@ -764,6 +764,10 @@ catch <-  catch0 %>%
   dplyr::summarise(weight = sum(weight, na.rm = TRUE), 
                    number_fish = sum(number_fish, na.rm = TRUE)) %>% 
   dplyr::ungroup() 
+
+if (maxyr == 2022) { # TOLEDO - a this year specific problem for a voucher-ed species that is clearly wrong
+  catch$species_code[catch$species_code == 21362] <- 21300 # Cottidae
+}
 
 
 # *** catch_haul_cruises_maxyr + maxyr-1-----------------------------------------------
@@ -1060,26 +1064,35 @@ print("bottom tempertures")
 #   dplyr::mutate(st_mean = mean(st, na.rm = TRUE))
 
 temps_avg_yr <- coldpool:::cold_pool_index %>% 
-  dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>% 
-  dplyr::rename(bt = MEAN_GEAR_TEMPERATURE, 
+  dplyr::select(YEAR, 
+                bt =MEAN_GEAR_TEMPERATURE, 
                 st = MEAN_SURFACE_TEMPERATURE) %>% 
   dplyr::filter(YEAR <= maxyr) %>% 
   janitor::clean_names() %>% 
   dplyr::arrange(desc(bt)) %>%
-  dplyr::mutate(warmest_rank = 1:nrow(.)) %>%
-  dplyr::mutate(bt_mean = mean(bt, na.rm = TRUE), 
+  dplyr::mutate(warmest_rank = 1:nrow(.), bt_mean = mean(bt, na.rm = TRUE), 
                 st_mean = mean(st, na.rm = TRUE), 
-                bt_mean_maxyr = mean(bt, na.rm = TRUE), 
-                st_mean_maxyr = mean(st, na.rm = TRUE), 
-                SRVY = "EBS") %>%
-  dplyr::arrange(SRVY, year) %>%
-  dplyr::mutate(bt_above_mean = bt>bt_mean, 
+                # bt_mean_maxyr = mean(bt, na.rm = TRUE), 
+                # st_mean_maxyr = mean(st, na.rm = TRUE), 
+                SRVY = "EBS", 
+                bt_zscore = (bt-bt_mean)/sd(bt, na.rm = TRUE), 
+                st_zscore = (st-st_mean)/sd(st, na.rm = TRUE), 
+                bt_notsig = (bt_zscore > -1 & bt_zscore < 1), 
+                st_notsig = (st_zscore > -1 & st_zscore < 1), 
+                bt_above_mean = bt>bt_mean, 
                 st_above_mean = st>st_mean, 
-                case = dplyr::case_when(
-                  ((st_above_mean + bt_above_mean)==2) ~ "both warmer",
-                  ((st_above_mean + bt_above_mean)==0) ~ "both colder",
-                  (st_above_mean == TRUE & bt_above_mean == FALSE) ~ "st warmer, bt colder",
-                  (st_above_mean == FALSE & bt_above_mean == TRUE) ~ "bt warmer, st colder") )
+                bt_case = dplyr::case_when(
+                  bt_notsig ~ "average", 
+                  (!bt_notsig & bt_above_mean) ~ "warmer", 
+                  (!bt_notsig & !bt_above_mean) ~ "colder"), 
+                st_case = dplyr::case_when(
+                  st_notsig ~ "average", 
+                  (!st_notsig & st_above_mean) ~ "warmer", 
+                  (!st_notsig & !st_above_mean) ~ "colder"),                   
+                case = ifelse(bt_case == st_case, 
+                              paste0("both ", bt_case), 
+                              paste0("bt ", bt_case, ", st ", st_case)) ) %>% 
+  dplyr::arrange(SRVY, year) 
 
 # calculate the nth year of case
 nthyr <- c()
@@ -1772,8 +1785,8 @@ a <- calc_cpue_bio(catch_haul_cruises0 = catch_haul_cruises_maxyr)
 b <- calc_cpue_bio(catch_haul_cruises0 = catch_haul_cruises_compareyr)
 
 biomass_cpue_by_stratum <- cpue_by_stratum <- biomass_by_stratum <- 
-  a$biomass_cpue_by_stratum %>%  # remove crab totals, as they use different stratum
-    dplyr::filter(!(species_code %in% c(69323, 69322, 68580, 68560)))
+  a$biomass_cpue_by_stratum # %>%  # remove crab totals, as they use different stratum # TOLEDO
+    # dplyr::filter(!(species_code %in% c(69323, 69322, 68580, 68560)))
 
 # subtract our-calculated crab totals so we can add the right total from SAP
 cc <- dplyr::bind_rows(a$biomass_cpue_by_stratum, 

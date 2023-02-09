@@ -302,6 +302,7 @@ range_text <- function(x,
 #' xunits(value = c(0, 1))
 #' xunits(value = c(0, 1), val_under_x_words = 0)
 #' xunits(value = 12)
+#' xunits(value = c(1.2345, 1.6, 1), words = FALSE)
 #' xunits(value = c(12345, 123456, 1234567))
 #' xunits(value = 123456789)
 #' xunits(value = 123456789, words = FALSE)
@@ -1624,7 +1625,7 @@ add_report_spp <- function(spp_info,
 #' text_list(c(1,"world"))
 #' text_list(c(1,2,"hello",4,"world",6), oxford = FALSE)
 #' paste0("here is a list of things: ",
-#'   text_list(paste0("list", 1:5), sep = " ", sep_last = ""))
+#' text_list(paste0("list", 1:5), sep = " ", sep_last = " ")
 text_list<-function(x = "",
                     # oxford = TRUE,
                     sep = ", ", 
@@ -1775,13 +1776,26 @@ plot_pa_facet <- function(
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) +
+    # ggplot2::geom_sf(
+    #   data = reg_dat$survey.area, 
+    #   mapping = aes(color = SURVEY, 
+    #                 geometry = geometry), 
+    #   fill = "transparent", 
+    #   # shape = NA, 
+    #   linewidth = ifelse(row0 > 2, 1.5, 1), # size
+    #   show.legend = legend_srvy_reg) +
+    # ggplot2::scale_color_manual(
+    #   name = " ", 
+    #   values = reg_dat$survey.area$color,
+    #   breaks = reg_dat$survey.area$SURVEY,
+    #   labels = reg_dat$survey.area$SRVY) 
     ggplot2::geom_sf(
       data = reg_dat$survey.area, 
       mapping = aes(color = SURVEY, 
                     geometry = geometry), 
       fill = "transparent", 
       # shape = NA, 
-      size = ifelse(row0 > 2, 1.5, 1),
+      linewidth = ifelse(row0 > 2, 1.5, 1), # size
       show.legend = legend_srvy_reg) +
     ggplot2::scale_color_manual(
       name = " ", 
@@ -1821,7 +1835,7 @@ plot_pa_facet <- function(
                  color = mako(n = 1, begin = .25, end = .75),
                  shape = 16,
                  size = 1.5,
-                 show.legend = TRUE,
+                 show.legend = FALSE,
                  na.rm = TRUE)    
   }
   
@@ -1949,6 +1963,9 @@ plot_pa_facet <- function(
               size = 0.1,
               # alpha = 0,
               fill = NA)
+    
+    
+    
   }
   
   # lon_break <- reg_dat$lon.breaks
@@ -1985,6 +2002,8 @@ plot_pa_facet <- function(
   #                                           row0 == 1 ~ 3, 
   #                                           row0 == 2 ~ 2.25, 
   #                                           TRUE ~ 2)) 
+  
+  
   if (plot_bubble) {
     figure <- figure +
       guides(
@@ -1999,12 +2018,31 @@ plot_pa_facet <- function(
                              nrow = 1)) 
   } else {
     figure <- figure +
-      guides(
-        color = guide_legend(title = key.title, 
-                             title.position = "top",  
-                             label.position = "right",
-                             title.hjust = 0.5,
-                             nrow = 1)) 
+      # guides(
+      #   color = guide_legend(title = key.title, 
+      #                        title.position = "top",  
+      #                        label.position = "right",
+      #                        title.hjust = 0.5,
+      #                        nrow = 1)) 
+      ggplot2::guides(
+        # size = guide_legend(override.aes = list(size = 10)),
+        fill = guide_legend(
+          # order = 1,
+          title.position = "top",
+          label.position = "right",
+          title.hjust = 0.5,
+          override.aes = list(color = NA),
+          nrow = 1),
+        color = guide_legend(
+          title = key.title, 
+          order = 2, 
+          label.position = "right",
+          override.aes = list(#lwd = 10, 
+            fill = reg_dat$survey.area$color, 
+            color = reg_dat$survey.area$color), 
+          title.hjust = 0.5,
+          nrow = 1))
+    
   }
   
   figure <- figure +
@@ -2341,6 +2379,7 @@ plot_idw_facet <- function(
   #                                           TRUE ~ 2)) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
   
   # if (length(length(reg_dat$survey.area$color))>1 ) {
+  
   figure <- figure +
     ggplot2::geom_sf(
       data = reg_dat$survey.area, 
@@ -2348,22 +2387,37 @@ plot_idw_facet <- function(
                     geometry = geometry), 
       fill = "transparent", 
       # shape = NA, 
-      size = ifelse(row0 > 2, 1.5, 2), # 1
+      linewidth = ifelse(row0 > 2, 1.5, 1), # size
       show.legend = legend_srvy_reg) +
     ggplot2::scale_color_manual(
       name = " ", 
       values = reg_dat$survey.area$color,
       breaks = reg_dat$survey.area$SURVEY,
-      labels = reg_dat$survey.area$SRVY) +
+      labels = reg_dat$survey.area$SRVY) + 
+  
+  # figure <- figure +
+  #   ggplot2::geom_sf(
+  #     data = reg_dat$survey.area, 
+  #     mapping = aes(color = SURVEY, 
+  #                   geometry = geometry), 
+  #     fill = "transparent", 
+  #     # shape = NA, 
+  #     size = ifelse(row0 > 2, 1.5, 2), # 1
+  #     show.legend = legend_srvy_reg) +
+  #   ggplot2::scale_color_manual(
+  #     name = " ", 
+  #     values = reg_dat$survey.area$color,
+  #     breaks = reg_dat$survey.area$SURVEY,
+  #     labels = reg_dat$survey.area$SRVY) +
     ggplot2::guides(
       # size = guide_legend(override.aes = list(size = 10)),
       fill = guide_legend(
-        order = 1, 
-        title.position = "top", 
+        order = 1,
+        title.position = "top",
         label.position = "bottom",
-        title.hjust = 0.5, 
+        title.hjust = 0.5,
         override.aes = list(color = NA),
-        nrow = 1), 
+        nrow = 1),
       color = guide_legend(
         order = 2, 
         label.position = "right",
@@ -2371,10 +2425,7 @@ plot_idw_facet <- function(
           fill = reg_dat$survey.area$color, 
           color = reg_dat$survey.area$color), 
         title.hjust = 0.5,
-        nrow = 2)) 
-  
-  
-  figure <- figure +
+        nrow = 2))  +
     #set legend position and vertical arrangement
     theme( 
       # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
@@ -3299,7 +3350,7 @@ plot_survey_stations <- function(reg_dat,
                   shape = reg_dat$survey.area$SURVEY
               ), 
               fill = NA, 
-              size = 2,
+              linewidth = 2, # size = 2,
               show.legend = TRUE) +
       stat_sf_coordinates(data = vess,
                           mapping = aes(color = vess_col, 
@@ -3351,7 +3402,7 @@ plot_survey_stations <- function(reg_dat,
                 dplyr::filter(SURVEY %in% SRVY1), 
               aes(color = SURVEY), 
               fill = NA, 
-              size = 1.5,
+              linewidth = 2, # size = 2,
               show.legend = TRUE) +
       scale_color_manual(
         name = "", #"Survey Region",
@@ -3372,7 +3423,9 @@ plot_survey_stations <- function(reg_dat,
   }
   
   figure <- figure +
-    geom_sf(data = reg_dat$akland, color = NA, fill = "grey80") +
+    geom_sf(data = reg_dat$akland, 
+            color = NA, 
+            fill = "grey80") +
     geom_sf(data = reg_dat$graticule, 
             color = NA,
             fill = "grey50")
@@ -3402,7 +3455,9 @@ plot_survey_stations <- function(reg_dat,
   
   if (station_grid) {
     figure <- figure +
-      geom_sf(data = reg_dat$survey.grid, color = "grey20", fill = NA) +
+      geom_sf(data = reg_dat$survey.grid, 
+              color = "grey20", 
+              fill = NA) +
       geom_sf_text(data = reg_dat$survey.grid, 
                    lineheight = 0.7,
                    mapping = aes(label = gsub(x = STATIONID, 
@@ -3457,14 +3512,17 @@ plot_survey_stations <- function(reg_dat,
   
   if (place_labels) {
     figure <- figure +
-      geom_text(data = subset(reg_dat$place.labels, type == "mainland"), 
+      geom_text(data = subset(reg_dat$place.labels, 
+                              type == "mainland"), 
                 aes(x = x, y = y, label = lab), 
                 size = 7, group = 99) + 
-      geom_shadowtext(data = subset(reg_dat$place.labels, type == "peninsula"), 
+      geom_shadowtext(data = subset(reg_dat$place.labels, 
+                                    type == "peninsula"), 
                       aes(x = x, y = y, label = lab), size = 3, angle = 3, 
                       bg.color = "white", color = "black", group = 99) + 
       geom_shadowtext(
-        data = subset(reg_dat$place.labels, type %in% c("bathymetry", "islands")),
+        data = subset(reg_dat$place.labels, 
+                      type %in% c("bathymetry", "islands")),
         aes(x = x, y = y, label = lab), 
         bg.color = "white", color = "black", 
         size = 2, group = 99)
