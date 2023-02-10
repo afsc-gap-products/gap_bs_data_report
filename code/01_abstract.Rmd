@@ -7,29 +7,9 @@ nbs_str0 <- ifelse(SRVY == "NEBS",
                    # NBS + EBS
                    paste0("The survey covered the eastern Bering Sea continental shelf (bottom depths between approximately 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait."), 
                    # EBS
-                   paste0("The EBS bottom trawl survey covers the Bering Sea continental shelf (bottom depths between approximately 20 and 200 meters (m)) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude."))#, 
-# "The study area covered the eastern Bering Sea continental shelf from approximately 20 to 200 m bottom depth. Geographically, this area spans from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude.")
+                   paste0("The EBS bottom trawl survey covers the Bering Sea continental shelf (bottom depths between approximately 20 and 200 meters (m)) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude."))
 
-
-# if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_completed) == 1) { # diff answers or only 1 srvy
-#   str0 <- text_list(
-#     paste0(ifelse(haul_cruises_maxyr$stations_avail ==
-#                     haul_cruises_maxyr$stations_completed, "All", "Most"), 
-#            " survey stations in the ", 
-#            haul_cruises_maxyr$SRVY, 
-#            " were sampled successfully"))
-# } else { # answers both "Most" or "All"
-#   str0 <- paste0(unique(ifelse(haul_cruises_maxyr$stations_avail ==
-#                                  haul_cruises_maxyr$stations_completed, "All", "Most")), 
-#                  " survey stations in the ",
-#                  text_list(haul_cruises_maxyr$SRVY), 
-#                  " were sampled successfully")
-# } 
-
-temp <- haul_cruises_maxyr # %>%
-# dplyr::mutate(
-#   survey_name_extra = unlist(lapply(X = strsplit(x = survey_name, split = " - ", fixed = TRUE), "[[", 1)), 
-#   survey_name_extra = unlist(lapply(X = strsplit(x = survey_name_extra, split = "Bering Sea ", fixed = TRUE), "[[", 2)))
+temp <- haul_cruises_maxyr 
 str1 <- gsub(pattern = " ,", replacement = ",", 
              x = text_list(paste0(temp$yrofsurvey, 
                                   temp$stndth, " ", temp$SRVY_long, " (", temp$SRVY, ") Crab/Groundfish Bottom Trawl Survey"), 
@@ -103,11 +83,6 @@ if ((temp0$warmest_rank > (nrow(temps_avg_yr)-6)) |  (temp0$warmest_rank < 6)) {
   str0 <- paste0(str0, 
                  " observed since the beginning of the EBS shelf bottom trawl survey time series in 1982. ")
 }
-# str0 <- paste0(str0, 
-#                paste0("NBS mean surface and bottom temperatures were not calculated because the NBS has only been surveyed ",
-#                       numbers2words(x = haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY %in% "NBS"]),
-#                       " times since ",
-#                       haul_cruises_maxyr$SRVY_start[haul_cruises_maxyr$SRVY %in% "NBS"],". ") )
 
 ```
 
@@ -261,29 +236,6 @@ temp1 <- dplyr::bind_cols(
 
 invert_spp <- xunits(temp1$species_code) 
 invert_phyla <- xunits(temp1$phylum_taxon) 
-
-# temp <- spp_info_maxyr %>% 
-#   dplyr::filter(used_in_counts == TRUE) 
-
-# temp <- dplyr::left_join(
-#   x = catch_haul_cruises_maxyr %>% 
-#     dplyr::select(SRVY, species_code) %>% 
-#     dplyr::distinct(), 
-#   y = spp_info %>% 
-#     dplyr::filter(used_in_counts) %>%
-#     dplyr::select(species_code, species_taxon, family_taxon, genus_taxon, taxon) %>%
-#     dplyr::distinct(), 
-#   by = "species_code") %>% 
-#   dplyr::filter(taxon == "fish") %>% 
-#   dplyr::select(species_code, species_taxon, family_taxon, genus_taxon, taxon, SRVY) %>% 
-#   dplyr::distinct()
-
-# fish_sp <- xunits(length(unique(temp$report_name_scientific[
-#   temp$taxon == "fish" & 
-#     !(grepl(pattern = " sp.", 
-#             x = temp$report_name_scientific, fixed = T)) & 
-#     !(grepl(pattern = " unid.", x = 
-#               temp$report_name_scientific, fixed = T))])))
 ```
 
 
@@ -301,12 +253,9 @@ for (i in 1:length(unique(cruises_maxyr$SRVY))){
            "increased", "decreased"),
     " from ", 
     xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == srvy], na.rm = TRUE)) ,
-    ifelse(i == 1, " metric tons (t) ", " t "), #"(", xunits(sum(biomass_compareyr$sdbio[biomass_compareyr$SRVY == "NBS"], na.rm = TRUE)) ,
-    # " standard deviation (SD) t) ", 
+    ifelse(i == 1, " metric tons (t) ", " t "), 
     "in ", compareyr, " to ", 
-    xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == srvy], na.rm = TRUE)),
-    " t", # "(", xunits(sum(biomass_maxyr$sdbio[biomass_maxyr$SRVY == "NBS"], na.rm = TRUE)) ,
-    # " SD t)", 
+    xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == srvy], na.rm = TRUE)), " t", 
     " in ", maxyr)
   
   str00 <- paste0(str00, str0, ". ")
@@ -314,9 +263,9 @@ for (i in 1:length(unique(cruises_maxyr$SRVY))){
 }
 ```
 
-`r str00`A total of `r fish_sp ` species of fish and `r invert_spp ` invertebrate taxa were identified during the `r text_list(SRVY1)` survey`r ifelse(SRVY=="NEBS", "s", "")`.
+`r str00`A total of `r fish_sp ` species of fish and `r invert_spp ` invertebrate taxa were identified during the `r text_list(SRVY1)` survey`r plural_surveys`.
 
-This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` shelf bottom trawl surveys. For common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Tables in the appendix list population estimates by sex and size group for principal fish species and species encountered during the survey`r ifelse(SRVY=="NEBS", "s", "")`. 
+This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` shelf bottom trawl surveys. For common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Tables in the appendix list population estimates by sex and size group for principal fish species and species encountered during the survey`r plural_surveys`. 
 
 ```{r abstract_insert_text, child=paste0(dir_out_rawdata, "/0_abstract_conclusion.Rmd")}
 ```

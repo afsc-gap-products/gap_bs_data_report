@@ -16,7 +16,7 @@ a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[jj], ]
 
 spp_sci <- a$species_name[1]
 spp_sci1 <- a$species_name1[1]
-spp_code <- a$species_code # eval(expr = parse(text = a$species_code[1]))
+spp_code <- a$species_code 
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
@@ -28,6 +28,7 @@ spp_plot_pa <- FALSE
 spp_table_cpue <- FALSE
 text_spp <- TRUE
 
+# report_title == "data"
 if (report_title == "data") {
   spp_plot_pa <- ifelse(is.na(a$plot_pa[1]), FALSE, a$plot_pa[1])
   spp_table_cpue <- ifelse(is.na(a$table_cpue[1]), FALSE, a$table_cpue[1])
@@ -71,7 +72,10 @@ if (spp_plot_sizecomp) {
                   sex = factor(sex, 
                                levels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"), 
                                labels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"),
-                               ordered = TRUE)) %>% 
+                               ordered = TRUE), 
+                  SRVY_long = dplyr::case_when(
+                    SRVY == "EBS" ~ "eastern Bering Sea", 
+                    SRVY == "NBS" ~ "northern Bering Sea")) %>% 
     dplyr::arrange(sex)
   
   if (report_title != "community" & SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
@@ -84,12 +88,10 @@ if (spp_plot_sizecomp) {
                         year %in% yrs) %>% 
         dplyr::group_by(year, taxon, species_code, sex, pop) %>% 
         dplyr::summarise(length) %>% 
-        dplyr::mutate(SRVY = "EBS and NBS")) %>% 
-      dplyr::mutate(SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE), 
-                    SRVY_long = dplyr::case_when(
-                      SRVY == "EBS" ~ "eastern Bering Sea", 
-                      SRVY == "NBS" ~ "northern Bering Sea", 
-                      SRVY == "EBS and NBS" ~ "combined eastern and northern Bering Sea" ))
+        dplyr::mutate(
+          SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE), 
+          SRVY = "EBS and NBS", 
+          SRVY_long = paste0("combined ", SURVEY)))
     
   } else if (report_title != "community" & SRVY == "NEBS" & length(unique(table_raw$SRVY))==1) { 
     height <- 3.25 
@@ -102,12 +104,20 @@ if (spp_plot_sizecomp) {
                    ") in ",
                    ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
                           "centimeters (cm)", "millimeters (mm)"),
-                   " observed during the ",
-                   text_list(yrs)," ",
+                   " encountered during the ",
+                   range_text(yrs)," ",
                    text_list(paste0(unique(table_raw$SRVY_long), " (", unique(table_raw$SRVY), ")")), 
                    " shelf bottom trawl survey", 
                    ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
-                   ". Length distributions scaled up to the total estimated population size. ", 
+                   ". ",
+                   ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0,
+                          paste0("There were no lengths collected for this species in the ", 
+                                 range_text(yrs), " ",
+                                 haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
+                                 " shelf trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
+                          ""),
+                   
+                   "Length distributions scaled up to the total estimated population size. ", 
                    ifelse(print_n, 
                           "Total number of individuals measured during the survey is indicated in the upper right corner of each plot.", ""))
   
@@ -128,59 +138,6 @@ if (spp_plot_sizecomp) {
                           hjust = 0, vjust = 0,
                           width = .18)
   }
-  
-  # fig1 <- plot_sizecomp(
-  #   sizecomp0 = sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% "NBS" & 
-  #                   year %in% nbsyr),
-  #   spp_code = spp_code,
-  #   spp_print = paste0("NBS ", spp_print), 
-  #   type = type, 
-  #   print_n = FALSE)
-  # 
-  # fig2 <- plot_sizecomp(
-  #   sizecomp0 =  sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% "EBS" & 
-  #                   year %in% nbsyr),
-  #   spp_code = spp_code,
-  #   spp_print = paste0("EBS ", spp_print), 
-  #   type = type, 
-  #   print_n = FALSE)
-  # 
-  # fig3 <- plot_sizecomp(
-  #   sizecomp0 =  sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% c("NBS", "EBS") & 
-  #                   year %in% nbsyr),
-  #   spp_code = spp_code,
-  #   spp_print = paste0("EBS and NBS ", spp_print), 
-  #   type = type, 
-  #   print_n = FALSE)
-  # 
-  # sizecomp0 <- sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% "EBS")  
-  # 
-  #   if (nrow(sizecomp0) != 0) {
-  # 
-  #   type <- unique(length_data0$sentancefrag)  # get size unit/type
-  # 
-  # fig2 <- plot_sizecomp(
-  #   sizecomp0 = sizecomp %>% 
-  #   dplyr::filter(species_code %in% spp_code &
-  #                   SRVY %in% "EBS"),
-  #   length_data0 = length_data0, 
-  #   spp_code = spp_code,
-  #   spp_print = paste0("EBS ", spp_print), 
-  #   type = type, 
-  #   print_n = FALSE, 
-  #   ridgeline = TRUE)
-  # }  
-  # 
-  #   figure <- ggpubr::ggarrange(fig2, fig1, 
-  #           labels = c("A", "B"), nrow = 1)#, widths = c(2,1))
   
   # Save figure
   res <- knitr::knit_child(
@@ -218,10 +175,8 @@ if (spp_plot_idw | spp_plot_pa) {
       dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha)) %>%
       dplyr::filter(
         SRVY %in% SRVY1 &
-          # !is.na(cpue_kgha) & 
-          #             cpue_kgha != 0 &
-                      species_code %in% spp_code & 
-                      year %in% yrs) %>% 
+          species_code %in% spp_code & 
+          year %in% yrs) %>% 
       dplyr::arrange(desc(year))
     
     spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
@@ -232,12 +187,11 @@ if (spp_plot_idw | spp_plot_pa) {
     
     table_raw <- catch_haul_cruises %>%
       dplyr::filter(!is.na(number_fish) & 
-        SRVY %in% SRVY1 &
+                      SRVY %in% SRVY1 &
                       number_fish != 0 & 
                       species_code %in% spp_code & 
                       year %in% yrs) %>% 
       dplyr::arrange(desc(year))
-    
   }
   
   # only if both species are only found in prt of the region, chnge the extrp.box
@@ -249,6 +203,23 @@ if (spp_plot_idw | spp_plot_pa) {
     height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF" & 
                        report_title == "data", 4.25, 3.5)
   }
+  
+  header0 <- paste0(spp_print, 
+                    ifelse(is.na(spp_sci), "", 
+                           paste0(" (",spp_sci,")")), 
+                    " from the ",
+                    range_text(yrs), " ", 
+                    ifelse(length(unique(table_raw$SRVY)) > 1, "eastern and northern Bering Sea", 
+                           haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY == unique(table_raw$SRVY)]),
+                    " shelf bottom trawl survey", 
+                    ifelse(length(unique(table_raw$SRVY))>1, "s", ""), ". ", 
+                    ifelse(length(unique(table_raw$SRVY)) > 1 & SRVY == "NEBS", 
+                           "", 
+                           paste0("This species was not encountered in the ", 
+                                  range_text(yrs), " ",
+                                  haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)], 
+                                  " shelf bottom trawl survey", ifelse(length(yrs)>1, "s", ""), 
+                                  ". ")))
   
   for (case_yr in case_yr0) {
     if (length(case_yr0)>1) {
@@ -262,25 +233,7 @@ if (spp_plot_idw | spp_plot_pa) {
     if (spp_plot_idw) {
       
       header <- paste0("The distribution (weight CPUE (kg/ha)) of ", 
-                       spp_print, 
-                       ifelse(is.na(spp_sci), "", 
-                              paste0(" (",spp_sci,")")), 
-                       " from the ",
-                       range_text(yrs), " ", 
-                       ifelse(SRVY == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
-                       " shelf bottom trawl survey", 
-                       ifelse(length(unique(table_raw$SRVY))>1, "s", ""),". ")
-      
-      
-      # table_raw <- #dplyr::left_join(
-      #   # x = cpue %>%
-      #   #   dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
-      #   #   dplyr::distinct(), 
-      #   # y = 
-      #   table_raw %>%
-      #     # dplyr::filter(SRVY %in% SRVY1) %>% #, 
-      #   # by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
-      #   dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
+                       header0)
       
       figure <- plot_idw_facet(
         yrs = yrs,
@@ -289,7 +242,7 @@ if (spp_plot_idw | spp_plot_pa) {
         lon = "longitude",
         var = "cpue_kgha",
         year = "year",
-        grid = "continuous.grid", # "extrapolation.grid", #
+        grid = "continuous.grid",
         reg_dat = reg_dat0, 
         region = map.area0, 
         key.title = paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/ha)"),
@@ -298,16 +251,7 @@ if (spp_plot_idw | spp_plot_pa) {
       
       
     } else if (spp_plot_pa) {
-      header <- paste0("The presence of ", 
-                       spp_print, 
-                       ifelse(is.na(spp_sci), "", 
-                              paste0(" (",spp_sci,")")), 
-                       " from the ",
-                       range_text(yrs), " ", 
-                       ifelse(SRVY == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
-                       " shelf bottom trawl survey", 
-                       ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
-                       ". ")
+      header <- paste0("The presence of ", header0)
       
       
       table_raw0 <- catch_haul_cruises %>%
@@ -356,7 +300,6 @@ if (spp_plot_idw | spp_plot_pa) {
 ## tab-est-[taxon]-[spp]-[wt or num]
 
 ```{r tab-est-[taxon]-[spp]-[wt or num]}
-# if (report_title == "data"){
 if (spp_table_cpue) {
   
   nickname0 <- paste0("tab-est-", spp_taxon, "-", spp_file, "-") 
@@ -543,28 +486,26 @@ if (spp_table_cpue) {
         
       }
       
+      table_raw <- table_raw %>% 
+        dplyr::left_join(x = ., 
+                         y = haul_cruises_maxyr %>% 
+                           dplyr::select(SRVY, SRVY_long))
+      
       header <- paste0(header,
                        spp_print, 
                        ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
-                              # ifelse(grepl(pattern = "*", x = spp_sci, fixed = TRUE), 
-                              # paste0(" (<em>",gsub(pattern = "*", replacement = "", x = spp_sci, fixed = TRUE),"</em>)"), 
-                              # spp_sci)
-                              # ),
-                       " by stratum observed during the ",
-                       maxyr," ", text_list(SRVY1), 
-                       # text_list(paste0(haul_cruises_maxyr0$SRVY, " (",
-                       #                               haul_cruises_maxyr0$stations_completed,
-                       #                               " stations completed)")),
+                       " by stratum encountered during the ",
+                       maxyr," ", 
+                       ifelse(length(unique(table_raw$SRVY)) > 1, SURVEY, unique(table_raw$SRVY_long)), 
                        " shelf bottom trawl survey",
-                       ifelse(length(setdiff(SRVY1, haul_cruises_maxyr0$SRVY))>0, "s", ""),". ",
-                       ifelse(length(setdiff(SRVY1, haul_cruises_maxyr0$SRVY))>0, 
-                              paste0("This species was not found in the ", 
-                                     setdiff(SRVY1, haul_cruises_maxyr0$SRVY),
+                       ifelse(length(unique(table_raw$SRVY)) > 1, "s", ""),". ",
+                       
+                       ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0, 
+                              paste0("This species was not encountered in the ", 
+                                     maxyr, " ",
+                                     haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
                                      " shelf trawl survey. "), 
                               ""),
-                       # "Differences in sums of estimates and totals are due to rounding. ", 
-                       # ifelse(grepl(pattern = "crab", x = spp_print), 
-                       # "Lengths are collected and reported on by the Shelfish Assessment Program in a seperate report. ", 
                        ifelse(!include_lencount, "No lengths were collected for this taxon. ", ""))#)
       
       table_print <- table_print %>% 
@@ -625,5 +566,4 @@ if (spp_table_cpue) {
     }
   }
 }
-# }
 ```

@@ -2139,7 +2139,8 @@ plot_idw_facet <- function(
                   LONGITUDE = as.numeric(LONGITUDE))
   
   extrap.grid <- c()
-  
+    dat_pred <- data.frame()
+
   if (nrow(dat) != 0) {
     if (set.breaks[1] =="auto") {
       set.breaks <- set_breaks(dat = dat, var = "CPUE_KGHA")
@@ -2152,7 +2153,6 @@ plot_idw_facet <- function(
     # 
     # Select data and make plot
     
-    dat_pred <- data.frame()
     for (ii in 1:length(yrs)) {
       
       temp <- dat %>% 
@@ -2164,9 +2164,20 @@ plot_idw_facet <- function(
         temp1$extrapolation.grid$var1.pred <- NA
         temp1$continuous.grid$var1.pred <- NA
       } else {
+        
+        region0 <- region
+        extrap.box0 <- sf::st_bbox(reg_dat$survey.area)
+        if (region == "bs.all" & length(unique(temp$SRVY)) == 1 ) {
+          region0 <- ifelse(unique(temp$SRVY) == "NBS", "bs.north", "bs.south")
+          reg_dat00<-akgfmaps::get_base_layers(
+            select.region = region0, 
+            set.crs = "EPSG:3338")
+          extrap.box0 <- sf::st_bbox(reg_dat00$survey.area)
+        }
+        
         temp1 <- make_idw_map(x = temp, # Pass data as a data frame
-                              region = region, #0,
-                              extrap.box = sf::st_bbox(reg_dat$survey.area),
+                              region = region0, 
+                              extrap.box = extrap.box0,
                               out.crs = as.character(reg_dat$crs)[1],
                               set.breaks = set.breaks,
                               grid.cell = grid.cell,

@@ -83,6 +83,7 @@ report_types <- list(
   )
 )
 
+
 for (ii in 1:length(report_types)) {
   reg_dat <- report_types[[ii]]$reg_dat
   # add color to survey.area
@@ -106,29 +107,7 @@ for (ii in 1:length(report_types)) {
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
-# lon_label <- reg_dat$lon.breaks
-# lat_label <- reg_dat$lat.breaks
-# # get the lon and lat breaks in the right projection
-# remove_lon <- 0
-# remove_lat <- 0
-# if (length(lon_label) > length(lat_label)) {
-#   remove_lat <- (length(lon_label)-length(lat_label))
-#   lat_label <- c(lat_label, rep_len(x = 0, length.out = remove_lat))
-# } else if (length(lon_label) < length(lat_label)) {
-#   remove_lon <- (length(lat_label)-length(lon_label))
-#   lon_label <- c(lon_label, rep_len(x = 0, length.out = remove_lon))
-# }
-# 
-# d <- data.frame("X" = lon_label, "Y" = lat_label)
-# coordinates(d) <- c("X", "Y")
-# sp::proj4string(d) <- CRS("+proj=longlat +datum=WGS84") 
-# dd <- data.frame(sp::spTransform(d, CRS("+init=EPSG:3338")))
-# 
-# reg_dat$lon.label <- reg_dat$lon.breaks
-# reg_dat$lat.label <- reg_dat$lat.breaks
-# reg_dat$lon.breaks <- dd$X[1:(nrow(dd)-remove_lon)]
-# reg_dat$lat.breaks <- dd$Y[1:(nrow(dd)-remove_lat)]
-
+plural_surveys <- ifelse(length(SRVY1) > 1, "s", "")
 
 # Load data --------------------------------------------------------------------
 
