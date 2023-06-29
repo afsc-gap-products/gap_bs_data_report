@@ -60,9 +60,16 @@ SRVY<-"NEBS"
 ref_compareyr <- "@2021NEBS2022" # CHANGE
 dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
 
+# maxyr <- 2023
+# compareyr <- 2022
+# strat_yr <- 2022
+# SRVY<-"NEBS"
+# ref_compareyr <- "@2022NEBS2023" # CHANGE
+# dir_googledrive <- "9ttU1_VAlos_3KKjiRqfcMF-k1cpaENN?usp" # https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN?usp=drive_link
+
 googledrive::drive_deauth()
 googledrive::drive_auth()
-1
+2
 
 # *** Source support scripts ---------------------------------------------------
 

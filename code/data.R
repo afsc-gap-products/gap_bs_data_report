@@ -710,7 +710,7 @@ temp <- function(haul_cruises_vess_){
                       SRVY = vars), 
       by = "SRVY") %>% 
     dplyr::select(- cruisejoin) %>%
-    dplyr::mutate(stndth = NMFSReports::stndth(yrofsurvey))  %>% 
+    dplyr::mutate(stndth = stndth(yrofsurvey))  %>% 
     dplyr::arrange(SRVY) %>% 
     dplyr::mutate(compareyr = compareyr[1]) %>%
     # c(compareyr_ebs, if(exists("compareyr_nbs")) {compareyr_nbs} )) %>% 

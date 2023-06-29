@@ -589,13 +589,50 @@ date_formatter <- function(date = "1998-09-02", date_format = "%B %d, %Y") {
 # 
 # 
 # 
-# stndth<-ifelse(grepl(pattern = 1, x = substr(x = (maxyr-2018)+37, start = nchar((maxyr-2018)+37), 
-#                                              stop = nchar((maxyr-2018)+37) )), 
-#                "st", 
-#                ifelse(grepl(pattern = 2, x = substr(x = (maxyr-2018)+37, start = nchar((maxyr-2018)+37), 
+# stndth<-ifelse(grepl(pattern = 1, x = substr(x = (maxyr-2018)+37, start = nchar((maxyr-2018)+37),
+#                                              stop = nchar((maxyr-2018)+37) )),
+#                "st",
+#                ifelse(grepl(pattern = 2, x = substr(x = (maxyr-2018)+37, start = nchar((maxyr-2018)+37),
 #                                                     stop = nchar((maxyr-2018)+37))), "nd", "th")
 # )
 
+#' Find the 'st, 'nd, or 'th of a value
+#'
+#' @param x a value you want the 'st, 'nd, or 'th of
+#'
+#' @return a character string of the appropriate 'st, 'nd, or 'th
+#' @export
+#'
+#' @examples
+#' stndth(3)
+#' stndth(11)
+#' stndth(112)
+#' stndth(x = c(1120, 12))
+stndth <- function(x) {
+  out <- c()
+  for (i in 1:length(x)){
+    if (grepl(pattern = 1,
+              x = substr(x = x[i],
+                         start = nchar(x[i]),
+                         stop = nchar(x[i])))) {
+      stndth0 <- "st"
+    } else if (grepl(pattern = 2,
+                     x = substr(x = x[i],
+                                start = nchar(x[i]),
+                                stop = nchar(x[i])))) {
+      stndth0 <- "nd"
+    } else if (grepl(pattern = 3,
+                     x = substr(x = x[i],
+                                start = nchar(x[i]),
+                                stop = nchar(x[i])))) {
+      stndth0 <- "rd"
+    } else {
+      stndth0 <- "th"
+    }
+    out <- c(out, stndth0)
+  }
+  return(out)
+}
 
 #' Find the age of the file, when it was created. 
 #'

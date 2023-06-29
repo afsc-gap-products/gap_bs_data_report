@@ -296,6 +296,342 @@ if (spp_plot_idw | spp_plot_pa) {
 }
 ```
 
+
+## tab-env-[taxon]-[spp]
+
+```{r tab-env-[taxon]-[spp]}
+
+nickname0 <- paste0("tab-env-", spp_taxon, "-", spp_file)
+
+haul0 <- catch_haul_cruises %>% 
+  dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
+                "bottom_depth", "gear_temperature" ,"surface_temperature", 
+                "survey_name", "SRVY", "year", "species_code", 
+                "weight", "number_fish", "hauljoin")
+
+# for (SRVY000 in SRVY1) {
+
+header <- paste0("Summary of environmental variables that ", spp_print, " (", spp_sci, ") have been found in across the ", SRVY000)
+
+## Env table
+
+stat <- dplyr::left_join(
+  x = haul0 %>% 
+    dplyr::filter(year == maxyr) %>% 
+    dplyr::select(stationid, SRVY) %>% 
+    dplyr::distinct() %>% 
+    dplyr::select(SRVY) %>% 
+    table() %>% 
+    data.frame() %>% 
+    dplyr::rename(tot = Freq), 
+  y = haul0 %>% 
+    dplyr::filter(species_code %in% spp_code & year == maxyr) %>% 
+    dplyr::select(stationid, SRVY) %>% 
+    dplyr::distinct() %>% 
+    dplyr::select(SRVY) %>% 
+    table() %>% 
+    data.frame() %>% 
+    dplyr::rename(spp = Freq), 
+  by = "SRVY") %>% 
+  dplyr::mutate(str = paste0(spp, "/", tot, 
+                             " (", formatC(spp/tot*100, digits = 1, format = "f", big.mark = ","), ")"))
+
+table_raw <- haul0 %>% 
+  dplyr::filter(SRVY %in% SRVY1 & 
+                  year == maxyr & 
+                  species_code %in% spp_code ) %>% 
+  dplyr::select(SRVY, 
+                Latitude = start_latitude, 
+                Longitude = start_longitude, 
+                "Bottom Depth" = bottom_depth, 
+                "Bottom Temperature" = gear_temperature, 
+                "Surface Temperature" = surface_temperature) %>% 
+  dplyr::group_by(SRVY) %>% 
+  dplyr::summarise(across(where(is.numeric), .fns = 
+                            list(Min = min,
+                                 Max = max))) %>%
+  tidyr::pivot_longer(is.numeric, 
+                      names_sep='_',
+                      names_to=c('variable', '.value'))  %>% 
+  tidyr::pivot_wider(id_cols = "variable", 
+                     names_from = "SRVY", 
+                     values_from = c("Min", "Max")) %>% 
+  dplyr::mutate(across(is.numeric, formatC, big.mark = ",", digits = 1, format = "f"))  %>% 
+  dplyr::relocate(variable, dplyr::ends_with(SRVY1[1])) 
+
+table_print <- table_raw %>%
+  flextable::flextable(data = .) %>% 
+  flextable::add_header_row(
+    values = eval(parse(
+      text = paste0(
+        "list(", paste0(names(table_raw), " = '",
+                           c('Survey region:\nStations sampled:',
+                             sort(rep_len(x = paste0(stat$SRVY, "\n", stat$str), 
+                                          length.out = length(SRVY1)*length(stat$SRVY)))
+                             # paste0(sapply(strsplit(x = names(table_raw_env)[-1], split = "_"), "[[", 2),
+                             # "\n",
+                             # sort(c(stat$str, stat$str))
+                             #        )
+                             ),
+                           "'", collapse = ", "), ")"))),
+    top = TRUE
+  ) %>% 
+  flextable::set_header_labels(
+    values = eval(parse(text = 
+                          paste0("list(", paste0(names(table_raw_env), " = '", 
+                                                 c('', sapply(strsplit(x = names(table_raw_env)[-1], split = "_"), "[[", 1)), "'", collapse = ", "), ")")))
+  ) %>% 
+  flextable::merge_h(part = "header")  %>%
+  flextable::merge_v(part = "header") %>%
+  theme_flextable_nmfstm(row_lines = FALSE, 
+                         font = font0, 
+                         pad = 0, 
+                         pgwidth = full_page_portrait_width) %>% 
+  flextable::bold(j = 1, part = "body") %>% 
+  flextable::align(align = "right", part = "all") %>% 
+  flextable::align(align = "center", i = 1, part = "header")  %>% 
+  flextable::align(align = "left", j = 1, part = "all") %>% 
+  flextable::padding(part = "all", 
+                     padding.right = 5) %>% 
+  flextable::vline(x = ., j = 3, part = "all")
+
+# Save table
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+  quiet = TRUE
+)
+
+```
+
+## tab-bio-[taxon]-[spp]
+
+Only for community highlights 
+
+```{r tab-bio-[taxon]-[spp]}
+
+nickname0 <- paste0("tab-bio-", spp_taxon, "-", spp_file)
+
+temp_bio <- dplyr::left_join(
+  x = total_biomass, 
+  y = biomass %>% 
+  dplyr::filter(year %in% c(maxyr, compareyr) & 
+                  species_code %in% spp_code[1] &
+                  stratum %in% 999) %>%
+  dplyr::select(SRVY, year, biomass, population, meanwgtcpue, meannumcpue) %>% 
+  dplyr::mutate(print_name = spp_print) %>% 
+  dplyr::rename(cpue_kgha = meanwgtcpue, 
+                cpue_noha = meannumcpue) %>% 
+  dplyr::filter((biomass !=0)), 
+  by = c("year", "SRVY"))
+
+
+
+table_raw <- data.frame()
+
+for (i in 1:nrow(temp_bio)) {
+  
+  # if (temp_bio$year[i] != maxyr) {
+  #   show <- (temp_bio$biomass[temp_bio$year == maxyr & temp_bio$SRVY == temp_bio$SRVY[i]]/
+  #   temp_bio$total[temp_bio$year == maxyr & temp_bio$SRVY == temp_bio$SRVY[i]])*100
+  # }
+  
+  table_raw  <- dplyr::bind_rows(
+    table_raw, 
+    c(
+      SRVY = temp_bio$SRVY[i], 
+      Year = temp_bio$year[i], 
+      "Biomass\n" = paste0(xunits(sum(temp_bio$biomass[i], na.rm = TRUE), 
+                           val_under_x_words = NULL), " t"), 
+      "Biomass\n% of Total" = #ifelse(show>1, 
+                        paste0(formatC(x = (temp_bio$biomass[i]/temp_bio$total[i])*100, 
+                                digits = 1, format = "f", big.mark = ","), "%"), 
+                        # ""), 
+      "Biomass\n% Change" = ifelse(temp_bio$year[i] != maxyr, "", 
+                           sub(replacement = "", pattern = "an ", 
+                                   x = gsub(pattern = "a ", replacement = "", 
+                                            x = pchange(
+                             start = temp_bio$biomass[i], 
+                                   end = temp_bio$biomass[temp_bio$year == compareyr])))), 
+      "Population\n" = xunits(sum(temp_bio$population[i], na.rm = TRUE), 
+                   val_under_x_words = NULL))
+  )
+}
+
+table_print <- table_raw %>% 
+  dplyr::arrange(SRVY) %>%
+  flextable::flextable(data = .) %>% 
+  flextable::merge_v(j = 1, part = "body") %>% 
+  flextable::bold(j = 1, part = "body") %>% 
+  flextable::hline(i = 2) %>% 
+  flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "increase"), 
+          bg="grey95", 
+          j = "Biomass\n% Change") %>% 
+  flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "decrease"), 
+          bg="grey80", 
+          j = "Biomass\n% Change")  %>%
+  theme_flextable_nmfstm(row_lines = FALSE, 
+                         font = font0, 
+                         pad = 0, 
+                         pgwidth = full_page_portrait_width) 
+
+# Save table
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+  quiet = TRUE
+)
+
+```
+
+
+## tab-len-[taxon]-[spp]
+
+```{r tab-len-[taxon]-[spp]}
+
+nickname0 <- paste0("tab-len-", spp_taxon, "-", spp_file)
+
+length_maxyr0 <- length_maxyr %>% 
+  dplyr::filter(species_code %in% spp_code) %>% 
+  dplyr::select(SRVY, species_code, frequency, sex, length,
+                length_type, name, sentancefrag)
+
+if (nrow(length_maxyr0) != 0) {
+  
+  unit <- unique(dplyr::case_when(length_maxyr0$species_code[1] %in% 1:31550 ~ 'cm', 
+                                  length_maxyr0$species_code[1] %in% 68000:69930 ~ 'mm'), 
+                 TRUE ~ 'NO MEASUREMENT')
+  
+  str0$sizecomp <- paste0(
+    "The ", text_list(unique(length_maxyr0$sentancefrag)), 
+    " of ", spp_print, 
+    " measured during the ",maxyr," ",
+    ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+    " survey were between ", 
+    (min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+    " and ",
+    (max(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+    " ", unit, " (Fig. `` `r fig_sizecomp` ``). ")
+}
+
+
+
+if (nrow(length_maxyr0) != 0) {
+  
+  unit <- unique(dplyr::case_when(length_maxyr0$species_code[1] %in% 1:31550 ~ 'cm', 
+                                  length_maxyr0$species_code[1] %in% 68000:69930 ~ 'mm'), 
+                 TRUE ~ 'NO MEASUREMENT')
+  
+  str0$sizecomp <- paste0(
+    "The ", text_list(unique(length_maxyr0$sentancefrag)), 
+    " of ", spp_print, 
+    " measured during the ",maxyr," ",
+    ifelse(sum(SRVY000 %in% c("NBS", "EBS"))==2, "NEBS", SRVY000),
+    " survey were between ", 
+    (min(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+    " and ",
+    (max(length_maxyr0$length, na.rm = TRUE)/ifelse(unit == "cm", 10, 1)), 
+    " ", unit, " (Fig. `` `r fig_sizecomp` ``). ")
+}
+
+return(str0)
+
+}
+
+species_content <- function(SURVEY000, 
+                            SRVY000, 
+                            haul0, 
+                            biomass_cpue,
+                            length_maxyr0,
+                            biomass, 
+                            spp_print, 
+                            spp_code,
+                            maxyr, 
+                            compareyr, 
+                            tab_majorspp_bio = "tab_majortaxa_pchange", 
+                            total_biomass, 
+                            spp_info) {
+  
+  
+  # Data work up
+  
+  # haul_maxyr0 <- haul0 %>% 
+  #   dplyr::filter(SRVY %in% SRVY000 &
+  #                   year == maxyr)
+  
+  
+  length_maxyr0 <- length_maxyr0 %>% 
+    dplyr::filter(species_code %in% spp_code & 
+                    SRVY %in% SRVY000)
+  
+  # tables from maxyr
+  table_spp_maxyr <- 
+    species_table(haul0 = haul0 %>% 
+                    dplyr::filter(year == maxyr &
+                                    species_code %in% spp_code), 
+                  spp_print, 
+                  # spp_sci,
+                  SURVEY000 = SURVEY000, 
+                  SRVY000 = SRVY000) 
+  
+  # tables from compareyr
+  table_spp_compareyr <- 
+    species_table(haul0 =  haul0 %>% 
+                    dplyr::filter(year == compareyr &
+                                    species_code %in% spp_code), 
+                  spp_print, 
+                  # spp_sci,
+                  SURVEY000 = SURVEY000,
+                  SRVY000 = SRVY000) 
+  
+  
+  table_spp <- dplyr::full_join(
+    x = table_spp_maxyr$print %>% 
+      dplyr::rename(
+        min_maxyr = Min, 
+        max_maxyr = Max, 
+        ean_maxyr = Mean), 
+    y = table_spp_compareyr$print %>% 
+      dplyr::rename(
+        min_compareyr = Min, 
+        max_compareyr = Max, 
+        mean_compareyr = Mean), 
+    by = "Metric") %>% 
+    flextable::flextable(.) %>%
+    theme_flextable_nmfstm()
+  
+  text_spp <- species_text(
+    haul0, 
+    biomass_cpue,
+    length_maxyr0, 
+    table_spp_print = table_spp_maxyr$print, 
+    # spp_sci,
+    spp_print, 
+    spp_code, 
+    SRVY000, 
+    maxyr, 
+    compareyr, 
+    tab_majorspp_bio, 
+    total_biomass, 
+    spp_info)
+  
+  return(list("table_spp" = table_spp, 
+              "text_spp" = text_spp))
+}
+
+
+
+# Save table
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+  quiet = TRUE
+)
+
+}
+```
+
+
 ## tab-est-[taxon]-[spp]-[wt or num]
 
 ```{r tab-est-[taxon]-[spp]-[wt or num]}
@@ -310,8 +646,8 @@ if (spp_table_cpue) {
     dplyr::select(SRVY, stratum, meanwgtcpue, sdcpuewt, 
                   biomass, sdbio, lowerb, upperb, 
                   meannumcpue, sdcpuenum, 
-                  population, sdpop, lowerp, upperp, 
-                  haulcount, catcount, numcount, lencount) %>% 
+                  population, sdpop, lowerp, upperp, catcount) %>%
+    # haulcount, catcount, numcount, lencount) %>% 
     dplyr::mutate(stratum = as.character(stratum)) %>%
     dplyr::arrange(stratum) %>% 
     dplyr::arrange(SRVY) %>% 
@@ -346,9 +682,7 @@ if (spp_table_cpue) {
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
                         meanwgtcpue, sdcpuewt, 
-                        biomass, sdbio, lowerb, upperb, 
-                        # haulcount, 
-                        catcount, numcount, lencount) 
+                        biomass, sdbio, lowerb, upperb, catcount) 
         
         if (!include_lencount) {
           table_raw <- table_raw %>% 
@@ -416,9 +750,7 @@ if (spp_table_cpue) {
         table_raw <- temp %>% 
           dplyr::select(SRVY, stratum, 
                         meannumcpue, sdcpuenum, 
-                        population, sdpop, lowerp, upperp, 
-                        # haulcount, 
-                        catcount, numcount, lencount)
+                        population, sdpop, lowerp, upperp)
         
         if (!include_lencount) {
           table_raw <- table_raw %>% 
