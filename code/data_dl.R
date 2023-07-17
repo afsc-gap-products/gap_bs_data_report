@@ -70,8 +70,7 @@ locations <- c(
  #  "RACEBASE.SPECIES_CLASSIFICATION",
  #  "RACE_DATA.LENGTH_TYPES",
  #  "RACE_DATA.VESSELS", 
- 
- 
+
  "GAP_PRODUCTS.AKFIN_AGECOMP",
  "GAP_PRODUCTS.AKFIN_AREA",
  "GAP_PRODUCTS.AKFIN_BIOMASS",
@@ -92,7 +91,6 @@ locations <- c(
  "crab.gap_ebs_nbs_crab_cpue", # CPUE
  "crab.ebscrab", # length data
  "crab.ebscrab_nbs" # length data
- 
   )
 
 
