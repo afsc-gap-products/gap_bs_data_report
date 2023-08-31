@@ -7,7 +7,8 @@
 #' Notes:                             # CHANGE
 #' ---
 
-#############INSTALL PACKAGES##############
+# INSTALL PACKAGES -------------------------------------------------------------
+
 # Here we list all the packages we will need for this whole process
 # We'll also use this in our works cited page!!!
 PKG <- c(
@@ -1601,7 +1602,7 @@ add_report_spp <- function(spp_info,
                        dplyr::select(-col), 
                      y = spp_info %>% 
                        dplyr::select(species_code, 
-                                     genus_taxon, species_taxon) %>% 
+                                     genus, species) %>% 
                        unique(), 
                      by = "species_code")  %>% 
     dplyr::mutate(taxon = dplyr::case_when(
@@ -1609,7 +1610,7 @@ add_report_spp <- function(spp_info,
       species_code >= 40001 ~ "invert")) %>% 
     dplyr::mutate(temp = trimws(gsub(pattern = "NA", 
                                      replacement = "", 
-                                     paste0(genus_taxon, " ", species_taxon)))) %>% 
+                                     paste0(genus, " ", species)))) %>% 
     dplyr::mutate(temp = ifelse(temp == " ", "", temp)) %>%
     dplyr::mutate(species_name = dplyr::case_when(
       group_sci == "BLANK" ~ "",
@@ -1633,7 +1634,7 @@ add_report_spp <- function(spp_info,
     dplyr::distinct() %>% 
     dplyr::mutate(type = ifelse(
       grepl(pattern = " ", x = species_name, fixed = TRUE),
-      # species_name == paste0(genus_taxon, " ", species_taxon),
+      # species_name == paste0(genus, " ", species),
       "ital", NA)) %>%
     dplyr::ungroup() %>% 
     dplyr::mutate(species_name0 = species_name, 
@@ -1642,7 +1643,7 @@ add_report_spp <- function(spp_info,
                   species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
                   species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE), 
                   species_name = species_name0) %>% 
-    dplyr::select(-type, -temp, -species_name0, -genus_taxon, -species_taxon)
+    dplyr::select(-type, -temp, -species_name0, -genus, -species)
   
   return(temp0)
 }
@@ -2904,7 +2905,7 @@ legend_discrete_cbar <- function(
 #' plot_size_comp
 #'
 #' @param sizecomp0 data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
-#' @param length_data0 data.frame of sampled lengths
+#' @param lengths0 data.frame of sampled lengths
 #' @param spp_code numeric. 
 #' @param spp_print string. 
 #' @param print_n TRUE/FALSE. Default = FALSE. Will print n = number of the species counted. 
@@ -2915,7 +2916,7 @@ legend_discrete_cbar <- function(
 #'
 #' @examples
 plot_sizecomp <- function(sizecomp0,
-                          length_data0 = NULL,
+                          lengths0 = NULL,
                           spp_code, 
                           spp_print, 
                           type = "length", 
@@ -2926,7 +2927,7 @@ plot_sizecomp <- function(sizecomp0,
   table_raw <- sizecomp0 %>%
     # dplyr::mutate(sex = stringr::str_to_title(
     #   gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) %>% 
-    dplyr::arrange(year, SRVY, sex, length) %>% 
+    dplyr::arrange(year, SRVY, sex, length_mm) %>% 
     dplyr::mutate(year = factor(
       x = year,
       levels = as.character(sort(unique(year))),
@@ -2934,7 +2935,7 @@ plot_sizecomp <- function(sizecomp0,
       ordered = TRUE))
   
   # find appropriate units
-  a<-find_units(unit = "", unt = "", dat = max(table_raw$pop, na.rm = TRUE))
+  a <- find_units(unit = "", unt = "", dat = max(table_raw$population_count, na.rm = TRUE))
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
   pop_unit <- divby
   pop_unit_word <- unit_word
@@ -2943,17 +2944,17 @@ plot_sizecomp <- function(sizecomp0,
     # mm vs cm
     len_unit_word <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
                             #report_spp$taxon[jj] =="fish", 
-                            # max(table_raw$length)-min(table_raw$length)>45, 
+                            # max(table_raw$length_mm)-min(table_raw$length_mm)>45, 
                             "cm", "mm")
   } else {
     len_unit_word <- unit
   }
   table_raw <- table_raw %>%
-    dplyr::mutate(pop = pop/pop_unit, 
-                  length = round(
-                    x = length*ifelse(len_unit_word == "mm", 10, 1), digits = 0)) #%>%
-  len_unit_axis <- ifelse(max(table_raw$length)-min(table_raw$length)>150, 50, 
-                          ifelse(max(table_raw$length)-min(table_raw$length)>45, 10, 5))
+    dplyr::mutate(population_count = population_count/pop_unit, 
+                  length_mm = round(
+                    x = length_mm*ifelse(len_unit_word == "mm", 10, 1), digits = 0)) #%>%
+  len_unit_axis <- ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>150, 50, 
+                          ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>45, 10, 5))
   
   # figure 
   if (!ridgeline) { # facet plot without ridgeline
@@ -2961,8 +2962,8 @@ plot_sizecomp <- function(sizecomp0,
     # if (length(unique(table_raw$SRVY))>1) {
     
     figure <- ggplot(data = table_raw,
-                     mapping = aes(x = length,
-                                   y = pop,
+                     mapping = aes(x = length_mm,
+                                   y = population_count,
                                    group = SRVY,
                                    fill = sex)) +
       geom_bar(position="stack", stat="identity", na.rm = TRUE) +
@@ -2974,17 +2975,17 @@ plot_sizecomp <- function(sizecomp0,
       guides(fill=guide_legend(title="")) +
       scale_y_continuous(name = paste0(spp_print, #"\n
                                        " population\n",pop_unit_word), 
-                         breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
+                         breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1))))) +
       scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
-                         breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
+                         breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
       facet_grid(year ~ SRVY,
                  scales = "free_x") 
     
     # } else {
     # 
     # figure <- ggplot(data = table_raw,
-    #                  mapping = aes(x = length,
-    #                                y = pop,
+    #                  mapping = aes(x = length_mm,
+    #                                y = population_count,
     #                                fill = sex))+
     #   geom_bar(position="stack", stat="identity", na.rm = TRUE) +
     #   scale_fill_viridis_d(direction = -1, 
@@ -2994,9 +2995,9 @@ plot_sizecomp <- function(sizecomp0,
     #                        na.value = "transparent") +
     #   guides(fill=guide_legend(title="")) +
     #   scale_y_continuous(name = paste0(spp_print, "\npopulation",pop_unit_word), 
-    #                      breaks = function(pop) unique(floor(pretty(seq(0, (max(pop) + 1) * 1.1))))) +
+    #                      breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1))))) +
     #   scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
-    #                      breaks = function(length) unique(floor(pretty(seq(0, (max(length) + 1) * 1.1))))) +
+    #                      breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
     #   facet_grid(year ~ .,
     #              scales = "free_x")  
     # }
@@ -3026,8 +3027,8 @@ plot_sizecomp <- function(sizecomp0,
     table_raw1 <- table_raw %>% 
       dplyr::ungroup() %>% 
       dplyr::group_by(year, #SRVY, 
-                      length) %>% 
-      dplyr::summarise(pop = sum(pop, na.rm = TRUE))
+                      length_mm) %>% 
+      dplyr::summarise(population_count = sum(population_count, na.rm = TRUE))
     
     temp <- setdiff(as.numeric(paste(min(table_raw1$year, na.rm = TRUE))):as.numeric(paste(max(table_raw1$year, na.rm = TRUE))), 
                     as.numeric(paste(unique(table_raw1$year))))
@@ -3035,8 +3036,8 @@ plot_sizecomp <- function(sizecomp0,
       table_raw1 <- rbind.data.frame(
         data.frame(year = temp,
                    # SRVY = , 
-                   length = 0, 
-                   pop = 0), 
+                   length_mm = 0, 
+                   population_count = 0), 
         table_raw1)
     }
     
@@ -3058,12 +3059,12 @@ plot_sizecomp <- function(sizecomp0,
       ordered = TRUE)
     
     figure <- ggplot(data = table_raw1, 
-                     mapping = aes(x = length, 
+                     mapping = aes(x = length_mm, 
                                    y = year, 
-                                   fill = length, 
-                                   height = pop/mean(pop, na.rm = TRUE))) +
+                                   fill = length_mm, 
+                                   height = population_count/mean(population_count, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
-      scale_fill_viridis_c(name = length, option = "G") +
+      scale_fill_viridis_c(name = length_mm, option = "G") +
       ylab(paste0(spp_print, #"\n
                   " population across years")) +
       xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word, ")"))) +
@@ -3085,11 +3086,11 @@ plot_sizecomp <- function(sizecomp0,
           axis.text = element_text(size = 10))
   
   
-  if (print_n & !is.null(length_data0)) {
+  if (print_n & !is.null(lengths0)) {
     
     dat_text  <- data.frame(
-      label = paste0(c("# measured: ", rep_len(x = "", length.out = (length(unique(length_data0$year))-1))),   
-                     length_data0 %>% 
+      label = paste0(c("# measured: ", rep_len(x = "", length.out = (length(unique(lengths0$year))-1))),   
+                     lengths0 %>% 
                        dplyr::mutate(year = as.character(year)) %>% 
                        dplyr::ungroup() %>% 
                        dplyr::group_by((year)) %>% 
@@ -3330,7 +3331,7 @@ tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, 
 }
 
 plot_survey_stations <- function(reg_dat, 
-                                 station_info, 
+                                 station, 
                                  haul_cruises_maxyr, 
                                  station_grid = FALSE, 
                                  stratum_no = FALSE, 
@@ -3455,8 +3456,8 @@ plot_survey_stations <- function(reg_dat,
       scale_color_manual(
         name = "", #"Survey Region",
         values = reg_dat$survey.area$color,
-        breaks = c(#rev(unique(station_info$SRVY)),
-          rev(unique(station_info$SRVY))), #TOLEDO rev
+        breaks = c(#rev(unique(station$SRVY)),
+          rev(unique(station$SRVY))), #TOLEDO rev
         labels = c(#rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
           rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))) #+
     # scale_color_manual(
@@ -3481,7 +3482,7 @@ plot_survey_stations <- function(reg_dat,
   if (station_pts_srvy) {
     figure <- figure +
       stat_sf_coordinates(data = dplyr::left_join( x = reg_dat$survey.grid, 
-                                                   y = station_info, 
+                                                   y = station, 
                                                    by = c("STATIONID" = "stationid"))  %>% 
                             dplyr::filter(in_maxyr == TRUE),
                           mapping = aes(color = SRVY),
@@ -3888,77 +3889,6 @@ table_change <- function(dat,
                          remove_all = TRUE, 
                          font = "Times New Roman") { 
   
-  # temp <- tidyr::crossing(
-  #   haul_cruises_vess %>%
-  #     dplyr::filter(SRVY == "NBS"),
-  #   dplyr::distinct(
-  #     catch_haul_cruises %>%
-  #       dplyr::filter(SRVY == "NBS")  %>%
-  #       dplyr::left_join(
-  #         x = .,
-  #         y = spp_info %>%
-  #           dplyr::select(species_code, group),
-  #         by = "species_code"),
-  #     species_code, group)) %>%
-  #   dplyr::left_join(
-  #     x = .,
-  #     y = catch_haul_cruises %>%
-  #       dplyr::select("cruisejoin", "hauljoin", "cruisejoin", "species_code",
-  #                     "weight", "number_fish",
-  #       ),
-  #     by = c("species_code", "hauljoin", "cruisejoin")) %>%
-  #   #### a check for species with weights greater then 0
-  #   ## sum catch weight (by groups) by station and join to haul table (again) to add on relevent haul data
-  #   dplyr::group_by(year, stationid, #species_code,
-  #                   group, hauljoin, stratum, distance_fished, net_width) %>%
-  #   dplyr::summarise(wt_kg_summed_by_station = sum(weight, na.rm = TRUE), # overwrite NAs in assign_group_zeros where data exists
-  #                    num_summed_by_station = sum(number_fish, na.rm = TRUE)) %>% # overwrite NAs in
-  # 
-  #   ## checks catch_and_zeros table for species that are not in groups, if species are not grouped
-  #   #### add group to assign_groups table
-  #   ## calculates CPUE for each species group by station
-  #   mutate(effort = distance_fished * net_width/10) %>%
-  #   mutate(CPUE_weight_kgperhect = wt_kg_summed_by_station/effort) %>%
-  #   mutate(CPUE_number_perhect = ifelse(wt_kg_summed_by_station > 0 & num_summed_by_station == 0, NA,
-  #                                       (CPUE_number = num_summed_by_station/effort))) %>%
-  #   #### this is to check CPUEs by group, station and year against the SQL code
-  #   ## add area to CPUE table
-  #   dplyr::left_join(x = .,
-  #                    y = stratum_info %>%
-  #                      dplyr::select(stratum, area),
-  #                    by = 'stratum') #%>%
-  # 
-  # # calculates total area by adding up the unique area values (each strata has a different value)
-  # total_area <- sum(unique(temp$area))
-  # 
-  # table_raw <- temp %>%
-  #   ## calculates mean CPUE (weight) by year, group, stratum, and area
-  #   dplyr::ungroup() %>%
-  #   dplyr::group_by(year, group, stratum, area) %>%
-  #   dplyr::summarise(CPUE_by_group_stratum = mean(CPUE_weight_kgperhect, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
-  #   ## creates column for meanCPUE per group/stratum/year*area of stratum
-  #   dplyr::mutate(mean_cpue_times_area = (CPUE_by_group_stratum * area)) %>%
-  #   ## calculates sum of mean CPUE*area (over the 3 strata)
-  #   dplyr::ungroup() %>%
-  #   dplyr::group_by(year, group) %>%
-  #   dplyr::summarise(mean_CPUE_all_strata_times_area =
-  #                      sum(mean_cpue_times_area, na.rm = TRUE)) %>% # TOLEDO - na.rm = T?
-  #   ## creates column with weighted CPUEs
-  #   dplyr::mutate(weighted_CPUE = (mean_CPUE_all_strata_times_area / total_area)) %>%
-  #   ### uses WEIGHTED CPUEs to calculate biomass
-  #   ## includes empty shells and debris
-  #   dplyr::group_by(year, group) %>%
-  #   dplyr::mutate(biomass_mt = weighted_CPUE*(total_area*.1)) %>%
-  #   # total biomass excluding empty shells and debris for each year
-  #   dplyr::filter(group != 'empty shells and debris')  %>%
-  #   dplyr::mutate(type = ifelse(
-  #     grepl(pattern = "@", x = (group), fixed = TRUE),
-  #     # species_name == paste0(genus_taxon, " ", species_taxon),
-  #     "ital", NA)) %>%
-  #   tidyr::separate(group, c("group", "species_name", "extra"), sep = "_") %>%
-  #   dplyr::select(-extra) %>%
-  #   dplyr::mutate(species_name = gsub(pattern = "@", replacement = " ",
-  #                                     x = species_name, fixed = TRUE)) %>%
   table_raw <- dat %>% 
     dplyr::filter(year %in% yrs) %>%
     dplyr::select(SRVY, year, print_name, species_name1, y, taxon) %>%
@@ -3966,7 +3896,7 @@ table_change <- function(dat,
     tidyr::pivot_wider(
       id_cols = c("SRVY", "print_name", "species_name1", "taxon"),
       names_from = "year",
-      values_from = c("y") )  %>%
+      values_from = c("y") ) %>%
     dplyr::ungroup()
   
   ##  calculate percent change, seperate group (common name) and taxon, filter out groups
@@ -3986,11 +3916,8 @@ table_change <- function(dat,
   table_raw <- table_raw %>%
     dplyr::mutate(change = ifelse(change == Inf, 100, change)) %>% 
     dplyr::arrange(desc(SRVY), desc(change)) %>%
-    # dplyr::filter(change != Inf) %>%
-    # dplyr::mutate(change = ifelse(change == Inf, "", change)) %>%
     dplyr::rename(Survey = SRVY)
-  
-  
+
   # remove spp with all 0s
   if (length(yrs) == 4) {
     a<-Reduce(intersect, 
@@ -4011,8 +3938,7 @@ table_change <- function(dat,
     a<-Reduce(intersect, 
               list(which(table_raw[,as.character(yrs)[1]]==0)))
   }
-  
-  
+
   if (length(a)!=0) {
     table_raw0 <- table_raw[-a,]
   } else {

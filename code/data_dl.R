@@ -36,7 +36,7 @@ locations <- c(
  # "HAEHNR.biomass_ebs_plusnw",# "HAEHNR.biomass_ebs_plusnw_safe", # no longer used
  # "HAEHNR.biomass_ebs_plusnw_grouped",
  # "HAEHNR.biomass_nbs_safe",
- # "crab.gap_ebs_nbs_abundance_biomass",
+ "crab.gap_ebs_nbs_abundance_biomass",
  # 
  # ## CPUE
  # # "HAEHNR.cpue_nbs",
@@ -44,7 +44,7 @@ locations <- c(
  # # "HAEHNR.cpue_ebs_plusnw_grouped",
  # "EBSSHELF.EBSSHELF_CPUE",
  # "NBSSHELF.NBS_CPUE",
- # "crab.gap_ebs_nbs_crab_cpue",
+ "crab.gap_ebs_nbs_crab_cpue",
  # 
  #  ## Size Comps - the extrapolated size distributions of each fish
  # "HAEHNR.sizecomp_nbs_stratum",
@@ -70,7 +70,8 @@ locations <- c(
  #  "RACEBASE.SPECIES_CLASSIFICATION",
  #  "RACE_DATA.LENGTH_TYPES",
  #  "RACE_DATA.VESSELS", 
-
+  
+ "GAP_PRODUCTS.OLD_STATION",
  "GAP_PRODUCTS.AKFIN_AGECOMP",
  "GAP_PRODUCTS.AKFIN_AREA",
  "GAP_PRODUCTS.AKFIN_BIOMASS",
@@ -85,12 +86,13 @@ locations <- c(
  "GAP_PRODUCTS.AKFIN_STRATUM_GROUPS",
  "GAP_PRODUCTS.AKFIN_SURVEY_DESIGN",
  "GAP_PRODUCTS.AKFIN_TAXONOMICS_WORMS",
- "RACE_DATA.LENGTH_TYPES",
+ # "RACE_DATA.LENGTH_TYPES",
+ # "NBSSHELF.NBS_CPUE", # CPUE
  "crab.gap_ebs_nbs_abundance_biomass", # Biomass
- "NBSSHELF.NBS_CPUE", # CPUE
  "crab.gap_ebs_nbs_crab_cpue", # CPUE
  "crab.ebscrab", # length data
- "crab.ebscrab_nbs" # length data
+ "crab.ebscrab_nbs", # length data,
+ "RACE_DATA.LENGTH_TYPES"
   )
 
 

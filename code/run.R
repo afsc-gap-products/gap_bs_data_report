@@ -82,14 +82,14 @@ source('./code/functions.R')
 
 source('./code/data.R')
 
-# *** Figures and Tables ------------------------
+# Figures and Tables ------------------------
 
-report_spp1 <- add_report_spp(spp_info = spp_info, 
-                              spp_info_codes = "species_code", 
-                              report_spp = report_spp, 
-                              report_spp_col = "order", 
-                              report_spp_codes = "species_code", 
-                              lang = FALSE)
+# report_spp1 <- add_report_spp(spp_info = spp_info, 
+#                               spp_info_codes = "species_code", 
+#                               report_spp = report_spp, 
+#                               report_spp_col = "order", 
+#                               report_spp_codes = "species_code", 
+#                               lang = FALSE)
 
 # General figures
 rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
