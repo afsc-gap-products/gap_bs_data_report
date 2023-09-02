@@ -36,7 +36,6 @@ locations <- c(
  # "HAEHNR.biomass_ebs_plusnw",# "HAEHNR.biomass_ebs_plusnw_safe", # no longer used
  # "HAEHNR.biomass_ebs_plusnw_grouped",
  # "HAEHNR.biomass_nbs_safe",
- "crab.gap_ebs_nbs_abundance_biomass",
  # 
  # ## CPUE
  # # "HAEHNR.cpue_nbs",
@@ -44,7 +43,6 @@ locations <- c(
  # # "HAEHNR.cpue_ebs_plusnw_grouped",
  # "EBSSHELF.EBSSHELF_CPUE",
  # "NBSSHELF.NBS_CPUE",
- "crab.gap_ebs_nbs_crab_cpue",
  # 
  #  ## Size Comps - the extrapolated size distributions of each fish
  # "HAEHNR.sizecomp_nbs_stratum",

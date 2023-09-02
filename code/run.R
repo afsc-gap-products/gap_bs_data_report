@@ -73,14 +73,19 @@ googledrive::drive_auth()
 
 # *** Source support scripts ---------------------------------------------------
 
-source('./code/directories.R')
+source(here::here("code","directories.R"))
 dir_out_figtab <- paste0(dir_output, "figtab/")
 
-source('./code/functions.R')
+source(here::here("code","functions.R"))
 
 # source('./code/data_dl.R') # Run when there is new data!
 
-source('./code/data.R')
+source(here::here("code","data.R"))
+
+# SAVE METADATA ----------------------------------------------------------------
+rmarkdown::render(paste0(here::here("code","README.Rmd")),
+                  output_dir = here::here(),
+                  output_file = paste0("README.md"))
 
 # Figures and Tables ------------------------
 
@@ -179,14 +184,14 @@ googledrive::drive_auth()
 
 # *** Source support scripts ---------------------------------------------------
 
-source('./code/directories.R')
+source(here::here("code","directories.R"))
 dir_out_figtab <- paste0(dir_output, "figtab/")
 
-source('./code/functions.R')
+source(here::here("code","functions.R"))
 
-# source('./code/data_dl.R') # Run when there is new data!
+# source(here::here("code","data_dl.R")) # Run when there is new data!
 
-source('./code/data.R')
+source(here::here("code","data.R"))
 
 # *** Figures and Tables ------------------------
 report_spp1 <- add_report_spp(spp_info = spp_info, 
@@ -262,8 +267,6 @@ save(list_figures,
 save(list_tables,
      file=paste0(dir_out_tables, "/report_tables_pres.rdata"))
 
-# }
-
 cnt_chapt<-auto_counter(cnt_chapt)
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_presentation_")
@@ -272,11 +275,6 @@ rmarkdown::render(paste0(dir_code, "/11_presentation.Rmd"),
                   output_file = paste0(filename0, cnt_chapt_content, ".pptx"))
 
 # SAVE METADATA ----------------------------------------------------------------
-rmarkdown::render(paste0("./README.Rmd"),
-                  output_dir = "./",
-                  output_file = paste0("README.md"))
-
-
 con <- file(paste0(dir_out_todaysrun, "metadata.log"))
 sink(con, append=TRUE)
 sessionInfo()

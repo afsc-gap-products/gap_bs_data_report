@@ -390,23 +390,21 @@ cruises_compareyr <- cruises %>%
 print("haul + maxyr  + compareyr")
 
 haul <- dplyr::left_join(
-  y = gap_products_akfin_haul0,  #haul0, 
+  y = gap_products_akfin_haul0, 
   x = cruises %>% 
     dplyr::select(cruisejoin, survey_definition_id), 
   by = "cruisejoin") %>%  
-  dplyr::mutate(year = as.numeric(format(as.Date(date_time_start, # start_time, 
-                                                 format="%m/%d/%Y"),"%Y"))) %>%
+  dplyr::mutate(year = as.numeric(format(as.Date(date_time_start, 
+                                                 format="%m/%d/%Y"),"%Y")), 
+                SRVY = dplyr::case_when(
+                  survey_definition_id %in% 143 ~ "NBS",
+                  survey_definition_id %in% 98 ~ "EBS" )) %>%
   dplyr::filter(year <= maxyr &
-                  year > 1981 & 
-                  abundance_haul == "Y",
+                  year > 1981 & # abundance_haul == "Y" & 
                 performance >= 0 &
                   !(is.null(station)) &
-                  survey_definition_id %in% SRVY00) %>% 
-  dplyr::mutate(SRVY = dplyr::case_when(
-    survey_definition_id %in% 143 ~ "NBS",
-    survey_definition_id %in% 98 ~ "EBS" ))  %>% 
-  dplyr::filter(abundance_haul == "Y" &
-                  haul_type == 3)
+                  survey_definition_id %in% SRVY00 & 
+                  haul_type == 3) 
 
 haul_maxyr <- haul %>% 
   dplyr::filter(year == maxyr)
@@ -448,7 +446,7 @@ if (SRVY == "NEBS") {
 
 lastyr <- max(haul$year[haul$year != maxyr])
 
-## Load CPUE Design Based Estimates ----------------------------------------------
+## CPUE Design Based Estimates -------------------------------------------------
 
 print("CPUE Design Based Estimates")
 
@@ -495,9 +493,11 @@ station <- haul %>%
   dplyr::ungroup() %>%
   dplyr::left_join(y = gap_products_old_station0 %>%
                      dplyr::filter(srvy %in% SRVY1 &
-                                     year == max(year)) %>%
+                                     design_year == max(design_year, na.rm = TRUE)) %>%
                      dplyr::select(station, stratum, SRVY = srvy) %>%
-                     dplyr::mutate(survey_definition_id = dplyr::case_when(
+                     dplyr::mutate(
+                       stratum = as.numeric(stratum), 
+                       survey_definition_id = dplyr::case_when(
                        SRVY == "NBS" ~ 143, 
                        SRVY == "EBS" ~ 98 ) ), 
                    by = c("stratum", "station")) %>% 
@@ -559,10 +559,10 @@ haul_cruises_vess <-
   dplyr::left_join(x = cruises,
                    y = haul %>% 
                      dplyr::select(cruisejoin, hauljoin, station, stratum, haul, 
-                                   depth_gear_m, duration_hr, distance_km, 
+                                   depth_gear_m, duration_hr, distance_fished_km, 
                                    net_width_m, net_height_m, date_time_start) %>% 
                      dplyr::group_by(cruisejoin, hauljoin, station, stratum, haul, 
-                                     depth_gear_m, duration_hr, distance_km, 
+                                     depth_gear_m, duration_hr, distance_fished_km, 
                                      net_width_m, net_height_m) %>% 
                      dplyr::summarise(start_date_haul = min(date_time_start),
                                       end_date_haul = max(date_time_start), 
@@ -665,9 +665,9 @@ catch_haul_cruises <-
                     latitude_dd_start, longitude_dd_start, 
                     latitude_dd_end, longitude_dd_start, 
                     depth_gear_m, depth_m, 
-                    bottom_temperature_c, surface_temperature_c,
+                    bottom_temperature_c = gear_temperature_c, surface_temperature_c,
                     performance, 
-                    duration_hr, distance_km, net_width_m, net_measured, net_height_m), 
+                    duration_hr, distance_fished_km, net_width_m, net_measured, net_height_m), 
     y = cruises %>% 
       dplyr::select(cruisejoin, survey_name, SRVY, year, cruise),  
     by = c("cruisejoin")) %>% 
@@ -732,10 +732,10 @@ lengths <- dplyr::bind_rows(
       dplyr::mutate(SRVY = "NBS") ) %>% 
     dplyr::left_join(
       y = haul %>% 
-        dplyr::select(SRVY, hauljoin,haul_type, station, abundance_haul, performance), 
+        dplyr::select(SRVY, hauljoin,haul_type, station, performance), # abundance_haul, 
       by = c("SRVY","hauljoin")) %>% 
     dplyr::filter(
-      abundance_haul == "Y" &
+      # abundance_haul == "Y" &
         performance >= 0 &
         haul_type %in% c(3)) %>% # standard stations # Note: 17 = resample stations
     dplyr::mutate(year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 

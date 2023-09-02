@@ -112,6 +112,12 @@ full_page_portrait_width <- 6.5
 full_page_portrait_height <- 7.5
 full_page_landscape_width <- 9.5
 
+# Colors -----------------------------------------------------------------------
+
+negative <- "#EDA247"
+positive <- "#57C4AD"
+neutral <- "#E6E1BC"
+
 # Cite R Packages --------------------------------------------------------------
 knitr::write_bib(x = PKG,
                  file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
@@ -3444,31 +3450,20 @@ plot_survey_stations <- function(reg_dat,
             size = .5)))
   } else { # station_pts_vess == FALSE
     figure <- figure +
-      geom_sf(data = reg_dat$survey.area %>%
+      ggplot2::geom_sf(data = reg_dat$survey.area %>%
                 dplyr::mutate(SURVEY = dplyr::case_when(
                   SURVEY == "EBS_SHELF" ~ "EBS", 
                   SURVEY == "NBS_SHELF" ~ "NBS")) %>% 
                 dplyr::filter(SURVEY %in% SRVY1), 
               aes(color = SURVEY), 
               fill = NA, 
-              linewidth = 2, # size = 2,
+              linewidth = 2, 
               show.legend = TRUE) +
-      scale_color_manual(
-        name = "", #"Survey Region",
+      ggplot2::scale_color_manual(
+        name = "", 
         values = reg_dat$survey.area$color,
-        breaks = c(#rev(unique(station$SRVY)),
-          rev(unique(station$SRVY))), #TOLEDO rev
-        labels = c(#rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
-          rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))) #+
-    # scale_color_manual(
-    #   name = " ", #"Survey Region",
-    #   values = c(reg_dat$survey.area$color, 
-    #              unique(vess$vess_col)),
-    #   breaks = c(rev(unique(reg_dat$survey.area$SURVEY)),
-    #              unique(vess$vess_col)),
-    #   labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))),
-    #              unique(vess$vessel_name)),
-    #   na.value = "transparent")
+        breaks = c(rev(unique(station$SRVY))), #TOLEDO rev
+        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))) 
   }
   
   figure <- figure +
