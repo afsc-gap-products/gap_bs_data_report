@@ -3,7 +3,6 @@ output:
   officedown::rdocx_document
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
@@ -11,7 +10,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ## vars
 
 ```{r vars}
-a <- report_spp1[which(report_spp1$file_name == unique(report_spp1$file_name)[jj]), ]
+a <- report_spp1[which(report_spp1$file_name == comb$file_name[jj]), ]
 
 spp_sci <- a$species_name[1]
 spp_sci1 <- a$species_name1[1]
@@ -21,6 +20,7 @@ spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
 # report_title == "community"
+dataTcommF <- FALSE
 spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
 spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
 spp_plot_pa <- FALSE
@@ -29,6 +29,7 @@ text_spp <- TRUE
 
 # report_title == "data"
 if (report_title == "data") {
+  dataTcommF <- TRUE
   spp_plot_pa <- ifelse(is.null(a$plot_pa[1]), FALSE, a$plot_pa[1])
   spp_table_cpue <- ifelse(is.null(a$table_cpue[1]), FALSE, a$table_cpue[1])
   text_spp <- ifelse(is.null(a$text_spp[1]), FALSE, a$text_spp[1])
@@ -68,6 +69,7 @@ if (spp_plot_idw | spp_plot_pa) {
   
   width <- full_page_portrait_width # 6.5  
   case_yr0 <- 1
+  nickname <- paste0("fig-dist-", spp_taxon, "-", spp_file)
   if (report_title == "data") {
     yrs <- c(compareyr, maxyr)
     height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
@@ -76,9 +78,8 @@ if (spp_plot_idw | spp_plot_pa) {
     yrs <- nbsyr
     height <- full_page_portrait_height-1
     row0 <- 2
+    nickname <- paste0(nickname, "-comm")
   } 
-  
-  nickname <- paste0("fig-dist-", spp_taxon, "-", spp_file)
   
   if (spp_plot_idw) {
     
@@ -210,6 +211,7 @@ if (spp_plot_idw | spp_plot_pa) {
 if (spp_plot_sizecomp) {
   
   width <- full_page_portrait_width # 6.5  
+  nickname <- paste0("fig-sizecomp-", spp_taxon, "-", spp_file)
   
   if (report_title == "data") {
     yrs <- c(compareyr, maxyr)
@@ -221,9 +223,9 @@ if (spp_plot_sizecomp) {
     height <- full_page_portrait_height
     print_n <- TRUE
     SRVY11 <-"NBS"
+    nickname <- paste0(nickname, "-comm")
   }
   
-  nickname <- paste0("fig-sizecomp-", spp_taxon, "-", spp_file)
   
   lengths0 <- lengths %>%
     dplyr::filter(species_code %in% spp_code &
@@ -356,7 +358,7 @@ stat <- dplyr::left_join(
 table_raw <- haul0 %>% 
   dplyr::filter(SRVY %in% SRVY1 & 
                   year == maxyr & 
-                  species_code %in% spp_code ) %>% 
+                  species_code %in% spp_code) %>% 
   dplyr::select(SRVY, 
                 "Latitude (°N)" = latitude_dd_start, 
                 "Longitude (°W)" = longitude_dd_start, 
@@ -400,9 +402,8 @@ table_print <- table_print1 <- table_raw %>%
   # flextable::align(align = "right", part = "all") %>% 
   flextable::align(align = "center", part = "all")  %>% 
   flextable::align(align = "left", j = 1, part = "all") %>% 
-  flextable::padding(part = "all", 
-                     padding.right = 5) %>% 
-  flextable::vline(x = ., j = 3, part = "all")
+  flextable::padding(part = "all", padding.right = 5) #%>% 
+  # flextable::vline(x = ., j = 3, part = "all")
 
 # Save table
 res <- knitr::knit_child(
@@ -675,7 +676,7 @@ res <- knitr::knit_child(
 
 ## tab-est-[taxon]-[spp]-[wt or num]
 
-```{r tab-est-[taxon]-[spp]-[wt or num]}
+```{r tab-est-[taxon]-[spp]-[wt or num], eval = dataTcommF}
 if (spp_table_cpue) {
   
   nickname0 <- paste0("tab-est-", spp_taxon, "-", spp_file, "-") 

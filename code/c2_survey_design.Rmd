@@ -49,7 +49,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
              length(unique(cruises_maxyr0$end_date_haul)) == 1) { 
     # 2. vessels started and ended on the same dates
     temp <- paste0(temp, 
-                   NMFSReports::text_list(cruises_maxyr0$vessel_ital), 
+                   text_list(cruises_maxyr0$vessel_ital), 
                    # ifelse(length(unique(vessels0$vessel)) == 1, 
                    #        "the vessel", "both vessels"), 
                    " started sampling on ",
@@ -66,7 +66,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
                    " on ",
                    format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
                    " and ended ", 
-                   NMFSReports::text_list(paste0("on ", 
+                   text_list(paste0("on ", 
                                                  format(cruises_maxyr0$end_date_haul, 
                                                         format = date_format) , 
                                                  " for the ", cruises_maxyr0$vessel_ital) ))
@@ -75,7 +75,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
              length(unique(cruises_maxyr0$end_date_haul)) == 1) {
     # 4. vessels started on different dates and ended on the same dates
     temp <- paste0(temp, "the sampling started ", 
-                   NMFSReports::text_list(paste0("on ", 
+                   text_list(paste0("on ", 
                                                  format(cruises_maxyr0$start_date_haul, 
                                                         format = date_format) , 
                                                  " for the ", cruises_maxyr0$vessel_ital) ), 
@@ -103,9 +103,14 @@ nbs_insert  <- paste0(
 
 ```
 
-The `r maxyr` EBS shelf and NBS bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r NMFSReports::text_list(cruises_maxyr0$vessel_ital)` (Fig. `r crossref(list_obj = list_figures, nickname = "fig_vessels", sublist = "number")`). `r nbs_insert ` After the NBS survey was completed, both vessels returned to Dutch Harbor to offload survey equipment and biological samples. The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50-m (`r round(50/divmforft, digits = 1)`-ft) isobath. 
+The `r maxyr` EBS shelf and NBS bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r nbs_insert ` After the NBS survey was completed, both vessels returned to Dutch Harbor to offload survey equipment and biological samples. The NBS shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50-m (`r round(50/divmforft, digits = 1)`-ft) isobath. 
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_vessels", sublist = "res") `
+```{r fig-vessels}
+nickname <- "fig-vessels"
+```
+
+```{r fig-vessels-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
 
 ```{r}
 insert <- readtext2(file = paste0(dir_out_rawdata, "/0_team_desc.docx"),
@@ -124,9 +129,9 @@ if (sum(!(unique(haul_maxyr$stationid[haul_maxyr$SRVY == "NBS" & haul_maxyr$abun
 }
 ```
 
-`r insert`The NBS survey was designed as a continuation of the systematic 20 × 20 nautical mile (nmi) sampling grid that was coordinated along latitudinal and longitudinal axes and established for the annual EBS shelf survey, and has been used since 1982. This design resulted in a systematic grid of `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations in which each sampling station represents a geo-referenced area of 400 square nautical miles (nmi^2^; `r formatC(x = 400/divnmi2forkm2, digits = 0, format = "f", big.mark = ",") ` km^2^) distributed throughout the `r NMFSReports::xunits(sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE))` nmi^2^ (`r NMFSReports::xunits(sum(stratum$area_km2[stratum$SRVY == "NBS"], na.rm=TRUE))` km^2^) that defines the NBS survey area. The EBS shelf survey area contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "EBS"] ` stations distributed over `r NMFSReports::xunits(sum(stratum$area_nmi2[stratum$SRVY == "EBS"], na.rm=TRUE))` nmi^2^ (`r NMFSReports::xunits(sum(stratum$area_km2[stratum$SRVY == "EBS"], na.rm=TRUE))` km^2^). The addition of the NBS survey expanded the overall survey coverage in the Bering Sea to `r NMFSReports::xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r NMFSReports::xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^). In `r maxyr`, the NBS stations had bottom depths ranging from `r round(min(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m). 
+`r insert`The NBS survey was designed as a continuation of the systematic 20 × 20 nautical mile (nmi) sampling grid that was coordinated along latitudinal and longitudinal axes and established for the annual EBS shelf survey, and has been used since 1982. This design resulted in a systematic grid of `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations in which each sampling station represents a geo-referenced area of 400 square nautical miles (nmi^2^; `r formatC(x = 400/divnmi2forkm2, digits = 0, format = "f", big.mark = ",") ` km^2^) distributed throughout the `r xunits(sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2[stratum$SRVY == "NBS"], na.rm=TRUE))` km^2^) that defines the NBS survey area. The EBS shelf survey area contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "EBS"] ` stations distributed over `r xunits(sum(stratum$area_nmi2[stratum$SRVY == "EBS"], na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2[stratum$SRVY == "EBS"], na.rm=TRUE))` km^2^). The addition of the NBS survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^). In `r maxyr`, the NBS stations had bottom depths ranging from `r round(min(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$bottom_depth[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m). 
 
-In the EBS shelf survey, sampling was typically conducted at a fixed sampling station located at the center of each grid cell (Fig. `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). While this approach was also used for the NBS survey, shallow depths and untrawlable bottom types were encountered in some grid cells, which required the sampling location to be moved elsewhere within the cell (Fig. `r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_sample_grid", sublist = "number") `). All stations were sampled during daylight hours. 
+In the EBS shelf survey, sampling was typically conducted at a fixed sampling station located at the center of each grid cell (Fig. \@ref(fig:fig-sample-grid)). While this approach was also used for the NBS survey, shallow depths and untrawlable bottom types were encountered in some grid cells, which required the sampling location to be moved elsewhere within the cell (Fig. \@ref(fig:fig-sample-grid)). All stations were sampled during daylight hours. 
 
 
 ```{r}
@@ -141,9 +146,14 @@ temp <- sum((haul_maxyr$net_width[haul_maxyr$SRVY == "NBS"]/ 1852) * # net width
     na.rm = TRUE) 
 ```
 
-Both vessels sampled using an 83/112 Eastern otter trawl that has been historically used for EBS shelf, Chukchi, and Beaufort Sea surveys (Fig. `r crossref(list_obj = list_figures, nickname = "fig_bottom_trawl_net", sublist = "number")`). This trawl is significantly smaller and weighs less than trawls used for commercial fishing in Alaska. One 30-minute tow, at a target vessel speed of 3 knots, was conducted at `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` stations. The cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 3)`% of the total area of the NBS.
+Both vessels sampled using an 83/112 Eastern otter trawl that has been historically used for EBS shelf, Chukchi, and Beaufort Sea surveys (Fig. \@ref(fig:fig-trawl-gear-alt)). This trawl is significantly smaller and weighs less than trawls used for commercial fishing in Alaska. One 30-minute tow, at a target vessel speed of 3 knots, was conducted at `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` stations. The cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 3)`% of the total area of the NBS.
 
-`r NMFSReports::crossref(list_obj = list_figures, nickname = "fig_bottom_trawl_net", sublist = "res") `
+```{r fig-trawl-gear-alt}
+nickname <- "fig-trawl-gear-alt"
+```
+
+```{r fig-trawl-gear-alt-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
 
 Catches of less than approximately 1,200 kg (2,500 lbs) were sorted and weighed in their entirety`r ifelse(nrow(haul[haul$subsample != 1 & haul$SRVY == "NBS" & haul$year == maxyr,])>0, " and larger catches were subsampled", "") `. Fishes, crabs, and other invertebrates were identified and sorted by species to the greatest extent possible. In cases where species identification was unknown, specimens were collected and returned to the lab for expert identification. After sorting, all caught species (except colonial species that cannot be individually counted) were counted and weighed. For the predominant fish species encountered, a subsample was weighed, sorted by sex, and the fork length of all specimens in the subsample was measured to the nearest centimeter (cm). For the predominant crab species encountered, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Some of the species caught were grouped into higher taxa groups (common names for an assemblage of species) for analysis either because the catch size was very small for individual species or due to questionable identification. Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information that included their size, weight, sex, age, reproductive state, genetics, health (condition factor), and stomach content/diet.
 

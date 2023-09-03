@@ -1091,7 +1091,7 @@ species_text <- function(
   num_stations <- haul0 %>% 
     dplyr::filter(SRVY %in% SRVY000 &
                     year == maxyr) %>% 
-    dplyr::select(stationid) %>% 
+    dplyr::select(station) %>% 
     dplyr::distinct() %>% 
     nrow()
   
@@ -1099,7 +1099,7 @@ species_text <- function(
     dplyr::filter(SRVY %in% SRVY000 &
                     species_code %in% spp_code &
                     year == maxyr) %>% 
-    dplyr::select(stationid) %>% 
+    dplyr::select(station) %>% 
     dplyr::distinct() %>% 
     nrow()
   
@@ -3472,7 +3472,7 @@ plot_survey_stations <- function(reg_dat,
     figure <- figure +
       stat_sf_coordinates(data = dplyr::left_join( x = reg_dat$survey.grid, 
                                                    y = station, 
-                                                   by = c("STATIONID" = "stationid"))  %>% 
+                                                   by = c("STATIONID" = "station"))  %>% 
                             dplyr::filter(in_maxyr == TRUE),
                           mapping = aes(color = SRVY),
                           shape = 16,

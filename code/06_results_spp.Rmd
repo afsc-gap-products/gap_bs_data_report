@@ -61,29 +61,28 @@ if (nrow(lang)>0) {
 
 `r lang `
 
-```{r res_spp_data_wrangle_{{jj}} }
+```{r res_spp_data_wrangle_{{jj}}, eval = FALSE }
 # find basic info about species
-haul0 <- catch_haul_cruises %>% 
-    dplyr::select("stationid", "stratum", "start_latitude", "start_longitude", 
-                  "bottom_depth", "gear_temperature" ,"surface_temperature", 
-                  "survey_name", "SRVY", "year", "species_code", 
+haul0 <- catch_haul_cruises %>%
+    dplyr::select("stationid", "stratum", "start_latitude", "start_longitude",
+                  "bottom_depth", "gear_temperature" ,"surface_temperature",
+                  "survey_name", "SRVY", "year", "species_code",
                   "weight", "number_fish", "hauljoin")
 
-biomass_cpue <- biomass %>% 
-  dplyr::filter(year %in% c(maxyr, compareyr) & 
+biomass_cpue <- biomass %>%
+  dplyr::filter(year %in% c(maxyr, compareyr) &
                   species_code %in% spp_code[1] &
                   stratum %in% 999) %>%
-  dplyr::select(SRVY, year, biomass_mt, population, cpue_kgkm2_mean, cpue_nokm2_mean) %>% 
-  dplyr::mutate(print_name = spp_print) %>% 
-  dplyr::rename(cpue_kgha = cpue_kgkm2_mean, 
-                cpue_noha = cpue_nokm2_mean) %>% 
+  dplyr::select(SRVY, year, biomass_mt, population, cpue_kgkm2_mean, cpue_nokm2_mean) %>%
+  dplyr::mutate(print_name = spp_print) %>%
+  dplyr::rename(cpue_kgha = cpue_kgkm2_mean,
+                cpue_noha = cpue_nokm2_mean) %>%
   dplyr::filter((biomass_mt !=0))
 
-length_maxyr0 <- length_maxyr %>% 
-  dplyr::filter(species_code %in% spp_code) %>% 
+length_maxyr0 <- length_maxyr %>%
+  dplyr::filter(species_code %in% spp_code) %>%
   dplyr::select(SRVY, species_code, frequency, sex, length,
                 length_type, name, sentancefrag)
-
 ```
 
 
@@ -117,7 +116,7 @@ fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)
 ```
 
 
-```{r res_spp_ebs_{{jj}}, results='asis'}
+```{r res_spp_ebs_{{jj}}, results='asis', eval = FALSE}
 tab0 <- str0 <- ""
 show <- refcontent & spp_text & (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0)
 if (show) {
@@ -155,7 +154,7 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 
 `r str0`
 
-```{r res_spp_nbs_{{jj}} }
+```{r res_spp_nbs_{{jj}}, eval = FALSE}
 tab0 <- str0 <- ""
 show <- refcontent & spp_text & (nrow(biomass_cpue[(biomass_cpue$SRVY == "NBS" & biomass_cpue$print_name == spp_print),])>0)
 if (show) {
@@ -190,7 +189,7 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 
 `r str0`
 
-```{r res_spp_nebs_{{jj}} }
+```{r res_spp_nebs_{{jj}}, eval = FALSE}
 tab0 <- str0 <- ""
 show <- refcontent & spp_text & 
   (nrow(biomass_cpue[(biomass_cpue$SRVY == "EBS" & biomass_cpue$print_name == spp_print),])>0 &
@@ -267,14 +266,14 @@ nickname <- paste0("fig-", spp_file)
 ```
 
 ```{r fig-sizecomp-{{jj}}}
-nickname <- paste0("fig-sizecomp-",spp_taxon,"-", spp_file)
+nickname <- paste0("fig-sizecomp-",spp_taxon,"-", spp_file, ifelse(report_title == "data", "", "-comm"))
 ```
 
 ```{r fig-sizecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_plot_sizecomp}
 ```
 
 ```{r fig-dist-{{jj}}}
-nickname <- paste0("fig-dist-",spp_taxon,"-", spp_file)
+nickname <- paste0("fig-dist-",spp_taxon,"-", spp_file, ifelse(report_title == "data", "", "-comm"))
 ```
 
 ```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=(spp_plot_idw | spp_plot_pa)}

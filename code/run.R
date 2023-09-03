@@ -13,11 +13,9 @@
 #'                   output_file = "test.docx")
 #' ---------------------------------------------
 
-# DATA REPORT ------------------------------------------------------------------
-
 # *** Report knowns ------------------------------------------------------------
-
 report_title <- "data" 
+
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 access_to_internet  <- TRUE # redownload google drive tables and docs?
 pres_img <- FALSE
@@ -45,6 +43,8 @@ font_size0 <- 12
 # SRVY<-"NEBS"
 # ref_compareyr <- "@Lauth2019" # CHANGE
 # dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
+# ref_compareyr_ebs <- "@RN976" # check
+# ref_compareyr_nbs <- "@RN909" # check
 
 # maxyr <- 2021
 # compareyr <- 2019
@@ -52,20 +52,26 @@ font_size0 <- 12
 # SRVY <- "NEBS" # "NEBS"
 # ref_compareyr <- "@2019NEBS2022" # CHANGE
 # dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
+# ref_compareyr_ebs <- "@RN976" # community report
+# ref_compareyr_nbs <- "@RN909" # community report
+# id_googledrive_comm <- googledrive::as_id("1bqXIlM9Er8MeITCkRQy8D52Yd46CLz3f")
 
 maxyr <- 2022
 compareyr <- 2021
 strat_yr <- 2022
 SRVY<-"NEBS"
-ref_compareyr <- "@2021NEBS2022" # CHANGE
+ref_compareyr <- ref_compareyr_ebs <- "@2021NEBS2022" # CHANGE
 dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
+ref_compareyr_nbs <- "@RN909" # community report
+dir_googledrive_comm <- "1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
 
 # maxyr <- 2023
 # compareyr <- 2022
 # strat_yr <- 2022
 # SRVY<-"NEBS"
-# ref_compareyr <- "@2022NEBS2023" # CHANGE
+# ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
 # dir_googledrive <- "9ttU1_VAlos_3KKjiRqfcMF-k1cpaENN?usp" # https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN?usp=drive_link
+# dir_googledrive_comm <- "1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
@@ -87,14 +93,7 @@ rmarkdown::render(paste0(here::here("code","README.Rmd")),
                   output_dir = here::here(),
                   output_file = paste0("README.md"))
 
-# Figures and Tables ------------------------
-
-# report_spp1 <- add_report_spp(spp_info = spp_info, 
-#                               spp_info_codes = "species_code", 
-#                               report_spp = report_spp, 
-#                               report_spp_col = "order", 
-#                               report_spp_codes = "species_code", 
-#                               lang = FALSE)
+# Figures and Tables -----------------------------------------------------------
 
 # General figures
 rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
@@ -102,13 +101,13 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_file = paste0(cnt_chapt_content, ".docx"))
 
 # Species figures
-for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
+comb <- report_spp1
+for (jj in 1:nrow(comb)) {
   
-  print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
+  print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", unique(comb$file_name)[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = paste0(cnt_chapt_content, "_", 
-                                         unique(report_spp1$file_name)[jj],".docx"))
+                    output_file = paste0(cnt_chapt_content, "_", unique(comb$file_name)[jj],".docx"))
 }
 
 # Appendix 
@@ -116,13 +115,8 @@ rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                   output_dir = dir_out_ref,
                   output_file = paste0(cnt_chapt_content, ".docx"))
 
-# # Save figures and tables locally to working draft folder
-# file.copy(from = dir_out_figtab, 
-#           to = dir_out_todaysrun, 
-#           overwrite = TRUE, 
-#           recursive = TRUE)
-
-# Run data report --------------------------------------------------------------
+# DATA REPORT ------------------------------------------------------------------
+report_title <- "data" 
 
 rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 
                   output_format = "officedown::rdocx_document", 
@@ -136,91 +130,22 @@ for (abcd in LETTERS[1:(ifelse(SRVY == "NEBS", 4, 2))]) {
                   output_file = paste0("00_data_report_", maxyr, "_app", abcd, ".docx"))
 }
 
-
-# rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 
-#                   output_format = "pdf_document", 
-#                   output_dir = dir_out_chapters, 
-#                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
-
 # COMMUNITY HIGHLIGHTS ---------------------------------------------------------
 
-# *** Report knowns ------------------------------------------------------------
-
-# report_title <- paste0(maxyr, ' Northern Bering Sea Groundfish and Crab Trawl Survey Highlights')
-report_title <- "community" 
-refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
-access_to_internet  <- TRUE # redownload google drive tables and docs?
-indesign_flowin <- FALSE
-pres_img <- FALSE
-usePNGPDF <- "png"
-font0 <- "Arial Narrow"
-
-SRVY <- "NEBS"
-
-# # 2019
-# report_yr <- maxyr <- 2019
-# compareyr <- 2010
-# ref_compareyr_ebs <- "@RN976" # check
-# ref_compareyr_nbs <- "@RN909" # check
-
-# # 2021
-# report_yr <- maxyr <- 2021
-# compareyr <- c(2019)# , 2017, 2010)
-# ref_compareyr_ebs <- "@RN976" # check
-# ref_compareyr_nbs <- "@RN909" # check
-# id_googledrive <- googledrive::as_id("1bqXIlM9Er8MeITCkRQy8D52Yd46CLz3f")
-
-# 2022
-report_yr <- maxyr <- 2022
-compareyr <- 2021
-ref_compareyr_ebs <- ref_compareyr <- "@2021NEBS2022" # check
-ref_compareyr_nbs <- "@RN909" # check
-dir_googledrive <- "1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
-strat_yr <- 2022
-
-googledrive::drive_deauth()
-googledrive::drive_auth()
-1
-
-# *** Source support scripts ---------------------------------------------------
-
-source(here::here("code","directories.R"))
-dir_out_figtab <- paste0(dir_output, "figtab/")
-
-source(here::here("code","functions.R"))
-
-# source(here::here("code","data_dl.R")) # Run when there is new data!
+report_title <- "community"
+dir_googledrive <- dir_googledrive_comm
 
 source(here::here("code","data.R"))
 
-# *** Figures and Tables ------------------------
-report_spp1 <- add_report_spp(spp_info = spp_info, 
-                              spp_info_codes = "species_code", 
-                              report_spp = report_spp, 
-                              report_spp_col = "order", 
-                              report_spp_codes = "species_code", 
-                              lang = FALSE)
-
-# General figures
-cnt_chapt_content<-"001"
-rmarkdown::render(paste0(dir_code, "/figtab_c.Rmd"),
-                  output_dir = dir_out_ref,
-                  output_file = paste0(cnt_chapt_content, ".docx"))
-
 # Species figures
-for (jj in 1:length( unique(report_spp1$file_name)[!is.na(unique(report_spp1$file_name))] )) {
-  print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
+comb <- report_spp1
+for (jj in 1:nrow(comb)) {
+  
+  print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", unique(comb$file_name)[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = paste0(cnt_chapt_content, "_", 
-                                         unique(report_spp1$file_name)[jj],".docx"))
+                    output_file = paste0(cnt_chapt_content, "_", unique(comb$file_name)[jj],".docx"))
 }
-
-# Save figures and tables locally to working draft folder
-file.copy(from = dir_out_figtab, 
-          to = dir_out_todaysrun, 
-          overwrite = TRUE, 
-          recursive = TRUE)
 
 # Run community highlights report -----------------------------------------------
 
@@ -230,16 +155,14 @@ rmarkdown::render(input = paste0(dir_code, "00_full_report_community.Rmd"),
 
 # PRESENTATION ------------------------------------------------------
 
-report_spp1 <- add_report_spp(spp_info = spp_info, 
-                              spp_info_codes = "species_code", 
-                              report_spp = report_spp, 
-                              report_spp_col = "order", 
-                              report_spp_codes = "species_code0", 
-                              lang = TRUE)
+# report_spp1 <- add_report_spp(spp_info = spp_info, 
+#                               spp_info_codes = "species_code", 
+#                               report_spp = report_spp, 
+#                               report_spp_col = "order", 
+#                               report_spp_codes = "species_code0", 
+#                               lang = TRUE)
 
 yrs <- sort(nbsyr, decreasing = FALSE)
-
-# *** Figures and Tables ------------------------
 
 cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_")

@@ -189,21 +189,8 @@ for (i in 1:length(txtfiles)) {
 
 ## Load Main Oracle Data -------------------------------------------------------
 
-a <- paste0(dir_data, "oracle/", c("gap_products_old_station", 
-                                   "crab_ebscrab", "crab_ebscrab_nbs", 
-                                   "crab_gap_ebs_nbs_crab_cpue",
-                                   "race_data_length_types",
-                                   # "catch", "haul", 
-                                   # "species", "species_classification", "specimen", 
-                                   # "stratum", "v_cruises", 
-                                   # "v_extract_final_lengths", 
-                                   "race_data_vessels"
-), 
-".csv") 
-
-a <- c(a, list.files(path = here::here("data/oracle/"), 
-                     pattern = "gap_products_akfin", full.names = TRUE))
-
+a <- list.files(path = here::here("data", "oracle"), full.names = TRUE, recursive = TRUE)
+           
 for (i in 1:length(a)){
   b <- readr::read_csv(file = a[i], show_col_types = FALSE)
   b <- janitor::clean_names(b)
@@ -266,10 +253,7 @@ print("report_spp")
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
                               skip = 1, show_col_types = FALSE) %>% 
   dplyr::select(!(dplyr::starts_with(ifelse(report_title == "community", "datar_", "community_")))) %>%
-  dplyr::select(where(~ !(all(is.na(.)) | all(. == "")))) %>% 
-  dplyr::mutate(taxon = dplyr::case_when(
-    species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert"))
+  dplyr::select(where(~ !(all(is.na(.)) | all(. == "")))) 
 
 names(report_spp)[
   grepl(pattern = ifelse(report_title == "community", "community_", "datar_"), 
@@ -282,6 +266,13 @@ names(report_spp)[
 
 ## report_spp1 ------------------------------------------------------------------
 
+# report_spp1 <- add_report_spp(spp_info = spp_info, 
+#                               spp_info_codes = "species_code", 
+#                               report_spp = report_spp, 
+#                               report_spp_col = "order", 
+#                               report_spp_codes = "species_code", 
+#                               lang = FALSE)
+
 temp1 <- data.frame()
 for (i in 1:nrow(report_spp)){
   temp2 <- eval(expr = parse(text = report_spp$species_code[i]))
@@ -291,6 +282,9 @@ for (i in 1:nrow(report_spp)){
 }
 
 temp1 <- temp1 %>% 
+  dplyr::mutate(taxon = dplyr::case_when(
+    species_code <= 31550 ~ "fish", 
+    species_code >= 40001 ~ "invert")) %>% 
   dplyr::select(print_name, common_name1, species_code1, group, group_sci, taxon, order, file_name, 
                 plot_sizecomp, plot_idw, text_spp, table_cpue, table_bio_portion, table_bio_spp, cpue) %>% 
   dplyr::filter(print_name != "") %>% 
@@ -357,10 +351,10 @@ report_spp1 <-
 ## cruises + maxyr + compareyr -------------------------------------------------
 print("cruises + maxyr  + compareyr")
 
-cruises <- gap_products_akfin_cruises0 %>% 
+cruises <- gap_products_akfin_cruise0 %>% 
   dplyr::select(cruise, year, survey_name, vessel_id, survey_definition_id, 
                 vessel_name, date_start, date_end, cruisejoin) %>% 
-  dplyr::filter(year != 2020 & # no surveys happened this year that I care about
+  dplyr::filter(year != 2020 & # no surveys happened this year that we care about
                   year >= 1982 &
                   year <= maxyr &
                   survey_definition_id %in% SRVY00) %>% 
@@ -460,17 +454,14 @@ cpue <- dplyr::bind_rows(
                   cpue_nokm2 = cpuenum_total) ) %>% 
   dplyr::left_join(y = haul) %>% 
   dplyr::left_join(y = spp_info %>% 
-                     dplyr::select(species_code, common_name, species_name)) %>% 
+                     dplyr::select(species_code, common_name, species_name, taxon)) %>% 
   dplyr::select(year, hauljoin, 
                 vessel_id, SRVY,  stratum, station, 
                 species_code, longitude_dd_start, latitude_dd_start, 
-                cpue_nokm2, cpue_kgkm2, common_name) %>% 
+                cpue_nokm2, cpue_kgkm2, common_name, taxon) %>% 
   dplyr::filter(!(year < 1996 & species_code == 10261) & # modify for spp
                   !(year < 2000 & species_code == 435 ) &
-                  !(year < 2000 & species_code == 471) ) %>% # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
-  dplyr::mutate(taxon = dplyr::case_when(
-    species_code <= 31550 ~ "fish",
-    species_code >= 40001 ~ "invert"))
+                  !(year < 2000 & species_code == 471) )  # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
 
 # cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whelk"
 
@@ -709,65 +700,49 @@ length_type$sentancefrag <- c("fork lengths",
 print("lengths")
 
 lengths <- dplyr::bind_rows(
-  gap_products_akfin_length0 %>% # GAP lengths
-    dplyr::filter(hauljoin %in% unique(haul$hauljoin)) %>%
-    dplyr::mutate(sex_code = sex, 
-                  sex = dplyr::case_when(
-                    sex_code == 1 ~ "Males", 
-                    sex_code == 2 ~ "Females", 
-                    sex_code == 3 ~ "Unsexed"), 
-                  taxon = dplyr::case_when(
-                    species_code <= 31550 ~ "fish",
-                    species_code >= 40001 ~ "invert") ) %>%
-    dplyr::left_join(
-      y = haul %>% # should already exclude special project and bad tows
-        dplyr::select(hauljoin, station, survey_definition_id, SRVY, year) %>%
-        dplyr::distinct(),
-      by = c("hauljoin")), 
+  gap_products_akfin_length0 %>% 
+    dplyr::rename(length_mm = length), # TOLDEDO
+  
   dplyr::bind_rows( # SAP lengths
     crab_ebscrab0 %>%
       dplyr::filter(!(cruise %in% unique(crab_ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
       dplyr::mutate(SRVY = "EBS"),
     crab_ebscrab_nbs0 %>%
       dplyr::mutate(SRVY = "NBS") ) %>% 
+    dplyr::mutate(length_type = dplyr::case_when( # what are other crabs?
+      species_code %in% c(68580, 68590, 68560) ~ 8,  # 8 - Width of carapace 
+      TRUE ~ 7  ), 
+      length_mm = dplyr::case_when(
+        species_code %in% c(68580, 68590, 68560) ~ width, # "snow crab"
+        TRUE ~ length) )  %>%  # 7 - Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
+    dplyr::select(hauljoin, species_code, sex, length_mm, length_type, clutch_size) ) %>% 
+  
     dplyr::left_join(
       y = haul %>% 
-        dplyr::select(SRVY, hauljoin,haul_type, station, performance), # abundance_haul, 
-      by = c("SRVY","hauljoin")) %>% 
+        dplyr::select(SRVY, year, hauljoin, haul_type, station, performance, survey_definition_id), # abundance_haul, 
+      by = c("hauljoin")) %>% 
     dplyr::filter(
       # abundance_haul == "Y" &
         performance >= 0 &
         haul_type %in% c(3)) %>% # standard stations # Note: 17 = resample stations
-    dplyr::mutate(year = as.numeric(substr(cruise, start = 1, stop = 4))) %>% 
-    dplyr::mutate(sex_code = sex, 
+    dplyr::mutate(
+                  sex_code = sex, 
                   sex = dplyr::case_when(
                     sex == 1 ~ "males",
                     sex == 0 ~ "unsexed",
                     (clutch_size == 0 & sex == 2) ~ "immature females", 
                     (clutch_size >= 1 & sex == 2) ~ "mature females"), 
-                  length = dplyr::case_when(
-                    species_code %in% c(68580, 68590, 68560) ~ width, # "snow crab"
-                    TRUE ~ length), 
-                  frequency = 1) %>%
-    dplyr::select(-width) %>% 
-    dplyr::filter(!is.na(length) & length != 999 & !is.na(cruise)) %>% 
-    dplyr::group_by(year, species_code, SRVY, sex, sex_code, length) %>%
+                  frequency = 1) %>% 
+    dplyr::filter(!is.na(length_mm) & length_mm != 999) %>% 
+    dplyr::group_by(year, species_code, SRVY, sex, sex_code, length_mm, length_type) %>%
     dplyr::summarise(frequency = n()) %>% 
-    dplyr::ungroup() %>%
-    dplyr::mutate(
-      taxon = dplyr::case_when(
-        species_code <= 31550 ~ "fish", 
-        species_code >= 40001 ~ "invert"), 
-      length_type = dplyr::case_when( # what are other crabs?
-        species_code %in% c(68580, 68590, 68560) ~ 8,  # 8 - Width of carapace 
-        TRUE ~ 7  ) )  %>% # 7 - Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
-    dplyr::ungroup() ) %>% 
   dplyr::left_join(y = spp_info %>% 
-                     dplyr::select(species_code, common_name, species_name),
+                     dplyr::select(species_code, common_name, species_name, taxon),
                    by = "species_code") %>% 
-  dplyr::ungroup() %>% 
-  dplyr::left_join(y = length_type, # Add in length type data 
-                   by = c("length_type" = "length_type_id"))
+  dplyr::left_join(y = length_type %>% # Add in length type data 
+                     dplyr::select(length_type_id, sentancefrag), 
+                   by = c("length_type" = "length_type_id")) %>% 
+    dplyr::ungroup()
 
 lengths_maxyr <- lengths %>% 
   dplyr::filter(year == maxyr) 
@@ -901,45 +876,29 @@ coldpool_ebs_total_area <- coldpool_ebs_bin_area %>%
 print("sizecomps")
 
 # Crab 
-df.ls<-list()
-a<-list.files(path = paste0(dir_data, "/crab/sizecomp/"), full.names = TRUE)
-
-for (i in 1:length(a)){
-  b <- readr::read_csv(file = a[i], show_col_types = FALSE)
-  b <- janitor::clean_names(b)
-  if (names(b)[1] %in% "x1"){
-    b$x1<-NULL
-  }
-  b$file <- a[i]
-  df.ls[[i]]<-b
-  names(df.ls)[i]<-a[i]
-}
-
-sizecomp_crab <- dplyr::bind_rows(df.ls) %>% 
-  dplyr::mutate(SRVY = "NBS", 
-                species_code = dplyr::case_when(
-                  grepl(pattern = "_BKC_", x = file, ignore.case = TRUE) ~ 69323, # "blue king crab"
-                  grepl(pattern = "_RKC_", x = file, ignore.case = TRUE) ~ 69322, # "red king crab"
-                  grepl(pattern = "_CO_", x = file, ignore.case = TRUE) ~ 68580 # "snow crab"
-                )) %>%
+sizecomp_crab <- dplyr::bind_rows(
+  NBS_BKC_SIZE1MM_MATFEM_ABUNDANCE0 %>% 
+    dplyr::mutate(species_code = 69323), 
+  NBS_CO_SIZE1MM_MATFEM_ABUNDANCE0 %>% 
+    dplyr::mutate(species_code = 69322), 
+  NBS_RKC_LEG1_SIZE1MM_MATFEM_ABUNDANCE0 %>% 
+    dplyr::mutate(species_code = 68580) ) %>% 
   dplyr::rename( 
     year = survey_year,
     length_mm = size1) %>%
-  dplyr::select(length_mm, year, species_code, SRVY, 
+  dplyr::select(length_mm, year, species_code, 
                 num_unsexed_size1, num_male_size1, num_female_size1_mat, num_female_size1_immat) %>%
   tidyr::pivot_longer(cols = c(num_unsexed_size1, num_male_size1, num_female_size1_mat, num_female_size1_immat),
                       names_to = "sex", values_to = "population_count")  %>%
-  dplyr::group_by(sex, length_mm, year, species_code, SRVY) %>% 
+  dplyr::group_by(sex, length_mm, year, species_code) %>% 
   dplyr::summarise(population_count = sum(population_count, na.rm = TRUE)) %>%
   dplyr::mutate(
+    survey_definition_id = "143", 
     sex = dplyr::case_when(
       sex == "num_unsexed_size1" ~ "unsexed",
       sex == "num_male_size1" ~ "males",
       sex == "num_female_size1_immat" ~ "immature females",
-      sex == "num_female_size1_mat" ~ "mature females"),
-    survey_definition_id = dplyr::case_when(
-      SRVY == "NBS" ~ 143, 
-      SRVY == "EBS" ~ 98) )
+      sex == "num_female_size1_mat" ~ "mature females"))
 
 sizecomp <- dplyr::bind_rows(
   gap_products_akfin_sizecomp0 %>% # GAP data
@@ -953,11 +912,11 @@ sizecomp <- dplyr::bind_rows(
       sex = dplyr::case_when(
         sex == 1 ~ "males", 
         sex == 2 ~ "females", 
-        sex == 3 ~ "unsexed"),
+        sex == 3 ~ "unsexed"), 
+      # length_mm = length_mm/10,
       SRVY = dplyr::case_when(
-        survey_definition_id == 43 ~ "NBS", 
-        survey_definition_id == 98 ~ "EBS")), # convert to cm
-  sizecomp_crab) %>% 
+        survey_definition_id == 143 ~ "NBS", 
+        survey_definition_id == 98 ~ "EBS"))) %>% 
   dplyr::filter(
     year <= maxyr &
       survey_definition_id %in% SRVY00 & 
@@ -966,15 +925,9 @@ sizecomp <- dplyr::bind_rows(
       !is.na(population_count) & 
       population_count!= 0 & 
       !is.na(species_code)) %>%
-  dplyr::mutate(
-    taxon = dplyr::case_when(
-      species_code <= 31550 ~ "fish", 
-      species_code >= 40001 ~ "invert"), 
-    length_mm = length_mm/10) %>% 
-  dplyr::left_join(y = gap_products_akfin_stratum_groups0 %>% 
-                     dplyr::select(area_id, stratum), 
-                   by = "area_id", 
-                   relationship = "many-to-many")
+  dplyr::left_join(y = spp_info %>% 
+                     dplyr::select(species_code, taxon),
+                   by  = "species_code")
 
 sizecomp_maxyr <- sizecomp %>%
   dplyr::filter(year == maxyr)

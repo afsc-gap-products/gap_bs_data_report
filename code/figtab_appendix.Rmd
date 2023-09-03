@@ -44,7 +44,7 @@ tab_taxa_found_ <- function(temp,
         x = catch_haul_cruises_maxyr %>% 
           dplyr::filter(year == maxyr &
                           SRVY == temp$SRVY[i]) %>% 
-          dplyr::select(stationid, start_latitude, start_longitude, bottom_depth, species_code), 
+          dplyr::select(station, latitude_dd_start, longitude_dd_start, depth_gear_m, species_code), 
         y = spp_info %>% 
           dplyr::rename(taxon0 = ifelse(temp$taxon[i] == "fish", "family", "phylum")) %>%
           dplyr::select(species_name, common_name, taxon, species_code, taxon0), 
@@ -52,12 +52,12 @@ tab_taxa_found_ <- function(temp,
       dplyr::filter(taxon == temp$taxon0[i]) %>% 
       dplyr::mutate(taxon = taxon0) %>% 
       dplyr::group_by(taxon, species_name, common_name ) %>% 
-      dplyr::summarise(stations_n = n(),#count(stationid), 
-                       depth_min = min(bottom_depth, na.rm = TRUE), 
-                       depth_max = max(bottom_depth, na.rm = TRUE), 
-                       depth_mean = mean(bottom_depth, na.rm = TRUE), 
-                       lat_min = min(start_latitude, na.rm = TRUE), 
-                       lat_max = max(start_latitude, na.rm = TRUE)) %>% 
+      dplyr::summarise(stations_n = n(),#count(station), 
+                       depth_min = min(depth_gear_m, na.rm = TRUE), 
+                       depth_max = max(depth_gear_m, na.rm = TRUE), 
+                       depth_mean = mean(depth_gear_m, na.rm = TRUE), 
+                       lat_min = min(latitude_dd_start, na.rm = TRUE), 
+                       lat_max = max(latitude_dd_start, na.rm = TRUE)) %>% 
       dplyr::ungroup() %>% 
       dplyr::arrange(species_name)  %>%
       dplyr::arrange(taxon)  %>%
@@ -272,7 +272,7 @@ tab_app_fish_ <- function(temp,
   
   for (i in 1:nrow(temp)) {
     cnt_tables <- cnt_tables + 1
-    newobj <- TRUE
+    # newobj <- TRUE
     print(temp$file_name[i])
     
     nickname <- paste0(nickname0, 
@@ -290,26 +290,33 @@ tab_app_fish_ <- function(temp,
     
     table_raw <- sizecomp_maxyr %>% 
       dplyr::filter(species_code %in% spp_code &
-                      SRVY == temp$SRVY[i]) 
+                      SRVY == temp$SRVY[i]) %>% 
+      dplyr::distinct()
     
     if (nrow(table_raw) != 0) { 
       
       table_raw <- table_raw %>% 
-        dplyr::select(length, pop, sex) %>%
-        tidyr::pivot_wider(data = ., id_cols = length, 
+        dplyr::select(length_mm, population_count, sex) %>%
+        tidyr::pivot_wider(data = ., 
+                           id_cols = length_mm, 
                            names_from = sex, 
-                           values_from = pop) %>%
-        dplyr::mutate(total = males + females + unsexed, 
+                           values_from = population_count, 
+                           values_fill = 0) %>%
+        dplyr::mutate(
+          males = ifelse(("males" %in% table_raw$sex), males, 0), 
+          females = ifelse(("females" %in% table_raw$sex), females, 0), 
+          unsexed = ifelse(("unsexed" %in% table_raw$sex), unsexed, 0), 
+          total = males + females + unsexed, 
                       prop = total/sum(total, na.rm = TRUE), 
                       cumprop = cumsum(prop)) %>%
-        dplyr::arrange(length)
+        dplyr::arrange(length_mm)
       
       table_raw <- 
         dplyr::bind_rows(table_raw %>% 
-                           dplyr::mutate(length = as.character(length)), 
+                           dplyr::mutate(length_mm = as.character(length_mm)), 
                          table_raw %>%
                            dplyr::summarise(across(everything(), ~ sum(., is.na(.), 0))) %>% 
-                           dplyr::mutate(length = "Total", 
+                           dplyr::mutate(length_mm = "Total", 
                                          cumprop = 1))  %>%
         dplyr::mutate(across((ends_with("prop")), 
                              formatC, big.mark=",", digits = 4, format = "f")) %>%
@@ -319,7 +326,7 @@ tab_app_fish_ <- function(temp,
       table_print <- table_raw %>%
         flextable::flextable(data = .) %>% 
         flextable::set_header_labels(.,
-                                     length = "Length (cm)",
+                                     length_mm = "Length (cm)",
                                      males = "Males",
                                      females = "Females",
                                      unsexed = "Unsexed", 
@@ -374,10 +381,8 @@ temp <- tidyr::crossing(haul_cruises_maxyr %>%
                           dplyr::select(file_name, print_name, common_name1, species_name, species_name1) %>% 
                           dplyr::distinct())
 
-# cnt_pre0 <- cnt_pre0 + 1; cnt_pre1 <- LETTERS[cnt_pre0]
 list_tables0 <- tab_app_fish_(
   temp = temp, 
-  # cnt_pre = , # paste0("Appendix ", cnt_pre), 
   maxyr = maxyr, 
   haul_cruises_maxyr = haul_cruises_maxyr, 
   report_spp1 = report_spp1,
@@ -385,7 +390,6 @@ list_tables0 <- tab_app_fish_(
 
 cnt_tables <- 0
 for (i in 1:length(list_tables0)) {
-  # cnt_pre <- cnt_pre1 # paste0("Appendix ", cnt_pre1)
   a <- list_tables0[[i]]
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
   
@@ -411,10 +415,8 @@ if (SRVY == "NEBS") {
                             dplyr::select(file_name, print_name, common_name1, species_name, species_name1) %>% 
                             dplyr::distinct())
   
-  # cnt_pre0 <- cnt_pre0 + 1; cnt_pre1 <- LETTERS[cnt_pre0]
   list_tables0 <- tab_app_fish_(
     temp = temp, 
-    # cnt_pre = cnt_pre, # paste0("Appendix ", cnt_pre), 
     maxyr = maxyr, 
     haul_cruises_maxyr = haul_cruises_maxyr, 
     report_spp1 = report_spp1,
@@ -422,7 +424,6 @@ if (SRVY == "NEBS") {
   
   cnt_tables <- 0
   for (i in 1:length(list_tables0)) {
-    # cnt_pre <- cnt_pre1 # paste0("Appendix ", cnt_pre1)
     a <- list_tables0[[i]]
     for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
     

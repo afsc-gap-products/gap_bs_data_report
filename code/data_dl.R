@@ -73,7 +73,7 @@ locations <- c(
  "GAP_PRODUCTS.AKFIN_BIOMASS",
  "GAP_PRODUCTS.AKFIN_CATCH",
  "GAP_PRODUCTS.AKFIN_CPUE",
- "GAP_PRODUCTS.AKFIN_CRUISES",
+ "GAP_PRODUCTS.AKFIN_CRUISE",
  "GAP_PRODUCTS.AKFIN_HAUL",
  "GAP_PRODUCTS.AKFIN_LENGTH",
  "GAP_PRODUCTS.AKFIN_METADATA_COLUMN",
@@ -82,6 +82,7 @@ locations <- c(
  "GAP_PRODUCTS.AKFIN_STRATUM_GROUPS",
  "GAP_PRODUCTS.AKFIN_SURVEY_DESIGN",
  "GAP_PRODUCTS.AKFIN_TAXONOMICS_WORMS",
+ "GAP_PRODUCTS.TEST_SPECIES_CLASSIFICATION", 
  # "RACE_DATA.LENGTH_TYPES",
  # "NBSSHELF.NBS_CPUE", # CPUE
  "crab.gap_ebs_nbs_abundance_biomass", # Biomass
@@ -109,7 +110,7 @@ for (i in 1:length(locations)){
   if ("SURVEY_DEFINITION_ID" %in% names(a)) {
     end0 <- c(end0, "SURVEY_DEFINITION_ID IN (143, 98)")
   }
-  if ("YEAR" %in% names(a) & !(locations[i] %in% c("GAP_PRODUCTS.AKFIN_BIOMASS", "GAP_PRODUCTS.AKFIN_CRUISES")) ) {
+  if ("YEAR" %in% names(a) & !(locations[i] %in% c("GAP_PRODUCTS.AKFIN_BIOMASS", "GAP_PRODUCTS.AKFIN_CRUISE")) ) {
     end0 <- c(end0, paste0("YEAR IN (",maxyr,", ", compareyr, ")"))
   }
   end0 <- ifelse(is.null(end0), "", paste0(" WHERE ", paste0(end0, collapse = " AND ")))
