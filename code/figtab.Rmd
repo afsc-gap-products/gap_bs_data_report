@@ -114,7 +114,7 @@ header <- paste0("Fishing vessels ",
                  text_list(paste0(vessels$vessel_ital, 
                                   " (", c("left", "right"), ")")),
                  " contracted to conduct the ",maxyr," ",
-                 text_list(SRVY1),
+                 SURVEY,
                  " bottom trawl survey.")
 nickname <- "fig-vessels"
 
@@ -143,7 +143,7 @@ res <- knitr::knit_child(
 
 ```{r fig-trawl-gear}
 header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used during the ", 
-                 maxyr ," ", text_list(SRVY1) ," bottom trawl survey", 
+                 maxyr ," ", SURVEY ," bottom trawl survey", 
                  ifelse(length(SRVY1)>1, "s", ""), ".")
 footnote<- NA
 nickname <- "fig-trawl-gear"
@@ -168,7 +168,7 @@ res <- knitr::knit_child(
 
 ```{r tab-stratum-areas}
 header <- paste0("Stratum areas and sampling densities used during the ",maxyr,
-                 " ", text_list(SRVY1) ," bottom trawl survey", 
+                 " ", SURVEY ," bottom trawl survey", 
                  ifelse(length(SRVY1)>1, "s", ""),". Stratum area calculations were updated in ", 
                  stratum$year[1] , ". ")
 
@@ -477,7 +477,7 @@ res <- knitr::knit_child(
 
 ## fig-temperature-[SRVY]-[st/bt]
 
-```{r fig-temperature-[SRVY]-[st/bt]}
+```{r fig-temperature-[SRVY]-[st/bt], eval = FALSE}
 height <- full_page_portrait_height
 width <- full_page_portrait_width
 yrs0 <- (maxyr-17):maxyr 
@@ -494,38 +494,28 @@ for (case in c("bottom", "surface")) {
     }
     
     if (case == "surface") {
-      nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_surface_temperature, 
-                                    subset = names(coldpool::nbs_ebs_surface_temperature)[!grepl(
-                                      x = names(coldpool::nbs_ebs_surface_temperature),
-                                      pattern = 2018)]) %>%
-        raster::projectRaster(crs = crs(coldpool::nbs_ebs_surface_temperature))
-      
-      sebs_only <- names(coldpool::ebs_surface_temperature)[
-        which(!(names(coldpool::ebs_surface_temperature) %in% 
-                  paste0("s", names(nbs_no_2018))))]
-      
-      sebs_temp <- raster::subset(coldpool::ebs_surface_temperature,
-                                  subset = sebs_only) %>%
-        raster::projectRaster(raster::projectExtent(nbs_no_2018, crs = "EPSG:3338"))
-      rasterbrick <- raster::addLayer(sebs_temp, nbs_no_2018)
-      
+      temp <- terra::unwrap(coldpool::nbs_ebs_surface_temperature)
     } else if (case == "bottom") {
-      nbs_no_2018 <- raster::subset(coldpool::nbs_ebs_bottom_temperature, 
-                                    subset = names(coldpool::nbs_ebs_bottom_temperature)[!grepl(
-                                      x = names(coldpool::nbs_ebs_bottom_temperature),
-                                      pattern = 2018)])  %>%
-        raster::projectRaster(crs = crs(coldpool::nbs_ebs_bottom_temperature))
-      sebs_only <- names(coldpool::ebs_bottom_temperature)[
-        which(!(names(coldpool::ebs_bottom_temperature) %in% 
-                  paste0("s", names(nbs_no_2018))))]
-      
-      sebs_temp <- raster::subset(coldpool::ebs_bottom_temperature,
-                                  subset = sebs_only) %>%
-        raster::projectRaster(raster::projectExtent(nbs_no_2018, crs = "EPSG:3338"))
-      
-      rasterbrick <- raster::addLayer(sebs_temp, 
-                                      nbs_no_2018)
+      temp <- terra::unwrap(coldpool::nbs_ebs_bottom_temperature)
     }
+    nbs_no_2018 <- raster::subset(
+      x = temp, 
+      subset = names(temp)[!grepl(x = names(temp),pattern = 2018)]) 
+    sebs_only <- names(temp)[which(!(names(temp) %in% paste0("s", names(nbs_no_2018))))]
+    sebs_temp <- raster::subset(temp, subset = sebs_only)
+    
+    a <- rasterbrick[[1]]
+    names(a) <- gsub(pattern = gsub("[^0-9.-]", "", names(a)), 
+                     replacement = "2020", 
+                     x = names(a))
+    terra::values(a[[1]]) <- NA
+    
+    # a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
+    # a@data@max <- a@data@min <- NA
+    # rasterbrick$temp <- a
+    # names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
+    
+    rasterbrick <- c(a, sebs_temp, nbs_no_2018)
     
     temperature_zscore <- coldpool::cold_pool_index %>% 
       dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE")), 
@@ -541,22 +531,10 @@ for (case in c("bottom", "surface")) {
           zscore <= -1 ~ "-", 
           zscore >= 1 ~ "+"), 
         color = dplyr::case_when(
-          sign == "+" ~ "#d8b365", 
-          sign == "-" ~ "#5ab4ac")) %>% 
+          sign == "+" ~ negative, 
+          sign == "-" ~ positive)) %>% 
       dplyr::arrange(year) %>% 
       dplyr::filter(year %in% yrs) 
-    
-    a_name <- names(rasterbrick)[length(names(rasterbrick))-1]
-    a <- raster::subset(x = rasterbrick,
-                        subset = a_name)
-    
-    names(a) <- gsub(pattern = gsub("[^0-9.-]", "", names(a)), 
-                     replacement = "2020", 
-                     x = names(a))
-    a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
-    a@data@max <- a@data@min <- NA
-    rasterbrick$temp <- a
-    names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
     
     header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
                      range_text(yrs), " ", 
@@ -568,10 +546,12 @@ for (case in c("bottom", "surface")) {
                      " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
     
     # Remove non-numeric characters from layer names for subsetting
-    names(rasterbrick) <- gsub("[^0-9.-]", "", names(rasterbrick))
+    # names(rasterbrick) <- gsub("[^0-9.-]", "", names(rasterbrick))
     
     # Subset layers for the selected years
-    rasterbrick <- raster::subset(rasterbrick, subset = paste0("X", yrs))
+    rasterbrick <- terra::subset(rasterbrick, subset = yrs) # paste0("X", yrs))
+    
+    rasterbrick[names(rasterbrick) %in% yrs]
     
     nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-", case_yr)
     
@@ -1339,10 +1319,10 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     ' shelf bottom trawl surveys for predominant fish and invertebrate taxa. Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. ')
   
   table_raw <- table_raw0 %>% 
-    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-    dplyr::select(-SRVY, -change0, -taxon)
-
-  table_print <- table_raw %>%
+    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i])
+  
+  table_print <- table_raw  %>% 
+    dplyr::select(-SRVY, -change0, -taxon) %>%
     flextable::flextable() %>%
     flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
                      i = grepl(pattern = "-", x = as.character(table_raw$change)), 
@@ -1358,9 +1338,9 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
                            pad = 0, 
                            row_lines = FALSE, 
                            pgwidth = full_page_landscape_width) %>% 
-        flextable::align(x = ., part = "all", align = "right") %>%
-        flextable::align(x = ., part = "all", align = "left", j = c("print_name"))
-
+    flextable::align(x = ., part = "all", align = "right") %>%
+    flextable::align(x = ., part = "all", align = "left", j = c("print_name"))
+  
   # Save table
   res <- knitr::knit_child(
     text = knitr::knit_expand(
@@ -1379,10 +1359,10 @@ temp <- biomass %>%
   dplyr::filter(year == maxyr &
                   stratum == 999) %>% 
   dplyr::select(species_code, SRVY, 
-                cpue_kgkm2_var, cpue_kgkm2_sd, 
+                cpue_kgkm2_mean, cpue_kgkm2_sd, 
                 biomass_mt, biomass_sd, #upperb, lowerb, 
                 cpue_nokm2_mean, cpue_nokm2_sd, 
-                population_count, population_sd,# upperp, lowerp, 
+                population_count, population_sd, # upperp, lowerp, 
                 n_weight) %>%# n_haul, n_count, n_length
   dplyr::left_join(
     x = ., 
@@ -1414,16 +1394,16 @@ for (i in 1:2) {
     
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
-                    cpue_kgkm2_var, cpue_kgkm2_sd, 
+                    cpue_kgkm2_mean, cpue_kgkm2_sd, 
                     biomass_mt, biomass_sd, #lowerb, upperb, 
                     # n_haul, 
                     n_weight#, n_count, n_length
       ) 
     
     table_print <- table_raw %>% 
-      dplyr::mutate(cpue_kgkm2_var = formatC(x = cpue_kgkm2_var, 
+      dplyr::mutate(cpue_kgkm2_mean = formatC(x = cpue_kgkm2_mean, 
                                              digits = 2, 
-                                             format = "f", big.mark = ","),
+                                             format = "f", big.mark = ","), 
                     cpue_kgkm2_sd = formatC(x = cpue_kgkm2_sd, 
                                             digits = 2, 
                                             format = "f", big.mark = ","), 
@@ -1447,7 +1427,7 @@ for (i in 1:2) {
           x = ., 
           print_name = "Species", 
           SRVY = "Shelf area", 
-          cpue_kgkm2_var = paste0("Mean CPUE (kg/ha)"), 
+          cpue_kgkm2_mean = paste0("Mean CPUE (kg/ha)"), 
           cpue_kgkm2_sd = paste0("SD CPUE"), 
           biomass_mt = paste0("Estimated\nBiomass"), 
           biomass_sd = paste0("SD Biomass"), 
@@ -1466,7 +1446,7 @@ for (i in 1:2) {
           x = ., 
           print_name = "Species", 
           # SRVY = "Shelf area", 
-          cpue_kgkm2_var = paste0("Mean CPUE (kg/ha)"), 
+          cpue_kgkm2_mean = paste0("Mean CPUE (kg/ha)"), 
           cpue_kgkm2_sd = paste0("SD CPUE"), 
           biomass_mt = paste0("Estimated\nBiomass"), 
           biomass_sd = paste0("SD Biomass"), 
@@ -1503,8 +1483,8 @@ for (i in 1:2) {
     
     table_print <- table_raw %>% 
       dplyr::mutate(cpue_nokm2_mean = formatC(x = cpue_nokm2_mean, 
-                                          digits = 2, 
-                                          format = "f", big.mark = ","),
+                                              digits = 2, 
+                                              format = "f", big.mark = ","),
                     cpue_nokm2_sd = formatC(x = cpue_nokm2_sd, 
                                             digits = 2, 
                                             format = "f", big.mark = ","), 

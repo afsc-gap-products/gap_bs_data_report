@@ -16,7 +16,7 @@ str1 <- gsub(pattern = " ,", replacement = ",",
                            sep_last = ", as well as the "))
 ```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessel_info)))` chartered commercial stern trawler`r ifelse(nrow(vessel_info)>1, "s", "")`, the `r text_list(paste0(vessel_info$length_m, "-m ",  vessel_info$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition, sex, length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
+In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessels)))` chartered commercial stern trawler`r plural_surveys`, the `r text_list(paste0(vessels$length_m, "-m ",  vessels$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition, sex, length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
 
 
 ```{r }
@@ -97,20 +97,20 @@ temp <- dplyr::left_join(
     dplyr::distinct(), 
   y = spp_info %>% 
     dplyr::filter(used_in_counts) %>%
-    dplyr::select(species_code, species_taxon, family_taxon, genus_taxon, taxon) %>%
+    dplyr::select(species_code, taxon, family, genus, taxon) %>%
     dplyr::distinct(), 
   by = "species_code") %>% 
   dplyr::filter(taxon == "fish") %>% 
-  dplyr::select(species_code, species_taxon, family_taxon, genus_taxon, taxon, SRVY) %>% 
+  dplyr::select(species_code, taxon, family, genus, taxon, SRVY) %>% 
   dplyr::distinct()
 
 temp0 <- dplyr::full_join(
   x = temp %>% 
-    dplyr::filter(!is.na(species_taxon)) %>% 
-    dplyr::select(SRVY, species_taxon) %>% 
+    dplyr::filter(!is.na(taxon)) %>% 
+    dplyr::select(SRVY, taxon) %>% 
     dplyr::distinct() %>% 
     dplyr::group_by(SRVY) %>% 
-    dplyr::summarise(species_taxon = n()),
+    dplyr::summarise(taxon = n()),
   y = temp %>% 
     dplyr::filter(!is.na(species_code)) %>% 
     dplyr::select(SRVY, species_code) %>% 
@@ -121,48 +121,48 @@ temp0 <- dplyr::full_join(
   dplyr::left_join(
     x = ., 
     y = temp %>% 
-      dplyr::filter(!is.na(family_taxon)) %>% 
-      dplyr::select(SRVY, family_taxon) %>% 
+      dplyr::filter(!is.na(family)) %>% 
+      dplyr::select(SRVY, family) %>% 
       dplyr::distinct() %>% 
       dplyr::group_by(SRVY) %>%
-      dplyr::summarise(family_taxon = n()),
+      dplyr::summarise(family = n()),
     by = "SRVY")  %>% 
   dplyr::left_join(
     x = ., 
     y = temp %>% 
-      dplyr::filter(!is.na(genus_taxon)) %>% 
-      dplyr::select(SRVY, genus_taxon) %>% 
+      dplyr::filter(!is.na(genus)) %>% 
+      dplyr::select(SRVY, genus) %>% 
       dplyr::distinct() %>% 
       dplyr::group_by(SRVY) %>%
-      dplyr::summarise(genus_taxon = n()),
+      dplyr::summarise(genus = n()),
     by = "SRVY") #%>%
-# dplyr::mutate(perc = round(((species_code - species_taxon)/species_code)*100, digits = 2))
+# dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
 
 temp1 <- dplyr::bind_cols(
   temp %>% 
-    dplyr::filter(!is.na(species_taxon)) %>% 
-    dplyr::select(species_taxon) %>% 
+    dplyr::filter(!is.na(taxon)) %>% 
+    dplyr::select(taxon) %>% 
     dplyr::distinct() %>% 
-    dplyr::summarise(species_taxon = n()),
+    dplyr::summarise(taxon = n()),
   temp %>% 
     dplyr::filter(!is.na(species_code)) %>% 
     dplyr::select(species_code) %>% 
     dplyr::distinct() %>% 
     dplyr::summarise(species_code = n()), 
   temp %>% 
-    dplyr::filter(!is.na(family_taxon)) %>% 
-    dplyr::select(family_taxon) %>% 
+    dplyr::filter(!is.na(family)) %>% 
+    dplyr::select(family) %>% 
     dplyr::distinct() %>% 
-    dplyr::summarise(family_taxon = n()),
+    dplyr::summarise(family = n()),
   temp %>% 
-    dplyr::filter(!is.na(genus_taxon)) %>% 
-    dplyr::select(genus_taxon) %>% 
+    dplyr::filter(!is.na(genus)) %>% 
+    dplyr::select(genus) %>% 
     dplyr::distinct() %>% 
-    dplyr::summarise(genus_taxon = n())) 
+    dplyr::summarise(genus = n())) 
 
 fish_sp <- xunits(temp1$species_code) 
-fish_genera <- xunits(temp1$genus_taxon) 
-fish_family <- xunits(temp1$family_taxon) 
+fish_genera <- xunits(temp1$genus) 
+fish_family <- xunits(temp1$family) 
 
 # count invert spp
 temp <- dplyr::left_join(
@@ -171,20 +171,20 @@ temp <- dplyr::left_join(
     dplyr::distinct(), 
   y = spp_info %>% 
     dplyr::filter(used_in_counts) %>%
-    dplyr::select(species_code, species_taxon, phylum_taxon, genus_taxon, taxon) %>%
+    dplyr::select(species_code, taxon, phylum, genus, taxon) %>%
     dplyr::distinct(), 
   by = "species_code") %>% 
   dplyr::filter(taxon == "invert") %>% 
-  dplyr::select(species_code, species_taxon, phylum_taxon, genus_taxon, taxon, SRVY) %>% 
+  dplyr::select(species_code, taxon, phylum, genus, taxon, SRVY) %>% 
   dplyr::distinct()
 
 temp0 <- dplyr::full_join(
   x = temp %>% 
-    dplyr::filter(!is.na(species_taxon)) %>% 
-    dplyr::select(SRVY, species_taxon) %>% 
+    dplyr::filter(!is.na(taxon)) %>% 
+    dplyr::select(SRVY, taxon) %>% 
     dplyr::distinct() %>% 
     dplyr::group_by(SRVY) %>% 
-    dplyr::summarise(species_taxon = n()),
+    dplyr::summarise(taxon = n()),
   y = temp %>% 
     dplyr::filter(!is.na(species_code)) %>% 
     dplyr::select(SRVY, species_code) %>% 
@@ -195,47 +195,47 @@ temp0 <- dplyr::full_join(
   dplyr::left_join(
     x = ., 
     y = temp %>% 
-      dplyr::filter(!is.na(phylum_taxon)) %>% 
-      dplyr::select(SRVY, phylum_taxon) %>% 
+      dplyr::filter(!is.na(phylum)) %>% 
+      dplyr::select(SRVY, phylum) %>% 
       dplyr::distinct() %>% 
       dplyr::group_by(SRVY) %>%
-      dplyr::summarise(phylum_taxon = n()),
+      dplyr::summarise(phylum = n()),
     by = "SRVY")  %>% 
   dplyr::left_join(
     x = ., 
     y = temp %>% 
-      dplyr::filter(!is.na(genus_taxon)) %>% 
-      dplyr::select(SRVY, genus_taxon) %>% 
+      dplyr::filter(!is.na(genus)) %>% 
+      dplyr::select(SRVY, genus) %>% 
       dplyr::distinct() %>% 
       dplyr::group_by(SRVY) %>%
-      dplyr::summarise(genus_taxon = n()),
+      dplyr::summarise(genus = n()),
     by = "SRVY") #%>%
-# dplyr::mutate(perc = round(((species_code - species_taxon)/species_code)*100, digits = 2))
+# dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
 
 temp1 <- dplyr::bind_cols(
   temp %>% 
-    dplyr::filter(!is.na(species_taxon)) %>% 
-    dplyr::select(species_taxon) %>% 
+    dplyr::filter(!is.na(taxon)) %>% 
+    dplyr::select(taxon) %>% 
     dplyr::distinct() %>% 
-    dplyr::summarise(species_taxon = n()),
+    dplyr::summarise(taxon = n()),
   temp %>% 
     dplyr::filter(!is.na(species_code)) %>% 
     dplyr::select(species_code) %>% 
     dplyr::distinct() %>% 
     dplyr::summarise(species_code = n()), 
   temp %>% 
-    dplyr::filter(!is.na(phylum_taxon)) %>% 
-    dplyr::select(phylum_taxon) %>% 
+    dplyr::filter(!is.na(phylum)) %>% 
+    dplyr::select(phylum) %>% 
     dplyr::distinct() %>% 
-    dplyr::summarise(phylum_taxon = n()),
+    dplyr::summarise(phylum = n()),
   temp %>% 
-    dplyr::filter(!is.na(genus_taxon)) %>% 
-    dplyr::select(genus_taxon) %>% 
+    dplyr::filter(!is.na(genus)) %>% 
+    dplyr::select(genus) %>% 
     dplyr::distinct() %>% 
-    dplyr::summarise(genus_taxon = n())) 
+    dplyr::summarise(genus = n())) 
 
 invert_spp <- xunits(temp1$species_code) 
-invert_phyla <- xunits(temp1$phylum_taxon) 
+invert_phyla <- xunits(temp1$phylum) 
 ```
 
 
@@ -248,14 +248,14 @@ for (i in 1:length(unique(cruises_maxyr$SRVY))){
   
   str0 <- paste0(
     "The estimated total biomass in the ", srvy ," ",
-    ifelse(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == srvy]) < 
-             sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == srvy]), 
+    ifelse(sum(biomass_compareyr$biomass_mt[biomass_compareyr$SRVY == srvy]) < 
+             sum(biomass_maxyr$biomass_mt[biomass_maxyr$SRVY == srvy]), 
            "increased", "decreased"),
     " from ", 
-    xunits(sum(biomass_compareyr$biomass[biomass_compareyr$SRVY == srvy], na.rm = TRUE)) ,
+    xunits(sum(biomass_compareyr$biomass_mt[biomass_compareyr$SRVY == srvy], na.rm = TRUE)) ,
     ifelse(i == 1, " metric tons (t) ", " t "), 
     "in ", compareyr, " to ", 
-    xunits(sum(biomass_maxyr$biomass[biomass_maxyr$SRVY == srvy], na.rm = TRUE)), " t", 
+    xunits(sum(biomass_maxyr$biomass_mt[biomass_maxyr$SRVY == srvy], na.rm = TRUE)), " t", 
     " in ", maxyr)
   
   str00 <- paste0(str00, str0, ". ")
@@ -263,9 +263,9 @@ for (i in 1:length(unique(cruises_maxyr$SRVY))){
 }
 ```
 
-`r str00`A total of `r fish_sp ` species of fish and `r invert_spp ` invertebrate taxa were identified during the `r text_list(SRVY1)` survey`r plural_surveys`.
+`r str00`A total of `r fish_sp ` species of fish and `r invert_spp ` invertebrate taxa were identified during the `r SURVEY` survey`r plural_surveys`.
 
-This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` shelf bottom trawl surveys. For common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r text_list(SRVY1)` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Tables in the appendix list population estimates by sex and size group for principal fish species and species encountered during the survey`r plural_surveys`. 
+This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r SURVEY` shelf bottom trawl surveys. For common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r SURVEY` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Tables in the appendix list population estimates by sex and size group for principal fish species and species encountered during the survey`r plural_surveys`. 
 
 ```{r abstract_insert_text, child=paste0(dir_out_rawdata, "/0_abstract_conclusion.Rmd")}
 ```

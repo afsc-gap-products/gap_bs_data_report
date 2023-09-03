@@ -541,7 +541,7 @@ insert <- insert1 <- c()
 for (i in 1:length(nbsyr)) {
   
   yr <- as.numeric(sort(nbsyr, decreasing = TRUE)[i])
-  temp <- temp2$biomass[temp2$year == yr]
+  temp <- temp2$biomass_mt[temp2$year == yr]
   
   temp5 <- temp1 %>% 
     dplyr::rename("x" = all_of(as.character(yr))) %>% 
@@ -628,7 +628,7 @@ temp5 <-
   dplyr::group_by(year, species_name, taxon, SRVY) %>% 
   dplyr::summarise(biomass = sum(biomass, na.rm = TRUE)) %>% 
   dplyr::left_join(x = ., 
-                   y = stratum_info %>% 
+                   y = stratum %>% 
                      dplyr::select(SRVY, area) %>% 
                      dplyr::group_by(SRVY) %>% 
                      dplyr::summarise(area = sum(area, na.rm = TRUE)), 

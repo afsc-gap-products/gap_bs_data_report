@@ -34,12 +34,6 @@ PKG <- c(
   "nmfspalette",  # devtools::install_github("nmfs-general-modeling-tools/nmfspalette")
   "ggridges",
   
-  # Text
-  # "NMFSReports", # devtools::install_github("emilymarkowitz-noaa/NMFSReports", force = TRUE) # Package of my favorite grammar and file managment functions for writing reproducible reports
-  
-  # Citations
-  # "knitcitations", # devtools::install_github("cboettig/knitcitations")
-  
   # other tidyverse
   "plyr",
   "dplyr",

@@ -73,11 +73,11 @@ biomass_cpue <- biomass %>%
   dplyr::filter(year %in% c(maxyr, compareyr) & 
                   species_code %in% spp_code[1] &
                   stratum %in% 999) %>%
-  dplyr::select(SRVY, year, biomass, population, meanwgtcpue, meannumcpue) %>% 
+  dplyr::select(SRVY, year, biomass_mt, population, cpue_kgkm2_mean, cpue_nokm2_mean) %>% 
   dplyr::mutate(print_name = spp_print) %>% 
-  dplyr::rename(cpue_kgha = meanwgtcpue, 
-                cpue_noha = meannumcpue) %>% 
-  dplyr::filter((biomass !=0))
+  dplyr::rename(cpue_kgha = cpue_kgkm2_mean, 
+                cpue_noha = cpue_nokm2_mean) %>% 
+  dplyr::filter((biomass_mt !=0))
 
 length_maxyr0 <- length_maxyr %>% 
   dplyr::filter(species_code %in% spp_code) %>% 

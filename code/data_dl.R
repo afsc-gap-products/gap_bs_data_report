@@ -8,10 +8,8 @@
 #' ---
 
 # This has a specific username and password because I DONT want people to have access to this!
-# source("C:/Users/emily.markowitz/Work/Projects/ConnectToOracle.R")
-# source("C:/Users/emily.markowitz/Documents/Projects/ConnectToOracle.R")
 source("Z:/Projects/ConnectToOracle.R")
- # source("C:/Users/nicole.charriere/Work/R_Projects/Connect_to_Oracle.R")
+channel <- channel_products
 
 # I set up a ConnectToOracle.R that looks like this: 
 #   
@@ -96,7 +94,6 @@ locations <- c(
 
 #sinks the data into connection as text file
 # sink("./data/metadata.txt")
-
 print(Sys.Date())
 
 error_loading <- c()
@@ -112,7 +109,7 @@ for (i in 1:length(locations)){
   if ("SURVEY_DEFINITION_ID" %in% names(a)) {
     end0 <- c(end0, "SURVEY_DEFINITION_ID IN (143, 98)")
   }
-  if ("YEAR" %in% names(a) & locations[i] != "GAP_PRODUCTS.AKFIN_BIOMASS") {
+  if ("YEAR" %in% names(a) & !(locations[i] %in% c("GAP_PRODUCTS.AKFIN_BIOMASS", "GAP_PRODUCTS.AKFIN_CRUISES")) ) {
     end0 <- c(end0, paste0("YEAR IN (",maxyr,", ", compareyr, ")"))
   }
   end0 <- ifelse(is.null(end0), "", paste0(" WHERE ", paste0(end0, collapse = " AND ")))

@@ -3,11 +3,11 @@
 
 ## Survey Area and Sampling Design 
 
-The standardized `r SURVEY` bottom trawl survey`r ifelse(plural_surveys == "s", "s use", " uses")` a systematic design with `r ifelse(SRVY == "NEBS", text_list(paste0(haul_cruises_maxyr$stations_avail, " fixed sampling stations in the ", haul_cruises_maxyr$SRVY)), paste0( haul_cruises_maxyr$stations_avail, " fixed sampling stations"))` arranged on a regularly-spaced 37.04 × 37.04 km grid (20 × 20 nautical mile; Fig. \@ref(fig:fig-sample-grid)). Additional stations, called "corner stations", were added to the survey in 1990 to better sample regions of historically high blue king crab abundances. There are 26 corner stations located at the intersections of the grid lines in the waters surrounding St. Matthew and the Pribilof Islands (Fig. \@ref(fig:fig-sample-grid)). These corner stations are sampled in addition to the grid cells. `r ifelse(SRVY == "NEBS", paste0("In addition to the EBS shelf bottom trawl survey, the ",maxyr," NBS shelf bottom trawl survey was conducted using the same systematic sampling design for stations bounded by the U.S.-Russian Maritime Boundary and the Bering Strait, including Norton Sound.") , "")` 
+The standardized `r SURVEY` bottom trawl survey`r plural_surveys` use`ifelse(plural_surveys == "s", "", "s")` a systematic design with `r ifelse(SRVY == "NEBS", text_list(paste0(haul_cruises_maxyr$stations_avail, " fixed sampling stations in the ", haul_cruises_maxyr$SRVY)), paste0( haul_cruises_maxyr$stations_avail, " fixed sampling stations"))` arranged on a regularly-spaced 37.04 × 37.04 km grid (20 × 20 nautical mile; Fig. \@ref(fig:fig-sample-grid)). Additional stations, called "corner stations", were added to the survey in 1990 to better sample regions of historically high blue king crab abundances. There are 26 corner stations located at the intersections of the grid lines in the waters surrounding St. Matthew and the Pribilof Islands (Fig. \@ref(fig:fig-sample-grid)). These corner stations are sampled in addition to the grid cells. `r ifelse(SRVY == "NEBS", paste0("In addition to the EBS shelf bottom trawl survey, the ",maxyr," NBS shelf bottom trawl survey was conducted using the same systematic sampling design for stations bounded by the U.S.-Russian Maritime Boundary and the Bering Strait, including Norton Sound.") , "")` 
 
 ## Survey Vessels and Sampling Gear
 
-The `r maxyr` `r text_list(SRVY1)` survey`r ifelse(plural_surveys == "s", "s were", " was")` conducted aboard the chartered commercial stern-trawlers `r text_list(vessel_info$vessel_ital)`  (Fig. \@ref(fig:fig-vessels)). `r ifelse(nrow(vessel_info) == 1, "The vessel", "Both vessels") ` are house-forward trawlers with stern ramps. The length overall of `r text_list(paste0("the ", vessel_info$vessel_ital, " is ", vessel_info$length_m, " m (", vessel_info$length_ft, " ft)") ) `. All fishing operations were conducted in compliance with national and regional protocols detailed in @RN933. Trawl sampling was conducted using 83-112 eastern otter trawls, each with a 25.3 m (83 ft) headrope and 34.1 m (112 ft) footrope (Fig. \@ref(fig:fig-trawl-gear)). The net was attached to tail chains with 54.9 m (30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
+The `r maxyr` `r SURVEY` survey`r plural_surveys` `r ifelse(plural_surveys == "s", "were", "was")` conducted aboard the chartered commercial stern-trawlers `r text_list(vessels$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r ifelse(nrow(vessels) == 1, "The vessel", "Both vessels") ` are house-forward trawlers with stern ramps. The length overall of `r text_list(paste0("the ", vessels$vessel_ital, " is ", vessels$length_m, " m (", vessels$length_ft, " ft)") ) `. All fishing operations were conducted in compliance with national and regional protocols detailed in @RN933. Trawl sampling was conducted using 83-112 eastern otter trawls, each with a 25.3 m (83 ft) headrope and 34.1 m (112 ft) footrope (Fig. \@ref(fig:fig-trawl-gear)). The net was attached to tail chains with 54.9 m (30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
 
 ```{r fig-vessels}
 nickname <- "fig-vessels" # Fig. \@ref(fig:fig-vessels)
@@ -70,27 +70,26 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 temperature
 #    dplyr::filter(SRVY %in% SRVY1 & # "EBS" &
 #                    year == maxyr) # 2018 #
 
-# if (sum(!is.na(temp$vessel)) == nrow(temp)) {
 temp <- 
   dplyr::left_join(#x = .,
-    x = vessel_info %>% 
-      dplyr::select(vessel, vessel_ital), 
+    x = vessels %>% 
+      dplyr::select(vessel_id, vessel_ital), 
     y = haul_maxyr %>%
-      dplyr::select(SRVY, haul, vessel, net_measured) %>% 
+      dplyr::select(SRVY, haul, vessel_id, net_measured) %>% 
       dplyr::distinct() %>% 
-      dplyr::group_by(SRVY, vessel, net_measured) %>% 
+      dplyr::group_by(SRVY, vessel_id, net_measured) %>% 
       dplyr::summarize(n = n()) %>% 
-      tidyr::pivot_wider(id_cols = c("vessel", "SRVY"),
+      tidyr::pivot_wider(id_cols = c("vessel_id", "SRVY"),
                          names_from = "net_measured", 
                          values_from = "n"), 
-    by = c("vessel")) %>% 
+    by = c("vessel_id")) %>% 
   dplyr::arrange(vessel_ital)
 # }
 
 
 str0 <- c()
 # if equations were estimated
-if (sum(!is.na(temp$vessel)) == nrow(temp)) {
+if (sum(!is.na(temp$vessel_id)) == nrow(temp)) {
 
   for (i in 1:length(unique(temp$SRVY))){
     temp0 <- temp %>% 
@@ -115,13 +114,13 @@ $$ \\epsilon \\sim N(0,\\sigma^{2})  . $$
 ```{r methods_dummy}
 # str <- c()
 # # if equations were estimated
-# if (sum(!is.na(temp$vessel)) == nrow(temp)) {
-# for (i in 1:length(unique(haul_maxyr$vessel))){
+# if (sum(!is.na(temp$vessel_id)) == nrow(temp)) {
+# for (i in 1:length(unique(haul_maxyr$vessel_id))){
 #   
-#   vess <- unique(haul_maxyr$vessel)[i]
+#   vess <- unique(haul_maxyr$vessel_id)[i]
 #   
 #   temp0 <- temp %>% 
-#     dplyr::filter(vessel == vess) 
+#     dplyr::filter(vessel_id == vess) 
 #   
 #   str <- paste0(str, 
 #                 paste0("For the ", temp0$vessel_ital[1], ", "))
@@ -131,7 +130,7 @@ $$ \\epsilon \\sim N(0,\\sigma^{2})  . $$
 #     str <- paste0(str, 
 #              ifelse(length(unique(temp0$sig_fragment)) == 1, 
 #                                 paste0(temp0$sig_fragment[1], " in both the ",
-#                                        text_list(SRVY1)), 
+#                                        SURVEY), 
 #                                 paste0(text_list(temp0$sig_fragment, 
 #                                                               " in the ", SRVY1))))
 #   } else { # if EBS only
@@ -173,12 +172,12 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
   cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
     dplyr::filter(SRVY %in% srvy &
                     year %in% maxyr) %>% 
-    dplyr::select("year", "survey_name", "vessel", "vessel_name", 
+    dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
                   "vessel_ital", "SRVY", "SRVY_long", 
                   "start_date_cruise", "end_date_cruise", 
                   "start_date_haul", "end_date_haul") %>% 
     unique() %>% 
-    group_by(year, survey_name, vessel, vessel_name, 
+    group_by(year, survey_name, vessel_id, vessel_name, 
              vessel_ital, SRVY, SRVY_long) %>% 
     dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
                      end_date_cruise = as.Date(max(end_date_cruise)), 
@@ -244,12 +243,12 @@ str0 <- data.frame(str = str0,
                   SRVY = unique(cruises_maxyr$SRVY))
 ```
 
-At the beginning of the survey, scientists boarded the chartered vessels (`r text_list(vessel_info$vessel_ital)`) in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Fig.&nbsp;\@ref(fig:fig-sampled-survey-stations)). The east-to-west survey progression is based on an understanding of historical trends in fish movement and intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. In the EBS, `r str0$str[str0$SRVY == "EBS"]`.
+At the beginning of the survey, scientists boarded the chartered vessels (`r text_list(vessels$vessel_ital)`) in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Fig. \@ref(fig:fig-sampled-survey-stations)). The east-to-west survey progression is based on an understanding of historical trends in fish movement and intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. In the EBS, `r str0$str[str0$SRVY == "EBS"]`.
 
 ```{r methods_ebs_survey_area}
 load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
 temp0 <- obj$raw %>% 
-    dplyr::mutate(Region = paste0(SRVY, " ", Region))
+    dplyr::mutate(Region = paste0(SRVY, " ", area_name))
 
 temp <- temp0 %>% 
   dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -263,7 +262,7 @@ temp_tot <- temp0 %>%
   dplyr::select(density)
 ```
 
-The survey footprint included bathymetry between 20 m and 200 m. For design-based index catch analysis, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-sampled-survey-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to increase sampling resolution and thereby reduce variance estimates for blue king crab [@StevensandMacIntosh1990]. Overall sampling density across the EBS shelf was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))`&nbsp;km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), each high-density stratum was combined with its respective depth-region stratum, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-sampled-survey-stations); Table \@ref(tab:tab-stratum-areas)).
+The survey footprint included bathymetry between 20 m and 200 m. For design-based index catch analysis, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-sampled-survey-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to increase sampling resolution and thereby reduce variance estimates for blue king crab [@StevensandMacIntosh1990]. Overall sampling density across the EBS shelf was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), each high-density stratum was combined with its respective depth-region stratum, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-sampled-survey-stations); Table \@ref(tab:tab-stratum-areas)).
 
 ```{r methods_nbs_survey_plan}
 nbs_insert <- ""
@@ -273,7 +272,7 @@ if (SRVY == "NEBS") {
   load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
   
   temp0 <- obj$raw %>% 
-    dplyr::mutate(Region = paste0(SRVY, " ", Region))
+    dplyr::mutate(Region = paste0(SRVY, " ", area_name))
   
   temp <- temp0 %>% 
     dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -329,7 +328,7 @@ load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
   dplyr::select(SRVY, print_name) %>% 
    dplyr::distinct() %>%
   dplyr::group_by(SRVY) %>% 
-  dplyr::summarise(species_code_n = unique(print_name)) %>% 
+  # dplyr::summarise(species_code_n = unique(print_name)) %>% 
   dplyr::summarise(n = length((SRVY))) 
  
   str0 <- text_list(paste0(temp$n, " fish species in the ", temp$SRVY))
@@ -388,11 +387,11 @@ nickname <- "tab-stomach-collection-scheme"
 
 ## Catch Data Analysis
 
-Estimates of biomass, population, and size structure of fishes and invertebrate species were calculated from `r text_list(SRVY1)` survey data.  Standard sampling procedures used are described in detail by @RN939 and @RN933. A brief description of the procedures used in the analysis of Bering Sea survey data is presented below. Some species were grouped by family for catch data analysis because of their limited commercial value or an inability to identify to lower taxonomic level while in the field. 
+Estimates of biomass, population, and size structure of fishes and invertebrate species were calculated from `r SURVEY` survey data.  Standard sampling procedures used are described in detail by @RN939 and @RN933. A brief description of the procedures used in the analysis of Bering Sea survey data is presented below. Some species were grouped by family for catch data analysis because of their limited commercial value or an inability to identify to lower taxonomic level while in the field. 
 
-Mean catch per unit effort (CPUE) for each species was calculated in kilograms per hectare (100 hectares (ha) = 1 km^2^) and number of fish per hectare for each stratum  [@RN889; @RN910]. Area swept (ha) was computed as the linear distance towed, multiplied by the mean net width [@RN889; @RN910]. Mean CPUE was calculated for individual strata and summed proportionally for the overall survey area. Design-based biomass and population estimates were calculated for each stratum by multiplying the stratum mean CPUE by the stratum area. Stratum estimates were then summed for total survey area estimates in the `r text_list(SRVY1) `. 
+Mean catch per unit effort (CPUE) for each species was calculated in kilograms per hectare (100 hectares (ha) = 1 km^2^) and number of fish per hectare for each stratum  [@RN889; @RN910]. Area swept (ha) was computed as the linear distance towed, multiplied by the mean net width [@RN889; @RN910]. Mean CPUE was calculated for individual strata and summed proportionally for the overall survey area. Design-based biomass and population estimates were calculated for each stratum by multiplying the stratum mean CPUE by the stratum area. Stratum estimates were then summed for total survey area estimates in the `r SURVEY `. 
 
-For size composition estimates, the proportion of fish at each centimeter length interval (from subsamples at each station), weighted by CPUE (number of fish/ha), was expanded to the stratum population. Stratum abundance-at-length estimates were summed for the total estimated size composition for the overall survey area in the `r text_list(SRVY1)`.
+For size composition estimates, the proportion of fish at each centimeter length interval (from subsamples at each station), weighted by CPUE (number of fish/ha), was expanded to the stratum population. Stratum abundance-at-length estimates were summed for the total estimated size composition for the overall survey area in the `r SURVEY`.
 
 Age estimates were obtained from otolith samples by the AFSC's Age and Growth Program for all fish except for Pacific halibut, whose otoliths are processed by the IPHC. The most current information about age, growth, and population analyses are presented in the `r maxyr` NPFMC Stock Assessment and Fishery Evaluation Report for the Groundfish Resources of the Bering Sea/Aleutian Islands Region [`r paste0("@NPFMC", maxyr)`].
 
@@ -404,10 +403,9 @@ temp <- obj$raw %>%
   dplyr::group_by(SRVY) %>% 
   dplyr::summarise(n = length((SRVY))) %>% 
   dplyr::mutate(SRVY = dplyr::case_when(
-    SRVY == "EBS & NBS" ~ "both the EBS and NBS", 
+    SRVY == "EBS and NBS" ~ "both the EBS and NBS", 
     SRVY == "EBS" ~ "only the EBS",
-    SRVY == "NBS" ~ "only the NBS"
-  )) %>% 
+    SRVY == "NBS" ~ "only the NBS" )) %>% 
   dplyr::arrange(-n)
 
 if (SRVY != "NEBS") {

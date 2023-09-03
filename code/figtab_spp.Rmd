@@ -35,6 +35,31 @@ if (report_title == "data") {
 }
 ```
 
+## fig-[spp]
+
+```{r fig-[spp]}
+header <- paste0("Image of the  ", 
+                 maxyr ," ", SURVEY ," bottom trawl survey", 
+                 ifelse(length(SRVY1)>1, "s", ""), ".")
+footnote<- NA
+nickname <- "fig-trawl-gear"
+alttext <- paste0(header)
+height = 8
+width <- full_page_portrait_width
+
+# Select data and make plot
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, "EASTERN83-112.png")) )
+
+# Save figure
+res <- knitr::knit_child(
+  text = knitr::knit_expand(
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+  quiet = TRUE
+)
+```
+
 ## fig-dist-[taxon]-[spp]
 
 ```{r fig-dist-[taxon]-[spp]}
@@ -296,7 +321,7 @@ if (spp_plot_sizecomp) {
 
 ```{r tab-env-[taxon]-[spp]}
 
-nickname0 <- paste0("tab-env-", spp_taxon, "-", spp_file)
+nickname <- paste0("tab-env-", spp_taxon, "-", spp_file)
 
 haul0 <- catch_haul_cruises %>% 
   dplyr::select("station", "stratum", "latitude_dd_start", "longitude_dd_start", 
@@ -390,7 +415,8 @@ res <- knitr::knit_child(
 ## tab-bio-[taxon]-[spp]
 
 ```{r tab-bio-[taxon]-[spp]}
-nickname0 <- paste0("tab-bio-", spp_taxon, "-", spp_file)
+
+nickname <- paste0("tab-bio-", spp_taxon, "-", spp_file)
 
 header <- header2 <- paste0("Summary biomass (t) and population ", spp_print, " (", spp_sci, ") estimates from the ", SURVEY, " survey area", plural_surveys,". ")
 
@@ -465,7 +491,7 @@ res <- knitr::knit_child(
 
 ## tab-summary-[taxon]-[spp]
 
-```{r tab-summary-[taxon]-[spp], eval = false}
+```{r tab-summary-[taxon]-[spp], eval = FALSE}
 
 nickname0 <- paste0("tab-summary-", spp_taxon, "-", spp_file)
 
@@ -504,7 +530,7 @@ res <- knitr::knit_child(
 
 ## tab-len-[taxon]-[spp]
 
-```{r tab-len-[taxon]-[spp], eval = false}
+```{r tab-len-[taxon]-[spp], eval = FALSE}
 
 nickname0 <- paste0("tab-len-", spp_taxon, "-", spp_file)
 

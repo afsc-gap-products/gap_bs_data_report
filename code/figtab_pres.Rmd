@@ -50,7 +50,7 @@ list_figures[nickname][[1]]$res <- res
 
 ```{r fig_pres_sample_grid}
 header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long),
+                 text_list(haul_cruises_maxyr$SRVY_long),
                  " continental shelf bottom trawl survey", 
                  ifelse(SRVY == "NEBS", "s", ""), 
                  ". ", ifelse(SRVY == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. "))
@@ -128,11 +128,11 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 if (crab_resample) {
   nickname <- "fig_pres_crab_retow"
   header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of the ", maxyr," ",
-                   NMFSReports::text_list(haul_cruises_maxyr$SRVY_long),
+                   text_list(haul_cruises_maxyr$SRVY_long),
                    " shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
                    # ". sampled by the ",
-                   # NMFSReports::text_list(paste0(vessel_info$vessel_ital, " (",
-                   #                               vessel_info$vess_shape, ")")), 
+                   # text_list(paste0(vessels$vessel_ital, " (",
+                   #                               vessels$vess_shape, ")")), 
                    ifelse(crab_resample == TRUE, " The map also depicts the stations where Bristol Bay crab resampling was conducted", ""), ". ")
   
   height <- 6.5
@@ -142,11 +142,11 @@ if (crab_resample) {
   reg_dat0$survey.grid <- 
     dplyr::left_join(x = reg_dat0$survey.grid, 
                      y = dplyr::left_join(x = haul_maxyr, 
-                                          y = vessel_info) %>% 
+                                          y = vessels) %>% 
                        dplyr::select(stationid, vessel_name, vess_shape) %>%
                        dplyr::mutate(vess_col = dplyr::case_when(
-                         (vess_shape == vessel_info$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"), 
-                         (vess_shape == vessel_info$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray"))) %>% 
+                         (vess_shape == vessels$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"), 
+                         (vess_shape == vessels$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray"))) %>% 
                        dplyr::rename(STATIONID = stationid), 
                      by = ("STATIONID"))
   
@@ -210,11 +210,11 @@ if (crab_resample) {
 ```{r fig_pres_sampled_survey_1530}
 if (tow1530) {
   header <- paste0("Sampled survey stations by vessel and the stratification scheme used for data analysis of the ", maxyr," ",
-                   NMFSReports::text_list(haul_cruises_maxyr$SRVY_long),
+                   text_list(haul_cruises_maxyr$SRVY_long),
                    " shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
                    ". ",
-                   NMFSReports::text_list(paste0(vessel_info$vessel_ital, " (",
-                                                 vessel_info$vess_shape, ")")), 
+                   text_list(paste0(vessels$vessel_ital, " (",
+                                                 vessels$vess_shape, ")")), 
                    ifelse(tow1530 == TRUE, " These are the stations where the 15-30 special project was done. ", ""))
   nickname <- "fig_pres_sampled_survey_1530"
   header <- ""
@@ -225,11 +225,11 @@ if (tow1530) {
   reg_dat0$survey.grid <- 
     dplyr::left_join(x = reg_dat0$survey.grid, 
                      y = dplyr::left_join(x = haul_maxyr, 
-                                          y = vessel_info) %>% 
+                                          y = vessels) %>% 
                        dplyr::select(stationid, vessel_name, vess_shape) %>%
                        dplyr::mutate(vess_col = dplyr::case_when(
-                         (vess_shape == vessel_info$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"), 
-                         (vess_shape == vessel_info$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray"))) %>% 
+                         (vess_shape == vessels$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"), 
+                         (vess_shape == vessels$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray"))) %>% 
                        dplyr::rename(STATIONID = stationid), 
                      by = ("STATIONID"))
   
@@ -279,10 +279,10 @@ if (tow1530) {
 
 ```{r fig_pres_vessels}
 header <- paste0("Photographs of the fishing vessels ",
-                 NMFSReports::text_list(paste0(vessel_info$vessel_ital, 
+                 text_list(paste0(vessels$vessel_ital, 
                                                " (", c("left", "right"), ")")),
                  " contracted to assist the ",maxyr," ",
-                 NMFSReports::text_list(SRVY1),
+                 SURVEY,
                  " bottom trawl survey.")
 nickname <- "fig_pres_vessels"
 
@@ -292,12 +292,12 @@ width <- full_page_portrait_width # width <- 6.5
 # Select data and make plot
 p1 <- 
   cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, vessel_info$img[1])), 
+  cowplot::draw_image(readPNG(paste0(dir_img, vessels$img[1])), 
                       scale = 0.9 )
 
 p2 <- 
   cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, vessel_info$img[2])), 
+  cowplot::draw_image(readPNG(paste0(dir_img, vessels$img[2])), 
                       scale = 0.9 )
 
 figure <- cowplot::plot_grid(p1, p2,  
@@ -326,7 +326,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 nickname <- paste0("tab_pres_length_samples") 
 header <- paste0("Lengths collected during the ", maxyr, " ",
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long), 
+                 text_list(haul_cruises_maxyr$SRVY_long), 
                  " shelf bottom trawl survey.")
 
 a<-report_spp1 %>% 
@@ -397,7 +397,7 @@ table_print <- flextable::flextable(table_print) %>%
   flextable::valign(valign = "top") %>%
   flextable::bold(x = ., 
                   i = c((nrow(table_print)-1), nrow(table_print))) %>% 
-  NMFSReports::theme_flextable_nmfstm(x = ., 
+  theme_flextable_nmfstm(x = ., 
                                       font = "Arial") 
 
 # save yo' stuff and do a lot of behind the scenes work
@@ -422,7 +422,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 ```{r tab_pres_age_samples}
 nickname <- paste0("tab_pres_age_samples") 
 header <- paste0("Otoliths collected during the ", maxyr, " ", 
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long), 
+                 text_list(haul_cruises_maxyr$SRVY_long), 
                  " shelf bottom trawl survey.")
 
 a<-report_spp1 %>% 
@@ -479,7 +479,7 @@ table_print <- table_print %>%
   flextable::as_grouped_data(x = ., groups = c("sample_type")) %>% 
   flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(sample_type) ) %>%
-  NMFSReports::theme_flextable_nmfstm(x = ., 
+  theme_flextable_nmfstm(x = ., 
                                       font = "Arial")  %>%
   flextable::padding(x = ., 
                      j = 1, i = ~ is.na(sample_type), 
@@ -509,7 +509,7 @@ list_tables[nickname][[1]]$res <- res <- paste0("
 nickname <- paste0("tab_pres_special_projects") 
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long), 
+                 text_list(haul_cruises_maxyr$SRVY_long), 
                  " shelf bottom trawl survey, sorted by principal investigator and agency.")
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
@@ -534,7 +534,7 @@ table_print <- table_raw %>%
   flextable::as_grouped_data(x = ., groups = c("group"), columns = NULL) %>% 
   flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(group) ) %>%
-  NMFSReports::theme_flextable_nmfstm(x = ., 
+  theme_flextable_nmfstm(x = ., 
                                       row_lines = FALSE, 
                                       font = "Arial")  %>%
   flextable::padding(x = ., 
@@ -625,7 +625,7 @@ height <- 5
 width <- width0
 
 header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
-                 NMFSReports::text_list(yrs),
+                 text_list(yrs),
                  " surveys, which are the years when the survey included the full NBS shelf.")
 
 rasterbrick <- raster::brick(
@@ -670,7 +670,7 @@ height <- 5
 width <- width0
 
 header <- paste0("Map showing bottom temperatures (°C) in the NBS and EBS during the ",
-                 NMFSReports::text_list(yrs),
+                 text_list(yrs),
                  " surveys, which are the years when the survey included the full NBS shelf.")
 
 # if c(SRVY == "NEBS") {
@@ -713,14 +713,14 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 
 ```{r fig_pres_surface_temperature}
 header <- paste0("Contour map of surface temperatures from the ",maxyr," ",
-                 NMFSReports::text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
+                 text_list(haul_cruises_maxyr$survey_name)," shelf bottom trawl surveys.")
 nickname <- "fig_pres_surface_temperature"
 
 height <- 5
 width <- width0
 
 # header <- paste0("Map showing surface temperatures (°C) in the NBS and EBS during the ",
-#                  NMFSReports::text_list(yrs),
+#                  text_list(yrs),
 #                  " surveys, which are the years when the survey included the full NBS shelf.")
 
 # if (SRVY == "NEBS") {
@@ -767,7 +767,7 @@ list_figures[nickname][[1]]$res <- res <- paste0("
 nickname <- "tab_pres_biomass_change"
 header <- paste0("Biomass and abundance change for major species in ", 
                  maxyr, " and ", compareyr," ", 
-                 NMFSReports::text_list(haul_cruises_maxyr$SRVY_long), 
+                 text_list(haul_cruises_maxyr$SRVY_long), 
                  " shelf bottom trawl survey.")
 
 a <- report_spp1 %>% 
