@@ -101,8 +101,8 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_file = paste0(cnt_chapt_content, ".docx"))
 
 # Species figures
-comb <- report_spp1
-for (jj in 1:nrow(comb)) {
+comb <- report_spp1 %>% dplyr::filter(!is.na(order))
+for (jj in 1:length(unique(comb$file_name))) {
   
   print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", unique(comb$file_name)[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
@@ -115,7 +115,7 @@ rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                   output_dir = dir_out_ref,
                   output_file = paste0(cnt_chapt_content, ".docx"))
 
-# DATA REPORT ------------------------------------------------------------------
+# Run data report --------------------------------------------------------------
 report_title <- "data" 
 
 rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 
@@ -124,9 +124,9 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
 for (abcd in LETTERS[1:(ifelse(SRVY == "NEBS", 4, 2))]) {
-  rmarkdown::render(input = paste0(dir_code, "00_data_report_appendix.Rmd"), 
-                  output_format = "officedown::rdocx_document", 
-                  output_dir = dir_out_chapters, 
+  rmarkdown::render(input = paste0(dir_code, "00_data_report_appendix.Rmd"),
+                  output_format = "officedown::rdocx_document",
+                  output_dir = dir_out_chapters,
                   output_file = paste0("00_data_report_", maxyr, "_app", abcd, ".docx"))
 }
 
@@ -137,9 +137,10 @@ dir_googledrive <- dir_googledrive_comm
 
 source(here::here("code","data.R"))
 
-# Species figures
-comb <- report_spp1
-for (jj in 1:nrow(comb)) {
+## Species figures -------------------------------------------------------------
+
+comb <- report_spp1 %>% dplyr::filter(!is.na(order))
+for (jj in 1:length(unique(comb$file_name))) {
   
   print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", unique(comb$file_name)[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
@@ -147,11 +148,11 @@ for (jj in 1:nrow(comb)) {
                     output_file = paste0(cnt_chapt_content, "_", unique(comb$file_name)[jj],".docx"))
 }
 
-# Run community highlights report -----------------------------------------------
+## Run community highlights report -----------------------------------------------
 
-rmarkdown::render(input = paste0(dir_code, "00_full_report_community.Rmd"),
+rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"),
                   output_dir = dir_out_chapters,
-                  output_file = paste0("00_full_report_community_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+                  output_file = paste0("00_community_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
 # PRESENTATION ------------------------------------------------------
 

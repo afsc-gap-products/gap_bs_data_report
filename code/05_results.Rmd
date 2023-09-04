@@ -452,8 +452,8 @@ for (i in 1:length(SRVY1)) {
 
   temp0 <- obj$raw
   temp <- 
-    temp0%>% 
-    dplyr::filter(!is.na(change0)) %>% 
+    temp0 %>% 
+    dplyr::filter(!is.na(change0)) %>%
     dplyr::mutate(case = case_when(
       change>0 ~ "increased", 
       change<0 ~ "decreased")) %>% 
@@ -619,7 +619,8 @@ Plots of the spatial distribution, abundance-at-length estimates, and tables of 
 # major invert 
 taxon0 <- "invert"
 temp0 <- report_spp1 %>% 
-  dplyr::filter(taxon == taxon0) %>% 
+  dplyr::filter(taxon == taxon0 & 
+                  !is.na(order)) %>% 
   dplyr::select(file_name, print_name) %>% 
   dplyr::distinct()
 
@@ -629,6 +630,7 @@ for (i in 1:nrow(temp0)) {
   a <- list.files(path = dir_out_figtab, 
                   pattern = paste0("fig-dist-",taxon0,"-",temp0$file_name[i]), 
                   ignore.case = TRUE)
+  a <- a[!grepl(pattern = "-comm", x = a)]
   a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
   
   temp <- c(temp, 

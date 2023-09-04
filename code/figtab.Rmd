@@ -216,16 +216,12 @@ figure <-
   cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, "bottom_trawl_net.png")), scale = 0.9 )
 
-# save yo' stuff and do a lot of behind the scenes work
+# Save figure
 res <- knitr::knit_child(
   text = knitr::knit_expand(
-    file = system.file("rmd/_child_save_figtab.Rmd", 
-                       package = "NMFSReports")), 
+    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
   quiet = TRUE
 )
-
-list_figures[nickname][[1]]$res <- res
-
 ```
 
 ## tab-stratum-areas
@@ -1298,88 +1294,71 @@ table_raw0 <-
                       year %in% yrs) %>% 
       dplyr::select(species_code, year, SRVY, biomass_mt), 
     x = report_spp1 %>% 
-      dplyr::select(print_name, species_name = species_name1, species_code, group0, taxon), 
+      dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_portion), 
     relationship = "many-to-many",
     by = c("species_code")) %>%
-  dplyr::filter(!is.na(group0)) %>%
-  dplyr::group_by(print_name, species_name, SRVY, year, taxon) %>% 
+  dplyr::filter(table_bio_portion & 
+                !is.na(print_name) & 
+                  !is.na(year)) %>%
+  dplyr::group_by(print_name, SRVY, year, taxon) %>% 
   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
   dplyr::ungroup() %>%
-  dplyr::mutate(year = dplyr::case_when(
-    year == maxyr ~ "maxyr",
-    year == compareyr ~ "compareyr", 
-    TRUE ~ as.character(year))) %>%
-  tidyr::pivot_wider(id_cols = c(SRVY, print_name, species_name, taxon), 
+  tidyr::pivot_wider(id_cols = c(SRVY, print_name, taxon), 
                      names_from = year, 
                      values_from = biomass_mt) %>% 
   dplyr::mutate(
-    print_name = gsub(pattern = "smelts (*Osmeridae*) include eulachon, capelin, and rainbow smelt", 
-                      replacement = "smelts", 
-                      x = print_name, fixed = TRUE),
-    change = pchange(start = maxyr, end = compareyr, value_only = TRUE), 
-    change0 = change,
-    change = paste0(formatC(x = change, big.mark=",", digits = 1, format = "f"), "%"), 
+    print_name = gsub(pattern = "smelts (*Osmeridae*) include eulachon, capelin, and rainbow smelt",
+                      replacement = "smelts",
+                      x = print_name, fixed = TRUE))
+
+table_raw0$maxyr <- unlist(table_raw0[names(table_raw0) %in% maxyr])
+table_raw0$compareyr <- unlist(table_raw0[names(table_raw0) %in% compareyr])
+
+table_raw0 <- table_raw0 %>% 
+dplyr::mutate(
+    change = pchange(start = compareyr, end = maxyr, value_only = TRUE), 
+    # change = pchange(start = maxyr, end = compareyr, value_only = TRUE), 
+    dplyr::across(where(is.character), gsub, pattern = "NA", replacement = ""), 
+        change0 = change,
+    change = paste0(formatC(x = change, big.mark=",", digits = 1, format = "f"), "%") ) %>% 
+  dplyr::ungroup()  %>%
+  dplyr::arrange(desc(change0)) 
+
+table_raw  <- table_raw0
+
+table_print0 <- table_raw %>% 
+  dplyr::mutate(
     dplyr::across(dplyr::starts_with("20"), formatC, big.mark=",", digits = 0, format = "f"), 
     dplyr::across(dplyr::starts_with("20"), gsub, pattern = "NA%", replacement = ""), 
     dplyr::across(dplyr::ends_with("yr"), formatC, big.mark=",", digits = 0, format = "f"), 
-    dplyr::across(dplyr::ends_with("yr"), gsub, pattern = "NA%", replacement = ""), 
-    dplyr::across(where(is.character), gsub, pattern = "NA", replacement = ""),  
-    # find spp names that should and shouldnt be italicized
-    ital = dplyr::case_when(
-      grepl(pattern = " ", x = species_name, fixed = TRUE) ~ TRUE,
-      grepl(pattern = "sp.", x = species_name, fixed = TRUE) ~ TRUE,
-      grepl(pattern = "spp.", x = species_name, fixed = TRUE) ~ TRUE,
-      TRUE ~ FALSE),
-    # separate spp and sp from spp names because they should not be italicized
-    spp = dplyr::case_when(
-      grepl(pattern = "sp.", x = species_name, fixed = TRUE) ~ "sp.",
-      grepl(pattern = "spp.", x = species_name, fixed = TRUE) ~ "spp.",
-      TRUE ~ ""),
-    # find spp names that should be italicized
-    species_name_ital = ifelse(ital, species_name, ""),
-    # find spp names that should NOT be italicized
-    species_name_noital = ifelse(!ital, species_name, ""),
-    # remove spp and sp from species names that should be italized
-    species_name_ital =
-      gsub(pattern = " sp.", replacement = "",
-           x = species_name_ital, fixed = TRUE),
-    species_name_ital =
-      gsub(pattern = " spp.", replacement = "",
-           x = species_name_ital, fixed = TRUE)  ) %>%
-  dplyr::filter(!is.na(change0)) %>%
-  dplyr::arrange(-change0) %>% 
-  dplyr::ungroup() 
+    dplyr::across(dplyr::ends_with("yr"), gsub, pattern = "NA%", replacement = "") , 
+    dplyr::across(dplyr::everything(), gsub, pattern = "NA", replacement = "-") )  %>%
+  dplyr::filter(!is.na(change0))
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
-  
+  table_raw <- table_raw0
   header <- paste0(
     "Total estimated biomass in metric tons (t) and the percent change between the ",
     compareyr," and ",maxyr," ", 
     haul_cruises_maxyr$SRVY_long[i], 
     ' shelf bottom trawl surveys for predominant fish and invertebrate taxa. Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. ')
   
-  table_raw <- table_raw0 %>% 
-    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i])
-  
-  table_print <- table_raw  %>% 
-    dplyr::select(-SRVY, -change0, -taxon) %>%
-    # flextable::flextable() %>%
-    flextable::flextable(data = ., col_keys = c(#"group", 
-      "print_name",
-      "dummy", 
-      as.character(nbsyr[!(nbsyr %in% c(maxyr, compareyr))]), 
-      "compareyr", "maxyr", 
+  table_print <- table_print0  %>% 
+    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+    dplyr::select(-SRVY, -change0) %>%
+    flextable::flextable(data = ., 
+                         col_keys = c("print_name",
+      # "dummy", 
+      nbsyr, 
       "change")) %>%
-    flextable::compose(j = "dummy",
-                       value = as_paragraph(as_i(species_name_ital), species_name_noital, " ", spp)) %>%
+    # flextable::compose(j = "dummy",
+    #                    value = as_paragraph(as_i(species_name_ital), species_name_noital, " ", spp)) %>%
     flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
-                     i = grepl(pattern = "-", x = as.character(table_raw$change)), 
+                     i = ~ grepl(pattern = "-", x = change), 
                      j = "change") %>% 
     flextable::width(x = ., j = "change", width = 1) %>% 
     flextable::set_header_labels(.,
-                                 maxyr = maxyr, 
-                                 compareyr = compareyr, 
                                  print_name = "Common name", 
                                  dummy = "Scientific name", 
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
@@ -1418,7 +1397,7 @@ header <- obj$header
 
 table_raw <- obj$raw
 table_print <- obj$print %>% 
-  flextable::void(x = ., part = "all", ~ change + dummy)
+  flextable::void(x = ., part = "all", ~ change) #  + dummy
 
   # Save table
   res <- knitr::knit_child(

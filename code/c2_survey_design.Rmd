@@ -1,7 +1,7 @@
 
 # Survey Design, Execution, and Analysis
 
-```{r}
+```{r survey-design-intro-text}
 
 # 4 options
 # 1. vessels started and ended on different dates
@@ -18,12 +18,12 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
   cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
     dplyr::filter(SRVY %in% srvy &
                     year %in% maxyr) %>% 
-    dplyr::select("year", "survey_name", "vessel", "vessel_name", 
+    dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
                   "vessel_ital", "SRVY", "SRVY_long", 
                   "start_date_cruise", "end_date_cruise", 
                   "start_date_haul", "end_date_haul") %>% 
     unique() %>% 
-    group_by(year, survey_name, vessel, vessel_name, 
+    group_by(year, survey_name, vessel_id, vessel_name, 
              vessel_ital, SRVY, SRVY_long) %>% 
     dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
                      end_date_cruise = as.Date(max(end_date_cruise)), 
@@ -112,20 +112,16 @@ nickname <- "fig-vessels"
 ```{r fig-vessels-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r}
-insert <- readtext2(file = paste0(dir_out_rawdata, "/0_team_desc.docx"),
-                    refcontent = refcontent)
+```{r team_desc_insert_text, child=paste0(dir_out_rawdata, "/0_team_desc.Rmd")}
 ```
+Lead scientist profiles can be found at the end of this document.
 
-`r insert `Lead scientist profiles can be found at the end of this document.
-
-```{r}
+```{r nbs-station-check}
 if (sum(!(unique(haul_maxyr$stationid[haul_maxyr$SRVY == "NBS" & haul_maxyr$abundance_haul == "Y"]) %in% 
         unique(haul_compareyr$stationid[haul_compareyr$SRVY == "NBS" & haul_compareyr$abundance_haul == "Y"]) )) == 0) {
   insert <- paste0("The same NBS stations were surveyed in ",maxyr," as in ",compareyr, ". ")
 } else {
   insert <- paste0("Different NBS stations were surveyed in ",maxyr," than in ",compareyr, ". ")
-
 }
 ```
 
@@ -134,7 +130,7 @@ if (sum(!(unique(haul_maxyr$stationid[haul_maxyr$SRVY == "NBS" & haul_maxyr$abun
 In the EBS shelf survey, sampling was typically conducted at a fixed sampling station located at the center of each grid cell (Fig. \@ref(fig:fig-sample-grid)). While this approach was also used for the NBS survey, shallow depths and untrawlable bottom types were encountered in some grid cells, which required the sampling location to be moved elsewhere within the cell (Fig. \@ref(fig:fig-sample-grid)). All stations were sampled during daylight hours. 
 
 
-```{r}
+```{r nbs-trawl-survey-area}
 # area of nbs trawl stations
 # area =  l*w * number of areas
 # temp <- haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] * # number of stations
@@ -155,9 +151,9 @@ nickname <- "fig-trawl-gear-alt"
 ```{r fig-trawl-gear-alt-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-Catches of less than approximately 1,200 kg (2,500 lbs) were sorted and weighed in their entirety`r ifelse(nrow(haul[haul$subsample != 1 & haul$SRVY == "NBS" & haul$year == maxyr,])>0, " and larger catches were subsampled", "") `. Fishes, crabs, and other invertebrates were identified and sorted by species to the greatest extent possible. In cases where species identification was unknown, specimens were collected and returned to the lab for expert identification. After sorting, all caught species (except colonial species that cannot be individually counted) were counted and weighed. For the predominant fish species encountered, a subsample was weighed, sorted by sex, and the fork length of all specimens in the subsample was measured to the nearest centimeter (cm). For the predominant crab species encountered, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Some of the species caught were grouped into higher taxa groups (common names for an assemblage of species) for analysis either because the catch size was very small for individual species or due to questionable identification. Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information that included their size, weight, sex, age, reproductive state, genetics, health (condition factor), and stomach content/diet.
+Catches of less than approximately 1,200 kg (2,500 lbs) were sorted and weighed in their entirety and larger catches were subsampled. Fishes, crabs, and other invertebrates were identified and sorted by species to the greatest extent possible. In cases where species identification was unknown, specimens were collected and returned to the lab for expert identification. After sorting, all caught species (except colonial species that cannot be individually counted) were counted and weighed. For the predominant fish species encountered, a subsample was weighed, sorted by sex, and the fork length of all specimens in the subsample was measured to the nearest centimeter (cm). For the predominant crab species encountered, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Some of the species caught were grouped into higher taxa groups (common names for an assemblage of species) for analysis either because the catch size was very small for individual species or due to questionable identification. Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information that included their size, weight, sex, age, reproductive state, genetics, health (condition factor), and stomach content/diet.
 
-Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), population biomass, population abundance, and population abundance by size class for measured species. CPUE can be used as a measurement of the density of a caught species. CPUE is the estimated catch of organisms caught (in kilograms, kg, or number of individuals) per amount of effort (generally, effort is a combination of gear type, gear size, and length of time the gear is used). For these surveys, effort is estimated as the area sampled, or area swept (1 ha = 10,000 m^2^ = 0.003 nmi^2^). This area is computed by multiplying trawl tow distance by the mean width of the net during the tow. Net width during the tow was measured by acoustic sensors attached to the net. The same gear is used throughout the survey and type does not change. Mean CPUE values were calculated for the overall survey areas. Biomass and population estimates were derived for each survey area by multiplying the mean CPUE by the total survey area. For size composition estimates, the proportion of fish at each 1-cm length interval or crab at each 1-mm carapace width or length interval (collected from subsamples at each station) was weighted based upon the mean CPUE (number of a taxon per hectare) and then expanded to the total population for the NBS survey area. 
+Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), population biomass, population abundance, and population abundance by size class for measured species. CPUE can be used as a measurement of the density of a caught species. CPUE is the estimated catch of organisms caught (in kilograms, kg, or number of individuals) per amount of effort (generally, effort is a combination of gear type, gear size, and length of time the gear is used). For these surveys, effort is estimated as the area sampled, or area swept (1 ha = 10,000 m^2^ = 0.003 nmi^2^). This area is computed by multiplying trawl tow distance by the mean width of the net during the tow. Net width during the tow was measured by acoustic sensors attached to the net. The same gear is used throughout the survey and type does not change. Mean CPUE values were calculated for the overall survey areas. Biomass and population estimates were derived for each survey area by multiplying the mean CPUE by the total survey area. For size composition estimates, the proportion of fish at each 1-cm length interval or crab at each 1-mm carapace width or length interval (collected from subsamples at each station) was weighted based upon the mean CPUE (number of a taxon per square kilometer) and then expanded to the total population for the NBS survey area. 
 
 Environmental data, including water temperature in degrees Celsius (°C), depth in meters (m), salinity (parts per thousand), and underwater downwelling light were also recorded at each sampling station. Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).
 

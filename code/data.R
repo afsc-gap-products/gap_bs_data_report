@@ -109,17 +109,9 @@ plural_surveys <- ifelse(length(SRVY1) > 1, "s", "")
 
 # Load data --------------------------------------------------------------------
 
-print("Load data")
-
 ## Load Documents from Google Drive --------------------------------------------
 
-# ssl_drive_id <- "1gJbb2qoqXMPFGwuk65b1HsazoMptLU6j"
-# as_dribble(as_id(ssl_drive_id)) %>% 
-#   drive_ls() %>% 
-#   group_nest(row_number()) %>% 
-#   pull(data) %>% 
-#   walk(~ drive_download(.x$id, path = here::here("spatial_data", "shp_files", .x$name)))
-
+print("Load google drive data")
 
 id_googledrive <- googledrive::as_id(dir_googledrive)
 
@@ -150,6 +142,12 @@ if (access_to_internet ) {
                                 type = "txt",
                                 overwrite = TRUE, 
                                 path = paste0(dir_out_rawdata, "/", a$name[i], ".txt"))
+    if (a$name[i] == "0_survey_team_bios") {
+      googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
+                                  type = "docx",
+                                  overwrite = TRUE, 
+                                  path = paste0(dir_out_rawdata, "/", a$name[i], ".docx"))
+    }
   }
   
 }
@@ -189,8 +187,10 @@ for (i in 1:length(txtfiles)) {
 
 ## Load Main Oracle Data -------------------------------------------------------
 
+print("Load oracle data")
+
 a <- list.files(path = here::here("data", "oracle"), full.names = TRUE, recursive = TRUE)
-           
+
 for (i in 1:length(a)){
   b <- readr::read_csv(file = a[i], show_col_types = FALSE)
   b <- janitor::clean_names(b)
@@ -205,16 +205,18 @@ for (i in 1:length(a)){
 # Wrangle Data -----------------------------------------------------------------
 
 ## catch -----------------------------------------------------------------------
-print("catch")
 
+print("catch")
 # ## there should only be one species_code observation per haul event, however
 # ## there are occasionally multiple (with unique catchjoins). 
 # ## I suspect that this is because a species_code was updated or changed, 
 # ## so we will need to sum those counts and weights
 
+# TOLEDO - probably can safely remove this patch soon
+
 catch <- gap_products_akfin_catch0 %>% 
   dplyr::filter(hauljoin %in% unique(gap_products_akfin_haul0$hauljoin)) %>%
-  dplyr::group_by(cruisejoin, hauljoin, species_code) %>% # , vessel, haul
+  dplyr::group_by(cruisejoin, hauljoin, species_code) %>% 
   dplyr::summarise(weight_kg = sum(weight_kg, na.rm = TRUE), 
                    count = sum(count, na.rm = TRUE)) %>% 
   dplyr::ungroup()
@@ -223,11 +225,17 @@ catch <- gap_products_akfin_catch0 %>%
 
 print("report_spp and spp_info")
 
-spp_info <- gap_products_akfin_taxonomics_worms0 %>%
-  dplyr::rename(species_name = accepted_name) %>% 
-  dplyr::mutate(taxon = dplyr::case_when(
-    species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert"),
+spp_info0 <- gap_products_test_species_classification0 #gap_products_akfin_taxonomics_worms0 %>%
+# dplyr::rename(species_name = accepted_name) %>% 
+
+names(spp_info0) <- gsub(pattern = "_taxon", replacement = "", x = names(spp_info0))
+
+spp_info <- spp_info0  %>% 
+  dplyr::filter(database != "ITIS") %>% 
+  dplyr::mutate(
+    taxon = dplyr::case_when(
+      species_code <= 31550 ~ "fish", 
+      species_code >= 40001 ~ "invert"),
     species = ifelse(id_rank == "species", 
                      stringr::str_replace(pattern = paste0(genus, " "), 
                                           string = species_name, 
@@ -240,7 +248,8 @@ spp_info <- gap_products_akfin_taxonomics_worms0 %>%
                      str_not = c(" shells", "empty", "unsorted", "shab"), #, " egg", "unid.", "compound"
                      col_str_not = "common_name",
                      col_out = "species_code"), 
-        TRUE, FALSE)) # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
+        TRUE, FALSE)) %>% # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
+  dplyr::distinct()
 
 spp_info_maxyr <- spp_info %>%
   dplyr::filter(species_code %in%
@@ -251,9 +260,11 @@ spp_info_maxyr <- spp_info %>%
 print("report_spp")
 
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
-                              skip = 1, show_col_types = FALSE) %>% 
+                              skip = 1, 
+                              show_col_types = FALSE) %>% 
   dplyr::select(!(dplyr::starts_with(ifelse(report_title == "community", "datar_", "community_")))) %>%
-  dplyr::select(where(~ !(all(is.na(.)) | all(. == "")))) 
+  dplyr::select(where(~ !(all(is.na(.)) | all(. == "")))) %>% 
+  dplyr::select(-questions) 
 
 names(report_spp)[
   grepl(pattern = ifelse(report_title == "community", "community_", "datar_"), 
@@ -263,6 +274,13 @@ names(report_spp)[
        x = names(report_spp)[
          grepl(pattern = ifelse(report_title == "community", "community_", "datar_"), 
                x = names(report_spp))])
+
+report_spp <- report_spp  %>%                             # Replace NA by FALSE
+  # replace(is.na(.), FALSE) # %>% 
+  # dplyr::mutate(dplyr::across(dplyr::starts_with("table_"), ~replace, is.na, FALSE)) %>% 
+  dplyr::mutate(dplyr::across(dplyr::starts_with("table_"), ~replace(., is.na(.), FALSE))) %>% 
+  dplyr::mutate(dplyr::across(dplyr::starts_with("plot_"), ~replace(., is.na(.), FALSE)))
+# dplyr::mutate(dplyr::across(dplyr::starts_with("table_"), ifelse, is.na, FALSE, TRUE))
 
 ## report_spp1 ------------------------------------------------------------------
 
@@ -277,16 +295,16 @@ temp1 <- data.frame()
 for (i in 1:nrow(report_spp)){
   temp2 <- eval(expr = parse(text = report_spp$species_code[i]))
   temp1 <- dplyr::bind_rows(temp1, 
-                           dplyr::bind_cols(report_spp[i,], 
-                                            species_code1 = eval(expr = parse(text = report_spp$species_code[i]))))
+                            dplyr::bind_cols(report_spp[i,], 
+                                             species_code1 = eval(expr = parse(text = report_spp$species_code[i]))))
 }
 
 temp1 <- temp1 %>% 
   dplyr::mutate(taxon = dplyr::case_when(
-    species_code <= 31550 ~ "fish", 
-    species_code >= 40001 ~ "invert")) %>% 
-  dplyr::select(print_name, common_name1, species_code1, group, group_sci, taxon, order, file_name, 
-                plot_sizecomp, plot_idw, text_spp, table_cpue, table_bio_portion, table_bio_spp, cpue) %>% 
+    species_code1 <= 31550 ~ "fish", 
+    species_code1 >= 40001 ~ "invert")) %>% 
+  # dplyr::select(print_name, common_name1, species_code1, group, group_sci, taxon, order, file_name, 
+  #               plot_sizecomp, plot_idw, text_spp, table_cpue, table_bio_portion, table_bio_spp, cpue) %>% 
   dplyr::filter(print_name != "") %>% 
   dplyr::mutate(group0 = group)
 
@@ -294,13 +312,15 @@ temp1 <- temp1 %>%
 temp <- unique(temp1$print_name)[grepl(pattern = "all ", 
                                        x = unique(temp1$print_name), 
                                        ignore.case = TRUE)]
+temp1$print_name1 <- temp1$print_name
+
 if (length(temp)>0) {
   for (i in 1:length(temp)) {
-    temp2 <- intersect(temp1$species_code[temp1$print_name == temp[i]], 
-                       temp1$species_code[temp1$print_name != temp[i]]) # find which are duplicates 
+    temp2 <- intersect(temp1$species_code1[temp1$print_name == temp[i]], 
+                       temp1$species_code1[temp1$print_name != temp[i]]) # find which are duplicates 
     if (length(temp2)>0) {
       # and delete them from "all "
-      temp1 <- temp1[!(temp1$species_code %in% temp2 &
+      temp1 <- temp1[!(temp1$species_code1 %in% temp2 &
                          temp1$print_name == temp[i]),]
       # and change "all " to "other "
       temp1$print_name[temp1$print_name == temp[i]] <- 
@@ -314,9 +334,9 @@ if (length(temp)>0) {
 # if (sum(temp1$species_code[(duplicated(temp1$species_code))])>0) warning("There are still duplicates in the species split ups!")
 
 report_spp1 <-  
-  dplyr::left_join(x = temp1 %>% 
-                     dplyr::rename(species_code = species_code1),# %>% 
-                     # dplyr::select(-col), 
+  dplyr::left_join(x = temp1  %>% 
+                     dplyr::select(-species_code) %>% 
+                     dplyr::rename(species_code = species_code1),
                    y = spp_info %>% 
                      dplyr::select(species_code, genus, species) %>% 
                      unique(), 
@@ -326,10 +346,10 @@ report_spp1 <-
                                    paste0(genus, " ", species))), 
                 temp = ifelse(temp == " ", "", temp), 
                 species_name = dplyr::case_when(
-    group_sci == "BLANK" ~ "",
-    !is.na(group_sci) ~ group_sci, 
-    is.na(group_sci) ~ temp, 
-    TRUE ~ "other")) %>%
+                  group_sci == "BLANK" ~ "",
+                  !is.na(group_sci) ~ group_sci, 
+                  is.na(group_sci) ~ temp, 
+                  TRUE ~ "other")) %>%
   dplyr::mutate(temp = trimws(paste0(group_sci, " (", print_name, ")"))) %>%
   dplyr::mutate(temp = ifelse(temp == "NA ", "", temp)) %>%
   dplyr::mutate(group = dplyr::case_when(
@@ -345,6 +365,7 @@ report_spp1 <-
                 species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
                 species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
                 species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE), 
+                species_name0 = gsub(r"{\s*\([^\)]+\)}","", species_name0), 
                 species_name = species_name0) %>% 
   dplyr::select(-type, -temp, -species_name0, -genus, -species)
 
@@ -395,7 +416,7 @@ haul <- dplyr::left_join(
                   survey_definition_id %in% 98 ~ "EBS" )) %>%
   dplyr::filter(year <= maxyr &
                   year > 1981 & # abundance_haul == "Y" & 
-                performance >= 0 &
+                  performance >= 0 &
                   !(is.null(station)) &
                   survey_definition_id %in% SRVY00 & 
                   haul_type == 3) 
@@ -489,8 +510,8 @@ station <- haul %>%
                      dplyr::mutate(
                        stratum = as.numeric(stratum), 
                        survey_definition_id = dplyr::case_when(
-                       SRVY == "NBS" ~ 143, 
-                       SRVY == "EBS" ~ 98 ) ), 
+                         SRVY == "NBS" ~ 143, 
+                         SRVY == "EBS" ~ 98 ) ), 
                    by = c("stratum", "station")) %>% 
   dplyr::mutate(in_maxyr = (station %in% haul_maxyr$station), 
                 reg = dplyr::case_when(
@@ -717,32 +738,32 @@ lengths <- dplyr::bind_rows(
         TRUE ~ length) )  %>%  # 7 - Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
     dplyr::select(hauljoin, species_code, sex, length_mm, length_type, clutch_size) ) %>% 
   
-    dplyr::left_join(
-      y = haul %>% 
-        dplyr::select(SRVY, year, hauljoin, haul_type, station, performance, survey_definition_id), # abundance_haul, 
-      by = c("hauljoin")) %>% 
-    dplyr::filter(
-      # abundance_haul == "Y" &
-        performance >= 0 &
-        haul_type %in% c(3)) %>% # standard stations # Note: 17 = resample stations
-    dplyr::mutate(
-                  sex_code = sex, 
-                  sex = dplyr::case_when(
-                    sex == 1 ~ "males",
-                    sex == 0 ~ "unsexed",
-                    (clutch_size == 0 & sex == 2) ~ "immature females", 
-                    (clutch_size >= 1 & sex == 2) ~ "mature females"), 
-                  frequency = 1) %>% 
-    dplyr::filter(!is.na(length_mm) & length_mm != 999) %>% 
-    dplyr::group_by(year, species_code, SRVY, sex, sex_code, length_mm, length_type) %>%
-    dplyr::summarise(frequency = n()) %>% 
+  dplyr::left_join(
+    y = haul %>% 
+      dplyr::select(SRVY, year, hauljoin, haul_type, station, performance, survey_definition_id), # abundance_haul, 
+    by = c("hauljoin")) %>% 
+  dplyr::filter(
+    # abundance_haul == "Y" &
+    performance >= 0 &
+      haul_type %in% c(3)) %>% # standard stations # Note: 17 = resample stations
+  dplyr::mutate(
+    sex_code = sex, 
+    sex = dplyr::case_when(
+      sex == 1 ~ "males",
+      sex == 0 ~ "unsexed",
+      (clutch_size == 0 & sex == 2) ~ "immature females", 
+      (clutch_size >= 1 & sex == 2) ~ "mature females"), 
+    frequency = 1) %>% 
+  dplyr::filter(!is.na(length_mm) & length_mm != 999) %>% 
+  dplyr::group_by(year, species_code, SRVY, sex, sex_code, length_mm, length_type) %>%
+  dplyr::summarise(frequency = n()) %>% 
   dplyr::left_join(y = spp_info %>% 
                      dplyr::select(species_code, common_name, species_name, taxon),
                    by = "species_code") %>% 
   dplyr::left_join(y = length_type %>% # Add in length type data 
                      dplyr::select(length_type_id, sentancefrag), 
                    by = c("length_type" = "length_type_id")) %>% 
-    dplyr::ungroup()
+  dplyr::ungroup()
 
 lengths_maxyr <- lengths %>% 
   dplyr::filter(year == maxyr) 
@@ -941,10 +962,10 @@ print("biomass")
 biomass <- gap_products_akfin_biomass0 %>%
   dplyr::filter(
     area_id %in% strat0 &
-    n_weight > 0 & 
-    year <= maxyr &
-   !(species_code %in% c(69323, 69322, 68580, 68560)) &
-    !is.na(species_code) & 
+      n_weight > 0 & 
+      year <= maxyr &
+      !(species_code %in% c(69323, 69322, 68580, 68560)) &
+      !is.na(species_code) & 
       !(year < 1996 & species_code == 10261) &
       !(year < 2000 & species_code == 471) & # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
       !(year < 2000 & species_code == 435 )) %>%  
@@ -970,8 +991,8 @@ biomass_crab <- dplyr::bind_rows( # crab
       SRVY == "NBS" ~ 143, 
       SRVY == "EBS" ~ 98), 
     length = dplyr::case_when(
-    species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
-    TRUE ~ length)) %>%
+      species_code %in% c(68580, 68590, 68560) ~ width,  # "snow crab"
+      TRUE ~ length)) %>%
   dplyr::filter(!is.na(length)) %>% # if NA, it was not lengthed!
   dplyr::select(hauljoin, SRVY, species_code, station) %>%
   dplyr::distinct() %>%
@@ -1032,7 +1053,7 @@ biomass_compareyr <- biomass %>%
   dplyr::filter(year == compareyr[1])
 
 total_biomass <- biomass %>% 
-  dplyr::filter(year %in% c(maxyr, compareyr)) %>% 
+  dplyr::filter(year %in% nbsyr) %>% 
   dplyr::filter(stratum == 999) %>%
   dplyr::group_by(SRVY, year, taxon) %>% 
   dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 

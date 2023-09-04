@@ -322,7 +322,7 @@ insert <- gsub(pattern = "  ", replacement = " ", x = insert)
 
 ```
 
-From the EBS and NBS shelf trawl surveys, length measurements were collected from `r xunits(sum(length_maxyr$frequency[length_maxyr$taxon == "fish"]))` individual fish representing `r xunits(length(gsub(pattern = " (juvenile)", replacement = "", fixed = TRUE, x = unique(length_maxyr$common_name[length_maxyr$taxon == "fish"]))))` fish taxa. Additionally, `r insert `. 
+From the EBS and NBS shelf trawl surveys, length measurements were collected from `r xunits(sum(lengths_maxyr$frequency[lengths_maxyr$taxon == "fish"]))` individual fish representing `r xunits(length(gsub(pattern = " (juvenile)", replacement = "", fixed = TRUE, x = unique(lengths_maxyr$common_name[lengths_maxyr$taxon == "fish"]))))` fish taxa. Additionally, `r insert `. 
 
 ## Estimates of Fishes and Invertebrates
 
@@ -336,11 +336,13 @@ temp2 <- cpue %>%
     SRVY == "NBS" & 
       year %in% nbsyr) %>%
   dplyr::group_by(year) %>% 
-  dplyr::summarise(cpue_kgha = sum(cpue_kgha, na.rm = T)) %>%
-  dplyr::select(year, cpue_kgha) %>% 
-  dplyr::rename("total" = "cpue_kgha")
+  dplyr::summarise(cpue_kgkm2 = sum(cpue_kgkm2, na.rm = T)) %>%
+  dplyr::select(year, cpue_kgkm2) %>% 
+  dplyr::rename("total" = "cpue_kgkm2")
 
 # Species group CPUE change
+  load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-comm.rdata"))
+
 temp5 <- 
   dplyr::left_join(
     x = cpue %>%
@@ -348,24 +350,24 @@ temp5 <-
         species_code != 1,
         SRVY == "NBS" & 
           year %in% nbsyr) %>% 
-      dplyr::select(year, species_code, cpue_kgha), 
+      dplyr::select(year, species_code, cpue_kgkm2), 
     y = report_spp1 %>% 
       dplyr::select(print_name, species_code, species_name1, taxon) %>% 
       dplyr::rename(species_name = print_name) , 
     # dplyr::mutate(species_name = as.character(unlist(lapply(strsplit(x = group, split = "_", fixed = TRUE), `[[`, 1)))),
     by = c("species_code")) %>% 
   dplyr::group_by(year, species_name, taxon) %>% 
-  dplyr::summarise(cpue_kgha = sum(cpue_kgha, na.rm = TRUE)) %>% 
+  dplyr::summarise(cpue_kgkm2 = sum(cpue_kgkm2, na.rm = TRUE)) %>% 
   dplyr::left_join(
     x = ., 
     y = temp2, 
     by = "year") %>% 
-  dplyr::mutate(prop_tot = (cpue_kgha / total )) %>% 
+  dplyr::mutate(prop_tot = (cpue_kgkm2 / total )) %>% 
   tidyr::pivot_wider(id_cols = c(species_name, taxon), names_from = year, 
-                     values_from = c(prop_tot, cpue_kgha)) %>% 
+                     values_from = c(prop_tot, cpue_kgkm2)) %>% 
   dplyr::left_join(
     x = ., 
-    y = list_tables$tab-majortaxa-pchange-comm$raw %>% 
+    y = obj$raw %>% 
       dplyr::select(print_name, change) %>% 
       dplyr::rename(change_biomass = change, 
                     species_name = print_name), 
@@ -378,8 +380,8 @@ temp <- temp[temp$Var1 < temp$Var2,] #when from is smaller than to
 temp5<-as.data.frame(temp5)
 for (i in 1:nrow(temp)) {
   temp5$change <- pchange(
-    start = unlist(temp5[,names(temp5) == paste0("cpue_kgha_", temp[i,1])]), 
-    end = unlist(temp5[,names(temp5) == paste0("cpue_kgha_", temp[i,2])]), 
+    start = unlist(temp5[,names(temp5) == paste0("cpue_kgkm2_", temp[i,1])]), 
+    end = unlist(temp5[,names(temp5) == paste0("cpue_kgkm2_", temp[i,2])]), 
     value_only = TRUE)
   names(temp5)[names(temp5) == "change"] <- paste0("change_", temp[i,1], "_", temp[i,2]) 
 }
@@ -396,8 +398,8 @@ temp4 <- temp5 %>%
                 change_cpue, change_biomass, 
                 paste0("prop_tot_", maxyr), 
                 paste0("prop_tot_", compareyr), 
-                paste0("cpue_kgha_", maxyr), 
-                paste0("cpue_kgha_", compareyr) ) %>%
+                paste0("cpue_kgkm2_", maxyr), 
+                paste0("cpue_kgkm2_", compareyr) ) %>%
   dplyr::arrange(desc(change_cpue)) %>%
   dplyr::mutate(change_biomass_case = dplyr::case_when(
     change_biomass < -25 ~ "decreasing", # TOLEDO - is 50 ok?!
@@ -457,13 +459,14 @@ From `r compareyr` to `r maxyr `, `r text_list(paste0(xunits(temp3$fish), " ", i
 # million metric tons of biomass collected in each region in each year
 temp <- biomass %>%
   dplyr::filter(year %in% nbsyr) %>%
-  dplyr::select(year, SRVY, biomass) %>% 
+  dplyr::select(year, SRVY, biomass_mt) %>% 
   dplyr::group_by(year, SRVY) %>% 
-  dplyr::summarise(sum = sum(biomass)) %>% 
+  dplyr::summarise(sum = sum(biomass_mt)) %>% 
   dplyr::mutate(sum = round(sum/1e6, digits = 1)) %>% 
   dplyr::arrange(desc(year))
 
-temp1 <- list_tables$tab-majortaxa-pchange-comm$raw
+load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-comm.rdata"))
+temp1 <- obj$raw
 
 temp3 <- temp1 %>% 
   dplyr::filter(!is.na(change)) %>% 
@@ -483,29 +486,33 @@ temp2 <- temp1 %>%
 ```
 
 
-In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (mmt) and the NBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "NBS"] ` mmt. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$sum[temp$year != maxyr], " mmt"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange)). 
+In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "NBS"] ` mmt. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$sum[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange)). 
 
 Calculated biomass `r text_list(paste0(temp3$case, " for ", xunits(temp3$change), ifelse(temp3$change == 1, " taxon", " taxa")))` from `r compareyr ` (`r ifelse(temps_avg_yr$bt_above_mean[temps_avg_yr$year == compareyr], "warm", "cold")`-stanza year) to `r maxyr `. Some of the largest increases in biomass from `r compareyr ` to `r maxyr ` were observed in the `r text_list(paste0(head(temp2$print_name, 5) ," (",xunits(head(temp2$change, 5)),"%)"))` groups. Decreases in biomass were observed in the `r text_list(paste0(tail(temp2$print_name, 5) ," (",xunits(tail(temp2$change, 5)),"%)")) ` groups (Table \@ref(tab:tab-majortaxa-pchange)).
 
 
 ```{r biomass_inc_dec2}
 temp0 <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
-temp1 <- list_tables$tab-majortaxa-pchange-comm$raw  %>%
+load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-comm.rdata"))
+temp1 <- obj$raw %>%
   dplyr::mutate(print_name = gsub(pattern = "all ", 
                                   replacement = "", 
-                                  x = print_name)) %>% 
-  dplyr::select("print_name", 
-                all_of(paste0("change_", temp0, "_", compareyr)), # prev (e.g., 2021: from 2017 to 2019)
-                all_of(paste0("change_", compareyr, "_", maxyr))) # now (e.g., 2021: from 2019 to 2021)
-
-names(temp1) <- c("group", "prev", "now") 
+                                  x = print_name))
+temp1$change1 <- pchange(end = temp1$compareyr, 
+                 start = unlist(temp1[,names(temp1) == temp0]), 
+                 value_only = TRUE)
+temp1 <- temp1 %>% 
+  dplyr::select(group = print_name, 
+                now = change, 
+                prev = change1)
 
 temp1 <- temp1 %>% 
-  dplyr::mutate(case = dplyr::case_when(
-    prev < 0 & now > 0 ~ paste0("a decreasing trend in biomass from ", temp0 ,
+  dplyr::mutate(
+    case = dplyr::case_when(
+      prev < 0 & now > 0 ~ paste0("a decreasing trend in biomass from ", temp0 ,
                                 " to ", compareyr," but an increasing trend in biomass from ",
                                 compareyr, " to ", maxyr), 
-    prev > 0 & now < 0 ~ paste0("an increasing trend in biomass from ", temp0 ,
+      prev > 0 & now < 0 ~ paste0("an increasing trend in biomass from ", temp0 ,
                                 " to ", compareyr," but a decreasing trend in biomass from ",
                                 compareyr, " to ", maxyr)) ) %>% 
   dplyr::filter(!is.na(case) & 
@@ -527,31 +534,30 @@ for (i in 1:length(unique(temp1$case))) {
 
 ```{r biomass_inc_dec3}
 
-temp1 <- list_tables$tab-majortaxa-pchange-comm$raw
+load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-comm.rdata"))
+temp1 <- obj$raw
 
 # total biomass
-temp2 <- biomass_strat %>%
-  dplyr::filter(stratum == 999 & 
-                  SRVY == "NBS" & 
-                  year %in% nbsyr) %>%
-  dplyr::select(biomass, year) %>%
+temp2 <- total_biomass  %>% 
+  dplyr::ungroup() %>% 
+  dplyr::filter(SRVY == "NBS") %>%
   dplyr::group_by(year) %>% 
-  dplyr::summarise(biomass = sum(biomass, na.rm = T)) 
+  dplyr::summarise(total = sum(total, na.rm = TRUE)) %>% 
+  dplyr::ungroup()
 
 # calculate top 50% of haul
-temp0 <- data.frame()
-temp3 <- data.frame()
+temp0 <- temp3 <- data.frame()
 insert <- insert1 <- c()
 
 for (i in 1:length(nbsyr)) {
   
   yr <- as.numeric(sort(nbsyr, decreasing = TRUE)[i])
-  temp <- temp2$biomass_mt[temp2$year == yr]
+  temp <- temp2$total[temp2$year == yr]
   
   temp5 <- temp1 %>% 
     dplyr::rename("x" = all_of(as.character(yr))) %>% 
     dplyr::arrange(desc(x)) %>% 
-    dplyr::select(print_name, species_name, x, taxon) %>%
+    dplyr::select(print_name, x, taxon) %>% # species_name, 
     dplyr::mutate(prop = x/temp) %>% 
     dplyr::mutate(cumsum = cumsum(prop))  %>% 
     dplyr::mutate(year = yr)
@@ -623,7 +629,7 @@ temp5 <-
         species_code != 1,
         # SRVY == "NBS" & 
         year %in% nbsyr) %>% 
-      dplyr::select(year, species_code, biomass, SRVY), 
+      dplyr::select(year, species_code, biomass_mt, SRVY), 
     y = report_spp1 %>% 
       dplyr::select(print_name, species_code, taxon, species_name1) %>% 
       dplyr::rename(group = print_name, 
@@ -631,14 +637,14 @@ temp5 <-
     # dplyr::mutate(species_name = as.character(unlist(lapply(strsplit(x = group, split = "_", fixed = TRUE), `[[`, 1)))),
     by = c("species_code")) %>% 
   dplyr::group_by(year, species_name, taxon, SRVY) %>% 
-  dplyr::summarise(biomass = sum(biomass, na.rm = TRUE)) %>% 
+  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
   dplyr::left_join(x = ., 
                    y = stratum %>% 
-                     dplyr::select(SRVY, area) %>% 
+                     dplyr::select(SRVY, area_km2) %>% 
                      dplyr::group_by(SRVY) %>% 
-                     dplyr::summarise(area = sum(area, na.rm = TRUE)), 
+                     dplyr::summarise(area_km2 = sum(area_km2, na.rm = TRUE)), 
                    by = "SRVY") %>%
-  dplyr::mutate(biomass_area = biomass/area) %>%
+  dplyr::mutate(biomass_area = biomass_mt/area_km2) %>%
   tidyr::pivot_wider(id_cols = c(species_name, taxon), 
                      names_from = c(year, SRVY), 
                      values_from = c(biomass_area)) %>%
@@ -656,7 +662,6 @@ temp5 <- temp5 %>%
 # > \fancypagestyle{csaplscape}  https://www.google.com/url?sa=j&url=https%3A%2F%2Fgithub.com%2Fpbs-assess%2Fcsasdown%2Fissues%2F31&uct=1634361613&usg=PiE96PLA8FqdrWy10fl2phvIyX8.&source=meet
 
 ```
-
 
 On average, NBS survey catches were smaller than those from the EBS. Distributions of some of the predominant species, such as `r text_list(temp5$species_name[temp5$extends_thru_both == TRUE])`, extended throughout much of both survey regions. Several key fish species were found in the NBS in greater numbers than the EBS, including `r text_list(temp5$species_name[temp5$maxyr_case == TRUE & temp5$taxon == "fish"])`.
 

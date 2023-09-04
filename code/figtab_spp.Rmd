@@ -51,7 +51,7 @@ width <- full_page_portrait_width
 # Select data and make plot
 figure <- 
   cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "EASTERN83-112.png")) )
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
 
 # Save figure
 res <- knitr::knit_child(
@@ -62,6 +62,160 @@ res <- knitr::knit_child(
 ```
 
 ## fig-dist-[taxon]-[spp]
+
+```{r dist_funct} 
+make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE = NA, 
+          CPUE_KGHA = NA, region = "bs.south", extrap.box = NULL, extrapolation.grid.type = "stars", 
+          set.breaks = "jenks", grouping.vars, grid.cell = c(5000, 
+                                                             5000), in.crs = "+proj=longlat", out.crs = "EPSG:3338", 
+          log.transform = FALSE, idw.nmax = 4, use.survey.bathymetry = TRUE) 
+{
+  stopifnot(`make_idw_map: extra.grid.type must be 'stars', 'sf', or 'sf.simple'` = extrapolation.grid.type %in% 
+              c("stars", "sf", "sf.simple"))
+  if (!is.data.frame(x)) {
+    stopifnot(`make_idw_map: LATITUDE must be a numeric vector.` = is.numeric(LATITUDE))
+    stopifnot(`make_idw_map: LONGITUDE must be a numeric vector.` = is.numeric(LONGITUDE))
+    stopifnot(`make_idw_map: CPUE_KGHA must be a numeric vector.` = is.numeric(CPUE_KGHA))
+    x <- data.frame(COMMON_NAME = COMMON_NAME, LATITUDE = LATITUDE, 
+                    LONGITUDE = LONGITUDE, CPUE_KGHA = CPUE_KGHA)
+  }
+  map_layers <- akgfmaps::get_base_layers(select.region = region, 
+                                          set.crs = out.crs)
+  if (is.null(extrap.box)) {
+    extrap.box <- sf::st_bbox(map_layers$survey.area)
+  }
+  if (out.crs == "auto") {
+    out.crs <- map_layers$crs
+  }
+  if (use.survey.bathymetry) {
+    map_layers$bathymetry <- akgfmaps::get_survey_bathymetry(select.region = region, 
+                                                             set.crs = out.crs)
+  }
+  extrap_raster <- terra::rast(xmin = extrap.box["xmin"], xmax = extrap.box["xmax"], 
+                               ymin = extrap.box["ymin"], ymax = extrap.box["ymax"], 
+                               ncol = (extrap.box["xmax"] - extrap.box["xmin"])/grid.cell[1], 
+                               nrow = (extrap.box["ymax"] - extrap.box["ymin"])/grid.cell[2], 
+                               crs = out.crs)
+  loc_df <- sf::st_as_sf(suppressWarnings(terra::crds(extrap_raster, 
+                                                      df = TRUE, na.rm = FALSE)), coords = c("x", "y"), crs = out.crs)
+  unique_groups <- unique(dplyr::select(x, dplyr::all_of(grouping.vars)))
+  
+  x <- sf::st_transform(sf::st_as_sf(x, coords = c(x = "LONGITUDE", 
+                                                   y = "LATITUDE"), 
+                                     crs = sf::st_crs(in.crs)), crs = map_layers$crs)
+  for (ii in 1:nrow(unique_groups)) {
+    if (length(grouping.vars) > 1) {
+      x_sub <- dplyr::inner_join(x, unique_groups[ii, ], by = grouping.vars)
+    } else {
+      x_sub <- x[which(x[[grouping.vars]] == unlist(unique_groups[ii,])), ]
+    }
+    idw_fit <- gstat::gstat(formula = CPUE_KGHA ~ 1, locations = x_sub, nmax = idw.nmax)
+    stn.predict <- predict(idw_fit, x_sub)
+    extrap.grid <- sf::st_join(stars::st_rasterize(sf::st_transform(predict(idw_fit, 
+                                                                            loc_df), crs = sf::st_crs(x))), map_layers$survey.area, 
+                               join = st_intersects)
+    alt.round <- 0
+    if (is.character(set.breaks[1])) {
+      set.breaks <- tolower(set.breaks)
+      break.vals <- classInt::classIntervals(x$CPUE_KGHA, 
+                                             n = 5, style = set.breaks)$brks
+      alt.round <- floor(-1 * (min((log10(break.vals) - 
+                                      2)[abs(break.vals) > 0])))
+      set.breaks <- c(-1, round(break.vals, alt.round))
+    }
+    if (min(set.breaks) > 0) {
+      set.breaks <- c(0, set.breaks)
+    }
+    if (min(set.breaks) == 0) {
+      set.breaks <- c(-1, set.breaks)
+    }
+    if (max(set.breaks) < max(x$CPUE_KGHA)) {
+      set.breaks[length(set.breaks)] <- max(x$CPUE_KGHA) + 1
+    }
+    dig.lab <- 7
+    set.levels <- cut(x$CPUE_KGHA, set.breaks, right = TRUE, 
+                      dig.lab = dig.lab)
+    if (alt.round > 0) {
+      while (dig.lab > alt.round) {
+        dig.lab <- dig.lab - 1
+        set.levels <- cut(x$CPUE_KGHA, set.breaks, right = TRUE, 
+                          dig.lab = dig.lab)
+      }
+    } else {
+      while (length(grep("\\.", set.levels)) > 0) {
+        dig.lab <- dig.lab - 1
+        set.levels <- cut(x$CPUE_KGHA, set.breaks, right = TRUE, 
+                          dig.lab = dig.lab)
+      }
+    }
+    continuous.grid <- extrap.grid
+    continuous.grid <- continuous.grid["var1.pred"]
+    names(continuous.grid) <- paste(unique_groups[ii, ], 
+                                    collapse = "_")
+    extrap.grid$var1.pred <- cut(extrap.grid$var1.pred, set.breaks, 
+                                 right = TRUE, dig.lab = dig.lab)
+    sig.dig <- round(set.breaks[which(nchar(round(set.breaks)) >= 
+                                        4)])
+    make_level_labels <- function(vec) {
+      vec <- as.character(vec)
+      vec[grep("-1", vec)] <- "No catch"
+      vec <- sub("\\(", "\\>", vec)
+      vec <- sub("\\,", "–", vec)
+      vec <- sub("\\]", "", vec)
+      if (length(sig.dig) > 3) {
+        for (j in 1:length(sig.dig)) {
+          vec <- sub(sig.dig[j], format(sig.dig[j], nsmall = 0, 
+                                        big.mark = ","), vec)
+        }
+      }
+      return(vec)
+    }
+    extrap.grid$var1.pred <- factor(make_level_labels(extrap.grid$var1.pred), 
+                                    levels = make_level_labels(levels(set.levels)))
+    if (ii == 1) {
+      continuous.stack <- continuous.grid
+    } else {
+      continuous.stack <- c(continuous.stack, continuous.grid)
+    }
+    if (extrapolation.grid.type %in% c("sf", "sf.simple")) {
+      extrap.grid <- sf::st_intersection(dplyr::summarise(dplyr::group_by(dplyr::select(sf::st_as_sf(extrap.grid), 
+                                                                                        -var1.var), var1.pred), n = n()), map_layers$survey.area)
+      extrap.grid <- dplyr::select(extrap.grid, which(names(extrap.grid) %in% 
+                                                        c("var1.pred", "n", "SURVEY", "geometry")))
+      if (length(grouping.vars) > 1) {
+        extrap.grid <- dplyr::bind_cols(extrap.grid, 
+                                        unique_groups[ii, ])
+      } else {
+        extrap.grid[grouping.vars] <- unique_groups[ii, ]
+      }
+      if (extrapolation.grid.type == "sf.simple") {
+        extrap.grid <- rmapshaper::ms_simplify(extrap.grid, 
+                                               keep_shapes = TRUE, keep = 0.04)
+      }
+      if (ii == 1) {
+        extrap.stack <- extrap.grid
+      } else {
+        extrap.stack <- dplyr::bind_rows(extrap.stack, 
+                                         extrap.grid)
+      }
+    } else {
+      extrap.grid <- extrap.grid["var1.pred"]
+      names(extrap.grid) <- paste(unique_groups[ii, ], collapse = "_")
+      if (ii == 1) {
+        extrap.stack <- extrap.grid
+      } else {
+        extrap.stack <- c(extrap.stack, extrap.grid)
+      }
+    }
+  }
+  return(list(map_layers = map_layers, extrapolation.stack = extrap.stack, 
+              continuous.stack = continuous.stack, region = region, 
+              crs = out.crs))
+}
+
+
+```
+
 
 ```{r fig-dist-[taxon]-[spp]}
 
@@ -161,6 +315,98 @@ if (spp_plot_idw | spp_plot_pa) {
         key.title = paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/km2)"),
         row0 = row0, 
         legend_srvy_reg = FALSE) 
+
+      a <- make_idw_stack(
+        x = table_raw %>% 
+          dplyr::rename(COMMON_NAME = common_name,
+        LATITUDE = latitude_dd_start,
+        LONGITUDE = longitude_dd_start,
+        CPUE_KGHA = cpue_kgkm2),
+        region = map.area0, 
+        grouping.vars = "year", 
+        set.breaks = set_breaks(dat = table_raw, var = "cpue_kgkm2"))
+    
+      # row0 <- 1 
+      
+      stars0 <- stars::st_redimension(a$extrapolation.stack) # continuous.stack
+      viridis_palette_option <- "mako"
+      key.title <- paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/km2)")
+        legend_srvy_reg <- TRUE
+        
+  figure <- ggplot() +
+    geom_sf(data = reg_dat$akland,
+            color = NA,
+            fill = "grey50")  +
+    geom_sf(data = reg_dat$graticule,
+            color = "grey80",
+            alpha = 0.2) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude",
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude",
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) +
+    geom_stars(data = stars0,
+                       na.rm = FALSE,
+                       show.legend = TRUE) +
+      facet_wrap( ~ new_dim, nrow = row0) + 
+      coord_sf() + 
+      ggplot2::scale_fill_manual(
+        name = key.title, 
+        values =  c("gray90",
+                    viridis::viridis(
+                      option = viridis_palette_option,
+                      direction = -1,
+                      n = length(set.breaks)-1,
+                      begin = 0.20,
+                      end = 0.80)),
+        na.translate = FALSE, # Don't use NA
+        drop = FALSE)  +
+    ggplot2::geom_sf(
+      data = reg_dat$survey.area, 
+      mapping = aes(color = SURVEY, 
+                    geometry = geometry), 
+      fill = "transparent", 
+      linewidth = ifelse(row0 > 2, 1.5, 1), # size
+      show.legend = legend_srvy_reg) +
+    ggplot2::scale_color_manual(
+      name = " ", 
+      values = reg_dat$survey.area$color,
+      breaks = reg_dat$survey.area$SURVEY,
+      labels = reg_dat$survey.area$SRVY) + 
+    ggplot2::guides(
+      fill = guide_legend(
+        order = 1,
+        title.position = "top",
+        label.position = "bottom",
+        title.hjust = 0.5,
+        override.aes = list(color = NA),
+        nrow = 1),
+      color = guide_legend(
+        order = 2, 
+        label.position = "right",
+        override.aes = list(
+          fill = reg_dat$survey.area$color, 
+          color = reg_dat$survey.area$color), 
+        title.hjust = 0.5,
+        nrow = 2))  +
+    #set legend position and vertical arrangement
+    ggplot2::theme( 
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
+      
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 10, face = "bold"), 
+      legend.text = element_text(size = 9),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = "bottom", 
+      legend.box = "horizontal") 
       
     } else if (spp_plot_pa) {
       header <- paste0("The presence of ", header0)
@@ -185,15 +431,15 @@ if (spp_plot_idw | spp_plot_pa) {
         legend_srvy_reg = FALSE)
     }
     
-    if (!(pres_img) & report_title == "community") {
-      
-      figure <-
-        cowplot::ggdraw(figure) +
-        cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                            x = 0.75, y = -0.05,
-                            hjust = 0, vjust = 0,
-                            width = .18)
-    }
+    # if (!(pres_img) & report_title == "community") {
+    #   
+    #   figure <-
+    #     cowplot::ggdraw(figure) +
+    #     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+    #                         x = 0.75, y = -0.05,
+    #                         hjust = 0, vjust = 0,
+    #                         width = .18)
+    # }
     
     # Save figure
     res <- knitr::knit_child(
@@ -256,8 +502,8 @@ if (spp_plot_sizecomp) {
         dplyr::filter(species_code %in% spp_code &
                         SRVY %in% SRVY &
                         year %in% yrs) %>% 
-        dplyr::group_by(year, taxon, species_code, sex, pop) %>% 
-        dplyr::summarise(length) %>% 
+        dplyr::group_by(year, taxon, species_code, sex, population_count) %>% 
+        dplyr::summarise(length_mm) %>% 
         dplyr::mutate(
           SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE), 
           SRVY = "EBS and NBS", 
@@ -299,15 +545,15 @@ if (spp_plot_sizecomp) {
     type = type,
     print_n = print_n)
   
-  if (!(pres_img) & report_title == "community") {
-    
-    figure <-
-      cowplot::ggdraw(figure) +
-      cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = 0.07, y = -.42,
-                          hjust = 0, vjust = 0,
-                          width = .18)
-  }
+  # if (!(pres_img) & report_title == "community") {
+  #   
+  #   figure <-
+  #     cowplot::ggdraw(figure) +
+  #     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+  #                         x = 0.07, y = -.42,
+  #                         hjust = 0, vjust = 0,
+  #                         width = .18)
+  # }
   
   # Save figure
   res <- knitr::knit_child(
