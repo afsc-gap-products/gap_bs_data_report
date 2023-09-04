@@ -554,28 +554,52 @@ for (case in c("bottom", "surface")) {
     }
     
     if (case == "surface") {
-      temp <- terra::unwrap(coldpool::nbs_ebs_surface_temperature)
+      raster_nebs <- terra::unwrap(coldpool::nbs_ebs_surface_temperature)
+      raster_ebs <- terra::unwrap(coldpool::ebs_surface_temperature)
     } else if (case == "bottom") {
-      temp <- terra::unwrap(coldpool::nbs_ebs_bottom_temperature)
+      raster_nebs <- terra::unwrap(coldpool::nbs_ebs_bottom_temperature)
+      raster_ebs <- terra::unwrap(coldpool::ebs_bottom_temperature)
     }
-    nbs_no_2018 <- raster::subset(
-      x = temp, 
-      subset = names(temp)[!grepl(x = names(temp),pattern = 2018)]) 
-    sebs_only <- names(temp)[which(!(names(temp) %in% paste0("s", names(nbs_no_2018))))]
-    sebs_temp <- raster::subset(temp, subset = sebs_only)
     
-    a <- rasterbrick[[1]]
-    names(a) <- gsub(pattern = gsub("[^0-9.-]", "", names(a)), 
-                     replacement = "2020", 
-                     x = names(a))
-    terra::values(a[[1]]) <- NA
+    raster_nebs <- terra::subset(raster_nebs, (names(raster_nebs) %in% yrs))
+    raster_ebs <- terra::subset(raster_ebs, (names(raster_ebs) %in% yrs))
+    raster_ebs <- terra::subset(raster_ebs, !(names(raster_ebs) %in% names(raster_nebs)))
+    yr_names <- c(names(raster_nebs), names(raster_ebs))
+    
+    terra::ext(raster_ebs) <- terra::ext(raster_nebs)
+    crs(raster_ebs) <- crs(raster_nebs)
+    
+    # dim(raster_ebs) <- dim(raster_nebs)
+    # res(raster_ebs) <- res(raster_nebs)
+    # raster_ <- merge(raster_nebs, raster_ebs)
+    raster_ <- c(raster_nebs, raster_ebs)
+    names(raster_) <- yr_names
+    raster_ <- sort(raster_)
+
+    library(tidyterra)
+    
+    ggplot2::ggplot() +
+      tidyterra::geom_spatraster(data = raster_) +
+      ggplot2::facet_wrap(~lyr, ncol = 3)
+    
+
+    # nbs_no_2018 <- raster::subset(
+    #   x = temp, 
+    #   subset = names(temp)[!grepl(x = names(temp),pattern = 2018)]) 
+    # sebs_only <- names(temp)[which(!(names(temp) %in% paste0("s", names(nbs_no_2018))))]
+    # sebs_temp <- raster::subset(temp, subset = sebs_only)
+    # rasterbrick <- c(sebs_temp, nbs_no_2018)
+    
+    temp_2020 <- rasterbrick[[1]]
+    names(temp_2020) <- "2020"
+    terra::values(temp_2020[[1]]) <- NA
+    rasterbrick <- c(rasterbrick, temp_2020)
     
     # a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
     # a@data@max <- a@data@min <- NA
     # rasterbrick$temp <- a
     # names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
     
-    rasterbrick <- c(a, sebs_temp, nbs_no_2018)
     
     temperature_zscore <- coldpool::cold_pool_index %>% 
       dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE")), 

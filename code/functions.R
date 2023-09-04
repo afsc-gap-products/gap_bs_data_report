@@ -2922,17 +2922,10 @@ plot_sizecomp <- function(sizecomp0,
                           type = "length", 
                           print_n = FALSE, 
                           ridgeline = FALSE, 
-                          unit = NULL){
+                          unit0 = NULL){
   
   table_raw <- sizecomp0 %>%
-    # dplyr::mutate(sex = stringr::str_to_title(
-    #   gsub(pattern = "_", replacement = " ", x = sex, fixed = TRUE))) %>% 
-    dplyr::arrange(year, SRVY, sex, length_mm) %>% 
-    dplyr::mutate(year = factor(
-      x = year,
-      levels = as.character(sort(unique(year))),
-      labels = as.character(sort(unique(year))),
-      ordered = TRUE))
+    dplyr::arrange(year, SRVY, sex, length_mm) 
   
   # find appropriate units
   a <- find_units(unit = "", unt = "", dat = max(table_raw$population_count, na.rm = TRUE))
@@ -2940,26 +2933,39 @@ plot_sizecomp <- function(sizecomp0,
   pop_unit <- divby
   pop_unit_word <- unit_word
   
-  if (is.null(unit)){
-    # mm vs cm
-    len_unit_word <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
-                            #report_spp$taxon[jj] =="fish", 
-                            # max(table_raw$length_mm)-min(table_raw$length_mm)>45, 
-                            "cm", "mm")
+  if (is.null(unit0)){ # mm vs cm
+    len_unit_word0 <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE),  "cm", "mm")
   } else {
-    len_unit_word <- unit
+    len_unit_word0 <- unit0
   }
+  
   table_raw <- table_raw %>%
     dplyr::mutate(population_count = population_count/pop_unit, 
                   length_mm = round(
-                    x = length_mm*ifelse(len_unit_word == "mm", 10, 1), digits = 0)) #%>%
+                    x = length_mm*ifelse(len_unit_word0 == "mm", 10, 1), digits = 0)) %>%
+    dplyr::ungroup()
+  
   len_unit_axis <- ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>150, 50, 
                           ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>45, 10, 5))
   
-  # figure 
+  dat_text <- lengths0 %>% 
+    dplyr::group_by(SRVY, year) %>% 
+    dplyr::summarise(frequency = formatC(x = sum(frequency, na.rm = TRUE), 
+                                         digits = 0, big.mark = ",", format = "f")) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(year %in% unique(as.numeric(paste(table_raw$year)))) %>% 
+    dplyr::mutate(
+      # label_y = (quantile(x = table_raw$population_count, .9))[[1]], 
+      # label_x = (quantile(x = table_raw$length_mm, .8))[[1]], 
+      label = paste0(c("# measured: ", rep_len(x = "", length.out = (nrow(.)-1))), 
+                     frequency), 
+      label = gsub("\\s", " ", formatC(x = label))) %>% 
+    dplyr::select(-frequency) %>% 
+    dplyr::ungroup()
+  
+  table_raw <- dplyr::left_join(table_raw, dat_text, by = c("SRVY", "year"))
+  
   if (!ridgeline) { # facet plot without ridgeline
-    
-    # if (length(unique(table_raw$SRVY))>1) {
     
     figure <- ggplot(data = table_raw,
                      mapping = aes(x = length_mm,
@@ -2973,42 +2979,18 @@ plot_sizecomp <- function(sizecomp0,
                            end = .6,
                            na.value = "transparent") +
       guides(fill=guide_legend(title="")) +
-      scale_y_continuous(name = paste0(spp_print, #"\n
+      scale_y_continuous(name = paste0(spp_print, 
                                        " population\n",pop_unit_word), 
                          breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1))))) +
-      scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
+      scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
                          breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
       facet_grid(year ~ SRVY,
-                 scales = "free_x") 
-    
-    # } else {
-    # 
-    # figure <- ggplot(data = table_raw,
-    #                  mapping = aes(x = length_mm,
-    #                                y = population_count,
-    #                                fill = sex))+
-    #   geom_bar(position="stack", stat="identity", na.rm = TRUE) +
-    #   scale_fill_viridis_d(direction = -1, 
-    #                        option = "mako",
-    #                        begin = .2,
-    #                        end = .6,
-    #                        na.value = "transparent") +
-    #   guides(fill=guide_legend(title="")) +
-    #   scale_y_continuous(name = paste0(spp_print, "\npopulation",pop_unit_word), 
-    #                      breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1))))) +
-    #   scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word, ")")), 
-    #                      breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
-    #   facet_grid(year ~ .,
-    #              scales = "free_x")  
-    # }
-    figure <- figure +
-      guides(
+                 scales = "free_x")  +
+      ggplot2::guides(
         fill = guide_legend(title.position = "top", 
-                            # label.position = "bottom",
                             title.hjust = 0.5,
-                            nrow = 1
-        )) +
-      theme(
+                            nrow = 1 )) +
+      ggplot2::theme(
         panel.grid.major.x = element_blank(),
         panel.border = element_rect(fill = NA,
                                     colour = "grey20"),
@@ -3019,37 +3001,27 @@ plot_sizecomp <- function(sizecomp0,
         legend.key = element_rect(colour = "transparent",
                                   fill = "transparent"),
         legend.position = "bottom",
-        legend.box = "horizontal" # "horizontal" "vertical"
-      )
-    
-    
+        legend.box = "horizontal" )
+
   } else {
     table_raw1 <- table_raw %>% 
       dplyr::ungroup() %>% 
-      dplyr::group_by(year, #SRVY, 
+      dplyr::group_by(year, 
                       length_mm) %>% 
       dplyr::summarise(population_count = sum(population_count, na.rm = TRUE))
     
-    temp <- setdiff(as.numeric(paste(min(table_raw1$year, na.rm = TRUE))):as.numeric(paste(max(table_raw1$year, na.rm = TRUE))), 
-                    as.numeric(paste(unique(table_raw1$year))))
+    temp <- setdiff(min(as.numeric(paste(table_raw1$year)), na.rm = TRUE):max(as.numeric(paste(table_raw1$year)), na.rm = TRUE), 
+                    unique(paste(as.numeric(table_raw1$year))))
     if (length(temp)>0) {
       table_raw1 <- rbind.data.frame(
         data.frame(year = temp,
-                   # SRVY = , 
                    length_mm = 0, 
                    population_count = 0), 
         table_raw1)
     }
     
     table_raw1 <- table_raw1 %>% 
-      dplyr::arrange(desc(year)) #%>% 
-    # dplyr::mutate(
-    #   year = as.numeric(paste(table_raw$year)), 
-    #   year =  factor(
-    # x = year,
-    # levels = as.character(sort(unique(year), decreasing = TRUE)),
-    # labels = as.character(sort(unique(year), decreasing = TRUE)),
-    # ordered = TRUE))
+      dplyr::arrange(desc(year)) 
     
     table_raw1$year <- as.numeric(paste(table_raw1$year))
     table_raw1$year <- factor(
@@ -3065,9 +3037,9 @@ plot_sizecomp <- function(sizecomp0,
                                    height = population_count/mean(population_count, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
       scale_fill_viridis_c(name = length_mm, option = "G") +
-      ylab(paste0(spp_print, #"\n
+      ylab(paste0(spp_print, 
                   " population across years")) +
-      xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word, ")"))) +
+      xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")"))) +
       theme(legend.position = "none", 
             panel.grid.major.x = element_line(colour = "grey80"))
   }
@@ -3084,29 +3056,14 @@ plot_sizecomp <- function(sizecomp0,
                                     fill = "transparent"),
           axis.title = element_text(size = 10, face = "bold"),
           axis.text = element_text(size = 10))
-  
-  
+
   if (print_n & !is.null(lengths0)) {
     
-    dat_text  <- data.frame(
-      label = paste0(c("# measured: ", rep_len(x = "", length.out = (length(unique(lengths0$year))-1))),   
-                     lengths0 %>% 
-                       dplyr::mutate(year = as.character(year)) %>% 
-                       dplyr::ungroup() %>% 
-                       dplyr::group_by((year)) %>% 
-                       dplyr::summarise(frequency = formatC(x = sum(frequency, na.rm = TRUE), 
-                                                            digits = 0, big.mark = ",", format = "f")) %>% 
-                       dplyr::select(frequency) %>% 
-                       unlist()))
-    
-    dat_text$label <- gsub("\\s", " ", formatC(x = dat_text$label)) #, width=max(nchar(dat_text$label))))
-    
-    figure <- 
-      tag_facet(p = figure, 
-                x = Inf, y = Inf, 
-                hjust = 1.25,
-                tag_pool = dat_text$label, 
-                open = "", close = "")
+    figure <- figure +
+      ggplot2::geom_text(mapping = aes(label = label, 
+                                       x = (quantile(x = range(table_raw$length_mm), .8))[[1]], 
+                                       y = (quantile(x = range(table_raw$population_count), .9))[[1]]), 
+                         check_overlap = TRUE) 
   }
   
   return(figure)
@@ -3319,16 +3276,16 @@ plot_timeseries <- function(
 }
 
 
-# https://stackoverflow.com/questions/11889625/annotating-text-on-individual-facet-in-ggplot2
-tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, y = Inf, 
-                      hjust = -0.5, vjust = 1.5, fontface = 2, family = "", ...) {
-  
-  gb <- ggplot_build(p)
-  lay <- gb$layout$layout
-  tags <- cbind(lay, label = paste0(open, tag_pool[lay$PANEL], close), x = x, y = y)
-  p + geom_text(data = tags, aes_string(x = "x", y = "y", label = "label"), ..., hjust = hjust, 
-                vjust = vjust, fontface = fontface, family = family, inherit.aes = FALSE) 
-}
+# # https://stackoverflow.com/questions/11889625/annotating-text-on-individual-facet-in-ggplot2
+# tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, y = Inf, 
+#                       hjust = -0.5, vjust = 1.5, fontface = 2, family = "", ...) {
+#   
+#   gb <- ggplot_build(p)
+#   lay <- gb$layout$layout
+#   tags <- cbind(lay, label = paste0(open, tag_pool[lay$PANEL], close), x = x, y = y)
+#   p + geom_text(data = tags, aes(x = "x", y = "y", label = "label"), ..., hjust = hjust, 
+#                 vjust = vjust, fontface = fontface, family = family, inherit.aes = FALSE) 
+# }
 
 plot_survey_stations <- function(reg_dat, 
                                  station, 

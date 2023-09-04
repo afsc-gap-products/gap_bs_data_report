@@ -10,29 +10,28 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ## vars
 
 ```{r vars}
-a <- report_spp1[which(report_spp1$file_name == comb$file_name[jj]), ]
+a <- report_spp1[which(report_spp1$file_name == unique(comb$file_name)[jj]), ]
 
 spp_sci <- a$species_name[1]
 spp_sci1 <- a$species_name1[1]
-spp_code <- a$species_code[1]
+spp_code <- a$species_code
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
 # report_title == "community"
 dataTcommF <- FALSE
-spp_plot_sizecomp <- ifelse(is.na(a$plot_sizecomp[1]), FALSE, a$plot_sizecomp[1])
-spp_plot_idw <- ifelse(is.na(a$plot_idw[1]), FALSE, a$plot_idw[1])
+spp_plot_sizecomp <- a$plot_sizecomp[1]
+spp_plot_idw <- a$plot_idw[1]
 spp_plot_pa <- FALSE
 spp_table_cpue <- FALSE
-text_spp <- TRUE
+spp_text <- TRUE
 
-# report_title == "data"
 if (report_title == "data") {
   dataTcommF <- TRUE
-  spp_plot_pa <- ifelse(is.null(a$plot_pa[1]), FALSE, a$plot_pa[1])
-  spp_table_cpue <- ifelse(is.null(a$table_cpue[1]), FALSE, a$table_cpue[1])
-  text_spp <- ifelse(is.null(a$text_spp[1]), FALSE, a$text_spp[1])
+  # spp_plot_pa <- a$plot_pa[1]
+  spp_table_cpue <- a$table_cpue[1]
+  spp_text <- a$text_spp[1]
 }
 ```
 
@@ -43,7 +42,7 @@ header <- paste0("Image of the  ",
                  maxyr ," ", SURVEY ," bottom trawl survey", 
                  ifelse(length(SRVY1)>1, "s", ""), ".")
 footnote<- NA
-nickname <- "fig-trawl-gear"
+nickname <- paste0("fig-", spp_file)
 alttext <- paste0(header)
 height = 8
 width <- full_page_portrait_width
@@ -302,20 +301,22 @@ if (spp_plot_idw | spp_plot_pa) {
       header <- paste0("The distribution (weight_kg CPUE (kg/km^2^)) of ", 
                        header0)
       
-      figure <- plot_idw_facet(
-        yrs = yrs,
-        dat = table_raw, 
-        lat = "latitude_dd_start",
-        lon = "longitude_dd_start",
-        var = "cpue_kgkm2",
-        year = "year",
-        grid = "continuous.grid",
-        reg_dat = reg_dat0, 
-        region = map.area0, 
-        key.title = paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/km2)"),
-        row0 = row0, 
-        legend_srvy_reg = FALSE) 
+      # figure <- plot_idw_facet(
+      #   yrs = yrs,
+      #   dat = table_raw, 
+      #   lat = "latitude_dd_start",
+      #   lon = "longitude_dd_start",
+      #   var = "cpue_kgkm2",
+      #   year = "year",
+      #   grid = "continuous.grid",
+      #   reg_dat = reg_dat0, 
+      #   region = map.area0, 
+      #   key.title = paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/km2)"),
+      #   row0 = row0, 
+      #   legend_srvy_reg = FALSE) 
 
+      set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgkm2")
+      
       a <- make_idw_stack(
         x = table_raw %>% 
           dplyr::rename(COMMON_NAME = common_name,
@@ -324,7 +325,7 @@ if (spp_plot_idw | spp_plot_pa) {
         CPUE_KGHA = cpue_kgkm2),
         region = map.area0, 
         grouping.vars = "year", 
-        set.breaks = set_breaks(dat = table_raw, var = "cpue_kgkm2"))
+        set.breaks = set.breaks)
     
       # row0 <- 1 
       
@@ -471,8 +472,7 @@ if (spp_plot_sizecomp) {
     SRVY11 <-"NBS"
     nickname <- paste0(nickname, "-comm")
   }
-  
-  
+
   lengths0 <- lengths %>%
     dplyr::filter(species_code %in% spp_code &
                     SRVY %in% SRVY11 &
