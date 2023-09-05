@@ -61,17 +61,17 @@ compareyr <- 2021
 strat_yr <- 2022
 SRVY<-"NEBS"
 ref_compareyr <- ref_compareyr_ebs <- "@2021NEBS2022" # CHANGE
-dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
+# dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
 ref_compareyr_nbs <- "@RN909" # community report
-dir_googledrive_comm <- "1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
+# dir_googledrive_comm <- "1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
 
 # maxyr <- 2023
 # compareyr <- 2022
 # strat_yr <- 2022
 # SRVY<-"NEBS"
 # ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
-# dir_googledrive <- "9ttU1_VAlos_3KKjiRqfcMF-k1cpaENN?usp" # https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN?usp=drive_link
-# dir_googledrive_comm <- "1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
+dir_googledrive <- "9ttU1_VAlos_3KKjiRqfcMF-k1cpaENN?usp" # https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN?usp=drive_link
+dir_googledrive_comm <- "1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
@@ -80,7 +80,6 @@ googledrive::drive_auth()
 # *** Source support scripts ---------------------------------------------------
 
 source(here::here("code","directories.R"))
-dir_out_figtab <- paste0(dir_output, "figtab_",maxyr,"/")
 
 source(here::here("code","functions.R"))
 
@@ -133,7 +132,6 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
 
 report_title <- "community"
 source(here::here("code","directories.R"))
-dir_out_figtab <- paste0(dir_output, "figtab/")
 dir_googledrive <- dir_googledrive_comm
 source(here::here("code","data.R"))
 
