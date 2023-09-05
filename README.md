@@ -175,24 +175,25 @@ sessionInfo()
     ##   [1] later_1.3.1             bitops_1.0-7            tibble_3.2.1            cellranger_1.1.0        janitor_2.2.0          
     ##   [6] xts_0.13.1              lifecycle_1.0.3         rstatix_0.7.2           rprojroot_2.0.3         vroom_1.6.3            
     ##  [11] processx_3.8.2          lattice_0.21-8          backports_1.4.1         yaml_2.3.7              httpuv_1.6.11          
-    ##  [16] zip_2.3.0               askpass_1.1             DBI_1.1.3               maps_3.4.1              purrr_1.0.2            
-    ##  [21] rappdirs_0.3.3          gdtools_0.3.3           crul_1.4.0              units_0.8-3             codetools_0.2-19       
-    ##  [26] xml2_1.3.5              tidyselect_1.2.0        httpcode_0.3.0          farver_2.1.1            jsonlite_1.8.7         
-    ##  [31] e1071_1.7-13            ellipsis_0.3.2          systemfonts_1.0.4       tools_4.3.0             ragg_1.2.5             
-    ##  [36] Rcpp_1.0.11             glue_1.6.2              gridExtra_2.3           Rttf2pt1_1.3.12         xfun_0.40              
-    ##  [41] here_1.0.1              withr_2.5.0             fastmap_1.1.1           fansi_1.0.4             openssl_2.1.0          
-    ##  [46] timechange_0.2.0        R6_2.5.1                mime_0.12               textshaping_0.3.6       colorspace_2.1-0       
-    ##  [51] jpeg_0.1-10             utf8_1.2.3              generics_0.1.3          intervals_0.15.4        fontLiberation_0.1.0   
-    ##  [56] data.table_1.14.8       FNN_1.1.3.2             class_7.3-22            pkgconfig_2.0.3         gtable_0.3.4           
-    ##  [61] htmltools_0.5.6         fontBitstreamVera_0.1.1 carData_3.0-5           dotCall64_1.0-2         rvg_0.3.3              
-    ##  [66] snakecase_0.11.1        rstudioapi_0.15.0       tzdb_0.4.0              uuid_1.1-1              spacetime_1.3-0        
-    ##  [71] curl_5.0.2              proxy_0.4-27            cachem_1.0.8            zoo_1.8-12              KernSmooth_2.23-22     
-    ##  [76] parallel_4.3.0          foreign_0.8-84          pillar_1.9.0            vctrs_0.6.3             promises_1.2.1         
-    ##  [81] car_3.1-2               xtable_1.8-4            extrafontdb_1.0         evaluate_0.21           maptools_1.1-8         
-    ##  [86] cli_3.6.1               compiler_4.3.0          rlang_1.1.1             crayon_1.5.2            ggsignif_0.6.4         
-    ##  [91] ggmap_3.0.2             fs_1.6.3                stringi_1.7.12          munsell_0.5.0           fontquiver_0.2.1       
-    ##  [96] hms_1.1.3               bit64_4.0.5             gfonts_0.2.0            RgoogleMaps_1.4.5.3     shiny_1.7.5            
-    ## [101] gargle_1.5.2            broom_1.0.5             memoise_2.0.1           lwgeom_0.2-13           bit_4.0.5
+    ##  [16] zip_2.3.0               askpass_1.1             DBI_1.1.3               RColorBrewer_1.1-3      maps_3.4.1             
+    ##  [21] purrr_1.0.2             rappdirs_0.3.3          gdtools_0.3.3           crul_1.4.0              units_0.8-3            
+    ##  [26] codetools_0.2-19        xml2_1.3.5              tidyselect_1.2.0        farver_2.1.1            httpcode_0.3.0         
+    ##  [31] jsonlite_1.8.7          e1071_1.7-13            ellipsis_0.3.2          systemfonts_1.0.4       tools_4.3.0            
+    ##  [36] ragg_1.2.5              Rcpp_1.0.11             glue_1.6.2              gridExtra_2.3           Rttf2pt1_1.3.12        
+    ##  [41] xfun_0.40               here_1.0.1              withr_2.5.0             fastmap_1.1.1           fansi_1.0.4            
+    ##  [46] openssl_2.1.0           timechange_0.2.0        R6_2.5.1                mime_0.12               textshaping_0.3.6      
+    ##  [51] colorspace_2.1-0        jpeg_0.1-10             rmapshaper_0.5.0        utf8_1.2.3              generics_0.1.3         
+    ##  [56] intervals_0.15.4        fontLiberation_0.1.0    data.table_1.14.8       FNN_1.1.3.2             class_7.3-22           
+    ##  [61] pkgconfig_2.0.3         gtable_0.3.4            htmltools_0.5.6         fontBitstreamVera_0.1.1 carData_3.0-5          
+    ##  [66] dotCall64_1.0-2         rvg_0.3.3               snakecase_0.11.1        rstudioapi_0.15.0       tzdb_0.4.0             
+    ##  [71] uuid_1.1-1              spacetime_1.3-0         curl_5.0.2              proxy_0.4-27            zoo_1.8-12             
+    ##  [76] cachem_1.0.8            KernSmooth_2.23-22      parallel_4.3.0          foreign_0.8-84          pillar_1.9.0           
+    ##  [81] vctrs_0.6.3             promises_1.2.1          car_3.1-2               xtable_1.8-4            extrafontdb_1.0        
+    ##  [86] evaluate_0.21           maptools_1.1-8          cli_3.6.1               compiler_4.3.0          rlang_1.1.1            
+    ##  [91] crayon_1.5.2            ggsignif_0.6.4          ggmap_3.0.2             fs_1.6.3                stringi_1.7.12         
+    ##  [96] munsell_0.5.0           V8_4.3.3                fontquiver_0.2.1        hms_1.1.3               bit64_4.0.5            
+    ## [101] gfonts_0.2.0            RgoogleMaps_1.4.5.3     shiny_1.7.5             gargle_1.5.2            broom_1.0.5            
+    ## [106] memoise_2.0.1           lwgeom_0.2-13           bit_4.0.5
 
 ## NOAA README
 

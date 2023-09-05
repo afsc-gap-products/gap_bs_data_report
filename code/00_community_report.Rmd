@@ -1,5 +1,5 @@
 ---
-title: "`r paste0(maxyr, 'Northern Bering Sea Groundfish and Crab Trawl Survey Highlights')`"
+title: "`r paste0(maxyr, ' Northern Bering Sea Groundfish and Crab Trawl Survey Highlights')`"
 date: "`r paste0('DRAFT: ', format(Sys.time(), '%B %d, %Y'))`"
 output:
   pdf_document:
@@ -19,38 +19,15 @@ keywords:
 ---
 
 ```{r setup, include=FALSE}
-    # page_margins:
-    #   bottom: 1
-    #   top: 1
-    #   right: 1
-    #   left: 1 
-
-# "https://github.com/afsc-gap-products/citations/blob/main/cite/bibliography.bib"
-    # sansfont: Arial Narrow
-    # fontsize: 11pt
-    # geometry: margin=1in
-
 knitr::opts_chunk$set(
   echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, 
   tab.cap.style = "Table Caption", 
   tab.cap.pre = "Table", 
   tab.cap.sep = ". --", 
-  # tab.cap.align = "left", 
   fig.cap.style = "Image Caption",
   fig.cap.pre = "Figure ", 
   fig.cap.sep = ". -- ", 
   fig.align = 'center')
-# plots:
-#   caption:
-#     style: Image Caption
-#     pre: 'Fig. '
-#     sep: '-- '
-# tables:
-#   caption:
-#     style: Table Caption
-#     pre: 'Table '
-#     sep: '.-- '
-# "--lua-filter", "figure_caption_patch.lua", 
 ```
 
 ```{r introduction, child = paste0(dir_code, "c1_introduction.Rmd"), results='asis'}
@@ -62,17 +39,24 @@ knitr::opts_chunk$set(
 ```{r survey_snapshot_compare, child = paste0(dir_code, "c3_survey_snapshot_compare.Rmd"), results='asis'}
 ```
 
-\pagebreak
+<!-- \pagebreak -->
 
-
-
-```{r 0_survey_team_bios}
-str0 <- officer::read_docx(path = paste0(dir_out_rawdata, "0_survey_team_bios.docx"))
+```{r results_spp, echo=FALSE, results='asis'}
+src <- c()
+comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
+for (jj in 1:length(comb)) {
+# for (jj in 1:1) {
+  src[[jj]] <- knitr::knit_expand(paste0(dir_code, '06_results_spp.Rmd'))
+}
+res = knitr::knit_child(text = unlist(src), quiet = TRUE)
+cat(res, sep = '\n')
 ```
 
-`r str0`
+```{r 0_survey_team_bios}
+# str0 <- officer::read_docx(path = paste0(dir_out_rawdata, "0_survey_team_bios.docx"))
+```
 
-\pagebreak
+<!-- `r str0` -->
 
 ```{r endmatter, child = paste0(dir_code, "10_endmatter.Rmd"), results='asis'}
 ```

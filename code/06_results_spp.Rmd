@@ -1,6 +1,6 @@
 
 ```{r res_spp_vars_{{jj}} }
-a <- report_spp1[which(report_spp1$file_name == unique(comb$file_name)[jj]), ]
+a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 
 spp_sci <- a$species_name[1]
 spp_sci1 <- a$species_name1[1]
@@ -19,7 +19,7 @@ spp_text <- TRUE
 
 if (report_title == "data") {
   dataTcommF <- TRUE
-  spp_plot_pa <- a$plot_pa[1]
+  # spp_plot_pa <- FALSE
   spp_table_cpue <- a$table_cpue[1]
   spp_text <- a$text_spp[1]
 }
@@ -107,7 +107,7 @@ fig_bt <- "\\@ref(fig:fig-temperature-bt-1) and \\@ref(fig:fig-temperature-bt-2)
 fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
 
   if (report_title == "community") {
-    tab_majorspp_bio = c("\\@ref(tab_majortaxa_pchange)")
+    tab_majorspp_bio = c("\\@ref(tab_majortaxa_pchange-comm)")
   } else if (report_title == "data") {
     tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
     tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
@@ -228,15 +228,17 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 
 `r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
-<!-- :::::: {.cols data-latex=""} -->
-
-<!-- ::: {.col data-latex="{0.55\textwidth}"} -->
-
-```{r tab-env-{{jj}}}
-nickname <- paste0("tab-env-", spp_taxon,"-", spp_file)
+```{r tab-env-{{jj}} , eval = (report_title == "community")}
+nickname <- paste0("tab-env-", spp_taxon,"-", spp_file) # , ifelse(report_title == "data", "-data", "-comm"))
+# ```{r fig-spp-{{jj}} }
+# nickname <- paste0("fig-spp-", spp_file) 
+# ```
+# 
+# ```{r fig-spp-child-{{jj}}, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+# ```
 ```
 
-```{r tab-env-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-env-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd") , eval = (report_title == "community")}
 ```
 
 ```{r tab-bio-{{jj}}}
@@ -245,38 +247,22 @@ nickname <- paste0("tab-bio-",spp_taxon,"-", spp_file)
 
 ```{r tab-bio-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
-<!-- ::: -->
-
-<!-- ::: {.col data-latex="{0.05\textwidth}"} -->
-<!-- \  -->
-<!-- <!-- an empty Div (with a white space), serving as a column separator --> -->
-<!-- ::: -->
-
-<!-- ::: {.col data-latex="{0.4\textwidth}"} -->
-```{r fig-spp-{{jj}} }
-nickname <- paste0("fig-", spp_file) 
-```
-
-```{r fig-spp-child-{{jj}}, child = paste0(dir_code, "_child_report_figtab.Rmd")}
-```
-<!-- ::: -->
-<!-- :::::: -->
-
-```{r spp_text-{{jj}}, child=paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
-```
-
-```{r fig-sizecomp-{{jj}}}
-nickname <- paste0("fig-sizecomp-",spp_taxon,"-", spp_file, ifelse(report_title == "data", "", "-comm"))
-```
-
-```{r fig-sizecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_plot_sizecomp}
-```
 
 ```{r fig-dist-{{jj}}}
-nickname <- paste0("fig-dist-",spp_taxon,"-", spp_file, ifelse(report_title == "data", "", "-comm"))
+nickname <- paste0("fig-dist-",spp_taxon,"-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
 ```
 
 ```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=(spp_plot_idw | spp_plot_pa)}
+```
+
+```{r spp_text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
+```
+
+```{r fig-sizecomp-{{jj}}}
+nickname <- paste0("fig-sizecomp-",spp_taxon,"-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
+```
+
+```{r fig-sizecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_plot_sizecomp}
 ```
 
 <!-- `r land_start ` -->

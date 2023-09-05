@@ -610,7 +610,7 @@ temp2 <- report_spp1 %>%
 
 ```
 
-Plots of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/hectare and no./hectare) for `r length(unique(report_spp1$file_name[report_spp1$taxon == "fish"]))` major fish species caught during the `r SURVEY` continental shelf survey are presented in Figs. `r paste0("\\@ref(fig:fig-dist-",temp$taxon[1],"-",temp$file_name[1],")")` to `r paste0("\\@ref(fig:fig-dist-",temp$taxon[nrow(temp)],"-",temp$file_name[nrow(temp)],")")` and Tables `r paste0("\\@ref(tab:tab-est-",temp2$taxon[1],"-",temp2$file_name[1],"-wt)")` to `r paste0("\\@ref(tab:tab-est-",temp2$taxon[nrow(temp2)],"-",temp2$file_name[nrow(temp2)],"-num)")`. Differences in estimates and totals may be due to rounding.
+Plots of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/hectare and no./hectare) for `r length(unique(report_spp1$file_name[report_spp1$taxon == "fish"]))` major fish species caught during the `r SURVEY` continental shelf survey are presented in Figs. `r paste0("\\@ref(fig:fig-dist-",temp$taxon[1],"-",temp$file_name[1],"-data)")` to `r paste0("\\@ref(fig:fig-dist-",temp$taxon[nrow(temp)],"-",temp$file_name[nrow(temp)],"-data)")` and Tables `r paste0("\\@ref(tab:tab-est-",temp2$taxon[1],"-",temp2$file_name[1],"-wt)")` to `r paste0("\\@ref(tab:tab-est-",temp2$taxon[nrow(temp2)],"-",temp2$file_name[nrow(temp2)],"-num)")`. Differences in estimates and totals may be due to rounding.
 
 ### Selected Invertebrates Estimates
 
@@ -628,7 +628,7 @@ temp0 <- report_spp1 %>%
 temp <- c()
 for (i in 1:nrow(temp0)) {
   a <- list.files(path = dir_out_figtab, 
-                  pattern = paste0("fig-dist-",taxon0,"-",temp0$file_name[i]), 
+                  pattern = paste0("fig-dist-",taxon0,"-",temp0$file_name[i], "-data"), 
                   ignore.case = TRUE)
   a <- a[!grepl(pattern = "-comm", x = a)]
   a <- a[grepl(pattern = ".rdata", x = a, ignore.case = TRUE)]
@@ -636,7 +636,7 @@ for (i in 1:nrow(temp0)) {
   temp <- c(temp, 
             paste0(
               temp0$print_name[i], 
-              " (Fig. \\@ref(fig:fig-dist-",taxon0,"-",temp0$file_name[i],")",
+              " (Fig. \\@ref(fig:fig-dist-",taxon0,"-",temp0$file_name[i],"-data)",
               ifelse(is.na(report_spp1$table_cpue[report_spp1$file_name == temp0$file_name[i]]), 
                      ")", 
                      paste0(" and Tables \\@ref(tab:tab-est-",taxon0,"-",temp0$file_name[i],"-wt) and",

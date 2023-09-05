@@ -152,7 +152,6 @@ if (access_to_internet ) {
   
 }
 
-
 # Make google doc txts into .rmds
 txtfiles <- list.files(path = paste0(dir_out_rawdata, "/"), pattern = ".txt")
 
@@ -530,7 +529,8 @@ stratum <- gap_products_akfin_area0 %>%
   dplyr::mutate(
     SRVY = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS",
-      survey_definition_id == 98 ~ "EBS" ),
+      survey_definition_id == 98 ~ "EBS"),
+    area_nmi2 = area_km2/0.291553, 
     depth = ifelse(depth_min_m == 1, 
                    paste0(">", depth_max_m), 
                    paste0(depth_min_m, "-", depth_max_m)) ) %>% 
@@ -549,17 +549,7 @@ stratum <- gap_products_akfin_area0 %>%
       dplyr::group_by(stratum) %>% 
       dplyr::summarise(stations_avail = length(unique(station))) %>% 
       dplyr::select(stratum, stations_avail), 
-    by = "stratum") #%>% 
-# dplyr::left_join(
-#   y = haul_maxyr %>% 
-#     dplyr::select(stratum, station, bottom_depth) %>% 
-#     dplyr::group_by(stratum) %>% 
-#     dplyr::summarise(depth_mean = mean(bottom_depth, na.rm = TRUE), 
-#                      depth_min = min(bottom_depth, na.rm = TRUE), 
-#                      depth_max = max(bottom_depth, na.rm = TRUE)
-#                      ), 
-#   by = "stratum") 
-
+    by = "stratum") 
 
 ## haul_cruises_vess_ + _maxyr + _compareyr ------------------------------------
 

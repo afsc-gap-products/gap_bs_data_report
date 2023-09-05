@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ## vars
 
 ```{r vars}
-a <- report_spp1[which(report_spp1$file_name == unique(comb$file_name)[jj]), ]
+a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 
 spp_sci <- a$species_name[1]
 spp_sci1 <- a$species_name1[1]
@@ -35,29 +35,29 @@ if (report_title == "data") {
 }
 ```
 
-## fig-[spp]
+## fig-spp-[spp]
 
-```{r fig-[spp]}
-header <- paste0("Image of the  ", 
-                 maxyr ," ", SURVEY ," bottom trawl survey", 
-                 ifelse(length(SRVY1)>1, "s", ""), ".")
-footnote<- NA
-nickname <- paste0("fig-", spp_file)
-alttext <- paste0(header)
-height = 8
-width <- full_page_portrait_width
-
-# Select data and make plot
-figure <- 
-  cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
-
-# Save figure
-res <- knitr::knit_child(
-  text = knitr::knit_expand(
-    file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-  quiet = TRUE
-)
+```{r fig-spp-[spp]}
+# header <- paste0("Image of the  ", 
+#                  maxyr ," ", SURVEY ," bottom trawl survey", 
+#                  ifelse(length(SRVY1)>1, "s", ""), ".")
+# footnote<- NA
+# nickname <- paste0("fig-spp-", spp_file)
+# alttext <- paste0(header)
+# height = 8
+# width <- full_page_portrait_width
+# 
+# # Select data and make plot
+# figure <- 
+#   cowplot::ggdraw() +
+#   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
+# 
+# # Save figure
+# res <- knitr::knit_child(
+#   text = knitr::knit_expand(
+#     file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+#   quiet = TRUE
+# )
 ```
 
 ## fig-dist-[taxon]-[spp]
@@ -227,6 +227,7 @@ if (spp_plot_idw | spp_plot_pa) {
     yrs <- c(compareyr, maxyr)
     height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
     row0 <- 1
+    nickname <- paste0(nickname, "-data")
   } else if (report_title == "community") {
     yrs <- nbsyr
     height <- full_page_portrait_height-1
@@ -298,7 +299,7 @@ if (spp_plot_idw | spp_plot_pa) {
     
     if (spp_plot_idw) {
       
-      header <- paste0("The distribution (weight_kg CPUE (kg/km^2^)) of ", 
+      header <- paste0("The distribution (Weight CPUE (kg/km^2^)) of ", 
                        header0)
       
       # figure <- plot_idw_facet(
@@ -465,6 +466,7 @@ if (spp_plot_sizecomp) {
     height <- ifelse(SRVY == "NEBS", full_page_portrait_height-1, 3.25) 
     print_n <- FALSE
     SRVY11 <- SRVY1
+    nickname <- paste0(nickname, "-data")
   } else if (report_title == "community") {
     yrs <- nbsyr
     height <- full_page_portrait_height
@@ -533,7 +535,7 @@ if (spp_plot_sizecomp) {
                                  " shelf trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
                           ""),
                    
-                   "Length distributions scaled up to the total estimated population_count size. ", 
+                   "Length distributions scaled up to the total estimated population size. ", 
                    ifelse(print_n, 
                           "Total number of individuals measured during the survey is indicated in the upper right corner of each plot.", ""))
   
@@ -567,7 +569,7 @@ if (spp_plot_sizecomp) {
 
 ## tab-env-[taxon]-[spp]
 
-```{r tab-env-[taxon]-[spp]}
+```{r tab-env-[taxon]-[spp], eval = (report_title == "community")}
 
 nickname <- paste0("tab-env-", spp_taxon, "-", spp_file)
 
@@ -630,11 +632,16 @@ table_raw <- haul0 %>%
                      names_from = "SRVY",
                      values_from = c("val"))
 
+  std_b <- officer::fp_border(width = 0, color = "grey10")
+
 table_print <- table_print1 <- table_raw %>%
+  dplyr::mutate(img = paste0(dir_img, spp_file, ".png")) %>% 
+  dplyr::relocate(img) %>% 
   flextable::flextable(data = .) %>% 
   flextable::set_header_labels(
     values = eval(parse(text =
-                          paste0("list(", paste0(names(table_raw), " = '",
+                          paste0("list(img = '',", 
+                                 paste0(names(table_raw), " = '",
                                                  c('Survey region:\nStations sampled:',
                                                    sort(rep_len(x = paste0(stat$SRVY, "\n", stat$str),
                                                                 length.out = length(SRVY1)))), "'", 
@@ -648,8 +655,12 @@ table_print <- table_print1 <- table_raw %>%
   # flextable::align(align = "right", part = "all") %>% 
   flextable::align(align = "center", part = "all")  %>% 
   flextable::align(align = "left", j = 1, part = "all") %>% 
-  flextable::padding(part = "all", padding.right = 5) #%>% 
+  flextable::padding(part = "all", padding.right = 5) %>% 
   # flextable::vline(x = ., j = 3, part = "all")
+  flextable::colformat_image(j = "img" , width = 2.5, height = 2.5) %>% 
+  flextable::merge_v(j = "img") %>% # part = "all", combine = TRUE, 
+  flextable::padding(part = "all", j = 1, padding = 0) %>% 
+  flextable::hline_top(x = ., border = std_b, j = 1, part = "all")
 
 # Save table
 res <- knitr::knit_child(
@@ -667,13 +678,14 @@ nickname <- paste0("tab-bio-", spp_taxon, "-", spp_file)
 
 header <- header2 <- paste0("Summary biomass (t) and population ", spp_print, " (", spp_sci, ") estimates from the ", SURVEY, " survey area", plural_surveys,". ")
 
+yrs <- nbsyr
 
 temp_bio <- dplyr::left_join(
   x = total_biomass %>% 
     dplyr::group_by(SRVY, year) %>% 
     dplyr::summarise(total = sum(total, na.rm = TRUE)), 
   y = biomass %>% 
-    dplyr::filter(year %in% c(maxyr, compareyr) & 
+    dplyr::filter(year %in% yrs & 
                     species_code %in% spp_code[1] &
                     stratum %in% 999) %>%
     dplyr::select(SRVY, year, biomass_mt, population_count, cpue_kgkm2_mean, cpue_nokm2_mean) %>% 
@@ -690,7 +702,7 @@ for (i in 1:nrow(temp_bio)) {
     table_raw, 
     c(
       SRVY = temp_bio$SRVY[i], 
-      Year = temp_bio$year[i], 
+      year = temp_bio$year[i], 
       "Population\n" = xunits(sum(temp_bio$population_count[i], na.rm = TRUE), 
                               val_under_x_words = NULL), 
       "Biomass (t)\n" = paste0(xunits(sum(temp_bio$biomass_mt [i], na.rm = TRUE), 
@@ -698,19 +710,25 @@ for (i in 1:nrow(temp_bio)) {
       "Biomass\n% of Total" = 
         paste0(formatC(x = (temp_bio$biomass_mt [i]/temp_bio$total[i])*100, 
                        digits = 1, format = "f", big.mark = ","), "%"), 
-      "Biomass\n% Change" = ifelse(temp_bio$year[i] != maxyr, "", 
+      "Biomass\n% Change" = ifelse((temp_bio$year[i] == maxyr), "", 
                                    sub(replacement = "", pattern = "an ", 
                                        x = gsub(pattern = "a ", replacement = "", 
                                                 x = pchange(
                                                   start = temp_bio$biomass_mt [i], 
-                                                  end = temp_bio$biomass_mt [temp_bio$year == compareyr])))))
+                                                  end = temp_bio$biomass_mt[temp_bio$year == (yrs[yrs < temp_bio$year[i]])])))))
   )
 }
+
+table_raw <- table_raw %>% 
+  dplyr::filter(year != min(year)) %>% 
+  dplyr::arrange(SRVY, desc(year))
 
 table_print <- table_print2 <- table_raw %>% 
   dplyr::arrange(SRVY) %>%
   dplyr::rename(" " = SRVY) %>% 
   flextable::flextable(data = .) %>% 
+    flextable::set_header_labels(.,
+                                 year = "Year\n") %>% 
   flextable::merge_v(j = 1, part = "body") %>% 
   flextable::bold(j = 1, part = "body") %>% 
   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "increase"), 
@@ -723,7 +741,7 @@ table_print <- table_print2 <- table_raw %>%
                          font = font0, 
                          pad = 0, 
                          pgwidth = full_page_portrait_width) %>% 
-  flextable::hline(i = 2, part = "body") %>% 
+  flextable::hline(i = (length(yrs)-1), part = "body") %>% 
   flextable::padding(x = ., 
                      part = "body", 
                      padding.left = 5) 

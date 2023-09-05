@@ -355,6 +355,7 @@ temp5 <-
       dplyr::select(print_name, species_code, species_name1, taxon) %>% 
       dplyr::rename(species_name = print_name) , 
     # dplyr::mutate(species_name = as.character(unlist(lapply(strsplit(x = group, split = "_", fixed = TRUE), `[[`, 1)))),
+    relationship = "many-to-many", 
     by = c("species_code")) %>% 
   dplyr::group_by(year, species_name, taxon) %>% 
   dplyr::summarise(cpue_kgkm2 = sum(cpue_kgkm2, na.rm = TRUE)) %>% 
@@ -363,16 +364,18 @@ temp5 <-
     y = temp2, 
     by = "year") %>% 
   dplyr::mutate(prop_tot = (cpue_kgkm2 / total )) %>% 
-  tidyr::pivot_wider(id_cols = c(species_name, taxon), names_from = year, 
+  dplyr::ungroup() %>% 
+  tidyr::pivot_wider(id_cols = c(species_name, taxon), 
+                     names_from = year, 
                      values_from = c(prop_tot, cpue_kgkm2)) %>% 
   dplyr::left_join(
     x = ., 
     y = obj$raw %>% 
+      dplyr::filter(SRVY == "NBS") %>% 
       dplyr::select(print_name, change) %>% 
       dplyr::rename(change_biomass = change, 
                     species_name = print_name), 
     by = "species_name")
-
 
 temp <- expand.grid(nbsyr, nbsyr)
 temp <- temp[temp$Var1 != temp$Var2,]
@@ -461,34 +464,37 @@ temp <- biomass %>%
   dplyr::filter(year %in% nbsyr) %>%
   dplyr::select(year, SRVY, biomass_mt) %>% 
   dplyr::group_by(year, SRVY) %>% 
-  dplyr::summarise(sum = sum(biomass_mt)) %>% 
-  dplyr::mutate(sum = round(sum/1e6, digits = 1)) %>% 
+  dplyr::summarise(biomass_mmt = round(sum(biomass_mt)/1e6, digits = 1)) %>% 
+  dplyr::ungroup() %>% 
   dplyr::arrange(desc(year))
 
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-comm.rdata"))
-temp1 <- obj$raw
+temp1 <- obj$raw %>% 
+  dplyr::filter(SRVY == "EBS")
 
 temp3 <- temp1 %>% 
-  dplyr::filter(!is.na(change)) %>% 
-  dplyr::select(change) %>% 
+  # dplyr::filter(!is.na(change0)) %>% 
+  dplyr::select(change0) %>% 
   dplyr::mutate(case = dplyr::case_when(
-    change > 0 ~ "increased", 
-    change == 0 ~ "did not change",
-    change < 0 ~ "decreased")) %>%  
+    change0 > 0 ~ "increased", 
+    change0 %in% c(0, NA) ~ "did not change",
+    change0 < 0 ~ "decreased")) %>%  
   dplyr::group_by(case) %>%
-  dplyr::summarise(change = length(change))
+  dplyr::summarise(change = length(change0)) %>% 
+  dplyr::ungroup()
 
 temp2 <- temp1 %>% 
+  dplyr::filter(!is.na(change0)) %>%
+  dplyr::arrange(desc(change0)) %>%
   dplyr::select(print_name, change) %>% 
-  dplyr::arrange(desc(change)) %>%
   dplyr::mutate(print_name = gsub(pattern = "all ", replacement = "", x = print_name))
 
 ```
 
 
-In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "NBS"] ` mmt. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$sum[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange)). 
+In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "NBS"] ` mmt. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$sum[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-comm)). 
 
-Calculated biomass `r text_list(paste0(temp3$case, " for ", xunits(temp3$change), ifelse(temp3$change == 1, " taxon", " taxa")))` from `r compareyr ` (`r ifelse(temps_avg_yr$bt_above_mean[temps_avg_yr$year == compareyr], "warm", "cold")`-stanza year) to `r maxyr `. Some of the largest increases in biomass from `r compareyr ` to `r maxyr ` were observed in the `r text_list(paste0(head(temp2$print_name, 5) ," (",xunits(head(temp2$change, 5)),"%)"))` groups. Decreases in biomass were observed in the `r text_list(paste0(tail(temp2$print_name, 5) ," (",xunits(tail(temp2$change, 5)),"%)")) ` groups (Table \@ref(tab:tab-majortaxa-pchange)).
+Calculated EBS biomass `r text_list(paste0(temp3$case, " for ", xunits(temp3$change), ifelse(temp3$change == 1, " taxon", " taxa")))` from `r compareyr ` (`r ifelse(temps_avg_yr$bt_above_mean[temps_avg_yr$year == compareyr], "warm", "cold")`-stanza year) to `r maxyr `. Some of the largest increases in biomass from `r compareyr ` to `r maxyr ` were observed in the `r text_list(paste0(head(temp2$print_name, 5) ," (",head(temp2$change, 5),")"))` groups. Decreases in biomass were observed in the `r text_list(paste0(tail(temp2$print_name, 5) ," (",tail(temp2$change, 5),")"))` groups (Table \@ref(tab:tab-majortaxa-pchange-comm)).
 
 
 ```{r biomass_inc_dec2}
@@ -525,7 +531,7 @@ for (i in 1:length(unique(temp1$case))) {
                    paste0("Species groups that previously exhibited ", 
                           unique(temp1$case)[i], " include ",
                           text_list(temp1$group[temp1$case == unique(temp1$case)[i]]), " (Table ",
-                          "\\@ref(tab:tab-majortaxa-pchange)). "))
+                          "\\@ref(tab:tab-majortaxa-pchange-comm)). "))
 }
 
 ```
@@ -554,7 +560,8 @@ for (i in 1:length(nbsyr)) {
   yr <- as.numeric(sort(nbsyr, decreasing = TRUE)[i])
   temp <- temp2$total[temp2$year == yr]
   
-  temp5 <- temp1 %>% 
+  temp5 <- temp1  %>% 
+  dplyr::filter(SRVY == "NBS") %>% 
     dplyr::rename("x" = all_of(as.character(yr))) %>% 
     dplyr::arrange(desc(x)) %>% 
     dplyr::select(print_name, x, taxon) %>% # species_name, 
@@ -609,8 +616,8 @@ temp3 <- temp3  %>%
   #   TRUE ~ "decreasing")) %>% 
   dplyr::select(taxon, year, x,) %>%
   dplyr::group_by(taxon, year) %>% 
-  dplyr::summarise(biomass = sum(x, na.rm = TRUE)) %>% 
-  tidyr::pivot_wider(names_from = taxon, values_from = biomass, id_cols = year) %>% 
+  dplyr::summarise(biomass_mt = sum(x, na.rm = TRUE)) %>% 
+  tidyr::pivot_wider(names_from = taxon, values_from = biomass_mt, id_cols = year) %>% 
   dplyr::mutate(total = (fish + invert), 
                 invert_perc = invert/total, 
                 invert_perc = formatC(x = invert_perc*100, digits = 0, big.mark = ",", format = "f")) %>% 
@@ -665,23 +672,18 @@ temp5 <- temp5 %>%
 
 On average, NBS survey catches were smaller than those from the EBS. Distributions of some of the predominant species, such as `r text_list(temp5$species_name[temp5$extends_thru_both == TRUE])`, extended throughout much of both survey regions. Several key fish species were found in the NBS in greater numbers than the EBS, including `r text_list(temp5$species_name[temp5$maxyr_case == TRUE & temp5$taxon == "fish"])`.
 
-Detailed summary profiles outlining several of the species showing ecologically significant trends are discussed in Table \@ref(tab:tab-majortaxa-pchange).
+Detailed summary profiles outlining several of the species showing ecologically significant trends are discussed in Table \@ref(tab:tab-majortaxa-pchange-comm).
 
-<!---BLOCK_LANDSCAPE_START--->
 
-```{r tab-majortaxa-pchange}
-nickname <- "tab-majortaxa-pchange"
+```{r tab-majortaxa-pchange-comm}
+# <!---BLOCK_LANDSCAPE_START--->
+nickname <- "tab-majortaxa-pchange-comm"
+# <!-- -BLOCK_LANDSCAPE_STOP- -->
 ```
 
-```{r tab-majortaxa-pchange-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-majortaxa-pchange-comm-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
-
-<!---BLOCK_LANDSCAPE_STOP--->
 
 # Summary Results for Select Major Taxa^[You can help us with this document by providing names in local language(s) and cultural or traditional uses for each fish and invertebrate species reviewed in this report.]
 
 Survey results for select taxa are presented with a photograph of the species or taxonomic group, maps of geographic distribution of CPUE (kg/ha), total abundance-at-size plots, and text summaries of results. Geographic maps of species distributions include both the EBS and NBS survey regions to better illustrate patterns and trends in fish distribution and movement. For comparison, distribution maps and abundance-at-size plots show survey data for the `r text_list(nbsyr) ` surveys. 
-
-
-
-

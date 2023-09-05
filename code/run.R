@@ -80,7 +80,7 @@ googledrive::drive_auth()
 # *** Source support scripts ---------------------------------------------------
 
 source(here::here("code","directories.R"))
-dir_out_figtab <- paste0(dir_output, "figtab/")
+dir_out_figtab <- paste0(dir_output, "figtab_",maxyr,"/")
 
 source(here::here("code","functions.R"))
 
@@ -101,10 +101,9 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_file = paste0(cnt_chapt_content, ".docx"))
 
 # Species figures
-comb <- report_spp1 %>% dplyr::filter(!is.na(order))
-for (jj in 1:length(unique(comb$file_name))) {
-  
-  print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", unique(comb$file_name)[jj]))
+comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
+for (jj in 1:length(comb)) {
+  print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
                     output_file = paste0(cnt_chapt_content, "_", unique(comb$file_name)[jj],".docx"))
@@ -133,16 +132,16 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
 # COMMUNITY HIGHLIGHTS ---------------------------------------------------------
 
 report_title <- "community"
+source(here::here("code","directories.R"))
+dir_out_figtab <- paste0(dir_output, "figtab/")
 dir_googledrive <- dir_googledrive_comm
-
 source(here::here("code","data.R"))
 
 ## Species figures -------------------------------------------------------------
 
-comb <- report_spp1 %>% dplyr::filter(!is.na(order))
-for (jj in 1:length(unique(comb$file_name))) {
-  
-  print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", unique(comb$file_name)[jj]))
+comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
+for (jj in 1:length(comb)) {
+  print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
                     output_file = paste0(cnt_chapt_content, "_", unique(comb$file_name)[jj],".docx"))
@@ -150,8 +149,9 @@ for (jj in 1:length(unique(comb$file_name))) {
 
 ## Run community highlights report -----------------------------------------------
 
-rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"),
-                  output_dir = dir_out_chapters,
+rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"), 
+                  output_format = "officedown::rdocx_document", 
+                  output_dir = dir_out_chapters, 
                   output_file = paste0("00_community_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
 # PRESENTATION ------------------------------------------------------
