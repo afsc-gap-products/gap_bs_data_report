@@ -70,8 +70,8 @@ ref_compareyr_nbs <- "@RN909" # community report
 # strat_yr <- 2022
 # SRVY<-"NEBS"
 # ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
-dir_googledrive <- "19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
-dir_googledrive_comm <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
+dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
+dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
