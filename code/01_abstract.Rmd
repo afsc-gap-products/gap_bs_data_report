@@ -2,7 +2,6 @@
 # Abstract
 
 ```{r survey_summary}
-
 nbs_str0 <- ifelse(SRVY == "NEBS", 
                    # NBS + EBS
                    paste0("The survey covered the Seastern Bering Sea continental shelf (bottom depths between approximately 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait."), 
@@ -18,9 +17,8 @@ str1 <- gsub(pattern = " ,", replacement = ",",
 
 In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessels)))` chartered commercial stern trawler`r plural_surveys`, the `r text_list(paste0(vessels$length_m, "-m ",  vessels$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition, sex, length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
 
-
-```{r }
-#| label: abstract_temperature
+```{r}
+#| label: abstract-temperature
 
 temp0 <- temps_avg_yr %>% 
   dplyr::filter(year == maxyr) %>% 
@@ -88,7 +86,7 @@ if ((temp0$warmest_rank > (nrow(temps_avg_yr)-6)) |  (temp0$warmest_rank < 6)) {
 
 Environmental data, including temperature, salinity, and irradiance were collected at every survey station. `r str0` 
 
-```{r abstract_species_counts}
+```{r abstract-species-counts}
 
 # count fish spp
 temp <- dplyr::left_join(
@@ -239,7 +237,7 @@ invert_phyla <- xunits(temp1$phylum)
 ```
 
 
-```{r abstract_biomass}
+```{r abstract-biomass}
 str00 <- ""
 # if (SRVY == "NEBS") {
 for (i in 1:length(unique(cruises_maxyr$SRVY))){
@@ -267,7 +265,7 @@ for (i in 1:length(unique(cruises_maxyr$SRVY))){
 
 This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r SURVEY` shelf bottom trawl surveys. For common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r SURVEY` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Tables in the appendix list population estimates by sex and size group for principal fish species and species encountered during the survey`r plural_surveys`. 
 
-```{r abstract_insert_text, child=paste0(dir_out_rawdata, "/0_abstract_conclusion.Rmd")}
+```{r abstract-insert-text, child=paste0(dir_out_rawdata, "/0-abstract-conclusion.Rmd")}
 ```
 
 \pagebreak

@@ -27,7 +27,7 @@ The Marport Deep Sea Technologies Inc. net mensuration system was used during ea
 
 Temperature and depth profiles were recorded using a Sea-Bird SBE-39 temperature-depth recorder (Sea-Bird Electronics Inc., Bellevue, WA) attached to the headrope of the trawl. Observations were made at 3-second intervals at each station. Average bottom depth was calculated by adding the average net height to the average depth of the headrope while the net was in contact with the seafloor. 
 
-```{r methods_net_width}
+```{r methods-net-width}
 # > Should we limit to 3 decimal places for eq?
 
   # equation = "{Net width} ∼ {Inverse scope} + {Height} + {Inverse scope} * {Height}"
@@ -111,7 +111,7 @@ $$ \\epsilon \\sim N(0,\\sigma^{2})  . $$
 ```
 `r str0 `
 
-```{r methods_dummy}
+```{r methods-dummy}
 # str <- c()
 # # if equations were estimated
 # if (sum(!is.na(temp$vessel_id)) == nrow(temp)) {
@@ -162,7 +162,7 @@ $$ \\epsilon \\sim N(0,\\sigma^{2})  . $$
 
 ## EBS Sampling Logistics and Stratification Scheme
 
-```{r methods_ebs_survey_plan}
+```{r methods-ebs-survey_plan}
 
 str0 <- c()
 
@@ -245,7 +245,7 @@ str0 <- data.frame(str = str0,
 
 At the beginning of the survey, scientists boarded the chartered vessels (`r text_list(vessels$vessel_ital)`) in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Fig. \@ref(fig:fig-sampled-survey-stations)). The east-to-west survey progression is based on an understanding of historical trends in fish movement and intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. In the EBS, `r str0$str[str0$SRVY == "EBS"]`.
 
-```{r methods_ebs_survey_area}
+```{r methods-ebs-survey-area}
 load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
 temp0 <- obj$raw %>% 
     dplyr::mutate(Region = paste0(SRVY, " ", area_name))
@@ -264,7 +264,7 @@ temp_tot <- temp0 %>%
 
 The survey footprint included bathymetry between 20 m and 200 m. For design-based index catch analysis, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-sampled-survey-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to increase sampling resolution and thereby reduce variance estimates for blue king crab [@StevensandMacIntosh1990]. Overall sampling density across the EBS shelf was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), each high-density stratum was combined with its respective depth-region stratum, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-sampled-survey-stations); Table \@ref(tab:tab-stratum-areas)).
 
-```{r methods_nbs_survey_plan}
+```{r methods-nbs-survey-plan}
 nbs_insert <- ""
 
 if (SRVY == "NEBS") {
@@ -322,7 +322,7 @@ obj$raw <- obj$raw %>% # creates object called 'obj'
 
 Length measurements were obtained from a random subsample of select fish species from every haul. `r ifelse(sum(obj$raw$oto_samp_type %in% "random-by-haul")>0, paste0("The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of ", ifelse(maxyr>2021, "100", "300"), " specimens. "), "")`For each fish in a length subsample, sex was determined and then the fork length or total length (depending on the species) was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture`r ifelse(maxyr > 2020, "", " and 50% were randomly selected to receive a preopercle tag")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
 
-```{r methods_collection_scheme}
+```{r methods-collection-scheme}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
  temp <- obj$raw %>% 
   dplyr::select(SRVY, print_name) %>% 
@@ -365,7 +365,7 @@ load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
 
 Sagittal otoliths were collected from `r str0 ` (Table \@ref(tab:tab-oto-collection-scheme)). Otolith samples were collected following `r str2 `. Otoliths were preserved in a glycerol-thymol solution and then later shipped to the Age and Growth Program of the AFSC’s Resource Ecology and Fisheries Management (REFM) Division for age determination. Weight and length were collected for each fish from which age structures were taken. For walleye pollock, age structure sampling effort was further divided into low-density and high-density regions based on historical population densities and an isobath of approximately 70 m.  
 
-```{r methods_stomach_collection}
+```{r methods-stomach-collection}
 load(file = paste0(dir_out_figtab, "tab-stomach-collection-scheme.Rdata")) # creates object called 'obj'
 ```
 
@@ -397,7 +397,7 @@ Age estimates were obtained from otolith samples by the AFSC's Age and Growth Pr
 
 ## Additional Research Projects
 
-```{r methods_additional_research}
+```{r methods-additional-research}
 load(file = paste0(dir_out_figtab, "tab-special-projects.Rdata"))
 temp <- obj$raw %>% 
   dplyr::group_by(SRVY) %>% 

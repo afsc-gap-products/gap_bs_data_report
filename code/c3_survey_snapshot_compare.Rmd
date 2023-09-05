@@ -227,7 +227,7 @@
 
 ```
 
-```{r results_cold_pool_insert, child=paste0(dir_out_rawdata, "/0_cold_pool.Rmd")}
+```{r results-cold-pool_insert, child=paste0(dir_out_rawdata, "/0-cold-pool.Rmd")}
 ```
 
 \newpage
@@ -255,7 +255,7 @@ nickname <- "fig-cold-pool-area"
 
 ## Survey Data and Specimen Collections
 
-```{r specimen_collections}
+```{r specimen-collections}
 # Will try to automate in the future, but most of this data isn't available atm
 
 temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "0_other_field_collections.xlsx"),
@@ -458,7 +458,7 @@ temp3 <- temp4 %>%
 
 From `r compareyr` to `r maxyr `, `r text_list(paste0(xunits(temp3$fish), " ", ifelse(temp3$fish==1, "fish", "fishes")," and ", xunits(temp3$invert), " ", ifelse(temp3$fish==1, "invertebrate", "invertebrates")," experienced ", temp3$x, " CPUE"))`. Prominent fish species that exhibited no change between `r compareyr` and `r maxyr`, included `r text_list(paste0(temp4$species_name[temp4$change_cpue_case == "no notable change in" & temp4$taxon == "fish"])) ` (within ± 25% change from the previous survey year) in CPUE. `r insert` 
 
-```{r biomass_inc_dec1}
+```{r biomass-inc-dec1}
 # million metric tons of biomass collected in each region in each year
 temp <- biomass %>%
   dplyr::filter(year %in% nbsyr) %>%
@@ -491,13 +491,12 @@ temp2 <- temp1 %>%
 
 ```
 
-
 In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$sum[temp$year == maxyr & temp$SRVY == "NBS"] ` mmt. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$sum[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-comm)). 
 
 Calculated EBS biomass `r text_list(paste0(temp3$case, " for ", xunits(temp3$change), ifelse(temp3$change == 1, " taxon", " taxa")))` from `r compareyr ` (`r ifelse(temps_avg_yr$bt_above_mean[temps_avg_yr$year == compareyr], "warm", "cold")`-stanza year) to `r maxyr `. Some of the largest increases in biomass from `r compareyr ` to `r maxyr ` were observed in the `r text_list(paste0(head(temp2$print_name, 5) ," (",head(temp2$change, 5),")"))` groups. Decreases in biomass were observed in the `r text_list(paste0(tail(temp2$print_name, 5) ," (",tail(temp2$change, 5),")"))` groups (Table \@ref(tab:tab-majortaxa-pchange-comm)).
 
 
-```{r biomass_inc_dec2}
+```{r biomass-inc-dec2}
 temp0 <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-comm.rdata"))
 temp1 <- obj$raw %>%
@@ -538,7 +537,7 @@ for (i in 1:length(unique(temp1$case))) {
 
 `r insert `
 
-```{r biomass_inc_dec3}
+```{r biomass-inc-dec3}
 
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-comm.rdata"))
 temp1 <- obj$raw
@@ -627,7 +626,7 @@ temp3 <- temp3  %>%
 
 `r insert`. Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`.
 
-```{r ebs_vs_nbs}
+```{r ebs-vs-nbs}
 
 temp5 <- 
   dplyr::left_join(
@@ -673,7 +672,6 @@ temp5 <- temp5 %>%
 On average, NBS survey catches were smaller than those from the EBS. Distributions of some of the predominant species, such as `r text_list(temp5$species_name[temp5$extends_thru_both == TRUE])`, extended throughout much of both survey regions. Several key fish species were found in the NBS in greater numbers than the EBS, including `r text_list(temp5$species_name[temp5$maxyr_case == TRUE & temp5$taxon == "fish"])`.
 
 Detailed summary profiles outlining several of the species showing ecologically significant trends are discussed in Table \@ref(tab:tab-majortaxa-pchange-comm).
-
 
 ```{r tab-majortaxa-pchange-comm}
 # <!---BLOCK_LANDSCAPE_START--->
