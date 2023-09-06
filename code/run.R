@@ -102,10 +102,10 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
 # Species figures
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
-  print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", comb[jj]))
+  print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = paste0(cnt_chapt_content, "_", unique(comb$file_name)[jj],".docx"))
+                    output_file = paste0(cnt_chapt_content, "_", comb[jj],".docx"))
 }
 
 # Appendix 
@@ -139,10 +139,10 @@ source(here::here("code","data.R"))
 
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
-  print(paste0(jj, " of ", length(unique(comb$file_name)), ": ", comb[jj]))
+  print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_ref,
-                    output_file = paste0(cnt_chapt_content, "_", unique(comb$file_name)[jj],".docx"))
+                    output_file = paste0(cnt_chapt_content, "_", comb[jj],".docx"))
 }
 
 ## Run community highlights report -----------------------------------------------

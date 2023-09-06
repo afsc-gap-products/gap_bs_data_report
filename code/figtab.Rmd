@@ -537,10 +537,10 @@ res <- knitr::knit_child(
 
 ## fig-temperature-[SRVY]-[st/bt]
 
-```{r fig-temperature-[SRVY]-[st/bt], eval = FALSE}
+```{r fig-temperature-[SRVY]-[st/bt]}
 height <- full_page_portrait_height
 width <- full_page_portrait_width
-yrs0 <- (maxyr-17):maxyr 
+yrs0 <- (maxyr-17):maxyr
 row0 <- 3
 reg_dat0 <- report_types$NEBS$reg_dat
 
@@ -554,71 +554,14 @@ for (case in c("bottom", "surface")) {
     }
     
     if (case == "surface") {
-      raster_nebs <- terra::unwrap(coldpool::nbs_ebs_surface_temperature)
-      raster_ebs <- terra::unwrap(coldpool::ebs_surface_temperature)
+      raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
+      raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
+      colorbar_breaks <- c(-Inf, -1, 0, 1, seq(6, 12, 2), Inf)
     } else if (case == "bottom") {
-      raster_nebs <- terra::unwrap(coldpool::nbs_ebs_bottom_temperature)
-      raster_ebs <- terra::unwrap(coldpool::ebs_bottom_temperature)
+      raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
+      raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
+      colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
     }
-    
-    raster_nebs <- terra::subset(raster_nebs, (names(raster_nebs) %in% yrs))
-    raster_ebs <- terra::subset(raster_ebs, (names(raster_ebs) %in% yrs))
-    raster_ebs <- terra::subset(raster_ebs, !(names(raster_ebs) %in% names(raster_nebs)))
-    yr_names <- c(names(raster_nebs), names(raster_ebs))
-    
-    terra::ext(raster_ebs) <- terra::ext(raster_nebs)
-    crs(raster_ebs) <- crs(raster_nebs)
-    
-    # dim(raster_ebs) <- dim(raster_nebs)
-    # res(raster_ebs) <- res(raster_nebs)
-    # raster_ <- merge(raster_nebs, raster_ebs)
-    raster_ <- c(raster_nebs, raster_ebs)
-    names(raster_) <- yr_names
-    raster_ <- sort(raster_)
-
-    library(tidyterra)
-    
-    ggplot2::ggplot() +
-      tidyterra::geom_spatraster(data = raster_) +
-      ggplot2::facet_wrap(~lyr, ncol = 3)
-    
-
-    # nbs_no_2018 <- raster::subset(
-    #   x = temp, 
-    #   subset = names(temp)[!grepl(x = names(temp),pattern = 2018)]) 
-    # sebs_only <- names(temp)[which(!(names(temp) %in% paste0("s", names(nbs_no_2018))))]
-    # sebs_temp <- raster::subset(temp, subset = sebs_only)
-    # rasterbrick <- c(sebs_temp, nbs_no_2018)
-    
-    temp_2020 <- rasterbrick[[1]]
-    names(temp_2020) <- "2020"
-    terra::values(temp_2020[[1]]) <- NA
-    rasterbrick <- c(rasterbrick, temp_2020)
-    
-    # a@data@values <- rep_len(x = NA, length.out = length(a@data@values))
-    # a@data@max <- a@data@min <- NA
-    # rasterbrick$temp <- a
-    # names(rasterbrick)[names(rasterbrick) == "temp"] <- a@data@names
-    
-    
-    temperature_zscore <- coldpool::cold_pool_index %>% 
-      dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE")), 
-                    year = YEAR) %>%
-      dplyr::select(year, var) %>% 
-      dplyr::filter(year <= maxyr) %>%
-      dplyr::arrange(var) %>% 
-      dplyr::mutate(
-        sd = sd(var, na.rm = TRUE), 
-        mean = mean(var, na.rm = TRUE), 
-        zscore  = ((var-mean)/sd), # z = (x-μ)/σ
-        sign = dplyr::case_when(
-          zscore <= -1 ~ "-", 
-          zscore >= 1 ~ "+"), 
-        color = dplyr::case_when(
-          sign == "+" ~ negative, 
-          sign == "-" ~ positive)) %>% 
-      dplyr::arrange(year) %>% 
-      dplyr::filter(year %in% yrs) 
     
     header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
                      range_text(yrs), " ", 
@@ -628,14 +571,6 @@ for (case in c("bottom", "surface")) {
                      ". Years in which the mean ", case, 
                      " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
                      " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
-    
-    # Remove non-numeric characters from layer names for subsetting
-    # names(rasterbrick) <- gsub("[^0-9.-]", "", names(rasterbrick))
-    
-    # Subset layers for the selected years
-    rasterbrick <- terra::subset(rasterbrick, subset = yrs) # paste0("X", yrs))
-    
-    rasterbrick[names(rasterbrick) %in% yrs]
     
     nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-", case_yr)
     
@@ -648,13 +583,19 @@ for (case in c("bottom", "surface")) {
                     " Bering Sea\n", 
                     case, " temperature (", range_text(yrs), ")") 
     
+      yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
+
     figure <- plot_temperature_facet(
-      rasterbrick = rasterbrick, 
+      raster_nebs = raster_nebs, 
+      raster_ebs = raster_ebs, 
+      colorbar_breaks = colorbar_breaks, 
+      yrs = yrs, 
+      yrs_nbs = yrs_nbs, 
       key.title = key.title, 
       reg_dat = reg_dat0, 
       row0 = row0, 
       title0 = title0, 
-      temperature_zscore = temperature_zscore) 
+      temperature_zscore = TRUE) 
     
     # Save figure
     res <- knitr::knit_child(

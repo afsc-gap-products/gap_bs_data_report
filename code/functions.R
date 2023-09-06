@@ -2510,50 +2510,119 @@ plot_idw_facet <- function(
 #' Plot temperature facet grid
 #' 
 #' Generate multipanel temperature plot from a raster brick.
-#' 
-#' @param rasterbrick raster layer as a RasterBrick class
+#'
+#' @param raster_nebs 
+#' @param raster_ebs 
 #' @param key.title Title for multipanel legend as a character vector or expression 
 #' @param reg_data list containing regional survey strata, land polygon, etc. from akgfmaps::get_base_layer()
 #' @param colorbar_breaks numeric vector of breaks to use for temperature plots
+#' @param yrs 
+#' @param dist_unit 
 #' @param viridi_palette_option Viridis palette option passed to viridis::viridis_pal(). Default = "H" (turbo)
+#' @param row0 
+#' @param title0 
+#' @param legend_seperate 
+#' @param use_col_name 
+#' @param temperature_zscore Logical. Default  = F. This will add a + to denote when that year's EBS temperatures were a standard deviation above or a "-" for below. 
+#' @param out_crs
+#'
+#' @return
 #' @export
-plot_temperature_facet <- function(rasterbrick, 
+#'
+#' @examples
+plot_temperature_facet <- function(raster_nebs, 
+                                   raster_ebs, 
                                    key.title = "Temperature (°C)", 
                                    reg_dat, 
                                    colorbar_breaks = c(-Inf, seq(from = 0, to = 8, by = 2), Inf),
+                                   yrs,
+                                   yrs_nbs, 
                                    dist_unit = "nm", # nautical miles
                                    viridis_palette_option = "B", 
                                    row0 = 2, 
                                    title0 = NULL, 
                                    legend_seperate = FALSE, 
                                    use_col_name = NULL, 
-                                   temperature_zscore = NULL) {
+                                   temperature_zscore = FALSE, 
+                                   out_crs = "EPSG:3338") {
   
-  temp <- projectRaster(rasterbrick, crs = crs(reg_dat$akland))
-  temp_spdf <- as(temp, "SpatialPixelsDataFrame")
-  temp_df <- as.data.frame(temp_spdf)
-  if (is.null(use_col_name)) {
-    temp1 <- gsub(pattern = "[A-Za-z]+", 
-                  replacement = "", 
-                  x = names(temp_df[!(names(temp_df) %in% c("x", "y"))]))
-    temp1 <- gsub(pattern = "_", replacement = "", x = temp1)
-    colnames(temp_df) <- c(temp1, "x", "y")
-  } else {
-    temp1 <- use_col_name
+  for(ii in 1:length(yrs)) {
+    
+    if (!(2020 %in% yrs[ii])) {
+      
+      if (yrs[ii] %in% yrs_nbs) {
+        sel_raster_layer <- raster_nebs[[which(names(raster_nebs) == yrs[ii])]]
+        mask_layer <- reg_dat0$survey.area
+      } else {
+        sel_raster_layer <- raster_ebs[[which(names(raster_ebs) == yrs[ii])]]
+        mask_layer <- dplyr::filter(reg_dat0$survey.area, SURVEY == "EBS_SHELF")
+      }
+      
+      
+      temp_sf <- sel_raster_layer |>
+        terra::mask(mask_layer, touches = TRUE) |>
+        as.data.frame(na.rm = TRUE, xy = TRUE) |>
+        dplyr::arrange(x, y) |>
+        sf::st_as_sf(coords = c("x", "y"),
+                     crs = out_crs) |>
+        tidyr::pivot_longer(cols = 1) |>
+        dplyr::rename(year = name,
+                      bt = value)  |>
+        stars::st_rasterize()
+      
+      temp_sf$bt <- cut(temp_sf$bt, colorbar_breaks)
+      
+      temp_sf <- sf::st_as_sf(temp_sf) |>
+        dplyr::group_by(bt) |>
+        dplyr::summarise(n = n()) |>
+        dplyr::select(-n) |>
+        sf::st_intersection(mask_layer) |>
+        rmapshaper::ms_simplify(keep_shapes = TRUE,
+                                keep = 0.04)
+      
+      temp_sf$year <- yrs[ii]
+      
+      if(ii == 1) {
+        temperature_sf <- temp_sf
+      } else {
+        temperature_sf <- dplyr::bind_rows(temperature_sf, temp_sf)
+      }
+    }
   }
-  colnames(temp_df) <- c(temp1, "x", "y")
-  temp_df <- temp_df %>% 
-    tidyr::pivot_longer(values_to = "value", 
-                        names_to = "year", 
-                        cols = dplyr::all_of(temp1)) %>%
-    tidyr::drop_na(value)
+  
+  if (2020 %in% yrs) {
+    temperature_sf <- dplyr::bind_rows(temperature_sf %>% 
+                                         head(n = 1) %>% 
+                                         dplyr::mutate(bt = NA, 
+                                                       year = 2020) , 
+                                       temperature_sf)
+  }
+  
+  temperature_zscore <- coldpool::cold_pool_index %>% 
+    dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE")), 
+                  year = YEAR) %>%
+    dplyr::select(year, var) %>% 
+    dplyr::filter(year <= maxyr) %>%
+    dplyr::arrange(var) %>% 
+    dplyr::mutate(
+      sd = sd(var, na.rm = TRUE), 
+      mean = mean(var, na.rm = TRUE), 
+      zscore  = ((var-mean)/sd), # z = (x-μ)/σ
+      sign = dplyr::case_when(
+        zscore <= -1 ~ "-", 
+        zscore >= 1 ~ "+"), 
+      color = dplyr::case_when(
+        sign == "+" ~ negative, 
+        sign == "-" ~ positive)) %>% 
+    dplyr::arrange(year) %>% 
+    dplyr::filter(year %in% yrs) 
   
   # Setup data.frame for 2020 year with no survey
   panel_extent <- reg_dat$plot.boundary |>
     sf::st_as_sf(coords = c("x", "y")) |>
     sf::st_buffer(dist = 1e6) |>
     sf::st_bbox()
-  
+
   panel_extent <- data.frame(x = panel_extent[c('xmin', 'xmax')],
                              y = panel_extent[c('ymin', 'ymax')])
   
@@ -2567,10 +2636,9 @@ plot_temperature_facet <- function(rasterbrick,
     ggplot2::geom_sf(data = reg_dat$graticule,
                      color = "grey80",
                      alpha = 0.2)  +
-    ggplot2::geom_tile(data = temp_df, 
-                       mapping = aes(x=x, y=y, 
-                                     fill=cut(value, 
-                                              breaks = colorbar_breaks))) +
+    geom_sf(data = temperature_sf,
+            mapping = aes(fill = bt),
+            color = NA) +
     ggplot2::facet_wrap( ~ year, 
                          nrow = row0) +
     ggplot2::scale_fill_manual(values = fig_palette, 
@@ -2581,13 +2649,13 @@ plot_temperature_facet <- function(rasterbrick,
                      fill = NA,
                      size = rel(0.2)) + 
     ggplot2::scale_y_continuous(name = "", #"Latitude", 
-                                limits = reg_dat$plot.boundary$y, # c(557292.9, 1744114.2), #1804888.0), #reg_dat$plot.boundary$y,
+                                limits = reg_dat$plot.boundary$y, 
                                 breaks = reg_dat$lat.breaks) +
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) + 
     #set legend position and vertical arrangement
-    ggplot2::guides(#colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+    ggplot2::guides(
       fill = guide_legend(title.position="top",
                           label.position = "bottom",
                           title.hjust = 0.5, nrow = 1)) +
@@ -2608,15 +2676,13 @@ plot_temperature_facet <- function(rasterbrick,
     
     figure <- figure +
       ggplot2::geom_label(data = temperature_zscore, 
-                          aes(label = sign, #group = year,
+                          aes(label = sign, 
                               color = sign,
                               x = quantile(x = reg_dat$plot.boundary$x, .96),
                               y = quantile(x = reg_dat$plot.boundary$y, .96) ), 
                           fontface = "bold", 
                           fill = "grey20",
                           label.size = NA,
-                          # size = .75, 
-                          # label.padding=unit(.1, "lines"), 
                           show.legend = FALSE) +
       scale_colour_manual(
         na.value = "transparent",
@@ -2625,7 +2691,7 @@ plot_temperature_facet <- function(rasterbrick,
         values = (unique(temperature_zscore$color)))
   }
   
-  if (sum(names(rasterbrick) %in% "X2020")==1)  {
+  if (2020 %in% temperature_sf$year)  {
     
     label_2020 <- data.frame(x = mean(panel_extent$x),
                              y = mean(panel_extent$y),
@@ -2645,41 +2711,6 @@ plot_temperature_facet <- function(rasterbrick,
     figure <- figure +
       ggplot2::ggtitle(label = title0)
   }
-  
-  # figure <- figure +
-  # ggsn::scalebar(
-  #   # facet.var = 'temp_df$year', 
-  #   # facet.lev = max(temp_df$year),
-  #   data = reg_dat$survey.grid,
-  #   location = "bottomleft",
-  #   dist = 100,
-  #   dist_unit = dist_unit,
-  #   transform = FALSE,
-  #   # st.dist = ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
-  #   # height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
-  #   # st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-  #   # st.size = ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
-  #   st.dist = dplyr::case_when(row0 == 1 ~ 0.04, 
-  #                              row0 == 2 ~ 0.06, 
-  #                              TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
-  #   height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
-  #   st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-  #   st.size = dplyr::case_when(row0 == 1 & length(names(rasterbrick)) > 3 ~ 2, 
-  #                              row0 == 2 & length(names(rasterbrick)) > 4 ~ 1.75, 
-  #                              row0 == 1 ~ 3, 
-  #                              row0 == 2 ~ 2.25, 
-  #                              TRUE ~ 2) # ifelse(row0 == 1, 3, ifelse(row0 == 2, 2.25, 2))
-  #   
-  # ) 
-  
-  
-  #   Turbo represents a tradeoff between interpretability and accessibility. If it seems like that won't be accessible because of how it's distributed (e.g., faxing), then by all means change it, because it doesn't have linear luminosity and chromaticity. For temperatures, I think it's pretty difficult to distinguish shades of blue. So if you're going to choose an alternative palette, I think it would be great if the cold pool is black (where < 0 is black; e.g., Which would be magma or inferno, whcih have a larger luminance gradient)
-  
-  # Turbo color map:
-  # https://github.com/sjmgarnier/viridis/issues/65
-  
-  # https://stackoverflow.com/questions/50506832/create-discrete-color-bar-with-varying-interval-widths-and-no-spacing-between-le
-  # https://stackoverflow.com/questions/64013935/custom-color-palette-for-scale-fill-fermenter
   
   # cold_pool_cbar 
   # https://github.com/sean-rohan-NOAA/coldpool/blob/main/1_cold_pool_index.Rmd#L169 
@@ -2715,9 +2746,7 @@ plot_temperature_facet <- function(rasterbrick,
                                             rel_heights = c(0.8,0.2))
   }
   return(figure_and_legend)
-  
 }
-
 
 
 #' Discrete continuous bar

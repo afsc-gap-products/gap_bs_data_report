@@ -569,7 +569,7 @@ if (spp_plot_sizecomp) {
 
 ## tab-env-[taxon]-[spp]
 
-```{r tab-env-[taxon]-[spp], eval = (report_title == "community")}
+```{r tab-env-[taxon]-[spp]}
 
 nickname <- paste0("tab-env-", spp_taxon, "-", spp_file)
 
@@ -621,11 +621,12 @@ table_raw <- haul0 %>%
                       names_sep='_',
                       names_to=c('variable', '.value')) %>% 
   dplyr::mutate(across(is.numeric, formatC, big.mark = ",", digits = 1, format = "f"), 
-                val = paste0(Min, " ", 
-                             gsub("[\\(\\)]", "", regmatches(variable, gregexpr("\\(.*?\\)", variable))), 
+                val = paste0(Min, #" ", 
+                             # gsub("[\\(\\)]", "", regmatches(variable, gregexpr("\\(.*?\\)", variable))), 
                              " – ",
-                             Max,  " ", 
-                             gsub("[\\(\\)]", "", regmatches(variable, gregexpr("\\(.*?\\)", variable))) )) %>%
+                             Max,  #" ", 
+                             # gsub("[\\(\\)]", "", regmatches(variable, gregexpr("\\(.*?\\)", variable))) 
+                             )) %>%
   dplyr::relocate(variable, dplyr::ends_with(SRVY1[1])) %>% 
   dplyr::select(-Min, -Max) %>% 
   tidyr::pivot_wider(id_cols = "variable",
@@ -646,21 +647,24 @@ table_print <- table_print1 <- table_raw %>%
                                                    sort(rep_len(x = paste0(stat$SRVY, "\n", stat$str),
                                                                 length.out = length(SRVY1)))), "'", 
                                                  collapse = ", "), ")"))) ) %>%
-  flextable::merge_v(part = "header") %>%
+  flextable::merge_v(part = "header")  %>% 
+  flextable::theme_zebra() %>%
   theme_flextable_nmfstm(row_lines = FALSE, 
                          font = font0, 
                          pad = 0, 
                          pgwidth = full_page_portrait_width) %>% 
-  flextable::bold(j = 1, part = "body") %>% 
+  flextable::bold(j = "variable", part = "body") %>% 
   # flextable::align(align = "right", part = "all") %>% 
   flextable::align(align = "center", part = "all")  %>% 
   flextable::align(align = "left", j = 1, part = "all") %>% 
   flextable::padding(part = "all", padding.right = 5) %>% 
   # flextable::vline(x = ., j = 3, part = "all")
-  flextable::colformat_image(j = "img" , width = 2.5, height = 2.5) %>% 
+  flextable::colformat_image(j = "img" , width = 2, height = 2) %>% 
   flextable::merge_v(j = "img") %>% # part = "all", combine = TRUE, 
   flextable::padding(part = "all", j = 1, padding = 0) %>% 
-  flextable::hline_top(x = ., border = std_b, j = 1, part = "all")
+  flextable::hline_top(x = ., border = std_b, j = 1, part = "all") %>% 
+  flextable::hline_bottom(x = ., border = std_b, j = 1, part = "all") %>% 
+    flextable::align(x = ., part = "all", align = "left", j = "variable")
 
 # Save table
 res <- knitr::knit_child(
@@ -731,6 +735,7 @@ table_print <- table_print2 <- table_raw %>%
                                  year = "Year\n") %>% 
   flextable::merge_v(j = 1, part = "body") %>% 
   flextable::bold(j = 1, part = "body") %>% 
+  flextable::theme_zebra() %>% 
   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "increase"), 
                 bg = positive, 
                 j = "Biomass\n% Change") %>% 
