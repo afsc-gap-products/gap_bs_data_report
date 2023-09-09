@@ -1,30 +1,4 @@
-#' ---
-#' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-#' author: 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
-#' purpose: Wrangle data
-#' start date: 2021-03-03
-#' date modified: 2021-09-01        # CHANGE
-#' Notes:                             # CHANGE
-#' ---
-
 # Report types ---------------------------------------------------
-
-# When you select a region using get_base_layers(), the grid will be clipped to only include stations in the survey region.  
-# I haven't added NBS functionality to get_base_layers() since we do both surveys in the same year, but there is an easy workaround (third block of code below).
-
-# library(akgfmaps)
-# full_ebs_layers <- akgfmaps::get_base_layers(select.region = "ebs", set.crs = "auto")
-# ggplot() +
-#   geom_sf(data = full_ebs_layers$survey.grid)
-# 
-# sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs", set.crs = "auto")
-# ggplot() +
-#   geom_sf(data = sebs_layers$survey.grid)
-# image.png
-# 
-# nbs_grid <- full_ebs_layers$survey.grid %>% filter(station %in% akgfmaps::get_survey_stations(select.region = "nbs"))
-# ggplot() +
-#   geom_sf(data = nbs_grid)
 
 out.crs <- "EPSG:3338"
 
@@ -281,13 +255,6 @@ report_spp <- report_spp  %>% # Replace NA by FALSE
 
 ## report_spp1 ------------------------------------------------------------------
 
-# report_spp1 <- add_report_spp(spp_info = spp_info, 
-#                               spp_info_codes = "species_code", 
-#                               report_spp = report_spp, 
-#                               report_spp_col = "order", 
-#                               report_spp_codes = "species_code", 
-#                               lang = FALSE)
-
 temp1 <- data.frame()
 for (i in 1:nrow(report_spp)){
   temp2 <- eval(expr = parse(text = report_spp$species_code[i]))
@@ -300,8 +267,6 @@ temp1 <- temp1 %>%
   dplyr::mutate(taxon = dplyr::case_when(
     species_code1 <= 31550 ~ "fish", 
     species_code1 >= 40001 ~ "invert")) %>% 
-  # dplyr::select(print_name, common_name1, species_code1, group, group_sci, taxon, order, file_name, 
-  #               plot_sizecomp, plot_idw, text_spp, table_cpue, table_bio_portion, table_bio_spp, cpue) %>% 
   dplyr::filter(print_name != "") %>% 
   dplyr::mutate(group0 = group)
 
@@ -328,7 +293,6 @@ if (length(temp)>0) {
     }
   }
 }
-# if (sum(temp1$species_code[(duplicated(temp1$species_code))])>0) warning("There are still duplicates in the species split ups!")
 
 report_spp1 <-  
   dplyr::left_join(x = temp1  %>% 

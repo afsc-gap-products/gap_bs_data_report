@@ -1,13 +1,5 @@
-#' ---
-#' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-#' author: 'Markowitz, EH, EJ Dawson, B Prohaska, N Charriere, R Haehn, S Rohan, L Britt, and D Stevenson'
-#' purpose: Store functions
-#' start date: 2021-09-01
-#' date modified: 2021-03-03        # CHANGE
-#' Notes:                             # CHANGE
-#' ---
 
-# INSTALL PACKAGES -------------------------------------------------------------
+# Install Libraries -------------------------------------------------------------
 
 # Here we list all the packages we will need for this whole process
 # We'll also use this in our works cited page!!!
@@ -17,13 +9,7 @@ PKG <- c(
   "rmarkdown", # R Markdown Document Conversion
   "officer", 
   "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
-  # "quarto", 
-  
-  # Keeping Organized
-  # "devtools", # Package development tools for R; used here for downloading packages from GitHub
-  # "renv", # saves the packages in the R environment
-  
-  
+
   # Graphics
   "ggplot2", # Create Elegant Data Visualisations Using the Grammar of Graphics
   "cowplot",
@@ -31,7 +17,6 @@ PKG <- c(
   "magick",
   "extrafont",
   "ggpubr",
-  "nmfspalette",  # devtools::install_github("nmfs-general-modeling-tools/nmfspalette")
   "ggridges",
   
   # other tidyverse
@@ -54,39 +39,23 @@ PKG <- c(
   # Spatial mapping
   "sf",
   "rlist",
-  # "jsonlite", 
-  # "prettymapr",
-  "rgdal", 
-  # "rosm", 
   "shadowtext",
   "ggspatial", 
   "digest", 
   "ggsn",
-  "rgdal", 
   "ps", 
-  # "backports", 
-  # "callr", 
-  # "labeling", 
-  "gstat", 
   "magrittr", 
-  "raster", 
-  "reshape", 
+  "raster",
   "stars",
-  "grid", 
+  # "grid", 
+  
   "scales", # nicer lables in ggplot2
-  
-  # # check website links
-  "pingr",
-  "httr",
-  
-  # Tables
-  "flextable", 
-  
-  # For editing XML files
-  "XML", 
-  
-  # Oracle
-  "RODBC")
+  "pingr", # check website links
+  "httr", # check website links
+  "flextable", # making pretty tables
+  "XML", # For editing XML files
+  "RODBC"  # Oracle
+  )
 
 
 PKG <- unique(PKG)
@@ -98,47 +67,18 @@ for (p in PKG) {
 
 loadfonts(device = "win")
 
-# Knowns -----------------------------------------------------------------------
-
-cnt_chapt_content<-"000"
+# Aesthetics -------------------------------------------------------------------
 
 full_page_portrait_width <- 6.5
 full_page_portrait_height <- 7.5
 full_page_landscape_width <- 9.5
-
-# Colors -----------------------------------------------------------------------
-
 negative <- "#EDA247"
 positive <- "#57C4AD"
 neutral <- "#E6E1BC"
 
-# Cite R Packages --------------------------------------------------------------
-knitr::write_bib(x = PKG,
-                 file = paste0(dir_out_rawdata, "bibliography_RPack.bib"))
-
-file.copy(from = paste0(dir_out_rawdata, "bibliography_RPack.bib"),
-          to = paste0(dir_cite,"/bibliography_RPack.bib"),
-          overwrite = TRUE)
-
-# Housekeeping -----------------------------------------------------------------
-
-# Keep chapter content in a proper order
-cnt_chapt <- "000"
-# Automatically name objects with consecutive numbers
-cnt_figures <- 0 #  e.g., Figure 1
-cnt_tables <- 0 # e.g., Table 1
-cnt_equations <- 0 # e.g., Equation 1
-# Save object content
-list_equations <- list()
-list_tables <- list()
-list_figures <- list()
-
-# Functions -------------------------------------------------------------
-
-## 
+# Functions --------------------------------------------------------------------
 
 ## Modify Numbers --------------------------------------------------------------
-
 
 #' Calculate the percent change.
 #'
@@ -159,9 +99,7 @@ pchange<-function(start, end,
                   ending="",
                   percent_first = TRUE,
                   value_only = FALSE){
-  
-  # if(length(start) != length(end)) stop("start and end need to be the same length")
-  
+
   start0<-start
   end0<-end
   final1 <- c()
@@ -225,6 +163,43 @@ pchange<-function(start, end,
   return(final1)
 }
 
+
+#' Takes a string of words and combines them into a sentance that lists them.
+#'
+#' This function alows you to take a string of words and combine them into a sentance list. For example, 'apples', 'oranges', 'pears' would become 'apples, oranges, and pears'. This function uses oxford commas.
+#' @param x Character strings you want in your string.
+#' @param sep string. default = ", " but "; " or " " might be what you need!
+#' @param sep_last2 string. default = " and " but " & " or " , " might be what you need!
+#' @param sep_last string. default = " and " but " & " or " , " might be what you need!
+#' @keywords strings
+#' @export
+#' @examples
+#' text_list(c(1,2,"hello",4,"world",6))
+#' text_list(c(1,"world"))
+#' text_list(c(1,2,"hello",4,"world",6), oxford = FALSE)
+#' paste0("here is a list of things: ",
+#' text_list(paste0("list", 1:5), sep = " ", sep_last = " ")
+text_list<-function(x = "",
+                    # oxford = TRUE,
+                    sep = ", ", 
+                    sep_last2 = " and ", 
+                    sep_last = ", and ") {
+  x<-x[which(x!="")]
+  # x<-x[which(!is.null(x))]
+  x<-x[which(!is.na(x))]
+  # x<-x[order(x)]
+  if (length(x)==2) {
+    str1<-paste(x, collapse = paste0(sep_last2))
+  } else if (length(x)>2) {
+    str1<-paste(x[1:(length(x)-1)], collapse = paste0(sep))
+    str1<-paste0(str1,
+                 # sep, 
+                 sep_last, x[length(x)])
+  } else {
+    str1<-x
+  }
+  return(str1)
+}
 
 
 #' Find a range of numbers for text
@@ -377,6 +352,31 @@ xunits<-function(value,
   return(out)
 }
 
+
+xunitspct<-function(value, sign = TRUE) {
+  out0<-c()
+  for (iii in 1:length(value)){
+    if (is.na(value)) {
+      temp<-NA
+    } else if (value > -1 & value <= 0 | #negative values between 0 and -1
+               value < 1 & value >= 0) { #positive values between 1 and 0
+      temp<-as.numeric(formatC(x = value, digits = 0, big.mark = ",", 
+                               format = "f"))
+    } else {
+      temp<-as.numeric(round(value, digits = 0))
+    }
+    
+    if (sign == F | is.na(value)) {
+      out<-temp
+    } else {
+      out<-paste0(temp, "%")
+    }
+    out0<-c(out0, out)
+  }
+  
+  return(out0)
+  
+}
 
 #' Convert number to text string.
 #'
@@ -661,124 +661,7 @@ CapFirst <- function(x) {
 
 ## Load data files -------------------------------------------------------------
 
-readtext2 <- function(file, refcontent = FALSE){
-  
-  # read in document
-  insert <- readtext(file = file)$text
-  
-  if (insert == "") { # if there is nothing in the doc, no problem!
-    insert <- ""
-  } else { # if there is something in the doc
-    
-    # remind reviewers what is code and what is not:
-    if (refcontent) { 
-      insert <- paste0("**Handwritten text from google drive**: ", 
-                       gsub(pattern = "\n", replacement = "\n\n\n **Handwritten text from google drive**:", x = insert), 
-                       "")
-    } else {
-      insert <- gsub(pattern = "\n", replacement = "\n\n\n", x = insert)
-    }
-    
-    # incorportate r code in the text
-    # insert <- strsplit(x = insert, split = "`r")[[1]]
-    insert <- strsplit(x = insert, split = "`")[[1]]
-    insert[substr(start = 1, stop = 2, x = insert) != "r "] <-
-      paste0('"', insert[substr(start = 1, stop = 2, x = insert) != "r "], '",')
-    # paste0("'", insert[substr(start = 1, stop = 2, x = insert) != "r "], "',")
-    insert[substr(start = 1, stop = 2, x = insert) == "r "] <-
-      paste0(substr(x = insert[substr(start = 1, stop = 2, x = insert) == "r "] ,
-                    start = 3,
-                    stop = nchar(insert[substr(start = 1, stop = 2, x = insert) == "r "] )), ",")
-    insert <- paste0(insert, collapse = "")
-    insert<-paste0(substr(x = insert, start = 1, stop = nchar(insert)-1)) # get rid of ",)" at end of last paragraph
-    insert <- paste0("paste0(", insert, ")", collapse = "")
-    insert <- eval(parse( text= insert ))
-    
-  }
-  return(insert)
-}
-
-
-library(pingr)
-
-#' @param x a single URL
-#' @param non_2xx_return_value what to do if the site exists but the
-#'        HTTP status code is not in the `2xx` range. Default is to return `FALSE`.
-#' @param quiet if not `FALSE`, then every time the `non_2xx_return_value` condition
-#'        arises a warning message will be displayed. Default is `FALSE`.
-#' @param ... other params (`timeout()` would be a good one) passed directly
-#'        to `httr::HEAD()` and/or `httr::GET()`
-url_exists <- function(x, non_2xx_return_value = FALSE, quiet = FALSE,...) {
-  # https://stackoverflow.com/questions/52911812/check-if-url-exists-in-r
-  suppressPackageStartupMessages({
-    require("httr", quietly = FALSE, warn.conflicts = FALSE)
-  })
-  
-  # you don't need thse two functions if you're alread using `purrr`
-  # but `purrr` is a heavyweight compiled pacakge that introduces
-  # many other "tidyverse" dependencies and this doesnt.
-  
-  capture_error <- function(code, otherwise = NULL, quiet = TRUE) {
-    tryCatch(
-      list(result = code, error = NULL),
-      error = function(e) {
-        if (!quiet)
-          message("Error: ", e$message)
-        
-        list(result = otherwise, error = e)
-      },
-      interrupt = function(e) {
-        stop("Terminated by user", call. = FALSE)
-      }
-    )
-  }
-  
-  safely <- function(.f, otherwise = NULL, quiet = TRUE) {
-    function(...) capture_error(.f(...), otherwise, quiet)
-  }
-  
-  sHEAD <- safely(httr::HEAD)
-  sGET <- safely(httr::GET)
-  
-  # Try HEAD first since it's lightweight
-  res <- sHEAD(x, ...)
-  
-  if (is.null(res$result) || 
-      ((httr::status_code(res$result) %/% 200) != 1)) {
-    
-    res <- sGET(x, ...)
-    
-    if (is.null(res$result)) return(NA) # or whatever you want to return on "hard" errors
-    
-    if (((httr::status_code(res$result) %/% 200) != 1)) {
-      if (!quiet) warning(sprintf("Requests for [%s] responded but without an HTTP status code in the 200-299 range", x))
-      return(non_2xx_return_value)
-    }
-    
-    return(TRUE)
-    
-  } else {
-    return(TRUE)
-  }
-  
-}
-
-
-# c(
-#   "http://content.thief/",
-#   "http://rud.is/this/path/does/not_exist",
-#   "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords=content+theft", 
-#   "https://www.google.com/search?num=100&source=hp&ei=xGzMW5TZK6G8ggegv5_QAw&q=don%27t+be+a+content+thief&btnK=Google+Search&oq=don%27t+be+a+content+thief&gs_l=psy-ab.3...934.6243..7114...2.0..0.134.2747.26j6....2..0....1..gws-wiz.....0..0j35i39j0i131j0i20i264j0i131i20i264j0i22i30j0i22i10i30j33i22i29i30j33i160.mY7wCTYy-v0", 
-#   "https://rud.is/b/2018/10/10/geojson-version-of-cbc-quebec-ridings-hex-cartograms-with-example-usage-in-r/"
-# ) -> some_urls
-# 
-# data.frame(
-#   exists = sapply(some_urls, url_exists, USE.NAMES = FALSE),
-#   some_urls,
-#   stringsAsFactors = FALSE
-# ) %>% dplyr::tbl_df() %>% print()
-
-# Converions -------------------------------------------------------------------
+# Conversions -------------------------------------------------------------------
 
 find_units <- function(unit = "", unt = "", dat, divby = NULL){
   
@@ -843,46 +726,13 @@ c2f <- function (T.celsius, round = 2) {
   return(T.fahrenheit)
 }
 
-# divkmfornmi <- 
-# 
-# divnmiforkm
-# 
 divnmi2forkm2 <- 1/3.429904
-
 divkm2fornmi2 <- 3.429904
-# divkm2fornmi2 <- 0.291160601164372384405766883164727405629748185875095639378254783272052516569336
-
 divkm2forha <- 100
-
 divmforft <- 0.3048
-
 divftform <- 3.28084
 
 # Species -----------------------------------------------
-
-
-findhowmanyspp<-function(spp.tsn.list, ranklvl) {
-  
-  a<-rlist::list.search(.data = lapply(X = spp.tsn.list, '[', 2), 
-                        ranklvl == .)
-  names(a)<-gsub(pattern = ".rank", replacement = "", x = names(a))
-  
-  b<-lapply(X = spp.tsn.list[names(spp.tsn.list) %in% names(a)], '[', 3)
-  # b<-rlist::list.search(.data = lapply(X = spp.tsn.list, '[', 3), 
-  #                    . == ranklvl)
-  
-  unq<-c()
-  for (i in 1:length(a)) {
-    if (!(is.na(b[[i]]))) {
-      idx<-ifelse(a[[i]] %in% "species", 1, which(a[[i]])) # for invalid species
-      cc<-as.numeric(b[[i]]$id)[idx]
-      unq<-c(unq, cc)
-    }
-  }
-  unq<-unique(unq)
-  
-  return(unq)
-}
 
 #' find values based on strings
 #'
@@ -962,32 +812,6 @@ find_codes <- function(x, col = "common_name", str = NULL,
   }
   
   return(out)
-}
-
-xunitspct<-function(value, sign = TRUE) {
-  out0<-c()
-  for (iii in 1:length(value)){
-    
-    if (is.na(value)) {
-      temp<-NA
-    } else if (value > -1 & value <= 0 | #negative values between 0 and -1
-               value < 1 & value >= 0) { #positive values between 1 and 0
-      temp<-as.numeric(formatC(x = value, digits = 0, big.mark = ",", 
-                               format = "f"))
-    } else {
-      temp<-as.numeric(round(value, digits = 0))
-    }
-    
-    if (sign == F | is.na(value)) {
-      out<-temp
-    } else {
-      out<-paste0(temp, "%")
-    }
-    out0<-c(out0, out)
-  }
-  
-  return(out0)
-  
 }
 
 species_table <- function(haul_spp, 
@@ -1648,46 +1472,7 @@ add_report_spp <- function(spp_info,
   return(temp0)
 }
 
-
-#' Takes a string of words and combines them into a sentance that lists them.
-#'
-#' This function alows you to take a string of words and combine them into a sentance list. For example, 'apples', 'oranges', 'pears' would become 'apples, oranges, and pears'. This function uses oxford commas.
-#' @param x Character strings you want in your string.
-#' @param sep string. default = ", " but "; " or " " might be what you need!
-#' @param sep_last2 string. default = " and " but " & " or " , " might be what you need!
-#' @param sep_last string. default = " and " but " & " or " , " might be what you need!
-#' @keywords strings
-#' @export
-#' @examples
-#' text_list(c(1,2,"hello",4,"world",6))
-#' text_list(c(1,"world"))
-#' text_list(c(1,2,"hello",4,"world",6), oxford = FALSE)
-#' paste0("here is a list of things: ",
-#' text_list(paste0("list", 1:5), sep = " ", sep_last = " ")
-text_list<-function(x = "",
-                    # oxford = TRUE,
-                    sep = ", ", 
-                    sep_last2 = " and ", 
-                    sep_last = ", and ") {
-  x<-x[which(x!="")]
-  # x<-x[which(!is.null(x))]
-  x<-x[which(!is.na(x))]
-  # x<-x[order(x)]
-  if (length(x)==2) {
-    str1<-paste(x, collapse = paste0(sep_last2))
-  } else if (length(x)>2) {
-    str1<-paste(x[1:(length(x)-1)], collapse = paste0(sep))
-    str1<-paste0(str1,
-                 # sep, 
-                 sep_last, x[length(x)])
-  } else {
-    str1<-x
-  }
-  return(str1)
-}
-
-
-# Plotting ----------------------------
+# Plotting ---------------------------------------------------------------------
 
 
 # https://coolbutuseless.github.io/package/ggpattern/
@@ -2183,14 +1968,8 @@ plot_idw_facet <- function(
     if (set.breaks[1] =="auto") {
       set.breaks <- set_breaks(dat = dat, var = "CPUE_KGHA")
     }
-    # # reg_dat0 <- reg_dat
-    # if (length(unique(temp$SRVY))==1 & # is this species in only 1 of the 2 survey areas
-    #     length(unique(dat$SRVY))>1) { # (when SRVY == NEBS)?
-    #   region0 <- ifelse(unique(temp$SRVY) == "EBS", "bs.south", "bs.north")
-    # }
-    # 
+
     # Select data and make plot
-    
     for (ii in 1:length(yrs)) {
       
       temp <- dat %>% 
@@ -2249,25 +2028,7 @@ plot_idw_facet <- function(
           dplyr::summarise(n = n()) |>
           sf::st_intersection(reg_dat$survey.area) %>% 
           dplyr::mutate(year = yrs[ii]))
-      
-      # if (ii == length(yrs)) {
-      #   stars_list <- temp0
-      #   names(stars_list)[names(stars_list) == "var1.pred"] <- paste0("y", yrs[ii])
-      # } else {
-      #   stars_list$temp <- temp0$var1.pred
-      #   names(stars_list)[names(stars_list) == "temp"] <- paste0("y", yrs[ii])
-      # }
     }
-    
-    # # https://rpubs.com/michaeldorman/646276
-    # stars_list <- stars_list %>%
-    #   dplyr::select(names(stars_list)[substr(start = 1, stop = 1, x = names(stars_list)) == "y"])
-    # names(stars_list)<-gsub(pattern = "y", replacement = "", x = names(stars_list))
-    # stars_list = stars::st_redimension(stars_list)
-    # names(stars_list) = "value"
-    # 
-    # figure <- figure +
-    #   geom_stars(data = stars_list)
   }
   
   figure <- ggplot() +
@@ -2292,7 +2053,7 @@ plot_idw_facet <- function(
     
     figure <- figure +
       ggplot2::geom_sf(data = extrap.grid1,
-                       mapping = aes(fill = bins), # bins),
+                       mapping = aes(fill = bins), 
                        color = NA, 
                        na.rm = FALSE,
                        show.legend = TRUE)  +
@@ -2305,24 +2066,17 @@ plot_idw_facet <- function(
                       n = length(set.breaks)-1,
                       begin = 0.20,
                       end = 0.80)),
-        # breaks  = levels(dat_pred$bin), # set.breaks,
         labels = levels(dat_pred$bin),
-        # values = c("white", RColorBrewer::brewer.pal(9, name = "Blues")[c(2,4,6,8,9)]),
-        # limits = range(dat_pred$var1.pred, na.rm = TRUE),
         na.translate = FALSE, # Don't use NA
-        drop = FALSE) #+ # Keep all levels in the plot
-    # ggplot2::facet_wrap(. ~ year)
-    
+        drop = FALSE) # Keep all levels in the plot
+
   } else if (grid == "extrapolation.grid") {
-    # temp <- factor(x = temp0$var1.pred, levels = levels(temp0$var1.pred), labels = levels(temp0$var1.pred), ordered = T)
     figure <- figure +
       ggplot2::geom_tile(data = dat_pred,
                          mapping = aes(fill = bin, x = x, y = y),
-                         # color = NA,
                          na.rm = FALSE,
                          drop = FALSE, 
                          show.legend = TRUE) +
-      # geom_stars(data = stars_list) + 
       scale_fill_manual(
         name = key.title, 
         na.value = "transparent",
@@ -3653,9 +3407,10 @@ plot_mean_temperatures <- function(maxyr, SRVY){
     dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
     dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
                   Surface = MEAN_SURFACE_TEMPERATURE) %>%
-    dplyr::mutate(#group = YEAR < 2020,
-      region = "Eastern Bering Sea") %>%
-    reshape2::melt(id.vars = c("YEAR", "region")) # "group", 
+    dplyr::mutate(region = "Eastern Bering Sea") %>% 
+    tidyr::pivot_longer(cols = c("Bottom", "Surface"), 
+                        names_to = "variable", 
+                        values_to = "value")
   
   temp0 <- setdiff(min(sebs_temperatures$YEAR):max(sebs_temperatures$YEAR), unique(sebs_temperatures$YEAR))
   temp <- data.frame(matrix(data = NA, 
@@ -3676,10 +3431,10 @@ plot_mean_temperatures <- function(maxyr, SRVY){
     dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
     dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
                   Surface = MEAN_SURFACE_TEMPERATURE) %>%
-    dplyr::mutate(#group = YEAR,
-      region = "Northern Bering Sea") %>%
-    reshape2::melt(id.vars = c("YEAR", "region")) # "group", 
-  
+    dplyr::mutate(region = "Northern Bering Sea") %>% 
+    tidyr::pivot_longer(cols = c("Bottom", "Surface"), 
+                        names_to = "variable", 
+                        values_to = "value")  
   
   temp0 <- setdiff(min(nbs_temperatures$YEAR):max(nbs_temperatures$YEAR), unique(nbs_temperatures$YEAR))
   temp <- data.frame(matrix(data = NA, 
@@ -3722,8 +3477,8 @@ plot_mean_temperatures <- function(maxyr, SRVY){
                                       levels=c('Surface','Bottom'))
   
   col <- viridis::inferno(2, direction = -1, begin = .3, end = .5)
-  color_sst <- col[2] #nmfspalette::nmfs_palette("oceans")(2)[1]#"darkgreen"
-  color_bt <- col[1] #nmfspalette::nmfs_palette("oceans")(2)[2]#"darkblue"
+  color_sst <- col[2] 
+  color_bt <- col[1] 
   
   figure <- ggplot(data = all_temperatures,
                    mapping = aes(x = YEAR,
@@ -4196,7 +3951,6 @@ save_figures<-function(figure,
 #' @param header The name and title of the figure. Default = "".
 #' @param footnotes Any footnote you want attached to this figure.
 #' @param filename0 The filename set at the begining of the chapter
-#' @param cnt_chapt_content The order number that this exists in the chapter.
 #' @param cnt The figure number
 #' @param path The path the file needs to be saved to. Default = "NULL", meaning it wont save anything and will override all other saving elements.
 #' @param output_type Default = c("csv"). Can be anything supported by utils::write.table.

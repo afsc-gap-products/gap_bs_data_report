@@ -13,8 +13,7 @@
 #'                   output_file = "test.docx")
 #' ---------------------------------------------
 
-# *** Report knowns ------------------------------------------------------------
-report_title <- "data" 
+# Report knowns ----------------------------------------------------------------
 
 refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 access_to_internet  <- TRUE # redownload google drive tables and docs?
@@ -77,43 +76,38 @@ googledrive::drive_deauth()
 googledrive::drive_auth()
 2
 
-# *** Source support scripts ---------------------------------------------------
+# Data Report ------------------------------------------------------------------
 
+## Source Scripts --------------------------------------------------------------
+
+report_title <- "data" 
 source(here::here("code","directories.R"))
-
 source(here::here("code","functions.R"))
-
 # source('./code/data_dl.R') # Run when there is new data!
-
 source(here::here("code","data.R"))
 
-# SAVE METADATA ----------------------------------------------------------------
-rmarkdown::render(paste0(here::here("code","README.Rmd")),
-                  output_dir = here::here(),
-                  output_file = paste0("README.md"))
-
-# Figures and Tables -----------------------------------------------------------
+## Figures and Tables ----------------------------------------------------------
 
 # General figures
 rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
-                  output_dir = dir_out_ref,
-                  output_file = paste0(cnt_chapt_content, ".docx"))
+                  output_dir = dir_out_rawdata,
+                  output_file = paste0("figtab.docx"))
 
 # Species figures
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                    output_dir = dir_out_ref,
-                    output_file = paste0(cnt_chapt_content, "_", comb[jj],".docx"))
+                    output_dir = dir_out_rawdata,
+                    output_file = paste0("figtab_spp_", comb[jj],".docx"))
 }
 
 # Appendix 
 rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
-                  output_dir = dir_out_ref,
-                  output_file = paste0(cnt_chapt_content, ".docx"))
+                  output_dir = dir_out_rawdata,
+                  output_file = paste0("figtab_appendix.docx"))
 
-# Run data report --------------------------------------------------------------
+## Write report ----------------------------------------------------------------
 
 report_title <- "data" 
 
@@ -127,45 +121,39 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"),
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_app_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
-# COMMUNITY HIGHLIGHTS ---------------------------------------------------------
+# Community Highlights ---------------------------------------------------------
 
 report_title <- "community"
 source(here::here("code","directories.R"))
 dir_googledrive <- dir_googledrive_comm
+source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
 
-## Species figures -------------------------------------------------------------
+## Figures and Tables ----------------------------------------------------------
 
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                    output_dir = dir_out_ref,
-                    output_file = paste0(cnt_chapt_content, "_", comb[jj],".docx"))
+                    output_dir = dir_out_rawdata,
+                    output_file = paste0("figtab_spp_", comb[jj],".docx"))
 }
 
-## Run community highlights report -----------------------------------------------
+## Write report ----------------------------------------------------------------
 
 rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"), 
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_community_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
-# PRESENTATION ------------------------------------------------------
-
-# report_spp1 <- add_report_spp(spp_info = spp_info, 
-#                               spp_info_codes = "species_code", 
-#                               report_spp = report_spp, 
-#                               report_spp_col = "order", 
-#                               report_spp_codes = "species_code0", 
-#                               lang = TRUE)
+# Prepare Presentations --------------------------------------------------------
 
 yrs <- sort(nbsyr, decreasing = FALSE)
 
-cnt_chapt_content<-"001"
+# cnt_chapt_content<-"001"
 filename0<-paste0(cnt_chapt, "_")
 rmarkdown::render(paste0(dir_code, "/figtab_pres.Rmd"),
-                  output_dir = dir_out_ref,
+                  output_dir = dir_out_rawdata,
                   output_file = paste0(filename0, cnt_chapt_content, ".docx"))
 
 
@@ -177,7 +165,7 @@ for (jj in 1:length(unique(report_spp1$file_name))) {
   
   filename00<-paste0(cnt_chapt, "_spp_")
   rmarkdown::render(paste0(dir_code, "/figtab_spp_pres.Rmd"),
-                    output_dir = dir_out_ref,
+                    output_dir = dir_out_rawdata,
                     output_file = paste0(filename00, cnt_chapt_content, "_", 
                                          unique(report_spp1$file_name)[jj],".docx"))
 }
@@ -195,9 +183,9 @@ rmarkdown::render(paste0(dir_code, "/11_presentation.Rmd"),
                   output_dir = dir_out_chapters,
                   output_file = paste0(filename0, cnt_chapt_content, ".pptx"))
 
-# SAVE METADATA ----------------------------------------------------------------
-con <- file(paste0(dir_out_todaysrun, "metadata.log"))
-sink(con, append=TRUE)
-sessionInfo()
-sink() # Restore output to console
-# cat(readLines("notes.log"), sep="\n") # Look at the log
+
+# Write README -----------------------------------------------------------------
+
+rmarkdown::render(paste0(here::here("code","README.Rmd")),
+                  output_dir = here::here(),
+                  output_file = paste0("README.md"))
