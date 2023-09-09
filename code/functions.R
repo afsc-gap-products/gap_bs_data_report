@@ -2522,7 +2522,6 @@ plot_idw_facet <- function(
 #' @param row0 
 #' @param title0 
 #' @param legend_seperate 
-#' @param use_col_name 
 #' @param temperature_zscore Logical. Default  = F. This will add a + to denote when that year's EBS temperatures were a standard deviation above or a "-" for below. 
 #' @param out_crs
 #'
@@ -2542,7 +2541,6 @@ plot_temperature_facet <- function(raster_nebs,
                                    row0 = 2, 
                                    title0 = NULL, 
                                    legend_seperate = FALSE, 
-                                   use_col_name = NULL, 
                                    temperature_zscore = FALSE, 
                                    out_crs = "EPSG:3338") {
   

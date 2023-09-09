@@ -556,11 +556,12 @@ for (case in c("bottom", "surface")) {
     if (case == "surface") {
       raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
       raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
-      colorbar_breaks <- c(-Inf, -1, 0, 1, seq(6, 12, 2), Inf)
+      colorbar_breaks <- c(-Inf, seq(0, 10, 2), Inf)
     } else if (case == "bottom") {
       raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
       raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
-      colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
+      # colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
+      colorbar_breaks <- c(-Inf, seq(-2, 8, 2), Inf)
     }
     
     header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
@@ -1259,10 +1260,10 @@ table_raw0 <-
                       year %in% yrs) %>% 
       dplyr::select(species_code, year, SRVY, biomass_mt), 
     x = report_spp1 %>% 
-      dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_portion), 
+      dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_spp), 
     relationship = "many-to-many",
     by = c("species_code")) %>%
-  dplyr::filter(table_bio_portion & 
+  dplyr::filter(table_bio_spp & 
                 !is.na(print_name) & 
                   !is.na(year)) %>%
   dplyr::group_by(print_name, SRVY, year, taxon) %>% 

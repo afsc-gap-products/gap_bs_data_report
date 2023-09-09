@@ -29,7 +29,8 @@ spp_text <- TRUE
 
 if (report_title == "data") {
   dataTcommF <- TRUE
-  # spp_plot_pa <- a$plot_pa[1]
+  spp_plot_idw <- a$plot_idw[1]
+  spp_plot_pa <- FALSE # a$plot_pa[1]
   spp_table_cpue <- a$table_cpue[1]
   spp_text <- a$text_spp[1]
 }
@@ -569,7 +570,7 @@ if (spp_plot_sizecomp) {
 
 ## tab-env-[taxon]-[spp]
 
-```{r tab-env-[taxon]-[spp]}
+```{r tab-env-[taxon]-[spp], eval = (report_title == "community")}
 
 nickname <- paste0("tab-env-", spp_taxon, "-", spp_file)
 
@@ -624,7 +625,7 @@ table_raw <- haul0 %>%
                 val = paste0(Min, #" ", 
                              # gsub("[\\(\\)]", "", regmatches(variable, gregexpr("\\(.*?\\)", variable))), 
                              " – ",
-                             Max,  #" ", 
+                             Max#,  #" ", 
                              # gsub("[\\(\\)]", "", regmatches(variable, gregexpr("\\(.*?\\)", variable))) 
                              )) %>%
   dplyr::relocate(variable, dplyr::ends_with(SRVY1[1])) %>% 
@@ -657,14 +658,15 @@ table_print <- table_print1 <- table_raw %>%
   # flextable::align(align = "right", part = "all") %>% 
   flextable::align(align = "center", part = "all")  %>% 
   flextable::align(align = "left", j = 1, part = "all") %>% 
-  flextable::padding(part = "all", padding.right = 5) %>% 
+  flextable::padding(part = "all", padding = 5) %>% 
   # flextable::vline(x = ., j = 3, part = "all")
   flextable::colformat_image(j = "img" , width = 2, height = 2) %>% 
   flextable::merge_v(j = "img") %>% # part = "all", combine = TRUE, 
   flextable::padding(part = "all", j = 1, padding = 0) %>% 
   flextable::hline_top(x = ., border = std_b, j = 1, part = "all") %>% 
   flextable::hline_bottom(x = ., border = std_b, j = 1, part = "all") %>% 
-    flextable::align(x = ., part = "all", align = "left", j = "variable")
+  flextable::align(x = ., part = "all", align = "left", j = "variable") %>% 
+  flextable::bg(j = 1, bg = "white", part = "all")
 
 # Save table
 res <- knitr::knit_child(

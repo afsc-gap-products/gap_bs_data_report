@@ -11,24 +11,23 @@
 # Just in case you change the base name for any reason, it will change for anytime you load the files inside the folder, too! (e.g., if you have something against "scripts" being the name of the folder, just let the script know in one place aka right here).
 
 # Directories to all of your current folders
-dir_in<-paste0(getwd(), "/")
-dirs<-list.dirs(path = getwd(), full.names = FALSE)
-dirs<-dirs[!grepl(pattern = "\\/", x = dirs)]
+dir_in<-paste0(here::here(), "/")
+dirs<-list.dirs(path = getwd(), full.names = FALSE, recursive = FALSE)
 dirs<-dirs[!grepl(pattern = "\\..", x = dirs)]
-dirs<-dirs[dirs != ""]
 for (i in 1:length(dirs)) {
   assign(x = paste0("dir_", dirs[i]),
          value = paste0(dir_in, (dirs[i]), "/"))
 }
 
 # Where we save everything
-dir.output<-paste0(dir_in, "/output/")
-dir_out_todaysrun<-paste0(dir.output, "/",Sys.Date(),"/")
+dir_out_todaysrun <- paste0(dir_output, Sys.Date(),"/")
 dir.create(dir_out_todaysrun)
-dir_out_todaysrun<-paste0(dir_out_todaysrun,"/", maxyr, "_", report_title, "/")
+dir_out_todaysrun <- paste0(dir_out_todaysrun, maxyr, "_", report_title, "/")
 dir.create(dir_out_todaysrun)
 
-dirs <- c("chapters", "rawdata", "documentation", "code", "figtab", "cite", "ref")
+dir_out_figtab <- paste0(dir_output, "figtab_",maxyr,"_",report_title,"/")
+
+dirs <- c("chapters", "rawdata")#, "documentation", "code", "figtab", "cite", "ref")
 for (i in 1:length(dirs)) {
   if (dir.exists(paste0(dir_out_todaysrun, dirs[i])) == FALSE) {
     dir.create(paste0(dir_out_todaysrun, "/", dirs[i]))
@@ -36,32 +35,31 @@ for (i in 1:length(dirs)) {
   assign(x = paste0("dir_out_", dirs[i]), value = paste0(dir_out_todaysrun, "/",dirs[i],"/"))
 }
 
-# SAVE ALL R FILES USED FOR EACH RUN -------------------------------------------
-listfiles<-list.files(path = dir_code)
-listfiles0<-c(listfiles[grepl(pattern = "\\.r",
-                              x = listfiles, ignore.case = T)],
-              listfiles[grepl(pattern = "\\.pptx",
-                              x = listfiles, ignore.case = T)],
-              listfiles[grepl(pattern = "\\.docx",
-                              x = listfiles, ignore.case = T)])
-listfiles0<-listfiles0[!(grepl(pattern = "~",ignore.case = T, x = listfiles0))]
-
-for (i in 1:length(listfiles0)){
-  file.copy(from = paste0(dir_code, listfiles0[i]),
-            to = paste0(dir_out_code, listfiles0[i]),
-            overwrite = T)
-}
-
-# SAVE ALL CITE FILES USED FOR EACH RUN ----------------------------------------
-listfiles0<-list.files(path = dir_cite)
-listfiles0<-listfiles0[!(grepl(pattern = "~",ignore.case = T, x = listfiles0))]
-
-for (i in 1:length(listfiles0)){
-  file.copy(from = paste0(dir_cite, listfiles0[i]),
-            to = paste0(dir_out_cite, listfiles0[i]),
-            overwrite = T)
-}
-
-# CITATION STYLE ---------------------------------------------------------------
+# # SAVE ALL R FILES USED FOR EACH RUN -------------------------------------------
+# listfiles<-list.files(path = dir_code)
+# listfiles0<-c(listfiles[grepl(pattern = "\\.r",
+#                               x = listfiles, ignore.case = T)],
+#               listfiles[grepl(pattern = "\\.pptx",
+#                               x = listfiles, ignore.case = T)],
+#               listfiles[grepl(pattern = "\\.docx",
+#                               x = listfiles, ignore.case = T)])
+# listfiles0<-listfiles0[!(grepl(pattern = "~",ignore.case = T, x = listfiles0))]
+# 
+# for (i in 1:length(listfiles0)){
+#   file.copy(from = paste0(dir_code, listfiles0[i]),
+#             to = paste0(dir_out_code, listfiles0[i]),
+#             overwrite = T)
+# }
+# 
+# # SAVE ALL CITE FILES USED FOR EACH RUN ----------------------------------------
+# listfiles0<-list.files(path = dir_cite)
+# listfiles0<-listfiles0[!(grepl(pattern = "~",ignore.case = T, x = listfiles0))]
+# 
+# for (i in 1:length(listfiles0)){
+#   file.copy(from = paste0(dir_cite, listfiles0[i]),
+#             to = paste0(dir_out_cite, listfiles0[i]),
+#             overwrite = T)
+# }
+# 
+# # CITATION STYLE ---------------------------------------------------------------
 options("citation_format" = "pandoc")
-dir_out_figtab <- paste0(dir_output, "figtab_",maxyr,"/")
