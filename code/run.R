@@ -1,17 +1,3 @@
-#' ---------------------------------------------
-#' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-#' author: E. H. Markowitz, E. J. Dawson
-#' purpose: Run Scripts and R Markdown Files
-#' start date: 2021-09-01
-#' date modified: 2022-09-01                                          # CHANGE
-#' Notes:  
-#' create file that checks for errors in RMDs:
-#'    https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/test_rmds.R
-#'    https://github.com/NOAA-EDAB/esp_data_aggregation/blob/main/R-scripts/render%20dev%20report%20with%20errors.R
-#'    # rmarkdown::render(input = "./notforgit/test.Rmd",
-#'                   output_dir = dir_out_chapters,
-#'                   output_file = "test.docx")
-#' ---------------------------------------------
 
 # Report knowns ----------------------------------------------------------------
 
@@ -20,40 +6,6 @@ access_to_internet  <- TRUE # redownload google drive tables and docs?
 pres_img <- FALSE
 font0 <- "Arial Narrow"
 font_size0 <- 12
-
-# maxyr <- 2017 # or the year of the report, for example
-# compareyr <- 2010
-# strat_yr <- 2010
-# SRVY<-"NEBS"
-# ref_compareyr <- "@RN976"
-# # ref_compareyr <- "@RN909"
-# # dir_googledrive <- "1vtwfDwRprFml_5wN_WkeVViynwGhC8fe" # https://drive.google.com/drive/folders/1vtwfDwRprFml_5wN_WkeVViynwGhC8fe?usp=sharing
-
-# maxyr <- 2018 # NOTE RAPID RESPONCE
-# strat_yr <- 2019
-# compareyr <- 2016
-# SRVY<-"EBS"
-# ref_compareyr <- "@RN976" # CHANGE
-# dir_googledrive <- "1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy" # https://drive.google.com/drive/folders/1W8VfqBF9j48vk0GpFLyg5cZGzuHlelAy?usp=sharing
-
-# maxyr <- 2019
-# compareyr <- 2017
-# strat_yr <- 2019
-# SRVY<-"NEBS"
-# ref_compareyr <- "@Lauth2019" # CHANGE
-# dir_googledrive <- "1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-" # https://drive.google.com/drive/folders/1HpuuIIp6piS3CieRJR81-8hVJ3QaKOU-?usp=sharing
-# ref_compareyr_ebs <- "@RN976" # check
-# ref_compareyr_nbs <- "@RN909" # check
-
-# maxyr <- 2021
-# compareyr <- 2019
-# strat_yr <- 2019
-# SRVY <- "NEBS" # "NEBS"
-# ref_compareyr <- "@2019NEBS2022" # CHANGE
-# dir_googledrive <- "1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X" # https://drive.google.com/drive/folders/1i3NRmaAPpIYfMI35fpJCa-8AjefJ7J7X?usp=sharing
-# ref_compareyr_ebs <- "@RN976" # community report
-# ref_compareyr_nbs <- "@RN909" # community report
-# id_googledrive_comm <- googledrive::as_id("1bqXIlM9Er8MeITCkRQy8D52Yd46CLz3f")
 
 maxyr <- 2022
 compareyr <- 2021
@@ -107,6 +59,11 @@ rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
                   output_dir = dir_out_rawdata,
                   output_file = paste0("figtab_appendix.docx"))
 
+# # Presentation
+# rmarkdown::render(paste0(dir_code, "/figtab_pres.Rmd"),
+#                   output_dir = dir_out_rawdata,
+#                   output_file = paste0("figtab_pres.docx"))
+
 ## Write report ----------------------------------------------------------------
 
 report_title <- "data" 
@@ -119,7 +76,7 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
 rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"), 
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_chapters, 
-                  output_file = paste0("00_data_report_app_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+                  output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_app_ref", ""), ".docx"))
 
 # Community Highlights ---------------------------------------------------------
 
