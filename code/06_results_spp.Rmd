@@ -29,6 +29,7 @@ if (report_title == "data") {
 land_start <- "" #felse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_START--->", "")
 land_end <- "" # ifelse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_STOP--->", "")
 show <- FALSE
+pagebreak <- ifelse(report_title == "community" & spp_table_cpue, "\\pagebreak", "")
 ```
 
 
@@ -230,6 +231,9 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 
 `r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
+```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
+```
+
 ```{r tab-env-{{jj}} , eval = (report_title == "community")}
 nickname <- paste0("tab-env-", spp_taxon,"-", spp_file) # , ifelse(report_title == "data", "-data", "-comm"))
 # ```{r fig-spp-{{jj}} }
@@ -240,14 +244,14 @@ nickname <- paste0("tab-env-", spp_taxon,"-", spp_file) # , ifelse(report_title 
 # ```
 ```
 
-```{r tab-env-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd") , eval = (report_title == "community")}
+```{r tab-env-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title == "community")}
 ```
 
-```{r tab-bio-{{jj}}}
+```{r tab-bio-{{jj}}, eval = (report_title == "community")}
 nickname <- paste0("tab-bio-",spp_taxon,"-", spp_file)
 ```
 
-```{r tab-bio-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-bio-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title == "community")}
 ```
 
 ```{r fig-dist-{{jj}}}
@@ -255,9 +259,6 @@ nickname <- paste0("fig-dist-",spp_taxon,"-", spp_file, ifelse(report_title == "
 ```
 
 ```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=(spp_plot_idw | spp_plot_pa)}
-```
-
-```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
 ```
 
 ```{r fig-sizecomp-{{jj}}}
@@ -268,6 +269,8 @@ nickname <- paste0("fig-sizecomp-",spp_taxon,"-", spp_file, ifelse(report_title 
 ```
 
 <!-- `r land_start ` -->
+
+`r pagebreak `
 
 ```{r tab-est-{{jj}}-wt}
 nickname <- paste0("tab-est-",spp_taxon,"-", spp_file, "-wt")
@@ -282,5 +285,7 @@ nickname <- paste0("tab-est-",spp_taxon,"-", spp_file, "-num")
 
 ```{r tab-est-{{jj}}-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_table_cpue}
 ```
+
+`r pagebreak `
 
 <!-- `r land_end ` -->

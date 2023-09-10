@@ -525,7 +525,9 @@ haul0 <- catch_haul_cruises %>%
                 "survey_name", "SRVY", "year", "species_code", 
                 "weight_kg", "count", "hauljoin")
 
-header <- header1 <- paste0("Summary ranges of environmental variables that ", spp_print, " (", spp_sci, ") have been found in across the ", SURVEY, " survey area", plural_surveys,". ")
+header <- header1 <- paste0("Summary ranges of environmental variables that ", 
+                            spp_print, " (", spp_sci, ") have been found in across the ", 
+                            SURVEY, " survey area", plural_surveys,". ")
 
 ## Env table
 stat <- dplyr::left_join(
@@ -547,7 +549,8 @@ stat <- dplyr::left_join(
     dplyr::rename(spp = Freq), 
   by = "SRVY") %>% 
   dplyr::mutate(str = paste0(spp, "/", tot, 
-                             " (", formatC(spp/tot*100, digits = 1, format = "f", big.mark = ","), "%)"))
+                             " (", formatC(spp/tot*100, digits = 1, format = "f", big.mark = ","), "%)")) %>% 
+  dplyr::filter(!is.na(spp))
 
 table_raw <- haul0 %>% 
   dplyr::filter(SRVY %in% SRVY1 & 
@@ -592,7 +595,7 @@ table_print1 <- dplyr::bind_rows(
                       paste0(names(table_raw), " = '",
                              c('Survey region:\nStations sampled:',
                                sort(rep_len(x = paste0(stat$SRVY, "\n", stat$str),
-                                            length.out = length(SRVY1)))), "'", 
+                                            length.out = length(stat$SRVY)))), "'", 
                              collapse = ", "), ")"))) ), 
                table_print1)
 
@@ -621,7 +624,9 @@ table_print <- table_print1 %>%
   flextable::align(align = "left", j = 1, part = "all") %>% 
   flextable::padding(part = "all", padding = 5) %>% 
   # flextable::vline(x = ., j = 3, part = "all")
-  flextable::colformat_image(j = "img" , width = 2, height = 2) %>% 
+  flextable::colformat_image(j = "img" , 
+                             width = ifelse(length(stat$SRVY)==2, 2, 4), 
+                             height = ifelse(length(stat$SRVY)==2, 2, 4)) %>% 
   flextable::merge_v(j = "img") %>% # part = "all", combine = TRUE, 
   flextable::padding(part = "all", j = 1, padding = 0) %>% 
   flextable::hline_top(x = ., border = std_b1, j = 1, part = "all") %>% 

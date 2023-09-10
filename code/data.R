@@ -116,7 +116,7 @@ if (access_to_internet ) {
                                 type = "txt",
                                 overwrite = TRUE, 
                                 path = paste0(dir_out_rawdata, "/", a$name[i], ".txt"))
-    if (a$name[i] == "0_survey_team_bios") {
+    if (a$name[i] == "0-survey-team-bios") {
       googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
                                   type = "docx",
                                   overwrite = TRUE, 
