@@ -281,14 +281,14 @@ tab_app_fish_ <- function(temp,
                      maxyr, " ", temp$SRVY_long[i], 
                      " bottom trawl survey.")
     
-    table_raw <- sizecomp_maxyr %>% 
+    table_raw1 <- sizecomp_maxyr %>% 
       dplyr::filter(species_code %in% spp_code &
                       SRVY == temp$SRVY[i]) %>% 
-      dplyr::distinct()
+      dplyr::distinct() 
     
     if (nrow(table_raw) != 0) { 
       
-      table_raw <- table_raw %>% 
+      table_raw1 <- table_raw1 %>% 
         dplyr::select(length_mm, population_count, sex) %>%
         tidyr::pivot_wider(data = ., 
                            id_cols = length_mm, 
@@ -296,14 +296,19 @@ tab_app_fish_ <- function(temp,
                            values_from = population_count, 
                            values_fill = 0) %>%
         dplyr::mutate(
-          males = ifelse(("males" %in% table_raw$sex), males, 0), 
-          females = ifelse(("females" %in% table_raw$sex), females, 0), 
-          unsexed = ifelse(("unsexed" %in% table_raw$sex), unsexed, 0), 
-          total = males + females + unsexed, 
-                      prop = total/sum(total, na.rm = TRUE), 
-                      cumprop = cumsum(prop)) %>%
+          males = ifelse(("males" %in% table_raw1$sex), males, 0),
+          females = ifelse(("females" %in% table_raw1$sex), females, 0),
+          unsexed = ifelse(("unsexed" %in% table_raw1$sex), unsexed, 0),
+          total = males + females + unsexed) %>%
         dplyr::arrange(length_mm)
-      
+          
+          table_raw <- table_raw1 %>% 
+            dplyr::ungroup() %>% 
+            dplyr::mutate(
+                      prop = total/sum(table_raw1$total, na.rm = TRUE), 
+                      cumprop = cumsum(prop))
+          # table_raw$cumprop <- cumsum(table_raw$prop)
+                
       table_raw <- 
         dplyr::bind_rows(table_raw %>% 
                            dplyr::mutate(length_mm = as.character(length_mm)), 
