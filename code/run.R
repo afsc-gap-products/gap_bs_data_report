@@ -55,9 +55,9 @@ for (jj in 1:length(comb)) {
 }
 
 # Appendix 
-rmarkdown::render(paste0(dir_code, "/figtab_appendix.Rmd"),
+rmarkdown::render(paste0(dir_code, "/figtab_app.Rmd"),
                   output_dir = dir_out_rawdata,
-                  output_file = paste0("figtab_appendix.docx"))
+                  output_file = paste0("figtab_app.docx"))
 
 # # Presentation
 # rmarkdown::render(paste0(dir_code, "/figtab_pres.Rmd"),
@@ -73,10 +73,15 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
+rmarkdown::render(input = paste0(dir_code, "00_data_report_spp.Rmd"), 
+                  output_format = "officedown::rdocx_document", 
+                  output_dir = dir_out_chapters, 
+                  output_file = paste0("00_data_report_spp_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+
 rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"), 
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_chapters, 
-                  output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_app_ref", ""), ".docx"))
+                  output_file = paste0("00_data_report_app_", maxyr, ifelse(refcontent, "_app_ref", ""), ".docx"))
 
 # Community Highlights ---------------------------------------------------------
 

@@ -2421,7 +2421,8 @@ plot_temperature_facet <- function(raster_nebs,
       axis.text = element_text(size = 6),
       strip.background = element_blank(),
       strip.text = element_text(size = 10, face = "bold"),
-      legend.position = "none"
+      legend.position = "none", 
+      plot.margin=grid::unit(c(0,0,0,0), "mm")
     )
   
   if (! is.null(temperature_zscore)) {

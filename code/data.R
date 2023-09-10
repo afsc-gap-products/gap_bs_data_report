@@ -426,25 +426,27 @@ lastyr <- max(haul$year[haul$year != maxyr])
 
 print("CPUE Design Based Estimates")
 
-cpue <- dplyr::bind_rows( 
+cpue <- dplyr::bind_rows(
   gap_products_akfin_cpue0 %>% # groundfish data (sans crab)
-    dplyr::filter(!(species_code %in% c(69322, 69323, 68580))) %>%
+    dplyr::filter(!(species_code %in% c(69322, 69323, 68580, 68560))) %>%
     dplyr::select(species_code, hauljoin, cpue_kgkm2, cpue_nokm2), 
   crab_gap_ebs_nbs_crab_cpue0 %>%  # crab data
     dplyr::filter(survey_year > 1981) %>%
-    dplyr::select(cpue_kgkm2 = cpuewgt_total, 
-                  cpue_nokm2 = cpuenum_total) ) %>% 
+    dplyr::select(species_code, 
+                  hauljoin, 
+                  cpue_kgkm2 = cpuewgt_total, 
+                  cpue_nokm2 = cpuenum_total) )  %>% 
   dplyr::left_join(y = haul) %>% 
+  dplyr::filter(year %in% unlist(nbsyr)) %>%
+  dplyr::filter(!(year < 1996 & species_code == 10261) & # modify for spp
+                  !(year < 2000 & species_code == 435 ) &
+                  !(year < 2000 & species_code == 471) )  %>% # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
   dplyr::left_join(y = spp_info %>% 
                      dplyr::select(species_code, common_name, species_name, taxon)) %>% 
   dplyr::select(year, hauljoin, 
                 vessel_id, SRVY,  stratum, station, 
                 species_code, longitude_dd_start, latitude_dd_start, 
-                cpue_nokm2, cpue_kgkm2, common_name, taxon) %>% 
-  dplyr::filter(!(year < 1996 & species_code == 10261) & # modify for spp
-                  !(year < 2000 & species_code == 435 ) &
-                  !(year < 2000 & species_code == 471) )  # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
-
+                cpue_nokm2, cpue_kgkm2, common_name, taxon)
 # cpue$common_name[cpue$species_name == "Neptunea heros"] <- "northern neptune whelk"
 
 cpue_maxyr <- cpue %>%

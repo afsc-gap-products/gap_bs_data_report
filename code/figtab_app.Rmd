@@ -2,7 +2,6 @@
 output: officedown::rdocx_document
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
@@ -15,7 +14,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 tab_taxa_found_ <- function(temp, 
                             nickname0, 
-                            # cnt_pre, 
                             maxyr, 
                             catch_haul_cruises_maxyr, 
                             spp_info) {
@@ -52,7 +50,7 @@ tab_taxa_found_ <- function(temp,
       dplyr::filter(taxon == temp$taxon0[i]) %>% 
       dplyr::mutate(taxon = taxon0) %>% 
       dplyr::group_by(taxon, species_name, common_name ) %>% 
-      dplyr::summarise(stations_n = n(),#count(station), 
+      dplyr::summarise(stations_n = n(), 
                        depth_min = min(depth_gear_m, na.rm = TRUE), 
                        depth_max = max(depth_gear_m, na.rm = TRUE), 
                        depth_mean = mean(depth_gear_m, na.rm = TRUE), 
@@ -250,7 +248,6 @@ if (SRVY == "NEBS") {
 ```{r tab_app_fish_*_prep}
 
 tab_app_fish_ <- function(temp, 
-                          # cnt_pre, 
                           maxyr, 
                           haul_cruises_maxyr, 
                           report_spp1,
@@ -269,7 +266,6 @@ tab_app_fish_ <- function(temp,
   
   for (i in 1:nrow(temp)) {
     cnt_tables <- cnt_tables + 1
-    # newobj <- TRUE
     print(temp$file_name[i])
     
     nickname <- paste0(nickname0, 
@@ -335,25 +331,11 @@ tab_app_fish_ <- function(temp,
         theme_flextable_nmfstm(x = ., 
                                font0 = font0, 
                                row_lines = FALSE, 
-                               # body_size = 8, 
-                               # header_size = 9, 
                                pad = 0, 
                                pgwidth = full_page_portrait_width) %>%
         flextable::width(x = ., width = .9, unit = "in") %>% 
         flextable::hline_bottom(x = ., border = fp_border(width = 2), part = "header")
-      
-      
-      # # save yo' stuff and do a lot of behind the scenes work
-      # # alt: this does the same thing as calling "child = " in the chunk header
-      # res <- knitr::knit_child(
-      #   text = knitr::knit_expand(
-      #     file = system.file("rmd/_child_save_figtab.Rmd", package = "NMFSReports")),
-      #   quiet = TRUE
-      # )
-      # 
-      # list_tables[nickname][[1]]$res <- res
-      # }
-      # output from function
+
       list_tables0$temp <- list("table_print" = table_print, 
                                 "table_raw" = table_raw, 
                                 "header" = header, 
@@ -396,7 +378,6 @@ for (i in 1:length(list_tables0)) {
     quiet = TRUE
   )
 }
-
 ```
 
 ## Appendix D (NBS)
@@ -430,7 +411,6 @@ if (SRVY == "NEBS") {
       quiet = TRUE
     )
   }
-  
 }
 ```
 

@@ -304,7 +304,7 @@ if (spp_plot_idw | spp_plot_pa) {
         ggplot2::scale_x_continuous(name = "", #"Longitude",
                                     limits = reg_dat$plot.boundary$x,
                                     breaks = reg_dat$lon.breaks) +
-        ggplot2::geom_stars(data = stars0,
+        geom_stars(data = stars0,
                             na.rm = FALSE,
                             show.legend = TRUE) +
         ggplot2::facet_wrap( ~ new_dim, nrow = row0) + 
@@ -579,26 +579,42 @@ table_raw <- haul0 %>%
                      names_from = "SRVY",
                      values_from = c("val"))
 
-std_b <- officer::fp_border(width = 0, color = "grey10")
+std_b1 <- officer::fp_border(width = 0, color = "grey10")
+std_b <- officer::fp_border(width = 2, color = "grey10")
 
-table_print <- table_print1 <- table_raw %>%
+table_print1 <- table_raw %>%
   dplyr::mutate(img = paste0(dir_img, spp_file, ".png")) %>% 
-  dplyr::relocate(img) %>% 
+  dplyr::relocate(img) 
+
+table_print1 <- dplyr::bind_rows(
+  data.frame(eval(parse(text =
+               paste0("list(img = '',", 
+                      paste0(names(table_raw), " = '",
+                             c('Survey region:\nStations sampled:',
+                               sort(rep_len(x = paste0(stat$SRVY, "\n", stat$str),
+                                            length.out = length(SRVY1)))), "'", 
+                             collapse = ", "), ")"))) ), 
+               table_print1)
+
+table_print1$img[1] <- table_print1$img[2]
+
+table_print <- table_print1 %>% 
   flextable::flextable(data = .) %>% 
-  flextable::set_header_labels(
-    values = eval(parse(text =
-                          paste0("list(img = '',", 
-                                 paste0(names(table_raw), " = '",
-                                        c('Survey region:\nStations sampled:',
-                                          sort(rep_len(x = paste0(stat$SRVY, "\n", stat$str),
-                                                       length.out = length(SRVY1)))), "'", 
-                                        collapse = ", "), ")"))) ) %>%
-  flextable::merge_v(part = "header")  %>% 
-  flextable::theme_zebra() %>%
+  flextable::delete_part(x = ., part = "header") %>% 
+  # flextable::set_header_labels(
+  #   values = eval(parse(text =
+  #                         paste0("list(img = '',", 
+  #                                paste0(names(table_raw), " = '",
+  #                                       c('Survey region:\nStations sampled:',
+  #                                         sort(rep_len(x = paste0(stat$SRVY, "\n", stat$str),
+  #                                                      length.out = length(SRVY1)))), "'", 
+  #                                       collapse = ", "), ")"))) ) %>%
+  # flextable::merge_v(part = "header")  %>% 
   theme_flextable_nmfstm(row_lines = FALSE, 
                          font = font0, 
                          pad = 0, 
                          pgwidth = full_page_portrait_width) %>% 
+  flextable::theme_zebra() %>%
   flextable::bold(j = "variable", part = "body") %>% 
   # flextable::align(align = "right", part = "all") %>% 
   flextable::align(align = "center", part = "all")  %>% 
@@ -608,10 +624,15 @@ table_print <- table_print1 <- table_raw %>%
   flextable::colformat_image(j = "img" , width = 2, height = 2) %>% 
   flextable::merge_v(j = "img") %>% # part = "all", combine = TRUE, 
   flextable::padding(part = "all", j = 1, padding = 0) %>% 
-  flextable::hline_top(x = ., border = std_b, j = 1, part = "all") %>% 
-  flextable::hline_bottom(x = ., border = std_b, j = 1, part = "all") %>% 
+  flextable::hline_top(x = ., border = std_b1, j = 1, part = "all") %>% 
+  flextable::hline_bottom(x = ., border = std_b1, j = 1, part = "all") %>% 
+  flextable::hline_top(x = ., border = std_b, j = 2:ncol(table_print1), part = "all") %>% 
+  flextable::hline(x = ., border = std_b, i = 1, j = 2:ncol(table_print1), part = "all") %>% 
+  flextable::hline_bottom(x = ., border = std_b, j = 2:ncol(table_print1), part = "all") %>% 
   flextable::align(x = ., part = "all", align = "left", j = "variable") %>% 
-  flextable::bg(j = 1, bg = "white", part = "all")
+  flextable::bg(j = 1, bg = "white", part = "all") %>% 
+  flextable::width(j = 2:ncol(table_print1), 
+                   width = c(2.25, rep_len(x = 2, length.out = (ncol(table_raw)-1)) ))
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
