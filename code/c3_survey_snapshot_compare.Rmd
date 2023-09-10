@@ -256,73 +256,91 @@ nickname <- "fig-cold-pool-area"
 ## Survey Data and Specimen Collections
 
 ```{r specimen-collections}
-# Will try to automate in the future, but most of this data isn't available atm
+  # obtain data
+  load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))
+  obj1 <- obj
+  load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata")) # obj
 
-temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "0_other_field_collections.xlsx"),
-                           skip = 1) %>%
-  dplyr::filter(year == maxyr &
-                  !grepl(pattern = "crab", x = print_name)) %>%
-  dplyr::select(print_name, dplyr::starts_with("count")) %>%
-  dplyr::group_by(print_name) %>%
-  dplyr::summarise(across(dplyr::starts_with("count"), sum, na.rm = TRUE)) #%>%
-# dplyr::mutate(across(dplyr::starts_with("count"), ~ifelse(.x == 0, NA, .x)))
+  temp1 <- dplyr::bind_rows(
+    obj1$raw %>% 
+      dplyr::filter(common_name != "Total" &
+                      !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))), 
+    obj$raw %>% 
+      dplyr::filter(common_name != "Total" &
+                      !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) ) %>% 
+    dplyr::select(-SRVY) %>% 
+    dplyr::group_by(common_name) %>% 
+    dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE))) %>% 
+    dplyr::ungroup()
+  
+  # list taxpn used in each sample
+  temp3 <- c()
+  for (i in 2:ncol(temp1)) {
+    temp2 <-  temp1[, c(1, i)]
+    temp2 <- temp2[temp2[,2]>0,]
+    temp2$spp <- text_list(unique(temp2$common_name))
+    temp3 <- dplyr::bind_cols(temp3, 
+                              data.frame(temp = temp2$spp[1]) )
+    names(temp3)[i-1] <- paste0("spp_", names(temp2)[2])
+  }
+  
+  # count taxon used in each sample
+  temp1 <- temp1 %>% 
+    dplyr::select(-common_name) %>%
+    tidyr::pivot_longer(cols = names(.), names_to = "var", values_to = "val") %>% 
+    dplyr::filter(val != 0) %>% 
+    dplyr::group_by(var) %>% 
+    dplyr::summarise(n = n()) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(var = paste0("n_", var)) %>% 
+    tidyr::pivot_wider(names_from = var, values_from = n)
+  
+  temp <- dplyr::bind_rows(
+    obj$raw %>% 
+      dplyr::filter(common_name == "Total") , 
+    obj1$raw %>% 
+      dplyr::filter(common_name == "Total") ) %>%
+    # dplyr::filter(!(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) %>% 
+    dplyr::select(-SRVY, -common_name) %>%
+    dplyr::ungroup() %>% 
+    dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE)))
 
-temp1 <- data.frame(
-  samples = (temp %>% dplyr::select(dplyr::starts_with("count")) %>% names()),
-  samples_n = unlist(temp %>%
-                       dplyr::summarise(across(dplyr::starts_with("count"), sum, na.rm = TRUE))),
-  taxa_n = unlist(temp %>%
-                    dplyr::mutate(#across(dplyr::starts_with("count"), is.na),
-                      across(dplyr::starts_with("count"), ~ifelse(.x > 0, 1, 0)),
-                      # across(dplyr::starts_with("count"), as.numeric)#,
-                      across(dplyr::starts_with("count"),
-                             ~ifelse(.x == 1 & grepl(pattern = " and ", x = print_name), 2, .x))
-                    ) %>%
-                    dplyr::summarise(across(dplyr::starts_with("count"), sum, na.rm = TRUE)))) %>%
-  dplyr::filter((samples_n != 0 & taxa_n != 0)) %>%
-  dplyr::mutate(taxa_type = NA)
+  temp <- data.frame(t(temp))
+  names(temp) <- "n_samples"
+  temp$var <- rownames(temp)
+  temp1 <- data.frame(t(temp1))
+  names(temp1) <- "n_taxa"
+  temp1$var <- gsub(pattern = "n_", replacement = "", x = rownames(temp1))
+  temp3 <- data.frame(t(temp3))
+  names(temp3) <- "text_taxa"
+  temp3$var <- gsub(pattern = "spp_", replacement = "", x = rownames(temp3))
+  
+  temp0 <- dplyr::left_join(temp, temp1, by = "var") %>% 
+    dplyr::left_join(temp3, by = "var") %>% 
+    dplyr::mutate(var0 = tolower(gsub(pattern = "\n", x = var, replacement = " ")), 
+                  taxa_type = "fish") %>% 
+    dplyr::arrange(desc(n_samples))
 
-rownames(temp1) <- NULL
-
-for (i in 1:nrow(temp1)) {
-  temp1$taxa_type[i] <- ifelse(temp1$taxa_n[i] < 3,
-                               text_list(temp$print_name[temp[,names(temp) %in% temp1$samples[i]]>0]),
-                               "fish")
-}
-
-temp1 <- temp1 %>%
-  dplyr::mutate(samples = (gsub(pattern = "_", replacement = " ",
-                                x = gsub(pattern = "count_", replacement = "",
-                                         x = samples))))
-
-temp <- rbind.data.frame(
-  data.frame(samples = "age structures (otoliths)",
-             samples_n = specimen_maxyr %>%
-               dplyr::filter(specimen_sample_type ==1) %>%
-               nrow(),
-             taxa_n = specimen_maxyr %>%
-               dplyr::filter(specimen_sample_type ==1) %>%
-               dplyr::select(species_code) %>%
-               unique() %>%
-               nrow(),
-             taxa_type = "fish"),
-  temp1)
-
-insert <- text_list(
-  paste0(xunits(temp$samples_n), " ",
-         (temp$samples), " ",
-         ifelse(temp$samples_n == 1, "was", "were"),
+  temp000 <- temp0 %>%
+    dplyr::filter(var == "Length\nmeasurements")
+    
+  temp00 <- temp0 %>%s
+    dplyr::filter(var != "Length\nmeasurements")
+  
+    insert <- text_list(
+        paste0(xunits(temp00$n_samples), " ",
+         (temp00$var0), " ",
+         ifelse(temp00$n_samples == 1, "was", "were"),
          " collected from ",
-         ifelse(temp$samples_n == 1, "a", ""), # TOLEDO - what if starts with vowel???
-         ifelse(temp$taxa_n < 3, " ",
-                paste0(xunits(temp$taxa_n), " ")),
-         ifelse(is.na(temp$taxa_type), "", paste0(temp$taxa_type, "")),
-         ifelse(temp$taxa_type %in% c("fish", "crab", "invert"), " taxa", "")), sep = "; ")
+         ifelse(temp00$n_samples == 1, "a", ""), # TOLEDO - what if starts with vowel???
+         ifelse(temp00$n_taxa < 4, 
+                temp00$text_taxa,
+                paste0(xunits(temp00$n_taxa), " taxa")) ), sep = "; ")
+    
 insert <- gsub(pattern = "  ", replacement = " ", x = insert)
-
 ```
 
-From the EBS and NBS shelf trawl surveys, length measurements were collected from `r xunits(sum(lengths_maxyr$frequency[lengths_maxyr$taxon == "fish"]))` individual fish representing `r xunits(length(gsub(pattern = " (juvenile)", replacement = "", fixed = TRUE, x = unique(lengths_maxyr$common_name[lengths_maxyr$taxon == "fish"]))))` fish taxa. Additionally, `r insert `. 
+From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r insert`. 
 
 ## Estimates of Fishes and Invertebrates
 
@@ -456,7 +474,7 @@ temp3 <- temp4 %>%
 
 ```
 
-From `r compareyr` to `r maxyr `, `r text_list(paste0(xunits(temp3$fish), " ", ifelse(temp3$fish==1, "fish", "fishes")," and ", xunits(temp3$invert), " ", ifelse(temp3$fish==1, "invertebrate", "invertebrates")," experienced ", temp3$x, " CPUE"))`. Prominent fish species that exhibited no change between `r compareyr` and `r maxyr`, included `r text_list(paste0(temp4$species_name[temp4$change_cpue_case == "no notable change in" & temp4$taxon == "fish"])) ` (within ± 25% change from the previous survey year) in CPUE. `r insert` 
+From `r compareyr` to `r maxyr ` in the NBS, `r text_list(paste0(xunits(temp3$fish), " ", ifelse(temp3$fish==1, "fish", "fishes")," and ", xunits(temp3$invert), " ", ifelse(temp3$fish==1, "invertebrate", "invertebrates")," experienced ", temp3$x, " CPUE"))`. Prominent fish species that exhibited no change between `r compareyr` and `r maxyr`, included `r text_list(paste0(temp4$species_name[temp4$change_cpue_case == "no notable change in" & temp4$taxon == "fish"])) ` (within ± 25% change from the previous survey year) in CPUE. `r insert` 
 
 ```{r biomass-inc-dec1}
 # million metric tons of biomass collected in each region in each year
