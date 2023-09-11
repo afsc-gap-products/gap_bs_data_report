@@ -438,6 +438,161 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 # Results
 
+## tab-pres-length-samples
+
+```{r tab-pres-length-samples}
+
+nickname <- paste0("tab-pres-length-samples") 
+header <- paste0("Lengths collected during the ", maxyr, " ",
+                 SURVEY, 
+                 " shelf bottom trawl survey.")
+
+a<-report_spp1 %>% 
+  dplyr::select(print_name, species_code, species_name1, plot_sizecomp, order) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(include  = ifelse(is.na(plot_sizecomp) | isFALSE(plot_sizecomp), 
+                                  FALSE, TRUE)#, 
+                # plot_idw_coldwarm = ifelse(is.na(plot_idw_coldwarm) | isFALSE(plot_idw_coldwarm), 
+                #                             FALSE, TRUE)
+  ) %>% 
+  # dplyr::mutate(include = (plot_sizecomp  + plot_idw_coldwarm)>0)
+  dplyr::filter(include == TRUE) #%>% 
+# dplyr::mutate(print_name = factor(x = print_name, levels = order, labels = print_name))
+
+table_raw <- lengths_maxyr %>% # length data - from oracle
+  dplyr::select(SRVY, species_code, frequency) %>% # common_name, 
+  # dplyr::mutate(common_name = gsub(pattern = " (juvenile)", replacement = "", x = common_name, fixed = TRUE)) %>% 
+  dplyr::filter(!(species_code %in% 
+                    c(68560, 68580, 68590, 69322, 69323, 69400, 69310, 68577, 68781) )) %>% # TOLEDO - NOT DEALING WITH CRABS!!!
+  dplyr::group_by(SRVY, species_code) %>% 
+  dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
+  dplyr::ungroup() %>%
+  dplyr::left_join(
+    x = ., 
+    y = spp_info %>% dplyr::select(species_code,  common_name), 
+    by = "species_code") %>% 
+  dplyr::left_join(
+    x = .,
+    y = a %>%
+      dplyr::select(order, species_code) %>%
+      distinct(),
+    by = "species_code") %>%
+  dplyr::select(-species_code)   %>%
+  dplyr::filter(!grepl(pattern = " crab", x = common_name)) %>% 
+  dplyr::arrange(desc(length))  %>% 
+  tidyr::pivot_wider(data = ., id_cols = c("common_name", "order"), 
+                     names_from = "SRVY", values_from = "length")  %>% 
+  dplyr::ungroup()  %>%
+  dplyr::arrange(order) %>%
+  dplyr::select(-order)
+
+table_print <- 
+  rbind.data.frame(
+    # first 20
+    table_raw[1:20,],
+    # summed rest
+    table_raw[21:nrow(table_raw),] %>%
+      dplyr::mutate(common_name = paste0("other taxa (", nrow(table_raw[21:nrow(table_raw),]), ")")) %>%
+      dplyr::group_by(common_name) %>% # also type?
+      dplyr::summarise(dplyr::across(dplyr::ends_with("BS"), sum, TRUE)) %>%#, 
+      # dplyr::summarise(EBS = as.numeric(sum(EBS, na.rm = TRUE)), 
+      #                  NBS = as.numeric(sum(NBS, na.rm = TRUE))) %>%
+      dplyr::ungroup(),
+    # total
+    table_raw %>%
+      dplyr::mutate(common_name = "Total") %>%
+      dplyr::group_by(common_name) %>% # also type?
+      dplyr::summarise(dplyr::across(dplyr::ends_with("BS"), sum, TRUE)) %>%#, 
+      # NBS = as.numeric(sum(NBS, na.rm = TRUE))) %>%
+      dplyr::ungroup())  %>% 
+  dplyr::mutate(dplyr::across(dplyr::ends_with("BS"), xunits, val_under_x_words = -1))
+
+table_print[is.na(table_print)]<- "-"
+
+table_print <- flextable::flextable(table_print) %>%
+  flextable::set_header_labels(x = .,
+                               common_name = "Common name") %>%
+  flextable::valign(valign = "top") %>%
+  flextable::bold(x = ., 
+                  i = c((nrow(table_print)-1), nrow(table_print))) %>% 
+  theme_flextable_nmfstm(x = ., 
+                                      font = "Arial") 
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+## tab_pres_age_samples
+
+```{r tab_pres_age_samples}
+nickname <- paste0("tab-pres-age-samples") 
+header <- paste0("Otoliths collected during the ", maxyr, " ", 
+                 text_list(haul_cruises_maxyr$SRVY_long), 
+                 " shelf bottom trawl survey.")
+
+a<-report_spp1 %>% 
+  dplyr::select(print_name, species_code, species_name1, plot_sizecomp, order) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
+                                  FALSE, TRUE)) %>% 
+  dplyr::filter(include == TRUE) 
+
+table_raw <- specimen_maxyr %>% 
+  dplyr::filter(specimen_subsample_method %in% c(19, 6, 1) & 
+                  specimen_sample_type == 1) %>%
+  dplyr::select(SRVY, specimen_subsample_method, species_code) %>% 
+  dplyr::mutate(sample_type = dplyr::case_when(
+    specimen_subsample_method %in% c(1, 19) ~ "random-by-haul",
+    specimen_subsample_method == 6 ~ "length/region-stratified (cm/sex/southeast and northwest regions)" )) %>%
+  dplyr::left_join(x = ., 
+                   y = spp_info %>% 
+                     dplyr::select(species_code, common_name), 
+                   by = "species_code") %>% 
+  dplyr::left_join(
+    x = .,
+    y = a %>%
+      dplyr::select(order, species_code) %>%
+      distinct(),
+    by = "species_code") %>%
+  
+  dplyr::group_by(sample_type, common_name, SRVY, order) %>% 
+  dplyr::summarise(ages = n()) %>% 
+  tidyr::pivot_wider(id_cols = c("sample_type", "common_name", "order"), 
+                     values_from = "ages", 
+                     names_from = "SRVY") %>%
+  dplyr::arrange(order) %>%
+  dplyr::select(-order) %>%
+  dplyr::arrange(sample_type) %>% 
+  dplyr::mutate(dplyr::across(dplyr::ends_with("BS"), as.numeric)) %>%
+  # dplyr::mutate_at('EBS', as.numeric) %>% 
+  # dplyr::mutate_at('NBS', as.numeric) %>% 
+  dplyr::relocate(sample_type) %>% 
+  dplyr::rename("Common name" = "common_name")
+
+
+table_print <- table_raw %>%
+  dplyr::ungroup()  %>% 
+  dplyr::mutate(dplyr::across(dplyr::ends_with("BS"), 
+                              xunits, val_under_x_words = -1))
+
+# dplyr::mutate(EBS = xunits(EBS, val_under_x_words = -1), 
+#               NBS = xunits(NBS, val_under_x_words = -1))
+table_print[is.na(table_print)] <- "-"
+
+
+table_print <- table_print %>% 
+  flextable::as_grouped_data(x = ., groups = c("sample_type")) %>% 
+  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+  flextable::bold(x = ., j = 1, i = ~ !is.na(sample_type) ) %>%
+  theme_flextable_nmfstm(x = ., 
+                                      font = "Arial")  %>%
+  flextable::padding(x = ., 
+                     j = 1, i = ~ is.na(sample_type), 
+                     padding.left = 20)
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+
 ## fig-mean-temperature
 
 ```{r fig-mean-temperature}
@@ -473,9 +628,9 @@ figure <- plot_coldpool_area(coldpool_ebs_bin_area = coldpool_ebs_bin_area, maxy
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## fig-temperature-[SRVY]-[st/bt]
+## fig-temperature-[st/bt]
 
-```{r fig-temperature-[SRVY]-[st/bt]}
+```{r fig-temperature-[st/bt]}
 height <- full_page_portrait_height
 width <- full_page_portrait_width
 yrs0 <- (maxyr-17):maxyr
@@ -504,8 +659,7 @@ for (case in c("bottom", "surface")) {
     
     header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
                      range_text(yrs), " ", 
-                     ifelse(SRVY == "NEBS", "eastern and northern Bering Sea", "eastern Bering Sea"),
-                     " shelf bottom trawl survey",
+                     SURVEY, " shelf bottom trawl survey",
                      ifelse(SRVY=="NEBS", "s", ""),
                      ". Years in which the mean ", case, 
                      " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
@@ -538,6 +692,66 @@ for (case in c("bottom", "surface")) {
     
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   }
+}
+```
+
+
+## fig-pres-temperature-[bt/st]
+
+```{r fig-pres-temperature-[bt/st]}
+nickname <- "fig-pres-temperature-"
+height <- 5
+width <- full_page_portrait_width
+yrs <- nbsyr
+row0 <- 1
+reg_dat0 <- report_types$NEBS$reg_dat
+
+for (case in c("bottom", "surface")) {
+    
+    if (case == "surface") {
+      raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
+      raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
+      colorbar_breaks <- c(-Inf, seq(0, 10, 2), Inf)
+    } else if (case == "bottom") {
+      raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
+      raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
+      # colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
+      colorbar_breaks <- c(-Inf, seq(-2, 8, 2), Inf)
+    }
+    
+    header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
+                     range_text(yrs), " ", 
+                     SURVEY, " shelf bottom trawl survey",
+                     ifelse(SRVY=="NEBS", "s", ""),
+                     ". Years in which the mean ", case, 
+                     " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
+                     " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
+    
+    nickname <- paste0("fig-pres-temperature-", ifelse(case=="bottom", "bt", "st"))
+    
+    # Create figure
+    key.title = ifelse(case == "bottom", 
+                       expression(bold("Bottom temperature (°C)")), 
+                       expression(bold("Surface temperature (°C)")))
+    reg_dat = reg_dat0
+    title0 = paste0(toupper(substr(x = SURVEY, start = 1, stop = 1)), 
+                    substr(x = SURVEY, start = 2, stop = nchar(SURVEY)), " ", case, " temperature") 
+    
+      yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
+
+    figure <- plot_temperature_facet(
+      raster_nebs = raster_nebs, 
+      raster_ebs = raster_ebs, 
+      colorbar_breaks = colorbar_breaks, 
+      yrs = yrs, 
+      yrs_nbs = yrs_nbs, 
+      key.title = key.title, 
+      reg_dat = reg_dat0, 
+      row0 = row0, 
+      title0 = title0, 
+      temperature_zscore = TRUE) 
+    
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
