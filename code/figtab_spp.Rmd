@@ -17,7 +17,7 @@ spp_sci1 <- a$species_name1[1]
 spp_code <- a$species_code
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
-spp_taxon <- a$taxon[1]
+# spp_taxon <- a$taxon[1]
 
 # report_title == "community"
 dataTcommF <- FALSE
@@ -36,8 +36,9 @@ if (report_title == "data") {
 }
 ```
 
-## fig-[spp]
-```{r fig-[spp], eval = (report_title == "pres)}
+## fig-[spp]-0-pres
+
+```{r fig-spp, eval = (report_title == "pres")}
 header <- spp_file
 nickname <- paste0("fig-", spp_file, "-0-pres")
 height <- width <- 5
@@ -208,7 +209,7 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
 ```{r fig-dist-[taxon]-[spp], eval = (spp_plot_idw | spp_plot_pa)}
   width <- full_page_portrait_width # 6.5  
   case_yr0 <- 1
-  nickname <- paste0("fig-dist-", spp_taxon, "-", spp_file)
+  nickname <- paste0("fig-dist-", spp_file)
   if (report_title == "data") {
     yrs <- nbsyr # c(compareyr, maxyr)
     # height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
@@ -425,7 +426,7 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
 
 ```{r fig-sizecomp-[taxon]-[spp], eval = spp_plot_sizecomp}
   width <- full_page_portrait_width # 6.5  
-  nickname <- paste0("fig-sizecomp-", spp_taxon, "-", spp_file, ifelse(report_title == "pres", "-pres",))
+  nickname <- paste0("fig-sizecomp-", spp_file)
   
   if (report_title == "data") {
     yrs <- nbsyr # c(compareyr, maxyr)
@@ -444,9 +445,7 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
     print_n <- FALSE
     height <- full_page_portrait_height
     SRVY11 <- SRVY1 # "NBS"
-    # nickname <- paste0(nickname, "-pres")
     nickname <- paste0("fig-", spp_file, "-4sizecomp-pres")
-
   }
   
   lengths0 <- lengths %>%
@@ -565,7 +564,7 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
 
 ```{r tab-env-[taxon]-[spp], eval = (report_title == "community")}
 
-nickname <- paste0("tab-env-", spp_taxon, "-", spp_file)
+nickname <- paste0("tab-env-", spp_file)
 
 haul0 <- catch_haul_cruises %>% 
   dplyr::select("station", "stratum", "latitude_dd_start", "longitude_dd_start", 
@@ -695,7 +694,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r tab-bio-[taxon]-[spp]}
 
-nickname <- paste0("tab-bio-", spp_taxon, "-", spp_file)
+nickname <- paste0("tab-bio-", spp_file)
 
 header <- header2 <- paste0("Summary biomass (t) and population ", spp_print, " (", spp_sci, ") estimates from the ", SURVEY, " survey area", plural_surveys,". ")
 
@@ -773,7 +772,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r tab-summary-[taxon]-[spp], eval = FALSE}
 
-nickname0 <- paste0("tab-summary-", spp_taxon, "-", spp_file)
+nickname0 <- paste0("tab-summary-", spp_file)
 
 width <- full_page_portrait_width # 6.5  
 height <- 4
@@ -806,7 +805,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-est-[taxon]-[spp]-[wt or num], eval = dataTcommF}
 if (spp_table_cpue) {
   
-  nickname0 <- paste0("tab-est-", spp_taxon, "-", spp_file, "-") 
+  nickname0 <- paste0("tab-est-", spp_file, "-") 
   
   temp <- biomass %>% 
     dplyr::filter(year == maxyr &
