@@ -685,7 +685,7 @@ table_print <- table_print1 %>%
   flextable::bg(j = 1, bg = "white", part = "all") %>% 
   flextable::width(j = 1:ncol(table_print1), 
                    width = c(ifelse(length(stat$SRVY)==2, 2, 3), 
-                             1.5, rep_len(x = 1.25, length.out = (ncol(table_raw)-1)) ))
+                             1.75, rep_len(x = 1.25, length.out = (ncol(table_raw)-1)) ))
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -716,30 +716,49 @@ temp_bio <- dplyr::left_join(
 table_raw <- data.frame()
 for (i in 1:nrow(temp_bio)) {
   
+  compareyr0 <- ifelse(temp_bio$year[i] == min(yrs), min(yrs), min(yrs[yrs < temp_bio$year[i]]))
+  srvy0 <- temp_bio$SRVY[i]
+  temp_bio0 <- ifelse(temp_bio$year[i] == min(yrs), NA, temp_bio$biomass_mt[temp_bio$SRVY == srvy0 & temp_bio$year == compareyr0])
+  
   table_raw  <- dplyr::bind_rows(
     table_raw, 
     c(
       SRVY = temp_bio$SRVY[i], 
       year = temp_bio$year[i], 
-      "Population\n" = xunits(sum(temp_bio$population_count[i], na.rm = TRUE), 
-                              val_under_x_words = NULL), 
-      "Biomass (t)\n" = paste0(xunits(sum(temp_bio$biomass_mt [i], na.rm = TRUE), 
-                                      val_under_x_words = NULL), " t"), 
-      "Biomass\n% of Total" = 
-        paste0(formatC(x = (temp_bio$biomass_mt [i]/temp_bio$total[i])*100, 
-                       digits = 1, format = "f", big.mark = ","), "%"), 
-      "Biomass\n% Change" = ifelse((temp_bio$year[i] == maxyr), "", 
-                                   sub(replacement = "", pattern = "an ", 
-                                       x = gsub(pattern = "a ", replacement = "", 
-                                                x = pchange(
-                                                  start = temp_bio$biomass_mt [i], 
-                                                  end = temp_bio$biomass_mt[temp_bio$year == (yrs[yrs < temp_bio$year[i]])])))))
+      "Population\n" = ifelse(is.na(temp_bio$population_count[i]), 
+                              "-", 
+                              xunits(temp_bio$population_count[i])), 
+      "Biomass (t)\n" = ifelse(is.na(temp_bio$biomass_mt[i]), 
+                              "-", 
+                              paste0(xunits(temp_bio$biomass_mt [i], 
+                                      val_under_x_words = NULL), " t")), 
+       "Biomass\n% of Total" = dplyr::case_when(
+         is.na(temp_bio$biomass_mt[i]) ~ "-", 
+         paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
+                       digits = 1, format = "f", big.mark = ","), "%") == "0.0%" ~ "<0.01%", 
+         TRUE ~ paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
+                       digits = 1, format = "f", big.mark = ","), "%") ), 
+      "Biomass\n% Change" = dplyr::case_when(
+        temp_bio$year[i] == maxyr ~ "-", 
+        temp_bio$year[i] == min(yrs) ~ "-",
+        is.na(temp_bio$biomass_mt[i]) ~ "-", #paste0("none caught in ", temp_bio$year[i]), 
+        is.na(temp_bio0) ~ "-", #paste0("none caught in ", compareyr0), 
+        abs(pchange(start = temp_bio$biomass_mt[i], end = temp_bio0, value_only = TRUE)) < 1 ~ "no change",
+        TRUE ~ sub(replacement = "", pattern = "an ", 
+                   x = gsub(pattern = "a ", replacement = "", 
+                            x = pchange(start = temp_bio$biomass_mt[i], 
+                                        end = temp_bio0))) ) )
   )
 }
 
 table_raw <- table_raw %>% 
   dplyr::filter(year != min(year)) %>% 
-  dplyr::arrange(SRVY, desc(year))
+  dplyr::arrange(SRVY, desc(year)) 
+
+if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
+  table_raw <- table_raw %>% 
+    dplyr::select(-`Biomass\n% of Total`)
+}
 
 table_print <- table_print2 <- table_raw %>% 
   dplyr::arrange(SRVY) %>%
@@ -755,6 +774,9 @@ table_print <- table_print2 <- table_raw %>%
                 j = "Biomass\n% Change") %>% 
   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "decrease"), 
                 bg = negative, 
+                j = "Biomass\n% Change")  %>%
+  flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "no change"), 
+                bg = neutral, 
                 j = "Biomass\n% Change")  %>%
   theme_flextable_nmfstm(row_lines = FALSE, 
                          font = font0, 

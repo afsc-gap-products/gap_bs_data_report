@@ -1716,14 +1716,14 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 nickname <- "tab-biomass-pchange-pres"
 header <- paste0("Biomass and abundance change for major species in ", 
-                 maxyr, " and ", compareyr," ", 
-                 text_list(haul_cruises_maxyr$SRVY_long), 
+                 maxyr, " and ", compareyr," ", SURVEY, 
                  " shelf bottom trawl survey.")
 
 a <- report_spp1 %>% 
-  dplyr::select(print_name, species_code, species_name1, plot_sizecomp, order) %>% 
+  dplyr::select(print_name, species_code, plot_sizecomp, order) %>% 
   dplyr::distinct() %>% 
-  dplyr::mutate(include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
+  dplyr::mutate(species_code1 = species_code, 
+                include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
                                   FALSE, TRUE) ) %>% 
   dplyr::filter(include == TRUE &
                   !(print_name %in% c("snailfishes", "jellyfish", "sea urchins", "sea peach")))
