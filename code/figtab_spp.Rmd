@@ -36,6 +36,25 @@ if (report_title == "data") {
 }
 ```
 
+## fig-[spp]
+```{r fig-[spp], eval = (report_title == "pres)}
+header <- paste0("Image of the  ", 
+                 maxyr ," ", SURVEY ," bottom trawl survey", 
+                 ifelse(length(SRVY1)>1, "s", ""), ".")
+footnote <- NA
+nickname <- "fig-trawl-gear"
+alttext <- paste0(header)
+height = 8
+width <- full_page_portrait_width
+
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
+  
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+
 ## fig-dist-[taxon]-[spp]
 
 ```{r dist_funct} 
@@ -191,16 +210,15 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
 ```
 
 
-```{r fig-dist-[taxon]-[spp]}
+```{r fig-dist-[taxon]-[spp], eval = (spp_plot_idw | spp_plot_pa)}
 
-if (spp_plot_idw | spp_plot_pa) {
-  
   width <- full_page_portrait_width # 6.5  
   case_yr0 <- 1
   nickname <- paste0("fig-dist-", spp_taxon, "-", spp_file)
   if (report_title == "data") {
-    yrs <- c(compareyr, maxyr)
-    height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
+    yrs <- nbsyr # c(compareyr, maxyr)
+    # height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
+    height <- full_page_portrait_height-1
     row0 <- 1
     nickname <- paste0(nickname, "-data")
   } else if (report_title == "community") {
@@ -208,6 +226,11 @@ if (spp_plot_idw | spp_plot_pa) {
     height <- full_page_portrait_height-1
     row0 <- 2
     nickname <- paste0(nickname, "-comm")
+  } else if (report_title == "pres") {
+    yrs <- nbsyr
+    height <- 5
+    row0 <- 1
+    nickname <- paste0(nickname, "-pres")
   } 
   
   if (spp_plot_idw) {
@@ -289,7 +312,7 @@ if (spp_plot_idw | spp_plot_pa) {
       stars0 <- stars::st_redimension(a$extrapolation.stack) 
       viridis_palette_option <- "mako"
       key.title <- paste0(stringr::str_to_sentence(spp_print), "\nWeight CPUE (kg/km2)")
-      legend_srvy_reg <- TRUE
+      # legend_srvy_reg <- FALSE
       
       figure <- ggplot() +
         ggplot2::geom_sf(data = reg_dat$akland,
@@ -341,13 +364,14 @@ if (spp_plot_idw | spp_plot_pa) {
             override.aes = list(color = NA),
             nrow = 1),
           color = guide_legend(
-            order = 2, 
+            order = 2,
             label.position = "right",
             override.aes = list(
-              fill = reg_dat$survey.area$color, 
-              color = reg_dat$survey.area$color), 
+              fill = reg_dat$survey.area$color,
+              color = reg_dat$survey.area$color),
             title.hjust = 0.5,
-            nrow = 2))  +
+            nrow = 2)
+          )  +
         #set legend position and vertical arrangement
         ggplot2::theme( 
           panel.background = element_rect(fill = "white", 
@@ -401,19 +425,17 @@ if (spp_plot_idw | spp_plot_pa) {
     
     res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   }
-}
 ```
 
 ## fig-sizecomp-[taxon]-[spp]
 
-```{r fig-sizecomp-[taxon]-[spp], eval = FALSE}
-if (spp_plot_sizecomp) {
+```{r fig-sizecomp-[taxon]-[spp], eval = spp_plot_sizecomp}
   
   width <- full_page_portrait_width # 6.5  
-  nickname <- paste0("fig-sizecomp-", spp_taxon, "-", spp_file)
+  nickname <- paste0("fig-sizecomp-", spp_taxon, "-", spp_file, ifelse(report_title == "pres", "-pres",))
   
   if (report_title == "data") {
-    yrs <- c(compareyr, maxyr)
+    yrs <- nbsyr # c(compareyr, maxyr)
     height <- ifelse(SRVY == "NEBS", full_page_portrait_height-1, 3.25) 
     print_n <- FALSE
     SRVY11 <- SRVY1
@@ -424,6 +446,12 @@ if (spp_plot_sizecomp) {
     print_n <- TRUE
     SRVY11 <-"NBS"
     nickname <- paste0(nickname, "-comm")
+  } else if (report_title == "pres") {
+    yrs <- unique(sizecomp$year)
+    print_n <- FALSE
+    height <- full_page_portrait_height
+    SRVY11 <- SRVY1 # "NBS"
+    nickname <- paste0(nickname, "-pres")
   }
   
   lengths0 <- lengths %>%
@@ -490,27 +518,52 @@ if (spp_plot_sizecomp) {
                    ifelse(print_n, 
                           "Total number of individuals measured during the survey is indicated in the upper right corner of each plot.", ""))
   
+  if (report_title == "pres") {
+  figure1 <- plot_sizecomp(
+    sizecomp0 = table_raw %>% 
+      dplyr::filter(SRVY == "EBS"),
+    lengths0 = lengths0,
+    spp_code = spp_code,
+    spp_print = stringr::str_to_sentence(spp_print),
+    type = type,
+    print_n = print_n, 
+    ridgeline = TRUE)
+    
+  figure2 <- plot_sizecomp(
+    sizecomp0 = table_raw %>% 
+      dplyr::filter(SRVY == "NBS"),
+    lengths0 = lengths0,
+    spp_code = spp_code,
+    spp_print = stringr::str_to_sentence(spp_print),
+    type = type,
+    print_n = print_n, 
+    ridgeline = FALSE)
+  
+  figure <- cowplot::plot_grid(figure1, figure2)
+
+  } else {
+  
   figure <- plot_sizecomp(
     sizecomp0 = table_raw,
     lengths0 = lengths0,
     spp_code = spp_code,
     spp_print = stringr::str_to_sentence(spp_print),
     type = type,
-    print_n = print_n)
+    print_n = print_n, 
+    ridgeline = FALSE)
+  }
   
-  # if (!(pres_img) & report_title == "community") {
-  #   
-  #   figure <-
-  #     cowplot::ggdraw(figure) +
-  #     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-  #                         x = 0.07, y = -.42,
-  #                         hjust = 0, vjust = 0,
-  #                         width = .18)
-  # }
+# if (!(pres_img)) { #  & report_title == "community"
+# 
+#   figure <-
+#     cowplot::ggdraw(figure) +
+#     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+#                         x = 0.07, y = -.42,
+#                         hjust = 0, vjust = 0,
+#                         width = .18)
+# }
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  
-}
 ```
 
 ## tab-env-[taxon]-[spp]
@@ -638,7 +691,7 @@ table_print <- table_print1 %>%
   flextable::bg(j = 1, bg = "white", part = "all") %>% 
   flextable::width(j = 1:ncol(table_print1), 
                    width = c(ifelse(length(stat$SRVY)==2, 2, 3), 
-                             1.25, rep_len(x = 1.5, length.out = (ncol(table_raw)-1)) ))
+                             1.5, rep_len(x = 1.25, length.out = (ncol(table_raw)-1)) ))
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1011,19 +1064,16 @@ if (spp_table_cpue) {
 }
 ```
 
+## fig-[spp]-[bio/pop]-pres prep
 
-## fig-pres-[spp]
-
-```{r fig-pres-[spp], eval = FALSE}
-nickname0 <- paste0("fig-pres-",spp_file)
-
+```{r fig-[spp]-[bio/pop]-pres, eval = (report_title == "pres")}
 table_raw0 <- biomass %>%
   dplyr::filter(stratum == 999 & species_code %in% spp_code) %>% 
   dplyr::select(SRVY, year, species_code, taxon, 
                 # upperb, lowerb, 
                 biomass_var, biomass_mt, 
                 # upperp, lowerp, 
-                population_sd, population_count) %>% 
+                population_var, population_count) %>% 
   dplyr::left_join(x = . , 
                    y = haul_cruises_maxyr %>% 
                      dplyr::select(SRVY, SRVY_long),
@@ -1059,7 +1109,15 @@ if (length(unique(table_raw0$species_code)) > 1) {
   
 }
 
-temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = TRUE, mean_in_legend = FALSE) {
+temp00 <- function(table_raw, 
+                   yrs, 
+                   maxyr, 
+                   compareyr, 
+                   unit, 
+                   unt, 
+                   y_long, 
+                   legend_combined = TRUE, 
+                   mean_in_legend = FALSE) {
   
   pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
   
@@ -1149,7 +1207,7 @@ temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_c
                             unit = unit,
                             unt = unt,
                             y_long = y_long,
-                            error_bar = ifelse(length(spp_code)>1, FALSE, TRUE),
+                            error_bar = FALSE, # ifelse(length(spp_code)>1, FALSE, TRUE),
                             spp_print = spp_print, 
                             mean_in_legend = mean_in_legend)
   
@@ -1184,9 +1242,7 @@ temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_c
               rep_len(x = b$col[i], length.out = (length(text00)-2)),
               ifelse(grepl(pattern = "-", 
                            x = unlist(b0[grep(pattern = paste0("_", maxyr), x = names(b))])), 
-                     "red", 
-                     "#006400"# "green"
-              ), b$col[i])
+                     negative, positive), b$col[i])
     
     if (mean_in_legend) {
           text00 <- text00[-2]
@@ -1194,9 +1250,7 @@ temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_c
     }
     text0 <- c(text0, text00)
     col0 <- c(col0, col00)
-    
   }
-  
   
   descr <- ggdraw() + draw_text(text = text0, 
                                 fontface = # c('bold', "plain", "plain", "plain"), 
@@ -1224,396 +1278,58 @@ temp00 <- function(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_c
   }
   
   legend0 <- ggpubr::get_legend(figure0)
-  
-      res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-}
 
-
+  return(list("header" = header,
+              "figure" = figure, 
+              "a" = a, 
+              "legend0" = legend0))
+  }
 ```
 
-## fig-pres-biomass
+## fig-[spp]-biomass-pres
 
-```{r, fig-pres-biomass, eval = FALSE}
-
+```{r, fig-[spp]-biomass-pres, eval = (report_title == "pres")}
 y_long <- "Biomass"
 unit = "metric tons"
 unt = "t"
-
 height <- 4
-nickname <- paste0("fig-pres-biomass-", spp_file)
+nickname <- paste0("fig-", spp_file, "-biomass-pres")
 
 table_raw <- table_raw0 %>%
-  dplyr::rename(y = biomass, 
-                lower = lowerb, 
-                upper = upperb, 
-                var = biomass_var)
+  dplyr::rename(y = "biomass_mt", 
+                # lower = lowerb, 
+                # upper = upperb, 
+                var = "biomass_var")
 
 a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, mean_in_legend = TRUE)
 header <- a$header
 figure <- a$figure
-figure_bio <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
+# figure_bio <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 
 ```
 
-## tab-pres-[spp]-biomass
+## fig-population-[spp]-pres
 
-```{r tab-pres-[spp]-biomass, eval = FALSE}
-
-nickname0 <- paste0("tab-pres-", spp_file, "-biomass")
-
-table_raw <- a$a$table_raw
-table_print <- a$a$table_print
-header <- ""
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-## fig-pres-[spp]-population
-
-```{r, fig_pres_abundance_, eval = FALSE}
-y_long <- "Abundance"
+```{r, fig-population-[spp]-pres, eval = (report_title == "pres")}
+y_long <- "Population"
 unit = "individuals"
 unt = ""
-
 height <- 4
-width <- width0
-nickname0 <- paste0("tab-pres-", spp_file, "-population")
+nickname <- paste0("fig-", spp_file, "-population-pres")
 
 table_raw <- table_raw0 %>%
-  dplyr::rename(y = population, 
-                lower = lowerp, 
-                upper = upperp, 
-                var = cpue_nokm2_var)
+  dplyr::rename(y = population_count, 
+                # lower = lowerp, 
+                # upper = upperp, 
+                var = population_var)
 
 a <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, mean_in_legend = TRUE)
 header <- a$header
 figure <- a$figure
-figure_abund <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-
-```
-
-# fig-pres-[spp]-biomass-population
-
-```{r fig_pres_biomass_abundance_, eval = FALSE}
-height <- height0
-width <- width0
-nickname0 <- paste0("tab-pres-", spp_file, "-biomass-population")
-
-header <- ""
-
-figure <- cowplot::plot_grid(figure_bio$figure, 
-                             figure_abund$figure, 
-                             figure_abund$legend0, 
-                             nrow = 3, 
-                             rel_heights = c(0.45, 0.45, 0.1))
+# figure_abund <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
-
-## fig-pres-[spp]-sizecomp
-
-```{r vars1, eval = FALSE}
-a <- report_spp1[report_spp1$file_name == unique(report_spp1$file_name)[jj], ]
-spp_code <- unique(a$species_code) # eval(expr = parse(text = a$species_code[1]))
-```
-
-
-```{r fig-pres-[spp]-sizecomp, eval = FALSE}
-# , eval = spp_plot_sizecomp
-  height <- height0
-  width <- width0
-  header <- ""
-  nickname <- paste0("fig-pres-",spp_file,"-sizecomp")
-  
-  length_data0 <- length_data %>%
-    dplyr::filter(species_code %in% spp_code) %>% 
-    dplyr::select(SRVY, species_code, frequency, sex, length,
-                  length_type, length_type, name, year, 
-                  sentancefrag) %>%
-    dplyr::filter(species_code %in% spp_code)
-  
-  sizecomp0 <- sizecomp %>% 
-    dplyr::left_join(x = ., 
-                     y = report_spp1 %>% 
-                       dplyr::select(print_name, species_code, species_name1), 
-                     by = "species_code") %>% 
-    dplyr::filter(print_name == spp_print) %>% 
-    dplyr::left_join(x = . , 
-                     y = haul_cruises_maxyr %>% 
-                       dplyr::select(SRVY, SRVY_long),
-                     by = "SRVY") %>% 
-    dplyr::filter(species_code %in% spp_code &
-                    SRVY %in% SRVY11 &
-                    year %in% yrs) %>% 
-    dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long), 
-                  sex = str_to_sentence(sex), 
-                  sex = factor(sex, 
-                               levels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"), 
-                               labels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"),
-                               ordered = TRUE)) %>% 
-    dplyr::arrange(sex)
-  
-  header <- paste0("Total abundance-at-length estimates of ",
-                   spp_print, ifelse(is.na(spp_sci), "", 
-                                     paste0(" (",spp_sci,")")), 
-                   ifelse(SRVY %in% c("NEBS", "NBS"), 
-                          paste0(" by sex (",text_list(tolower(unique(sizecomp0$sex))), ")"), 
-                          ""), 
-                   " observed during the ",
-                   text_list(unique(sizecomp0$SRVY)), 
-                   " shelf bottom trawl survey", 
-                   ifelse(length(unique(sizecomp0$SRVY))==1 & length(unique(sizecomp0$year))==1, "", "s"),
-                   ".")
-  
-  if (nrow(sizecomp0) != 0) {
-    
-    # get size unit/type
-    if (tolower(spp_print) %in% c("red king crab", "blue king crab")) {
-      type <- "carapace lengths"
-    } else   if (tolower(spp_print) %in% c("snow crab")) {
-      type <- "carapace widths"
-    } else {
-      type <- unique(length_data0$sentancefrag)
-    }
-    
-    if (sum(length_data0$SRVY == "NBS")>0) {
-      length_data_nbs <- length_data0 %>%
-        dplyr::filter(SRVY %in% "NBS" & 
-                        year %in% yrs)
-      
-      table_raw <- sizecomp_nbs <- sizecomp0 %>% 
-        dplyr::filter(SRVY %in% "NBS" & 
-                        year %in% yrs)  
-      
-      figure_nbs_sizecomp <- figure1 <- plot_sizecomp(
-        sizecomp0 = table_raw,
-        length_data0 = length_data_nbs, 
-        spp_code = spp_code,
-        spp_print = paste0("NBS ", spp_print), 
-        type = type, 
-        print_n = FALSE)
-    }
-    
-    if (sum(sizecomp0$SRVY == "EBS")>0) {
-      length_data_ebs <- length_data0 %>%
-        dplyr::filter(SRVY %in% "EBS")
-      
-      table_raw <- sizecomp_ebs <- sizecomp0 %>% 
-        dplyr::filter(SRVY %in% "EBS") 
-      
-      figure_ebs_sizecomp <- figure2 <- plot_sizecomp(
-        sizecomp0 = table_raw,
-        length_data0 = length_data_ebs, 
-        spp_code = spp_code,
-        spp_print = paste0("EBS ", spp_print), 
-        type = type, 
-        print_n = FALSE, 
-        ridgeline = TRUE)
-    }
-    
-    
-    
-    if (sum(sizecomp0$SRVY == "EBS")>0 & 
-        sum(sizecomp0$SRVY == "NBS")>0) {
-      figure <- cowplot::plot_grid(figure1, figure2, nrow = 1)
-    } else if (sum(sizecomp0$SRVY == "EBS")>0) {
-      figure <- figure2
-    } else if (sum(sizecomp0$SRVY == "NBS")>0) {
-      figure <- figure1
-    }
-    
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  }
-```
-
-## fig_pres_dist_cpue_[spp]
-
-```{r fig_pres_dist_[spp], eval = spp_plot_sizecomp}
-# , eval = (spp_plot_idw | spp_plot_pa)
-  nickname <- paste0("fig-pres-", spp_file, "_", 
-                     ifelse(spp_plot_pa, "presence", "distribution"))
-  
-  height <- 3.5
-
-  if (spp_plot_idw) {
-    
-    table_raw <- cpue %>%
-      dplyr::filter(!is.na(cpue_kgha) & 
-                      cpue_kgha != 0 & 
-                      species_code %in% spp_code & 
-                      year %in% yrs) %>% 
-      dplyr::arrange(desc(year))
-    
-    spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
-    spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
-  } 
-  
-  
-  if (spp_plot_pa) {
-    
-    table_raw <- catch_haul_cruises %>%
-      dplyr::filter(!is.na(number_fish) & 
-                      number_fish != 0 & 
-                      species_code %in% spp_code & 
-                      year %in% yrs) %>% 
-      dplyr::arrange(desc(year))
-    
-  }
-  
-  # only if both species re only found in prt of the region, chnge the extrp.box
-  map.area0 <- map.area
-  reg_dat0 <- reg_dat
-  if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
-    map.area0 <- ifelse(unique(table_raw$SRVY) == "EBS", "bs.south", "bs.north")
-    reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
-    survey_reg_col <- gray.colors(length(unique(reg_dat0$survey.area$SURVEY))+2)
-    survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
-    reg_dat0$survey.area <- reg_dat0$survey.area %>%
-      dplyr::mutate(
-        SRVY = dplyr::case_when(
-          SURVEY == "EBS_SHELF" ~ "EBS", 
-          SURVEY == "NBS_SHELF" ~ "NBS"), 
-        color = alpha(colour = survey_reg_col, 0.7), 
-        SRVY_long = dplyr::case_when(
-          SRVY == "EBS" ~ "Eastern Bering Sea", 
-          SRVY == "NBS" ~ "Northern Bering Sea"))
-    height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF", 4.25, 3.5)
-  }
-  
-  if (spp_plot_idw) {
-    
-    header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
-                     " distribution (weight CPUE (kg/ha)) from the ",
-                     compareyr," (left) and ",maxyr,
-                     " (right) ", text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
-                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),".")
-    set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgha")
-    
-    table_raw <- dplyr::left_join(
-      x = cpue %>%
-        dplyr::filter(year %in% yrs & 
-                        SRVY %in% SRVY1) %>%
-        dplyr::select(year, SRVY, stratum, stationid, latitude, longitude) %>% 
-        dplyr::distinct(), 
-      y = table_raw, 
-      by  = c("year", "SRVY", "stratum", "stationid", "latitude", "longitude")) %>% 
-      dplyr::mutate(cpue_kgha = ifelse(is.na(cpue_kgha), 0, cpue_kgha))
-    
-    figure <- plot_idw_xbyx(
-      yrs = yrs,
-      dat = table_raw, 
-      lat = "latitude",
-      lon = "longitude",
-      var = "cpue_kgha",
-      year = "year",
-      grid = "extrapolation.grid",
-      reg_dat = reg_dat0, 
-      region = map.area0, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), "\nweight CPUE (kg/ha)"),
-      set.breaks = set.breaks,
-      row0 = 1)
-    
-  } else if (spp_plot_pa) {
-    header <- paste0(stringr::str_to_sentence(spp_print), ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
-                     " presence from the ",
-                     compareyr," (left) and ",maxyr,
-                     " (right) ", text_list(unique(table_raw$SRVY)),  " shelf bottom trawl survey", 
-                     ifelse(length(unique(table_raw$SRVY))>1, "s", ""),
-                     ". This species has not been caught in enough quantity or at enough stations to adequately characterize a distribution.")
-    
-    
-    table_raw <- catch_haul_cruises %>% 
-      dplyr::select(SRVY, year, start_latitude, start_longitude, number_fish, species_code) %>% 
-      dplyr::rename(latitude = start_latitude, 
-                    longitude = start_longitude) %>% 
-      dplyr::filter(!is.na(number_fish) &
-                      number_fish != 0 &
-                      species_code == spp_code & 
-                      year %in% yrs &
-                      SRVY %in% unique(table_raw$SRVY))
-    
-    figure <- plot_pa_xbyx(
-      yrs = yrs,
-      dat = table_raw,
-      lat = "latitude",
-      lon = "longitude",
-      year = "year",
-      reg_dat = reg_dat0, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
-      row0 = 1)
-    
-  }
-  
-  height0 <- height
-  width0 <- width
-  nickname0 <- nickname
-  table_raw0 <- table_raw
-  header0 <- header
-  set.breaks0 <- set.breaks
-  
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-# fig-pres-sizecomp-dist-[spp]
-
-```{r fig-pres-sizecomp-dist-[spp], eval = FALSE}
-nickname <- paste0("fig-pres-sizecomp-dist", spp_file)
-height <- 6
-table_raw <- table_raw0
-header <- paste0(header0, " A yellow outline of the cold pool is featured for reference. ")
-yrs0 <- yrs[yrs %in% unique(table_raw$year)]
-set.breaks <- set.breaks0
-
-if (spp_plot_idw) {
-  
-  figure1 <- plot_idw_xbyx(
-    yrs = maxyr,
-    dat = table_raw, 
-    lat = "latitude",
-    lon = "longitude",
-    var = "cpue_kgha",
-    year = "year",
-    grid = "extrapolation.grid",
-    reg_dat = reg_dat0, 
-    region = map.area0, 
-    key.title = paste0(stringr::str_to_sentence(spp_print), "\nweight CPUE (kg/ha)"),
-    set.breaks = set.breaks,
-    row0 = 1, 
-    legend_srvy_reg = FALSE) 
-  
-} else if (spp_plot_pa) {
-  
-  figure1 <- plot_pa_xbyx(
-    yrs = maxyr,
-    dat = table_raw,
-    lat = "latitude",
-    lon = "longitude",
-    year = "year",
-    reg_dat = reg_dat0, 
-    key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
-    row0 = 1)
-  
-}
-
-if  (sum(length_data0$SRVY == "NBS")>0 & report_title == "community" & spp_plot_sizecomp) {
-  figure <- cowplot::plot_grid(figure_nbs_sizecomp, 
-                               figure1, 
-                               nrow = 1, 
-                               rel_widths = c(0.4, 0.6))
-} else if (sum(length_data0$SRVY == "EBS")>0 & report_title == "data" & spp_plot_sizecomp) { 
-  figure <- cowplot::plot_grid(figure_ebs_sizecomp, 
-                               figure1, 
-                               nrow = 1, 
-                               rel_widths = c(0.4, 0.6))
-} else {
-  figure <- figure1
-}
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
 

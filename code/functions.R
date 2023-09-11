@@ -2787,17 +2787,17 @@ plot_sizecomp <- function(sizecomp0,
   } else {
     table_raw1 <- table_raw %>% 
       dplyr::ungroup() %>% 
-      dplyr::group_by(year, 
-                      length_mm) %>% 
+      dplyr::group_by(year, length_mm, SRVY) %>% 
       dplyr::summarise(population_count = sum(population_count, na.rm = TRUE))
     
-    temp <- setdiff(min(as.numeric(paste(table_raw1$year)), na.rm = TRUE):max(as.numeric(paste(table_raw1$year)), na.rm = TRUE), 
-                    unique(paste(as.numeric(table_raw1$year))))
+    temp <- setdiff(min(table_raw1$year, na.rm = TRUE):max(table_raw1$year, na.rm = TRUE), 
+                    unique(table_raw1$year))
     if (length(temp)>0) {
-      table_raw1 <- rbind.data.frame(
+      table_raw1 <- dplyr::bind_rows(
         data.frame(year = temp,
                    length_mm = 0, 
-                   population_count = 0), 
+                   population_count = 0, 
+                   SRVY = unique(table_raw1$SRVY)), 
         table_raw1)
     }
     
@@ -2817,11 +2817,12 @@ plot_sizecomp <- function(sizecomp0,
                                    fill = length_mm, 
                                    height = population_count/mean(population_count, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
-      scale_fill_viridis_c(name = length_mm, option = "G") +
+      scale_fill_viridis_c(option = "G") +
       ylab(paste0(spp_print, " population across years")) +
       xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")"))) +
       theme(legend.position = "none", 
-            panel.grid.major.x = element_line(colour = "grey80"))
+            panel.grid.major.x = element_line(colour = "grey80")) +
+      facet_wrap(vars(SRVY))
   }
   
   figure <- figure + 
@@ -2900,9 +2901,10 @@ plot_timeseries <- function(
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
   
   table_raw <- table_raw %>%
-    dplyr::mutate(y = y/divby, 
-                  upper = upper/divby, 
-                  lower = lower/divby)
+    dplyr::mutate(y = y/divby#, 
+                  # upper = upper/divby, 
+                  # lower = lower/divby
+                  )
   
   table_raw_mean <- table_raw %>% 
     dplyr::group_by(SRVY_long, SRVY) %>% 
@@ -3797,30 +3799,30 @@ table_change_pres <- function(dat,
   table_print <- table_print %>%
     flextable::flextable(data = .)  %>%
     # red
-    flextable::color(color = "red",
+    flextable::color(color = negative,
                      i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[2])]), fixed = TRUE),
                      j = as.character(yrs[2])) %>%
-    flextable::color(color = "red",
+    flextable::color(color = negative,
                      i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[3])]), fixed = TRUE),
                      j = as.character(yrs[3])) %>%
-    flextable::color(color = "red",
+    flextable::color(color = negative,
                      i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[4])]), fixed = TRUE),
                      j = as.character(yrs[4])) %>%
-    flextable::color(color = "red",
+    flextable::color(color = negative,
                      i = grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[5])]), fixed = TRUE),
                      j = as.character(yrs[5])) %>%
     
     # blue
-    flextable::color(color = "blue",
+    flextable::color(color = positive,
                      i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[2])]), fixed = TRUE)),
                      j = as.character(yrs[2])) %>%
-    flextable::color(color = "blue",
+    flextable::color(color = positive,
                      i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[3])]), fixed = TRUE)),
                      j = as.character(yrs[3])) %>%
-    flextable::color(color = "blue",
+    flextable::color(color = positive,
                      i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[4])]), fixed = TRUE)),
                      j = as.character(yrs[4])) %>%
-    flextable::color(color = "blue",
+    flextable::color(color = positive,
                      i = !(grepl(pattern = "(-", x = as.character(temp0[,as.character(yrs[5])]), fixed = TRUE)),
                      j = as.character(yrs[5])) %>%
     

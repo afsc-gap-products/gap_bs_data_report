@@ -110,7 +110,8 @@ for (i in 1:length(locations)){
   if ("SURVEY_DEFINITION_ID" %in% names(a)) {
     end0 <- c(end0, "SURVEY_DEFINITION_ID IN (143, 98)")
   }
-  if ("YEAR" %in% names(a) & !(locations[i] %in% c("GAP_PRODUCTS.AKFIN_BIOMASS", "GAP_PRODUCTS.AKFIN_CRUISE")) ) {
+  if ("YEAR" %in% names(a) & !(locations[i] %in% 
+                               c("GAP_PRODUCTS.AKFIN_SIZECOMP", "GAP_PRODUCTS.AKFIN_BIOMASS", "GAP_PRODUCTS.AKFIN_CRUISE")) ) {
     end0 <- c(end0, paste0("YEAR IN (",maxyr,", ", compareyr, ")"))
   }
   end0 <- ifelse(is.null(end0), "", paste0(" WHERE ", paste0(end0, collapse = " AND ")))
