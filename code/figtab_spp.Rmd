@@ -326,7 +326,7 @@ if (spp_plot_idw | spp_plot_pa) {
                         geometry = geometry), 
           fill = "transparent", 
           linewidth = ifelse(row0 > 2, 1.5, 1), # size
-          show.legend = legend_srvy_reg) +
+          show.legend = FALSE) +
         ggplot2::scale_color_manual(
           name = " ", 
           values = reg_dat$survey.area$color,
@@ -406,7 +406,7 @@ if (spp_plot_idw | spp_plot_pa) {
 
 ## fig-sizecomp-[taxon]-[spp]
 
-```{r fig-sizecomp-[taxon]-[spp]}
+```{r fig-sizecomp-[taxon]-[spp], eval = FALSE}
 if (spp_plot_sizecomp) {
   
   width <- full_page_portrait_width # 6.5  
@@ -636,15 +636,15 @@ table_print <- table_print1 %>%
   flextable::hline_bottom(x = ., border = std_b, j = 2:ncol(table_print1), part = "all") %>% 
   flextable::align(x = ., part = "all", align = "left", j = "variable") %>% 
   flextable::bg(j = 1, bg = "white", part = "all") %>% 
-  flextable::width(j = 2:ncol(table_print1), 
-                   width = c(1.5, rep_len(x = 1.5, length.out = (ncol(table_raw)-1)) ))
+  flextable::width(j = 1:ncol(table_print1), 
+                   width = c(2, 2, rep_len(x = 1.5, length.out = (ncol(table_raw)-1)) ))
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## tab-bio-[taxon]-[spp]
 
-```{r tab-bio-[taxon]-[spp]}
+```{r tab-bio-[taxon]-[spp], eval = FALSE}
 
 nickname <- paste0("tab-bio-", spp_taxon, "-", spp_file)
 
