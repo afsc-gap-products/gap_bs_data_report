@@ -38,14 +38,9 @@ if (report_title == "data") {
 
 ## fig-[spp]
 ```{r fig-[spp], eval = (report_title == "pres)}
-header <- paste0("Image of the  ", 
-                 maxyr ," ", SURVEY ," bottom trawl survey", 
-                 ifelse(length(SRVY1)>1, "s", ""), ".")
-footnote <- NA
-nickname <- "fig-trawl-gear"
-alttext <- paste0(header)
-height = 8
-width <- full_page_portrait_width
+header <- spp_file
+nickname <- paste0("fig-", spp_file, "-0-pres")
+height <- width <- 5
 
 figure <- 
   cowplot::ggdraw() +
@@ -211,7 +206,6 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
 
 
 ```{r fig-dist-[taxon]-[spp], eval = (spp_plot_idw | spp_plot_pa)}
-
   width <- full_page_portrait_width # 6.5  
   case_yr0 <- 1
   nickname <- paste0("fig-dist-", spp_taxon, "-", spp_file)
@@ -227,10 +221,10 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
     row0 <- 2
     nickname <- paste0(nickname, "-comm")
   } else if (report_title == "pres") {
+  nickname <- paste0("fig-", spp_file, "-4dist-pres")
     yrs <- nbsyr
     height <- 5
     row0 <- 1
-    nickname <- paste0(nickname, "-pres")
   } 
   
   if (spp_plot_idw) {
@@ -430,7 +424,6 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
 ## fig-sizecomp-[taxon]-[spp]
 
 ```{r fig-sizecomp-[taxon]-[spp], eval = spp_plot_sizecomp}
-  
   width <- full_page_portrait_width # 6.5  
   nickname <- paste0("fig-sizecomp-", spp_taxon, "-", spp_file, ifelse(report_title == "pres", "-pres",))
   
@@ -451,7 +444,9 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
     print_n <- FALSE
     height <- full_page_portrait_height
     SRVY11 <- SRVY1 # "NBS"
-    nickname <- paste0(nickname, "-pres")
+    # nickname <- paste0(nickname, "-pres")
+    nickname <- paste0("fig-", spp_file, "-4sizecomp-pres")
+
   }
   
   lengths0 <- lengths %>%
@@ -698,7 +693,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## tab-bio-[taxon]-[spp]
 
-```{r tab-bio-[taxon]-[spp], eval = FALSE}
+```{r tab-bio-[taxon]-[spp]}
 
 nickname <- paste0("tab-bio-", spp_taxon, "-", spp_file)
 
@@ -1293,7 +1288,7 @@ y_long <- "Biomass"
 unit = "metric tons"
 unt = "t"
 height <- 4
-nickname <- paste0("fig-", spp_file, "-biomass-pres")
+nickname <- paste0("fig-", spp_file, "-1biomass-pres")
 
 table_raw <- table_raw0 %>%
   dplyr::rename(y = "biomass_mt", 
@@ -1310,14 +1305,14 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```
 
-## fig-population-[spp]-pres
+## fig-[spp]-population-pres
 
 ```{r, fig-population-[spp]-pres, eval = (report_title == "pres")}
 y_long <- "Population"
 unit = "individuals"
 unt = ""
 height <- 4
-nickname <- paste0("fig-", spp_file, "-population-pres")
+nickname <- paste0("fig-", spp_file, "-2population-pres")
 
 table_raw <- table_raw0 %>%
   dplyr::rename(y = population_count, 
