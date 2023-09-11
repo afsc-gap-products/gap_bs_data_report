@@ -2761,8 +2761,7 @@ plot_sizecomp <- function(sizecomp0,
                            end = .6,
                            na.value = "transparent") +
       guides(fill=guide_legend(title="")) +
-      scale_y_continuous(name = paste0(spp_print, 
-                                       " population\n",pop_unit_word), 
+      scale_y_continuous(name = paste0(spp_print, " population ",pop_unit_word), 
                          breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1))))) +
       scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
                          breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
@@ -2819,8 +2818,7 @@ plot_sizecomp <- function(sizecomp0,
                                    height = population_count/mean(population_count, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
       scale_fill_viridis_c(name = length_mm, option = "G") +
-      ylab(paste0(spp_print, 
-                  " population across years")) +
+      ylab(paste0(spp_print, " population across years")) +
       xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")"))) +
       theme(legend.position = "none", 
             panel.grid.major.x = element_line(colour = "grey80"))
@@ -2844,7 +2842,7 @@ plot_sizecomp <- function(sizecomp0,
     figure <- figure +
       ggplot2::geom_text(mapping = aes(label = label, 
                                        x = (quantile(x = range(table_raw$length_mm), .8))[[1]], 
-                                       y = (quantile(x = range(table_raw$population_count), .9))[[1]]), 
+                                       y = (quantile(x = range(table_raw$population_count), .95))[[1]]), 
                          check_overlap = TRUE) 
   }
   

@@ -1,0 +1,109 @@
+---
+title: "`r maxyr` Fisheries Survey: What did they find?"
+subtitle: '`r paste0(format(min(haul_cruises_vess_maxyr$start_date_cruise), format = "%B %d"), " to ", format(max(haul_cruises_vess_maxyr$end_date_cruise), format = "%B %d, %Y") )  `'
+author: 
+- affiliation: Resource Assessment & Conservation Engineering Division
+  description: Groundfish Assessment Program
+  email: Duane.Stevenson@noaa.gov
+  name: Duane Stevenson
+csl: "https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl"
+bibliography: "https://raw.githubusercontent.com/afsc-gap-products/citations/main/cite/bibliography.bib"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  powerpoint_presentation:
+    reference_doc: styles_reference.pptx
+    slide_level : 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  #   dev = "svg",
+  fig.width = 12,
+  fig.height = 12
+  # fig.retina = 3
+)
+```
+
+## Outline
+
+ - Environmental data
+ - Fish population data
+ - Additional research
+ - [[NEW]]
+ - State of the survey group
+
+
+```{r figtab, echo=FALSE, results='asis'}
+# list_fig <- list.files(path = dir_out_figtab, pattern = ".png", full.names = FALSE, recursive = FALSE)
+# list_fig <- list_fig[!grepl(x = list_fig, pattern = ifelse(report_title == "data", "comm", "data"))]
+# 
+# list_tab <- list.files(path = dir_out_figtab, pattern = "tab-", full.names = FALSE, recursive = FALSE)
+# list_tab <- list_tab[grepl(x = list_tab, pattern = ".rdata")]
+# list_tab <- list_tab[!grepl(x = list_tab, pattern = ifelse(report_title == "data", "comm", "data"))]
+# list_tab <- list_tab[!grepl(x = list_tab, pattern = "app-")]
+# 
+# nickname0 <- c(list_fig, list_tab)#[1:3]
+# nickname0 <- gsub(x = nickname0,  pattern = '.png', replace = '')
+# nickname0 <- gsub(x = nickname0,  pattern = '.rdata', replace = '')
+
+nickname0 <- c("fig-survey-points", 
+               "fig-vessels", 
+               "fig-cold-pool-area",  
+               "fig-pres-temperature-bt", 
+               "fig-pres-temperature-st", 
+               "fig-trawl-gear-alt", 
+               "tab-pres-length-samples",
+               "tab-pres-age-samples"
+               )
+
+nickname_text <- nickname0
+str0 <- c("fig-", "tab-", 
+          "distribution plot of " = "dist-", 
+          "sizecomp plot of " = "sizecomp-", 
+          "estimates " = "est-", 
+          "fish-", 
+          "invert-",
+          "-data", 
+          "-comm", 
+          "Environmental summary " = "env-", 
+          "Biomass summary " = "bio-", 
+          " (CPUE kg/km^2^)" = "-wt", 
+          " (CPUE no./km^2^)" = "-num",
+          " " = "-", 
+          "Alaska" = "alaska", 
+          "Bering" = "bering", 
+          "Arctic" = "arctic", 
+          "Pacific" = "pacific", 
+          "major taxa" = "majortaxa", 
+          "percent change" = "pchange", 
+          "otolith" = "oto", 
+          "surface temperature" = "temperature st ", 
+          "bottom temperature" = "temperature bt ", 
+          " " = " alt")
+
+for (i in 1:length(str0)){
+  nickname_text <- gsub(pattern = str0[i], replacement = names(str0)[i], x = nickname_text)
+}
+
+nickname_text <- paste0(toupper(substr(x = nickname_text, start = 1, stop = 1)), 
+                        (substr(x = nickname_text, start = 2, stop = nchar(nickname_text))) )
+nickname_text <- trimws(nickname_text)
+
+src <- c()
+for (ii in 1:length(nickname0)) {
+  src[[ii]] <- paste0("
+## ", nickname_text[ii], "
+\n```{r, '", nickname0[ii],"'} 
+nickname <- '", nickname0[ii],"' 
+\n```
+
+\n```{r ", nickname0[ii],"-child, child = paste0(dir_code, \"_child_report_figtab.Rmd\")}\n```
+")
+}
+res = knitr::knit_child(text = unlist(src), quiet = TRUE)
+cat(res, sep = '\n')
+```
