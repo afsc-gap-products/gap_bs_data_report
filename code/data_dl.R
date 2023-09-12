@@ -30,43 +30,6 @@ channel <- channel_products
 # DOWNLOAD CPUE and BIOMASS EST ------------------------------------------------
 
 locations <- c(
- #  ## BIOMASS
- # "HAEHNR.biomass_ebs_plusnw",# "HAEHNR.biomass_ebs_plusnw_safe", # no longer used
- # "HAEHNR.biomass_ebs_plusnw_grouped",
- # "HAEHNR.biomass_nbs_safe",
- # 
- # ## CPUE
- # # "HAEHNR.cpue_nbs",
- # # "HAEHNR.cpue_ebs_plusnw",
- # # "HAEHNR.cpue_ebs_plusnw_grouped",
- # "EBSSHELF.EBSSHELF_CPUE",
- # "NBSSHELF.NBS_CPUE",
- # 
- #  ## Size Comps - the extrapolated size distributions of each fish
- # "HAEHNR.sizecomp_nbs_stratum",
- # "HAEHNR.sizecomp_ebs_plusnw_stratum",
- # "HAEHNR.sizecomp_ebs_plusnw_stratum_grouped",
- # 
- #  ## CRAB # lengthed
- # "crab.ebscrab",
- # "crab.ebscrab_nbs",
- #  
- # ## Public data
- #  # 'RACEBASE_FOSS.racebase_public_foss',
- #  
- #  # #General Tables of data
- #  "RACEBASE.CATCH",
- #  # "RACE_DATA.HAULS", # For vessel net mens. codes
- #  "RACEBASE.HAUL",
- #  "RACE_DATA.V_CRUISES",
- #  "RACE_DATA.V_EXTRACT_FINAL_LENGTHS", # the number of fish physically by hand lengthed (not extrapolated into sizecomp); do not use "RACEBASE.LENGTH",
- #  "RACEBASE.SPECIMEN",
- #  "RACEBASE.STRATUM", # Do not use .STATION, it is out of date
- #  "RACEBASE.SPECIES",
- #  "RACEBASE.SPECIES_CLASSIFICATION",
- #  "RACE_DATA.LENGTH_TYPES",
- #  "RACE_DATA.VESSELS", 
-  
  "GAP_PRODUCTS.OLD_STATION",
  "GAP_PRODUCTS.AKFIN_AGECOMP",
  "GAP_PRODUCTS.AKFIN_AREA",
@@ -83,8 +46,6 @@ locations <- c(
  "GAP_PRODUCTS.AKFIN_SURVEY_DESIGN",
  "GAP_PRODUCTS.AKFIN_TAXONOMICS_WORMS",
  "GAP_PRODUCTS.TEST_SPECIES_CLASSIFICATION", 
- # "RACE_DATA.LENGTH_TYPES",
- # "NBSSHELF.NBS_CPUE", # CPUE
  "crab.gap_ebs_nbs_abundance_biomass", # Biomass
  "crab.gap_ebs_nbs_crab_cpue", # CPUE
  "crab.ebscrab", # length data
