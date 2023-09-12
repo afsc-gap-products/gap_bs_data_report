@@ -61,8 +61,9 @@ rmarkdown::render(paste0(dir_code, "/figtab_app.Rmd"),
 
 # Presentation Species figures
 report_title <- "pres" 
-comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
-for (jj in 8:length(comb)) {
+comb <- report_spp1 %>% dplyr::filter(!is.na(order) & table_bio_portion) %>% 
+  dplyr::select(file_name) %>% unlist() %>% unique()
+for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_rawdata,

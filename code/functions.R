@@ -2864,6 +2864,9 @@ plot_timeseries <- function(
   table_raw <- dat %>% 
     dplyr::arrange(-year)
   
+  a<-find_units(unit, unt, dat = table_raw$y) # [table_raw$y > 0]
+  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  
   yr_missing <- data.frame()
   for (i in 1:length(unique(table_raw$SRVY))){
     temp <- table_raw[table_raw$SRVY %in% unique(table_raw$SRVY)[i], ]
@@ -2877,15 +2880,12 @@ plot_timeseries <- function(
   }
   
   if (nrow(yr_missing) > 0) {
-    temp <- unique(table_raw[,c("print_name", "species_name1", "species_code", "taxon")])
+    temp <- unique(table_raw[,c("print_name")])
     
     temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*nrow(yr_missing),
                                ncol = ncol(table_raw)))
     names(temp1) <- names(table_raw)
     temp1$print_name <- temp$print_name
-    temp1$species_name1 <- temp$species_name1
-    temp1$species_code <- temp$species_code
-    temp1$taxon <- temp$taxon
     temp1 <- dplyr::arrange(temp1, SRVY)
     temp1$year <- yr_missing$yr_missing
     temp1$SRVY <- yr_missing$SRVY
@@ -2893,18 +2893,6 @@ plot_timeseries <- function(
     temp1$col <- yr_missing$col
     table_raw <- dplyr::bind_rows(temp1, table_raw)
   }
-  
-  # pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
-  
-  # find appropriate units
-  a<-find_units(unit, unt, dat = table_raw$y) # [table_raw$y > 0]
-  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-  
-  table_raw <- table_raw %>%
-    dplyr::mutate(y = y/divby#, 
-                  # upper = upper/divby, 
-                  # lower = lower/divby
-                  )
   
   table_raw_mean <- table_raw %>% 
     dplyr::group_by(SRVY_long, SRVY) %>% 
@@ -2926,17 +2914,11 @@ plot_timeseries <- function(
   temp<-setdiff(x = unique(table_raw$SRVY), 
                 y = unique(table_raw_mean$SRVY))
   if (length(temp) != 0) {
-    # Reduce(intersect, 
-    #        list(unique(table_raw$SRVY), 
-    #             (unique(table_raw_mean$SRVY))))
-    # setdiff(x = unique(table_raw$SRVY), 
-    #         y = unique(table_raw_mean$SRVY))
     anno <- paste0("Data for this species in the\n", 
                    temp, 
                    " is too limited to plot.")
     
     which(unique(table_raw$SRVY)==temp)
-    
     
     pcol_anno <- pcol[which(unique(table_raw$SRVY)==temp)]
     pcol <- pcol[which(unique(table_raw$SRVY)!=temp)]
@@ -2950,11 +2932,8 @@ plot_timeseries <- function(
       by = "SRVY_long") %>% 
     dplyr::filter(SRVY %in% table_raw_mean$SRVY)
   
-  
   if (is.null(yrs_plotted)) {
     yrs_plotted <- min(table_raw$year, na.rm = TRUE):max(table_raw$year, na.rm = TRUE)
-    # table_raw_mean <- table_raw_mean %>% 
-    #   dplyr::mutate(minyr = min(yrs_plotted, na.rm = TRUE))
   }
   
   figure <-
@@ -2964,36 +2943,26 @@ plot_timeseries <- function(
            mapping = aes(x = year, 
                          y = y, 
                          color = SRVY_long1, 
-                         group = SRVY_long1)) +
+                         group = SRVY_long1)) 
+  
+  if (mean_in_legend){
+    figure <- figure  +
+      ggplot2::geom_segment(
+        data = table_raw_mean,
+        mapping = aes(x = min(yrs_plotted), 
+                      xend = max(yrs_plotted), 
+                      y = y, 
+                      yend = y),
+        alpha = .5,
+        linetype = "dashed", 
+        linewidth = 2) 
+  }
+  
+  figure <- figure +
     geom_line(size = 1) +
     geom_point(size = 1.5) + 
     ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1, big.mark = ""), 
-                                limits = range(yrs_plotted, na.rm = TRUE)) 
-  
-  # geom_errorbar(aes(ymin=lowervar, ymax=uppervar), 
-  #               width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
-  #                position=position_dodge(0.05)) +
-  if (error_bar) {
-    figure <- figure  +
-      geom_segment(data = table_raw_mean,
-                   # yintercept=y,
-                   mapping = aes(x = min(yrs_plotted, na.rm = TRUE),#minyr, 
-                                 xend = maxyr, 
-                                 y = y, 
-                                 yend = y,
-                                 group = SRVY_long1, 
-                                 color = SRVY_long1),
-                   linetype = "dashed", size = 1) +
-      geom_errorbar(aes(ymin=lower, ymax=upper),
-                    width=.5, size = .5, # http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
-                    position = position_dodge(0.05))
-  } 
-  # scale_color_viridis_d(direction = -1,
-  #                       option = "mako",
-  #                       begin = .2,
-  #                       end = .6,
-  #                       na.value = "transparent") %>%
-  figure <- figure +
+                                limits = range(yrs_plotted, na.rm = TRUE))  +
     ggplot2::scale_color_manual(values = unique(table_raw$col))
   
   if (!is.na(anno)) {
@@ -3023,22 +2992,17 @@ plot_timeseries <- function(
                                   breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
   }
   
-  
   figure <- figure +
     ggplot2::guides(color = guide_legend(title="", nrow = 2)) +
     ggplot2::xlab(label = "Year") +
     ggplot2::theme(
-      # axis.line=element_line(),
       panel.background = element_rect(fill = "white"),
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
       panel.grid.minor.x = element_blank(),
       panel.grid.major.x = element_line(colour = "grey95"),
-      panel.border = element_rect(fill = NA,
-                                  colour = "grey20"),
-      # strip.background = element_blank(),
-      # strip.text = element_text(size = 12, face = "bold"),
-      legend.title = element_blank(), #element_text(size = 15),
+      panel.border = element_rect(fill = NA, colour = "grey20"),
+      legend.title = element_blank(), 
       legend.text = element_text(size = 14),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
@@ -3046,28 +3010,13 @@ plot_timeseries <- function(
                                 fill = "transparent"),
       axis.title = element_text(size = 12, face = "bold"),
       axis.text = element_text(size = 12),
-      legend.position = "bottom", # c(.7, .8), #
-      # legend.box.just = "left",
-      # legend.key.width = unit(.5, "in"),
+      legend.position = "bottom", 
       legend.box = "horizontal"
     )
-  # facet_wrap( ~ SRVY, 
-  #             ncol = 1) 
   
   return(figure)
 }
 
-
-# # https://stackoverflow.com/questions/11889625/annotating-text-on-individual-facet-in-ggplot2
-# tag_facet <- function(p, open = "(", close = ")", tag_pool = letters, x = -Inf, y = Inf, 
-#                       hjust = -0.5, vjust = 1.5, fontface = 2, family = "", ...) {
-#   
-#   gb <- ggplot_build(p)
-#   lay <- gb$layout$layout
-#   tags <- cbind(lay, label = paste0(open, tag_pool[lay$PANEL], close), x = x, y = y)
-#   p + geom_text(data = tags, aes(x = "x", y = "y", label = "label"), ..., hjust = hjust, 
-#                 vjust = vjust, fontface = fontface, family = family, inherit.aes = FALSE) 
-# }
 
 plot_survey_stations <- function(reg_dat, 
                                  station, 

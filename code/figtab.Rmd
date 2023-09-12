@@ -436,10 +436,10 @@ table_print <- table_raw %>%
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## tab-special-projects-pres
+## tab-pres-special-projects
 
-```{r tab-special-projects-pres}
-nickname <- "tab-special-projects-pres" 
+```{r tab-pres-special-projects}
+nickname <- "tab-pres-special-projects" 
 
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
@@ -1175,7 +1175,7 @@ temp <- function(exp0,
   
   out <- out %>% 
     dplyr::mutate(CI95 = ci_999, 
-                  a = "±", 
+                  a = "±",
                   prop = `999`/total) %>% 
     dplyr::arrange(order) %>%
     dplyr::relocate(SRVY, group, taxon, `999`, a, CI95, prop) %>% 
@@ -1200,7 +1200,8 @@ temp1 <- function(table_raw, strat, total) {
                       unique(table_raw$SRVY), " bottom trawl survey.")
   
   table_raw0 <- table_raw %>% 
-    dplyr::select("group", "taxon", "999", "a", "CI95", "prop", 
+    dplyr::select("group", "taxon", "999", #"a", "CI95", 
+                  "prop", 
                   all_of(strat)) %>% 
     mutate_if(is.numeric , replace_na, replace = 0) %>% 
     dplyr::mutate(
@@ -1211,11 +1212,11 @@ temp1 <- function(table_raw, strat, total) {
                     formatC(x = prop, digits = 4, 
                             format = "f", big.mark = ",")), 
       across(where(is.numeric), 
-             formatC, big.mark=",", digits = 0, format = "f"), 
+             formatC, big.mark=",", digits = 0, format = "f"))#, 
       # across(everything(), ~replace_na(.x, "-")),
       # across(everything(), ~replace_na(.x, "-")),
-      `999` = paste0(`999`, " ", a)) %>% 
-    dplyr::select(-a)
+      # `999` = paste0(`999`, " ", a)) %>% 
+    # dplyr::select(-a)
   
   table_print <- table_raw0 %>%
     flextable::flextable(data = .)  %>%
@@ -1224,10 +1225,10 @@ temp1 <- function(table_raw, strat, total) {
     flextable::add_header_row(x = .,
                               top = TRUE,
                               values = c("Taxon",
-                                         "Estimated total biomass (t) ± 95% confidence interval",
+                                         "Estimated total biomass (t)", #" ± 95% confidence interval",
                                          "Proportion of total animal biomass",
                                          "Estimated biomass by stratum (t)"),
-                              colwidths = c(2,2,1,length(strat)-1)) %>%
+                              colwidths = c(2,1,1,length(strat)-1)) %>%
     flextable::width(x = .,  
                      width = ifelse(length(strat)>3, 0.7, 1.25),
                      unit = "in") %>%
@@ -1245,10 +1246,10 @@ temp1 <- function(table_raw, strat, total) {
                                  "group" = "", 
                                  "taxon" = "",
                                  "999" = "", 
-                                 "CI95" = "", 
+                                 # "CI95" = "", 
                                  "prop" = "") %>%
     flextable::merge_at(x = ., j = c("group", "taxon"), part = "header") %>% 
-    flextable::merge_at(x = ., j = c("999", "CI95"), part = "header") %>% 
+    flextable::merge_at(x = ., j = c("999"), part = "header") %>% # , "CI95"
     flextable::merge_at(x = ., j = c("prop"), part = "header") 
   
   row_lines <- TRUE
@@ -1277,7 +1278,8 @@ temp1 <- function(table_raw, strat, total) {
     flextable::fontsize(x = ., size = body_size, part = "body") %>% 
     flextable::fontsize(x = ., size = header_size, part = "header") %>% 
     flextable::fix_border_issues(x = .) %>% 
-    flextable::align(x = ., j = c("999", "CI95", "prop",  strat), 
+    flextable::align(x = ., j = c("999", #"CI95", 
+                                  "prop",  strat), 
                      align = "right", part = "all") %>%
     flextable::align(x = ., 
                      j = c(strat), 
@@ -1377,7 +1379,19 @@ for (taxon0 in c("fish", "invert")) {
   
   table_raw1 <- temp(exp0 = exp0, 
                      maxyr = maxyr, 
-                     biomass_by_stratum0 = biomass,
+                     biomass_by_stratum0 = biomass %>% 
+        dplyr::mutate(stratum = dplyr::case_when(
+          (stratum == 31 | stratum == 32) ~ 30,
+          (stratum == 41 | stratum == 42) | stratum == 43 ~ 40,
+          (stratum == 61 | stratum == 62) ~ 60, 
+          TRUE ~ as.numeric(stratum))) %>%
+        dplyr::group_by(year, SRVY, stratum, common_name, taxon, species_code) %>%
+        dplyr::summarize(biomass_mt = sum(biomass_mt, na.rm = TRUE),  
+                         biomass_var = sum(biomass_var, na.rm = TRUE), 
+                         population_count = sum(population_count, na.rm = TRUE), 
+                         population_var = sum(population_var, na.rm = TRUE), 
+                         n_haul = sum(n_haul, na.rm = TRUE)) %>% 
+          dplyr::ungroup(),
                      catch_haul_cruises_maxyr0 = catch_haul_cruises_maxyr,
                      total_biomass0 = total_biomass %>% 
                        dplyr::filter(year == maxyr &
@@ -1650,7 +1664,9 @@ for (i in 1:2) {
     
   } else { # CPUE No/HA and population_count
     
-    header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for other common groundfish species for the ", 
+    header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation ", 
+                     # "and 95% lower (LCL) and upper (UCL) confidence limits ",
+                     "for other common groundfish species for the ", 
                      maxyr," ",
                      text_list(paste0(haul_cruises_maxyr$SRVY_long, 
                                       " shelf (", 
@@ -1741,7 +1757,7 @@ for (i in 1:2) {
                            font0 = font0, 
                            pad = 0, 
                            row_lines = TRUE, 
-                           pgwidth = full_page_landscape_width) %>%
+                           pgwidth = full_page_portrait_width) %>%
     flextable::align(x = ., align = "right", part = "all") %>%
     flextable::align(x = ., j = c("print_name"), #, "SRVY"
                      align = "left", part = "all") #%>%
