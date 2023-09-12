@@ -496,7 +496,7 @@ stratum <- gap_products_akfin_area0 %>%
     SRVY = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS",
       survey_definition_id == 98 ~ "EBS"),
-    area_nmi2 = area_km2/0.291553, 
+    area_nmi2 = area_km2/3.429904, 
     depth = ifelse(depth_min_m == 1, 
                    paste0(">", depth_max_m), 
                    paste0(depth_min_m, "-", depth_max_m)) ) %>% 
