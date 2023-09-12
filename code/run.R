@@ -122,44 +122,6 @@ rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"),
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_community_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
-# Prepare Presentations --------------------------------------------------------
-
-yrs <- sort(nbsyr, decreasing = FALSE)
-
-# cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_")
-rmarkdown::render(paste0(dir_code, "/figtab_pres.Rmd"),
-                  output_dir = dir_out_rawdata,
-                  output_file = paste0(filename0, cnt_chapt_content, ".docx"))
-
-
-for (jj in 1:length(unique(report_spp1$file_name))) {
-  
-  print(paste0(jj, " of ", length(unique(report_spp1$file_name)), ": ", unique(report_spp1$file_name)[jj]))
-  SRVY1 <- c("NBS", "EBS")
-  pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1) # TOLEDO - need to find out where this is outside of a function
-  
-  filename00<-paste0(cnt_chapt, "_spp_")
-  rmarkdown::render(paste0(dir_code, "/figtab_spp_pres.Rmd"),
-                    output_dir = dir_out_rawdata,
-                    output_file = paste0(filename00, cnt_chapt_content, "_", 
-                                         unique(report_spp1$file_name)[jj],".docx"))
-}
-
-save(list_figures,
-     file=paste0(dir_out_figures, "/report_figures_pres.rdata"))
-
-save(list_tables,
-     file=paste0(dir_out_tables, "/report_tables_pres.rdata"))
-
-cnt_chapt<-auto_counter(cnt_chapt)
-cnt_chapt_content<-"001"
-filename0<-paste0(cnt_chapt, "_presentation_")
-rmarkdown::render(paste0(dir_code, "/11_presentation.Rmd"),
-                  output_dir = dir_out_chapters,
-                  output_file = paste0(filename0, cnt_chapt_content, ".pptx"))
-
-
 # Write README -----------------------------------------------------------------
 
 rmarkdown::render(paste0(here::here("code","README.Rmd")),

@@ -1091,12 +1091,12 @@ temp00 <- function(table_raw0,
       SRVY == "EBS" ~ pcol[1],
       SRVY == "NBS" ~ pcol[2]))
   
-  figure0 <- plot_timeseries(dat = table_raw, 
-                            unit = unit, 
-                            unt = unt, 
-                            y_long = y_long, 
-                            error_bar = FALSE, 
-                            spp_print = table_raw$print_name[1], 
+  figure0 <- plot_timeseries(dat = table_raw,
+                            unit = unit,
+                            unt = unt,
+                            y_long = y_long,
+                            error_bar = FALSE,
+                            spp_print = table_raw$print_name[1],
                             mean_in_legend = TRUE)
   
   table_raw00 <- table_raw %>%
@@ -1111,6 +1111,8 @@ temp00 <- function(table_raw0,
       dplyr::summarise(y = sum(y, na.rm = TRUE)) %>% 
       dplyr::mutate(SRVY = "EBS + NBS"))
   }
+  
+  a <- find_units(dat = table_raw0[names(table_raw0) == var], unt = unt, unit = unit)
   
   b <- table_raw00 %>% 
     dplyr::filter(SRVY != "NBS") %>%
@@ -1127,7 +1129,6 @@ temp00 <- function(table_raw0,
                     TRUE ~ "black"), 
                   pchange0 = formatC(x = pchange0, format = "f", big.mark = ",", digits = 2))
   
-  a <- find_units(dat = table_raw0[names(table_raw0) == var], unt = unt, unit = unit)
   mean_in_legend <- FALSE
   str0 <- c()
   col0 <- c()
@@ -1167,27 +1168,24 @@ temp00 <- function(table_raw0,
                                         to = ifelse(length(str0) == ifelse(mean_in_legend, 5, 6), 0.7, 0.1), 
                                         length.out = length(str0)),
                                 color = col0)
-  
   if (legend_combined) {
-    figure <- cowplot::plot_grid(figure0, 
-                                 descr, 
-                                 nrow = 1, 
-                                 rel_widths = c(.7, .3), 
+    figure <- cowplot::plot_grid(figure0,
+                                 descr,
+                                 nrow = 1,
+                                 rel_widths = c(.7, .3),
                                  rel_heights = c(0.5, 0.5))
   } else {
-    figure <- cowplot::plot_grid(figure0 + 
-                                   theme(legend.position = "none"), 
-                                 descr, 
-                                 nrow = 1, rel_widths = c(1, .4), 
+    figure <- cowplot::plot_grid(figure0 +
+                                   theme(legend.position = "none"),
+                                 descr,
+                                 nrow = 1, rel_widths = c(1, .4),
                                  rel_heights = c(0.5, 0.5))
   }
-  
+
   legend0 <- ggpubr::get_legend(figure0)
-  
-  return(list("header" = header,
-              "figure" = figure, 
-              "a" = a, 
-              "legend0" = legend0))
+  header <- ""
+
+  return(figure)
 }
 ```
 
@@ -1197,7 +1195,7 @@ temp00 <- function(table_raw0,
 height <- 4
 nickname <- paste0("fig-", spp_file, "-1biomass-pres")
 table_raw <- table_raw0
-a <- temp00(table_raw0 = table_raw0, 
+figure <- temp00(table_raw0 = table_raw0, 
             var = "biomass_mt", 
             maxyr = maxyr, 
             compareyr = compareyr, 
@@ -1205,23 +1203,22 @@ a <- temp00(table_raw0 = table_raw0,
             unt = "t", 
             y_long = "Biomass", 
             mean_in_legend = TRUE)
-header <- a$header
-figure <- a$figure
-# figure_bio <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
+            
+header <- "" # a$header
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-[spp]-population-pres
 
-```{r, fig-population-[spp]-pres, eval = (report_title == "pres")}
+```{r, fig-[spp]-population-pres, eval = (report_title == "pres")}
 y_long <- "Population"
 unit = "individuals"
 unt = ""
 height <- 4
 nickname <- paste0("fig-", spp_file, "-2population-pres")
 table_raw <- table_raw0
-a <- temp00(table_raw0 = table_raw0, 
+figure <- temp00(table_raw0 = table_raw0, 
             var = "population_count", 
             maxyr = maxyr, 
             compareyr = compareyr, 
@@ -1229,9 +1226,7 @@ a <- temp00(table_raw0 = table_raw0,
             unt = "", 
             y_long = "Population", 
             mean_in_legend = TRUE)
-header <- a$header
-figure <- a$figure
-# figure_bio <- temp00(table_raw, yrs, maxyr, compareyr, unit, unt, y_long, legend_combined = FALSE)
+header <- "" # a$header
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```

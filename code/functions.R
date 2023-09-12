@@ -2861,12 +2861,13 @@ plot_timeseries <- function(
     mean_in_legend = TRUE, 
     yrs_plotted = NULL){
   
+  a<-find_units(unit, unt, dat = dat$y) # [table_raw$y > 0]
+  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) } 
+  
   table_raw <- dat %>% 
-    dplyr::arrange(-year)
-  
-  a<-find_units(unit, unt, dat = table_raw$y) # [table_raw$y > 0]
-  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-  
+    dplyr::arrange(-year) %>% 
+    dplyr::mutate(y = y/a$divby)
+
   yr_missing <- data.frame()
   for (i in 1:length(unique(table_raw$SRVY))){
     temp <- table_raw[table_raw$SRVY %in% unique(table_raw$SRVY)[i], ]
