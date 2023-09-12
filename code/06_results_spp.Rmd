@@ -28,7 +28,7 @@ if (report_title == "data") {
 land_start <- "" #felse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_START--->", "")
 land_end <- "" # ifelse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_STOP--->", "")
 show <- FALSE
-pagebreak <- ifelse(report_title == "community", "", "\\pagebreak")
+pagebreak <- ifelse(report_title == "community" & !spp_table_cpue, "", "\\pagebreak")
 ```
 
 
@@ -234,6 +234,8 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 ```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
 ```
 
+`r ifelse(spp_text & (report_title == "community"), "<br>", "") `
+
 ```{r tab-env-{{jj}} , eval = (report_title == "community")}
 nickname <- paste0("tab-env-", spp_file) 
 ```
@@ -266,7 +268,7 @@ nickname <- paste0("fig-sizecomp-", spp_file, ifelse(report_title == "data", "-d
 
 <!-- `r land_start ` -->
 
-`r pagebreak `
+\pagebreak
 
 ```{r tab-est-{{jj}}-wt}
 nickname <- paste0("tab-est-", spp_file, "-wt")
@@ -284,6 +286,6 @@ nickname <- paste0("tab-est-",spp_file, "-num")
 ```{r tab-est-{{jj}}-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=spp_table_cpue}
 ```
 
-<!-- `r pagebreak ` -->
+`r pagebreak `
 
 <!-- `r land_end ` -->
