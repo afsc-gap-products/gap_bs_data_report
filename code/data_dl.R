@@ -46,10 +46,10 @@ locations <- c(
  "GAP_PRODUCTS.AKFIN_SURVEY_DESIGN",
  "GAP_PRODUCTS.AKFIN_TAXONOMICS_WORMS",
  "GAP_PRODUCTS.TEST_SPECIES_CLASSIFICATION", 
- "crab.gap_ebs_nbs_abundance_biomass", # Biomass
- "crab.gap_ebs_nbs_crab_cpue", # CPUE
- "crab.ebscrab", # length data
- "crab.ebscrab_nbs", # length data,
+ # "crab.gap_ebs_nbs_abundance_biomass", # Biomass
+ # "crab.gap_ebs_nbs_crab_cpue", # CPUE
+ # "crab.ebscrab", # length data
+ # "crab.ebscrab_nbs", # length data,
  "RACE_DATA.LENGTH_TYPES"
   )
 
