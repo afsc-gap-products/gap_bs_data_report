@@ -51,7 +51,7 @@ knitr::opts_chunk$set(
 # nickname0 <- gsub(x = nickname0,  pattern = '.rdata', replace = '')
 
 list_fig <- list.files(path = dir_out_figtab, pattern = "-pres.png", full.names = FALSE, recursive = FALSE)
-list_fig <- sort(list_fig)
+list_fig <- gsub(pattern = ".png", replacement = "", x = list_fig)
 
 nickname0 <- c("fig-survey-points", 
                "fig-vessels", 
@@ -61,9 +61,10 @@ nickname0 <- c("fig-survey-points",
                "fig-trawl-gear-alt", 
                "tab-pres-length-samples",
                "tab-pres-age-samples", 
-               list_fig, 
-               "tab-biomass-pchange-pres", 
-               "tab-pres-special-projects")
+               sort(list_fig)#,
+               # "tab-biomass-pchange-pres", 
+               # "tab-pres-special-projects"
+               )
 
 nickname_text <- nickname0
 str0 <- c("fig-", "tab-", 
@@ -100,6 +101,7 @@ nickname_text <- trimws(nickname_text)
 
 src <- c()
 for (ii in 1:length(nickname0)) {
+  print(ii)
   src[[ii]] <- paste0("
 ## ", nickname_text[ii], "
 \n```{r, '", nickname0[ii],"'} 

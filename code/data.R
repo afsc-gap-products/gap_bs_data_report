@@ -691,7 +691,6 @@ lengths <- dplyr::bind_rows(
         species_code %in% c(68580, 68590, 68560) ~ width, # "snow crab"
         TRUE ~ length) )  %>%  # 7 - Length of carapace from back of right eye socket to end of carapace # species_code %in% c(69322, 69323, 69400, 69401) ~ 7, 
     dplyr::select(hauljoin, species_code, sex, length_mm, length_type, clutch_size) ) %>% 
-  
   dplyr::left_join(
     y = haul %>% 
       dplyr::select(SRVY, year, hauljoin, haul_type, station, performance, survey_definition_id), # abundance_haul, 

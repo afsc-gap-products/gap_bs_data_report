@@ -804,6 +804,7 @@ nickname0 <- paste0("tab-specimen-samples-")
 
 # length data - from oracle
 l <- lengths_maxyr %>% 
+  dplyr::filter(!species_code %in% c(68580, 68590, 68560)) %>%
   dplyr::select(SRVY, species_code, frequency) %>% 
   dplyr::group_by(SRVY, species_code) %>% 
   dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
