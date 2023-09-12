@@ -790,38 +790,6 @@ table_print <- table_print2 <- table_raw %>%
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## tab-summary-[taxon]-[spp]
-
-```{r tab-summary-[taxon]-[spp], eval = FALSE}
-
-nickname0 <- paste0("tab-summary-", spp_file)
-
-width <- full_page_portrait_width # 6.5  
-height <- 4
-
-header <- paste0("A) ", header1, "B) ", header2)
-
-figure <- cowplot::plot_grid(
-  ggplot2::ggplot() + 
-    theme_void() + 
-    annotation_custom(
-      rasterGrob(table_print1 %>% 
-                   flextable::as_raster()), xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf), 
-  ggplot2::ggplot() + 
-    theme_void() + 
-    annotation_custom(
-      rasterGrob(table_print2 %>% 
-                   flextable::as_raster()), xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf), 
-  nrow = 2, ncol = 1,
-  labels = "AUTO") # , rel_heights = c(4, 1) 
-figure <- cowplot::plot_grid(figure, 
-                             ggdraw() + 
-                               draw_image(here::here("img", paste0(spp_file, ".png")), scale = 0.9), 
-                             nrow = 1, ncol = 2, rel_widths = c(6, 2)) 
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
 ## tab-est-[taxon]-[spp]-[wt or num]
 
 ```{r tab-est-[taxon]-[spp]-[wt or num], eval = dataTcommF}

@@ -72,10 +72,10 @@ loadfonts(device = "win")
 full_page_portrait_width <- 6.5
 full_page_portrait_height <- 7.5
 full_page_landscape_width <- 9.5
+# https://www.visualisingdata.com/2019/08/five-ways-to-design-for-red-green-colour-blindness/
 negative <- "#EDA247"
 positive <- "#57C4AD"
 neutral <- "#E6E1BC"
-
 # Functions --------------------------------------------------------------------
 
 ## Modify Numbers --------------------------------------------------------------
@@ -3621,12 +3621,14 @@ table_change <- function(dat,
   table_raw <- dat %>% 
     dplyr::filter(year %in% yrs) %>%
     dplyr::select(SRVY, year, print_name, species_name1, y, taxon) %>%
+    dplyr::group_by(SRVY, year, print_name, species_name1, taxon) %>% 
+    dplyr::summarise(y = sum(y, na.rm = TRUE)) %>% 
+    dplyr::ungroup() %>% 
     ## creates a biomass column for each year
     tidyr::pivot_wider(
       id_cols = c("SRVY", "print_name", "species_name1", "taxon"),
       names_from = "year",
-      values_from = c("y") ) %>%
-    dplyr::ungroup()
+      values_from = c("y") ) 
   
   ##  calculate percent change, seperate group (common name) and taxon, filter out groups
   ## change symbols/percents to red text if negative 
@@ -3747,7 +3749,6 @@ table_change_pres <- function(dat,
   table_raw <- table_raw %>% 
     dplyr::select(SRVY, year, y, print_name, species_name1, taxon) %>%
     dplyr::mutate(y = y/divby)
-  
   
   a <- table_change(dat = table_raw, 
                     yrs = yrs, 

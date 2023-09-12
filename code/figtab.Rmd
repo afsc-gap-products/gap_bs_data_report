@@ -436,6 +436,48 @@ table_print <- table_raw %>%
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
+## tab-special-projects-pres
+
+```{r tab-special-projects-pres}
+nickname <- "tab-special-projects-pres" 
+
+header <- paste0("Special projects and collections undertaken during the ",
+                 maxyr, " ", 
+                 text_list(haul_cruises_maxyr$SRVY_long), 
+                 " shelf bottom trawl survey, sorted by principal investigator and agency.")
+
+table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
+                                sheet = "projects", 
+                                skip = 1)  %>% 
+  dplyr::filter(!is.na(`Project title`) & 
+                  year == maxyr) %>% 
+  dplyr::select(SRVY, #`Project Title`, `Principal investigator`, Agency, 
+                nickname, group) %>% 
+  dplyr::mutate(nickname = 
+                  if_else((tolower(SRVY) == "EBS & NBS" | is.na(SRVY)), 
+                          paste0(nickname), 
+                          paste0(SRVY, " ", nickname))) %>% 
+  dplyr::select(group, nickname) %>%
+  dplyr::arrange(nickname) %>%
+  dplyr::ungroup() %>%
+  dplyr::arrange(group, #SRVY, 
+                 nickname) %>% 
+  dplyr::rename("Special Projects" = nickname)
+
+table_print <- table_raw %>% 
+  flextable::as_grouped_data(x = ., groups = c("group"), columns = NULL) %>% 
+  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
+  flextable::bold(x = ., j = 1, i = ~ !is.na(group) ) %>%
+  theme_flextable_nmfstm(x = ., 
+                                      row_lines = FALSE, 
+                                      font = "Arial")  %>%
+  flextable::padding(x = ., 
+                     j = 1, i = ~ is.na(group), 
+                     padding.left = 20)
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
 # Results
 
 ## tab-pres-length-samples
@@ -516,7 +558,7 @@ table_print <- flextable::flextable(table_print) %>%
   flextable::bold(x = ., 
                   i = c((nrow(table_print)-1), nrow(table_print))) %>% 
   theme_flextable_nmfstm(x = ., 
-                                      font = "Arial") 
+                         font = "Arial") 
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -584,7 +626,7 @@ table_print <- table_print %>%
   flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(sample_type) ) %>%
   theme_flextable_nmfstm(x = ., 
-                                      font = "Arial")  %>%
+                         font = "Arial")  %>%
   flextable::padding(x = ., 
                      j = 1, i = ~ is.na(sample_type), 
                      padding.left = 20)
@@ -676,8 +718,8 @@ for (case in c("bottom", "surface")) {
                     " Bering Sea\n", 
                     case, " temperature (", range_text(yrs), ")") 
     
-      yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
-
+    yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
+    
     figure <- plot_temperature_facet(
       raster_nebs = raster_nebs, 
       raster_ebs = raster_ebs, 
@@ -690,7 +732,7 @@ for (case in c("bottom", "surface")) {
       title0 = title0, 
       temperature_zscore = TRUE) 
     
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   }
 }
 ```
@@ -707,51 +749,51 @@ row0 <- 2
 reg_dat0 <- report_types$NEBS$reg_dat
 
 for (case in c("bottom", "surface")) {
-    
-    if (case == "surface") {
-      raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
-      raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
-      colorbar_breaks <- c(-Inf, seq(0, 10, 2), Inf)
-    } else if (case == "bottom") {
-      raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
-      raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
-      # colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
-      colorbar_breaks <- c(-Inf, seq(-2, 8, 2), Inf)
-    }
-    
-    header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
-                     range_text(yrs), " ", 
-                     SURVEY, " shelf bottom trawl survey",
-                     ifelse(SRVY=="NEBS", "s", ""),
-                     ". Years in which the mean ", case, 
-                     " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
-                     " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
-    
-    nickname <- paste0("fig-pres-temperature-", ifelse(case=="bottom", "bt", "st"))
-    
-    # Create figure
-    key.title = ifelse(case == "bottom", 
-                       expression(bold("Bottom temperature (°C)")), 
-                       expression(bold("Surface temperature (°C)")))
-    reg_dat = reg_dat0
-    title0 = paste0(toupper(substr(x = SURVEY, start = 1, stop = 1)), 
-                    substr(x = SURVEY, start = 2, stop = nchar(SURVEY)), " ", case, " temperature") 
-    
-      yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
-
-    figure <- plot_temperature_facet(
-      raster_nebs = raster_nebs, 
-      raster_ebs = raster_ebs, 
-      colorbar_breaks = colorbar_breaks, 
-      yrs = yrs, 
-      yrs_nbs = yrs_nbs, 
-      key.title = key.title, 
-      reg_dat = reg_dat0, 
-      row0 = row0, 
-      title0 = title0, 
-      temperature_zscore = TRUE) 
-    
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  
+  if (case == "surface") {
+    raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
+    raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
+    colorbar_breaks <- c(-Inf, seq(0, 10, 2), Inf)
+  } else if (case == "bottom") {
+    raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
+    raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
+    # colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
+    colorbar_breaks <- c(-Inf, seq(-2, 8, 2), Inf)
+  }
+  
+  header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
+                   range_text(yrs), " ", 
+                   SURVEY, " shelf bottom trawl survey",
+                   ifelse(SRVY=="NEBS", "s", ""),
+                   ". Years in which the mean ", case, 
+                   " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
+                   " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
+  
+  nickname <- paste0("fig-pres-temperature-", ifelse(case=="bottom", "bt", "st"))
+  
+  # Create figure
+  key.title = ifelse(case == "bottom", 
+                     expression(bold("Bottom temperature (°C)")), 
+                     expression(bold("Surface temperature (°C)")))
+  reg_dat = reg_dat0
+  title0 = paste0(toupper(substr(x = SURVEY, start = 1, stop = 1)), 
+                  substr(x = SURVEY, start = 2, stop = nchar(SURVEY)), " ", case, " temperature") 
+  
+  yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
+  
+  figure <- plot_temperature_facet(
+    raster_nebs = raster_nebs, 
+    raster_ebs = raster_ebs, 
+    colorbar_breaks = colorbar_breaks, 
+    yrs = yrs, 
+    yrs_nbs = yrs_nbs, 
+    key.title = key.title, 
+    reg_dat = reg_dat0, 
+    row0 = row0, 
+    title0 = title0, 
+    temperature_zscore = TRUE) 
+  
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -872,7 +914,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::width(x = ., width = (5/(ncol(table_raw)-2)), unit = "in") %>%
     flextable::width(x = ., j = "common_name", width = 1.5, unit = "in")
   
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -999,7 +1041,7 @@ if (SRVY == "NEBS"){
     flextable::vline(x = ., j = "dummy_ebs", part = "all") %>%
     flextable::padding(x = ., j = "dummy_nbs", padding.left = 5, part = "all")
   
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1373,7 +1415,7 @@ for (taxon0 in c("fish", "invert")) {
     table_raw <- a$table_raw
     table_print <- a$table_print
     
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   } 
 }
 ```
@@ -1397,7 +1439,7 @@ table_raw0 <-
     relationship = "many-to-many",
     by = c("species_code")) %>%
   dplyr::filter(table_bio_spp & 
-                !is.na(print_name) & 
+                  !is.na(print_name) & 
                   !is.na(year)) %>%
   dplyr::group_by(print_name, SRVY, year, taxon) %>% 
   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
@@ -1414,11 +1456,11 @@ table_raw0$maxyr <- unlist(table_raw0[names(table_raw0) %in% maxyr])
 table_raw0$compareyr <- unlist(table_raw0[names(table_raw0) %in% compareyr])
 
 table_raw0 <- table_raw0 %>% 
-dplyr::mutate(
+  dplyr::mutate(
     change = pchange(start = compareyr, end = maxyr, value_only = TRUE), 
     # change = pchange(start = maxyr, end = compareyr, value_only = TRUE), 
     dplyr::across(where(is.character), gsub, pattern = "NA", replacement = ""), 
-        change0 = change,
+    change0 = change,
     change = paste0(formatC(x = change, big.mark=",", digits = 1, format = "f"), "%") ) %>% 
   dplyr::ungroup()  %>%
   dplyr::arrange(desc(change0)) 
@@ -1448,9 +1490,9 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     dplyr::select(-SRVY, -change0) %>%
     flextable::flextable(data = ., 
                          col_keys = c("print_name",
-      # "dummy", 
-      nbsyr, 
-      "change")) %>%
+                                      # "dummy", 
+                                      nbsyr, 
+                                      "change")) %>%
     # flextable::compose(j = "dummy",
     #                    value = as_paragraph(as_i(species_name_ital), species_name_noital, " ", spp)) %>%
     flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
@@ -1469,7 +1511,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     flextable::align(x = ., part = "all", align = "right") %>%
     flextable::align(x = ., part = "all", align = "left", j = c("print_name"))
   
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1491,7 +1533,7 @@ header <- obj$header
 
 table_raw <- obj$raw
 table_print <- obj$print # %>% 
-  # flextable::void(x = ., part = "all", ~ change) #  + dummy
+# flextable::void(x = ., part = "all", ~ change) #  + dummy
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 
@@ -1705,7 +1747,7 @@ for (i in 1:2) {
                      align = "left", part = "all") #%>%
   # flextable::hline(x = ., i = 1, part = "header")
   
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1719,318 +1761,139 @@ header <- paste0("Biomass and abundance change for major species in ",
                  maxyr, " and ", compareyr," ", SURVEY, 
                  " shelf bottom trawl survey.")
 
-a <- report_spp1 %>% 
-  dplyr::select(print_name, species_code, plot_sizecomp, order) %>% 
-  dplyr::distinct() %>% 
-  dplyr::mutate(species_code1 = species_code, 
-                include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
-                                  FALSE, TRUE) ) %>% 
-  dplyr::filter(include == TRUE &
-                  !(print_name %in% c("snailfishes", "jellyfish", "sea urchins", "sea peach")))
-
-temp11 <- function(a, dat0, y_long, unit, unt, yrs, y, maxyr, 
-                   compareyr, divby = NULL){
-  
-  dat <- dat0 %>%
-    dplyr::filter(stratum == 999) %>% 
-    dplyr::select(SRVY, year, species_code, y, taxon) %>% 
-    dplyr::left_join(x = ., 
-                     y = a %>% 
-                       dplyr::select(print_name, species_code, species_name1), 
-                     by = "species_code") %>% 
-    dplyr::filter(print_name %in% unique(a$print_name)) %>% 
-    dplyr::left_join(x = . , 
-                     y = haul_cruises_maxyr %>% 
-                       dplyr::select(SRVY, SRVY_long),
-                     by = "SRVY") %>% 
-    dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)) %>% 
-    dplyr::arrange(desc(year))
-  
-  
-  b <- table_change_pres(dat = dat, 
-                         yrs = yrs, 
-                         maxyr = maxyr, 
-                         compareyr = compareyr, 
-                         unit = unit, 
-                         unt = unt, 
-                         y_long = y_long, 
-                         divby = divby, 
-                         digits = 0)
-  
-  table_raw <- b$table_raw %>% 
-    dplyr::select(Survey, print_name, 
-                  as.character(compareyr), 
-                  dplyr::ends_with(as.character(maxyr))) %>% 
-    dplyr::rename(change = paste0("change_", compareyr, "_", maxyr), 
-                  maxyr = paste0(maxyr), 
-                  compareyr = paste0(compareyr)) %>%
-    # dplyr::mutate(compareyr = paste0(compareyr, " (", change, "%)")) %>% 
-    dplyr::mutate(change = paste0("", change, "%")) %>%
-    # dplyr::select(-change) %>%
-    tidyr::pivot_longer(cols = c("maxyr", "compareyr"), "print_name", names_to = "year") %>% 
-    dplyr::mutate(year = dplyr::case_when(
-      year == "maxyr" ~ maxyr, 
-      year == "compareyr" ~ compareyr)) %>% 
-    # tidyr::pivot_wider(id_cols = c(Survey, print_name), names_from = c(year))
-    dplyr::relocate(Survey, print_name, year, value, change) %>% 
-    # dplyr::mutate(change = ifelse(year == compareyr, NA, change)) %>% 
-    dplyr::arrange(Survey, print_name, year)
-  
-  table_print <- dplyr::left_join(
-    x = table_raw %>% 
-      dplyr::filter(Survey == "EBS") %>% 
-      dplyr::rename(value_EBS = value, 
-                    change_EBS = change), 
-    y = table_raw %>% 
-      dplyr::filter(Survey == "NBS") %>% 
-      dplyr::rename(value_NBS = value, 
-                    change_NBS = change), 
-    by = c("print_name", "year")) %>% 
-    dplyr::select(-Survey.x, -Survey.y)
-  
-  return(table_print)
-}
-
-# SRVY1 <- "EBS"
-
-bio <- temp11(a = a, 
-              dat0 = biomass %>% 
-                dplyr::rename(y = biomass_mt), 
-              yrs = yrs, 
-              maxyr = maxyr, 
-              compareyr = compareyr, 
-              unit = "metric tons", 
-              unt = "t", 
-              y_long = "biomass", 
-              divby = 1) %>% 
-  dplyr::rename(value_EBS_bio = value_EBS, 
-                change_EBS_bio = change_EBS, 
-                value_NBS_bio = value_NBS, 
-                change_NBS_bio = change_NBS)
-
-pop <- temp11(a = a, 
-              dat0 = biomass %>% 
-                dplyr::rename(y = population), 
-              yrs = yrs, 
-              maxyr = maxyr, 
-              compareyr = compareyr, 
-              unit = "", 
-              unt = "", 
-              y_long = "population", 
-              divby = 1000) %>% 
-  dplyr::rename(value_EBS_pop = value_EBS, 
-                change_EBS_pop = change_EBS, 
-                value_NBS_pop = value_NBS, 
-                change_NBS_pop = change_NBS)
-
-### Combine #############
-
 table_raw <- 
   dplyr::left_join(
-    x = bio, 
-    y = pop, 
-    by  = c("print_name", "year")) %>% 
-  dplyr::left_join(x = ., 
-                   y = report_spp1 %>% 
-                     dplyr::select(print_name, order) %>% 
-                     dplyr::distinct(), 
-                   by = "print_name") %>%
-  dplyr::arrange(order, year) %>%  # desc(value_EBS_bio), 
-  dplyr::mutate(year = as.character(year)) %>% 
-  dplyr::mutate(dplyr::across(dplyr::starts_with("value_"), ~replace_na(.,"-"))) 
+    x = biomass, 
+    y = report_spp1 %>% 
+      dplyr::filter(!is.na(order) & table_bio_portion ) %>% 
+      dplyr::select(species_code, order) %>% 
+      dplyr::distinct(), 
+    by = "species_code") %>% 
+  dplyr::filter(year %in% c(maxyr, compareyr) & 
+                  !is.na(order) & 
+                  !is.na(common_name)) %>% 
+  dplyr::group_by(common_name, year, SRVY, order) %>% 
+  dplyr::summarise(biomass = sum(biomass_mt, na.rm = TRUE), 
+                   population = sum(population_count, na.rm = TRUE)) %>% 
+  # calculate pchange
+  dplyr::mutate(year0 = ifelse(year == maxyr, "maxyr", "compareyr")) %>% 
+  tidyr::pivot_wider(id_cols = c("order", "common_name", "SRVY"), 
+                     names_from = "year0", 
+                     values_from = c("biomass", "population")) %>% 
+  dplyr::mutate(
+    biomass_pchange = pchange(end = biomass_maxyr, 
+                              start = biomass_compareyr, 
+                              value_only = TRUE), 
+    population_pchange = pchange(end = population_maxyr, 
+                                 start = population_compareyr, 
+                                 value_only = TRUE), 
+    population_maxyr = population_maxyr/1000, 
+    population_compareyr = population_compareyr/1000, 
+    dplyr::across(dplyr::where(is.numeric), formatC, format = "f", big.mark = ",", digits = 0), 
+    dplyr::across(dplyr::ends_with("_pchange"), gsub, pattern = "-0", replacement = "0"), 
+    dplyr::across(dplyr::ends_with("yr"), gsub, pattern = "NA", replacement = ""), 
+    biomass_maxyr = paste0(biomass_maxyr, "", ifelse(biomass_pchange %in% c("NA"), "", paste0(" (", biomass_pchange, "%)"))), 
+    population_maxyr = paste0(population_maxyr, ifelse(population_pchange %in% c("NA"), "", paste0(" (", population_pchange, "%)"))), 
+    order = as.numeric(order), 
+    biomass = paste0(biomass_compareyr, "\n", biomass_maxyr), 
+    population = paste0(population_compareyr, "\n", population_maxyr), 
+    year = paste0(compareyr, "\n", maxyr)) %>% 
+  dplyr::select(order, common_name, SRVY, year, biomass, population) %>%
+  # tidyr::pivot_longer(names_to = "var", 
+  #                     values_to = "val", 
+  #                     cols = c("biomass_compareyr", "population_compareyr", "biomass_maxyr", "population_maxyr")) %>% 
+  # dplyr::mutate(year = dplyr::case_when(
+  #   grepl(x = var, pattern = "pchange") ~ 1, 
+  #   grepl(x = var, pattern = "maxyr") ~ maxyr, 
+  #   grepl(x = var, pattern = "compareyr") ~ compareyr), 
+  #   var = sapply((strsplit(x = var, split = "_")),"[[",1)) %>% 
+  # # final format
+  tidyr::pivot_wider(id_cols = c("order", "common_name", "year"),
+                     names_from = c("SRVY"),
+                     values_from = c("biomass", "population")) %>%
+  dplyr::arrange((order)) %>%
+  dplyr::select(-order) %>%
+  dplyr::ungroup() %>% 
+  dplyr::relocate(common_name, year, biomass_EBS, population_EBS, biomass_NBS, population_NBS)
 
-
-# https://www.visualisingdata.com/2019/08/five-ways-to-design-for-red-green-colour-blindness/
-negative <- "#EDA247"
-positive <- "#57C4AD"
-neutral <- "#E6E1BC"
-# fp_border0 <- fp_border(color = "black", style = "solid", width = 1)  
-
-if (SRVY == "NEBS") {
-  table_print <- 
-    flextable::flextable(data = table_raw, #hide_grouplabel = TRUE, 
-                         col_keys = c("print_name", "year", 
-                                      "value_EBS_bio", "change_EBS_bio",
-                                      "value_EBS_pop", "change_EBS_pop", 
-                                      "value_NBS_bio", "change_NBS_bio", 
-                                      "value_NBS_pop", "change_NBS_pop")) %>% 
-    flextable::bold(x = ., j = 1, i = ~ !is.na(print_name) ) %>%
-    # flextable::padding(x = ., 
-    #                    j = 1, i = ~ is.na(print_name), 
-    #                    padding.left = 20) %>%
-    flextable::merge_v(x = ., j = "print_name",
-                       target = c("print_name")) %>%
-    flextable::merge_v(x = ., j = "change_EBS_bio",
-                       target = c("change_EBS_bio")) %>%
-    flextable::merge_v(x = ., j = "change_NBS_bio",
-                       target = c("change_NBS_bio")) %>%
-    flextable::merge_v(x = ., j = "change_EBS_pop",
-                       target = c("change_EBS_pop")) %>%
-    flextable::merge_v(x = ., j = "change_NBS_pop",
-                       target = c("change_NBS_pop")) %>%
-    flextable::add_header(x = .,
-                          year = " ",
-                          value_EBS_bio = "EBS", change_EBS_bio = "EBS",
-                          value_EBS_pop = "EBS", change_EBS_pop = "EBS",
-                          value_NBS_bio = "NBS", change_NBS_bio = "NBS",
-                          value_NBS_pop = "NBS", change_NBS_pop = "NBS",
-                          top = TRUE) %>%
-    flextable::set_header_labels(x = .,
-                                 year = "Year",
-                                 print_name = "Common name", 
-                                 value_EBS_bio = "Biomass (mt)", 
-                                 value_EBS_pop = "Abundance (x1,000)", 
-                                 value_NBS_bio = "Biomass (mt)", 
-                                 value_NBS_pop = "Abundance (x1,000)", 
-                                 change_EBS_bio = "Biomass (mt)", 
-                                 change_EBS_pop = "Abundance (x1,000)", 
-                                 change_NBS_bio = "Biomass (mt)", 
-                                 change_NBS_pop = "Abundance (x1,000)") %>%
-    
-    flextable::merge_h(x = ., part = "header") %>%
-    flextable::bold(x = ., i = c(1:2), part = "header" ) %>%
-    
-    # EBS_bio
-    flextable::bg(x = ., bg = negative,
-                  i = ~ grepl(pattern = "-", x = change_EBS_bio),
-                  j = c("value_EBS_bio", "change_EBS_bio")) %>%
-    flextable::bg(x = ., bg = positive, 
-                  i = ~ !grepl(pattern = "-", x = change_EBS_bio), 
-                  j = c("value_EBS_bio", "change_EBS_bio")) %>% 
-    flextable::bg(x = ., bg = neutral, 
-                  i = ~ (change_EBS_bio == "0%"), 
-                  j = c("value_EBS_bio", "change_EBS_bio")) %>% 
-    
-    # EBS_pop
-    flextable::bg(x = ., bg = negative,
-                  i = ~ grepl(pattern = "-", x = change_EBS_pop),
-                  j = c("value_EBS_pop", "change_EBS_pop")) %>%
-    flextable::bg(x = ., bg = positive, 
-                  i = ~ !grepl(pattern = "-", x = change_EBS_pop), 
-                  j = c("value_EBS_pop", "change_EBS_pop")) %>% 
-    flextable::bg(x = ., bg = neutral, 
-                  i = ~ (value_EBS_pop == "0%"), 
-                  j = c("value_EBS_pop", "change_EBS_pop")) %>% 
-    
-    # NBS_bio
-    flextable::bg(x = ., bg = negative,
-                  i = ~ grepl(pattern = "-", x = change_NBS_bio),
-                  j = c("value_NBS_bio", "change_NBS_bio")) %>%
-    flextable::bg(x = ., bg = positive, 
-                  i = ~ !grepl(pattern = "-", x = change_NBS_bio), 
-                  j = c("value_NBS_bio", "change_NBS_bio")) %>% 
-    flextable::bg(x = ., bg = neutral, 
-                  i = ~ (value_NBS_bio == "0%"), 
-                  j = c("value_NBS_bio", "change_NBS_bio")) %>% 
-    
-    # NBS_pop
-    flextable::bg(x = ., bg = negative,
-                  i = ~ grepl(pattern = "-", x = change_NBS_pop),
-                  j = c("value_NBS_pop", "change_NBS_pop")) %>%
-    flextable::bg(x = ., bg = positive, 
-                  i = ~ !grepl(pattern = "-", x = change_NBS_pop), 
-                  j = c("value_NBS_pop", "change_NBS_pop")) %>% 
-    flextable::bg(x = ., bg = neutral, 
-                  i = ~ (value_NBS_pop == "0%"), 
-                  j = c("value_NBS_pop", "change_NBS_pop")) %>% 
-    
-    # where there is no data
-    flextable::bg(x = ., bg = "white",
-                  i = ~ grepl(pattern = "-", x = value_EBS_bio), 
-                  j = c("value_EBS_bio", "change_EBS_bio", 
-                        "value_EBS_pop", "change_EBS_pop")) %>%
-    flextable::bg(x = ., bg = "white",
-                  i = ~ grepl(pattern = "-", x = value_NBS_bio), 
-                  j = c("value_NBS_bio", "change_NBS_bio", 
-                        "value_NBS_pop", "change_NBS_pop")) %>%
-    
-    flextable::fontsize(x = ., j = c("change_EBS_bio", "change_EBS_pop", "change_NBS_bio", "change_NBS_pop"), 
-                        size = 14, part = "body") %>%
-    flextable::bold(x = ., j = c("change_EBS_bio", "change_EBS_pop", "change_NBS_bio", "change_NBS_pop"), 
-                    bold = TRUE, part = "body") %>%
-    flextable::vline(x = ., part = "all", j = c("change_EBS_pop")) %>%
-    flextable::vline(x = ., part = "header", j = c("change_EBS_bio", "change_NBS_bio"), i = 2) %>%
-    flextable::vline(x = ., part = "body", j = c("change_EBS_bio", "change_NBS_bio")) %>%
-    flextable::vline(x = ., part = "all", j = c("year")) %>%
-    flextable::hline(x = ., part = "body", i = ~ year == maxyr) %>%
-    # flextable::hline_bottom(x = ., j = NULL, border = NULL, part = "body") %>%
-    flextable::hline_bottom(x = ., part = "body",
-                            border = fp_border(color = "transparent", style = "solid", width = 1))
-  
-} else if (sum(SRVY1 %in% "EBS")>1) {
-  
-  table_print <- 
-    flextable::flextable(data = table_raw, #hide_grouplabel = TRUE, 
-                         col_keys = c("print_name", "year", 
-                                      "value_EBS_bio", "change_EBS_bio",
-                                      "value_EBS_pop", "change_EBS_pop")) %>% 
-    flextable::bold(x = ., j = 1, i = ~ !is.na(print_name) ) %>%
-    # flextable::padding(x = ., 
-    #                    j = 1, i = ~ is.na(print_name), 
-    #                    padding.left = 20) %>%
-    flextable::merge_v(x = ., j = "print_name",
-                       target = c("print_name")) %>%
-    flextable::merge_v(x = ., j = "change_EBS_bio",
-                       target = c("change_EBS_bio")) %>%
-    flextable::merge_v(x = ., j = "change_EBS_pop",
-                       target = c("change_EBS_pop")) %>%
-    flextable::add_header(x = .,
-                          year = " ",
-                          value_EBS_bio = "EBS", change_EBS_bio = "EBS",
-                          value_EBS_pop = "EBS", change_EBS_pop = "EBS",
-                          top = TRUE) %>%
-    flextable::set_header_labels(x = .,
-                                 year = "Year",
-                                 print_name = "Common name", 
-                                 value_EBS_bio = "Biomass (mt)", 
-                                 value_EBS_pop = "Abundance (x1,000)", 
-                                 change_EBS_bio = "Biomass (mt)", 
-                                 change_EBS_pop = "Abundance (x1,000)") %>%
-    
-    flextable::merge_h(x = ., part = "header") %>%
-    flextable::bold(x = ., i = c(1:2), part = "header" ) %>%
-    
-    # EBS_bio
-    flextable::bg(x = ., bg = negative,
-                  i = ~ grepl(pattern = "-", x = change_EBS_bio),
-                  j = c("value_EBS_bio", "change_EBS_bio")) %>%
-    flextable::bg(x = ., bg = positive, 
-                  i = ~ !grepl(pattern = "-", x = change_EBS_bio), 
-                  j = c("value_EBS_bio", "change_EBS_bio")) %>% 
-    flextable::bg(x = ., bg = neutral, 
-                  i = ~ (change_EBS_bio == "0%"), 
-                  j = c("value_EBS_bio", "change_EBS_bio")) %>% 
-    
-    # EBS_pop
-    flextable::bg(x = ., bg = negative,
-                  i = ~ grepl(pattern = "-", x = change_EBS_pop),
-                  j = c("value_EBS_pop", "change_EBS_pop")) %>%
-    flextable::bg(x = ., bg = positive, 
-                  i = ~ !grepl(pattern = "-", x = change_EBS_pop), 
-                  j = c("value_EBS_pop", "change_EBS_pop")) %>% 
-    flextable::bg(x = ., bg = neutral, 
-                  i = ~ (value_EBS_pop == "0%"), 
-                  j = c("value_EBS_pop", "change_EBS_pop")) %>% 
-    
-    # where there is no data
-    flextable::bg(x = ., bg = "white",
-                  i = ~ grepl(pattern = "-", x = value_EBS_bio), 
-                  j = c("value_EBS_bio", "change_EBS_bio", 
-                        "value_EBS_pop", "change_EBS_pop")) %>%
-    
-    flextable::fontsize(x = ., j = c("change_EBS_bio", "change_EBS_pop"), 
-                        size = 14, part = "body") %>%
-    flextable::bold(x = ., j = c("change_EBS_bio", "change_EBS_pop"), 
-                    bold = TRUE, part = "body") %>%
-    flextable::vline(x = ., part = "all", j = c("change_EBS_pop")) %>%
-    flextable::vline(x = ., part = "header", j = c("change_EBS_bio"), i = 2) %>%
-    flextable::vline(x = ., part = "body", j = c("change_EBS_bio")) %>%
-    flextable::vline(x = ., part = "all", j = c("year")) %>%
-    flextable::hline(x = ., part = "body", i = ~ year == maxyr) %>%
-    # flextable::hline_bottom(x = ., j = NULL, border = NULL, part = "body") %>%
-    flextable::hline_bottom(x = ., part = "body",
-                            border = fp_border(color = "transparent", style = "solid", width = 1))
-}
+table_print <- table_raw %>% 
+  flextable::flextable()  %>%  
+  theme_flextable_nmfstm(x = ., 
+                         font0 = font0, 
+                         pad = 0, 
+                         row_lines = TRUE, 
+                         pgwidth = full_page_landscape_width) %>% 
+  flextable::merge_v(j = "common_name", part = "body") %>%
+  flextable::bold(x = ., j = 1, i = ~ !is.na(common_name) ) %>% 
+  flextable::add_header(x = .,
+                        common_name = "", 
+                        year = "",
+                        biomass_EBS = "EBS", 
+                        population_EBS = "EBS", 
+                        biomass_NBS = "NBS", 
+                        population_NBS = "NBS", 
+                        top = TRUE) %>%
+  flextable::set_header_labels(x = .,
+                               year = "Year",
+                               common_name = "Common name", 
+                               biomass_EBS = "Biomass (mt)", 
+                               population_EBS = "Population (x1,000)", 
+                               biomass_NBS = "Biomass (mt)", 
+                               population_NBS = "Population (x1,000)")  %>%
+  flextable::merge_h(i = c(1), part = "header") %>%
+  flextable::align(i = 1, align = "center", part = "header") %>% 
+  flextable::vline(j = "population_EBS", part = "all") %>% 
+  # EBS biomass
+  flextable::bg(x = ., bg = positive, 
+                j = c("biomass_EBS")) %>%
+  flextable::bg(x = ., bg = negative,
+                i = ~ grepl(pattern = "-", x = biomass_EBS),
+                j = c("biomass_EBS")) %>%
+  flextable::bg(x = ., bg = "white",
+                i = ~ (is.na(biomass_EBS) | 
+                         grepl(pattern = "\\(0%)", x = biomass_EBS) | 
+                         !grepl(pattern = "%)", x = biomass_EBS)) ,
+                j = c("biomass_EBS")) %>% 
+  # EBS population
+  flextable::bg(x = ., bg = positive, 
+                j = c("population_EBS")) %>%
+  flextable::bg(x = ., bg = negative,
+                i = ~ grepl(pattern = "-", x = population_EBS),
+                j = c("population_EBS")) %>%
+  flextable::bg(x = ., bg = "white",
+                i = ~ (is.na(population_EBS) | 
+                         grepl(pattern = "\\(0%)", x = population_EBS) | 
+                         !grepl(pattern = "%)", x = population_EBS)) ,
+                j = c("population_EBS")) %>% 
+  # NBS biomass
+  flextable::bg(x = ., bg = positive, 
+                j = c("biomass_NBS")) %>%
+  flextable::bg(x = ., bg = negative,
+                i = ~ grepl(pattern = "-", x = biomass_NBS),
+                j = c("biomass_NBS")) %>%
+  flextable::bg(x = ., bg = "white",
+                i = ~ (is.na(biomass_NBS) | 
+                         grepl(pattern = "\\(0%)", x = biomass_NBS) | 
+                         !grepl(pattern = "%)", x = biomass_NBS)) ,
+                j = c("biomass_NBS")) %>% 
+  # NBS biomass
+  flextable::bg(x = ., bg = positive, 
+                j = c("population_NBS")) %>%
+  flextable::bg(x = ., bg = negative,
+                i = ~ grepl(pattern = "-", x = population_NBS),
+                j = c("population_NBS")) %>%
+  flextable::bg(x = ., bg = "white",
+                i = ~ (is.na(population_NBS) | 
+                         grepl(pattern = "\\(0%)", x = population_NBS) | 
+                         !grepl(pattern = "%)", x = population_NBS)) ,
+                j = c("population_NBS")) %>% 
+  flextable::padding(padding = 5) %>% 
+  flextable::valign(x = ., valign = "top", part = "body", j = 3:6) %>%
+  flextable::fontsize(x = .,  size = 14, part = "header") %>%
+  flextable::fontsize(x = .,  size = 12, part = "body") %>%
+  flextable::fontsize(x = .,  size = 14, part = "body", j = 1) %>%
+  flextable::hline_bottom(x = ., part = "body",
+                          border = fp_border(color = "transparent", style = "solid", width = 1))
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
