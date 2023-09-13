@@ -351,14 +351,21 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_sc
     by = "print_name") %>% 
   dplyr::distinct() %>%
   dplyr::arrange(SRVY, stomach_target, order) %>% 
-  dplyr::select(SRVY, print_name, stomach_target) %>% 
-  dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0))) %>% 
+  dplyr::select(SRVY, print_name, stomach_target) 
+
+if (is.numeric(table_raw$stomach_target)){
+table_raw <- table_raw %>% 
+  dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0))) 
+}
+
+table_raw <- table_raw %>%
   tidyr::pivot_wider(data = ., id_cols = c("print_name"), 
                      names_from = "SRVY", values_from = "stomach_target")
 
 table_raw[is.na(table_raw)] <- "-"
 
-table_print <- flextable::flextable(table_raw) %>% 
+table_print <- table_raw %>% 
+  flextable::flextable() %>% 
   flextable::set_header_labels(x = .,
                                print_name = "Common name", 
                                stomach_target = "Target collection number per survey") %>%
@@ -367,8 +374,8 @@ table_print <- flextable::flextable(table_raw) %>%
                          font0 = font0, 
                          row_lines = TRUE, 
                          pgwidth = full_page_portrait_width)  %>%
-  flextable::align(x = ., j = c(SRVY1), 
-                   align = "right", part = "all")   %>%
+  # flextable::align(x = ., j = c(SRVY1), 
+  #                  align = "right", part = "all")   %>%
   flextable::width(x = ., width = (2.5/length(SRVY1)))  %>%
   flextable::width(x = ., j = "print_name", width = 4)  
 
@@ -673,7 +680,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## fig-temperature-[st/bt]
 
-```{r fig-temperature-[st/bt]}
+```{r fig-temperature-[st/bt], eval = FALSE}
 height <- full_page_portrait_height
 width <- full_page_portrait_width
 yrs0 <- (maxyr-17):maxyr

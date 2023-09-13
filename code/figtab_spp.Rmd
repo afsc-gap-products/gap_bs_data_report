@@ -40,7 +40,7 @@ if (report_title == "data") {
 
 ```{r fig-spp, eval = (report_title == "pres")}
 header <- spp_file
-nickname <- paste0("fig-", jj, "-", spp_file, "-0-pres")
+nickname <- paste0("fig-", spp_file, "-0-pres")
 height <- width <- 5
 
 figure <- 
@@ -222,11 +222,11 @@ if (report_title == "data") {
   row0 <- 2
   nickname <- paste0(nickname, "-comm")
 } else if (report_title == "pres") {
-  nickname <- paste0("fig-", jj, "-", spp_file, "-3-distribution-pres")
+  nickname <- paste0("fig-", spp_file, "-3dist-pres")
   yrs <- sort(nbsyr)
   height <- 8
-  width <- 10
-  row0 <- 2
+  width <- 8
+  row0 <- 1
 } 
 
 if (spp_plot_idw) {
@@ -445,10 +445,9 @@ if (report_title == "data") {
 } else if (report_title == "pres") {
   yrs <- unique(sizecomp$year)
   print_n <- FALSE
-  height <- 8
-  width <- 10
+  height <- full_page_portrait_height
   SRVY11 <- SRVY1 # "NBS"
-  nickname <- paste0("fig-", jj, "-", spp_file, "-4-sizecomp-pres")
+  nickname <- paste0("fig-", spp_file, "-4sizecomp-pres")
 }
 
 lengths0 <- lengths %>%
@@ -1111,7 +1110,7 @@ temp00 <- function(table_raw0,
     table_raw00 %>% 
       dplyr::group_by(year) %>%
       dplyr::summarise(y = sum(y, na.rm = TRUE)) %>% 
-      dplyr::mutate(SRVY = "EBS+NBS"))
+      dplyr::mutate(SRVY = "EBS + NBS"))
   }
   
   a <- find_units(dat = table_raw0[names(table_raw0) == var], unt = unt, unit = unit)
@@ -1129,11 +1128,7 @@ temp00 <- function(table_raw0,
                     pchange0 > 0 ~ positive, 
                     pchange0 < 0 ~ negative, 
                     TRUE ~ "black"), 
-                  # dig = ifelse(pchange0>5, 0, 2), 
-                  # pchange = round(x = pchange0, digits = dig), 
-                  pchange1 = formatC(x = pchange0, format = "f", big.mark = ",", digits = 2), 
-                  pchange2 = formatC(x = pchange0, format = "f", big.mark = ",", digits = 0), 
-                  pchange = ifelse(pchange0>5, pchange2, pchange1))
+                  pchange0 = formatC(x = pchange0, format = "f", big.mark = ",", digits = 2))
   
   mean_in_legend <- FALSE
   str0 <- c()
@@ -1151,9 +1146,9 @@ temp00 <- function(table_raw0,
                        "", 
                        paste0(compareyr, ": ", b0$compareyr, " ", a$unit_wrd)), 
                 # maxyr and compareyr % change
-                ifelse(b0$pchange %in% c("NA", "Inf"), 
+                ifelse(b0$pchange0 %in% c("NA", "Inf"), 
                        "", 
-                       paste0("\n(", b0$pchange, "%)\n")), 
+                       paste0("\n(", b0$pchange0, "%)\n")), 
                 "")
     
     col00 <- c(
@@ -1189,6 +1184,7 @@ temp00 <- function(table_raw0,
   }
 
   legend0 <- ggpubr::get_legend(figure0)
+  header <- ""
 
   return(figure)
 }
@@ -1198,7 +1194,7 @@ temp00 <- function(table_raw0,
 
 ```{r, fig-[spp]-biomass-pres, eval = (report_title == "pres")}
 height <- 4
-nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres")
+nickname <- paste0("fig-", spp_file, "-1biomass-pres")
 table_raw <- table_raw0
 figure <- temp00(table_raw0 = table_raw0, 
             var = "biomass_mt", 
@@ -1221,7 +1217,7 @@ y_long <- "Population"
 unit = "individuals"
 unt = ""
 height <- 4
-nickname <- paste0("fig-", jj, "-", spp_file, "-2-population-pres")
+nickname <- paste0("fig-", spp_file, "-2population-pres")
 table_raw <- table_raw0
 figure <- temp00(table_raw0 = table_raw0, 
             var = "population_count", 

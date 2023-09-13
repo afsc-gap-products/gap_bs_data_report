@@ -21,7 +21,7 @@ maxyr <- 2023
 compareyr <- 2022
 compareyr0 <- 2021
 strat_yr <- 2022
-SRVY<-"NEBS"
+SRVY<-"EBS"
 ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
 dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
@@ -51,9 +51,15 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
+  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+  spp_code <- a$species_code
+  aa <- haul0 %>% 
+    dplyr::filter(species_code %in% spp_code & year == maxyr)
+  if (nrow(aa)>0) {
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_rawdata,
                     output_file = paste0("figtab_spp_", comb[jj],".docx"))
+}
 }
 
 # Appendix 
@@ -66,10 +72,16 @@ report_title <- "pres"
 comb <- report_spp1 %>% dplyr::filter(!is.na(order) & table_bio_portion) %>% 
   dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
+  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+  spp_code <- a$species_code
+  aa <- haul0 %>% 
+    dplyr::filter(species_code %in% spp_code & year == maxyr)
+  if (nrow(aa)>0) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_rawdata,
                     output_file = paste0("figtab_spp_", comb[jj],".docx"))
+  }
 }
 
 ## Write report ----------------------------------------------------------------
@@ -111,10 +123,16 @@ source(here::here("code","data.R"))
 
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
+  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+  spp_code <- a$species_code
+  aa <- haul0 %>% 
+    dplyr::filter(species_code %in% spp_code & year == maxyr)
+  if (nrow(aa)>0) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_rawdata,
                     output_file = paste0("figtab_spp_", comb[jj],".docx"))
+  }
 }
 
 ## Write report ----------------------------------------------------------------

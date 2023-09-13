@@ -50,6 +50,7 @@ locations <- c(
  # "crab.gap_ebs_nbs_crab_cpue", # CPUE
  # "crab.ebscrab", # length data
  # "crab.ebscrab_nbs", # length data,
+ "RACE_DATA.VESSELS", 
  "RACE_DATA.LENGTH_TYPES"
   )
 
