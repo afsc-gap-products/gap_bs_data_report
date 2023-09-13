@@ -681,10 +681,20 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-temperature-[st/bt]
 
 ```{r fig-temperature-[st/bt], eval = FALSE}
+if (report_title == "pres") {
+  nickname0 <- "fig-pres-temperature-"
+height <- 5
+width <- full_page_portrait_width
+yrs <- nbsyr
+row0 <- 2
+reg_dat0 <- report_types$NEBS$reg_dat
+} else {
+  nickname0 <- "fig-temperature-"
 height <- full_page_portrait_height
 width <- full_page_portrait_width
 yrs0 <- (maxyr-17):maxyr
 row0 <- 3
+}
 reg_dat0 <- report_types$NEBS$reg_dat
 
 if (report_title == 'pres') {
@@ -719,7 +729,7 @@ for (case in c("bottom", "surface")) {
                      " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
                      " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
     
-    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-", case_yr)
+    nickname <- paste0(nickname0, ifelse(case=="bottom", "bt", "st"), "-", case_yr)
     
     # Create figure
     key.title = ifelse(case == "bottom", 
@@ -730,14 +740,14 @@ for (case in c("bottom", "surface")) {
                     " Bering Sea\n", 
                     case, " temperature (", range_text(yrs), ")") 
     
-    yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
+    # yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
     
     figure <- plot_temperature_facet(
       raster_nebs = raster_nebs, 
       raster_ebs = raster_ebs, 
       colorbar_breaks = colorbar_breaks, 
       yrs = yrs, 
-      yrs_nbs = yrs_nbs, 
+      yrs_nbs = nbsyr[nbsyr %in% names(raster_nebs)], # in case data isn't ready yet at time of run 
       key.title = key.title, 
       reg_dat = reg_dat0, 
       row0 = row0, 
@@ -746,66 +756,6 @@ for (case in c("bottom", "surface")) {
     
     res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   }
-}
-```
-
-
-## fig-pres-temperature-[bt/st]
-
-```{r fig-pres-temperature-[bt/st]}
-nickname <- "fig-pres-temperature-"
-height <- 5
-width <- full_page_portrait_width
-yrs <- nbsyr
-row0 <- 2
-reg_dat0 <- report_types$NEBS$reg_dat
-
-for (case in c("bottom", "surface")) {
-  
-  if (case == "surface") {
-    raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
-    raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
-    colorbar_breaks <- c(-Inf, seq(0, 10, 2), Inf)
-  } else if (case == "bottom") {
-    raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
-    raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
-    # colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
-    colorbar_breaks <- c(-Inf, seq(-2, 8, 2), Inf)
-  }
-  
-  header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
-                   range_text(yrs), " ", 
-                   SURVEY, " shelf bottom trawl survey",
-                   ifelse(SRVY=="NEBS", "s", ""),
-                   ". Years in which the mean ", case, 
-                   " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
-                   " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
-  
-  nickname <- paste0("fig-pres-temperature-", ifelse(case=="bottom", "bt", "st"))
-  
-  # Create figure
-  key.title = ifelse(case == "bottom", 
-                     expression(bold("Bottom temperature (°C)")), 
-                     expression(bold("Surface temperature (°C)")))
-  reg_dat = reg_dat0
-  title0 = paste0(toupper(substr(x = SURVEY, start = 1, stop = 1)), 
-                  substr(x = SURVEY, start = 2, stop = nchar(SURVEY)), " ", case, " temperature") 
-  
-  yrs_nbs <- unlist(c(yrs, nbsyr)[duplicated(c(yrs, nbsyr))])
-  
-  figure <- plot_temperature_facet(
-    raster_nebs = raster_nebs, 
-    raster_ebs = raster_ebs, 
-    colorbar_breaks = colorbar_breaks, 
-    yrs = yrs, 
-    yrs_nbs = yrs_nbs, 
-    key.title = key.title, 
-    reg_dat = reg_dat0, 
-    row0 = row0, 
-    title0 = title0, 
-    temperature_zscore = TRUE) 
-  
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1213,8 +1163,8 @@ temp1 <- function(table_raw, strat, total) {
                       unique(table_raw$SRVY), " bottom trawl survey.")
   
   table_raw0 <- table_raw %>% 
-    dplyr::select("group", "taxon", "999", #"a", "CI95", 
-                  "prop", 
+    dplyr::select(group, taxon, `999`, #"a", "CI95", 
+                  prop, 
                   all_of(strat)) %>% 
     mutate_if(is.numeric , replace_na, replace = 0) %>% 
     dplyr::mutate(
