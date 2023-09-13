@@ -410,15 +410,24 @@ crab_resample <- FALSE
 #     dplyr::filter(haul_type == 20) 
 # }
 
-if (SRVY == "NEBS") {
-  nbsyr <- sort(cruises %>% 
-                  dplyr::filter(SRVY == "NBS") %>% 
-                  dplyr::select(year) %>% 
-                  unique() %>% 
-                  unlist())
-} else {
-  nbsyr <- sort(unique(haul$year), decreasing = TRUE)[1:4]
-}
+nbsyr <- gap_products_akfin_cruise0 %>% 
+  dplyr::filter(survey_definition_id == 143) %>% 
+  dplyr::select(year) %>% 
+  unique() %>% 
+  unlist() %>% 
+  sort(decreasing = TRUE)
+nbsyr <- unique(c(2023, nbsyr))
+
+# if (SRVY == "NEBS") {
+#   nbsyr <- cruises %>% 
+#                   dplyr::filter(SRVY == "NBS") %>% 
+#                   dplyr::select(year) %>% 
+#                   unique() %>% 
+#                   unlist() %>% 
+#     sort()
+# } else {
+#   nbsyr <- sort(unique(haul$year), decreasing = TRUE)[1:4]
+# }
 
 lastyr <- max(haul$year[haul$year != maxyr])
 
@@ -1007,8 +1016,8 @@ biomass_compareyr <- biomass %>%
   dplyr::filter(year == compareyr[1])
 
 total_biomass <- biomass %>% 
-  dplyr::filter(year %in% nbsyr) %>% 
-  dplyr::filter(stratum == 999) %>%
+  dplyr::filter(year %in% nbsyr & 
+                  stratum == 999) %>%
   dplyr::group_by(SRVY, year, taxon) %>% 
   dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 
   dplyr::ungroup()
