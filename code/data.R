@@ -675,8 +675,7 @@ length_type$sentancefrag <- c("fork lengths",
 print("lengths")
 
 lengths <- dplyr::bind_rows(
-  gap_products_akfin_length0 %>% 
-    dplyr::rename(length_mm = length), # TOLDEDO
+  gap_products_akfin_length0,
   
   dplyr::bind_rows( # SAP lengths
     crab_ebscrab0 %>%

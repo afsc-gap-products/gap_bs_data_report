@@ -2291,7 +2291,7 @@ plot_temperature_facet <- function(raster_nebs,
                                    yrs,
                                    yrs_nbs, 
                                    dist_unit = "nm", # nautical miles
-                                   viridis_palette_option = "B", 
+                                   viridis_palette_option = "H", 
                                    row0 = 2, 
                                    title0 = NULL, 
                                    legend_seperate = FALSE, 
@@ -2979,19 +2979,19 @@ plot_timeseries <- function(
                          color = pcol_anno)
   }
   
-  if (sum(dat$y == 0) > 0) {
+  # if (sum(dat$y == 0) > 0) {
     figure <- figure +
-      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), 
-                                                " ", tolower(y_long), "\n", unit_word), 
-                                  labels = scales::comma) 
+      ggplot2::scale_y_continuous(
+        name = paste0(stringr::str_to_sentence(spp_print), " ", tolower(y_long), "\n", unit_word), 
+        labels = scales::comma) 
     
-  } else {
-    figure <- figure +
-      ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print), 
-                                                " ", tolower(y_long), "\n", unit_word), 
-                                  # labels = scales::label_number(accuracy = 1))
-                                  breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
-  }
+  # } else {
+  #   figure <- figure +
+  #     ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print),
+  #                                               " ", tolower(y_long), "\n", unit_word),
+  #                                 # labels = scales::label_number(accuracy = 1))
+  #                                 breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
+  # }
   
   figure <- figure +
     ggplot2::guides(color = guide_legend(title="", nrow = 2)) +
@@ -3825,7 +3825,8 @@ save_figures<-function(figure,
                        alttext = "",
                        filename_desc = "",
                        nickname = "",
-                       raw = NULL
+                       raw = NULL, 
+                       bg = "white"
 ){
   
   header<-trimws(header)
@@ -3848,7 +3849,7 @@ save_figures<-function(figure,
       ggplot2::ggsave( # save your plot
         path = path,
         dpi = 1200,
-        bg = "white",
+        bg = bg,
         filename = paste0(nickname, ".", output_type[i]), # Always save in pdf so you can make last minute edits in adobe acrobat!
         plot = figure, # call the plot you are saving
         width = width, height = height, units = "in") #recall, A4 pages are 8.5 x 11 in - 1 in margins

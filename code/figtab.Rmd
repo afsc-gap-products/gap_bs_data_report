@@ -183,6 +183,7 @@ header <- paste0("Diagram of the 83/112 Eastern trawl net.")
 nickname <- "fig-trawl-gear-alt"
 height <- 4
 width <- 6
+bg <- 'transparent'
 
 # Select data and make plot
 figure <- 
@@ -198,7 +199,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 header <- paste0("Stratum areas and sampling densities used during the ",maxyr,
                  " ", SURVEY ," bottom trawl survey", 
                  ifelse(length(SRVY1)>1, "s", ""),". Stratum area calculations were updated in ", 
-                 stratum$year[1] , ". ")
+                 strat_yr , ". ")
 
 nickname <- "tab-stratum-areas" 
 
@@ -679,6 +680,10 @@ yrs0 <- (maxyr-17):maxyr
 row0 <- 3
 reg_dat0 <- report_types$NEBS$reg_dat
 
+if (report_title == 'pres') {
+    height <- 8
+}
+
 for (case in c("bottom", "surface")) {
   for (case_yr in c(1,2)) {
     
@@ -691,12 +696,12 @@ for (case in c("bottom", "surface")) {
     if (case == "surface") {
       raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
       raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
-      colorbar_breaks <- c(-Inf, seq(0, 10, 2), Inf)
+      colorbar_breaks <- c(-Inf, seq(-1, 8, 1), Inf)
     } else if (case == "bottom") {
       raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
       raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
       # colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
-      colorbar_breaks <- c(-Inf, seq(-2, 8, 2), Inf)
+      colorbar_breaks <- c(-Inf, seq(-1, 8, 1), Inf)
     }
     
     header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 

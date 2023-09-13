@@ -73,7 +73,7 @@ for (i in 1:length(locations)){
   }
   if ("YEAR" %in% names(a) & !(locations[i] %in% 
                                c("GAP_PRODUCTS.AKFIN_SIZECOMP", "GAP_PRODUCTS.AKFIN_BIOMASS", "GAP_PRODUCTS.AKFIN_CRUISE")) ) {
-    end0 <- c(end0, paste0("YEAR IN (",maxyr,", ", compareyr, ")"))
+    end0 <- c(end0, paste0("YEAR IN (",maxyr,", ", compareyr, ", ", compareyr0, ")"))
   }
   end0 <- ifelse(is.null(end0), "", paste0(" WHERE ", paste0(end0, collapse = " AND ")))
   

@@ -1,11 +1,11 @@
 ---
-title: "`r maxyr` Fisheries Survey: What did they find?"
+title: '`r paste0(maxyr, " ", SURVEY, "Bottom Trawl Survey\nJoint Groundfish Plan Team Meeting") `'
 subtitle: '`r paste0(format(min(haul_cruises_vess_maxyr$start_date_cruise), format = "%B %d"), " to ", format(max(haul_cruises_vess_maxyr$end_date_cruise), format = "%B %d, %Y") )  `'
 author: 
 - affiliation: Resource Assessment & Conservation Engineering Division
   description: Groundfish Assessment Program
   email: Duane.Stevenson@noaa.gov
-  name: Duane Stevenson
+  name: Duane Stevenson, Emily Markowitz, Liz Dawson, Chris Anderson
 csl: "https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl"
 bibliography: "https://raw.githubusercontent.com/afsc-gap-products/citations/main/cite/bibliography.bib"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -16,6 +16,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+# "`r maxyr` Fisheries Survey: What did they find?"
 knitr::opts_chunk$set(
   echo = FALSE,
   message = FALSE,
@@ -23,7 +24,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   #   dev = "svg",
   fig.width = 12,
-  fig.height = 12
+  fig.height = 12, 
+  fig_caption = FALSE
   # fig.retina = 3
 )
 ```
@@ -35,7 +37,26 @@ knitr::opts_chunk$set(
  - Additional research
  - [[NEW]]
  - State of the survey group
+ 
+ ## `r paste0(maxyr, " ", text_list(SRVY1), " bottom trawl survey")`
+ 
+```{r}
+str0 <- text_list(paste0("*", haul_cruises_maxyr$SRVY_long, " bottom trawl survey (", haul_cruises_maxyr$SRVY, "):* \n - ", 
+haul_cruises_maxyr$yrofsurvey, haul_cruises_maxyr$stndth, " of survey\n - ", 
+haul_cruises_maxyr$stations_completed, " of ", haul_cruises_maxyr$stations_avail, " were completed\n - ", 
+format(min(haul_cruises_vess_maxyr$start_date_cruise), format = "%B %d"), " to ", format(max(haul_cruises_vess_maxyr$end_date_cruise), format = "%B %d, %Y"), 
+sep_last = "\n", sep_last2 = "\n", sep = "\n"))
+```
+ 
+`r str0`
+ 
+## Survey purpose
 
+To collect standardized and fishery-independent time series of:
+ - Relative abundance
+ - Distribution
+ - Length and age composition
+ 
 
 ```{r figtab, echo=FALSE, results='asis'}
 # list_fig <- list.files(path = dir_out_figtab, pattern = ".png", full.names = FALSE, recursive = FALSE)
@@ -61,15 +82,19 @@ nickname0 <- c("fig-survey-points",
                "fig-trawl-gear-alt", 
                "tab-pres-length-samples",
                "tab-pres-age-samples", 
-               sort(list_fig)#,
-               # "tab-biomass-pchange-pres", 
-               # "tab-pres-special-projects"
+               sort(list_fig),
+               "tab-biomass-pchange-pres",
+               "tab-pres-special-projects"
                )
 
 nickname_text <- nickname0
-str0 <- c("fig-", "tab-", 
-          "distribution plot of " = "dist-", 
-          "sizecomp plot of " = "sizecomp-", 
+str0 <- c("fig-", 
+          "tab-", 
+          "-pres", 
+          "pres-", 
+          # " distribution" = "-dist", 
+          # "distribution " = "dist-", 
+          "sizecomp " = "sizecomp-", 
           "estimates " = "est-", 
           "fish-", 
           "invert-",
@@ -89,7 +114,9 @@ str0 <- c("fig-", "tab-",
           "otolith" = "oto", 
           "surface temperature" = "temperature st ", 
           "bottom temperature" = "temperature bt ", 
-          " " = " alt")
+          " " = " alt", 
+          "Bottom Temperature" = "Temperature bt", 
+          "Surface Temperature" = "Temperature st")
 
 for (i in 1:length(str0)){
   nickname_text <- gsub(pattern = str0[i], replacement = names(str0)[i], x = nickname_text)
@@ -97,11 +124,12 @@ for (i in 1:length(str0)){
 
 nickname_text <- paste0(toupper(substr(x = nickname_text, start = 1, stop = 1)), 
                         (substr(x = nickname_text, start = 2, stop = nchar(nickname_text))) )
+nickname_text <- gsub(pattern = "[0-9]+", replacement = "", x = nickname_text)
 nickname_text <- trimws(nickname_text)
 
 src <- c()
 for (ii in 1:length(nickname0)) {
-  print(ii)
+  # print(ii)
   src[[ii]] <- paste0("
 ## ", nickname_text[ii], "
 \n```{r, '", nickname0[ii],"'} 
@@ -114,3 +142,24 @@ nickname <- '", nickname0[ii],"'
 res = knitr::knit_child(text = unlist(src), quiet = TRUE)
 cat(res, sep = '\n')
 ```
+
+## Access our data
+
+These data will soon be available to the public!
+
+ - *Learn about our data products:* https://afsc-gap-products.github.io/gap_products/
+ - *Historical survey catch data (FOSS):* https://www.fisheries.noaa.gov/foss/f?p=215:28
+ - *Mapping of survey catch data (DisMAP):* https://apps-st.fisheries.noaa.gov/dismap/
+ - *Request data from us:* https://github.com/afsc-gap-products/data-requests; afsc.gap.metadata@noaa.gov
+
+## Thank you!
+
+*Duane Stevenson (afsc.gap.metadata@noaa.gov and Duane.Stevenson@noaa.gov)*
+Alaska Fisheries Science Center (AFSC)
+National Oceanic and Atmospheric Administration (NOAA)
+Resource Assessment and Conservation Engineering Division (RACE)
+Groundfish Assessment Program (GAP)
+7600 Sand Point Way, N.E. bldg. 4
+Seattle, WA 98115 USA
+https://www.fisheries.noaa.gov/alaska/science-data/groundfish-assessment-program-bottom-trawl-surveys
+
