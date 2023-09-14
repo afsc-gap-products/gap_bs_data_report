@@ -3028,12 +3028,11 @@ plot_survey_stations <- function(reg_dat,
                                  station_pts_vess = FALSE, 
                                  bathymetry = FALSE, 
                                  study = FALSE, 
-                                 dist_unit = "nm", 
+                                 dist_unit = "km", 
                                  place_labels = TRUE) {
   
   figure <- ggplot() 
   
-  # if (station_pts_vess) {
   if (study) {
     
     study <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
@@ -3053,7 +3052,6 @@ plot_survey_stations <- function(reg_dat,
         labels = unique(reg_dat$survey.grid$study_long),
         na.value = "transparent")
   }
-  # }
   
   if (stratum_no) {
     figure <- figure  +
@@ -3080,13 +3078,9 @@ plot_survey_stations <- function(reg_dat,
     vess <- reg_dat$survey.grid %>% dplyr::filter(!is.na(vessel_name))
     
     figure <- figure  +
-      geom_sf(data = reg_dat$survey.area,# %>%
-              # dplyr::mutate(SURVEY = dplyr::case_when(
-              #   SURVEY == "EBS_SHELF" ~ "EBS",
-              #   SURVEY == "NBS_SHELF" ~ "NBS")),
+      geom_sf(data = reg_dat$survey.area, 
               aes(color = reg_dat$survey.area$SURVEY, 
-                  shape = reg_dat$survey.area$SURVEY
-              ), 
+                  shape = reg_dat$survey.area$SURVEY ), 
               fill = NA, 
               linewidth = 2, # size = 2,
               show.legend = TRUE) +
@@ -3102,7 +3096,7 @@ plot_survey_stations <- function(reg_dat,
                    unique(vess$vess_col)),
         breaks = c(rev(unique(reg_dat$survey.area$SURVEY)), 
                    unique(vess$vess_col)), 
-        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+        labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$SRVY_long))), 
                    unique(vess$vessel_name)), 
         na.value = "transparent")  +
       
@@ -3112,7 +3106,7 @@ plot_survey_stations <- function(reg_dat,
                    unique(vess$vess_shape)),
         breaks = c(unique(reg_dat$survey.area$SURVEY),
                    unique(vess$vess_shape)),
-        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))), 
+        labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$SRVY_long))), 
                    unique(vess$vessel_name))) +
       ggplot2::guides(
         colour = guide_legend(
@@ -3120,7 +3114,7 @@ plot_survey_stations <- function(reg_dat,
           override.aes = list(fill = NA,
                               linetype = c(
                                 rep_len(x = 1, 
-                                        length.out = length(unique(haul_cruises_maxyr$SRVY))), 
+                                        length.out = length(unique(reg_dat$survey.area$SRVY))), 
                                 0, 0), # c(1,1,0,0),
                               # shape = c(NA, NA, "A", "V"),
                               size = 6)),

@@ -101,3 +101,11 @@ for (i in 1:length(locations)){
 error_loading
 # sink()
 error_loading
+
+
+a <- RODBC::sqlQuery(channel = channel, 
+                     query = paste0("SELECT *
+FROM RACEBASE.HAUL
+WHERE HAUL_TYPE IN (20, 17);"))
+write.csv(x = a, 
+          here::here("data","oracle","racebase_haul_special.csv"))

@@ -224,9 +224,9 @@ if (report_title == "data") {
 } else if (report_title == "pres") {
   nickname <- paste0("fig-", jj, "-", spp_file, "-3-distribution-pres")
   yrs <- sort(nbsyr)
-  height <- 8
+  height <- 4
   width <- 8
-  row0 <- 1
+  row0 <- 2
 } 
 
 if (spp_plot_idw) {
@@ -1074,13 +1074,14 @@ table_raw0 <- biomass %>%
   dplyr::select(SRVY, year, species_code, #population_var, biomass_var, 
                 biomass_mt, population_count) %>% 
   dplyr::left_join(x = . , 
-                   y = haul_cruises_maxyr %>% 
+                   y = haul_cruises %>% 
                      dplyr::select(SRVY, SRVY_long),
                    by = "SRVY")  %>% 
   dplyr::arrange(SRVY_long) %>%
   dplyr::mutate(print_name = spp_print, 
-                SRVY_long = stringr::str_to_title(SRVY_long), 
-                SRVY_long = factor(x = SRVY_long, levels = SRVY_long, labels = SRVY_long)) %>% 
+                SRVY_long = stringr::str_to_title(SRVY_long)#, 
+                # SRVY_long = factor(x = SRVY_long, levels = SRVY_long, labels = SRVY_long)
+                ) %>% 
   dplyr::group_by(SRVY, year, species_code, SRVY_long, print_name) %>% 
   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
                    population_count = sum(population_count, na.rm = TRUE)) %>% 
@@ -1116,19 +1117,19 @@ temp00 <- function(table_raw0,
       dplyr::filter(year %in% c(maxyr,compareyr)) %>% 
       dplyr::select(year, y, SRVY)
   
-  if ("NBS" %in% table_raw0$SRVY) {
-  table_raw00 <- dplyr::bind_rows(
-    table_raw00, 
-    table_raw00 %>% 
-      dplyr::group_by(year) %>%
-      dplyr::summarise(y = sum(y, na.rm = TRUE)) %>% 
-      dplyr::mutate(SRVY = "EBS + NBS"))
-  }
+  # if ("NBS" %in% table_raw0$SRVY) {
+  # table_raw00 <- dplyr::bind_rows(
+  #   table_raw00, 
+  #   table_raw00 %>% 
+  #     dplyr::group_by(year) %>%
+  #     dplyr::summarise(y = sum(y, na.rm = TRUE)) %>% 
+  #     dplyr::mutate(SRVY = "EBS + NBS"))
+  # }
   
   a <- find_units(dat = table_raw0[names(table_raw0) == var], unt = unt, unit = unit)
   
   b <- table_raw00 %>% 
-    dplyr::filter(SRVY != "NBS") %>%
+    # dplyr::filter(SRVY != "NBS") %>%
     dplyr::mutate(year0 = dplyr::case_when(
       year == maxyr ~ "maxyr",
       year == compareyr ~ "compareyr"), 
@@ -1148,7 +1149,7 @@ temp00 <- function(table_raw0,
   for (i in 1:nrow(b)){
     b0 <- b[i,]
     
-    str00 <- c(paste0(b0$SRVY, ifelse(i == 1, paste0(" ", y_long), "")), 
+    str00 <- c(paste0(b0$SRVY, " ", y_long), # ifelse(i == 1, paste0(" ", y_long), "")), 
                 # maxyr total
                 ifelse(b0$maxyr %in% c("NA", "Inf"), 
                        "", 
@@ -1158,7 +1159,7 @@ temp00 <- function(table_raw0,
                        "", 
                        paste0(compareyr, ": ", b0$compareyr, " ", a$unit_wrd)), 
                 # maxyr and compareyr % change
-                ifelse(b0$pchange0 %in% c("NA", "Inf"), 
+                ifelse(b0$pchange0 %in% c(" NA", "NA", "Inf"), 
                        "", 
                        paste0("\n(", b0$pchange0, "%)\n")), 
                 "")
