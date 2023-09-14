@@ -40,7 +40,7 @@ if (report_title == "data") {
 
 ```{r fig-spp, eval = (report_title == "pres")}
 header <- spp_file
-nickname <- paste0("fig-", spp_file, "-0-pres")
+nickname <- paste0("fig-", jj, "-", spp_file, "-0-pres")
 height <- width <- 5
 
 figure <- 
@@ -222,7 +222,7 @@ if (report_title == "data") {
   row0 <- 2
   nickname <- paste0(nickname, "-comm")
 } else if (report_title == "pres") {
-  nickname <- paste0("fig-", spp_file, "-3dist-pres")
+  nickname <- paste0("fig-", jj, "-", spp_file, "-3-distribution-pres")
   yrs <- sort(nbsyr)
   height <- 8
   width <- 8
@@ -447,7 +447,7 @@ if (report_title == "data") {
   print_n <- FALSE
   height <- full_page_portrait_height
   SRVY11 <- SRVY1 # "NBS"
-  nickname <- paste0("fig-", spp_file, "-4sizecomp-pres")
+  nickname <- paste0("fig-", jj, "-", spp_file, "-4-sizecomp-pres")
 }
 
 lengths0 <- lengths %>%
@@ -471,6 +471,7 @@ table_raw <- sizecomp %>%
                   SRVY == "NBS" ~ "northern Bering Sea")) %>% 
   dplyr::arrange(sex)
 
+if (!(nrow(table_raw) == 0)) {
 if (report_title != "community" & SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
   
   table_raw <- dplyr::bind_rows(
@@ -518,7 +519,9 @@ if (report_title == "pres") {
   if ("EBS" %in% table_raw$SRVY) {
     figure1 <- figure <- plot_sizecomp(
       sizecomp0 = table_raw %>% 
-        dplyr::filter(SRVY == "EBS"),
+        dplyr::filter(SRVY == "EBS") %>% 
+        dplyr::mutate(SRVY0 = SRVY, 
+                      SRVY = stringr::str_to_sentence(SRVY_long)),
       lengths0 = lengths0,
       spp_code = spp_code,
       spp_print = stringr::str_to_sentence(spp_print),
@@ -529,7 +532,9 @@ if (report_title == "pres") {
   if ("NBS" %in% table_raw$SRVY) {
     figure2 <- figure <- plot_sizecomp(
       sizecomp0 = table_raw %>% 
-        dplyr::filter(SRVY == "NBS"),
+        dplyr::filter(SRVY == "NBS") %>% 
+        dplyr::mutate(SRVY0 = SRVY, 
+                      SRVY = stringr::str_to_sentence(SRVY_long)),
       lengths0 = lengths0,
       spp_code = spp_code,
       spp_print = stringr::str_to_sentence(spp_print),
@@ -537,13 +542,15 @@ if (report_title == "pres") {
       print_n = print_n, 
       ridgeline = FALSE)
   }
-  if (sum(table_raw$SRVY %in% c("NBS", "EBS"))>0) {
+  if (sum(unique(table_raw$SRVY) %in% c("NBS", "EBS")) == 2) {
     figure <- cowplot::plot_grid(figure1, figure2)
   }
 } else {
   
   figure <- plot_sizecomp(
-    sizecomp0 = table_raw,
+    sizecomp0 = table_raw %>% 
+        dplyr::mutate(SRVY0 = SRVY, 
+                      SRVY = stringr::str_to_sentence(SRVY_long)),
     lengths0 = lengths0,
     spp_code = spp_code,
     spp_print = stringr::str_to_sentence(spp_print),
@@ -562,6 +569,11 @@ if (report_title == "pres") {
 #                         width = .18)
 # }
 
+} else {
+  header <- ""
+  figure <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
+    geom_text(mapping = aes(label = label))
+}
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
@@ -1194,7 +1206,7 @@ temp00 <- function(table_raw0,
 
 ```{r, fig-[spp]-biomass-pres, eval = (report_title == "pres")}
 height <- 4
-nickname <- paste0("fig-", spp_file, "-1biomass-pres")
+nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres")
 table_raw <- table_raw0
 figure <- temp00(table_raw0 = table_raw0, 
             var = "biomass_mt", 
@@ -1217,7 +1229,7 @@ y_long <- "Population"
 unit = "individuals"
 unt = ""
 height <- 4
-nickname <- paste0("fig-", spp_file, "-2population-pres")
+nickname <- paste0("fig-", jj, "-", spp_file, "-2-population-pres")
 table_raw <- table_raw0
 figure <- temp00(table_raw0 = table_raw0, 
             var = "population_count", 
