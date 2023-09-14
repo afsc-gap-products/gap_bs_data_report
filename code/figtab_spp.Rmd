@@ -378,7 +378,8 @@ for (case_yr in case_yr0) {
         axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
         
         strip.background = element_blank(), 
-        strip.text = element_text(size = 10, face = "bold"), 
+        strip.text = element_text(size = 10, 
+                                  face = "bold"), 
         legend.text = element_text(size = 9),
         legend.background = element_rect(colour = "transparent", 
                                          fill = "transparent"),
@@ -410,18 +411,26 @@ for (case_yr in case_yr0) {
       legend_srvy_reg = FALSE)
   }
   
-  # if (!(pres_img) & report_title == "community") {
-  #   
-  #   figure <-
-  #     cowplot::ggdraw(figure) +
-  #     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-  #                         x = 0.75, y = -0.05,
-  #                         hjust = 0, vjust = 0,
-  #                         width = .18)
-  # }
   if (report_title == "pres") {
-    figure_legend <- get_legend(figure)
-    figure <- figure + theme(legend.position = "none")  
+    figure <- figure + 
+      ggplot2::guides(
+        fill = guide_legend(
+          order = 1, 
+          # title.position = "top",
+          label.position = "right",
+          title.hjust = 0.5,
+          override.aes = list(color = NA),
+          ncol = 1),
+        color = FALSE ) +
+      theme(legend.direction = "vertical",
+legend.box = "horizontal",
+legend.title=element_blank(), 
+legend.position = "right",
+legend.justification = c(0, 1)) + 
+      ggtitle(gsub(x = key.title, pattern = "\n", replacement = ": "))
+    
+    # figure_legend <- get_legend(figure)
+    # figure <- figure + theme(legend.position = "none")  
   }
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -429,14 +438,14 @@ for (case_yr in case_yr0) {
 ```
 
 ```{r fig-dist-[taxon]-[spp]-legend, eval = (spp_plot_idw | spp_plot_pa)}
-if (report_title == "pres") {
-  nickname <- paste0("fig-", jj, "-", spp_file, "-3b-distribution-pres")
-  yrs <- sort(nbsyr)
-  height <- 1
-  width <- 4
-  header <- ""
-  figure <- figure_legend
-} 
+# if (report_title == "pres") {
+#   nickname <- paste0("fig-", jj, "-", spp_file, "-3b-distribution-pres")
+#   yrs <- sort(nbsyr)
+#   height <- 1
+#   width <- 4
+#   header <- ""
+#   figure <- figure_legend
+# } 
 ```
 
 
@@ -461,7 +470,8 @@ if (report_title == "data") {
 } else if (report_title == "pres") {
   yrs <- unique(sizecomp$year)
   print_n <- FALSE
-  height <- full_page_portrait_height
+  height <- 5
+  width <- 8
   SRVY11 <- SRVY1 # "NBS"
   nickname <- paste0("fig-", jj, "-", spp_file, "-4-sizecomp-pres")
 }

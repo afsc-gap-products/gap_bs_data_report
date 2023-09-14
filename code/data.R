@@ -363,6 +363,7 @@ cruises_compareyr <- cruises %>%
                   survey_definition_id %in% SRVY00)
 
 ## haul + maxyr ----------------------------------------------------------------
+
 print("haul + maxyr  + compareyr")
 
 haul <- dplyr::left_join(
