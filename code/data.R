@@ -418,12 +418,13 @@ if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 20) >0) {
 }
 
 nbsyr <- gap_products_akfin_cruise0 %>% 
-  dplyr::filter(survey_definition_id == 143) %>% 
+  dplyr::filter(survey_definition_id == 143 & 
+                  year <= maxyr) %>% 
   dplyr::select(year) %>% 
   unique() %>% 
   unlist() %>% 
   sort(decreasing = TRUE)
-nbsyr <- unique(c(2023, nbsyr))
+nbsyr <- unique(c(maxyr, nbsyr))
 
 # if (SRVY == "NEBS") {
 #   nbsyr <- cruises %>% 

@@ -222,7 +222,7 @@ if (report_title == "data") {
   row0 <- 2
   nickname <- paste0(nickname, "-comm")
 } else if (report_title == "pres") {
-  nickname <- paste0("fig-", jj, "-", spp_file, "-3-distribution-pres")
+  nickname <- paste0("fig-", jj, "-", spp_file, "-3a-distribution-pres")
   yrs <- sort(nbsyr)
   height <- 4
   width <- 8
@@ -419,10 +419,26 @@ for (case_yr in case_yr0) {
   #                         hjust = 0, vjust = 0,
   #                         width = .18)
   # }
+  if (report_title == "pres") {
+    figure_legend <- get_legend(figure)
+    figure <- figure + theme(legend.position = "none")  
+  }
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
+
+```{r fig-dist-[taxon]-[spp]-legend, eval = (spp_plot_idw | spp_plot_pa)}
+if (report_title == "pres") {
+  nickname <- paste0("fig-", jj, "-", spp_file, "-3b-distribution-pres")
+  yrs <- sort(nbsyr)
+  height <- 1
+  width <- 4
+  header <- ""
+  figure <- figure_legend
+} 
+```
+
 
 ## fig-sizecomp-[taxon]-[spp]
 
@@ -577,9 +593,9 @@ if (report_title == "pres") {
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## tab-env-[taxon]-[spp]
+## tab-env-[taxon]-[spp]-legend pres
 
-```{r tab-env-[taxon]-[spp], eval = (report_title == "community")}
+```{r tab-env-[taxon]-[spp]-legend, eval = (report_title == "community")}
 
 nickname <- paste0("tab-env-", spp_file)
 
