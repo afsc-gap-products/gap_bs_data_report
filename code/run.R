@@ -107,9 +107,9 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"),
                   output_file = paste0("00_data_report_app_", maxyr, ".docx"))
 
 # Presentation
-rmarkdown::render(input = paste0(dir_code, "00_data_report_pres.Rmd"), 
+rmarkdown::render(input = paste0(dir_code, "00_plan_team.Rmd"), 
                   output_dir = dir_out_chapters, 
-                  output_file = paste0("00_data_report_pres_", maxyr, ".pptx"))
+                  output_file = paste0("00_plan_team_pres_", maxyr, ".pptx"))
 
 # Community Highlights ---------------------------------------------------------
 
