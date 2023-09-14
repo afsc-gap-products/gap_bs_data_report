@@ -21,7 +21,7 @@ maxyr <- 2023
 compareyr <- 2022
 compareyr0 <- 2021
 strat_yr <- 2022
-SRVY<-"EBS"
+SRVY <- "NEBS"
 ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
 dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
@@ -53,7 +53,7 @@ for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
   spp_code <- a$species_code
-  aa <- haul0 %>% 
+  aa <- catch_haul_cruises %>% 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
@@ -74,7 +74,7 @@ comb <- report_spp1 %>% dplyr::filter(!is.na(order) & table_bio_portion) %>%
 for (jj in 1:length(comb)) {
   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
   spp_code <- a$species_code
-  aa <- haul0 %>% 
+  aa <- catch_haul_cruises %>% 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
@@ -94,12 +94,6 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
-# Species Chapters
-rmarkdown::render(input = paste0(dir_code, "00_data_report_spp.Rmd"), 
-                  output_format = "officedown::rdocx_document", 
-                  output_dir = dir_out_chapters, 
-                  output_file = paste0("00_data_report_spp_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
-
 # Appendix
 rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"), 
                   output_format = "officedown::rdocx_document", 
@@ -107,9 +101,9 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"),
                   output_file = paste0("00_data_report_app_", maxyr, ".docx"))
 
 # Presentation
-rmarkdown::render(input = paste0(dir_code, "00_data_report_pres.Rmd"), 
+rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"), 
                   output_dir = dir_out_chapters, 
-                  output_file = paste0("00_data_report_pres_", maxyr, ".pptx"))
+                  output_file = paste0("00_plan_team_pres_", maxyr, ".pptx"))
 
 # Community Highlights ---------------------------------------------------------
 
@@ -125,7 +119,7 @@ comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name
 for (jj in 1:length(comb)) {
   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
   spp_code <- a$species_code
-  aa <- haul0 %>% 
+  aa <- catch_haul_cruises %>% 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))

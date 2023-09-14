@@ -363,6 +363,7 @@ cruises_compareyr <- cruises %>%
                   survey_definition_id %in% SRVY00)
 
 ## haul + maxyr ----------------------------------------------------------------
+
 print("haul + maxyr  + compareyr")
 
 haul <- dplyr::left_join(
@@ -392,31 +393,39 @@ haul_compareyr <- haul %>%
 
 print("define other vars")
 
-# # Crab retows?
+temp <- racebase_haul_special0 %>% 
+  dplyr::left_join(y = cruises %>% 
+                     dplyr::select(cruisejoin, year, survey_definition_id)) %>% 
+  dplyr::filter(year == maxyr & 
+                  survey_definition_id %in% SRVY00 &
+                  stationid %in% reg_dat$survey.grid$station &
+                  haul_type %in% c(17, 20)) %>% 
+  dplyr::rename(station = stationid)
+
+# Crab retows
 crab_resample <- FALSE
-# if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
-#   crab_resample <- TRUE
-#   haul_maxyr_crabretow <- haul0 %>%
-#     dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
-#     dplyr::filter(haul_type == 17) # crab retow == 17
-# }
-# 
-# # 15/30
-# tow1530 <- FALSE
-# if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 20) >0) {
-#   tow1530 <- TRUE
-#   haul_maxyr_tow1530 <- haul0 %>%
-#     dplyr::filter(grepl(pattern = maxyr, x = cruise)) %>% 
-#     dplyr::filter(haul_type == 20) 
-# }
+if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 17) >0) {
+  crab_resample <- TRUE
+  haul_maxyr_crabretow <- temp %>%
+    dplyr::filter(haul_type == 17) 
+}
+
+# 15/30
+tow1530 <- FALSE
+if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% 20) >0) {
+  tow1530 <- TRUE
+  haul_maxyr_tow1530 <- temp %>%
+    dplyr::filter(haul_type == 20)
+}
 
 nbsyr <- gap_products_akfin_cruise0 %>% 
-  dplyr::filter(survey_definition_id == 143) %>% 
+  dplyr::filter(survey_definition_id == 143 & 
+                  year <= maxyr) %>% 
   dplyr::select(year) %>% 
   unique() %>% 
   unlist() %>% 
   sort(decreasing = TRUE)
-nbsyr <- unique(c(2023, nbsyr))
+nbsyr <- unique(c(maxyr, nbsyr))
 
 # if (SRVY == "NEBS") {
 #   nbsyr <- cruises %>% 
@@ -733,18 +742,21 @@ lengths_maxyr <- lengths %>%
 
 print("Specimen + maxyr")
 
-specimen_maxyr <- 
+specimen <- gap_products_akfin_specimen0 %>% 
   dplyr::left_join(
-    x = haul_maxyr %>% 
-      dplyr::select(cruisejoin, hauljoin, station, stratum), 
-    y = cruises_maxyr %>% 
-      dplyr::select(cruisejoin, survey_name, SRVY),  
-    by = c("cruisejoin")) %>% 
-  dplyr::left_join(
-    x= ., 
-    y = gap_products_akfin_specimen0, 
+    y = haul %>% 
+      dplyr::select(cruisejoin, hauljoin, station, stratum),  
     by = c("cruisejoin", "hauljoin")) %>% 
-  dplyr::select(-region, cruisejoin, hauljoin)
+  dplyr::left_join(
+    y = cruises %>% 
+      dplyr::select(cruisejoin, survey_name, SRVY, survey_definition_id, year),  
+    by = c("cruisejoin"))  %>% 
+  dplyr::select(-region, cruisejoin, hauljoin) %>% 
+  dplyr::filter(!is.na(year)) %>% 
+  dplyr::arrange(desc(year))
+
+specimen_maxyr <- specimen %>% 
+  dplyr::filter(year == maxyr)
 
 ## Bottom temperatures ---------------------------------------------------------
 

@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
   #   dev = "svg",
   fig.width = 12,
   fig.height = 12, 
-  fig_caption = FALSE
+  fig.cap = FALSE
   # fig.retina = 3
 )
 ```
@@ -38,14 +38,14 @@ knitr::opts_chunk$set(
  - [[NEW]]
  - State of the survey group
  
- ## `r paste0(maxyr, " ", text_list(SRVY1), " bottom trawl survey")`
+## `r paste0(maxyr, " ", text_list(SRVY1), " bottom trawl survey")`
  
 ```{r}
-str0 <- text_list(paste0("*", haul_cruises_maxyr$SRVY_long, " bottom trawl survey (", haul_cruises_maxyr$SRVY, "):* \n - ", 
-haul_cruises_maxyr$yrofsurvey, haul_cruises_maxyr$stndth, " of survey\n - ", 
+str0 <- text_list(paste0("*", stringr::str_to_sentence(haul_cruises_maxyr$SRVY_long), " bottom trawl survey (", haul_cruises_maxyr$SRVY, "):* \n\n - ", 
+haul_cruises_maxyr$yrofsurvey, haul_cruises_maxyr$stndth, " of survey\n\n - ", 
 haul_cruises_maxyr$stations_completed, " of ", haul_cruises_maxyr$stations_avail, " were completed\n - ", 
 format(min(haul_cruises_vess_maxyr$start_date_cruise), format = "%B %d"), " to ", format(max(haul_cruises_vess_maxyr$end_date_cruise), format = "%B %d, %Y"), 
-sep_last = "\n", sep_last2 = "\n", sep = "\n"))
+sep_last = "\n\n", sep_last2 = "\n\n", sep = "\n\n"))
 ```
  
 `r str0`
@@ -53,6 +53,7 @@ sep_last = "\n", sep_last2 = "\n", sep = "\n"))
 ## Survey purpose
 
 To collect standardized and fishery-independent time series of:
+
  - Relative abundance
  - Distribution
  - Length and age composition
@@ -73,19 +74,25 @@ To collect standardized and fishery-independent time series of:
 
 list_fig <- list.files(path = dir_out_figtab, pattern = "-pres.png", full.names = FALSE, recursive = FALSE)
 list_fig <- gsub(pattern = ".png", replacement = "", x = list_fig)
+list_fig <- list_fig[!grepl(x = list_fig, pattern = "temperature")]
 
 nickname0 <- c("fig-survey-points", 
                "fig-vessels", 
                "fig-cold-pool-area",  
-               "fig-pres-temperature-bt", 
-               "fig-pres-temperature-st", 
-               "fig-trawl-gear-alt", 
+               "fig-mean-temperature",  
+               "fig-temperature-bt-pres",
+               "fig-temperature-st-pres",
+               "fig-trawl-gear-alt",
                "tab-pres-length-samples",
-               "tab-pres-age-samples", 
+               "tab-pres-age-samples",
                sort(list_fig),
                "tab-biomass-pchange-pres",
                "tab-pres-special-projects"
                )
+
+# for (i in 1:length(nickname0)) {
+#   print(paste0(i, ": ", length(list.files(path = dir_out_figtab, pattern = nickname0))>0))
+# }
 
 nickname_text <- nickname0
 str0 <- c("fig-", 
@@ -155,11 +162,18 @@ These data will soon be available to the public!
 ## Thank you!
 
 *Duane Stevenson (afsc.gap.metadata@noaa.gov and Duane.Stevenson@noaa.gov)*
+
 Alaska Fisheries Science Center (AFSC)
+
 National Oceanic and Atmospheric Administration (NOAA)
+
 Resource Assessment and Conservation Engineering Division (RACE)
+
 Groundfish Assessment Program (GAP)
+
 7600 Sand Point Way, N.E. bldg. 4
+
 Seattle, WA 98115 USA
+
 https://www.fisheries.noaa.gov/alaska/science-data/groundfish-assessment-program-bottom-trawl-surveys
 

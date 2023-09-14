@@ -116,7 +116,7 @@ temp1 <- dplyr::bind_cols(
     dplyr::distinct() %>% 
     dplyr::summarise(genus = n())) 
 
-if (SRVY == "NEBS") {
+if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
   # how many species encountered in one survey area but noth the other?
   load(file = paste0(dir_out_figtab, "tab-species-composition.rdata"))
   temp3 <- obj$raw %>%
@@ -228,11 +228,11 @@ temp1 <- dplyr::bind_cols(
 
 <br>
 
-```{r tab-species-composition}
+```{r tab-species-composition, eval = (SRVY == "NEBS")}
 nickname <- "tab-species-composition"
 ```
 
-```{r tab-species-composition-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r tab-species-composition-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY)}
 ```
 
 <br>
@@ -241,7 +241,7 @@ nickname <- "tab-species-composition"
 
 ```{r results-tot-biomass}
 temp <- data.frame()
-temp0 <- tidyr::crossing(SRVY = SRVY1, type = c("fish", "invert"))
+temp0 <- tidyr::crossing(SRVY = haul_cruises_maxyr$SRVY, type = c("fish", "invert"))
 for (i in 1:nrow(temp0)) {
   load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i],"-", temp0$type[i],".rdata"))
   
@@ -331,7 +331,7 @@ str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 
 ```{r results-tot-biomass2}
 str0 <- ""
-if (SRVY == "NEBS") {
+if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
   
   temp1 <- temp2 <- temp3 <- data.frame()
   
@@ -447,8 +447,8 @@ if (SRVY == "NEBS") {
 str0 <- paste0("Noticeable changes were observed in the ", SURVEY," the benthic communities between ",
                compareyr," and ", maxyr,". ")
 
-for (i in 1:length(SRVY1)) {
-  load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-", SRVY1[i], ".rdata"))
+for (i in 1:nrow(haul_cruises_maxyr)) {
+  load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-", haul_cruises_maxyr$SRVY[i], ".rdata"))
 
   temp0 <- obj$raw
   temp <- 
@@ -562,11 +562,11 @@ nickname <- "tab-biomass-est-EBS-"
 
 <!---BLOCK_LANDSCAPE_STOP--->
 
-```{r tab-biomass-est-NBS-, eval = (SRVY == "NEBS")}
+```{r tab-biomass-est-NBS-}
 nickname <- "tab-biomass-est-NBS-"
 ```
 
-```{r tab-biomass-est-NBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (SRVY == "NEBS")}
+```{r tab-biomass-est-NBS-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = ("NBS" %in% haul_cruises_maxyr$SRVY)}
 ```
 
 \pagebreak
