@@ -70,7 +70,7 @@ rmarkdown::render(paste0(dir_code, "/figtab_app.Rmd"),
 # Presentation Species figures
 report_title <- "pres" 
 comb <- report_spp1 %>% dplyr::filter(!is.na(order) & table_bio_portion) %>% 
-  dplyr::select(file_name) %>% unlist() %>% unicatch_haul_cruises_maxyrque()
+  dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
   spp_code <- a$species_code
