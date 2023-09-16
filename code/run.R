@@ -30,7 +30,53 @@ googledrive::drive_deauth()
 googledrive::drive_auth()
 2
 
+# Plan team presentation -------------------------------------------------------
+
+SRVY <- "EBS"
+
+report_title <- "ptpres" 
+source(here::here("code","directories.R"))
+dir_out_figtab <- here::here("output", paste0("figtab_", maxyr, "_", "ptpres"))
+dir.create(dir_out_figtab)
+source(here::here("code","functions.R"))
+# source('./code/data_dl.R') # Run when there is new data!
+source(here::here("code","data.R"))
+
+# General figures
+rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
+                  output_dir = dir_out_rawdata,
+                  output_file = paste0("figtab.docx"))
+
+# Presentation Species figures
+comb <- report_spp1 %>% 
+  dplyr::filter(!is.na(order) & 
+                  file_name %in% c("walleye-pollock", "pacific-cod", "yellowfin-sole", 
+                                   "northern-rock-sole", "flathead-sole", "alaska-plaice", 
+                                   "pacific-halibut", "alaska-skate")) %>% 
+  dplyr::select(file_name) %>% 
+  unlist() %>% 
+  unique()
+for (jj in 1:length(comb)) {
+  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+  spp_code <- a$species_code
+  aa <- catch_haul_cruises %>% 
+    dplyr::filter(species_code %in% spp_code & year == maxyr)
+  if (nrow(aa)>0) {
+    print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
+    rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
+                      output_dir = dir_out_rawdata,
+                      output_file = paste0("figtab_spp_", comb[jj],".docx"))
+  }
+}
+
+# Build Presentation
+rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"), 
+                  output_dir = dir_out_chapters, 
+                  output_file = paste0("00_plan_team_pres_", maxyr, ".pptx"))
+
 # Data Report ------------------------------------------------------------------
+
+SRVY <- "NEBS"
 
 ## Source Scripts --------------------------------------------------------------
 
@@ -59,28 +105,6 @@ for (jj in 1:length(comb)) {
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
                     output_dir = dir_out_rawdata,
                     output_file = paste0("figtab_spp_", comb[jj],".docx"))
-}
-}
-
-# Appendix 
-rmarkdown::render(paste0(dir_code, "/figtab_app.Rmd"),
-                  output_dir = dir_out_rawdata,
-                  output_file = paste0("figtab_app.docx"))
-
-# Presentation Species figures
-report_title <- "pres" 
-comb <- report_spp1 %>% dplyr::filter(!is.na(order) & table_bio_portion) %>% 
-  dplyr::select(file_name) %>% unlist() %>% unique()
-for (jj in 1:length(comb)) {
-  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
-  spp_code <- a$species_code
-  aa <- catch_haul_cruises %>% 
-    dplyr::filter(species_code %in% spp_code & year == maxyr)
-  if (nrow(aa)>0) {
-  print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
-  rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                    output_dir = dir_out_rawdata,
-                    output_file = paste0("figtab_spp_", comb[jj],".docx"))
   }
 }
 
@@ -94,16 +118,11 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
-# Appendix
+# Appendix (could be combined with above, but both are just such big files!)
 rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"), 
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_app_", maxyr, ".docx"))
-
-# Presentation
-rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"), 
-                  output_dir = dir_out_chapters, 
-                  output_file = paste0("00_plan_team_pres_", maxyr, ".pptx"))
 
 # Community Highlights ---------------------------------------------------------
 

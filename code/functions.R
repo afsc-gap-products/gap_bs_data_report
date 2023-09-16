@@ -2724,7 +2724,7 @@ plot_sizecomp <- function(sizecomp0,
   table_raw <- table_raw %>%
     dplyr::mutate(population_count = population_count/pop_unit, 
                   length_mm = round(
-                    x = length_mm*ifelse(len_unit_word0 == "mm", 10, 1), digits = 0)) %>%
+                    x = length_mm/ifelse(len_unit_word0 == "mm", 10, 1), digits = 0)) %>%
     dplyr::ungroup()
   
   len_unit_axis <- ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>150, 50, 
@@ -2811,6 +2811,14 @@ plot_sizecomp <- function(sizecomp0,
       labels = as.character(sort(unique(table_raw1$year), decreasing = TRUE)),
       ordered = TRUE)
     
+    every_nth = function(n, true1) {
+      if (true1) {
+      return(function(x) {x[c(TRUE, rep(FALSE, n - 1))]})
+} else {
+      return(function(x) {x[c(FALSE, rep(TRUE, n - 1))]})
+    }
+    }
+    
     figure <- ggplot(data = table_raw1, 
                      mapping = aes(x = length_mm, 
                                    y = year, 
@@ -2818,8 +2826,10 @@ plot_sizecomp <- function(sizecomp0,
                                    height = population_count/mean(population_count, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
       scale_fill_viridis_c(option = "G") +
-      ylab(paste0(spp_print, " population across years")) +
-      xlab(stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")"))) +
+      scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
+                         breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
+      scale_y_discrete(name = paste0(spp_print, " population across years"), 
+                       breaks = every_nth(n = 2, true1 = ((max(table1$year, na.rm = TRUE) %% 2) == 1))) + 
       theme(legend.position = "none", 
             panel.grid.major.x = element_line(colour = "grey80")) +
       facet_wrap(vars(SRVY))
@@ -3314,7 +3324,7 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                                           fill = variable)) + 
     geom_ribbon() + 
     scale_fill_manual(name = "Temperature", 
-                      values = viridis::inferno(4, direction = -1, begin = 0.2, end = .8)) +  
+                      values = viridis::mako(4, direction = -1, begin = 0.2, end = .8)) +  
     scale_y_continuous(name = "Proportion of EBS Shelf Survey Area",
                        limits = c(0, 1),
                        expand = c(0, 0),
@@ -3421,7 +3431,7 @@ plot_mean_temperatures <- function(maxyr, SRVY){
   all_temperatures$variable <- factor(all_temperatures$variable, 
                                       levels=c('Surface','Bottom'))
   
-  col <- viridis::inferno(2, direction = -1, begin = .3, end = .5)
+  col <- viridis::mako(2, direction = -1, begin = .3, end = .5)
   color_sst <- col[2] 
   color_bt <- col[1] 
   

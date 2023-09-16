@@ -38,7 +38,6 @@ locations <- c(
  "GAP_PRODUCTS.AKFIN_CPUE",
  "GAP_PRODUCTS.AKFIN_CRUISE",
  "GAP_PRODUCTS.AKFIN_HAUL",
- "GAP_PRODUCTS.AKFIN_LENGTH",
  "GAP_PRODUCTS.AKFIN_METADATA_COLUMN",
  "GAP_PRODUCTS.AKFIN_SIZECOMP",
  "GAP_PRODUCTS.AKFIN_SPECIMEN",
@@ -50,13 +49,14 @@ locations <- c(
  # "crab.gap_ebs_nbs_crab_cpue", # CPUE
  # "crab.ebscrab", # length data
  # "crab.ebscrab_nbs", # length data,
+ "RACE_DATA.LENGTHS", # "GAP_PRODUCTS.AKFIN_LENGTH", # has extrapolated lengths, not how many were actually counted
+ "RACE_DATA.HAULS", # need for manipulating RACE_DATA.LENGTHS
+ "RACE_DATA.CRUISES", 
+ "RACE_DATA.SURVEYS", 
  "RACE_DATA.VESSELS", 
  "RACE_DATA.LENGTH_TYPES"
   )
 
-
-#sinks the data into connection as text file
-# sink("./data/metadata.txt")
 print(Sys.Date())
 
 error_loading <- c()
@@ -73,9 +73,16 @@ for (i in 1:length(locations)){
     end0 <- c(end0, "SURVEY_DEFINITION_ID IN (143, 98)")
   }
   if ("YEAR" %in% names(a) & !(locations[i] %in% 
-                               c("GAP_PRODUCTS.AKFIN_SIZECOMP", "GAP_PRODUCTS.AKFIN_BIOMASS", "GAP_PRODUCTS.AKFIN_CRUISE")) ) {
+                               c("GAP_PRODUCTS.AKFIN_SIZECOMP", "GAP_PRODUCTS.AKFIN_BIOMASS", 
+                                 "GAP_PRODUCTS.AKFIN_CRUISE", "GAP_PRODUCTS.AKFIN_CPUE",
+                                 "GAP_PRODUCTS.AKFIN_HAUL")) ) {
     end0 <- c(end0, paste0("YEAR IN (",maxyr,", ", compareyr, ", ", compareyr0, ")"))
   }
+  
+  if ("YEAR" %in% names(a) & locations[i] %in% c("GAP_PRODUCTS.AKFIN_CPUE")) {
+    end0 <- c(end0, paste0("YEAR IN (",text_list(x = maxyr:(maxyr-8), sep = ", ", sep_last2 = ", ", sep_last = ", "), ")"))
+  }
+  
   end0 <- ifelse(is.null(end0), "", paste0(" WHERE ", paste0(end0, collapse = " AND ")))
   
   start0 <- ifelse(!("START_TIME" %in% names(a)), 
@@ -89,7 +96,7 @@ for (i in 1:length(locations)){
     error_loading <- c(error_loading, locations[i])
   } else {
   write.csv(x = a, 
-            here::here("data","oracle",
+            here::here("data",
                        paste0(tolower(gsub(pattern = '.', 
                                     replacement = "_", 
                                     x = locations[i], 
@@ -99,13 +106,11 @@ for (i in 1:length(locations)){
   remove(a)
 }
 error_loading
-# sink()
-error_loading
 
 
 a <- RODBC::sqlQuery(channel = channel, 
                      query = paste0("SELECT *
 FROM RACEBASE.HAUL
-WHERE HAUL_TYPE IN (20, 17);"))
+WHERE HAUL_TYPE IN (20, 17, 3);"))
 write.csv(x = a, 
-          here::here("data","oracle","racebase_haul_special.csv"))
+          here::here("data","racebase_haul_special.csv"))

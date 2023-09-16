@@ -35,31 +35,5 @@ for (i in 1:length(dirs)) {
   assign(x = paste0("dir_out_", dirs[i]), value = paste0(dir_out_todaysrun, "/",dirs[i],"/"))
 }
 
-# # SAVE ALL R FILES USED FOR EACH RUN -------------------------------------------
-# listfiles<-list.files(path = dir_code)
-# listfiles0<-c(listfiles[grepl(pattern = "\\.r",
-#                               x = listfiles, ignore.case = T)],
-#               listfiles[grepl(pattern = "\\.pptx",
-#                               x = listfiles, ignore.case = T)],
-#               listfiles[grepl(pattern = "\\.docx",
-#                               x = listfiles, ignore.case = T)])
-# listfiles0<-listfiles0[!(grepl(pattern = "~",ignore.case = T, x = listfiles0))]
-# 
-# for (i in 1:length(listfiles0)){
-#   file.copy(from = paste0(dir_code, listfiles0[i]),
-#             to = paste0(dir_out_code, listfiles0[i]),
-#             overwrite = T)
-# }
-# 
-# # SAVE ALL CITE FILES USED FOR EACH RUN ----------------------------------------
-# listfiles0<-list.files(path = dir_cite)
-# listfiles0<-listfiles0[!(grepl(pattern = "~",ignore.case = T, x = listfiles0))]
-# 
-# for (i in 1:length(listfiles0)){
-#   file.copy(from = paste0(dir_cite, listfiles0[i]),
-#             to = paste0(dir_out_cite, listfiles0[i]),
-#             overwrite = T)
-# }
-# 
 # # CITATION STYLE ---------------------------------------------------------------
 options("citation_format" = "pandoc")
