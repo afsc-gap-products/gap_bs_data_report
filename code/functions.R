@@ -1581,7 +1581,7 @@ plot_pa_facet <- function(
   
   
   coordinates(d) <- c("londd", "latdd")
-  sp::proj4string(d) <- CRS("+proj=longlat +datum=WGS84") 
+  sp::proj4string(d) <- CRS("+proj=longlat +datum=WGS84")
   dd <- data.frame(sp::spTransform(d, CRS(as.character(reg_dat$crs)[1])))
   # dd <- as(res, "SpatialPoints") ## For a SpatialPoints object rather than a SpatialPointsDataFrame
   
@@ -2724,7 +2724,7 @@ plot_sizecomp <- function(sizecomp0,
   table_raw <- table_raw %>%
     dplyr::mutate(population_count = population_count/pop_unit, 
                   length_mm = round(
-                    x = length_mm/ifelse(len_unit_word0 == "mm", 10, 1), digits = 0)) %>%
+                    x = length_mm/ifelse(len_unit_word0 == "mm", 1, 10), digits = 0)) %>%
     dplyr::ungroup()
   
   len_unit_axis <- ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>150, 50, 
@@ -3030,9 +3030,10 @@ plot_timeseries <- function(
 
 
 plot_survey_stations <- function(reg_dat, 
-                                 station, 
-                                 haul_cruises_maxyr, 
+                                 # station, 
+                                 # haul_cruises_maxyr, 
                                  station_grid = FALSE, 
+                                 stratum_grid = FALSE, 
                                  stratum_no = FALSE, 
                                  station_pts_srvy = TRUE, 
                                  station_pts_vess = FALSE, 
@@ -3063,7 +3064,7 @@ plot_survey_stations <- function(reg_dat,
         na.value = "transparent")
   }
   
-  if (stratum_no) {
+  if (stratum_grid) {
     figure <- figure  +
       geom_sf(data = reg_dat$survey.strata, 
               fill = NA, 
@@ -3085,7 +3086,7 @@ plot_survey_stations <- function(reg_dat,
   
   if (station_pts_vess) {
     
-    vess <- reg_dat$survey.grid %>% dplyr::filter(!is.na(vessel_name))
+    # vess <- reg_dat$survey.grid #%>% dplyr::filter(!is.na(vessel_name))
     
     figure <- figure  +
       geom_sf(data = reg_dat$survey.area, 
@@ -3094,7 +3095,7 @@ plot_survey_stations <- function(reg_dat,
               fill = NA, 
               linewidth = 2, # size = 2,
               show.legend = TRUE) +
-      stat_sf_coordinates(data = vess,
+      stat_sf_coordinates(data = reg_dat$survey.grid,
                           mapping = aes(color = vess_col, 
                                         shape = vess_shape),
                           size = 2, 
@@ -3103,21 +3104,20 @@ plot_survey_stations <- function(reg_dat,
       scale_color_manual(
         name = " ", #"Survey Region",
         values = c(reg_dat$survey.area$color, 
-                   unique(vess$vess_col)),
+                   unique(reg_dat$survey.grid$vess_col)),
         breaks = c(rev(unique(reg_dat$survey.area$SURVEY)), 
-                   unique(vess$vess_col)), 
+                   unique(reg_dat$survey.grid$vess_col)), 
         labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$SRVY_long))), 
-                   unique(vess$vessel_name)), 
+                   unique(reg_dat$survey.grid$vessel_name)), 
         na.value = "transparent")  +
-      
       scale_shape_manual(
         name = " ", #"Survey Vessels",
         values = c(rep_len(x = "", length.out = length(unique(reg_dat$survey.area$SURVEY))),
-                   unique(vess$vess_shape)),
+                   unique(reg_dat$survey.grid$vess_shape)),
         breaks = c(unique(reg_dat$survey.area$SURVEY),
-                   unique(vess$vess_shape)),
+                   unique(reg_dat$survey.grid$vess_shape)),
         labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$SRVY_long))), 
-                   unique(vess$vessel_name))) +
+                   unique(reg_dat$survey.grid$vessel_name))) +
       ggplot2::guides(
         colour = guide_legend(
           # order = 1,# survey regions
@@ -3125,7 +3125,8 @@ plot_survey_stations <- function(reg_dat,
                               linetype = c(
                                 rep_len(x = 1, 
                                         length.out = length(unique(reg_dat$survey.area$SRVY))), 
-                                0, 0), # c(1,1,0,0),
+                                rep_len(x = 0, 
+                                        length.out = length(unique(reg_dat$survey.grid$vessel_id)))), # c(1,1,0,0),
                               # shape = c(NA, NA, "A", "V"),
                               size = 6)),
         fill = guide_legend(
@@ -3137,11 +3138,7 @@ plot_survey_stations <- function(reg_dat,
             size = .5)))
   } else { # station_pts_vess == FALSE
     figure <- figure +
-      ggplot2::geom_sf(data = reg_dat$survey.area %>%
-                dplyr::mutate(SURVEY = dplyr::case_when(
-                  SURVEY == "EBS_SHELF" ~ "EBS", 
-                  SURVEY == "NBS_SHELF" ~ "NBS")) %>% 
-                dplyr::filter(SURVEY %in% SRVY1), 
+      ggplot2::geom_sf(data = reg_dat$survey.area, 
               aes(color = SURVEY), 
               fill = NA, 
               linewidth = 2, 
@@ -3149,8 +3146,8 @@ plot_survey_stations <- function(reg_dat,
       ggplot2::scale_color_manual(
         name = "", 
         values = reg_dat$survey.area$color,
-        breaks = c(rev(unique(station$SRVY))), #TOLEDO rev
-        labels = c(rev(unique(stringr::str_to_title(haul_cruises_maxyr$SRVY_long))))) 
+        breaks = reg_dat$survey.area$SRVY, 
+        labels = stringr::str_to_title(reg_dat$survey.area$SRVY_long))
   }
   
   figure <- figure +
@@ -3163,15 +3160,17 @@ plot_survey_stations <- function(reg_dat,
   
   if (station_pts_srvy) {
     figure <- figure +
-      stat_sf_coordinates(data = dplyr::left_join( x = reg_dat$survey.grid, 
-                                                   y = station, 
-                                                   by = c("STATIONID" = "station"))  %>% 
-                            dplyr::filter(in_maxyr == TRUE),
-                          mapping = aes(color = SRVY),
-                          shape = 16,
+      stat_sf_coordinates(data = reg_dat$survey.grid,
+                          mapping = aes(shape = in_maxyr),
+                          color = "grey50",
+                          # color = "transparent",
+                          # shape = 16,
                           size = 2, 
                           show.legend = FALSE, 
-                          na.rm = TRUE)  
+                          na.rm = TRUE)  + 
+      ggplot2::scale_shape_manual(
+        values = c(16, 1), 
+        breaks = c(TRUE, FALSE))
   }
   
   if (stratum_no) {

@@ -36,7 +36,7 @@ SRVY <- "EBS"
 
 report_title <- "ptpres" 
 source(here::here("code","directories.R"))
-dir_out_figtab <- here::here("output", paste0("figtab_", maxyr, "_", "ptpres"))
+dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_ptpres")), "/")
 dir.create(dir_out_figtab)
 source(here::here("code","functions.R"))
 # source('./code/data_dl.R') # Run when there is new data!
@@ -109,8 +109,6 @@ for (jj in 1:length(comb)) {
 }
 
 ## Write report ----------------------------------------------------------------
-
-report_title <- "data" 
 
 #M Main Body
 rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 

@@ -9,6 +9,7 @@
 
 # This has a specific username and password because I DONT want people to have access to this!
 source("Z:/Projects/ConnectToOracle.R")
+channel0 <- channel
 channel <- channel_products
 
 # I set up a ConnectToOracle.R that looks like this: 
@@ -44,17 +45,11 @@ locations <- c(
  "GAP_PRODUCTS.AKFIN_STRATUM_GROUPS",
  "GAP_PRODUCTS.AKFIN_SURVEY_DESIGN",
  "GAP_PRODUCTS.AKFIN_TAXONOMICS_WORMS",
- "GAP_PRODUCTS.TEST_SPECIES_CLASSIFICATION", 
+ "GAP_PRODUCTS.TEST_SPECIES_CLASSIFICATION"
  # "crab.gap_ebs_nbs_abundance_biomass", # Biomass
  # "crab.gap_ebs_nbs_crab_cpue", # CPUE
  # "crab.ebscrab", # length data
- # "crab.ebscrab_nbs", # length data,
- "RACE_DATA.LENGTHS", # "GAP_PRODUCTS.AKFIN_LENGTH", # has extrapolated lengths, not how many were actually counted
- "RACE_DATA.HAULS", # need for manipulating RACE_DATA.LENGTHS
- "RACE_DATA.CRUISES", 
- "RACE_DATA.SURVEYS", 
- "RACE_DATA.VESSELS", 
- "RACE_DATA.LENGTH_TYPES"
+ # "crab.ebscrab_nbs", # length data
   )
 
 print(Sys.Date())
@@ -76,11 +71,11 @@ for (i in 1:length(locations)){
                                c("GAP_PRODUCTS.AKFIN_SIZECOMP", "GAP_PRODUCTS.AKFIN_BIOMASS", 
                                  "GAP_PRODUCTS.AKFIN_CRUISE", "GAP_PRODUCTS.AKFIN_CPUE",
                                  "GAP_PRODUCTS.AKFIN_HAUL")) ) {
-    end0 <- c(end0, paste0("YEAR IN (",maxyr,", ", compareyr, ", ", compareyr0, ")"))
+    end0 <- c(end0, paste0("YEAR IN (",paste0(maxyr:compareyr0, collapse = ","), ")"))
   }
   
   if ("YEAR" %in% names(a) & locations[i] %in% c("GAP_PRODUCTS.AKFIN_CPUE")) {
-    end0 <- c(end0, paste0("YEAR IN (",text_list(x = maxyr:(maxyr-8), sep = ", ", sep_last2 = ", ", sep_last = ", "), ")"))
+    end0 <- c(end0, paste0("YEAR IN (",text_list(x = maxyr:(maxyr-9), sep = ", ", sep_last2 = ", ", sep_last = ", "), ")"))
   }
   
   end0 <- ifelse(is.null(end0), "", paste0(" WHERE ", paste0(end0, collapse = " AND ")))
@@ -108,9 +103,28 @@ for (i in 1:length(locations)){
 error_loading
 
 
-a <- RODBC::sqlQuery(channel = channel, 
+
+# pull data from RACE_DATA
+
+locations <- c("RACE_DATA.V_EXTRACT_FINAL_LENGTHS", 
+               "RACE_DATA.LENGTHS", # "GAP_PRODUCTS.AKFIN_LENGTH", # has extrapolated lengths, not how many were actually counted
+                "RACE_DATA.HAULS", # need for manipulating RACE_DATA.LENGTHS
+                "RACE_DATA.CRUISES", 
+                "RACE_DATA.SURVEYS", 
+                "RACE_DATA.VESSELS", 
+                "RACE_DATA.LENGTH_TYPES", 
+                "RACE_DATA.EDIT_HAULS")
+
+for (i in 1:length(locations)) {
+a <- RODBC::sqlQuery(channel = channel0, # NOT RACEBASE.HAUL
                      query = paste0("SELECT *
-FROM RACEBASE.HAUL
-WHERE HAUL_TYPE IN (20, 17, 3);"))
+FROM ",locations[i],"; ")) 
 write.csv(x = a, 
-          here::here("data","racebase_haul_special.csv"))
+          here::here("data",
+                     paste0(tolower(gsub(pattern = '.', 
+                                         replacement = "_", 
+                                         x = locations[i], 
+                                         fixed = TRUE)),
+                            ".csv")))
+}
+

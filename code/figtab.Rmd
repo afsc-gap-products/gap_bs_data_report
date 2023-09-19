@@ -21,14 +21,17 @@ height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
+if (length(cruises_race$data_in_final == "N")>0) {
+  reg_dat0 <- report_types$NEBS$reg_dat
+}
 reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
-  dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station))
+  # dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station)) %>% 
+  dplyr::left_join(station) %>% 
+  dplyr::mutate(in_maxyr = ifelse(is.na(in_maxyr), FALSE, in_maxyr))
 reg_dat0$place.labels <- reg_dat0$place.labels %>% 
   dplyr::filter(type %in% c("mainland", "peninsula"))
 
-figure <- plot_survey_stations(reg_dat = reg_dat, 
-                               station = station, 
-                               haul_cruises_maxyr = haul_cruises_maxyr, 
+figure <- plot_survey_stations(reg_dat = reg_dat0, 
                                station_grid = FALSE, 
                                stratum_no = FALSE, 
                                station_pts_srvy = TRUE, 
@@ -54,16 +57,15 @@ height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <-
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
-reg_dat0$survey.grid <-
-  dplyr::left_join(x = reg_dat0$survey.grid,
-                   y = dplyr::left_join(x = haul_maxyr,
-                                        y = vessels) %>%
-                     dplyr::select(station, vessel_name, vess_shape) %>%
-                     dplyr::mutate(vess_col = dplyr::case_when(
-                       (vess_shape == vessels$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"),
-                       (vess_shape == vessels$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray"))) %>%
-                     dplyr::rename(station = station),
-                   by = ("station"))
+if (length(cruises_race$data_in_final == "N")>0) {
+  reg_dat0 <- report_types$NEBS$reg_dat
+}
+
+reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
+  dplyr::mutate(station = STATIONID) %>% 
+  dplyr::left_join(y = haul_maxyr) %>% 
+  dplyr::left_join(y = vessels) %>%
+  dplyr::ungroup() 
 
 if (crab_resample){
   reg_dat0$survey.grid <- dplyr::left_join(
@@ -80,10 +82,11 @@ if (crab_resample){
 
 figure <- plot_survey_stations(
   reg_dat = reg_dat0, 
-  station = station, 
-  haul_cruises_maxyr = haul_cruises_maxyr, 
+  # station = station %>% dplyr::filter(in_maxyr), 
+  # haul_cruises_maxyr = haul_cruises_maxyr, 
   station_grid = FALSE, 
-  stratum_no = TRUE, 
+  stratum_grid = TRUE, 
+  stratum_no = FALSE, place_labels = TRUE, 
   bathymetry = FALSE, 
   station_pts_srvy = FALSE, 
   station_pts_vess = TRUE, 
@@ -98,37 +101,31 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 nickname <- "fig-survey-sample-stations-1530"
 header <- ""
 
-height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
+if (sum(cruises_race$data_in_final == "N")>0) {
+  reg_dat0 <- report_types$NEBS$reg_dat
+}
 reg_dat0$survey.grid <-
   dplyr::left_join(x = reg_dat0$survey.grid,
                    y = dplyr::left_join(x = haul_maxyr,
                                         y = vessels) %>%
-                     dplyr::select(station, vessel_name, vess_shape) %>%
-                     dplyr::mutate(vess_col = dplyr::case_when(
-                       (vess_shape == vessels$vess_shape[1]) ~ nmfspalette::nmfs_cols("dkgray"),
-                       (vess_shape == vessels$vess_shape[2]) ~ nmfspalette::nmfs_cols("supdkgray"))) %>%
-                     dplyr::rename(station = station),
-                   by = ("station"))
-
-if (tow1530){
-  reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
-    dplyr::left_join(
-      y = haul_maxyr_tow1530 %>% 
-        dplyr::mutate(study = "15_30_minute_tows", 
-                      study_col = nmfspalette::nmfs_cols("medgray"),
-                      study_long = "15/30 minute tows") %>% 
-        dplyr::select(station, study, study_col, study_long) %>%
-        unique(), 
-      by = ("station")) 
-}
+                     dplyr::select(station, vessel_name, vess_shape))
+  
+    reg_dat0$survey.grid <- dplyr::left_join(
+    x = reg_dat0$survey.grid, 
+    y = haul_maxyr_crabretow %>% 
+      dplyr::mutate(study = "15_30_minute_tows", 
+                    study_col = nmfspalette::nmfs_cols("medgray"),
+                    study_long = "15/30 minute tows") %>% 
+      dplyr::select(station, study, study_col, study_long) %>%
+      dplyr::rename(station = station) %>% 
+      unique(), 
+    by = ("station")) 
 
 figure <- plot_survey_stations(
   reg_dat = reg_dat0, 
-  station = station, 
-  haul_cruises_maxyr = haul_cruises_maxyr, 
   station_grid = FALSE, 
   stratum_no = TRUE, 
   bathymetry = FALSE, 
@@ -155,14 +152,15 @@ height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
+if (length(cruises_race$data_in_final == "N")>0) {
+  reg_dat0 <- report_types$NEBS$reg_dat
+}
 reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
   dplyr::mutate(STATIONID = ifelse(!grepl(pattern = "-", x = STATIONID), "", STATIONID))
 reg_dat0$place.labels <- reg_dat0$place.labels %>% 
   dplyr::filter(type %in% c("mainland", "peninsula"))
 
 figure <- plot_survey_stations(reg_dat = reg_dat0, 
-                               station = station, 
-                               haul_cruises_maxyr = haul_cruises_maxyr, 
                                station_grid = TRUE, 
                                stratum_no = FALSE, 
                                station_pts_srvy = FALSE, 
@@ -615,12 +613,12 @@ table_print <- table_print0 %>%
   flextable::merge_h(i = 1, part = "header") %>% 
   flextable::merge_v(j = "common_name", part = "header") %>%
   flextable::valign(valign = "top") %>%
-  flextable::bold(x = ., 
-                  i = c((nrow(table_print0)-1), nrow(table_print0))) %>% 
+  flextable::bold(x = ., i = ~(common_name == "TOTAL") ) %>%
   flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") %>% 
   flextable::hline(x = ., border = std_b, part = "header")  
 
-if (SRVY == "NEBS") {
+if (SRVY == "NEBS" & 
+    paste0("EBS_", compareyr) %in% names(table_raw)) {
   table_print <- table_print %>% 
     flextable::vline(j = paste0("EBS_", compareyr))
 }
@@ -675,6 +673,7 @@ table_raw <- specimen %>%
 
 table_print0 <- dplyr::bind_rows(
   table_raw, 
+  # summed total
   table_raw %>% 
     dplyr::mutate(common_name = "TOTAL") %>% 
     dplyr::group_by(specimen_subsample_method , common_name) %>% 
@@ -690,6 +689,7 @@ table_print <- table_print0 %>%
   flextable::as_grouped_data(x = ., groups = c("specimen_subsample_method")) %>% 
   flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
   flextable::bold(x = ., j = 1, i = ~ !is.na(specimen_subsample_method) ) %>%
+  flextable::bold(x = ., i = ~(common_name == "TOTAL") ) %>%
   flextable::add_header(
     x = .,
     values = eval(parse(text = paste0("list(",
@@ -712,7 +712,7 @@ table_print <- table_print0 %>%
   flextable::padding(x = ., 
                      j = 1, i = ~ is.na(specimen_subsample_method), 
                      padding.left = 20) %>%   
-  flextable::hline(x = ., border = std_b, part = "header")  
+  flextable::hline(x = ., border = std_b, part = "header") 
 
 if (SRVY == "NEBS") {
   table_print <- table_print %>% 
@@ -721,7 +721,6 @@ if (SRVY == "NEBS") {
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
-
 
 ## fig-mean-temperature
 
@@ -763,7 +762,8 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-temperature-[st/bt]-prep}
 temp <- function(yrs, 
                  row0, 
-                 case) {
+                 case, 
+                 title0 = NULL) {
   
   if (case == "surface") {
     raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
@@ -789,10 +789,11 @@ temp <- function(yrs,
                      expression(bold("Bottom temperature (°C)")), 
                      expression(bold("Surface temperature (°C)")))
   reg_dat = reg_dat0
+  if(is.null(title0)) {
   title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
                   " Bering Sea\n", 
                   case, " temperature (", range_text(yrs), ")") 
-  
+  }
   figure <- plot_temperature_facet(
     raster_nebs = raster_nebs, 
     raster_ebs = raster_ebs, 
@@ -826,9 +827,11 @@ for (case in c("bottom", "surface")) {
       yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
     }
     nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr))
-  a <- temp(yrs, row0, case)
-  figure <- a$figure
-  header <- a$header
+    a <- temp(yrs, row0, case, 
+              title0 = paste0(stringr::str_to_title(SURVEY), " ",
+                     case, " temperature (", range_text(yrs), ")"))
+    figure <- a$figure
+    header <- a$header
     
     res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   }
@@ -844,14 +847,16 @@ row0 <- 2
 reg_dat0 <- report_types$NEBS$reg_dat
 
 for (case in c("bottom", "surface")) {
-  nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-ptpres")
-  a <- temp(yrs, row0, case)
+  nickname <- paste0("fig-ptpres-temperature-", ifelse(case=="bottom", "bt", "st"))
+  a <- temp(yrs, row0, case, title0 = paste0(stringr::str_to_title(SURVEY), " ",  
+                   case, " temperature (", range_text(yrs), ")"))
   figure <- a$figure
   header <- a$header
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
+
 ```{r fig-temperature-[st/bt]-nbspres}
 height <- 8
 width <- 8
@@ -1830,17 +1835,19 @@ header <- paste0("Biomass and abundance change for major species in ",
                  maxyr, " and ", compareyr," ", SURVEY, 
                  " shelf bottom trawl survey.")
 
-table_raw <- 
+table_raw <- biomass %>%
   dplyr::left_join(
-    x = biomass, 
-    y = report_spp1 %>% 
-      dplyr::filter(!is.na(order) & table_bio_portion ) %>% 
-      dplyr::select(species_code, order) %>% 
-      dplyr::distinct(), 
-    by = "species_code") %>% 
-  dplyr::filter(year %in% c(maxyr, compareyr) & 
-                  !is.na(order) & 
-                  !is.na(common_name)) %>% 
+  #   x = biomass, 
+    y = report_spp1 %>%
+      dplyr::filter(!is.na(order) & table_bio_portion ) %>%
+      dplyr::select(species_code, order) %>%
+      dplyr::distinct(),
+    by = "species_code") %>%
+  dplyr::filter(year %in% c(maxyr, compareyr) &
+                  stratum == 999 & 
+                  !is.na(order) &
+                  !is.na(common_name)
+                  ) %>% 
   dplyr::group_by(common_name, year, SRVY, order) %>% 
   dplyr::summarise(biomass = sum(biomass_mt, na.rm = TRUE), 
                    population = sum(population_count, na.rm = TRUE)) %>% 
@@ -2190,26 +2197,26 @@ if (SRVY == "NEBS") {
                           haul_cruises_maxyr %>% 
                             dplyr::select(SRVY_long, SRVY) %>% 
                             dplyr::filter(SRVY == "NBS"))
-if (nrow(temp) != 0) {   
-  list_tables0 <- tab_taxa_found_(temp = temp, 
-                                  # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
-                                  maxyr = maxyr, 
-                                  catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
-                                  spp_info = spp_info) 
-  
-  cnt_tables <- 0
-  for (i in 1:length(list_tables0)) {
-    # cnt_pre <- cnt_pre1 # paste0("Appendix ", cnt_pre1)
-    a <- list_tables0[[i]]
-    for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  if (nrow(temp) != 0) {   
+    list_tables0 <- tab_taxa_found_(temp = temp, 
+                                    # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
+                                    maxyr = maxyr, 
+                                    catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
+                                    spp_info = spp_info) 
     
-    # Save table
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-      quiet = TRUE
-    )
-  }
+    cnt_tables <- 0
+    for (i in 1:length(list_tables0)) {
+      # cnt_pre <- cnt_pre1 # paste0("Appendix ", cnt_pre1)
+      a <- list_tables0[[i]]
+      for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+      
+      # Save table
+      res <- knitr::knit_child(
+        text = knitr::knit_expand(
+          file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+        quiet = TRUE
+      )
+    }
   }
 }
 ```
@@ -2257,7 +2264,8 @@ tab_app_fish_ <- function(temp,
     table_raw1 <- sizecomp_maxyr %>% 
       dplyr::filter(species_code %in% spp_code &
                       SRVY == temp$SRVY[i]) %>% 
-      dplyr::distinct() 
+      dplyr::distinct() %>%
+      dplyr::ungroup()
     
     if (nrow(table_raw1) != 0) { 
       
@@ -2274,14 +2282,14 @@ tab_app_fish_ <- function(temp,
           unsexed = ifelse(("unsexed" %in% table_raw1$sex), unsexed, 0),
           total = males + females + unsexed) %>%
         dplyr::arrange(length_mm)
-          
-          table_raw <- table_raw1 %>% 
-            dplyr::ungroup() %>% 
-            dplyr::mutate(
-                      prop = total/sum(table_raw1$total, na.rm = TRUE), 
-                      cumprop = cumsum(prop))
-          # table_raw$cumprop <- cumsum(table_raw$prop)
-                
+      
+      table_raw <- table_raw1 %>% 
+        dplyr::ungroup() %>% 
+        dplyr::mutate(
+          prop = total/sum(table_raw1$total, na.rm = TRUE), 
+          cumprop = cumsum(prop))
+      # table_raw$cumprop <- cumsum(table_raw$prop)
+      
       table_raw <- 
         dplyr::bind_rows(table_raw %>% 
                            dplyr::mutate(length_mm = as.character(length_mm)), 
@@ -2313,7 +2321,7 @@ tab_app_fish_ <- function(temp,
                                pgwidth = full_page_portrait_width) %>%
         flextable::width(x = ., width = .9, unit = "in") %>% 
         flextable::hline_bottom(x = ., border = fp_border(width = 2), part = "header")
-
+      
       list_tables0$temp <- list("table_print" = table_print, 
                                 "table_raw" = table_raw, 
                                 "header" = header, 
@@ -2369,27 +2377,27 @@ if (SRVY == "NEBS") {
                             dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
                             dplyr::select(file_name, print_name, common_name1, species_name) %>% # , species_name1
                             dplyr::distinct())
-if (nrow(temp) != 0) {   
-  list_tables0 <- tab_app_fish_(
-    temp = temp, 
-    maxyr = maxyr, 
-    haul_cruises_maxyr = haul_cruises_maxyr, 
-    report_spp1 = report_spp1,
-    spp_info = spp_info)
-  
-  cnt_tables <- 0
-  for (i in 1:length(list_tables0)) {
-    a <- list_tables0[[i]]
-    for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  if (nrow(temp) != 0) {   
+    list_tables0 <- tab_app_fish_(
+      temp = temp, 
+      maxyr = maxyr, 
+      haul_cruises_maxyr = haul_cruises_maxyr, 
+      report_spp1 = report_spp1,
+      spp_info = spp_info)
     
-    # Save table
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-      quiet = TRUE
-    )
+    cnt_tables <- 0
+    for (i in 1:length(list_tables0)) {
+      a <- list_tables0[[i]]
+      for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+      
+      # Save table
+      res <- knitr::knit_child(
+        text = knitr::knit_expand(
+          file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+        quiet = TRUE
+      )
+    }
   }
-}
 }
 ```
 
