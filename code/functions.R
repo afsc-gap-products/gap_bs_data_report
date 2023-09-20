@@ -2871,13 +2871,18 @@ plot_timeseries <- function(
     mean_in_legend = TRUE, 
     yrs_plotted = NULL){
   
-  a<-find_units(unit, unt, dat = dat$y) # [table_raw$y > 0]
+  a<-find_units(unit, unt, dat = dat$y) 
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) } 
   
   table_raw <- dat %>% 
     dplyr::arrange(-year) %>% 
-    dplyr::mutate(y = y/a$divby)
-
+    dplyr::mutate(y = y/a$divby) 
+  
+  if (error_bar) {
+    table_raw <- table_raw %>% 
+      dplyr::mutate(y_ci_dw = y_ci_dw/divby, 
+                  y_ci_up = y_ci_up/divby)
+}
   yr_missing <- data.frame()
   for (i in 1:length(unique(table_raw$SRVY))){
     temp <- table_raw[table_raw$SRVY %in% unique(table_raw$SRVY)[i], ]
@@ -2902,6 +2907,9 @@ plot_timeseries <- function(
     temp1$SRVY <- yr_missing$SRVY
     temp1$SRVY_long <- yr_missing$SRVY_long
     temp1$col <- yr_missing$col
+    temp1$common_name <- as.character(temp)
+    temp1$species_name <- unlist(unique(table_raw[,c("species_name")]))
+    temp1$taxon <- unlist(unique(table_raw[,c("taxon")]))
     table_raw <- dplyr::bind_rows(temp1, table_raw)
   }
   
@@ -2975,6 +2983,15 @@ plot_timeseries <- function(
     ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 1, big.mark = ""), 
                                 limits = range(yrs_plotted, na.rm = TRUE))  +
     ggplot2::scale_color_manual(values = unique(table_raw$col))
+  
+  
+  if (error_bar) {
+    figure <- figure +
+      geom_errorbar(aes(ymin=y_ci_dw, ymax=y_ci_up), width=.2,
+                 position=position_dodge(.9), alpha = 0.5)
+  }
+  
+  
   
   if (!is.na(anno)) {
     figure <- figure +

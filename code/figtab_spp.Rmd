@@ -1135,8 +1135,8 @@ if (spp_table_cpue) {
 table_raw0 <- biomass %>%
   dplyr::filter(stratum == 999 & 
                   species_code %in% spp_code) %>% 
-  dplyr::select(SRVY, year, species_code, area_id, #population_var, biomass_var, 
-                biomass_mt, population_count) %>% 
+  # dplyr::select(SRVY, year, species_code, area_id, #population_var, biomass_var, 
+  #               biomass_mt, population_count) %>% 
   dplyr::left_join(x = . , 
                    y = haul_cruises %>% 
                      dplyr::select(SRVY, SRVY_long) %>% 
@@ -1158,7 +1158,8 @@ temp00 <- function(table_raw0,
                    unt, 
                    y_long, 
                    legend_combined = TRUE, 
-                   mean_in_legend = FALSE) {
+                   mean_in_legend = FALSE, 
+                   error_bar = TRUE) {
   
   pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
   
@@ -1168,11 +1169,18 @@ temp00 <- function(table_raw0,
       SRVY == "EBS" ~ pcol[1],
       SRVY == "NBS" ~ pcol[2]))
   
+  if (error_bar) {
+      table_raw <- table_raw %>% 
+    dplyr::rename(
+                  y_ci_up = paste0(var, "_ci_up"), 
+                  y_ci_dw = paste0(var, "_ci_dw")) 
+  }
+  
   figure0 <- plot_timeseries(dat = table_raw,
                              unit = unit,
                              unt = unt,
                              y_long = y_long,
-                             error_bar = FALSE,
+                             error_bar = error_bar,
                              spp_print = table_raw$print_name[1],
                              mean_in_legend = TRUE)
   
@@ -1272,18 +1280,21 @@ temp00 <- function(table_raw0,
 
 ## fig-[spp]-biomass-pres
 
-```{r, fig-[spp]-biomass-pres, eval = (report_title == "ptpres")}
+```{r, fig-[spp]-biomass-pres-ci, eval = (report_title == "ptpres")}
 height <- 4
-nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres")
-table_raw <- table_raw0
-figure <- temp00(table_raw0 = table_raw0, 
+nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres-ci")
+table_raw <- table_raw0 %>% 
+  dplyr::rename(biomass_mt_ci_up = biomass_95ci_up, 
+                biomass_mt_ci_dw = biomass_95ci_dw)
+figure <- temp00(table_raw0 = table_raw, 
                  var = "biomass_mt", 
                  maxyr = maxyr, 
                  compareyr = compareyr, 
                  unit = "metric tons", 
                  unt = "t", 
                  y_long = "Biomass", 
-                 mean_in_legend = TRUE)
+                 mean_in_legend = TRUE, 
+                 error_bar = TRUE)
 
 header <- "" # a$header
 
@@ -1292,21 +1303,25 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## fig-[spp]-population-pres
 
-```{r, fig-[spp]-population-pres, eval = (report_title == "ptpres")}
+
+```{r, fig-[spp]-population-pres-cv, eval = (report_title == "ptpres")}
 y_long <- "Population"
 unit = "individuals"
 unt = ""
 height <- 4
-nickname <- paste0("fig-", jj, "-", spp_file, "-2-population-pres")
-table_raw <- table_raw0
-figure <- temp00(table_raw0 = table_raw0, 
+nickname <- paste0("fig-", jj, "-", spp_file, "-2-population-pres-cv")
+table_raw <- table_raw0 %>% 
+  dplyr::rename(population_count_ci_up = population_95ci_up, 
+                population_count_ci_dw = population_95ci_dw)
+figure <- temp00(table_raw0 = table_raw, 
                  var = "population_count", 
                  maxyr = maxyr, 
                  compareyr = compareyr, 
                  unit = "individuals", 
                  unt = "", 
                  y_long = "Population", 
-                 mean_in_legend = TRUE)
+                 mean_in_legend = TRUE, 
+                 error_bar = TRUE)
 header <- "" # a$header
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)

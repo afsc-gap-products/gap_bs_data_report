@@ -52,7 +52,7 @@ comb <- report_spp1 %>%
   dplyr::filter(!is.na(order) & 
                   file_name %in% c("walleye-pollock", "pacific-cod", "yellowfin-sole", 
                                    "northern-rock-sole", "flathead-sole", "alaska-plaice", 
-                                   "pacific-halibut", "alaska-skate")) %>% 
+                                   "pacific-halibut", "alaska-skate")) %>% # "arrowtooth-flounder", 
   dplyr::select(file_name) %>% 
   unlist() %>% 
   unique()

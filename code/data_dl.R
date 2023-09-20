@@ -111,6 +111,7 @@ locations <- c("RACE_DATA.V_EXTRACT_FINAL_LENGTHS",
                 "RACE_DATA.HAULS", # need for manipulating RACE_DATA.LENGTHS
                 "RACE_DATA.CRUISES", 
                 "RACE_DATA.SURVEYS", 
+                "RACE_DATA.SURVEY_DEFINITIONS", 
                 "RACE_DATA.VESSELS", 
                 "RACE_DATA.LENGTH_TYPES", 
                 "RACE_DATA.EDIT_HAULS")
@@ -128,3 +129,41 @@ write.csv(x = a,
                             ".csv")))
 }
 
+
+# a <- RODBC::sqlQuery(channel = channel0, # NOT RACEBASE.HAUL
+#                      query = paste0("SELECT  
+# -- SD.REGION REGION,
+# --        A.VESSEL_ID VESSEL,
+#         A.CRUISE CRUISE,
+# --        B.HAUL HAUL,
+#         C.SPECIES_CODE SPECIES_CODE,
+# --        C.SEX SEX,
+#         SUM(C.FREQUENCY) FREQUENCY--,
+# --        C.EDIT_LENGTH LENGTH,
+# --        C.LENGTH_TYPE LENGTH_TYPE,
+# --        C.LENGTH_SUBSAMPLE_TYPE SAMPLE_TYPE
+#  FROM RACE_DATA.CRUISES A
+#  JOIN RACE_DATA.SURVEYS S
+#    ON (S.SURVEY_ID = A.SURVEY_ID)
+#  JOIN RACE_DATA.SURVEY_DEFINITIONS SD
+#    ON (SD.SURVEY_DEFINITION_ID = S.SURVEY_DEFINITION_ID)
+#  JOIN RACE_DATA.HAULS B
+#    ON (B.CRUISE_ID = A.CRUISE_ID)
+#  JOIN RACE_DATA.LENGTHS C
+#    ON (C.HAUL_ID = B.HAUL_ID)
+# WHERE PERFORMANCE >= 0 
+# AND HAUL_TYPE = 3
+# AND CRUISE IN (202201, 202202, 202301, 202302)
+# -- AND SPECIES_CODE IN (21740, 21720, 21741, 21721)
+# AND REGION = 'BS'
+#  GROUP BY SD.REGION,
+# --          A.VESSEL_ID,
+#           A.CRUISE,
+# --          B.HAUL,
+#           C.SPECIES_CODE--,
+# --          C.SEX,
+# --          C.EDIT_LENGTH,
+# --          C.LENGTH_TYPE,
+# --          C.LENGTH_SUBSAMPLE_TYPE;")) 
+# write.csv(x = a, 
+#           here::here("data","race_data_lengths_mod.csv"))

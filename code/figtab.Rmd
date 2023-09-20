@@ -540,49 +540,36 @@ header <- paste0("Lengths collected during the ", maxyr, " ",
                  SURVEY, 
                  " shelf bottom trawl survey.")
 
-a <- report_spp1 %>% 
-  dplyr::select(print_name, species_code, species_name1, plot_sizecomp, order) %>% 
-  dplyr::distinct() %>% 
-  dplyr::mutate(include  = ifelse(is.na(plot_sizecomp) | isFALSE(plot_sizecomp), 
-                                  FALSE, TRUE) ) %>% 
-  dplyr::filter(include == TRUE) 
-
-table_raw <- lengths %>% # length data - from oracle
-  dplyr::select(SRVY, year, species_code, frequency) %>% # common_name, 
-  dplyr::filter(year %in% c(maxyr, compareyr) &
-                  !(species_code %in% c(68560, 68580, 68590, 69322, 69323, 69400, 69310, 68577, 68781) )) %>% # NO CRABS!
-  dplyr::group_by(SRVY, species_code, year) %>% 
-  dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
-  dplyr::ungroup() %>%
+table_raw <- lengths %>% 
+  dplyr::left_join(report_spp1 %>% 
+                     dplyr::select(species_code, order) %>% 
+                     dplyr::distinct(), 
+                   relationship = "many-to-many")  %>%
   dplyr::left_join(
     y = spp_info %>% dplyr::select(species_code,  common_name), 
-    by = "species_code") %>% 
-  dplyr::left_join(
-    y = a %>%
-      dplyr::select(order, species_code) %>%
-      distinct(),
     by = "species_code") %>%
-  dplyr::select(-species_code)   %>%
-  dplyr::filter(!grepl(pattern = " crab", x = common_name)) %>% 
-  dplyr::arrange(desc(length))  %>% 
-  tidyr::pivot_wider(data = ., id_cols = c("common_name", "order"), 
-                     names_from = c("SRVY", "year"), values_from = "length")  %>% 
-  dplyr::ungroup()  %>%
+  dplyr::filter(year %in% c(maxyr, compareyr) &
+                  !(species_code %in% c(68560, 68580, 68590, 69322, 
+                                        69323, 69400, 69310, 68577, 68781) ))  %>%  # no crab!
+  dplyr::group_by(SRVY, year, common_name, order) %>%
+  dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) %>%
+  tidyr::pivot_wider(data = ., 
+                     id_cols = c("common_name", "order"), # 
+                     names_from = c("SRVY", "year"), 
+                     values_from = "frequency") %>% 
+  dplyr::ungroup() %>% 
   dplyr::arrange(order) %>%
-  dplyr::select(-order)
+  dplyr::select(-order) 
 
 table_print0 <- 
   dplyr::bind_rows(
-    # first 20
-    table_raw[1:18,],
-    # summed rest
-    table_raw[19:nrow(table_raw),] %>%
+    table_raw[1:18,], # first 18
+    table_raw[19:nrow(table_raw),] %>%    # summed others
       dplyr::mutate(common_name = paste0("other taxa (", nrow(table_raw[21:nrow(table_raw),]), ")")) %>%
       dplyr::group_by(common_name) %>% 
       dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE)) %>% 
       dplyr::ungroup(),
-    # total
-    table_raw %>%
+    table_raw %>%    # total
       dplyr::mutate(common_name = "TOTAL") %>%
       dplyr::group_by(common_name) %>% 
       dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE)) %>%
