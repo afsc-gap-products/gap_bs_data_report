@@ -902,47 +902,40 @@ coldpool_ebs_total_area <- coldpool_ebs_bin_area %>%
 print("sizecomp")
 
 # Crab 
-sizecomp_crab <- dplyr::bind_rows(
-  NBS_BKC_SIZE1MM_MATFEM_ABUNDANCE0 %>% 
-    dplyr::mutate(species_code = 69323), 
-  NBS_CO_SIZE1MM_MATFEM_ABUNDANCE0 %>% 
-    dplyr::mutate(species_code = 69322), 
-  NBS_RKC_LEG1_SIZE1MM_MATFEM_ABUNDANCE0 %>% 
-    dplyr::mutate(species_code = 68580) ) %>% 
-  dplyr::rename( 
-    year = survey_year,
-    length_mm = size1) %>%
-  dplyr::select(length_mm, year, species_code, 
-                num_unsexed_size1, num_male_size1, num_female_size1_mat, num_female_size1_immat) %>%
-  tidyr::pivot_longer(cols = c(num_unsexed_size1, num_male_size1, num_female_size1_mat, num_female_size1_immat),
+sizecomp_sap <- crab_nbs_size1mm_all_species0 %>% 
+  dplyr::rename(SRVY = survey_definition_id) %>%
+  tidyr::pivot_longer(cols = c(number_unsexed, number_males, number_mature_females, number_immature_females),
                       names_to = "sex", values_to = "population_count")  %>%
-  dplyr::group_by(sex, length_mm, year, species_code) %>% 
+  dplyr::group_by(sex, length_mm, year, species_code, SRVY) %>% 
   dplyr::summarise(population_count = sum(population_count, na.rm = TRUE)) %>%
+  dplyr::ungroup() %>%
   dplyr::mutate(
-    survey_definition_id = 143, 
+    survey_definition_id = dplyr::case_when(
+      SRVY == "NBS" ~ 143, 
+      SRVY == "EBS" ~ 98), 
     sex = dplyr::case_when(
-      sex == "num_unsexed_size1" ~ "unsexed",
-      sex == "num_male_size1" ~ "males",
-      sex == "num_female_size1_immat" ~ "immature females",
-      sex == "num_female_size1_mat" ~ "mature females"))
+      sex == "number_unsexed" ~ "unsexed",
+      sex == "number_males" ~ "males",
+      sex == "number_immature_females" ~ "immature females",
+      sex == "number_mature_females" ~ "mature females"))
 
-sizecomp <- dplyr::bind_rows(
-  sizecomp_crab, 
-  gap_products_akfin_sizecomp0 %>% # GAP data
-    dplyr::filter(
-      area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
-        survey_definition_id %in% SRVY00 &
-        year <= maxyr &
-        # area_id > 99900 & 
-        length_mm > 0 &
-        !(year < 1996 & species_code == 10261) &
-        !(year < 2000 & species_code == 435) & # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
-        !(year < 2000 & species_code == 471)) %>% 
-    dplyr::mutate(
-      sex = dplyr::case_when(
-        sex == 1 ~ "males", 
-        sex == 2 ~ "females", 
-        sex == 3 ~ "unsexed"))) %>% 
+sizecomp_gap <- gap_products_akfin_sizecomp0 %>% # GAP data
+  dplyr::filter(
+    area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
+      survey_definition_id %in% SRVY00 &
+      year <= maxyr &
+      # area_id > 99900 & 
+      length_mm > 0 &
+      !(year < 1996 & species_code == 10261) &
+      !(year < 2000 & species_code == 435) & # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
+      !(year < 2000 & species_code == 471)) %>% 
+  dplyr::mutate(
+    sex = dplyr::case_when(
+      sex == 1 ~ "males", 
+      sex == 2 ~ "females", 
+      sex == 3 ~ "unsexed"))
+
+sizecomp <- dplyr::bind_rows(sizecomp_sap, sizecomp_gap) %>% 
   dplyr::filter(
     year <= maxyr &
       survey_definition_id %in% SRVY00 & 
