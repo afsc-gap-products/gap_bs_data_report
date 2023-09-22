@@ -501,7 +501,7 @@ nbsyr <- gap_products_akfin_cruise0 %>%
   dplyr::select(year) %>% 
   unique() %>% 
   unlist() %>% 
-  sort(decreasing = TRUE)
+  sort(decreasing = FALSE)
 
 lastyr <- max(haul$year[haul$year != maxyr])
 
@@ -761,7 +761,10 @@ lengths_gap <- race_data_cruises0 %>%
   dplyr::ungroup()
 
 lengths <- dplyr::bind_rows(lengths_gap, lengths_sap) %>% 
-  dplyr::left_join(cruises %>% dplyr::select(SRVY, survey_definition_id) %>% dplyr::distinct() )
+  dplyr::left_join(cruises %>% 
+                     dplyr::select(SRVY, survey_definition_id) %>% 
+                     dplyr::distinct() ) %>% 
+  dplyr::left_join(length_type)
 
 lengths_maxyr <- lengths %>%
   dplyr::filter(year == maxyr)
@@ -964,7 +967,7 @@ print("biomass")
 
 biomass_gap <- gap_products_akfin_biomass0 %>%
   dplyr::filter(
-    area_id %in% c(10, 20, 30, 40, 50, 60, 82, 90, 99900, 99902) &
+    area_id %in% as.numeric(strat0) &
       survey_definition_id %in% SRVY00 &
       n_weight > 0 & 
       year <= maxyr &

@@ -745,7 +745,7 @@ figure <- plot_coldpool_area(coldpool_ebs_bin_area = coldpool_ebs_bin_area, maxy
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## fig-temperature-[st/bt]
+## fig-temperature-[st/bt]-prep
 
 ```{r fig-temperature-[st/bt]-prep}
 temp <- function(yrs, 
@@ -799,6 +799,8 @@ temp <- function(yrs,
 }
 ```
 
+## fig-temperature-[st/bt]
+
 ```{r fig-temperature-[st/bt]}
 height <- full_page_portrait_height
 width <- full_page_portrait_width
@@ -815,9 +817,7 @@ for (case in c("bottom", "surface")) {
       yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
     }
     nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr))
-    a <- temp(yrs, row0, case, 
-              title0 = paste0(stringr::str_to_title(SURVEY), " ",
-                     case, " temperature (", range_text(yrs), ")"))
+    a <- temp(yrs, row0, case)
     figure <- a$figure
     header <- a$header
     
@@ -825,6 +825,8 @@ for (case in c("bottom", "surface")) {
   }
 }
 ```
+
+## fig-temperature-[st/bt]-ptpres
 
 ```{r fig-temperature-[st/bt]-ptpres}
 height <- 8
@@ -835,8 +837,9 @@ row0 <- 2
 reg_dat0 <- report_types$NEBS$reg_dat
 
 for (case in c("bottom", "surface")) {
-  nickname <- paste0("fig-ptpres-temperature-", ifelse(case=="bottom", "bt", "st"))
-  a <- temp(yrs, row0, case, title0 = paste0(stringr::str_to_title(SURVEY), " ",  
+  nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-ptpres")
+  a <- temp(yrs, row0, case, 
+            title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), " ",  
                    case, " temperature (", range_text(yrs), ")"))
   figure <- a$figure
   header <- a$header
@@ -844,6 +847,8 @@ for (case in c("bottom", "surface")) {
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
+
+## fig-nbspres-temperature-[st/bt]-nbspres
 
 ```{r fig-temperature-[st/bt]-nbspres}
 height <- 8
@@ -1558,7 +1563,8 @@ table_print0 <- table_raw %>%
     dplyr::across(dplyr::ends_with("yr"), formatC, big.mark=",", digits = 0, format = "f"), 
     dplyr::across(dplyr::ends_with("yr"), gsub, pattern = "NA%", replacement = "") , 
     dplyr::across(dplyr::everything(), gsub, pattern = "NA", replacement = "-") )  %>%
-  dplyr::filter(!is.na(change0))
+  dplyr::filter(!is.na(change0)) %>% 
+  dplyr::relocate(print_name, as.character(yrs))
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 

@@ -2,23 +2,21 @@
 ```{r, results='asis'}
 
 figtab <- dplyr::case_when(
-  grepl(pattern = "fig-", x = nickname) ~ "fig",
-  grepl(pattern = "tab-", x = nickname) ~ "tab"
+  grepl(pattern = "fig-", x = nickname[1]) ~ "fig",
+  grepl(pattern = "tab-", x = nickname[1]) ~ "tab"
 )
 
 dir0 <- dir_out_figtab
 
+if (length(a)>1) {
 a <- list.files(path = dir0,
                 pattern = nickname,
                 full.names = FALSE)
-
+} else {
+  a <- paste0(dir0, nickname, ifelse(figtab == "fig", ".png", ".Rdata"))
+}
 # if this is a partial name, we can collect all the names like this
 nickname0 <- unique(sapply(strsplit(x = a, split = ".", fixed = TRUE), "[[", 1)) 
-
-# nickname0 <- gsub(pattern = ".rdata",
-#                   replacement = "",
-#                   x = a[grepl(pattern = ".rdata", x = a)],
-#                   ignore.case = TRUE)
 
 src_figtab <- list()
 for(i in 1:length(nickname0)){

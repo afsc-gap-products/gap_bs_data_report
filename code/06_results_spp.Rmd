@@ -38,23 +38,19 @@ lang <- ""
 
 if (report_title == "community") {
 
-temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"))
+temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), skip = 1) %>% 
+  dplyr::filter(print_name == spp_print) %>% 
+  dplyr::select(dplyr::starts_with("lang_")) %>% 
+  dplyr::select_if(~sum(!is.na(.)) > 0)
 
-lang <- data.frame(lang_long = as.character(names(temp)[grepl(pattern = "lang_", x = temp[1,])]), 
-                   lang = as.character(temp[1,grepl(pattern = "lang_", x = temp[1,])]), 
-                   name = as.character(t(report_spp[jj,] %>% dplyr::select( dplyr::starts_with("lang_")) )) )
+temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv")) %>% 
+  head(1) %>% 
+  t() %>% 
+  data.frame() 
+names(temp) <- rownames(temp0)[which(temp0$. %in% names(temp))]
 
-lang <- rbind.data.frame(data.frame(name = c(ifelse(is.na(a$scientific_name_prev[a$print_name == spp_print][1]), NA, 
-                                                    paste0("*", a$scientific_name_prev[a$print_name == spp_print][1], "*")), 
-                                             ifelse(is.na(a$common_name_prev[a$print_name == spp_print][1]), NA, 
-                                                    a$common_name_prev[a$print_name == spp_print][1])), 
-                                    lang = c("scientific_name_prev", "common_name_prev"), 
-                                    lang_long = c("Previous Scientific Name", "Other Common Names")), 
-                         lang) %>%
-  dplyr::filter(!is.na(name))
-
-if (nrow(lang)>0) {
-  lang  <- paste(paste0("**",lang$lang_long,"**: ",lang$name,"\n\n"), sep = "", collapse = "")
+if (nrow(temp)>0) {
+  lang <- paste0("**", names(temp), "**: ", temp, collapse = "\n")
 } else {
   lang <- ""
 }

@@ -614,7 +614,7 @@ if (!(nrow(table_raw) == 0)) {
     figure <- plot_sizecomp(
       sizecomp0 = table_raw %>% 
         dplyr::mutate(SRVY0 = SRVY, 
-                      SRVY = stringr::str_to_sentence(SRVY_long)),
+                      SRVY = gsub(x = stringr::str_to_title(SRVY_long), replacement = " and ", pattern = " And ")),
       lengths0 = lengths0,
       spp_code = spp_code,
       spp_print = stringr::str_to_sentence(spp_print),
@@ -792,7 +792,8 @@ temp_bio <- dplyr::left_join(
     dplyr::select(SRVY, year, biomass_mt, population_count, cpue_kgkm2_mean, cpue_nokm2_mean) %>% 
     dplyr::mutate(print_name = spp_print) %>% 
     dplyr::filter((biomass_mt !=0)), 
-  by = c("year", "SRVY"))
+  by = c("year", "SRVY")) %>% 
+  dplyr::filter(year %in% yrs)
 
 table_raw <- data.frame()
 for (i in 1:nrow(temp_bio)) {
