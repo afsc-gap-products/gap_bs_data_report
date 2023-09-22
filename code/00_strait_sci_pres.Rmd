@@ -1,11 +1,11 @@
 ---
-title: '`r paste0(maxyr, " ", SURVEY, " Bottom Trawl Survey\nJoint Groundfish Plan Team Meeting") `'
-subtitle: '`r paste0(format(min(haul_cruises_vess_maxyr$start_date_cruise), format = "%B %d"), " to ", format(max(haul_cruises_vess_maxyr$end_date_cruise), format = "%B %d, %Y") )  `'
+title: '`r paste0(maxyr, " ", SURVEY, " Bottom Trawl Survey: What Did They Find?") `'
+subtitle: '`r paste0("Strait Science:\n", format(min(haul_cruises_vess_maxyr$start_date_cruise), format = "%B %d"), " to ", format(max(haul_cruises_vess_maxyr$end_date_cruise), format = "%B %d, %Y") )  `'
 author: 
 - affiliation: Resource Assessment & Conservation Engineering Division
   description: Groundfish Assessment Program
   email: Duane.Stevenson@noaa.gov
-  name: Duane Stevenson, Emily Markowitz, Liz Dawson, Chris Anderson
+  name: Duane Stevenson, Emily Markowitz, Liz Dawson, Chris Anderson, Sean Rohan, Nicole Charriere, Jon Richar
 csl: "https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl"
 bibliography: "https://raw.githubusercontent.com/afsc-gap-products/citations/main/cite/bibliography.bib"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -32,10 +32,33 @@ knitr::opts_chunk$set(
 
 ## Outline
 
- - Environmental data
- - Fish population data
- - Additional research
- - [[NEW]]
+ - Survey overview and area
+ - Charter vessels
+ - Survey gear
+ - Results
+   - Bering Sea temperatures/Cold pool
+   - Distribution, abundance, and sizes (select species)
+   - Special projects
+     - Cod tagging
+     - Fish condition
+     - Harmful algal blooms
+     
+
+## Bering Sea Bottom Trawl Surveys
+
+How Often?
+ - EBS Annually since 1982; Late May - late July
+ - NBS `r text_list(nbsyr) `; August - early September
+
+Goals 
+ - Ecosystem monitoring
+   - Movement of fishes, crabs, and other seafloor invertebrates
+   - Changes in food web
+ - Stock assessment
+   - Population size, age structure, genetics, etc., of important species
+ - Environmental monitoring
+   - Water temp, salinity, light, etc.
+   - Changes associated with loss of seasonal sea ice
 
 ## `r paste0(maxyr, " ", text_list(SRVY1), " bottom trawl survey")`
  
@@ -48,16 +71,30 @@ sep_last = "\n\n", sep_last2 = "\n\n", sep = "\n\n"))
 ```
  
 `r str0`
- 
-## Survey purpose
 
-To collect standardized and fishery-independent time series of:
+## Survey Charter Vessels
 
- - Enmvironmetnal data
- - Relative abundance
- - Distribution
- - Length and age composition
- 
+```{r, 'fig-vessels'} 
+nickname <- 'fig-vessels'
+no_cap <- TRUE
+
+temp <- haul_cruises_vess %>%
+  dplyr::select(vessel_id, vessel_ital, year) %>% 
+  dplyr::distinct()
+temp <- temp %>% 
+  dplyr::filter(vessel_id %in% temp$vessel_id[temp$year == maxyr]) %>% 
+  dplyr::arrange(desc(year)) %>% 
+  dplyr::group_by(vessel_id) %>% 
+  dplyr::summarise(n_year = n(), 
+                   max_year = max(year, na.rm = TRUE), 
+                   min_year = min(year, na.rm = TRUE)) %>% 
+  dplyr::mutate(nth = stndth(n_year))
+```
+
+
+```{r fig-vessels-child, child = paste0(dir_code, \"_child_report_figtab.Rmd\")}
+```
+
 
 ```{r figtab, echo=FALSE, results='asis'}
 list_fig <- list.files(path = dir_out_figtab, pattern = "-pres.png", full.names = FALSE, recursive = FALSE)
