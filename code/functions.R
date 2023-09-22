@@ -9,7 +9,7 @@ PKG <- c(
   "rmarkdown", # R Markdown Document Conversion
   "officer", 
   "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
-
+  
   # Graphics
   "ggplot2", # Create Elegant Data Visualisations Using the Grammar of Graphics
   "cowplot",
@@ -55,7 +55,7 @@ PKG <- c(
   "flextable", # making pretty tables
   "XML", # For editing XML files
   "RODBC"  # Oracle
-  )
+)
 
 
 PKG <- unique(PKG)
@@ -99,7 +99,7 @@ pchange<-function(start, end,
                   ending="",
                   percent_first = TRUE,
                   value_only = FALSE){
-
+  
   start0<-start
   end0<-end
   final1 <- c()
@@ -1610,16 +1610,16 @@ plot_pa_facet <- function(
     # ggplot2::scale_color_manual(
     #   name = " ", 
     #   values = reg_dat$survey.area$color,
-    #   breaks = reg_dat$survey.area$SURVEY,
-    #   labels = reg_dat$survey.area$SRVY) 
-    ggplot2::geom_sf(
-      data = reg_dat$survey.area, 
-      mapping = aes(color = SURVEY, 
-                    geometry = geometry), 
-      fill = "transparent", 
-      # shape = NA, 
-      linewidth = ifelse(row0 > 2, 1.5, 1), # size
-      show.legend = legend_srvy_reg) +
+  #   breaks = reg_dat$survey.area$SURVEY,
+  #   labels = reg_dat$survey.area$SRVY) 
+  ggplot2::geom_sf(
+    data = reg_dat$survey.area, 
+    mapping = aes(color = SURVEY, 
+                  geometry = geometry), 
+    fill = "transparent", 
+    # shape = NA, 
+    linewidth = ifelse(row0 > 2, 1.5, 1), # size
+    show.legend = legend_srvy_reg) +
     ggplot2::scale_color_manual(
       name = " ", 
       values = reg_dat$survey.area$color,
@@ -1962,13 +1962,13 @@ plot_idw_facet <- function(
                   LONGITUDE = as.numeric(LONGITUDE))
   
   extrap.grid <- c()
-    dat_pred <- data.frame()
-
+  dat_pred <- data.frame()
+  
   if (nrow(dat) != 0) {
     if (set.breaks[1] =="auto") {
       set.breaks <- set_breaks(dat = dat, var = "CPUE_KGHA")
     }
-
+    
     # Select data and make plot
     for (ii in 1:length(yrs)) {
       
@@ -2069,7 +2069,7 @@ plot_idw_facet <- function(
         labels = levels(dat_pred$bin),
         na.translate = FALSE, # Don't use NA
         drop = FALSE) # Keep all levels in the plot
-
+    
   } else if (grid == "extrapolation.grid") {
     figure <- figure +
       ggplot2::geom_tile(data = dat_pred,
@@ -2197,38 +2197,38 @@ plot_idw_facet <- function(
       values = reg_dat$survey.area$color,
       breaks = reg_dat$survey.area$SURVEY,
       labels = reg_dat$survey.area$SRVY) + 
-  
-  # figure <- figure +
-  #   ggplot2::geom_sf(
-  #     data = reg_dat$survey.area, 
-  #     mapping = aes(color = SURVEY, 
-  #                   geometry = geometry), 
-  #     fill = "transparent", 
-  #     # shape = NA, 
-  #     size = ifelse(row0 > 2, 1.5, 2), # 1
-  #     show.legend = legend_srvy_reg) +
-  #   ggplot2::scale_color_manual(
+    
+    # figure <- figure +
+    #   ggplot2::geom_sf(
+    #     data = reg_dat$survey.area, 
+    #     mapping = aes(color = SURVEY, 
+    #                   geometry = geometry), 
+    #     fill = "transparent", 
+    #     # shape = NA, 
+    #     size = ifelse(row0 > 2, 1.5, 2), # 1
+    #     show.legend = legend_srvy_reg) +
+    #   ggplot2::scale_color_manual(
   #     name = " ", 
   #     values = reg_dat$survey.area$color,
   #     breaks = reg_dat$survey.area$SURVEY,
   #     labels = reg_dat$survey.area$SRVY) +
-    ggplot2::guides(
-      # size = guide_legend(override.aes = list(size = 10)),
-      fill = guide_legend(
-        order = 1,
-        title.position = "top",
-        label.position = "bottom",
-        title.hjust = 0.5,
-        override.aes = list(color = NA),
-        nrow = 1),
-      color = guide_legend(
-        order = 2, 
-        label.position = "right",
-        override.aes = list(#lwd = 10, 
-          fill = reg_dat$survey.area$color, 
-          color = reg_dat$survey.area$color), 
-        title.hjust = 0.5,
-        nrow = 2))  +
+  ggplot2::guides(
+    # size = guide_legend(override.aes = list(size = 10)),
+    fill = guide_legend(
+      order = 1,
+      title.position = "top",
+      label.position = "bottom",
+      title.hjust = 0.5,
+      override.aes = list(color = NA),
+      nrow = 1),
+    color = guide_legend(
+      order = 2, 
+      label.position = "right",
+      override.aes = list(#lwd = 10, 
+        fill = reg_dat$survey.area$color, 
+        color = reg_dat$survey.area$color), 
+      title.hjust = 0.5,
+      nrow = 2))  +
     #set legend position and vertical arrangement
     theme( 
       # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
@@ -2374,7 +2374,7 @@ plot_temperature_facet <- function(raster_nebs,
     sf::st_as_sf(coords = c("x", "y")) |>
     sf::st_buffer(dist = 1e6) |>
     sf::st_bbox()
-
+  
   panel_extent <- data.frame(x = panel_extent[c('xmin', 'xmax')],
                              y = panel_extent[c('ymin', 'ymax')])
   
@@ -2783,7 +2783,7 @@ plot_sizecomp <- function(sizecomp0,
                                   fill = "transparent"),
         legend.position = "bottom",
         legend.box = "horizontal" )
-
+    
   } else {
     table_raw1 <- table_raw %>% 
       dplyr::ungroup() %>% 
@@ -2813,10 +2813,10 @@ plot_sizecomp <- function(sizecomp0,
     
     every_nth = function(n, true1) {
       if (true1) {
-      return(function(x) {x[c(TRUE, rep(FALSE, n - 1))]})
-} else {
-      return(function(x) {x[c(FALSE, rep(TRUE, n - 1))]})
-    }
+        return(function(x) {x[c(TRUE, rep(FALSE, n - 1))]})
+      } else {
+        return(function(x) {x[c(FALSE, rep(TRUE, n - 1))]})
+      }
     }
     
     figure <- ggplot(data = table_raw1, 
@@ -2847,7 +2847,7 @@ plot_sizecomp <- function(sizecomp0,
                                     fill = "transparent"),
           axis.title = element_text(size = 10, face = "bold"),
           axis.text = element_text(size = 10))
-
+  
   if (print_n & !is.null(lengths0)) {
     
     figure <- figure +
@@ -2881,8 +2881,8 @@ plot_timeseries <- function(
   if (error_bar) {
     table_raw <- table_raw %>% 
       dplyr::mutate(y_ci_dw = y_ci_dw/divby, 
-                  y_ci_up = y_ci_up/divby)
-}
+                    y_ci_up = y_ci_up/divby)
+  }
   yr_missing <- data.frame()
   for (i in 1:length(unique(table_raw$SRVY))){
     temp <- table_raw[table_raw$SRVY %in% unique(table_raw$SRVY)[i], ]
@@ -2988,7 +2988,7 @@ plot_timeseries <- function(
   if (error_bar) {
     figure <- figure +
       geom_errorbar(aes(ymin=y_ci_dw, ymax=y_ci_up), width=.2,
-                 position=position_dodge(.9), alpha = 0.5)
+                    position=position_dodge(.9), alpha = 0.5)
   }
   
   
@@ -3007,11 +3007,11 @@ plot_timeseries <- function(
   }
   
   # if (sum(dat$y == 0) > 0) {
-    figure <- figure +
-      ggplot2::scale_y_continuous(
-        name = paste0(stringr::str_to_sentence(spp_print), " ", tolower(y_long), "\n", unit_word), 
-        labels = scales::comma) 
-    
+  figure <- figure +
+    ggplot2::scale_y_continuous(
+      name = paste0(stringr::str_to_sentence(spp_print), " ", tolower(y_long), "\n", unit_word), 
+      labels = scales::comma) 
+  
   # } else {
   #   figure <- figure +
   #     ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print),
@@ -3047,19 +3047,55 @@ plot_timeseries <- function(
 
 
 plot_survey_stations <- function(reg_dat, 
-                                 # station, 
-                                 # haul_cruises_maxyr, 
-                                 station_grid = FALSE, 
+                                 survey_outline = TRUE, 
                                  stratum_grid = FALSE, 
                                  stratum_no = FALSE, 
-                                 station_pts_srvy = TRUE, 
-                                 station_pts_vess = FALSE, 
+                                 station_pts = "stn", # c("pts", "ves", "names")
                                  bathymetry = FALSE, 
                                  study = FALSE, 
-                                 dist_unit = "km", 
-                                 place_labels = TRUE) {
+                                 # dist_unit = "km", 
+                                 place_labels = TRUE
+) {
   
-  figure <- ggplot() 
+  figure <- ggplot()  +
+    geom_sf(data = reg_dat$akland, 
+            color = NA, 
+            fill = "grey80") +
+    geom_sf(data = reg_dat$graticule, 
+            color = NA,
+            fill = "grey50")+
+    ggplot2::scale_y_continuous(name = "Latitude", 
+                                limits = reg_dat$plot.boundary$y,
+                                breaks = reg_dat$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "Longitude", 
+                                limits = reg_dat$plot.boundary$x,
+                                breaks = reg_dat$lon.breaks) + 
+    # ggsn::scalebar(data = reg_dat$survey.grid,
+    #                location = "bottomleft",
+    #                dist = 100,
+    #                dist_unit = dist_unit,
+    #                transform = FALSE,
+    #                st.dist = ifelse(row0 > 1, 0.08, 0.02),
+    #                height = ifelse(row0 > 1, 0.04, 0.02),
+    #                st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
+    #                st.size = ifelse(row0 > 1, 2.5, 3) ) +#, # 2.5
+    theme( # set legend position and vertical arrangement
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      strip.background = element_rect(fill = "grey85", 
+                                      colour = "grey20"),
+      legend.spacing.y = unit(-0.35, "cm"),
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 7),
+      legend.background=element_blank(),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = c(.15, .15),
+      legend.box.just = "left",
+      legend.box = "vertical"
+    )
   
   if (study) {
     
@@ -3095,16 +3131,51 @@ plot_survey_stations <- function(reg_dat,
               color = "grey50")
   }
   
-  # figure <- figure  +
-  #   geom_sf(data = reg_dat$graticule,
-  #           color = "grey90",
-  #           alpha = 0.5)
   
+  if (survey_outline) { 
+    figure <- figure +
+      ggplot2::geom_sf(data = reg_dat$survey.area, 
+                       aes(color = SURVEY), 
+                       fill = NA, 
+                       linewidth = 2, 
+                       show.legend = TRUE) +
+      ggplot2::scale_color_manual(
+        name = "",
+        values = reg_dat$survey.area$color,
+        breaks = reg_dat$survey.area$SURVEY,
+        labels = stringr::str_to_title(reg_dat$survey.area$SRVY_long))
+  }
   
-  if (station_pts_vess) {
+  if (station_pts == "names") {
+    figure <- figure +
+      geom_sf(data = reg_dat$survey.grid, 
+              color = "grey20", 
+              fill = NA) +
+      geom_sf_text(data = reg_dat$survey.grid, 
+                   lineheight = 0.7,
+                   mapping = aes(label = gsub(x = STATIONID, 
+                                              replacement = "\n", 
+                                              pattern = "-")),
+                   color = "black", 
+                   size = 1.5, 
+                   show.legend = FALSE) 
     
-    # vess <- reg_dat$survey.grid #%>% dplyr::filter(!is.na(vessel_name))
+  } else if (station_pts == "pts") {
+    figure <- figure +
+      stat_sf_coordinates(
+        data = reg_dat$survey.grid,
+        mapping = aes(shape = in_maxyr),
+        color = "grey50",
+        size = 2, 
+        show.legend = FALSE, 
+        na.rm = TRUE)  + 
+      ggplot2::scale_shape_manual(
+        name = "", 
+        values = c(16, 1), 
+        breaks = c(TRUE, FALSE)) + 
+      ggplot2::guides(shape = "none")
     
+  } else if (station_pts == "vess") {
     figure <- figure  +
       geom_sf(data = reg_dat$survey.area, 
               aes(color = reg_dat$survey.area$SURVEY, 
@@ -3138,56 +3209,21 @@ plot_survey_stations <- function(reg_dat,
       ggplot2::guides(
         colour = guide_legend(
           # order = 1,# survey regions
-          override.aes = list(fill = NA,
-                              linetype = c(
-                                rep_len(x = 1, 
-                                        length.out = length(unique(reg_dat$survey.area$SRVY))), 
-                                rep_len(x = 0, 
-                                        length.out = length(unique(reg_dat$survey.grid$vessel_id)))), # c(1,1,0,0),
-                              # shape = c(NA, NA, "A", "V"),
-                              size = 6)),
+          override.aes = list(
+            fill = NA,
+            linetype = c(
+              rep_len(x = 1, 
+                      length.out = length(unique(reg_dat$survey.area$SRVY))), 
+              rep_len(x = 0, 
+                      length.out = length(unique(reg_dat$survey.grid$vessel_id)))), 
+            size = 6)),
         fill = guide_legend(
           # order = 2,# survey regions
           override.aes = list(
             color = "black", 
-            linetype = c(1), 
+            linetype = 1, 
             shape = NA, 
             size = .5)))
-  } else { # station_pts_vess == FALSE
-    figure <- figure +
-      ggplot2::geom_sf(data = reg_dat$survey.area, 
-              aes(color = SURVEY), 
-              fill = NA, 
-              linewidth = 2, 
-              show.legend = TRUE) +
-      ggplot2::scale_color_manual(
-        name = "", 
-        values = reg_dat$survey.area$color,
-        breaks = reg_dat$survey.area$SRVY, 
-        labels = stringr::str_to_title(reg_dat$survey.area$SRVY_long))
-  }
-  
-  figure <- figure +
-    geom_sf(data = reg_dat$akland, 
-            color = NA, 
-            fill = "grey80") +
-    geom_sf(data = reg_dat$graticule, 
-            color = NA,
-            fill = "grey50")
-  
-  if (station_pts_srvy) {
-    figure <- figure +
-      stat_sf_coordinates(data = reg_dat$survey.grid,
-                          mapping = aes(shape = in_maxyr),
-                          color = "grey50",
-                          # color = "transparent",
-                          # shape = 16,
-                          size = 2, 
-                          show.legend = FALSE, 
-                          na.rm = TRUE)  + 
-      ggplot2::scale_shape_manual(
-        values = c(16, 1), 
-        breaks = c(TRUE, FALSE))
   }
   
   if (stratum_no) {
@@ -3199,63 +3235,6 @@ plot_survey_stations <- function(reg_dat,
                    size = 5,
                    show.legend = FALSE)
   }
-  
-  if (station_grid) {
-    figure <- figure +
-      geom_sf(data = reg_dat$survey.grid, 
-              color = "grey20", 
-              fill = NA) +
-      geom_sf_text(data = reg_dat$survey.grid, 
-                   lineheight = 0.7,
-                   mapping = aes(label = gsub(x = STATIONID, 
-                                              replacement = "\n", 
-                                              pattern = "-")),
-                   color = "black", 
-                   size = 1.5, 
-                   show.legend = FALSE) #+
-    
-  }
-  
-  row0 <- 1
-  
-  figure <- figure +
-    ggplot2::scale_y_continuous(name = "Latitude", 
-                                limits = reg_dat$plot.boundary$y,
-                                breaks = reg_dat$lat.breaks) +
-    ggplot2::scale_x_continuous(name = "Longitude", 
-                                limits = reg_dat$plot.boundary$x,
-                                breaks = reg_dat$lon.breaks) + 
-    ggsn::scalebar(data = reg_dat$survey.grid,
-                   location = "bottomleft",
-                   dist = 100,
-                   dist_unit = dist_unit,
-                   transform = FALSE,
-                   st.dist = ifelse(row0 > 1, 0.08, 0.02),
-                   height = ifelse(row0 > 1, 0.04, 0.02),
-                   st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-                   st.size = ifelse(row0 > 1, 2.5, 3) ) +#, # 2.5
-    
-    #set legend position and vertical arrangement
-    theme(#plot.background = element_rect(fill = "white"), 
-      panel.background = element_rect(fill = "white", 
-                                      colour = NA), 
-      panel.border = element_rect(fill = NA, 
-                                  colour = "grey20"), 
-      strip.background = element_rect(fill = "grey85", 
-                                      colour = "grey20"),
-      legend.spacing.y = unit(-0.35, "cm"),
-      legend.title = element_text(size = 9),
-      legend.text = element_text(size = 7),
-      # strip.background = element_rect(color = NA, fill = NA, size = 0),
-      legend.background=element_blank(),
-      legend.key = element_rect(colour = "transparent", 
-                                fill = "transparent"),
-      legend.position = c(.15, .2),
-      # legend.justification = c("right"),
-      legend.box.just = "left",
-      # legend.margin = margin(6, 6, 6, 6), 
-      legend.box = "vertical"
-    )
   
   if (place_labels) {
     figure <- figure +
@@ -3618,7 +3597,7 @@ table_change <- function(dat,
     dplyr::mutate(change = ifelse(change == Inf, 100, change)) %>% 
     dplyr::arrange(desc(SRVY), desc(change)) %>%
     dplyr::rename(Survey = SRVY)
-
+  
   # remove spp with all 0s
   if (length(yrs) == 4) {
     a<-Reduce(intersect, 
@@ -3639,7 +3618,7 @@ table_change <- function(dat,
     a<-Reduce(intersect, 
               list(which(table_raw[,as.character(yrs)[1]]==0)))
   }
-
+  
   if (length(a)!=0) {
     table_raw0 <- table_raw[-a,]
   } else {
