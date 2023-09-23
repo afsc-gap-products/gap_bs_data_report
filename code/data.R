@@ -741,7 +741,10 @@ lengths_sap <- dplyr::bind_rows(
   dplyr::right_join(y = cruises %>% 
                      dplyr::select(survey_definition_id, year, cruise) %>% 
                      dplyr::distinct()) %>% 
-  dplyr::select(-cruise)
+  dplyr::select(-cruise) %>% 
+  dplyr::mutate(length_type = dplyr::case_when(
+  species_code %in% c(68541, 68550, 68560) ~ 8,
+  TRUE ~ 7) )
 
 lengths_gap <- race_data_cruises0 %>%
   dplyr::left_join(race_data_surveys0, by = "survey_id") %>% 
@@ -757,15 +760,14 @@ lengths_gap <- race_data_cruises0 %>%
     species_code == 21721 ~ 21720, 
     species_code == 21741 ~ 21740, 
     TRUE ~ species_code) ) %>%
-  dplyr::group_by(survey_definition_id, species_code, year) %>% 
+  dplyr::group_by(survey_definition_id, species_code, year, length_type) %>% 
   dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) %>% 
   dplyr::ungroup()
 
 lengths <- dplyr::bind_rows(lengths_gap, lengths_sap) %>% 
   dplyr::left_join(cruises %>% 
                      dplyr::select(SRVY, survey_definition_id) %>% 
-                     dplyr::distinct() ) %>% 
-  dplyr::left_join(length_type)
+                     dplyr::distinct() ) 
 
 lengths_maxyr <- lengths %>%
   dplyr::filter(year == maxyr)

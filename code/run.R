@@ -109,7 +109,6 @@ rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"),
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_community_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
-
 # Plan team presentation -------------------------------------------------------
 
 SRVY <- "EBS"

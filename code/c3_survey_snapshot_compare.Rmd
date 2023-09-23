@@ -233,8 +233,7 @@
 \newpage
 
 ```{r fig-bt-temperature-}
-nickname <- c(paste0("fig-temperature-bt-", 1:2), 
-              paste0("fig-temperature-st-", 1:2))
+nickname <- "fig-temperature-"
 ```
 
 ```{r temperature--child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
@@ -356,197 +355,91 @@ From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measu
 
 ## Estimates of Fishes and Invertebrates
 
-```{r cpue}
-# I defined "no marked change" in < 25 and > -25% change to get me through the code. What number should it be?
+```{r biomass-inc-dec-tot}
 
-# total CPUE
-temp2 <- cpue %>%
-  dplyr::filter(#stratum == 999 & 
-    SRVY == "NBS" & 
-      year %in% nbsyr) %>%
-  dplyr::group_by(year) %>% 
-  dplyr::summarise(cpue_kgkm2 = sum(cpue_kgkm2, na.rm = T)) %>%
-  dplyr::select(year, cpue_kgkm2) %>% 
-  dplyr::rename("total" = "cpue_kgkm2")
-
-# Species group CPUE change
-  load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
-
-temp5 <- 
-  dplyr::left_join(
-    x = cpue %>%
-      dplyr::filter(#stratum == 999 & 
-        species_code != 1,
-        SRVY == "NBS" & 
-          year %in% nbsyr) %>% 
-      dplyr::select(year, species_code, cpue_kgkm2), 
-    y = report_spp1 %>% 
-      dplyr::select(print_name, species_code, species_name1, taxon) %>% 
-      dplyr::rename(species_name = print_name) , 
-    # dplyr::mutate(species_name = as.character(unlist(lapply(strsplit(x = group, split = "_", fixed = TRUE), `[[`, 1)))),
-    relationship = "many-to-many", 
-    by = c("species_code")) %>% 
-  dplyr::group_by(year, species_name, taxon) %>% 
-  dplyr::summarise(cpue_kgkm2 = sum(cpue_kgkm2, na.rm = TRUE)) %>% 
-  dplyr::left_join(
-    x = ., 
-    y = temp2, 
-    by = "year") %>% 
-  dplyr::mutate(prop_tot = (cpue_kgkm2 / total )) %>% 
-  dplyr::ungroup() %>% 
-  tidyr::pivot_wider(id_cols = c(species_name, taxon), 
-                     names_from = year, 
-                     values_from = c(prop_tot, cpue_kgkm2)) %>% 
-  dplyr::left_join(
-    x = ., 
-    y = obj$raw %>% 
-      dplyr::filter(SRVY == "NBS") %>% 
-      dplyr::select(print_name, change) %>% 
-      dplyr::rename(change_biomass = change, 
-                    species_name = print_name), 
-    by = "species_name")
-
-temp <- expand.grid(nbsyr, nbsyr)
-temp <- temp[temp$Var1 != temp$Var2,]
-temp <- temp[temp$Var1 < temp$Var2,] #when from is smaller than to
-temp5 <- as.data.frame(temp5)
-for (i in 1:nrow(temp)) {
-  temp5$change <- pchange(
-    start = unlist(temp5[,names(temp5) == paste0("cpue_kgkm2_", temp[i,1])]), 
-    end = unlist(temp5[,names(temp5) == paste0("cpue_kgkm2_", temp[i,2])]), 
-    value_only = TRUE)
-  names(temp5)[names(temp5) == "change"] <- paste0("change_", temp[i,1], "_", temp[i,2]) 
-}
-temp5$change_cpue <- temp5[,paste0("change_", compareyr , "_", maxyr) ]
-
-
-# change in cpue
-temp4 <- temp5 %>% 
-  dplyr::filter(!is.na(species_name) &
-                  !is.infinite(change_cpue) & 
-                  !is.na(change_cpue), 
-                (all_of(as.character(maxyr)) !=0 & all_of(as.character(compareyr)) != 0)) %>% 
-  dplyr::select(species_name, taxon,
-                change_cpue, change_biomass, 
-                paste0("prop_tot_", maxyr), 
-                paste0("prop_tot_", compareyr), 
-                paste0("cpue_kgkm2_", maxyr), 
-                paste0("cpue_kgkm2_", compareyr) ) %>%
-  dplyr::arrange(desc(change_cpue)) %>%
-  dplyr::mutate(change_biomass_case = dplyr::case_when(
-    change_biomass < -25 ~ "decreasing", # TOLEDO - is 50 ok?!
-    change_biomass > 25 ~ "increasing", 
-    TRUE ~ "no notable change in"
-  ))  %>%
-  dplyr::mutate(change_cpue_case = dplyr::case_when(
-    change_cpue < -25 ~ "decreasing", # TOLEDO - is 50 ok?!
-    change_cpue > 25 ~ "increasing", 
-    TRUE ~ "no notable change in"
-  ))
-
-str0 <- paste0("Between ", compareyr, " and ", maxyr , ", the largest increases in CPUE were seen in ",
-                 text_list(paste0(temp4$species_name[1:5], " (",
-                                               formatC(temp4$change_cpue[1:5], 
-                                                       digits = 0, big.mark = ",", format = "f"), "%)")),
-                 "; the largest decreases in CPUE were seen in ", 
-                 text_list(paste0(temp4$species_name[(nrow(temp4)-5):nrow(temp4)], " (",
-                                               formatC(temp4$change_cpue[(nrow(temp4)-5):nrow(temp4)], 
-                                                       digits = 0, big.mark = ",", format = "f"), "%)")),
-                 ". ")
-
-# summary of fish and inverts where cpue was increasing/decreasing/no change
-temp3 <- temp4 %>% 
-  dplyr::select(#species_name, 
-    taxon, change_cpue_case) %>% 
-  dplyr::group_by(taxon) %>%
-  table() %>%
-  data.frame() %>%
-  tidyr::pivot_wider(names_from = taxon, 
-                     values_from = Freq, 
-                     id_cols = change_cpue_case) %>% 
-  dplyr::mutate(x = as.character(change_cpue_case))
-```
-
-From `r compareyr` to `r maxyr ` in the NBS, `r text_list(paste0(xunits(temp3$fish), " ", ifelse(temp3$fish==1, "fish", "fishes")," and ", xunits(temp3$invert), " ", ifelse(temp3$fish==1, "invertebrate", "invertebrates")," experienced ", temp3$x, " CPUE"))`. Prominent fish species that exhibited no change between `r compareyr` and `r maxyr`, included `r text_list(paste0(temp4$species_name[temp4$change_cpue_case == "no notable change in" & temp4$taxon == "fish"])) ` (within ± 25% change from the previous survey year) in CPUE. `r str0` 
-
-```{r biomass-inc-dec1}
 # million metric tons of biomass collected in each region in each year
 temp <- biomass %>%
+  dplyr::filter(stratum == 999) %>% 
   dplyr::filter(year %in% nbsyr) %>%
   dplyr::select(year, SRVY, biomass_mt) %>% 
   dplyr::group_by(year, SRVY) %>% 
   dplyr::summarise(biomass_mmt = round(sum(biomass_mt)/1e6, digits = 1)) %>% 
   dplyr::ungroup() %>% 
   dplyr::arrange(desc(year))
-
-load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
-temp1 <- obj$raw %>% 
-  dplyr::filter(SRVY == "EBS")
-
-temp3 <- temp1 %>% 
-  # dplyr::filter(!is.na(change0)) %>% 
-  dplyr::select(change0) %>% 
-  dplyr::mutate(case = dplyr::case_when(
-    change0 > 0 ~ "increased", 
-    change0 %in% c(0, NA) ~ "did not change",
-    change0 < 0 ~ "decreased")) %>%  
-  dplyr::group_by(case) %>%
-  dplyr::summarise(change = length(change0)) %>% 
-  dplyr::ungroup()
-
-temp2 <- temp1 %>% 
-  dplyr::filter(!is.na(change0)) %>%
-  dplyr::arrange(desc(change0)) %>%
-  dplyr::select(print_name, change) %>% 
-  dplyr::mutate(print_name = gsub(pattern = "all ", replacement = "", x = print_name))
-
 ```
 
 In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-NBS)). 
 
-Calculated EBS biomass `r text_list(paste0(temp3$case, " for ", xunits(temp3$change), ifelse(temp3$change == 1, " taxon", " taxa")))` from `r compareyr ` (`r ifelse(temps_avg_yr$bt_above_mean[temps_avg_yr$year == compareyr], "warm", "cold")`-stanza year) to `r maxyr `. Some of the largest increases in biomass from `r compareyr ` to `r maxyr ` were observed in the `r text_list(paste0(head(temp2$print_name, 5) ," (",head(temp2$change, 5),")"))` groups. Decreases in biomass were observed in the `r text_list(paste0(tail(temp2$print_name, 5) ," (",tail(temp2$change, 5),")"))` groups (Table \@ref(tab:tab-majortaxa-pchange-NBS)).
+```{r biomass-inc-dec-spp}
 
-
-```{r biomass-inc-dec2}
-temp0 <- max(nbsyr[!(nbsyr %in% c(maxyr, compareyr))])  # the other year we are comparing to
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
+
 temp1 <- obj$raw %>%
-  dplyr::mutate(print_name = gsub(pattern = "all ", 
-                                  replacement = "", 
-                                  x = print_name))
-temp1$change1 <- pchange(end = temp1$compareyr, 
-                 start = unlist(temp1[,names(temp1) == temp0]), 
-                 value_only = TRUE)
-temp1 <- temp1 %>% 
-  dplyr::select(group = print_name, 
-                now = change, 
-                prev = change1)
-
-temp1 <- temp1 %>% 
+      # dplyr::filter(SRVY == "NBS") %>%
+      dplyr::select(print_name, change, change0, maxyr, taxon, SRVY) %>%
+  dplyr::arrange(desc(change)) %>%
+ # I defined "no marked change" in < 25 and > -25% change to get me through the code. What number should it be?
   dplyr::mutate(
-    case = dplyr::case_when(
-      prev < 0 & now > 0 ~ paste0("a decreasing trend in biomass from ", temp0 ,
-                                " to ", compareyr," but an increasing trend in biomass from ",
-                                compareyr, " to ", maxyr), 
-      prev > 0 & now < 0 ~ paste0("an increasing trend in biomass from ", temp0 ,
-                                " to ", compareyr," but a decreasing trend in biomass from ",
-                                compareyr, " to ", maxyr)) ) %>% 
-  dplyr::filter(!is.na(case) & 
-                  !(prev %in% c(-Inf, Inf)) & 
-                  !(now %in% c(-Inf, Inf)) )
+    change_case = dplyr::case_when(
+    change0 < -25 ~ "decreasing",
+    change0 > 25 ~ "increasing",
+    TRUE ~ "no notable change in" ),
+    change_case1 = dplyr::case_when(
+    change0 < -25 ~ "decreases",
+    change0 > 25 ~ "increases",
+    TRUE ~ NA
+  ))  %>%
+  dplyr::arrange(change_case)
 
-str0 <- c()
-for (i in 1:length(unique(temp1$case))) {
-  str0 <- paste0(str0, 
-                   paste0("Species groups that previously exhibited ", 
-                          unique(temp1$case)[i], " include ",
-                          text_list(temp1$group[temp1$case == unique(temp1$case)[i]]), " (Table ",
-                          "\\@ref(tab:tab-majortaxa-pchange-NBS)). "))
+temp44 <- temp1 %>%
+  dplyr::group_by(taxon, change_case, SRVY) %>%
+  dplyr::summarise(n = n()) %>%
+  dplyr::ungroup() %>%
+  tidyr::pivot_wider(id_cols = c(change_case, SRVY), 
+                     names_from = taxon, values_from = n) %>%
+  dplyr::mutate(
+    str0_fish = ifelse(is.na(fish), "", paste0(xunits(fish), " fish", ifelse(fish>1, "es", ""))),
+    str0_invert = ifelse(is.na(invert), "", paste0(xunits(invert), " invertebrate", ifelse(invert>1, "s", ""))),
+    str0 = paste0(str0_fish, ifelse(str0_invert == "", "", " and "), str0_invert))
+
+temp3 <- temp1  %>%
+  dplyr::arrange(desc(change0)) %>%
+  dplyr::filter(#taxon == "fish"  &
+                  # !grepl(x = print_name, pattern = "other ") &
+                  !is.na(change_case1))
+
+temp33 <- dplyr::bind_rows(
+  head(temp3[which(temp3$SRVY == "EBS"),]), 
+                          tail(temp3[which(temp3$SRVY == "EBS"),]), 
+                          head(temp3[which(temp3$SRVY == "NBS"),]), 
+                          tail(temp3[which(temp3$SRVY == "NBS"),])) %>%
+  dplyr::group_by(change_case1, SRVY) %>%
+  dplyr::summarise(spp_list = text_list(paste0(print_name, " (", change, ")"))) %>%
+  dplyr::ungroup() %>%
+  dplyr::arrange(change_case1)
+
+str0 <- ""
+
+for (i in 1:length(SRVY00)) {
+
+  temp3 <- temp33 %>% dplyr::filter(SRVY = SRVY00[i])
+  temp4 <- temp44 %>% dplyr::filter(SRVY = SRVY00[i])
+  
+str0 <- paste0(str0, 
+paste0(
+  "In the ",SRVY00[i]," between ", compareyr, " and ", maxyr , ", ",
+               text_list(paste0(temp4$str0, " experianced ", temp4$change_case, " biomass")),
+  ifelse(i == 1, "within ± 25% change from the previous survey year. ", ""),
+               paste0("Prominent organisms that exhibited the largest ", temp3$change_case1,
+" in biomass included ", temp3$spp_list, collapse = ". "), 
+ifelse(i == 1, " (Table \\@ref(tab:tab-majortaxa-pchange-NBS). ", ". ")
+) )
+
 }
 
 ```
 
-`r str0 `
+`r str0`
 
 ```{r biomass-inc-dec3}
 
