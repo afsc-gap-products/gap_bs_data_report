@@ -190,12 +190,12 @@ catch <- gap_products_akfin_catch0 %>%
 
 print("report_spp and spp_info")
 
-spp_info0 <- gap_products_test_species_classification0 
+spp_info0 <- gap_products_taxonomic_classification0
 
 names(spp_info0) <- gsub(pattern = "_taxon", replacement = "", x = names(spp_info0))
 
 spp_info <- spp_info0  %>% 
-  dplyr::filter(database != "ITIS") %>% 
+  dplyr::filter(survey_species == 1) %>% 
   dplyr::mutate(
     taxon = dplyr::case_when(
       species_code <= 31550 ~ "fish", 
@@ -767,7 +767,9 @@ lengths_gap <- race_data_cruises0 %>%
 lengths <- dplyr::bind_rows(lengths_gap, lengths_sap) %>% 
   dplyr::left_join(cruises %>% 
                      dplyr::select(SRVY, survey_definition_id) %>% 
-                     dplyr::distinct() ) 
+                     dplyr::distinct() ) %>% 
+  dplyr::left_join(length_type, 
+                   by = c("length_type" = "length_type_id"))
 
 lengths_maxyr <- lengths %>%
   dplyr::filter(year == maxyr)
@@ -966,6 +968,7 @@ sizecomp_compareyr <- sizecomp %>%
   dplyr::filter(year == compareyr[1])
 
 ## biomass ---------------------------------------------------------------------
+
 print("biomass")
 
 biomass_gap <- gap_products_akfin_biomass0 %>%

@@ -422,20 +422,21 @@ str0 <- ""
 
 for (i in 1:length(SRVY00)) {
 
-  temp3 <- temp33 %>% dplyr::filter(SRVY = SRVY00[i])
-  temp4 <- temp44 %>% dplyr::filter(SRVY = SRVY00[i])
+  temp3 <- temp33 %>% dplyr::filter(SRVY == SRVY1[i])
+  temp4 <- temp44 %>% dplyr::filter(SRVY == SRVY1[i])
   
 str0 <- paste0(str0, 
 paste0(
-  "In the ",SRVY00[i]," between ", compareyr, " and ", maxyr , ", ",
-               text_list(paste0(temp4$str0, " experianced ", temp4$change_case, " biomass")),
-  ifelse(i == 1, "within ± 25% change from the previous survey year. ", ""),
+  "In the ",SRVY1[i]," between ", compareyr, " and ", maxyr , ", ",
+               text_list(paste0(temp4$str0, " experienced ", temp4$change_case, " biomass")),
+  ifelse(i == 1, " within ± 25% change from the previous survey year. ", ". "),
                paste0("Prominent organisms that exhibited the largest ", temp3$change_case1,
-" in biomass included ", temp3$spp_list, collapse = ". "), 
-ifelse(i == 1, " (Table \\@ref(tab:tab-majortaxa-pchange-NBS). ", ". ")
-) )
-
+" in biomass included ", temp3$spp_list,  
+collapse = ifelse(i == 1, " (Table \\@ref(tab:tab-majortaxa-pchange-NBS). ", ". ")), 
+collapse = ". " ), ". " )
 }
+
+str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 
 ```
 
@@ -528,7 +529,9 @@ temp3 <- temp3  %>%
 
 ```
 
-`r str0`. Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`.
+`r str0`. 
+
+Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`.
 
 ```{r ebs-vs-nbs}
 
