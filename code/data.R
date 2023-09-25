@@ -506,7 +506,7 @@ nbsyr <- gap_products_akfin_cruise0 %>%
 
 lastyr <- max(haul$year[haul$year != maxyr])
 
-## CPUE Design Based Estimates -------------------------------------------------
+## cpue ------------------------------------------------------------------------
 
 print("CPUE Design Based Estimates")
 
@@ -608,15 +608,18 @@ vessels <- haul_cruises_vess_maxyr %>%
     vessel_id == 134 ~ "134_northwestexplorer.png", 
     vessel_id == 162 ~ "163_alaskaknight.png"), 
     vess_col = c("grey20", "grey30")) %>% 
-  dplyr::arrange(vessel_name) %>% 
+  dplyr::arrange(vessel_name) 
+
+# if we did not complete all stations: 
+if (sum(station$in_maxyr == "FALSE")>0) {
+vessels <- vessels %>% 
   dplyr::add_row(
     vessel_id = NA, 
     vessel_name = "Not Surveyed", 
     vessel_ital = "Not Surveyed", 
     vess_shape = "X", 
     vess_col = "#E6E6E6") 
-# c(gray.colors(n = nrow(.))))
-
+}
 ## haul_cruises + _maxyr + _compareyr ------------------------------------------
 
 print("haul_cruises + _maxyr + _compareyr")
@@ -1020,12 +1023,14 @@ biomass <- dplyr::bind_rows(biomass_gap, biomass_sap) %>%
     # biomass_cv_dw = biomass_mt - biomass_cv, 
     biomass_95ci_up = biomass_mt + (2*biomass_sd), 
     biomass_95ci_dw = biomass_mt - (2*biomass_sd), 
+    biomass_95ci_dw = ifelse(biomass_95ci_dw<0, 0, biomass_95ci_dw), 
     population_sd = sqrt(population_var), 
     # population_cv = (population_sd/population_count), 
     # population_cv_up = population_count + population_cv, 
     # population_cv_dw = population_count - population_cv, 
     population_95ci_up = population_count + (2*population_sd), 
-    population_95ci_dw = population_count - (2*population_sd) )
+    population_95ci_dw = population_count - (2*population_sd), 
+    population_95ci_dw = ifelse(population_95ci_dw<0, 0, population_95ci_dw) )
 
 biomass_maxyr <- biomass %>%
   dplyr::filter(stratum == 999) %>%

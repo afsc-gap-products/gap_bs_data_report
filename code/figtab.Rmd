@@ -1271,7 +1271,7 @@ temp1 <- function(table_raw, strat, total) {
                       unique(table_raw$SRVY), " bottom trawl survey.")
   
   table_raw0 <- table_raw %>% 
-    dplyr::select(group, taxon, `999`, #"a", "CI95", 
+    dplyr::select(group, taxon, `999`, a, CI95, 
                   prop, 
                   all_of(strat)) %>% 
     mutate_if(is.numeric , replace_na, replace = 0) %>% 
@@ -1292,19 +1292,22 @@ temp1 <- function(table_raw, strat, total) {
   table_print <- table_raw0 %>%
     flextable::flextable(data = .)  %>%
     flextable::merge_v(x = ., j = ~ group) %>%
-    flextable::merge_h_range(x = ., i = ~ is.na(taxon), j1 = "group", j2 = "taxon", part = "body") %>%
+    flextable::merge_h_range(x = ., i = ~ is.na(taxon), 
+                             j1 = "group", j2 = "taxon", part = "body") %>%
     flextable::add_header_row(x = .,
                               top = TRUE,
                               values = c("Taxon",
-                                         "Estimated total biomass (t)", #" ± 95% confidence interval",
+                                         "Estimated total biomass (t) ± 95% confidence interval",
                                          "Proportion of total animal biomass",
                                          "Estimated biomass by stratum (t)"),
-                              colwidths = c(2,1,1,length(strat)-1)) %>%
+                              colwidths = c(2,3,1,length(strat)-1)) %>%
     flextable::width(x = .,  
                      width = ifelse(length(strat)>3, 0.7, 1.25),
                      unit = "in") %>%
     flextable::width(x = ., j = "prop", 
                      width = 0.8, unit = "in") %>%
+    flextable::width(x = ., j = c("a"), 
+                     width = 0.25, unit = "in") %>%   
     flextable::width(x = ., j = c("group"), 
                      width = 1, unit = "in") %>%    
     flextable::width(x = ., j = c("taxon"), 
@@ -1317,10 +1320,10 @@ temp1 <- function(table_raw, strat, total) {
                                  "group" = "", 
                                  "taxon" = "",
                                  "999" = "", 
-                                 # "CI95" = "", 
+                                 "CI95" = "",
                                  "prop" = "") %>%
     flextable::merge_at(x = ., j = c("group", "taxon"), part = "header") %>% 
-    flextable::merge_at(x = ., j = c("999"), part = "header") %>% # , "CI95"
+    flextable::merge_at(x = ., j = c("999", "a", "CI95"), part = "header") %>% 
     flextable::merge_at(x = ., j = c("prop"), part = "header") 
   
   row_lines <- TRUE
@@ -1349,8 +1352,7 @@ temp1 <- function(table_raw, strat, total) {
     flextable::fontsize(x = ., size = body_size, part = "body") %>% 
     flextable::fontsize(x = ., size = header_size, part = "header") %>% 
     flextable::fix_border_issues(x = .) %>% 
-    flextable::align(x = ., j = c("999", #"CI95", 
-                                  "prop",  strat), 
+    flextable::align(x = ., j = c("999", "CI95", "prop",  strat), 
                      align = "right", part = "all") %>%
     flextable::align(x = ., 
                      j = c(strat), 
@@ -1569,7 +1571,8 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     "Total estimated biomass in metric tons (t) and the percent change between the ",
     compareyr," and ",maxyr," ", 
     haul_cruises_maxyr$SRVY_long[i], 
-    ' shelf bottom trawl surveys for predominant fish and invertebrate taxa. Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. ')
+    ' shelf bottom trawl surveys for predominant fish and invertebrate taxa. ') 
+  # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
   
   table_print <- table_print0  %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
@@ -2251,35 +2254,41 @@ tab_app_fish_ <- function(temp,
                      maxyr, " ", temp$SRVY_long[i], 
                      " bottom trawl survey.")
     
-    table_raw1 <- sizecomp_maxyr %>% 
+    table_raw <- sizecomp_maxyr %>% 
       dplyr::filter(species_code %in% spp_code &
                       SRVY == temp$SRVY[i]) %>% 
       dplyr::distinct() %>%
       dplyr::ungroup()
     
-    if (nrow(table_raw1) != 0) { 
+    if (nrow(table_raw) != 0) { 
       
-      table_raw1 <- table_raw1 %>% 
+      table_raw <- table_raw %>% 
         dplyr::select(length_mm, population_count, sex) %>%
         tidyr::pivot_wider(data = ., 
                            id_cols = length_mm, 
                            names_from = sex, 
                            values_from = population_count, 
-                           values_fill = 0) %>%
-        dplyr::mutate(
-          males = ifelse(("males" %in% table_raw1$sex), males, 0),
-          females = ifelse(("females" %in% table_raw1$sex), females, 0),
-          unsexed = ifelse(("unsexed" %in% table_raw1$sex), unsexed, 0),
-          total = males + females + unsexed) %>%
-        dplyr::arrange(length_mm)
+                           values_fill = 0) 
       
-      table_raw <- table_raw1 %>% 
+      if (!("males" %in% names(table_raw))) {
+        table_raw$males <- 0
+      }
+      if (!("females" %in% names(table_raw))) {
+        table_raw$females <- 0
+      }
+      if (!("unsexed" %in% names(table_raw))) {
+        table_raw$unsexed <- 0
+      }
+      
+      table_raw <- table_raw %>%
+        dplyr::mutate(
+          total = males + females + unsexed) %>%
+        dplyr::arrange(length_mm) %>% 
         dplyr::ungroup() %>% 
         dplyr::mutate(
-          prop = total/sum(table_raw1$total, na.rm = TRUE), 
+          prop = total/sum(total, na.rm = TRUE), 
           cumprop = cumsum(prop))
-      # table_raw$cumprop <- cumsum(table_raw$prop)
-      
+
       table_raw <- 
         dplyr::bind_rows(table_raw %>% 
                            dplyr::mutate(length_mm = as.character(length_mm)), 
@@ -2332,7 +2341,8 @@ temp <- tidyr::crossing(haul_cruises_maxyr %>%
                           dplyr::filter(SRVY == "EBS"), 
                         report_spp1 %>% 
                           dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
-                          dplyr::select(file_name, print_name, common_name1) %>% # , species_name1 , species_name
+                          dplyr::select(file_name, print_name, common_name1, species_name)  %>% 
+                          dplyr::mutate(species_name = gsub(species_name, pattern = " larva", replacement = "")) %>% 
                           dplyr::distinct())
 
 list_tables0 <- tab_app_fish_(
@@ -2365,7 +2375,8 @@ if (SRVY == "NEBS") {
                             dplyr::filter(SRVY == "NBS"), 
                           report_spp1 %>% 
                             dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
-                            dplyr::select(file_name, print_name, common_name1, species_name) %>% # , species_name1
+                            dplyr::select(file_name, print_name, common_name1, species_name) %>% 
+                          dplyr::mutate(species_name = gsub(species_name, pattern = " larva", replacement = "")) %>% 
                             dplyr::distinct())
   if (nrow(temp) != 0) {   
     list_tables0 <- tab_app_fish_(
