@@ -555,7 +555,7 @@ if (!(nrow(table_raw) == 0)) {
   #   height <- height - 1
   # }
   
-  header <- paste0("Total abundance-at-length estimates of ",
+  header <- paste0("Total population estimates at each length of ",
                    spp_print, ifelse(is.na(spp_sci), "", 
                                      paste0(" (",spp_sci,")")), 
                    " by sex (",text_list(tolower(unique(table_raw$sex))),
@@ -568,15 +568,15 @@ if (!(nrow(table_raw) == 0)) {
                    " shelf bottom trawl survey", 
                    ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
                    ". ",
-                   ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0,
-                          paste0("There were no lengths collected for this species in the ", 
-                                 range_text(yrs), " ",
-                                 haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
-                                 " shelf trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
-                          ""),
-                   
-                   "Length distributions scaled up to the total estimated population size. ", 
-                   ifelse(print_n, 
+                   # ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0,
+                   #        paste0("There were no lengths collected for this species in the ", 
+                   #               range_text(yrs), " ",
+                   #               haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
+                   #               " shelf trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
+                   #        ""),
+                   # 
+                   # "Length distributions scaled up to the total estimated population size. ", 
+                  ifelse(print_n, 
                           "Total number of individuals measured during the survey is indicated in the upper right corner of each plot.", ""))
   
   if (report_title == "ptpres") {
@@ -779,7 +779,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 nickname <- paste0("tab-bio-", spp_file)
 
-header <- header2 <- paste0("Summary biomass (t) and population ", spp_print, " (", spp_sci, ") estimates from the ", SURVEY, " survey area", plural_surveys,". ")
+header <- header2 <- paste0("Summary population and biomass (t) ", spp_print, " (", spp_sci, ") estimates from the ", SURVEY, " survey area", plural_surveys,". ")
 
 yrs <- nbsyr
 
