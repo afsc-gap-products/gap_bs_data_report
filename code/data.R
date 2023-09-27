@@ -357,7 +357,7 @@ print("haul and station")
 haul <- dplyr::left_join(
   y = gap_products_akfin_haul0, 
   x = cruises %>% 
-    dplyr::select(cruisejoin, survey_definition_id, year), 
+    dplyr::select(cruisejoin, survey_definition_id, year, vessel_id), 
   by = "cruisejoin") %>%  
   dplyr::mutate(year = as.numeric(format(as.Date(date_time_start, 
                                                  format="%m/%d/%Y"),"%Y")), 
@@ -396,7 +396,7 @@ cruises_race <- race_data_cruises0 %>%
     year == maxyr &
       vessel_id %in% unique(haul$vessel_id[haul$year == maxyr]) ) 
 
-if (length(cruises_race$data_in_final == "N")>0) {
+if (length(cruises_race$data_in_final == "N")>0 | nrow(cruises_race) == 0) {
   haul_missing <- cruises_race %>%
     dplyr::distinct() %>%
     dplyr::left_join(y = race_data_edit_haul0, 

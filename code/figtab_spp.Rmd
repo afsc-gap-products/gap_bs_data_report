@@ -261,7 +261,7 @@ if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in o
   reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
   if (report_title != "ptpres") {
     height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF" & 
-                       report_title == "data", 4.25, 3.5)
+                       report_title == "data", height, height-1)
   }
 }
 
@@ -551,9 +551,9 @@ if (!(nrow(table_raw) == 0)) {
           SRVY = "EBS and NBS", 
           SRVY_long = paste0("combined ", SURVEY)))
     
-  } else if (report_title != "community" & SRVY == "NEBS" & length(unique(table_raw$SRVY))==1) { 
-    height <- 3.25 
-  }
+  # } else if (report_title != "community" & SRVY == "NEBS" & length(unique(table_raw$SRVY))==1) { 
+  #   height <- height - 1
+  # }
   
   header <- paste0("Total abundance-at-length estimates of ",
                    spp_print, ifelse(is.na(spp_sci), "", 
@@ -789,13 +789,33 @@ temp_bio <- dplyr::left_join(
     dplyr::summarise(total = sum(total, na.rm = TRUE)), 
   y = biomass %>% 
     dplyr::filter(year %in% yrs & 
-                    species_code %in% spp_code[1] &
+                    species_code %in% spp_code &
                     stratum %in% 999) %>%
-    dplyr::select(SRVY, year, biomass_mt, population_count, cpue_kgkm2_mean, cpue_nokm2_mean) %>% 
-    dplyr::mutate(print_name = spp_print) %>% 
+    dplyr::select(SRVY, year, biomass_mt, population_count, 
+                  cpue_kgkm2_mean, cpue_nokm2_mean) %>% 
     dplyr::filter((biomass_mt !=0)), 
   by = c("year", "SRVY")) %>% 
-  dplyr::filter(year %in% yrs)
+  dplyr::filter(year %in% yrs) %>% 
+  dplyr::group_by(SRVY, year, total) %>% 
+  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE),  
+                   population_count = sum(population_count, na.rm = TRUE),  
+                   cpue_kgkm2_mean = sum(cpue_kgkm2_mean, na.rm = TRUE),  
+                   cpue_nokm2_mean = sum(cpue_nokm2_mean, na.rm = TRUE)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(print_name = spp_print)
+
+if (sum(is.na(temp_bio$print_name[temp_bio$SRVY == "NBS"])) == 
+    nrow(temp_bio[temp_bio$SRVY == "NBS",])) {
+  temp_bio <- temp_bio %>% 
+    dplyr::filter(SRVY != "NBS")
+}
+
+if (sum(is.na(temp_bio$print_name[temp_bio$SRVY == "EBS"])) == 
+    nrow(temp_bio[temp_bio$SRVY == "EBS",])) {
+  temp_bio <- temp_bio %>% 
+    dplyr::filter(SRVY != "EBS")
+}
+
 
 table_raw <- data.frame()
 for (i in 1:nrow(temp_bio)) {
@@ -876,258 +896,256 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## tab-est-[taxon]-[spp]-[wt or num]
 
-```{r tab-est-[taxon]-[spp]-[wt or num], eval = dataTcommF}
-if (spp_table_cpue) {
+```{r tab-est-[taxon]-[spp]-[wt or num], eval = (dataTcommF & spp_table_cpue)}
+nickname0 <- paste0("tab-est-", spp_file, "-") 
+
+temp <- biomass %>% 
+  dplyr::filter(year == maxyr &
+                  stratum %in% strat0 &
+                  species_code %in% spp_code) %>% 
+  dplyr::select(SRVY, stratum, cpue_kgkm2_mean, cpue_kgkm2_sd, 
+                biomass_mt, biomass_sd, biomass_95ci_dw, biomass_95ci_up, 
+                cpue_nokm2_mean, cpue_nokm2_sd, 
+                population_count, population_sd, population_95ci_dw, population_95ci_up, 
+                n_haul, n_length)  %>% 
+  dplyr::right_join(y = biomass %>% 
+                      dplyr::filter(year == maxyr &
+                                      stratum %in% strat0) %>% 
+                      dplyr::select(SRVY, stratum) %>%
+                      dplyr::distinct()) %>% 
+  dplyr::mutate(stratum = as.character(stratum)) %>%
+  dplyr::arrange(stratum) %>% 
+  dplyr::arrange(SRVY) %>% 
+  dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
+
+if (sum(is.na(temp$cpue_kgkm2_mean[temp$SRVY == "NBS"])) == 
+    nrow(temp[temp$SRVY == "NBS",])) {
+  temp <- temp %>% 
+    dplyr::filter(SRVY != "NBS")
+}
+
+if (sum(is.na(temp$cpue_kgkm2_mean[temp$SRVY == "EBS"])) == 
+    nrow(temp[temp$SRVY == "EBS",])) {
+  temp <- temp %>% 
+    dplyr::filter(SRVY != "EBS")
+}
+
+# Were lengths taken for this taxon? If not, we wont include the n_length column in the table and optomize for space
+include_n_length <- !(sum(temp$n_length[temp$stratum == "Total"] %in% 0) == 
+                        length(temp$n_length[temp$stratum == "Total"]))
+
+if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
   
-  nickname0 <- paste0("tab-est-", spp_file, "-") 
-  
-  temp <- biomass %>% 
-    dplyr::filter(year == maxyr &
-                    stratum %in% strat0 &
-                    species_code %in% spp_code) %>% 
-    dplyr::select(SRVY, stratum, cpue_kgkm2_mean, cpue_kgkm2_sd, 
-                  biomass_mt, biomass_sd, biomass_95ci_dw, biomass_95ci_up, 
-                  cpue_nokm2_mean, cpue_nokm2_sd, 
-                  population_count, population_sd, population_95ci_dw, population_95ci_up, 
-                  n_haul, n_length) %>% 
-    dplyr::mutate(stratum = as.character(stratum)) %>%
-    dplyr::arrange(stratum) %>% 
-    dplyr::arrange(SRVY) %>% 
-    dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
-  
-  # Were lengths taken for this taxon? If not, we wont include the n_length column in the table and optomize for space
-  include_n_length <- !(sum(temp$n_length[temp$stratum == "Total"] %in% 0) == 
-                          length(temp$n_length[temp$stratum == "Total"]))
-  
-  if (sum(temp$biomass_mt [temp$stratum == "Total"] != 0) > 0) {
+  if (sum(temp$biomass_mt [temp$stratum == "Total"] %in% 0)>0) {
     
-    if (sum(temp$biomass_mt [temp$stratum == "Total"] %in% 0)>0) {
+    temp <- temp %>% 
+      dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
+                                        temp$biomass_mt  != 0])
+  }
+  
+  haul_cruises_maxyr0 <- haul_cruises_maxyr %>% 
+    dplyr::filter(SRVY %in% unique(temp$SRVY))
+  
+  for (i in 1:2) {
+    table_raw <- table_print <- data.frame()
+    
+    if (i == 1) { # CPUE (WT/HA) and BIOMASS
+      nickname <- paste0(nickname0, "wt")
       
-      temp <- temp %>% 
-        dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
-                                          temp$biomass_mt  != 0])
-    }
-    
-    haul_cruises_maxyr0 <- haul_cruises_maxyr %>% 
-      dplyr::filter(SRVY %in% unique(temp$SRVY))
-    
-    for (i in 1:2) {
-      table_raw <- table_print <- data.frame()
+      table_raw <- temp %>% 
+        dplyr::select(SRVY, stratum, 
+                      cpue_kgkm2_mean, cpue_kgkm2_sd, 
+                      biomass_mt, biomass_sd, biomass_95ci_dw, biomass_95ci_up, 
+                      n_haul, n_length) 
       
-      if (i == 1) { # CPUE (WT/HA) and BIOMASS
-        nickname <- paste0(nickname0, "wt")
-        
-        table_raw <- temp %>% 
-          dplyr::select(SRVY, stratum, 
-                        cpue_kgkm2_mean, cpue_kgkm2_sd, 
-                        biomass_mt, biomass_sd, biomass_95ci_dw, biomass_95ci_up, 
-                        n_haul, n_length) 
-        
-        if (!include_n_length) {
-          table_raw <- table_raw %>% 
-            dplyr::select(-n_length)
-        }
-        
-        if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
-          
-          cpue_kgkm2_mean0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$cpue_kgkm2_mean[table_raw$cpue_kgkm2_mean != 0])    
-          cpue_kgkm2_sd0<-find_units(unit = "", unt = "", table_raw$cpue_kgkm2_sd[table_raw$cpue_kgkm2_sd != 0])
-          biomass_mt0<-find_units(unit = "t", unt = "t", table_raw$biomass_mt [table_raw$biomass_mt  != 0])
-          biomass_sd0<-find_units(unit = "", unt = "", table_raw$biomass_sd[table_raw$biomass_sd != 0])
-          
-          header <- paste0("Mean weight CPUE",cpue_kgkm2_mean0$unit_word,
-                           " with standard deviation",cpue_kgkm2_sd0$unit_word,
-                           ", and estimated biomass",biomass_mt0$unit_word,
-                           " with standard deviation",biomass_sd0$unit_word, 
-                           " and 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
-                           ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
-                           ") confidence limits for ")
-          
-          table_print0 <- table_raw %>% 
-            dplyr::mutate(cpue_kgkm2_mean = formatC(x = cpue_kgkm2_mean/cpue_kgkm2_mean0$divby, 
-                                                    digits = 2, 
-                                                    format = "f", big.mark = ","),
-                          cpue_kgkm2_sd = formatC(x = cpue_kgkm2_sd/cpue_kgkm2_sd0$divby, 
-                                                  digits = 2, 
-                                                  format = "f", big.mark = ","), 
-                          biomass_mt = formatC(x = biomass_mt/biomass_mt0$divby, 
-                                               digits = ifelse(biomass_mt0$divby>1, 2, 0), 
-                                               format = "f", big.mark = ",") , 
-                          biomass_95ci_up = formatC(x = biomass_95ci_up/biomass_mt0$divby,
-                                           digits = ifelse(biomass_mt0$divby>1, 2, 0),
-                                           format = "f", big.mark = ",") ,
-                          biomass_95ci_dw = formatC(x = biomass_95ci_dw/biomass_mt0$divby,
-                                           digits = ifelse(biomass_mt0$divby>1, 2, 0),
-                                           format = "f", big.mark = ",") ,
-                          biomass_sd = formatC(x = biomass_sd/biomass_sd0$divby, 
-                                               digits = ifelse(biomass_sd0$divby>1, 2, 0), 
-                                               format = "f", big.mark = ","))
-          
-          if (length(unique(table_raw$SRVY)) > 1) {
-            table_print <- table_print0 %>%
-              flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
-              flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE)
-          } else {
-            table_print <- table_print0 %>% 
-              dplyr::select(-SRVY) %>%
-              flextable::flextable(data = .)
-          }
-          table_print <- table_print %>% 
-            flextable::set_header_labels(
-              x = ., 
-              cpue_kgkm2_mean = paste0("Mean CPUE", ifelse(cpue_kgkm2_mean0$unit_word=="", "", paste0("\n",cpue_kgkm2_mean0$unit_word))), 
-              cpue_kgkm2_sd = paste0("SD CPUE", ifelse(cpue_kgkm2_sd0$unit_word=="", "", paste0("\n",cpue_kgkm2_sd0$unit_word))), 
-              biomass_mt = paste0("Estimated biomass", ifelse(biomass_mt0$unit_word=="", "", paste0("\n",biomass_mt0$unit_word))), 
-              biomass_sd = paste0("SD biomass", ifelse(biomass_sd0$unit_word=="", "", paste0("\n",biomass_sd0$unit_word))), 
-              biomass_95ci_dw = paste0("95% LCL", ifelse(biomass_mt0$unit_word=="", "", paste0("\n",biomass_mt0$unit_word))),
-              biomass_95ci_up = paste0("95% UCL", ifelse(biomass_mt0$unit_word=="", "", paste0("\n",biomass_mt0$unit_word)))
-            ) 
-        }
-      } else { # CPUE No/HA and population_count
-        
-        nickname <- paste0(nickname0, "num")
-        
-        table_raw <- temp %>% 
-          dplyr::select(SRVY, stratum, 
-                        cpue_nokm2_mean, cpue_nokm2_sd, population_95ci_dw, population_95ci_up, 
-                        population_count, population_sd, n_haul, n_length)
-        
-        if (!include_n_length) {
-          table_raw <- table_raw %>% 
-            dplyr::select(-n_length)
-        }
-        
-        if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
-          
-          cpue_nokm2_mean0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$cpue_nokm2_mean[table_raw$cpue_nokm2_mean != 0])
-          cpue_nokm2_sd0 <- find_units(unit = "", unt = "", table_raw$cpue_nokm2_sd[table_raw$cpue_nokm2_sd != 0])
-          population_count0 <- find_units(unit = "", unt = "", table_raw$population_count[table_raw$population_count != 0])
-          population_sd0 <- find_units(unit = "", unt = "", table_raw$population_sd[table_raw$population_sd != 0])
-          
-          header <- paste0("Mean Number CPUE", cpue_nokm2_mean0$unit_word,
-                           " with standard deviation", cpue_nokm2_sd0$unit_word,
-                           ", and estimated population_count", population_count0$unit_word,
-                           " with standard deviation", population_sd0$unit_word, 
-                           " and 95% lower (LCL;", gsub("[()]", "", population_count0$unit_word),
-                           ") and upper (UCL;", gsub("[()]", "", population_count0$unit_word),
-                           ") confidence limits for ")
-          
-          table_print0 <- table_raw %>% 
-            dplyr::mutate(cpue_nokm2_mean = formatC(x = cpue_nokm2_mean/cpue_nokm2_mean0$divby, 
-                                                    digits = 2, 
-                                                    format = "f", big.mark = ","),
-                          cpue_nokm2_sd = formatC(x = cpue_nokm2_sd/cpue_nokm2_sd0$divby, 
-                                                  digits = 2, 
-                                                  format = "f", big.mark = ","), 
-                          population_count = formatC(x = population_count/population_count0$divby, 
-                                                     digits = ifelse(population_count0$divby>1, 2, 0), 
-                                                     format = "f", big.mark = ",") , 
-                          population_95ci_up = formatC(x = population_95ci_up/population_count0$divby,
-                                           digits = ifelse(population_count0$divby>1, 2, 0),
-                                           format = "f", big.mark = ",") ,
-                          population_95ci_dw = formatC(x = population_95ci_dw/population_count0$divby,
-                                           digits = ifelse(population_count0$divby>1, 2, 0),
-                                           format = "f", big.mark = ",") ,
-                          population_sd = formatC(x = population_sd/population_sd0$divby, 
-                                                  digits = ifelse(population_sd0$divby>1, 2, 0), 
-                                                  format = "f", big.mark = ","))
-          
-          if (length(unique(table_raw$SRVY)) > 1) {
-            table_print <- table_print0 %>%
-              flextable::as_grouped_data(x = ., groups = c("SRVY"), columns = NULL)  %>%
-              flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE)
-          } else {
-            table_print <- table_print0 %>% 
-              dplyr::select(-SRVY) %>%
-              flextable::flextable(data = .)
-          }
-          table_print <- table_print %>% 
-            flextable::set_header_labels(
-              x = ., 
-              cpue_nokm2_mean = paste0("Mean CPUE", ifelse(cpue_nokm2_mean0$unit_word=="", "", paste0("\n", cpue_nokm2_mean0$unit_word))), 
-              cpue_nokm2_sd = paste0("SD CPUE", ifelse(cpue_nokm2_sd0$unit_word=="", "", paste0("\n", cpue_nokm2_sd0$unit_word))), 
-              population_count = paste0("Estimated Population", 
-                                        ifelse(population_count0$unit_word=="", "", paste0("\n", population_count0$unit_word))),
-              population_sd = paste0("SD Population", ifelse(population_sd0$unit_word=="", "", paste0("\n", population_sd0$unit_word))), 
-              population_95ci_dw = paste0("95% LCL", ifelse(population_count0$unit_word=="", "", paste0("\n", population_count0$unit_word))),
-              population_95ci_up = paste0("95% UCL", ifelse(population_count0$unit_word=="", "", paste0("\n", population_count0$unit_word)))
-            ) 
-        }
-        
+      if (!include_n_length) {
+        table_raw <- table_raw %>% 
+          dplyr::select(-n_length)
       }
       
-      table_raw <- table_raw %>% 
-        dplyr::left_join(x = ., 
-                         y = haul_cruises_maxyr %>% 
-                           dplyr::select(SRVY, SRVY_long))
-      
-      header <- paste0(header,
-                       spp_print, 
-                       ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
-                       " by stratum encountered during the ",
-                       maxyr," ", 
-                       ifelse(length(unique(table_raw$SRVY)) > 1, SURVEY, unique(table_raw$SRVY_long)), 
-                       " shelf bottom trawl survey",
-                       ifelse(length(unique(table_raw$SRVY)) > 1, "s", ""),". ",
-                       
-                       ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0, 
-                              paste0("This species was not encountered in the ", 
-                                     maxyr, " ",
-                                     haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
-                                     " shelf trawl survey. "), 
-                              ""),
-                       ifelse(!include_n_length, "No lengths were collected for this taxon. ", ""))#)
-      
-      table_print <- table_print %>% 
-        flextable::bold(x = ., 
-                        i = ~ (stratum == "Total") ) %>%
-        flextable::valign(valign = "top") %>% 
-        flextable::set_header_labels(
-          x = ., 
-          stratum = "Stratum", 
-          n_haul = "Hauls with\nweight"
-        )  %>%
-        theme_flextable_nmfstm(row_lines = FALSE, 
-                               font = font0, 
-                               pad = 0, 
-                               pgwidth = full_page_landscape_width)  %>%
-        flextable::width(x = ., width = .75, unit = "in") %>%
-        flextable::width(x = ., width = .5, unit = "in", j = "stratum") %>%
-        flextable::align(x = ., 
-                         align = "right", part = "all")
-      
-      if (include_n_length) { # if lengths were collected, include the column
-        table_print <- table_print %>%
+      if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
+        
+        cpue_kgkm2_mean0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$cpue_kgkm2_mean[table_raw$cpue_kgkm2_mean != 0])    
+        cpue_kgkm2_sd0<-find_units(unit = "", unt = "", table_raw$cpue_kgkm2_sd[table_raw$cpue_kgkm2_sd != 0])
+        biomass_mt0<-find_units(unit = "t", unt = "t", table_raw$biomass_mt [table_raw$biomass_mt  != 0])
+        biomass_sd0<-find_units(unit = "", unt = "", table_raw$biomass_sd[table_raw$biomass_sd != 0])
+        
+        header <- paste0("Mean weight CPUE",cpue_kgkm2_mean0$unit_word,
+                         " with standard deviation",cpue_kgkm2_sd0$unit_word,
+                         ", and estimated biomass",biomass_mt0$unit_word,
+                         " with standard deviation",biomass_sd0$unit_word, 
+                         " and 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
+                         ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
+                         ") confidence limits for ")
+        
+        table_print0 <- table_raw %>% 
+          dplyr::mutate(cpue_kgkm2_mean = formatC(x = cpue_kgkm2_mean/cpue_kgkm2_mean0$divby, 
+                                                  digits = 2, 
+                                                  format = "f", big.mark = ","),
+                        cpue_kgkm2_sd = formatC(x = cpue_kgkm2_sd/cpue_kgkm2_sd0$divby, 
+                                                digits = 2, 
+                                                format = "f", big.mark = ","), 
+                        biomass_mt = formatC(x = biomass_mt/biomass_mt0$divby, 
+                                             digits = ifelse(biomass_mt0$divby>1, 2, 0), 
+                                             format = "f", big.mark = ",") , 
+                        biomass_95ci_up = formatC(x = biomass_95ci_up/biomass_mt0$divby,
+                                                  digits = ifelse(biomass_mt0$divby>1, 2, 0),
+                                                  format = "f", big.mark = ",") ,
+                        biomass_95ci_dw = formatC(x = biomass_95ci_dw/biomass_mt0$divby,
+                                                  digits = ifelse(biomass_mt0$divby>1, 2, 0),
+                                                  format = "f", big.mark = ",") ,
+                        biomass_sd = formatC(x = biomass_sd/biomass_sd0$divby, 
+                                             digits = ifelse(biomass_sd0$divby>1, 2, 0), 
+                                             format = "f", big.mark = ","))
+        table_print0[is.na(table_print0)] <- 0
+        table_print0[table_print0 == " NA"] <- "-"
+        table_print0[table_print0 == "NA"] <- "-"
+
+        table_print <- table_print0 %>% 
+          flextable::flextable(data = .) %>% 
           flextable::set_header_labels(
-            x = .,
-            n_length = "Hauls with\nlengths")
+            x = ., 
+            cpue_kgkm2_mean = paste0("Mean CPUE", ifelse(cpue_kgkm2_mean0$unit_word=="", "", paste0("\n",cpue_kgkm2_mean0$unit_word))), 
+            cpue_kgkm2_sd = paste0("SD CPUE", ifelse(cpue_kgkm2_sd0$unit_word=="", "", paste0("\n",cpue_kgkm2_sd0$unit_word))), 
+            biomass_mt = paste0("Estimated biomass", ifelse(biomass_mt0$unit_word=="", "", paste0("\n",biomass_mt0$unit_word))), 
+            biomass_sd = paste0("SD biomass", ifelse(biomass_sd0$unit_word=="", "", paste0("\n",biomass_sd0$unit_word))), 
+            biomass_95ci_dw = paste0("95% LCL", ifelse(biomass_mt0$unit_word=="", "", paste0("\n",biomass_mt0$unit_word))),
+            biomass_95ci_up = paste0("95% UCL", ifelse(biomass_mt0$unit_word=="", "", paste0("\n",biomass_mt0$unit_word)))
+          ) 
+      }
+    } else { # CPUE No/HA and population_count
+      
+      nickname <- paste0(nickname0, "num")
+      
+      table_raw <- temp %>% 
+        dplyr::select(SRVY, stratum, 
+                      cpue_nokm2_mean, cpue_nokm2_sd, population_95ci_dw, population_95ci_up, 
+                      population_count, population_sd, n_haul, n_length)
+      
+      if (!include_n_length) {
+        table_raw <- table_raw %>% 
+          dplyr::select(-n_length)
       }
       
-      if (length(unique(table_raw$SRVY)) > 1) {
-        table_print <- table_print %>% 
-          flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-          flextable::padding(x = .,
-                             j = 1, i = ~ is.na(SRVY),
-                             padding.left = 5) %>%
-          flextable::align(x = ., i = ~ !is.na(SRVY),
-                           align = "left", part = "body") 
+      if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
+        
+        cpue_nokm2_mean0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$cpue_nokm2_mean[table_raw$cpue_nokm2_mean != 0])
+        cpue_nokm2_sd0 <- find_units(unit = "", unt = "", table_raw$cpue_nokm2_sd[table_raw$cpue_nokm2_sd != 0])
+        population_count0 <- find_units(unit = "", unt = "", table_raw$population_count[table_raw$population_count != 0])
+        population_sd0 <- find_units(unit = "", unt = "", table_raw$population_sd[table_raw$population_sd != 0])
+        
+        header <- paste0("Mean Number CPUE", cpue_nokm2_mean0$unit_word,
+                         " with standard deviation", cpue_nokm2_sd0$unit_word,
+                         ", and estimated population", population_count0$unit_word,
+                         " with standard deviation", population_sd0$unit_word, 
+                         " and 95% lower (LCL;", gsub("[()]", "", population_count0$unit_word),
+                         ") and upper (UCL;", gsub("[()]", "", population_count0$unit_word),
+                         ") confidence limits for ")
+        
+        table_print0 <- table_raw %>% 
+          dplyr::mutate(cpue_nokm2_mean = formatC(x = cpue_nokm2_mean/cpue_nokm2_mean0$divby, 
+                                                  digits = 2, 
+                                                  format = "f", big.mark = ","),
+                        cpue_nokm2_sd = formatC(x = cpue_nokm2_sd/cpue_nokm2_sd0$divby, 
+                                                digits = 2, 
+                                                format = "f", big.mark = ","), 
+                        population_count = formatC(x = population_count/population_count0$divby, 
+                                                   digits = ifelse(population_count0$divby>1, 2, 0), 
+                                                   format = "f", big.mark = ",") , 
+                        population_95ci_up = formatC(x = population_95ci_up/population_count0$divby,
+                                                     digits = ifelse(population_count0$divby>1, 2, 0),
+                                                     format = "f", big.mark = ",") ,
+                        population_95ci_dw = formatC(x = population_95ci_dw/population_count0$divby,
+                                                     digits = ifelse(population_count0$divby>1, 2, 0),
+                                                     format = "f", big.mark = ",") ,
+                        population_sd = formatC(x = population_sd/population_sd0$divby, 
+                                                digits = ifelse(population_sd0$divby>1, 2, 0), 
+                                                format = "f", big.mark = ","))
+        table_print0[is.na(table_print0)] <- 0
+        table_print0[table_print0 == " NA"] <- "-"
+        table_print0[table_print0 == "NA"] <- "-"
+        
+        table_print <- table_print0 %>% 
+          flextable::flextable(data = .) %>% 
+          flextable::set_header_labels(
+            x = ., 
+            cpue_nokm2_mean = paste0("Mean CPUE", ifelse(cpue_nokm2_mean0$unit_word=="", "", paste0("\n", cpue_nokm2_mean0$unit_word))), 
+            cpue_nokm2_sd = paste0("SD CPUE", ifelse(cpue_nokm2_sd0$unit_word=="", "", paste0("\n", cpue_nokm2_sd0$unit_word))), 
+            population_count = paste0("Estimated Population", 
+                                      ifelse(population_count0$unit_word=="", "", paste0("\n", population_count0$unit_word))),
+            population_sd = paste0("SD Population", ifelse(population_sd0$unit_word=="", "", paste0("\n", population_sd0$unit_word))), 
+            population_95ci_dw = paste0("95% LCL", ifelse(population_count0$unit_word=="", "", paste0("\n", population_count0$unit_word))),
+            population_95ci_up = paste0("95% UCL", ifelse(population_count0$unit_word=="", "", paste0("\n", population_count0$unit_word)))
+          ) 
       }
       
-      if (sum(table_raw$SRVY %in% "NBS")>0) {
-        table_print <- table_print %>% 
-          flextable::hline(x = .,i = ~ (stratum == "Total"), part = "body")
-      }
-      
-      if (i == 1) {
-        table_print <- table_print %>% 
-          flextable::width(x = ., j = "biomass_mt", width = 1.25, unit = "in")
-      } else {
-        table_print <- table_print %>% 
-          flextable::width(x = ., j = "population_count", width = 1.25, unit = "in")
-      }
-      
-      res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
     }
+    
+    table_raw <- table_raw %>% 
+      dplyr::left_join(x = ., 
+                       y = haul_cruises_maxyr %>% 
+                         dplyr::select(SRVY, SRVY_long))
+    
+    header <- paste0(header,
+                     spp_print, 
+                     ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
+                     " by stratum encountered during the ",
+                     maxyr," ", 
+                     ifelse(length(unique(table_raw$SRVY)) > 1, SURVEY, unique(table_raw$SRVY_long)), 
+                     " shelf bottom trawl survey",
+                     ifelse(length(unique(table_raw$SRVY)) > 1, "s", ""),". ",
+                     
+                     ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0, 
+                            paste0("This species was not encountered in the ", 
+                                   maxyr, " ",
+                                   haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
+                                   " shelf trawl survey. "), 
+                            ""),
+                     ifelse(!include_n_length, "No lengths were collected for this taxon. ", ""))
+    
+    table_print <- table_print %>% 
+      flextable::merge_v(x = ., j = "SRVY", part = "body") %>% 
+      flextable::bold(x = ., 
+                      i = ~ (stratum == "Total") ) %>%
+      flextable::valign(valign = "top") %>% 
+      flextable::set_header_labels(
+        x = ., 
+        SRVY = "",
+        stratum = "Stratum",
+        n_haul = "Hauls with\nweight"
+      )  %>%
+      theme_flextable_nmfstm(row_lines = FALSE, 
+                             font = font0, 
+                             pad = 0, 
+                             pgwidth = full_page_landscape_width)  %>%
+      flextable::width(x = ., width = .75, unit = "in") %>%
+      flextable::width(x = ., width = .5, unit = "in", j = c("stratum", "n_haul")) %>%
+      flextable::width(x = ., width = .25, unit = "in", j = c("SRVY")) %>%
+      flextable::align(x = ., align = "right", part = "all") %>%
+      flextable::align(x = ., align = "center", part = "body", j = "stratum")
+    
+    if (include_n_length) { # if lengths were collected, include the column
+      table_print <- table_print %>%
+        flextable::set_header_labels(
+          x = .,
+          n_length = "Hauls with\nlengths") %>% 
+        flextable::width(x = ., width = .5, unit = "in", j = "n_length") 
+    }
+    
+    if (length(unique(table_raw$SRVY)) > 1) {
+      table_print <- table_print %>% 
+        flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
+        flextable::padding(x = .,
+                           j = 1, i = ~ is.na(SRVY),
+                           padding.left = 5)
+    }
+    
+    if (sum(table_raw$SRVY %in% "NBS")>0) {
+      table_print <- table_print %>% 
+        flextable::hline(x = .,i = ~ (stratum == "Total"), part = "body")
+    }
+    
+    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   }
 }
 ```
@@ -1173,10 +1191,10 @@ temp00 <- function(table_raw0,
       SRVY == "NBS" ~ pcol[2]))
   
   if (error_bar) {
-      table_raw <- table_raw %>% 
-    dplyr::rename(
-                  y_ci_up = paste0(var, "_ci_up"), 
-                  y_ci_dw = paste0(var, "_ci_dw")) 
+    table_raw <- table_raw %>% 
+      dplyr::rename(
+        y_ci_up = paste0(var, "_ci_up"), 
+        y_ci_dw = paste0(var, "_ci_dw")) 
   }
   
   figure0 <- plot_timeseries(dat = table_raw,
