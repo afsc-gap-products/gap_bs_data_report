@@ -981,10 +981,7 @@ biomass_gap <- gap_products_akfin_biomass0 %>%
       n_weight > 0 & 
       year <= maxyr &
       !(species_code %in% c(69323, 69322, 68580, 68560)) &
-      !is.na(species_code) & 
-      !(year < 1996 & species_code == 10261) &
-      !(year < 2000 & species_code == 471) & # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
-      !(year < 2000 & species_code == 435 )
+      !is.na(species_code)
   ) %>%  
   unique() %>%
   dplyr::mutate(
@@ -1041,7 +1038,11 @@ biomass_compareyr <- biomass %>%
   dplyr::filter(year == compareyr[1])
 
 total_biomass <- biomass %>% 
-  dplyr::filter(stratum == 999) %>%
+  dplyr::filter(stratum == 999 & 
+                  (species_code >= 40000 &
+                     species_code < 99991) |
+                  (species_code > 1 & 
+                     species_code < 35000)) %>%
   dplyr::group_by(SRVY, year, taxon) %>% 
   dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 
   dplyr::ungroup()
