@@ -379,14 +379,24 @@ From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measu
 ```{r biomass-inc-dec-tot}
 
 # million metric tons of biomass collected in each region in each year
-temp <- biomass %>%
-  dplyr::filter(stratum == 999) %>% 
-  dplyr::filter(year %in% nbsyr) %>%
-  dplyr::select(year, SRVY, biomass_mt) %>% 
+temp <- total_biomass %>% 
   dplyr::group_by(year, SRVY) %>% 
-  dplyr::summarise(biomass_mmt = round(sum(biomass_mt)/1e6, digits = 1)) %>% 
+  dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1)) %>% 
   dplyr::ungroup() %>% 
   dplyr::arrange(desc(year))
+
+# temp <- biomass %>%
+#   dplyr::filter(stratum == 999 & 
+#                   (species_code >= 40000 &
+#                      species_code < 99991) |
+#                   (species_code > 1 &
+#                      species_code < 35000) &
+#                   year %in% nbsyr) %>%
+#   # dplyr::select(year, SRVY, biomass_mt) %>% 
+#   dplyr::group_by(year, SRVY) %>% 
+#   dplyr::summarise(biomass_mmt = round(sum(biomass_mt)/1e6, digits = 1)) %>% 
+#   dplyr::ungroup() %>% 
+#   dplyr::arrange(desc(year))
 ```
 
 In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-NBS)). 
