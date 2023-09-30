@@ -153,11 +153,11 @@ rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"),
                   output_file = paste0("00_plan_team_pres_", maxyr, ".pptx"))
 
 
-# Plan team presentation -------------------------------------------------------
+# Strait sci presentation -------------------------------------------------------
 
 SRVY <- "EBS"
 
-report_title <- "ptpres" 
+report_title <- "nbspres" 
 source(here::here("code","directories.R"))
 dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_ptpres")), "/")
 dir.create(dir_out_figtab)

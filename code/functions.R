@@ -2737,22 +2737,20 @@ plot_sizecomp <- function(sizecomp0,
     dplyr::ungroup() %>% 
     dplyr::filter(year %in% unique(as.numeric(paste(table_raw$year)))) %>% 
     dplyr::mutate(
-      # label_y = (quantile(x = table_raw$population_count, .9))[[1]], 
-      # label_x = (quantile(x = table_raw$length_mm, .8))[[1]], 
       label = paste0(c("# measured: ", rep_len(x = "", length.out = (nrow(.)-1))), 
                      frequency), 
       label = gsub("\\s", " ", formatC(x = label))) %>% 
     dplyr::select(-frequency) %>% 
     dplyr::ungroup()
   
-  table_raw <- dplyr::left_join(table_raw, dat_text, by = c("SRVY", "year"))
+  table_raw <- dplyr::left_join(table_raw, dat_text)
   
   if (!ridgeline) { # facet plot without ridgeline
     
     figure <- ggplot(data = table_raw,
                      mapping = aes(x = length_mm,
                                    y = population_count,
-                                   group = SRVY,
+                                   # group = SRVY_long,
                                    fill = sex)) +
       geom_bar(position="stack", stat="identity", na.rm = TRUE) +
       scale_fill_viridis_d(direction = -1, 
@@ -2765,7 +2763,7 @@ plot_sizecomp <- function(sizecomp0,
                          breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1))))) +
       scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
                          breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
-      facet_grid(year ~ SRVY,
+      facet_grid(year ~ SRVY_long,
                  scales = "free_x")  +
       ggplot2::guides(
         fill = guide_legend(title.position = "top", 
@@ -2787,7 +2785,7 @@ plot_sizecomp <- function(sizecomp0,
   } else {
     table_raw1 <- table_raw %>% 
       dplyr::ungroup() %>% 
-      dplyr::group_by(year, length_mm, SRVY) %>% 
+      dplyr::group_by(year, length_mm, SRVY_long) %>% 
       dplyr::summarise(population_count = sum(population_count, na.rm = TRUE))
     
     temp <- setdiff(min(table_raw1$year, na.rm = TRUE):max(table_raw1$year, na.rm = TRUE), 
@@ -2797,7 +2795,7 @@ plot_sizecomp <- function(sizecomp0,
         data.frame(year = temp,
                    length_mm = 0, 
                    population_count = 0, 
-                   SRVY = unique(table_raw1$SRVY)), 
+                   SRVY_long = unique(table_raw1$SRVY_long)), 
         table_raw1)
     }
     
@@ -2832,7 +2830,7 @@ plot_sizecomp <- function(sizecomp0,
                        breaks = every_nth(n = 2, true1 = ((max(table1$year, na.rm = TRUE) %% 2) == 1))) + 
       theme(legend.position = "none", 
             panel.grid.major.x = element_line(colour = "grey80")) +
-      facet_wrap(vars(SRVY))
+      facet_wrap(vars(SRVY_long))
   }
   
   figure <- figure + 
