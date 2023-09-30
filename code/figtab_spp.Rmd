@@ -759,8 +759,8 @@ table_print <- table_print1 %>%
   flextable::align(align = "left", j = 1, part = "all") %>% 
   flextable::padding(part = "all", padding = 5) %>% 
   flextable::colformat_image(j = "img" , 
-                             width = ifelse(length(stat$SRVY)==2, 1, 1), 
-                             height = ifelse(length(stat$SRVY)==2, 1, 1)) %>% 
+                             width = 2, # ifelse(length(stat$SRVY)==2, 2, 2), 
+                             height = 2) %>% # ifelse(length(stat$SRVY)==2, 2, 2)) %>% 
   flextable::merge_v(j = "img") %>% 
   flextable::padding(part = "all", j = 1, padding = 0) %>% 
   flextable::hline_top(x = ., border = std_b1, j = 1, part = "all") %>% 
@@ -854,8 +854,8 @@ for (i in 1:nrow(temp_bio)) {
         abs(pchange(start = temp_bio$biomass_mt[i], end = temp_bio0, value_only = TRUE)) < 1 ~ "no change",
         TRUE ~ sub(replacement = "", pattern = "an ", 
                    x = gsub(pattern = "a ", replacement = "", 
-                            x = pchange(end = temp_bio$biomass_mt[i], 
-                                        start = temp_bio0))) ) )
+                            x = paste0(pchange(end = temp_bio$biomass_mt[i], 
+                                        start = temp_bio0), " from ", compareyr0)) ) ))
   )
 }
 
