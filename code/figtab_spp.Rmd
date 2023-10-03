@@ -1184,7 +1184,8 @@ temp00 <- function(table_raw0,
                    y_long, 
                    legend_combined = TRUE, 
                    mean_in_legend = FALSE, 
-                   error_bar = TRUE) {
+                   error_bar = TRUE, 
+                   description = TRUE) {
   
   pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
   
@@ -1272,7 +1273,8 @@ temp00 <- function(table_raw0,
     str00 <- c(str00, rep_len(x = "", length.out = length(str00)))
   }
   
-  descr <- ggdraw() + draw_text(text = str0, 
+  descr <- ggdraw() + 
+    draw_text(text = str0, 
                                 fontface = 
                                   rep_len(x = c('bold', 
                                                 rep_len(x = "plain", 
@@ -1281,33 +1283,38 @@ temp00 <- function(table_raw0,
                                 y = seq(from = 0.8, 
                                         to = ifelse(length(str0) == ifelse(mean_in_legend, 5, 6), 0.7, 0.1), 
                                         length.out = length(str0)),
-                                color = col0)
+                                         color = col0)
+  
   if (legend_combined) {
+    figure0 <- figure0 +
+      ggplot2::theme(legend.position = "none")
+  }
+  
+  if (description) {
     figure <- cowplot::plot_grid(figure0,
                                  descr,
                                  nrow = 1,
                                  rel_widths = c(.7, .3),
                                  rel_heights = c(0.5, 0.5))
-  } else {
-    figure <- cowplot::plot_grid(figure0 +
-                                   theme(legend.position = "none"),
-                                 descr,
-                                 nrow = 1, rel_widths = c(1, .4),
-                                 rel_heights = c(0.5, 0.5))
   }
   
   legend0 <- ggpubr::get_legend(figure0)
-  header <- ""
-  
+
   return(figure)
 }
 ```
 
 ## fig-[spp]-biomass-pres
 
-```{r, fig-[spp]-biomass-pres-ci, eval = (report_title == "ptpres")}
+```{r, fig-[spp]-biomass-pres-ci, eval = (report_title %in% c("ptpres", "community"))}
+if (report_title %in% "community") {
+  nickname <- paste0("fig-", jj, "-", spp_file, "-biomass-ci")
+  description <- FALSE
+} else if (report_title %in% c("ptpres", "compres")) {
+  nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres-ci")
+}
+
 height <- 4
-nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres-ci")
 table_raw <- table_raw0 %>% 
   dplyr::rename(biomass_mt_ci_up = biomass_95ci_up, 
                 biomass_mt_ci_dw = biomass_95ci_dw)
@@ -1319,9 +1326,10 @@ figure <- temp00(table_raw0 = table_raw,
                  unt = "t", 
                  y_long = "Biomass", 
                  mean_in_legend = TRUE, 
-                 error_bar = TRUE)
+                 error_bar = TRUE, 
+                 description = description)
 
-header <- "" # a$header
+header <- "Biomass over time. "
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
