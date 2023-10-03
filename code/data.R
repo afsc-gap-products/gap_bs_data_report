@@ -2,13 +2,12 @@
 
 out.crs <- "EPSG:3338"
 
-#SRVY11 <- c("eastern Bering Sea", "northern Bering Sea")
-
 report_types <- list(
   "EBS" = list(
     sectname = "EBS-BTS-Report", 
     SURVEY = "eastern Bering Sea", 
     map.area = "bs.south", 
+    SRVY11 = c("eastern Bering Sea"), 
     SRVY1 = "EBS", 
     SRVY0 = "BS", # in Oracle
     SRVY00 = 98, # EBS
@@ -25,6 +24,7 @@ report_types <- list(
     sectname = "NBS-BTS-Report", 
     SURVEY = "northern Bering Sea", 
     map.area = "bs.north", 
+    SRVY11 = "northern Bering Sea, 
     SRVY1 = "NBS", 
     SRVY0 = "BS", # in Oracle
     SRVY00 = 143,
@@ -41,6 +41,7 @@ report_types <- list(
     sectname = "NEBS-BTS-Report", 
     SURVEY = "eastern and northern Bering Sea",
     map.area = "bs.all", 
+    SRVY11 = c("eastern Bering Sea", "northern Bering Sea"), 
     SRVY1 = c("EBS", "NBS"), 
     SRVY0 = "BS", # in Oracle
     SRVY00 = c(98, #NBS
@@ -359,7 +360,7 @@ print("haul and station")
 haul <- dplyr::left_join(
   y = gap_products_akfin_haul0, 
   x = cruises %>% 
-    dplyr::select(cruisejoin, survey_definition_id, year), 
+    dplyr::select(cruisejoin, survey_definition_id, year, vessel_id), 
   by = "cruisejoin") %>%  
   dplyr::mutate(year = as.numeric(format(as.Date(date_time_start, 
                                                  format="%m/%d/%Y"),"%Y")), 
@@ -398,7 +399,7 @@ cruises_race <- race_data_cruises0 %>%
     year == maxyr &
       vessel_id %in% unique(haul$vessel_id[haul$year == maxyr]) ) 
 
-if (length(cruises_race$data_in_final == "N")>0) {
+if (length(cruises_race$data_in_final == "N")>0 | nrow(cruises_race) == 0) {
   haul_missing <- cruises_race %>%
     dplyr::distinct() %>%
     dplyr::left_join(y = race_data_edit_haul0, 
@@ -983,11 +984,7 @@ biomass_gap <- gap_products_akfin_biomass0 %>%
       n_weight > 0 & 
       year <= maxyr &
       !(species_code %in% c(69323, 69322, 68580, 68560)) &
-      !is.na(species_code) & 
-      !(year < 1996 & species_code == 10261) &
-      !(year < 2000 & species_code == 471) & # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
-      !(year < 2000 & species_code == 435 )
-  ) %>%  
+      !is.na(species_code) ) %>%  
   unique() %>%
   dplyr::mutate(
     SRVY = dplyr::case_when(
@@ -1020,16 +1017,10 @@ biomass <- dplyr::bind_rows(biomass_gap, biomass_sap) %>%
     cpue_kgkm2_sd = sqrt(cpue_kgkm2_var), 
     cpue_nokm2_sd = sqrt(cpue_nokm2_var), 
     biomass_sd = sqrt(biomass_var), 
-    # biomass_cv = (biomass_sd/biomass_mt), 
-    # biomass_cv_up = biomass_mt + biomass_cv, 
-    # biomass_cv_dw = biomass_mt - biomass_cv, 
     biomass_95ci_up = biomass_mt + (2*biomass_sd), 
     biomass_95ci_dw = biomass_mt - (2*biomass_sd), 
     biomass_95ci_dw = ifelse(biomass_95ci_dw<0, 0, biomass_95ci_dw), 
     population_sd = sqrt(population_var), 
-    # population_cv = (population_sd/population_count), 
-    # population_cv_up = population_count + population_cv, 
-    # population_cv_dw = population_count - population_cv, 
     population_95ci_up = population_count + (2*population_sd), 
     population_95ci_dw = population_count - (2*population_sd), 
     population_95ci_dw = ifelse(population_95ci_dw<0, 0, population_95ci_dw) )
@@ -1042,8 +1033,28 @@ biomass_compareyr <- biomass %>%
   dplyr::filter(stratum == 999) %>%
   dplyr::filter(year == compareyr[1])
 
+temp <- spp_info %>% 
+  dplyr::filter((species_code >= 40000 &
+                    species_code < 99991) |
+                  (species_code > 1 &
+                     species_code < 35000)) %>% 
+  dplyr::select(species_code) %>% 
+  dplyr::distinct() %>%
+  unlist()
+
+temp <- spp_info %>% 
+  dplyr::filter(!((species_code >= 40000 &
+                     species_code < 99991) |
+                    (species_code > 1 & 
+                       species_code < 35000))) %>% 
+  # dplyr::filter(species_code %in% c(99991, 99993, 99994, 99997, 99998, 99999, 1) %>% 
+  dplyr::select(species_code, common_name, species_name)
+
+
 total_biomass <- biomass %>% 
-  dplyr::filter(stratum == 999) %>%
+  dplyr::filter(stratum == 999 & 
+                  !(species_code %in% temp)) %>%
   dplyr::group_by(SRVY, year, taxon) %>% 
   dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 
-  dplyr::ungroup()
+  dplyr::ungroup() %>% 
+  dplyr::arrange(desc(year), desc(taxon))
