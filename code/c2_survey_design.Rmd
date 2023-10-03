@@ -1,71 +1,158 @@
 
-# Introduction
+# Survey Design, Execution, and Analysis
 
-```{r intro-text}
-# use haul_cruises_maxyr TOLEDO 
+```{r survey-design-intro-text}
 
-temp <- haul_cruises_maxyr %>%
-  dplyr::filter(SRVY == "EBS") #%>% 
-  # dplyr::mutate(start_mo_long = format(x = as.POSIXlt(x = start_date_haul ), format="%B")) %>%
-  # dplyr::mutate(end_mo_long = format(x = as.POSIXlt(x = end_date_haul ), format="%B")) #%>%
-  # dplyr::select(start_mo_long, end_mo_long)
+# 4 options
+# 1. vessels started and ended on different dates
+# 2. vessels started and ended on the same dates
+# 3. vessels started on the same dates and ended on different dates
+# 4. vessels started on different dates and ended on the same dates
+# and this can be different for EBS vs NBS 
 
-str0_nbs <- ifelse(SRVY == "NEBS", 
-                      #NBS
-                      paste0("In addition, the ", maxyr, 
-                             " survey coverage was expanded to include the northern Bering Sea (NBS). This is only the ", 
-                             numbers2words_th(
-                               haul_cruises_maxyr %>% 
-                                 dplyr::filter(SRVY == "NBS") %>%
-                                 dplyr::select(yrofsurvey )),
-                             " time since 2010 that the NBS survey was done. The expanded study area covered the entire Bering Sea continental shelf (hereafter referred to as the “NEBS”) from 20 m (",
-                             round(20/divmforft, 1),
-                             " ft) to 200 m (",
-                             round(200/divmforft, 1),
-                             " ft) bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait, including Norton Sound."), 
-                             # EBS
-                             "The study area covered the southeastern Bering Sea continental shelf from 20 to 200 m bottom depth to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and to approximately the latitude of St. Matthew Island (60° 50' N).")
+str0 <- c()
 
-
-if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_completed) == 1) { # diff answers or only 1 srvy
-  str0 <- CapFirst(text_list(
-    paste0(ifelse(haul_cruises_maxyr$stations_avail ==
-                    haul_cruises_maxyr$stations_completed, "all", "most"), 
-           " survey stations in the ", 
-           haul_cruises_maxyr$SRVY, 
-           " were sampled successfully")))
-} else { # answers both "Most" or "All"
-  str0 <- paste0(unique(ifelse(haul_cruises_maxyr$stations_avail ==
-                    haul_cruises_maxyr$stations_completed, "All", "Most")), 
-           " survey stations in the ",
-           text_list(haul_cruises_maxyr$SRVY), 
-           " were sampled successfully")
-} 
-
-nth_yr <- data.frame()
-for (i in 1:nrow(haul_cruises_maxyr)){
-  srvy <- haul_cruises_maxyr$SRVY[i]
-  nth_yr <- nth_yr %>% dplyr::bind_rows(
-    data.frame(SRVY = srvy, 
-               val = ifelse(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == srvy]<=20, 
-                            numbers2words_th(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == srvy]), 
-                                             paste0(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == srvy], 
-                                                    haul_cruises_maxyr$stndth[haul_cruises_maxyr$SRVY == srvy])) ) )
+for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
+  
+  srvy <- unique(haul_cruises_vess_maxyr$SRVY)[i]
+  cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
+    dplyr::filter(SRVY %in% srvy &
+                    year %in% maxyr) %>% 
+    dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
+                  "vessel_ital", "SRVY", "SRVY_long", 
+                  "start_date_cruise", "end_date_cruise", 
+                  "start_date_haul", "end_date_haul") %>% 
+    unique() %>% 
+    group_by(year, survey_name, vessel_id, vessel_name, 
+             vessel_ital, SRVY, SRVY_long) %>% 
+    dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
+                     end_date_cruise = as.Date(max(end_date_cruise)), 
+                     start_date_haul = as.Date(min(start_date_haul), 
+                                               format = "%m/%d/%Y"), 
+                     end_date_haul = as.Date(max(end_date_haul), 
+                                             format = "%m/%d/%Y")) 
+  
+  temp <- "" # paste0("of the ", srvy, ", which ")
+  
+  if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
+      length(unique(cruises_maxyr0$end_date_haul)) != 1) { 
+    # 1. vessels started and ended on different dates
+    temp <- paste0(temp, 
+                   text_list(paste0("the ", cruises_maxyr0$vessel_ital, 
+                                    " started sampling on ", 
+                                    format((cruises_maxyr0$start_date_haul), format = date_format), 
+                                    " and ended on ", 
+                                    format((cruises_maxyr0$end_date_haul), format = date_format) )) )
+    # temp<-gsub(pattern = "and ,", replacement = "and,", x = temp)
+    
+  } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
+             length(unique(cruises_maxyr0$end_date_haul)) == 1) { 
+    # 2. vessels started and ended on the same dates
+    temp <- paste0(temp, 
+                   text_list(cruises_maxyr0$vessel_ital), 
+                   # ifelse(length(unique(vessels0$vessel)) == 1, 
+                   #        "the vessel", "both vessels"), 
+                   " started sampling on ",
+                   format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
+                   " and ended sampling on ", 
+                   format(unique(cruises_maxyr0$end_date_haul), format = date_format))
+    
+  } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
+             length(unique(cruises_maxyr0$end_date_haul)) != 1) {
+    # 3. vessels started on the same dates and ended on different dates
+    temp <- paste0(temp, "started for ", 
+                   ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
+                          "the vessel", "both vessels"), 
+                   " on ",
+                   format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
+                   " and ended ", 
+                   text_list(paste0("on ", 
+                                                 format(cruises_maxyr0$end_date_haul, 
+                                                        format = date_format) , 
+                                                 " for the ", cruises_maxyr0$vessel_ital) ))
+    
+  } else if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
+             length(unique(cruises_maxyr0$end_date_haul)) == 1) {
+    # 4. vessels started on different dates and ended on the same dates
+    temp <- paste0(temp, "the sampling started ", 
+                   text_list(paste0("on ", 
+                                                 format(cruises_maxyr0$start_date_haul, 
+                                                        format = date_format) , 
+                                                 " for the ", cruises_maxyr0$vessel_ital) ), 
+                   " and ended for ", 
+                   ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
+                          "the vessel", "both vessels"), 
+                   " on ",
+                   format((unique(cruises_maxyr0$end_date_haul)), 
+                          format = date_format) )
+  }
+  str0 = c(str0, temp)
 }
 
+str <- str0 <- data.frame(str = str0, 
+                  SRVY = unique(cruises_maxyr$SRVY))
+
+
+
+nbs_insert  <- paste0(
+    "For the eastern Bering Sea shelf survey, ",
+    str$str[str$SRVY == "EBS"],
+    ". The northern Bering Sea shelf survey ", 
+    str$str[str$SRVY == "NBS"], 
+    ".")
+
 ```
 
-In `r maxyr`, NOAA Fisheries' Alaska Fisheries Science Center conducted two surveys within U.S. territorial waters of the Bering Sea: the southeastern Bering Sea (EBS) shelf bottom trawl survey and the northern Bering Sea (NBS) bottom trawl survey. This is the `r nth_yr$val[nth_yr$SRVY == "EBS"] ` year of the EBS shelf survey and the `r nth_yr$val[nth_yr$SRVY == "NBS"]` year of NBS survey using standardized sampling protocols. A rapid response survey for the NBS region was also conducted in 2018 using a modified spatial extent and sampling procedure and will not be covered here. The NBS survey region contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations in an area bounded by the Bering Strait, Norton Sound, and the U.S.–Russia Maritime Boundary (Fig. \@ref(fig:fig-survey-points)). While the NBS region has been surveyed sporadically in the past, 2010 is considered the survey's inaugural year because it was the first year the region was sampled using the same standardized sampling methods as the EBS shelf survey.
+The `r maxyr` eastern Bering Sea shelf and northern Bering Sea bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r nbs_insert ` The northern Bering Sea shelf was divided into three strata (regions): one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50-m (`r round(50/divmforft, digits = 1)`-ft) isobath. 
 
-This region is a fundamental part of the Alaska Fisheries Science Center Loss of Sea Ice (LOSI) research plan, the primary purpose of which is to study the impacts of diminished sea ice on the marine ecosystem. In the NOAA LOSI research plan, the NBS was identified as a region of critical importance for increased scientific monitoring because this marine ecosystem may be rapidly altered by the changing climate. This survey represents one component of a multi-faceted research plan to create a long-term time series designed to identify, as well as track, environmental and ecological change throughout the Bering Sea. Beyond the potential impacts of climate change, the scale and extent of fish and crab movements may also vary from year to year in response to a variety of biological or environmental processes. These movements cause changes in distribution and abundance that extend beyond the traditional survey boundaries (e.g., EBS) and ultimately create an additional need for survey data that provides comprehensive coverage of the entire Bering Sea. 
-
-
-Here, we provide some of the results of the `r maxyr` NBS survey and compare these to observations from the `r text_list(nbsyr[nbsyr != maxyr])` surveys. Continuation of the survey effort for a combined EBS and NBS bottom trawl survey will provide more comprehensive information to investigate how fishes, crabs, and other bottom dwellers respond to biological and environmental changes on a large spatial scale over a multi-year time period. 
-
-```{r, fig-survey-points}
-nickname <- "fig-survey-points"
+```{r fig-vessels}
+nickname <- "fig-vessels"
 ```
 
-```{r, fig-survey-points-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r fig-vessels-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
+```{r team-desc-insert-text, child=paste0(dir_out_rawdata, "/0-team-desc.Rmd")}
+```
+Lead scientist profiles can be found at the end of this document.
+
+```{r nbs-station-check}
+if (sum(!(unique(haul_maxyr$stationid[haul_maxyr$SRVY == "NBS" & haul_maxyr$abundance_haul == "Y"]) %in% 
+        unique(haul$stationid[haul$SRVY == "NBS" & haul$SRVY == compareyr & haul$abundance_haul == "Y"]) )) == 0) {
+  insert <- paste0("The same northern Bering Sea stations were surveyed in ",maxyr," as in ",compareyr, ". ")
+} else {
+  insert <- paste0("Different northern Bering Sea stations were surveyed in ",maxyr," than in ",compareyr, ". ")
+}
+```
+
+`r insert`The northern Bering Sea survey was designed as a continuation of the systematic 20 × 20 nautical mile (nmi) sampling grid that was coordinated along latitudinal and longitudinal axes and established for the annual eastern Bering Sea shelf survey, and has been used since 1982. This design resulted in a systematic grid of `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations in which each sampling station represents a geo-referenced area of 400 square nautical miles (nmi^2^; `r formatC(x = 400/divnmi2forkm2, digits = 0, format = "f", big.mark = ",") ` km^2^) distributed throughout the `r xunits(sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2[stratum$SRVY == "NBS"], na.rm=TRUE))` km^2^) that defines the northern Bering Sea survey area. The eastern Bering Sea shelf survey area contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "EBS"] ` stations distributed over `r xunits(sum(stratum$area_nmi2[stratum$SRVY == "EBS"], na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2[stratum$SRVY == "EBS"], na.rm=TRUE))` km^2^). The addition of the northern Bering Sea survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^). In `r maxyr`, the northern Bering Sea stations had bottom depths ranging from `r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m). 
+
+In the eastern Bering Sea shelf survey, sampling was typically conducted at a fixed sampling station located at the center of each grid cell (Fig. \@ref(fig:fig-survey-points)). While this approach was also used for the northern Bering Sea survey, shallow depths and untrawlable bottom types were encountered in some grid cells, which required the sampling location to be moved elsewhere within the cell (Fig. \@ref(fig:fig-survey-points)). All stations were sampled during daylight hours. 
+
+
+```{r nbs-trawl-survey-area}
+# area of nbs trawl stations
+# area =  l*w * number of areas
+# temp <- haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] * # number of stations
+#   (10 / 1852) * # width of trawl net (m/nmi -> nmi)
+#   1.5 # calculate distance nmi = velocity (3 knots) * time (30 min)
+
+temp <- sum((haul_maxyr$net_width_m[haul_maxyr$SRVY == "NBS"]/ 1852) * # net width in meters, divided 1852 (m->nmi)
+      ((haul_maxyr$distance_fished_km[haul_maxyr$SRVY == "NBS"] * 1000)/ 1852), # distance fished in km converted to m,  divided 1852 (m->nmi)
+    na.rm = TRUE) 
+```
+
+Both vessels sampled using an 83/112 Eastern otter trawl that has been historically used for eastern Bering Sea shelf, Chukchi, and Beaufort Sea surveys (Fig. \@ref(fig:fig-trawl-gear-alt)). This trawl is significantly smaller and weighs less than trawls used for commercial fishing in Alaska. One 30-minute tow, at a target vessel speed of 3 knots, was conducted at `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` stations. The cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea.
+
+```{r fig-trawl-gear-alt}
+nickname <- "fig-trawl-gear-alt"
+```
+
+```{r fig-trawl-gear-alt-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```
+
+Catches of less than approximately 1,200 kg (2,500 lbs) were sorted and weighed in their entirety and larger catches were subsampled. Fishes, crabs, and other invertebrates were identified and sorted by species to the greatest extent possible. In cases where species identification was unknown, specimens were collected and returned to the lab for expert identification. After sorting, all caught species (except colonial species that cannot be individually counted) were counted and weighed. For the predominant fish species encountered, a subsample was weighed, sorted by sex, and the fork length of all specimens in the subsample was measured to the nearest centimeter (cm). For the predominant crab species encountered, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Some of the species caught were grouped into higher taxa groups (common names for an assemblage of species) for analysis either because the catch size was very small for individual species or due to questionable identification. Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information that included their size, weight, sex, age, reproductive state, genetics, health (condition factor), and stomach content/diet.
+
+Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), population biomass, population abundance, and population abundance by size class for measured species. CPUE can be used as a measurement of the density of a caught species. CPUE is the estimated catch of organisms caught (in kilograms, kg, or number of individuals) per amount of effort (generally, effort is a combination of gear type, gear size, and length of time the gear is used). For these surveys, effort is estimated as the area sampled, or area swept. This area is computed by multiplying trawl tow distance by the mean width of the net during the tow. Net width during the tow was measured by acoustic sensors attached to the net. The same gear is used throughout the survey and type does not change. Mean CPUE values were calculated for the overall survey areas. Biomass and population estimates were derived for each survey area by multiplying the mean CPUE by the total survey area. For size composition estimates, the proportion of fish at each 1-cm length interval or crab at each 1-mm carapace width or length interval (collected from subsamples at each station) was weighted based upon the mean CPUE (number of a taxon per square kilometer) and then expanded to the total population for the northern Bering Sea survey area. 
+
+Environmental data, including water temperature in degrees Celsius (°C), depth in meters (m), salinity (parts per thousand), and underwater downwelling light were also recorded at each sampling station. Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).
