@@ -385,20 +385,8 @@ temp <- total_biomass %>%
   dplyr::group_by(year, SRVY) %>% 
   dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1)) %>% 
   dplyr::ungroup() %>% 
-  dplyr::arrange(desc(year))
-
-# temp <- biomass %>%
-#   dplyr::filter(stratum == 999 & 
-#                   (species_code >= 40000 &
-#                      species_code < 99991) |
-#                   (species_code > 1 &
-#                      species_code < 35000) &
-#                   year %in% nbsyr) %>%
-#   # dplyr::select(year, SRVY, biomass_mt) %>% 
-#   dplyr::group_by(year, SRVY) %>% 
-#   dplyr::summarise(biomass_mmt = round(sum(biomass_mt)/1e6, digits = 1)) %>% 
-#   dplyr::ungroup() %>% 
-#   dplyr::arrange(desc(year))
+  dplyr::arrange(desc(year)) %>% 
+  dplyr::filter(year %in% c(maxyr, compareyr))
 ```
 
 In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-NBS)). 
@@ -410,7 +398,6 @@ load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
 temp1 <- obj$raw %>%
       # dplyr::filter(SRVY == "NBS") %>%
       dplyr::select(print_name, change, change0, maxyr, taxon, SRVY) %>%
-  dplyr::arrange(desc(change)) %>%
  # I defined "no marked change" in < 25 and > -25% change to get me through the code. What number should it be?
   dplyr::mutate(
     change_case = dplyr::case_when(
@@ -446,6 +433,7 @@ temp33 <- dplyr::bind_rows(
                           tail(temp3[which(temp3$SRVY == "EBS"),]), 
                           head(temp3[which(temp3$SRVY == "NBS"),]), 
                           tail(temp3[which(temp3$SRVY == "NBS"),])) %>%
+  dplyr::arrange(desc(abs(change0))) %>% 
   dplyr::group_by(change_case1, SRVY) %>%
   dplyr::summarise(spp_list = text_list(paste0(print_name, " (", change, ")"))) %>%
   dplyr::ungroup() %>%
@@ -457,7 +445,7 @@ for (i in 1:length(SRVY00)) {
 
   temp3 <- temp33 %>% dplyr::filter(SRVY == SRVY1[i])
   temp4 <- temp44 %>% dplyr::filter(SRVY == SRVY1[i])
-  
+    
 str0 <- paste0(str0, 
 paste0(
   "In the ",SRVY1[i]," between ", compareyr, " and ", maxyr , ", ",
@@ -472,8 +460,31 @@ collapse = ". " ), ". " )
 str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 
 ```
-
 `r str0`
+
+```{r ebs-vs-nbs}
+temp5 <- biomass %>% 
+  dplyr::filter(stratum == 999 & 
+                  species_code %in% report_spp1$species_code[(report_spp1$plot_idw)] & 
+                  year == maxyr) %>% 
+  dplyr::select(SRVY, biomass_mt, species_code, common_name) %>% 
+  dplyr::left_join(report_spp1 %>% 
+                     dplyr::select(print_name, species_code, order))  %>% 
+  # dplyr::arrange(desc(NBS)) 
+  dplyr::arrange(desc(order)) %>% 
+  dplyr::group_by(print_name, SRVY) %>% 
+  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE))%>% 
+  tidyr::pivot_wider(names_from = SRVY, values_from = biomass_mt) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(NBS_greater = (NBS > EBS), 
+                NBS_only = (NBS > 0 & is.na(EBS))) %>% 
+  dplyr::filter(NBS_greater) %>% 
+  dplyr::mutate(print_name = sub("\\(.*", "", x = print_name))
+```
+
+NBS survey catches were generally smaller than those from the EBS. Distributions of many predominant species extended throughout much of both survey regions. Several key species were found in the NBS in greater numbers than the EBS, including `r text_list(temp5$print_name)`.
+
+
 
 ```{r biomass-inc-dec}
 
@@ -492,9 +503,11 @@ temp2 <- total_biomass  %>%
 temp0 <- temp3 <- data.frame()
 str0 <- str00 <- c()
 
-for (i in 1:length(nbsyr)) {
+yrs <- c(maxyr, compareyr)
   
-  yr <- as.numeric(sort(nbsyr, decreasing = TRUE)[i])
+for (i in 1:length(yrs)) {
+  
+  yr <- as.numeric(sort(yrs, decreasing = TRUE)[i])
   temp <- temp2$total[temp2$year == yr]
   
   temp5 <- temp1  %>% 
@@ -514,13 +527,12 @@ for (i in 1:length(nbsyr)) {
   
   if (yr == maxyr) {
     str0 <- paste0(str0, 
-                     paste0("In ", yr, ", ", 
+                     paste0("In ", yr, ", 50% of the total estimated biomass in the northern Bering Sea was comprised of ", 
                             text_list(paste0(temp4$print_name, " (", 
-                                                          round(temp4$prop*100, digits = 0), "%)")), 
-                            " together comprised over 50% of the total estimated biomass in the NBS. "))
+                                                          round(temp4$prop*100, digits = 0), "%)")), ". "))
   } else if (i==2) {
     str0 <- paste0(str0, 
-                     paste0("Previously, in ", yr, ", ", 
+                     paste0("Previously in ", yr, ", 50% of the estimated biomass was comprised of ", 
                             text_list(
                               paste0(temp4$print_name, " (", round(temp4$prop*100, digits = 0), "%)"))))
   } else {
@@ -532,8 +544,8 @@ for (i in 1:length(nbsyr)) {
   }
   
   # str0 <- paste0(str0, ifelse(i %in% c(1,length(nbsyr)), "", ", "))
-  str0 <- paste0(str0, ifelse(i == length(nbsyr), 
-                                  " together comprised over 50% of the total estimated biomass in the NBS", ""))
+  # str0 <- paste0(str0, ifelse(i == length(nbsyr), 
+  #                                 " together comprised over 50% of the total estimated biomass in the NBS", ""))
   
   # Other cods: saffron cod and Arctic cod
   temp0 <- rbind.data.frame(temp0, 
@@ -542,6 +554,7 @@ for (i in 1:length(nbsyr)) {
 }
 
 temp0 <- temp0 %>% 
+  dplyr::filter(year %in% c(maxyr, compareyr)) %>%
   dplyr::group_by(year) %>% 
   dplyr::summarise(prop = sum(prop, na.rm = TRUE)) %>% 
   dplyr::arrange(desc(year)) %>% 
@@ -551,6 +564,7 @@ temp3 <- temp3  %>%
   # dplyr::mutate(case = dplyr::case_when(
   #   prop*100>0 ~ "increasing", 
   #   TRUE ~ "decreasing")) %>% 
+  dplyr::filter(year %in% c(maxyr, compareyr)) %>%
   dplyr::select(taxon, year, x,) %>%
   dplyr::group_by(taxon, year) %>% 
   dplyr::summarise(biomass_mt = sum(x, na.rm = TRUE)) %>% 
@@ -565,51 +579,6 @@ temp3 <- temp3  %>%
 `r str0`. 
 
 Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`.
-
-```{r ebs-vs-nbs}
-
-temp5 <- 
-  dplyr::left_join(
-    x = biomass %>%
-      dplyr::filter(#stratum == 999 & 
-        species_code != 1,
-        # SRVY == "NBS" & 
-        year %in% nbsyr) %>% 
-      dplyr::select(year, species_code, biomass_mt, SRVY), 
-    y = report_spp1 %>% 
-      dplyr::select(print_name, species_code, taxon, species_name1) %>% 
-      dplyr::rename(group = print_name, 
-                    species_name = print_name), 
-    # dplyr::mutate(species_name = as.character(unlist(lapply(strsplit(x = group, split = "_", fixed = TRUE), `[[`, 1)))),
-    by = c("species_code")) %>% 
-  dplyr::group_by(year, species_name, taxon, SRVY) %>% 
-  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
-  dplyr::left_join(x = ., 
-                   y = stratum %>% 
-                     dplyr::select(SRVY, area_km2) %>% 
-                     dplyr::group_by(SRVY) %>% 
-                     dplyr::summarise(area_km2 = sum(area_km2, na.rm = TRUE)), 
-                   by = "SRVY") %>%
-  dplyr::mutate(biomass_area = biomass_mt/area_km2) %>%
-  tidyr::pivot_wider(id_cols = c(species_name, taxon), 
-                     names_from = c(year, SRVY), 
-                     values_from = c(biomass_area)) %>%
-  dplyr::arrange(desc(all_of(paste0(maxyr, "_NBS")))) 
-
-temp5$maxyr_EBS <- temp5[,names(temp5) %in% paste0(maxyr, "_EBS")]
-temp5$maxyr_NBS <- temp5[,names(temp5) %in% paste0(maxyr, "_NBS")]
-
-temp5 <- temp5 %>% 
-  dplyr::mutate(maxyr_case = maxyr_EBS < maxyr_NBS, 
-                extends_thru_both = (maxyr_case %in% c(TRUE, FALSE) & 
-                                       maxyr_EBS > .05 &
-                                       maxyr_NBS > .05)) 
-
-# > \fancypagestyle{csaplscape}  https://www.google.com/url?sa=j&url=https%3A%2F%2Fgithub.com%2Fpbs-assess%2Fcsasdown%2Fissues%2F31&uct=1634361613&usg=PiE96PLA8FqdrWy10fl2phvIyX8.&source=meet
-
-```
-
-On average, NBS survey catches were smaller than those from the EBS. Distributions of some of the predominant species, such as `r text_list(temp5$species_name[temp5$extends_thru_both == TRUE])`, extended throughout much of both survey regions. Several key fish species were found in the NBS in greater numbers than the EBS, including `r text_list(temp5$species_name[temp5$maxyr_case == TRUE & temp5$taxon == "fish"])`.
 
 Detailed summary profiles outlining several of the species showing ecologically significant trends are discussed in Table \@ref(tab:tab-majortaxa-pchange-NBS).
 
