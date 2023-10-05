@@ -1043,13 +1043,13 @@ temp <- spp_info %>%
   dplyr::distinct() %>%
   unlist()
 
-temp <- spp_info %>% 
+temp <- spp_info %>%   # dplyr::filter(species_code %in% c(99991, 99993, 99994, 99997, 99998, 99999, 1) %>% 
   dplyr::filter(!((species_code >= 40000 &
                      species_code < 99991) |
                     (species_code > 1 & 
-                       species_code < 35000))) %>% 
-  # dplyr::filter(species_code %in% c(99991, 99993, 99994, 99997, 99998, 99999, 1) %>% 
-  dplyr::select(species_code, common_name, species_name)
+                       species_code < 35000)) & 
+                  !grepl(x = common_name, pattern = "egg")) %>% 
+  dplyr::select(species_code, common_name, species_name) 
 
 
 total_biomass <- biomass %>% 
