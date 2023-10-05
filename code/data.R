@@ -113,22 +113,23 @@ if (access_to_internet ) {
   }
   
   # Word documents
-  a <- googledrive::drive_ls(path = id_googledrive)
+  a <- googledrive::drive_ls(path = id_googledrive, 
+                             type = "spreadsheet")
+  for (i in 1:nrow(a)){
+    googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
+                                type = "csv", 
+                                overwrite = TRUE, 
+                                path = paste0(dir_out_rawdata, "/", a$name[i]))
+  }
+  a <- googledrive::drive_ls(path = id_googledrive, 
+                             type = "document")
   for (i in 1:nrow(a)){
     googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
                                 type = "txt",
                                 overwrite = TRUE, 
                                 path = paste0(dir_out_rawdata, "/", a$name[i], ".txt"))
-    if (a$name[i] == "0-survey-team-bios") {
-      googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
-                                  type = "docx",
-                                  overwrite = TRUE, 
-                                  path = paste0(dir_out_rawdata, "/", a$name[i], ".docx"))
-    }
-  }
-  
 }
-
+}
 # Make google doc txts into .rmds
 txtfiles <- list.files(path = paste0(dir_out_rawdata, "/"), pattern = ".txt")
 

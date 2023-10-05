@@ -2851,7 +2851,7 @@ plot_sizecomp <- function(sizecomp0,
     figure <- figure +
       ggplot2::geom_text(mapping = aes(label = label, 
                                        x = (quantile(x = range(table_raw$length_mm), .8))[[1]], 
-                                       y = (quantile(x = range(table_raw$population_count), .95))[[1]]), 
+                                       y = (quantile(x = range(table_raw$population_count), .98))[[1]]), 
                          check_overlap = TRUE) 
   }
   
@@ -3554,6 +3554,7 @@ theme_flextable_nmfstm <- function(x,
   # x <- flextable::line_spacing(x = x, space = spacing, part = "all")
   
   x <- flextable::fix_border_issues(x = x)
+  x <- flextable::valign(x = x, valign = "top", part = "header")
   
   return(x)
 }

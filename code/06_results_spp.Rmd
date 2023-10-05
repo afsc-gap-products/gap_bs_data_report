@@ -32,30 +32,7 @@ pagebreak <- ifelse(report_title == "community" & !spp_table_cpue, "", "\\pagebr
 lang <- ""
 ```
 
-
-```{r res-spp-lang-{{jj}}, eval =  (report_title == "community")}
-# Native Languages Names
-
-temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), skip = 1) %>% 
-  dplyr::filter(print_name == spp_print) %>% 
-  dplyr::select(dplyr::starts_with("lang_")) %>% 
-  dplyr::select_if(~sum(!is.na(.)) > 0)
-
-temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv")) %>% 
-  head(1) %>% 
-  t() %>% 
-  data.frame() 
-names(temp) <- rownames(temp0)[which(temp0$. %in% names(temp))]
-
-  lang <- ""
-if (ncol(temp)>0) {
-  lang <- paste0("**", names(temp), "**: ", temp, collapse = "\n\n")
-}
-```
-
 ## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
-
-`r lang `
 
 ```{r res-spp-data-wrangle-{{jj}}, eval = FALSE }
 # find basic info about species
@@ -225,27 +202,52 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 
 `r ifelse(refcontent & spp_text, "*REFERENCE MATERIAL FOR WRITERS - END*", "")`
 
-```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=spp_text, results='asis'}
+## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
+
+:::::::::::::: {.columns}
+::: {.column width="30%"}
+
+![](`r here::here("img", paste0(spp_file, ".png"))) `)
+
+:::
+::: {.column width="70%"}
+
+```{r res-spp-lang-{{jj}}, eval =  (report_title == "community")}
+# Native Languages Names
+
+temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), skip = 1) %>%
+  dplyr::filter(print_name == spp_print) %>%
+  dplyr::select(dplyr::starts_with("lang_")) %>%
+  dplyr::select_if(~sum(!is.na(.)) > 0)
+
+temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv")) %>%
+  head(1) %>%
+  t() %>%
+  data.frame()
+names(temp) <- rownames(temp0)[which(temp0$. %in% names(temp))]
+
+  lang <- ""
+if (ncol(temp)>0) {
+  lang <- paste0("**", names(temp), "**: ", temp, collapse = "\n\n")
+}
 ```
 
-`r ifelse(spp_text & (report_title == "community"), "<br>", "") `
+`r lang `
 
-```{r tab-env-{{jj}} , eval = (report_title == "community")}
-nickname <- paste0("tab-env-", spp_file) 
+```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
+```
+
+:::
+::::::::::::::
+
+<!-- `r ifelse(spp_text & (report_title == "community"), "<br>", "") ` -->
+
+```{r tab-stats-{{jj}}, eval = (report_title == "community")}
+nickname <- paste0("tab-stats-", spp_file)
 no_cap <- TRUE
 ```
 
-```{r tab-env-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title == "community")}
-```
-
-`r ifelse((report_title == "community"), "<br>", "") `
-
-```{r tab-bio-{{jj}}, eval = FALSE}
-nickname <- paste0("tab-bio-", spp_file)
-no_cap <- TRUE
-```
-
-```{r tab-bio-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = FALSE}
+```{r tab-stats-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = FALSE}
 ```
 
 ```{r tab-bio-line-{{jj}}, eval = (report_title == "community")}
