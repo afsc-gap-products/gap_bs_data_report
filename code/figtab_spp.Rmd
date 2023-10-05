@@ -1393,8 +1393,8 @@ temp00 <- function(table_raw0,
   if (error_bar) {
     table_raw <- table_raw %>% 
       dplyr::rename(
-        y_ci_up = paste0(var, "_ci_up"), 
-        y_ci_dw = paste0(var, "_ci_dw")) 
+        y_ci_up = ci_up, 
+        y_ci_dw = ci_dw) 
   }
   
   figure <- plot_timeseries(dat = table_raw,
@@ -1505,8 +1505,17 @@ height <- 4
 }
 
 table_raw <- table_raw0 %>% 
-  dplyr::rename(biomass_mt_ci_up = biomass_95ci_up, 
-                biomass_mt_ci_dw = biomass_95ci_dw) 
+  dplyr::rename(ci_up = biomass_95ci_up, 
+                ci_dw = biomass_95ci_dw) %>% 
+  dplyr::group_by(year, survey_definition_id, SRVY, SRVY_long) %>% 
+  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
+                   ci_up = sum(ci_up, na.rm = TRUE), 
+                   ci_dw = sum(ci_dw, na.rm = TRUE)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(species_name = spp_print, 
+                common_name = spp_print, 
+                print_name = spp_print, 
+                taxon = spp_taxon)
 
 figure <- temp00(table_raw0 = table_raw, 
                  var = "biomass_mt", 
@@ -1516,7 +1525,7 @@ figure <- temp00(table_raw0 = table_raw,
                  unt = "t", 
                  y_long = "Biomass", 
                  mean_in_legend = TRUE, 
-                 error_bar = TRUE, 
+                 error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
                  description = description)
 
 header <- "Biomass over time. "
@@ -1534,8 +1543,8 @@ unt = ""
 height <- 4
 nickname <- paste0("fig-", jj, "-", spp_file, "-2-population-pres-cv")
 table_raw <- table_raw0 %>% 
-  dplyr::rename(population_count_ci_up = population_95ci_up, 
-                population_count_ci_dw = population_95ci_dw)
+  dplyr::rename(ci_dw = population_95ci_up, 
+                ci_dw = population_95ci_dw)
 figure <- temp00(table_raw0 = table_raw, 
                  var = "population_count", 
                  maxyr = maxyr, 

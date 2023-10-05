@@ -2867,7 +2867,7 @@ plot_timeseries <- function(
     error_bar = TRUE, 
     spp_print = "", 
     mean_in_legend = TRUE, 
-    yrs_plotted = NULL){
+    yrs_plotted = NULL ){
   
   a<-find_units(unit, unt, dat = dat$y) 
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) } 
@@ -2935,10 +2935,10 @@ plot_timeseries <- function(
                    temp, 
                    " is too limited to plot.")
     
-    which(unique(table_raw$SRVY)==temp)
+    # which(unique(table_raw$SRVY)==temp)
     
-    pcol_anno <- pcol[which(unique(table_raw$SRVY)==temp)]
-    pcol <- pcol[which(unique(table_raw$SRVY)!=temp)]
+    col_anno <- table_raw$col[which(unique(table_raw$SRVY)==temp)]
+    col <- table_raw$col[which(unique(table_raw$SRVY)!=temp)]
   }
   
   table_raw <- 
@@ -3001,7 +3001,7 @@ plot_timeseries <- function(
                          show.legend = FALSE, 
                          size = 4, 
                          fontface = "italic",
-                         color = pcol_anno)
+                         color = col_anno)
   }
   
   # if (sum(dat$y == 0) > 0) {
