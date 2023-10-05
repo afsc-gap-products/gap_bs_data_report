@@ -241,19 +241,27 @@ if (ncol(temp)>0) {
 
 <!-- `r ifelse(spp_text & (report_title == "community"), "<br>", "") ` -->
 
-```{r tab-stats-{{jj}}, eval = (report_title == "community")}
+```{r tab-stats-{{jj}}, eval = (report_title %in% c("community", "data"))}
 nickname <- paste0("tab-stats-", spp_file)
 no_cap <- TRUE
 ```
 
-```{r tab-stats-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = FALSE}
+```{r tab-stats-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% c("community", "data"))}
 ```
 
-```{r tab-bio-line-{{jj}}, eval = (report_title == "community")}
-nickname <- paste0("fig-", jj, "-", spp_file, "-biomass-ci")
+```{r tab-bio-timeseries-{{jj}}, eval = (report_title %in% c("community", "data"))}
+nickname <- paste0("fig-", spp_file, "-biomass")
+no_cap <- TRUE
 ```
 
-```{r tab-bio-line-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title == "community")}
+```{r tab-bio-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% c("community", "data"))}
+```
+
+```{r tab-pop-timeseries-{{jj}}, eval = (report_title %in% c("data"))}
+nickname <- paste0("fig-", spp_file, "-population")
+```
+
+```{r tab-pop-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% c("data"))}
 ```
 
 
