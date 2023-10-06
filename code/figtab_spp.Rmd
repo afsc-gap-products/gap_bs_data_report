@@ -12,8 +12,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ```{r vars}
 a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 
-spp_sci <- a$species_name[1]
-spp_sci1 <- a$species_name1[1]
+spp_sci <- text_list(a$species_name)
 spp_code <- a$species_code
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
@@ -553,7 +552,7 @@ if (!(nrow(table_raw) == 0)) {
                               "centimeters (cm)", "millimeters (mm)"),
                        " encountered during the ",
                        range_text(yrs)," ",
-                       text_list(paste0(unique(table_raw$SRVY_long), " (", unique(table_raw$SRVY), ")")), 
+                       text_list(paste0(unique(table_raw$SRVY_long))), 
                        " shelf bottom trawl survey", 
                        ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
                        ". ",
@@ -816,7 +815,7 @@ for (i in 1:nrow(temp_bio)) {
 ### Combine temp tables --------------------------------------------------------
 
 table_raw <- temp_stat %>% 
-  dplyr::select(SRVY, "Stations Present" = str) %>% 
+  dplyr::select(SRVY, "Stations\nPresent" = str) %>% 
   dplyr::left_join(temp_env) %>% 
   dplyr::left_join(temp_bio1 %>% 
                      dplyr::filter(year == maxyr) %>% 
@@ -1158,7 +1157,8 @@ temp00 <- function(table_raw0,
                    legend_combined = TRUE, 
                    mean_in_legend = FALSE, 
                    error_bar = TRUE, 
-                   description = TRUE) {
+                   description = TRUE, 
+                   legend_font_size = 9) {
   
   pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
   
@@ -1181,7 +1181,8 @@ temp00 <- function(table_raw0,
                             y_long = y_long,
                             error_bar = error_bar,
                             spp_print = table_raw$print_name[1],
-                            mean_in_legend = TRUE)
+                            mean_in_legend = TRUE, 
+                            legend_font_size = legend_font_size)
   
   if (description) {
     
@@ -1271,9 +1272,11 @@ if (report_title %in% c("community", "data")) {
   description <- FALSE
   height <- 3
   width <- full_page_portrait_width
+  legend_font_size <- 8
 } else if (report_title %in% c("ptpres", "compres")) {
   nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres")
   height <- 4
+  legend_font_size <- 10
 }
 y_long = "Biomass"
 unit = "metric tons"
@@ -1325,9 +1328,11 @@ if (report_title %in% c("community", "data")) {
   description <- FALSE
   height <- 3
   width <- full_page_portrait_width
+  legend_font_size <- 8
 } else if (report_title %in% c("ptpres", "compres")) {
   nickname <- paste0("fig-", jj, "-", spp_file, "-2-population-pres")
   height <- 4
+  legend_font_size <- 10
 }
 
 unit = "individuals"

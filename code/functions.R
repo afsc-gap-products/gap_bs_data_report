@@ -2704,7 +2704,8 @@ plot_sizecomp <- function(sizecomp0,
                           type = "length", 
                           print_n = FALSE, 
                           ridgeline = FALSE, 
-                          unit0 = NULL){
+                          unit0 = NULL, 
+                          legend_font_size = 10){
   
   table_raw <- sizecomp0 %>%
     dplyr::arrange(year, SRVY, sex, length_mm) 
@@ -2839,12 +2840,12 @@ plot_sizecomp <- function(sizecomp0,
           panel.grid.minor.y = element_blank(),
           panel.grid.minor.x = element_blank(),
           strip.background = element_blank(),
-          strip.text = element_text(size = 12, face = "bold"),
+          strip.text = element_text(size = legend_font_size, face = "bold"),
           legend.text = element_text(size = 9),
           legend.key = element_rect(colour = "transparent",
                                     fill = "transparent"),
-          axis.title = element_text(size = 10, face = "bold"),
-          axis.text = element_text(size = 10))
+          axis.title = element_text(size = legend_font_size, face = "bold"),
+          axis.text = element_text(size = legend_font_size))
   
   if (print_n & !is.null(lengths0)) {
     
