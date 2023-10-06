@@ -203,22 +203,6 @@ str0 <- (paste0(unlist(str0), collapse = "\n\n"))
 
 ## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
 
-```{r}
-
-# readlines(paste0())
-
-
-```
-
-
-:::::::::::::: {.columns}
-::: {.column width="30%"}
-
-![](`r here::here("img", paste0(spp_file, ".png")) `)
-
-:::
-::: {.column width="70%"}
-
 ```{r res-spp-lang-{{jj}}, eval = (report_title == "community")}
 # Native Languages Names
 
@@ -236,16 +220,42 @@ names(temp) <- rownames(temp0)[which(temp0$. %in% names(temp))]
   lang <- ""
 if (ncol(temp)>0) {
   lang <- paste0("**", names(temp), "**: ", temp, collapse = "\n\n")
+  # lang <- paste0(names(temp), ": ", temp, collapse = "\n\n")
 }
 ```
 
 `r lang `
 
-```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
+```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.height=2, fig.width=2}
+figure <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
+figure
+# table_raw <- data.frame(
+#   img = here::here("img", paste0(spp_file, ".png")), 
+#   text = paste0(lang, "\n\n", paste0(readLines(con = paste0(dir_out_rawdata, spp_file,".txt")), collapse = ""), collapse = ""))
+# 
+# table_print <- table_raw %>%
+#   flextable::flextable(data = .) %>%
+#   flextable::delete_part(x = ., part = "header") %>%
+#   theme_flextable_nmfstm(row_lines = FALSE,
+#                          font = font0,
+#                          pad = 0,
+#                          pgwidth = full_page_portrait_width) %>%
+#   flextable::padding(part = "body", j = 2, padding = 5) %>%
+#   flextable::colformat_image(j = "img" ,
+#                              width = 2, 
+#                              height = 2) %>% 
+#   flextable::merge_v(j = "img") %>% 
+#   flextable::border_remove() %>% 
+#   flextable::width(width = c(2, full_page_portrait_width-2))
+#  table_print
+ 
+ # & (report_title %in% "data")
 ```
 
-:::
-::::::::::::::
+```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
+```
 
 <!-- `r ifelse(spp_text & (report_title == "community"), "<br>", "") ` -->
 

@@ -150,7 +150,7 @@ nickname <- "fig-cold-pool-area"
 str0 <- gsub(pattern = "  ", replacement = " ", x = str0)
 ```
 
-From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r str0`. 
+From the `r text_list(SRVY11)` shelf trawl survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa; `r str0`. 
 
 ## Estimates of Fishes and Invertebrates
 
@@ -162,10 +162,11 @@ temp <- total_biomass %>%
   dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1)) %>% 
   dplyr::ungroup() %>% 
   dplyr::arrange(desc(year)) %>% 
-  dplyr::filter(year %in% c(maxyr, compareyr))
+  dplyr::filter(year %in% c(maxyr, compareyr)) %>% 
+  dplyr::left_join(y = data.frame(SRVY = SRVY1, SRVY_long = SRVY11))
 ```
 
-In `r maxyr`, the total bottom-dwelling organismal biomass of the EBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-NBS)). 
+In `r maxyr`, the total bottom-dwelling organismal biomass of the eastern Bering Sea was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the northern Bering Sea was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY_long[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-NBS)). 
 
 ```{r biomass-inc-dec-spp}
 
@@ -224,7 +225,7 @@ for (i in 1:length(SRVY00)) {
     
 str0 <- paste0(str0, 
 paste0(
-  "In the ",SRVY1[i]," between ", compareyr, " and ", maxyr , ", ",
+  "In the ",SRVY11[i]," between ", compareyr, " and ", maxyr , ", ",
                text_list(paste0(temp4$str0, " experienced ", temp4$change_case, " biomass")),
   ifelse(i == 1, " within ± 25% change from the previous survey year. ", ". "),
                paste0("Prominent organisms that exhibited the largest ", temp3$change_case1,
@@ -255,10 +256,10 @@ temp5 <- biomass %>%
   dplyr::mutate(NBS_greater = (NBS > EBS), 
                 NBS_only = (NBS > 0 & is.na(EBS))) %>% 
   dplyr::filter(NBS_greater) %>% 
-  dplyr::mutate(print_name = sub("\\(.*", "", x = print_name))
+  dplyr::mutate(print_name = sub(" \\(.*", "", x = print_name))
 ```
 
-NBS survey catches were generally smaller than those from the EBS. Distributions of many predominant species extended throughout much of both survey regions. Several key species were found in the NBS in greater numbers than the EBS, including `r text_list(temp5$print_name)`.
+Northern Bering Sea survey catches were generally smaller than those from the EBS. Distributions of many predominant species extended throughout much of both survey regions. Several key species were found in the northern Bering Sea in greater numbers than the eastern Bering Sea, including `r text_list(temp5$print_name)`.
 
 ```{r biomass-inc-dec}
 
