@@ -2704,8 +2704,7 @@ plot_sizecomp <- function(sizecomp0,
                           type = "length", 
                           print_n = FALSE, 
                           ridgeline = FALSE, 
-                          unit0 = NULL, 
-                          legend_font_size = 10){
+                          unit0 = NULL){
   
   table_raw <- sizecomp0 %>%
     dplyr::arrange(year, SRVY, sex, length_mm) 
@@ -2868,7 +2867,8 @@ plot_timeseries <- function(
     error_bar = TRUE, 
     spp_print = "", 
     mean_in_legend = TRUE, 
-    yrs_plotted = NULL ){
+    yrs_plotted = NULL, 
+    legend_font_size = 12){
   
   a<-find_units(unit, unt, dat = dat$y) 
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) } 

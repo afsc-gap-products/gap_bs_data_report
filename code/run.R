@@ -155,11 +155,11 @@ rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"),
 
 # Strait sci presentation -------------------------------------------------------
 
-SRVY <- "EBS"
+SRVY <- "NEBS"
 
 report_title <- "nbspres" 
 source(here::here("code","directories.R"))
-dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_ptpres")), "/")
+dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_nbspres")), "/")
 dir.create(dir_out_figtab)
 source(here::here("code","functions.R"))
 # source('./code/data_dl.R') # Run when there is new data!
