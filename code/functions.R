@@ -1,5 +1,36 @@
 
-# Install Libraries -------------------------------------------------------------
+# Directories ------------------------------------------------------------------
+
+# Just in case you change the base name for any reason, it will change for anytime you load the files inside the folder, too! (e.g., if you have something against "scripts" being the name of the folder, just let the script know in one place aka right here).
+
+# Directories to all of your current folders
+dir_in<-paste0(here::here(), "/")
+dirs<-list.dirs(path = dir_in, full.names = FALSE, recursive = FALSE)
+dirs<-dirs[!grepl(pattern = "\\..", x = dirs)]
+for (i in 1:length(dirs)) {
+  assign(x = paste0("dir_", dirs[i]),
+         value = paste0(dir_in, (dirs[i]), "/"))
+}
+
+# Where we save everything
+dir_out_todaysrun <- paste0(dir_output, Sys.Date(),"/")
+dir.create(dir_out_todaysrun)
+dir_out_todaysrun <- paste0(dir_out_todaysrun, maxyr, "_", report_title, "/")
+dir.create(dir_out_todaysrun)
+
+dir_out_figtab <- paste0(dir_output, "figtab_",maxyr,"/")
+
+dirs <- c("chapters", "rawdata")#, "documentation", "code", "figtab", "cite", "ref")
+for (i in 1:length(dirs)) {
+  if (dir.exists(paste0(dir_out_todaysrun, dirs[i])) == FALSE) {
+    dir.create(paste0(dir_out_todaysrun, "/", dirs[i]))
+  }
+  assign(x = paste0("dir_out_", dirs[i]), value = paste0(dir_out_todaysrun, "/",dirs[i],"/"))
+}
+
+options("citation_format" = "pandoc")
+
+# Install Libraries ------------------------------------------------------------
 
 # Here we list all the packages we will need for this whole process
 # We'll also use this in our works cited page!!!
@@ -2212,19 +2243,10 @@ plot_timeseries <- function(
                          color = col_anno)
   }
   
-  # if (sum(dat$y == 0) > 0) {
   figure <- figure +
     ggplot2::scale_y_continuous(
       name = paste0(stringr::str_to_sentence(spp_print), " ", tolower(y_long), "\n", unit_word), 
-      labels = scales::comma) 
-  
-  # } else {
-  #   figure <- figure +
-  #     ggplot2::scale_y_continuous(name = paste0(stringr::str_to_sentence(spp_print),
-  #                                               " ", tolower(y_long), "\n", unit_word),
-  #                                 # labels = scales::label_number(accuracy = 1))
-  #                                 breaks = function(y) unique(floor(pretty(seq(0, (max(y) + 1) * 1.1)))))
-  # }
+      labels = scales::comma)
   
   figure <- figure +
     ggplot2::guides(color = guide_legend(title="", nrow = 2)) +
@@ -2237,13 +2259,13 @@ plot_timeseries <- function(
       panel.grid.major.x = element_line(colour = "grey95"),
       panel.border = element_rect(fill = NA, colour = "grey20"),
       legend.title = element_blank(), 
-      legend.text = element_text(size = 14),
+      legend.text = element_text(size = legend_font_size),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
       legend.key = element_rect(colour = "transparent",
                                 fill = "transparent"),
-      axis.title = element_text(size = 12, face = "bold"),
-      axis.text = element_text(size = 12),
+      axis.title = element_text(size = legend_font_size, face = "bold"),
+      axis.text = element_text(size = legend_font_size),
       legend.position = "bottom", 
       legend.box = "horizontal"
     )

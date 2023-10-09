@@ -614,6 +614,288 @@ if (!(nrow(table_raw) == 0)) {
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
+## fig-nbspres-sizecomp-dist-[spp]
+
+```{r fig-nbspres-sizecomp-dist-[spp], eval = (report_title == "nbspres")}
+# width <- full_page_portrait_width # 6.5  
+# nickname <- paste0("fig-3-sizecomp-dist-", spp_file, "-nbspres")
+# header <- ""
+# 
+# # Sizecomp plot ----------------------------------------------------------------
+# 
+# lengths0 <- lengths %>%
+#   dplyr::filter(species_code %in% spp_code &
+#                   SRVY %in% srvy &
+#                   year %in% yrs)
+# 
+# type <- unique(lengths0$sentancefrag)
+# 
+# table_raw <- sizecomp %>%
+#   dplyr::filter(species_code %in% spp_code &
+#                   SRVY %in% srvy &
+#                   year %in% yrs) %>% 
+#   dplyr::mutate(sex = str_to_sentence(sex), 
+#                 sex = factor(sex, 
+#                              levels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"), 
+#                              labels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"),
+#                              ordered = TRUE), 
+#                 SRVY_long = dplyr::case_when(
+#                   SRVY == "EBS" ~ "eastern Bering Sea", 
+#                   SRVY == "NBS" ~ "northern Bering Sea") ) %>% 
+#   dplyr::arrange(sex) 
+# 
+# if (!(nrow(table_raw) == 0)) {
+#   
+#   if (report_title %in% c("community", "data")) {
+#     if (report_title == "community") {
+#       
+#       header <- paste0("Total population estimates at each length of ",
+#                        spp_print, ifelse(is.na(spp_sci), "", 
+#                                          paste0(" (",spp_sci,")")), 
+#                        " by sex (",text_list(tolower(unique(table_raw$sex))),
+#                        ") in ",
+#                        ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
+#                               "centimeters (cm)", "millimeters (mm)"),
+#                        " encountered during the ",
+#                        range_text(yrs)," ",
+#                        text_list(paste0(unique(table_raw$SRVY_long))), 
+#                        " shelf bottom trawl survey", 
+#                        ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
+#                        ". ",
+#                        ifelse(print_n, 
+#                               "Total number of individuals measured during the survey is indicated in the upper right corner of each plot.", ""))
+#       
+#     } else if (report_title == "data") {
+#       
+#       if (SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
+#         table_raw <- dplyr::bind_rows(
+#           table_raw, 
+#           table_raw %>%
+#             dplyr::filter(species_code %in% spp_code &
+#                             SRVY %in% SRVY &
+#                             year %in% yrs) %>% 
+#             dplyr::group_by(year, taxon, species_code, sex, population_count) %>% 
+#             dplyr::summarise(length_mm) %>% 
+#             dplyr::mutate(
+#               SRVY = factor(x = SRVY, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE), 
+#               SRVY = "EBS and NBS", 
+#               SRVY_long = paste0("combined ", SURVEY)))
+#       }
+#       
+#       header <- paste0("Total abundance-at-length estimates of ",
+#                        spp_print, ifelse(is.na(spp_sci), "", 
+#                                          paste0(" (",spp_sci,")")), 
+#                        " by sex (",text_list(tolower(unique(table_raw$sex))),
+#                        ") in ",
+#                        ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
+#                               "centimeters (cm)", "millimeters (mm)"),
+#                        " encountered during the ",
+#                        range_text(yrs)," ",
+#                        text_list(paste0(unique(table_raw$SRVY_long))), 
+#                        " shelf bottom trawl survey", 
+#                        ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
+#                        ". ",
+#                        ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0,
+#                               paste0("There were no lengths collected for this species in the ", 
+#                                      range_text(yrs), " ",
+#                                      haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
+#                                      " shelf trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
+#                               ""),
+#                        
+#                        "Length distributions scaled up to the total estimated population size. ", 
+#                        ifelse(print_n, 
+#                               "Total number of individuals measured during the survey is indicated in the upper right corner of each plot.", ""))
+#     }
+#     
+#       figure2 <- figure <- plot_sizecomp(
+#         sizecomp0 = table_raw %>% 
+#           dplyr::filter(SRVY == "NBS") %>% 
+#           dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)),
+#         lengths0 = lengths0,
+#         spp_code = spp_code,
+#         spp_print = stringr::str_to_sentence(spp_print),
+#         type = type,
+#         print_n = print_n, 
+#         ridgeline = FALSE)
+#   
+# # Distribution plot ------------------------------------------------------------
+# yrs <- maxyr
+# 
+#   table_raw <- cpue %>% 
+#     dplyr::mutate(cpue_kgkm2 = ifelse(is.na(cpue_kgkm2), 0, cpue_kgkm2)) %>%
+#     dplyr::filter(
+#       SRVY %in% SRVY1 &
+#         species_code %in% spp_code & 
+#         year %in% yrs) %>% 
+#     dplyr::arrange(desc(year))
+#     set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgkm2")
+# 
+# # only if both species are only found in prt of the region, chnge the extrp.box
+# map.area0 <- map.area
+# reg_dat0 <- reg_dat
+# if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
+#   map.area0 <- ifelse(unique(table_raw$SRVY) == "EBS", "bs.south", "bs.north")
+#   reg_dat0 <- report_types[[unique(table_raw$SRVY)]]$reg_dat
+# }
+# 
+#     a <- table_raw %>% 
+#       dplyr::select(year, SRVY) %>% 
+#       dplyr::distinct() %>% 
+#       dplyr::select(year) %>%
+#       table()
+#     
+#     if (sum(a==2)>0) {
+#       raster_nebs <- stars0 <- make_idw_stack(
+#         x = table_raw %>% 
+#           dplyr::rename(COMMON_NAME = common_name,
+#                         LATITUDE = latitude_dd_start,
+#                         LONGITUDE = longitude_dd_start,
+#                         CPUE_KGHA = cpue_kgkm2) %>% 
+#           dplyr::filter(year %in% as.numeric(names(a[a == 2]))),
+#         region = "bs.all", 
+#         grouping.vars = "year", 
+#         set.breaks = set.breaks)
+#     }
+#     
+#     if (sum(a==1)>0) {
+#       raster_ebs <- stars0 <- make_idw_stack(
+#         x = table_raw %>% 
+#           dplyr::rename(COMMON_NAME = common_name,
+#                         LATITUDE = latitude_dd_start,
+#                         LONGITUDE = longitude_dd_start,
+#                         CPUE_KGHA = cpue_kgkm2) %>% 
+#           dplyr::filter(year %in% as.numeric(names(a[a == 1]))),
+#         region = "bs.south", 
+#         grouping.vars = "year", 
+#         set.breaks = set.breaks)
+#     }
+#     
+#     if (sum(c(1, 2) %in% a) == 2) {
+#       temp <- data.frame(raster_nebs$extrapolation.stack)
+#       for (i in names(a[a %in% 1])) {
+#         temp$temp <- factor(NA)
+#         names(temp)[ncol(temp)] <- paste0("X", i)
+#       }
+#       
+#       stars0 <- dplyr::bind_rows(
+#         temp, 
+#         data.frame(raster_ebs$extrapolation.stack)) %>% 
+#         tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")), 
+#                             names_to = "year", values_to = "bin") %>% 
+#         dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>% 
+#         stars::st_as_stars(df, dims = c("x", "y", "year"))
+#     } else {
+#       stars0 <- stars0$extrapolation.stack %>% 
+#         data.frame() %>% 
+#         tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")), 
+#                             names_to = "year", values_to = "bin") %>% 
+#         dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>% 
+#         stars::st_as_stars(df, dims = c("x", "y", "year"))
+#     }
+#     
+#     viridis_palette_option <- "mako"
+#     key.title <- paste0(stringr::str_to_sentence(spp_print),
+#                         ifelse(report_title == "ptpres", " ", '\n'), 
+#                         'Weight CPUE (kg/km²)')
+#   
+#     figure2 <- ggplot() +
+#       ggplot2::geom_sf(data = reg_dat0$akland,
+#                        color = NA,
+#                        fill = "grey50")  +
+#       ggplot2::geom_sf(data = reg_dat0$graticule,
+#                        color = "grey80",
+#                        alpha = 0.2) +
+#       ggplot2::scale_y_continuous(name = "", #"Latitude",
+#                                   limits = reg_dat0$plot.boundary$y,
+#                                   breaks = reg_dat0$lat.breaks) +
+#       ggplot2::scale_x_continuous(name = "", #"Longitude",
+#                                   limits = reg_dat0$plot.boundary$x,
+#                                   breaks = reg_dat0$lon.breaks) +
+#       geom_stars(data = stars0,
+#                  na.rm = FALSE,
+#                  show.legend = TRUE) +
+#       ggplot2::facet_wrap( ~ year, nrow = row0) + 
+#       coord_sf() + 
+#       ggplot2::scale_fill_manual(
+#         name = key.title, 
+#         values =  c("gray90",
+#                     viridis::viridis(
+#                       option = viridis_palette_option,
+#                       direction = -1,
+#                       n = length(set.breaks)-1,
+#                       begin = 0.20,
+#                       end = 0.80)),
+#         na.translate = FALSE, # Don't use NA
+#         drop = FALSE)  +
+#       ggplot2::geom_sf(
+#         data = reg_dat$survey.area, 
+#         mapping = aes(color = SURVEY, 
+#                       geometry = geometry), 
+#         fill = "transparent", 
+#         linewidth = ifelse(row0 > 2, 1.5, 1), 
+#         show.legend = FALSE) +
+#       ggplot2::scale_color_manual(
+#         name = " ", 
+#         values = reg_dat$survey.area$color,
+#         breaks = reg_dat$survey.area$SURVEY,
+#         labels = reg_dat$survey.area$SRVY) + 
+#       ggplot2::guides(
+#         fill = guide_legend(
+#           order = 1,
+#           title.position = "top",
+#           label.position = "bottom",
+#           title.hjust = 0.5,
+#           override.aes = list(color = NA),
+#           nrow = 1),
+#         color = "none")  +
+#       ggplot2::theme( 
+#         panel.background = element_rect(fill = "white", 
+#                                         colour = NA), 
+#         panel.border = element_rect(fill = NA, 
+#                                     colour = "grey20"), 
+#         axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
+#         
+#         strip.background = element_blank(), 
+#         strip.text = element_text(size = 10, 
+#                                   face = "bold"), 
+#         legend.text = element_text(size = 9),
+#         legend.background = element_rect(colour = "transparent", 
+#                                          fill = "transparent"),
+#         legend.key = element_rect(colour = "transparent", 
+#                                   fill = "transparent"),
+#         legend.position = "bottom", 
+#         legend.box = "horizontal")  +
+#       ggplot2::theme(legend.title=element_blank() ) +
+#       ggplot2::ggtitle(key.title)  + 
+#         ggplot2::geom_sf_text(
+#           data = data.frame(y = 64.500126, x = -165.408402) %>% 
+#             sf::st_as_sf(coords=c("x","y"), crs="+proj=longlat") %>% 
+#             sf::st_transform(crs = "EPSG:3338") %>%
+#             dplyr::mutate(label = "Nome"), 
+#           mapping = aes(label = label), 
+#           fontface = "italic", 
+#           size = 4) +
+#       geom_text(data = subset(reg_dat$place.labels, 
+#                               type == "mainland"), 
+#                 aes(x = x, y = y, label = lab), 
+#                 size = 7, group = 99) + 
+#       geom_shadowtext(data = subset(reg_dat$place.labels, 
+#                                     type == "peninsula"), 
+#                       aes(x = x, y = y, label = lab), size = 3, angle = 3, 
+#                       bg.color = "white", color = "black", group = 99) + 
+#       geom_shadowtext(
+#         data = subset(reg_dat$place.labels, 
+#                       type %in% c("bathymetry", "islands")),
+#         aes(x = x, y = y, label = lab), 
+#         bg.color = "white", color = "black", 
+#         size = 2, group = 99)
+#     
+# # Combine ----------------------------------------------------------------------
+#     
+# figure <- cowplot::plot_grid(figure1, figure2, nrow = 1)
+#   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+
+```
 
 ## tab-stats-[spp] pres
 
@@ -877,7 +1159,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
   for (i in 1:2) {
     table_raw <- table_print <- data.frame()
     
-    if (i == 1) { # CPUE (WT/HA) and BIOMASS
+    if (i == 1) { # CPUE (WT/km²) and BIOMASS
       nickname <- paste0(nickname0, "wt")
       
       table_raw <- temp %>% 
@@ -893,7 +1175,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
       
       if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
         
-        cpue_kgkm2_mean0<-find_units(unit = "kg/ha", unt = "kg/ha", dat = table_raw$cpue_kgkm2_mean[table_raw$cpue_kgkm2_mean != 0])    
+        cpue_kgkm2_mean0<-find_units(unit = "kg/km²", unt = "kg/km²", dat = table_raw$cpue_kgkm2_mean[table_raw$cpue_kgkm2_mean != 0])    
         cpue_kgkm2_sd0<-find_units(unit = "", unt = "", table_raw$cpue_kgkm2_sd[table_raw$cpue_kgkm2_sd != 0])
         biomass_mt0<-find_units(unit = "t", unt = "t", table_raw$biomass_mt [table_raw$biomass_mt  != 0])
         biomass_sd0<-find_units(unit = "", unt = "", table_raw$biomass_sd[table_raw$biomass_sd != 0])
@@ -941,7 +1223,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
             biomass_95ci_up = paste0("95% UCL", ifelse(biomass_mt0$unit_word=="", "", paste0("\n",biomass_mt0$unit_word)))
           ) 
       }
-    } else { # CPUE No/HA and population_count
+    } else { # CPUE No/km² and population_count
       
       nickname <- paste0(nickname0, "num")
       
@@ -957,7 +1239,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
       
       if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
         
-        cpue_nokm2_mean0 <- find_units(unit = "no./ha", unt = "no./ha", dat = table_raw$cpue_nokm2_mean[table_raw$cpue_nokm2_mean != 0])
+        cpue_nokm2_mean0 <- find_units(unit = "no/km²", unt = "no/km²", dat = table_raw$cpue_nokm2_mean[table_raw$cpue_nokm2_mean != 0])
         cpue_nokm2_sd0 <- find_units(unit = "", unt = "", table_raw$cpue_nokm2_sd[table_raw$cpue_nokm2_sd != 0])
         population_count0 <- find_units(unit = "", unt = "", table_raw$population_count[table_raw$population_count != 0])
         population_sd0 <- find_units(unit = "", unt = "", table_raw$population_sd[table_raw$population_sd != 0])
@@ -1225,10 +1507,10 @@ if (report_title %in% c("community", "data")) {
   height <- 3
   width <- full_page_portrait_width
   legend_font_size <- 8
-} else if (report_title %in% c("ptpres", "compres")) {
+} else if (report_title %in% c("ptpres", "nbspres")) {
   nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres")
   height <- 4
-  legend_font_size <- 10
+  legend_font_size <- 6
 }
 y_long = "Biomass"
 unit = "metric tons"
@@ -1282,10 +1564,10 @@ if (report_title %in% c("community", "data")) {
   height <- 3
   width <- full_page_portrait_width
   legend_font_size <- 8
-} else if (report_title %in% c("ptpres", "compres")) {
+} else if (report_title %in% c("ptpres", "nbspres")) {
   nickname <- paste0("fig-", jj, "-", spp_file, "-2-population-pres")
   height <- 4
-  legend_font_size <- 10
+  legend_font_size <- 6
 }
 
 unit = "individuals"

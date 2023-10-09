@@ -35,7 +35,6 @@ googledrive::drive_auth()
 ## Source Scripts --------------------------------------------------------------
 
 report_title <- "data" 
-source(here::here("code","directories.R"))
 source(here::here("code","functions.R"))
 # source('./code/data_dl.R') # Run when there is new data!
 source(here::here("code","data.R"))
@@ -79,7 +78,6 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"),
 # Community Highlights ---------------------------------------------------------
 
 report_title <- "community"
-source(here::here("code","directories.R"))
 dir_googledrive <- dir_googledrive_comm
 source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
@@ -112,7 +110,6 @@ rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"),
 SRVY <- "EBS"
 
 report_title <- "ptpres" 
-source(here::here("code","directories.R"))
 dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_ptpres")), "/")
 dir.create(dir_out_figtab)
 source(here::here("code","functions.R"))
@@ -153,7 +150,6 @@ rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"),
 SRVY <- "NEBS"
 
 report_title <- "nbspres" 
-source(here::here("code","directories.R"))
 dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_nbspres")), "/")
 dir.create(dir_out_figtab)
 source(here::here("code","functions.R"))

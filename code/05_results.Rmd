@@ -294,16 +294,15 @@ temp2 <- dplyr::full_join(
                    SRVY_long = SRVY11))
 
 temp1 <- left_join(
-  x = temp, 
+  x = total_biomass %>% 
+    dplyr::filter(year == maxyr), 
   y = stratum %>% 
     dplyr::group_by(SRVY) %>% 
     dplyr::summarise(area_km2 = sum(area_km2, na.rm = TRUE)), 
   by = "SRVY") %>% 
-  dplyr::mutate(prop = `999`/area_km2, 
+  dplyr::mutate(prop = total/area_km2, 
                 taxon = gsub(pattern = "Total ", replacement = "", x = taxon)) %>% 
   dplyr::filter(taxon == "fish")
-
-
 
 str0 <- paste0("The ", 
                text_list(paste0(
