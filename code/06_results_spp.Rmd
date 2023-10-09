@@ -31,6 +31,37 @@ pagebreak <- ifelse(report_title == "community" & !spp_table_cpue, "", "\\pagebr
 lang <- ""
 ```
 
+```{r prep-cite-{{jj}}}
+# fig_dist <- fig_sizecomp <- tab_wt <- tab_no <- NA
+
+if (spp_plot_idw) {
+  fig_dist <- paste0("\\@ref(fig:", "fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
+
+}
+
+if (spp_plot_sizecomp) {
+  fig_sizecomp <- paste0("\\@ref(fig:fig-sizecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
+} 
+
+if (spp_table_cpue) {
+  tab_wt <- paste0("\\@ref(tab:tab-est-", spp_file, "-wt)")
+  tab_no <- paste0("\\@ref(tab:tab-est-", spp_file, "-num)")
+}
+
+fig_bt <- "\\@ref(fig:fig-temperature-bt-1) and \\@ref(fig:fig-temperature-bt-2)"
+fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
+
+  if (report_title == "community") {
+    tab_majorspp_bio <- tab_majortaxa_pchange <- c("\\@ref(tab-majortaxa-pchange-NBS)")
+  } else if (report_title == "data") {
+    tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
+    tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
+  }
+str0 <- ""
+
+ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
+```
+
 ## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
 
 ```{r res-spp-lang-{{jj}}, eval = (report_title == "community")}

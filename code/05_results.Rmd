@@ -149,13 +149,13 @@ if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
   str0 <- paste0( 
     "Of the ", 
     xunits(nrow(temp[temp$SRVY == "EBS",])),
-    " fish species found in the EBS, ",
+    " fish species found in the eastern Bering Sea, ",
     xunits(nrow(temp3[temp3$where == "ebs",])), 
-    " did not occur in the NBS (Table \\@ref(tab:tab-species-composition)). In comparison, ",
+    " did not occur in the northern Bering Sea (Table \\@ref(tab:tab-species-composition)). In comparison, ",
     xunits(nrow(temp3[temp3$where == "nbs",])), 
     " of the ",
     xunits(nrow(temp[temp$SRVY == "NBS",])),
-    " fish species encountered in the NBS were not encountered in EBS (Table \\@ref(tab:tab-species-composition)). ")
+    " fish species encountered in the northern Bering Sea were not encountered in eastern Bering Sea (Table \\@ref(tab:tab-species-composition)). ")
   
   # flatfish
   temp4 <- temp3[temp3$order %in% c("Pleuronectiformes"), ]
@@ -166,8 +166,8 @@ if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
     dplyr::mutate(
                   including = NA, 
                   where0 = dplyr::case_when(
-                    where == "nbs" ~ "encountered in the NBS but not in the EBS",
-                    where == "ebs" ~ "encountered in the EBS but not in the NBS"
+                    where == "nbs" ~ "encountered in the northern Bering Sea but not in the eastern Bering Sea",
+                    where == "ebs" ~ "encountered in the eastern Bering Sea but not in the northern Bering Sea"
                   ))
   for (i in 1:nrow(temp5)) {
     temp5$including[i] <- 
@@ -228,7 +228,10 @@ temp0 <- dplyr::full_join(
     dplyr::group_by(SRVY) %>%
     dplyr::summarise(species_code = n()),
   by = "SRVY") %>% 
-  dplyr::mutate(perc = round(((species_code - species)/species_code)*100, digits = 2))
+  dplyr::mutate(perc = round(((species_code - species)/species_code)*100, digits = 2)) %>% 
+  dplyr::left_join(
+    y = data.frame(SRVY = SRVY1, 
+                   SRVY_long = SRVY11))
 
 temp1 <- dplyr::bind_cols(
   temp %>% 
@@ -245,7 +248,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level"))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
+`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY_long, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level"))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
 
 <br>
 
@@ -261,41 +264,34 @@ nickname <- "tab-species-composition"
 ## Biomass, Abundance, and Catch per Unit Effort
 
 ```{r results-tot-biomass}
-temp <- data.frame()
-temp0 <- tidyr::crossing(SRVY = haul_cruises_maxyr$SRVY, type = c("fish", "invert"))
-for (i in 1:nrow(temp0)) {
-  load(file = paste0(dir_out_figtab, "tab-biomass-est-", temp0$SRVY[i],"-", temp0$type[i],".rdata"))
-  
-  temp <- obj$raw %>%
-    dplyr::filter(group == "Total") %>%
-    # dplyr::filter(grepl(pattern = "Total", x = group, ignore.case = TRUE )) %>% 
-    dplyr::mutate(SRVY = temp0$SRVY[i], 
-                  taxon = temp0$type[i]) %>% 
-    # dplyr::distinct() %>%
-    dplyr::select(SRVY, taxon, `999`) %>% 
-    dplyr::bind_rows(temp, .)
-}
+
+total_biomass0 <- total_biomass %>% 
+  dplyr::filter(year == maxyr) %>% 
+  dplyr::group_by(SRVY, year, SRVY_long) %>% 
+  dplyr::summarise(total = sum(total, na.rm = TRUE)) %>% 
+  dplyr::ungroup()
 
 temp2 <- dplyr::full_join(
-  x = temp, 
-  y = total_biomass %>% 
-    dplyr::filter(year == maxyr) %>%
-    dplyr::select(-year) %>% 
-    dplyr::group_by(SRVY),
-  by = c("SRVY", "taxon")) %>% 
+  y = total_biomass0, 
+  x = total_biomass  %>% 
+    dplyr::filter(year == maxyr) %>% 
+    dplyr::rename(total_taxon = total)) %>% 
   dplyr::mutate(
-    prop = (`999`/total), 
+    prop = (total_taxon/total), 
     perc = paste0(formatC(x = prop*100, 
                           digits = 0, format = "f", big.mark = ","), 
                   "%"), 
     group = gsub(pattern = "Total ", replacement = "", x = taxon) ) %>% 
   tidyr::pivot_wider(id_cols = "SRVY", 
                      names_from = "taxon", 
-                     values_from = c("999", "perc", "prop")) %>%
+                     values_from = c(total_taxon, "perc", "prop")) %>%
   dplyr::mutate(case = dplyr::case_when(
     perc_fish == perc_invert ~ "about the same as", 
       prop_fish>prop_invert ~ "higher than",
-      prop_fish<prop_invert ~ "lower than"))
+      prop_fish<prop_invert ~ "lower than")) %>% 
+  dplyr::left_join(
+    y = data.frame(SRVY = SRVY1, 
+                   SRVY_long = SRVY11))
 
 temp1 <- left_join(
   x = temp, 
@@ -307,13 +303,12 @@ temp1 <- left_join(
                 taxon = gsub(pattern = "Total ", replacement = "", x = taxon)) %>% 
   dplyr::filter(taxon == "fish")
 
+
+
 str0 <- paste0("The ", 
                text_list(paste0(
-                 "total demersal animal biomass for the ", 
-                 total_biomass$SRVY[total_biomass$year == maxyr], 
-                 " was estimated at ", 
-                 xunits(total_biomass$total[total_biomass$year == maxyr]), 
-                 " t")), ". " )
+                 "total demersal organismal biomass for the ", total_biomass0$SRVY_long, 
+                 " was estimated at ", xunits(total_biomass0$total), " t")), ". " )
 
 str00 <- ""
 for (ii in 1:length(temp2$SRVY)) {
@@ -322,7 +317,7 @@ for (ii in 1:length(temp2$SRVY)) {
   
   str00 <- paste0(str00, 
                   ifelse(ii==2, " and in the ", "In the "), 
-                  paste0(temp2$SRVY[ii], 
+                  paste0(temp2$SRVY_long[ii], 
                          ", the proportion of fishes (", 
                          temp2$perc_fish[ii], 
                          "; Table \\@ref(tab:tab-biomass-est-",  temp2$SRVY[ii],
@@ -338,8 +333,8 @@ str0 <- paste0(str0, str00, ". ")
 if (SRVY == "NEBS") {
   str0 <- paste0(str0, 
                  paste0(ifelse(temp1$prop[temp1$SRVY=="EBS"]>temp1$prop[temp1$SRVY=="NBS"], 
-                               "The lower relative fish biomass in the NBS than in the EBS is consistent", 
-                               "The higher relative fish biomass in the NBS than in the EBS is inconsistent"), 
+                               "The lower relative fish biomass in the northern Bering Sea than in the eastern Bering Sea is consistent", 
+                               "The higher relative fish biomass in the northern Bering Sea than in the eastern Bering Sea is inconsistent"), 
                         " with results of a broader analysis of all survey years presented by @RN936 which showed decreasing fish biomass with increasing latitude on the eastern Bering Sea continental shelf. ", 
                         "") ) 
 }
@@ -377,7 +372,6 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
       dplyr::arrange(-prop) %>% 
       dplyr::mutate(order = 1:nrow(.)) %>% 
       dplyr::bind_rows(temp2, .)
-    
   }
   
   temp1 <- temp1 %>% 
@@ -445,15 +439,15 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
       " was primarily comprised of ", 
       temp0$str0[temp0$SRVY == SRVY1[i]]), sep_last2 = "; ")
     temp3 <- paste0(temp3, 
-                    paste0("In the ", SRVY1[i], ", ", temp4, ". "))
+                    paste0("In the ", SRVY11[i], ", ", temp4, ". "))
   }
   
   str0 <- paste0(
     text_list(temp1$group[1:2]),
-    " were the fish families with highest biomass in both the EBS (",
+    " were the fish families with highest biomass in both the eastern Bering Sea (",
     text_list(
       paste0(round(x = temp1$prop_EBS[1:2]*100, digits = 1), "%")), 
-    " of the total biomass, respectively), and the NBS (",
+    " of the total biomass, respectively), and the northern Bering Sea (",
     text_list(
       paste0(round(x = temp1$prop_NBS[1:2]*100, digits = 1), "%")), 
     " of the total biomass, respectively; Tables \\@ref(tab:tab-biomass-est-EBS-fish) and \\@ref(tab:tab-biomass-est-NBS-fish)). ", 
@@ -499,19 +493,19 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
         total_biomass$year == compareyr], na.rm = TRUE))
   
   str0 <- paste0(str0, 
-                 "The total estimated biomass in the ",SRVY1[i]," ", 
+                 "The total estimated biomass in the ",SRVY11[i]," ", 
                  ifelse(temp1$compareyr<temp1$maxyr, "increased", "decreased"),
                  " from ",
                  xunits(temp1$compareyr)," t in ", compareyr," to ",
                  xunits(temp1$maxyr)," t in ", maxyr, ". ", 
                  
                  # taxa increased
-                 "Taxa that significantly increased in biomass in the ", SRVY1[i], " included ", 
+                 "Taxa that significantly increased in biomass in the ", SRVY11[i], " included ", 
                  text_list(paste0(temp$print_name[temp$case == "increased"],
                                   " (", temp$change[temp$case == "increased"], ")")), 
                  " (Table \\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). ",
                  # taxa decreased
-                 "Large decreases in ", SRVY1[i], " biomass were observed for ", 
+                 "Large decreases in ", SRVY11[i], " biomass were observed for ", 
                  text_list(paste0(temp$print_name[temp$case == "decreased"],
                                   " (", temp$change[temp$case == "decreased"], ")")), 
                  " (Table \\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). "
@@ -556,17 +550,19 @@ temp <- biomass %>%
                 perc_topfishoffish = paste0(round(x = (topfish/fish)*100, digits = 1), "%"), # the % of the top 10 fish caught out of the survey
                 perc_invert = paste0(round(x = (invert/all)*100, digits = 1), "%"), 
                 perc_fish = paste0(round(x = (fish/all)*100, digits = 1), "%"), 
-                dplyr::across(where(is.numeric), formatC, digits = 1, big.mark = ",", format = "f"))
+                dplyr::across(where(is.numeric), formatC, digits = 1, big.mark = ",", format = "f")) %>% 
+  dplyr::left_join(
+    y = data.frame(SRVY = SRVY1, 
+                   SRVY_long = SRVY11))
 
 str0 <- text_list(paste0(
-  "The 10 most abundant fish taxa in the ",temp$SRVY,
+  "The 10 most abundant fish taxa in the ",temp$SRVY_long,
   " accounted for ", temp$perc_topfish,
   " (an average of ",temp$topfish," kg/ha per station) ", 
   "of total mean fish and invertebrate CPUE (an average of ",
   temp$all," kg/ha per station) and ",
   temp$perc_topfishoffish," of total mean fish CPUE (an average of ",temp$fish,
   " kg/ha per station; Tables \\@ref(tab:tab-est-spp-wt) and \\@ref(tab:tab-est-spp-num))."), sep = "", sep_last = "", sep_last2 = "")
-
 ```
 
 `r str0`
@@ -625,9 +621,8 @@ The spatial distribution maps below illustrate where species were found during t
 ### Selected Fish Species Estimates
 
 ```{r results-spatial-distribution_fish}
-
 temp <- report_spp1 %>% 
-  dplyr::filter(plot_idw == TRUE) %>% # | plot_pa == TRUE) %>% 
+  dplyr::filter(plot_idw == TRUE) %>% 
   dplyr::select(file_name, taxon) %>% 
   dplyr::distinct()
 
@@ -635,7 +630,6 @@ temp2 <- report_spp1 %>%
   dplyr::filter(table_cpue == TRUE) %>% 
   dplyr::select(file_name, taxon) %>% 
   dplyr::distinct()
-
 ```
 
 Plots of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/hectare and no./hectare) for `r length(unique(report_spp1$file_name[report_spp1$taxon == "fish"]))` major fish species caught during the `r SURVEY` continental shelf survey are presented in Figs. `r paste0("\\@ref(fig:fig-dist-",temp$taxon[1],"-",temp$file_name[1],"-data)")` to `r paste0("\\@ref(fig:fig-dist-",temp$taxon[nrow(temp)],"-",temp$file_name[nrow(temp)],"-data)")` and Tables `r paste0("\\@ref(tab:tab-est-",temp2$taxon[1],"-",temp2$file_name[1],"-wt)")` to `r paste0("\\@ref(tab:tab-est-",temp2$taxon[nrow(temp2)],"-",temp2$file_name[nrow(temp2)],"-num)")`. Differences in estimates and totals may be due to rounding.

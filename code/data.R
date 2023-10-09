@@ -1060,4 +1060,7 @@ total_biomass <- biomass %>%
   dplyr::group_by(SRVY, year, taxon) %>% 
   dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 
   dplyr::ungroup() %>% 
-  dplyr::arrange(desc(year), desc(taxon))
+  dplyr::arrange(desc(year), desc(taxon)) %>% 
+  dplyr::left_join(
+    y = data.frame(SRVY = SRVY1, 
+                   SRVY_long = SRVY11))

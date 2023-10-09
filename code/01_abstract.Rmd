@@ -15,7 +15,7 @@ str1 <- gsub(pattern = " ,", replacement = ",",
                            sep_last = ", as well as the "))
 ```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessels)))` chartered commercial stern trawler`r plural_surveys`, the `r text_list(paste0(vessels$length_m, "-m ",  vessels$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY))`. At each station, species composition, sex, length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
+In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessels)))` chartered commercial stern trawler`r plural_surveys`, the `r text_list(paste0(vessels$length_m, "-m ",  vessels$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY_long))`. At each station, species composition, sex, length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
 
 ```{r}
 #| label: abstract-temperature
@@ -35,7 +35,7 @@ temp0 <- temps_avg_yr %>%
 
 if (temp0$bt_case == temp0$st_case) {
 
-str0 <- paste0("The ", maxyr, " mean bottom and surface temperatures in the EBS (",
+str0 <- paste0("The ", maxyr, " mean bottom and surface temperatures in the eastern Bering Sea (",
                 temp0$bt, "°C and ", temp0$st, "°C) were ",
                 temp0$bt_case, # only need to list one
                 " the ",
@@ -86,7 +86,7 @@ if ((temp0$warmest_rank > (nrow(temps_avg_yr)-6)) |  (temp0$warmest_rank < 6)) {
 
 Environmental data, including temperature, salinity, and irradiance were collected at every survey station. `r str0` 
 
-```{r abstract-species-counts}
+```{r abstract-species-counts-biomass}
 
 # count fish spp
 temp <- dplyr::left_join(
@@ -234,18 +234,17 @@ temp1 <- dplyr::bind_cols(
 
 invert_spp <- xunits(temp1$species_code) 
 invert_phyla <- xunits(temp1$phylum) 
-```
 
 
-```{r abstract-biomass}
 str00 <- ""
 # if (SRVY == "NEBS") {
 for (i in 1:length(unique(cruises_maxyr$SRVY))){
   
   srvy <- sort(unique(cruises_maxyr$SRVY))[i]
+  srvy1 <- sort(unique(cruises_maxyr$SRVY_long))[i]
   
   str0 <- paste0(
-    "The estimated total biomass in the ", srvy ," ",
+    "The estimated total biomass in the ", srvy1 ," ",
     ifelse(sum(biomass_compareyr$biomass_mt[biomass_compareyr$SRVY == srvy]) < 
              sum(biomass_maxyr$biomass_mt[biomass_maxyr$SRVY == srvy]), 
            "increased", "decreased"),
