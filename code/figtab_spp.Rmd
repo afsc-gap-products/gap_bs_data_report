@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ```{r vars}
 a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 
-spp_sci <- text_list(a$species_name)
+spp_sci <- text_list(unique(a$species_name))
 spp_code <- a$species_code
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
@@ -55,8 +55,8 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r dist_funct} 
 make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE = NA, 
                             CPUE_KGHA = NA, region = "bs.south", extrap.box = NULL, extrapolation.grid.type = "stars", 
-                            set.breaks = "jenks", grouping.vars, grid.cell = c(5000, 
-                                                                               5000), in.crs = "+proj=longlat", out.crs = "EPSG:3338", 
+                            set.breaks = "jenks", grouping.vars, grid.cell = c(5000, 5000), 
+                            in.crs = "+proj=longlat", out.crs = "EPSG:3338", 
                             log.transform = FALSE, idw.nmax = 4, use.survey.bathymetry = TRUE) 
 {
   stopifnot(`make_idw_map: extra.grid.type must be 'stars', 'sf', or 'sf.simple'` = extrapolation.grid.type %in% 
@@ -208,6 +208,7 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
 width <- full_page_portrait_width # 6.5  
 case_yr0 <- 1
 nickname <- paste0("fig-dist-", spp_file)
+place_labels <- FALSE
 if (report_title == "data") {
   yrs <- unique(c(maxyr, nbsyr)) # c(compareyr, maxyr)
   # height <- ifelse(SRVY == "NEBS", 5.5, 4.25) 
@@ -225,10 +226,16 @@ if (report_title == "data") {
   height <- 6
   width <- 8
   row0 <- 2
+} else if (report_title == "nbspres") {
+  nickname <- paste0("fig-", jj, "-", spp_file, "-3-distribution-nbspres")
+  yrs <- nbsyr[nbsyr != 2022]
+  height <- 3
+  width <- 8
+  row0 <- 1
 } 
 yrs <- sort(yrs, decreasing = TRUE)
 
-if (spp_plot_idw) {
+
   table_raw <- cpue %>% 
     dplyr::mutate(cpue_kgkm2 = ifelse(is.na(cpue_kgkm2), 0, cpue_kgkm2)) %>%
     dplyr::filter(
@@ -236,21 +243,6 @@ if (spp_plot_idw) {
         species_code %in% spp_code & 
         year %in% yrs) %>% 
     dplyr::arrange(desc(year))
-  
-  spp_plot_pa <- ifelse(nrow(table_raw)<2, TRUE, spp_plot_pa)
-  spp_plot_idw <- ifelse(isTRUE(spp_plot_pa), FALSE, spp_plot_idw)
-}  
-
-if (spp_plot_pa) {
-  
-  table_raw <- catch_haul_cruises %>%
-    dplyr::filter(!is.na(count) & 
-                    SRVY %in% SRVY1 &
-                    count != 0 & 
-                    species_code %in% spp_code & 
-                    year %in% yrs) %>% 
-    dplyr::arrange(desc(year))
-}
 
 # only if both species are only found in prt of the region, chnge the extrp.box
 map.area0 <- map.area
@@ -288,8 +280,6 @@ for (case_yr in case_yr0) {
       yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
     }
   }
-  
-  if (spp_plot_idw) {
     
     header <- paste0("The distribution (Weight CPUE (kg/km^2^)) of ", header0)
     
@@ -351,17 +341,10 @@ for (case_yr in case_yr0) {
     }
     
     viridis_palette_option <- "mako"
-    # key.title <- eval(parse(text=(paste0(
-    #   'bquote("',stringr::str_to_sentence(spp_print),
-    #   ifelse(report_title == "ptpres", " ", '\n'),
-    #   'Weight CPUE (kg/"*km^2*")")'))))
-    
     key.title <- paste0(stringr::str_to_sentence(spp_print),
                         ifelse(report_title == "ptpres", " ", '\n'), 
                         'Weight CPUE (kg/km²)')
-    
-    # legend_srvy_reg <- FALSE
-    
+  
     figure <- ggplot() +
       ggplot2::geom_sf(data = reg_dat0$akland,
                        color = NA,
@@ -396,7 +379,7 @@ for (case_yr in case_yr0) {
         mapping = aes(color = SURVEY, 
                       geometry = geometry), 
         fill = "transparent", 
-        linewidth = ifelse(row0 > 2, 1.5, 1), # size
+        linewidth = ifelse(row0 > 2, 1.5, 1), 
         show.legend = FALSE) +
       ggplot2::scale_color_manual(
         name = " ", 
@@ -411,16 +394,7 @@ for (case_yr in case_yr0) {
           title.hjust = 0.5,
           override.aes = list(color = NA),
           nrow = 1),
-        color = "none"
-        # color = guide_legend(
-        #   order = 2,
-        #   label.position = "right",
-        #   override.aes = list(
-        #     fill = reg_dat$survey.area$color,
-        #     color = reg_dat$survey.area$color),
-        #   title.hjust = 0.5,
-        #   nrow = 2)
-      )  +
+        color = "none")  +
       ggplot2::theme( 
         panel.background = element_rect(fill = "white", 
                                         colour = NA), 
@@ -439,53 +413,25 @@ for (case_yr in case_yr0) {
         legend.position = "bottom", 
         legend.box = "horizontal") 
     
-  } else if (spp_plot_pa) {
-    header <- paste0("The presence of ", header0)
-    
-    table_raw0 <- catch_haul_cruises %>%
-      dplyr::filter(!is.na(count) &
-                      count != 0 &
-                      species_code %in% spp_code &
-                      year %in% yrs &
-                      SRVY %in% unique(table_raw$SRVY)) %>%
-      dplyr::select(SRVY, year, latitude_dd_start, longitude_dd_start, count, species_code) 
-    
-    figure <- plot_pa_facet(
-      yrs = yrs,
-      dat = table_raw0,
-      lat = "latitude_dd_start",
-      lon = "longitude_dd_start",
-      year = "year",
-      reg_dat = reg_dat0, 
-      key.title = paste0(stringr::str_to_sentence(spp_print), " presence"),
-      row0 = row0, 
-      legend_srvy_reg = FALSE)
-  }
-  
   if (report_title == "ptpres") {
     figure <- figure +
-      # ggplot2::guides(
-      #   fill = guide_legend(
-      #     order = 1,
-      #     # title.position = "top",
-      #     label.position = "right",
-      #     title.hjust = 0.5,
-      #     override.aes = list(color = NA),
-      #     ncol = 1),
-      #   color = "none" ) +
-      theme(
-        # legend.direction = "vertical",
-        #       legend.box = "horizontal",
-        legend.title=element_blank(),
-        #       legend.position = "right",
-        #       legend.justification = c(0, 1)
-      ) +
-      ggtitle(key.title) # gsub(x = key.title, pattern = "\n", replacement = " "))
-    
-    # figure_legend <- get_legend(figure)
-    # figure <- figure + theme(legend.position = "none")
+      ggplot2::theme(legend.title=element_blank() ) +
+      ggplot2::ggtitle(key.title) 
   }
-  
+    
+    if (report_title %in% c("community", "nbspres")) {
+           
+      figure <- figure + 
+        ggplot2::geom_sf_text(
+          data = data.frame(y = 64.500126, x = -165.408402) %>% 
+            sf::st_as_sf(coords=c("x","y"), crs="+proj=longlat") %>% 
+            sf::st_transform(crs = "EPSG:3338") %>%
+            dplyr::mutate(label = "Nome"), 
+          mapping = aes(label = label), 
+          fontface = "italic", 
+          size = 4)
+    }  
+    
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
@@ -515,6 +461,13 @@ if (report_title == "data") {
   width <- 7
   srvy <- SRVY1 # "NBS"
   nickname <- paste0("fig-", jj, "-", spp_file, "-4-sizecomp-pres")
+} else if (report_title == "nbspres") {
+  yrs <- unique(sizecomp$year)
+  print_n <- FALSE
+  height <- 6
+  width <- 7
+  srvy <- SRVY1 # "NBS"
+  nickname <- paste0("fig-", jj, "-", spp_file, "-4-sizecomp-nbspres")
 }
 
 lengths0 <- lengths %>%
@@ -614,7 +567,6 @@ if (!(nrow(table_raw) == 0)) {
       type = type,
       print_n = print_n, 
       ridgeline = FALSE)
-    
   } else if (report_title %in% c("ptpres", "nbspres")) {
     if ("EBS" %in% table_raw$SRVY) {
       figure1 <- figure <- plot_sizecomp(
@@ -665,7 +617,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## tab-stats-[spp] pres
 
-```{r tab-stats-[spp], eval = (report_title == "community")}
+```{r tab-stats-[spp]}
 
 nickname <- paste0("tab-stats-", spp_file)
 
@@ -1266,9 +1218,9 @@ temp00 <- function(table_raw0,
 
 ## fig-[spp]-biomass-timeseries
 
-```{r, fig-[spp]-biomass-timeseries, eval = (report_title %in% c("ptpres", "community"))}
+```{r, fig-[spp]-biomass-timeseries}
 if (report_title %in% c("community", "data")) {
-  nickname <- paste0("fig-", spp_file, "-biomass")
+  nickname <- paste0("fig-biomass-", spp_file)
   description <- FALSE
   height <- 3
   width <- full_page_portrait_width
@@ -1322,10 +1274,10 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## fig-[spp]-population-timeseries
 
-```{r, fig-[spp]-population-timeseries, eval = (report_title %in% c("ptpres", "data", "nbspres"))}
+```{r, fig-[spp]-population-timeseries}
 
 if (report_title %in% c("community", "data")) {
-  nickname <- paste0("fig-",spp_file, "-population")
+  nickname <- paste0("fig-population-",spp_file)
   description <- FALSE
   height <- 3
   width <- full_page_portrait_width

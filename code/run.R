@@ -116,13 +116,8 @@ source(here::here("code","directories.R"))
 dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_ptpres")), "/")
 dir.create(dir_out_figtab)
 source(here::here("code","functions.R"))
-# source('./code/data_dl.R') # Run when there is new data!
 source(here::here("code","data.R"))
 
-# General figures
-rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
-                  output_dir = dir_out_rawdata,
-                  output_file = paste0("figtab.docx"))
 
 # Presentation Species figures
 comb <- report_spp1 %>% 
@@ -162,21 +157,12 @@ source(here::here("code","directories.R"))
 dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_nbspres")), "/")
 dir.create(dir_out_figtab)
 source(here::here("code","functions.R"))
-# source('./code/data_dl.R') # Run when there is new data!
 source(here::here("code","data.R"))
 
-# General figures
-rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
-                  output_dir = dir_out_rawdata,
-                  output_file = paste0("figtab.docx"))
 
 # Presentation Species figures
 comb <- report_spp1 %>% 
-  dplyr::filter(!is.na(order) & 
-                  file_name %in%  
-                  c("walleye-pollock", "pacific-cod", "yellowfin-sole", 
-                    "northern-rock-sole", "flathead-sole", "alaska-plaice",
-                    "pacific-halibut", "alaska-skate", "arrowtooth-flounder", "pacific-ocean-perch")) %>%
+  dplyr::filter(!is.na(order)) %>%
   dplyr::select(file_name) %>% 
   unlist() %>% 
   unique()
@@ -194,9 +180,9 @@ for (jj in 1:length(comb)) {
 }
 
 # Build Presentation
-rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"), 
+rmarkdown::render(input = paste0(dir_code, "00_strait_sci_pres.Rmd"), 
                   output_dir = dir_out_chapters, 
-                  output_file = paste0("00_plan_team_pres_", maxyr, ".pptx"))
+                  output_file = paste0("00_strait_sci_pres_", maxyr, ".pptx"))
 
 # Write README -----------------------------------------------------------------
 

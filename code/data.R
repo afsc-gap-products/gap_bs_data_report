@@ -317,7 +317,9 @@ report_spp1 <-
     grepl(pattern = " ", x = species_name, fixed = TRUE),
     "ital", NA)) %>%
   dplyr::ungroup() %>% 
-  dplyr::mutate(species_name0 = species_name, 
+  dplyr::mutate(
+    species_name0 = species_name, 
+    species_name0 = gsub(replacement = "", pattern = " larva", x = species_name0), 
                 species_name1 = species_name, 
                 species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
                 species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
