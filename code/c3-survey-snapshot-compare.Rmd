@@ -1,36 +1,34 @@
 
 # `r maxyr` Survey Results with Snapshot Comparisons to `r compareyr`
 
-In `r maxyr`, the cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. In `r compareyr`, the cumulative area sampled by trawls at the `r haul_cruises_compareyr$stations_completed[haul_cruises_compareyr$SRVY == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. 
-
 ## Seafloor Bottom Temperature
 
 ```{r results-cold-pool_insert, child=paste0(dir_out_rawdata, "/0-cold-pool.Rmd")}
 ```
 
 ```{r fig-temperature-1}
-nickname <- "fig-temperature-bt-1"
+nickname <- "fig-temperature-bt-1-comm"
 ```
 
 ```{r temperature-1-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 ```{r fig-temperature-2}
-nickname <- "fig-temperature-bt-2"
+nickname <- "fig-temperature-bt-2-comm"
 ```
 
 ```{r temperature-2-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 ```{r fig-temperature-3}
-nickname <- "fig-temperature-st-1"
+nickname <- "fig-temperature-st-1-comm"
 ```
 
 ```{r temperature-3-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 ```{r fig-temperature-4}
-nickname <- "fig-temperature-st-2"
+nickname <- "fig-temperature-st-2-comm"
 ```
 
 ```{r temperature-4-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
@@ -87,6 +85,9 @@ nickname <- "fig-cold-pool-area"
     temp2 <-  temp1[, c(1, i)]
     temp2 <- temp2[temp2[,2]>0,]
     temp2$spp <- text_list(unique(temp2$common_name))
+    temp2$spp <- ifelse(grepl(pattern = "shark", x = temp2$spp), 
+                    gsub(pattern = "shark", replacement = "sharks", x = temp2$spp), 
+                    temp2$spp)
     temp3 <- dplyr::bind_cols(temp3, 
                               data.frame(temp = temp2$spp[1]) )
     names(temp3)[i-1] <- paste0("spp_", names(temp2)[2])
@@ -147,6 +148,8 @@ nickname <- "fig-cold-pool-area"
     
 str0 <- gsub(pattern = "  ", replacement = " ", x = str0)
 ```
+
+In `r maxyr`, the cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. In `r compareyr`, the cumulative area sampled by trawls at the `r haul_cruises_compareyr$stations_completed[haul_cruises_compareyr$SRVY == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. 
 
 From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r str0`. 
 
