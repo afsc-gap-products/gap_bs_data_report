@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ```{r fig-survey-points}
 nickname <- "fig-survey-points"
 
-header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in "maxyr".") 
+header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".") 
 
 height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
@@ -770,7 +770,8 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 temp <- function(yrs, 
                  row0, 
                  case, 
-                 title0 = NULL) {
+                 title0 = NULL, 
+                 temperature_zscore = TRUE) {
   
   if (case == "surface") {
     raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
@@ -787,10 +788,12 @@ temp <- function(yrs,
                    range_text(yrs), " ", 
                    SURVEY, " shelf bottom trawl survey",
                    ifelse(SRVY=="NEBS", "s", ""),
-                   ".") 
-                   # Years in which the mean ", case, 
-                   # " temperature is 1 or more standard deviations above or below the time-series mean ", case, 
-                   # " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
+                   ". ") 
+  if (temperature_zscore) {
+  header <- paste0(header, "Years in which the mean ", case,
+                   " temperature is 1 or more standard deviations above or below the time-series mean ", case,
+                   " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
+  }
   
   # Create figure
   key.title = ifelse(case == "bottom", 
@@ -812,7 +815,7 @@ temp <- function(yrs,
     reg_dat = reg_dat0, 
     row0 = row0, 
     title0 = title0, 
-    temperature_zscore = TRUE) 
+    temperature_zscore = temperature_zscore) 
   
   return(list("figure" = figure, 
               "header" = header))
@@ -838,6 +841,34 @@ for (case in c("bottom", "surface")) {
     }
     nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr))
     a <- temp(yrs, row0, case)
+    figure <- a$figure
+    header <- a$header
+    
+    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  }
+}
+```
+
+## fig-temperature-[st/bt]-comm
+
+```{r fig-temperature-[st/bt]}
+height <- full_page_portrait_height
+width <- full_page_portrait_width
+temperature_zscore <- FALSE
+yrs0 <- (maxyr-17):maxyr
+row0 <- 3
+case_yr0 <- 1:2
+
+for (case in c("bottom", "surface")) {
+  for (case_yr in case_yr0) {
+    
+    if (case_yr == 1) {
+      yrs <- yrs0[1:(length(yrs0)/2)]
+    } else if (case_yr == 2) {
+      yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
+    }
+    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr))
+    a <- temp(yrs, row0, case, temperature_zscore)
     figure <- a$figure
     header <- a$header
     
@@ -873,13 +904,14 @@ for (case in c("bottom", "surface")) {
 ```{r fig-nbspres-temperature-[st/bt]}
 height <- 8
 width <- 8
+temperature_zscore <- FALSE
 yrs <- sort(nbsyr, decreasing = TRUE)
 row0 <- 2
 reg_dat0 <- report_types$NEBS$reg_dat
 
 for (case in c("bottom", "surface")) {
   nickname <- paste0("fig-nbspres-temperature-", ifelse(case=="bottom", "bt", "st"))
-  a <- temp(yrs, row0, case)
+  a <- temp(yrs, row0, case, temperature_zscore)
   figure <- a$figure
   header <- a$header
   
