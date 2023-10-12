@@ -770,7 +770,8 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 temp <- function(yrs, 
                  row0, 
                  case, 
-                 title0 = NULL) {
+                 title0 = NULL, 
+                 temperature_zscore = TRUE) {
   
   if (case == "surface") {
     raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
@@ -813,7 +814,7 @@ if (report_title == "data") {
     reg_dat = reg_dat0, 
     row0 = row0, 
     title0 = title0, 
-    temperature_zscore = (report_title %in% c("data", "ptpres"))) 
+    temperature_zscore = temperature_zscore) 
   
   return(list("figure" = figure, 
               "header" = header))
@@ -839,9 +840,37 @@ for (case in c("bottom", "surface")) {
     }
     nickname <- paste0("fig-temperature-", 
                        ifelse(case=="bottom", "bt", "st"), 
-                       paste0("-", case_yr), 
-                       ifelse(report_title %in% c("data", "ptpres"), "", "-comm"))
+                       paste0("-", case_yr))
     a <- temp(yrs, row0, case)
+    figure <- a$figure
+    header <- a$header
+    
+    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  }
+}
+```
+
+## fig-temperature-[st/bt]-comm
+
+```{r fig-temperature-[st/bt]-comm}
+height <- full_page_portrait_height
+width <- full_page_portrait_width
+yrs0 <- (maxyr-17):maxyr
+row0 <- 3
+case_yr0 <- 1:2
+
+for (case in c("bottom", "surface")) {
+  for (case_yr in case_yr0) {
+    
+    if (case_yr == 1) {
+      yrs <- yrs0[1:(length(yrs0)/2)]
+    } else if (case_yr == 2) {
+      yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
+    }
+    nickname <- paste0("fig-temperature-", 
+                       ifelse(case=="bottom", "bt", "st"), 
+                       paste0("-", case_yr), "-comm")
+    a <- temp(yrs, row0, case, temperature_zscore = FALSE)
     figure <- a$figure
     header <- a$header
     
@@ -2003,6 +2032,33 @@ if (SRVY == "NEBS") {
                            !grepl(pattern = "%)", x = population_NBS)) ,
                   j = c("population_NBS"))
 }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+# Endmatter
+
+## tab-glossary
+
+```{r tab-glossary}
+
+nickname <- "tab-glossary"
+
+table_raw <- readr::read_csv(file = paste0(dir_out_rawdata, "glossary-of-terms.csv")) %>% 
+  dplyr::mutate(include = ifelse(is.na(include), TRUE, include)) %>% 
+  dplyr::filter(include) %>% 
+  dplyr::select(-include) %>% 
+  dplyr::arrange(desc(term))
+
+names(table_raw) <- stringr::str_to_title(names(table_raw))
+
+table_print <- table_raw %>% 
+  flextable::flextable()  %>%
+    theme_flextable_nmfstm(x = ., 
+                           pad = 0, 
+                           spacing = 0.4,
+                           font0 = font0, 
+                           pgwidth = full_page_portrait_width) %>% 
+  flextable::width(width = c(2, 6))
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
