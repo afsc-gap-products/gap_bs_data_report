@@ -1,0 +1,277 @@
+---
+title: "`r paste0('Results of the ', params$maxyr, ' eastern ', ifelse(params$SRVY == 'NEBS', 'and northern ', '') ,'Bering Sea continental shelf bottom trawl survey of groundfish and invertebrate fauna')`"
+params:
+  # maxyr: 2022
+  # compareyr: 2021
+  # compareyr0: 2019
+  maxyr: 2023
+  compareyr: 2022
+  compareyr0: 2021
+  dir_googledrive: "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
+  ref_compareyr: "@2021NEBS2022"
+  ref_compareyr_nbs: "@RN909"
+  strat_yr: 2022
+  SRVY: "NEBS"
+---
+
+```{r setup}
+report_title <- "data" 
+access_to_internet  <- TRUE # redownload google drive tables and docs?
+quarto <- TRUE
+
+maxyr <- params$maxyr
+compareyr <- params$compareyr
+compareyr0 <- params$compareyr0
+dir_googledrive <- params$dir_googledrive
+ref_compareyr <- params$ref_compareyr
+ref_compareyr_nbs <- params$ref_compareyr_nbs
+strat_yr <- params$strat_yr
+SRVY <- params$SRVY
+
+googledrive::drive_deauth()
+googledrive::drive_auth()
+2
+```
+
+```{r setup-functions, include=FALSE}
+#| file: functions.R
+```
+
+```{r setup-data, include=FALSE}
+#| file: data.R
+```
+
+```{r setup-files}
+#| eval: false
+
+a <- c(paste0(here::here("code"), "/", c("01_abstract", "02_introduction", "04_methods", "05_results", "06_results_spp", "10_endmatter",
+                                         "_child_report_figtab", "_child_report_fig", "_child_report_tab"), ".Rmd"),
+       list.files(path = dir_out_rawdata, pattern = ".Rmd", full.names = TRUE))
+for (i in 1:length(a)) {
+  b <- readLines(con = a[i])
+  b <- gsub(pattern = ".Rmd", replacement = ".qmd", x = b)
+  b <- gsub(pattern = "\\\\@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\\\@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  # b <- gsub(pattern = "\\(", replacement = "(", x = b, fixed = TRUE)
+  # b <- gsub(pattern = "(@@", replacement = "(@", x = b, fixed = TRUE)
+  writeLines(text = b, con = gsub(pattern = ".Rmd", replacement = ".qmd", x = a[i]), sep = "\n")
+}
+```
+
+```{r abstract, child = paste0(dir_code, "01_abstract.qmd"), results='asis'}
+```
+
+```{r introduction, child = paste0(dir_code, "02_introduction.qmd"), results='asis'}
+```
+
+```{r methods, child = paste0(dir_code, "04_methods.qmd"), results='asis'}
+```
+
+```{r results, child = paste0(dir_code, "05_results.qmd"), results='asis'}
+```
+
+```{r results-spp, echo=FALSE, results='asis'}
+src <- c()
+comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
+for (jj in 1:length(comb)) {
+  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+  spp_code <- a$species_code
+  aa <- catch_haul_cruises %>% 
+    dplyr::filter(species_code %in% spp_code & year == maxyr)
+  if (nrow(aa)>0) {
+    src[[jj]] <- knitr::knit_expand(paste0(dir_code, '06_results_spp.qmd'))
+  }
+}
+res = knitr::knit_child(text = unlist(src), quiet = TRUE)
+cat(res, sep = '\n')
+```
+
+```{r endmatter, child = paste0(dir_code, "10_endmatter.qmd"), results='asis'}
+```
+
+
+\pagebreak
+
+
+```{r, include=FALSE}
+str0 <- ""
+
+list_app <- function(nickname, dir_out_figtab, abcd, srvy, descr_short, descr_frag) {
+  
+  a <- list.files(path = dir_out_figtab, 
+                  pattern = nickname, 
+                  full.names = FALSE)
+  
+  nickname0 <- gsub(pattern = ".rdata",  
+                    replacement = "", 
+                    x = a[grepl(pattern = ".rdata", x = a)], 
+                    ignore.case = TRUE)
+  
+  captions <- data.frame()
+  for (i in 1:length(nickname0)) {
+    a <- readtext(paste0(dir_out_figtab, nickname0[i], ".txt"))
+    captions <- dplyr::bind_rows(
+      captions, 
+      data.frame(
+        "id" = nickname0[i], 
+        "capt" = a$text))
+  }
+  # # (APPENDIX) Appendix {-}
+  str0 <- paste0(
+    ifelse(abcd == "A", 
+           '
+
+', 
+'\\pagebreak
+
+'),
+
+'## Appendix ',abcd,': List of ', descr_short,'
+
+Appendix ',abcd, " ", descr_frag, '
+
+**List of Tables**
+
+',
+text_list(paste0("\n\n - Appendix **", abcd, "** \\@ref(tab:", captions$id, "): ", captions$capt),
+          # sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")], "[[","header")), 
+          sep = " ", sep_last = " ", sep_last2 = " "),
+'
+
+\\pagebreak
+
+' )
+  return(str0)
+}
+
+# https://support.authorea.com/en-us/article/how-to-create-an-appendix-section-or-supplementary-information-1g25i5a/
+```
+
+```{r tab-app-taxa-found-EBS, eval = TRUE}
+
+abcd <- "A"
+
+knitr::opts_chunk$set(
+  echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, 
+  tab.cap.style = "Table Caption", 
+  tab.cap.pre = paste0("Appendix Table ", abcd), 
+  tab.cap.sep = ".-- ", 
+  # tab.cap.align = "left",
+  fig.cap.style = "Image Caption",
+  fig.cap.pre = paste0("Appendix Figure ", abcd, " "),
+  fig.cap.sep = ".-- ",
+  fig.align = 'center')
+
+nickname <- "tab-app-taxa-found-EBS"
+str0 <- list_app(nickname = nickname, 
+                 dir_out_figtab = dir_out_figtab, 
+                 abcd = abcd, 
+                 descr_short = "taxa encountered in the eastern Bering Sea", 
+                 descr_frag = paste0("lists all fish and invertebrate taxa taken during the AFSC’s eastern Bering Sea bottom trawl survey."))
+```
+
+
+`r str0 `
+
+
+```{r tab-special-projects-EBS-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (abcd == "A")}
+```
+
+```{r tab-app-taxa-found-NBS, eval = ("NBS" %in% haul_cruises_maxyr$SRVY)}
+
+abcd <- "B"
+
+knitr::opts_chunk$set(
+  echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, 
+  tab.cap.style = "Table Caption", 
+  tab.cap.pre = paste0("Appendix Table ", abcd), 
+  tab.cap.sep = ".-- ", 
+  # tab.cap.align = "left",
+  fig.cap.style = "Image Caption",
+  fig.cap.pre = paste0("Appendix Figure ", abcd, " "),
+  fig.cap.sep = ".-- ",
+  fig.align = 'center')
+
+nickname <- "tab-app-taxa-found-NBS"
+str0 <- list_app(nickname = nickname, 
+                 dir_out_figtab = dir_out_figtab, 
+                 abcd = abcd, 
+                 descr_short = "taxa encountered in the northern Bering Sea", 
+                 descr_frag = paste0("lists all fish and invertebrate taxa taken during the AFSC’s northern Bering Sea bottom trawl survey."))
+```
+
+
+`r str0 `
+
+
+```{r tab-special-projects-NBS-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (abcd == "B" & SRVY == "NEBS")}
+```
+
+```{r tab-app-fish-EBS-, eval = (SRVY == "NEBS")}
+
+abcd <- ifelse(SRVY == "NEBS", "C", "B")
+
+knitr::opts_chunk$set(
+  echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, 
+  tab.cap.style = "Table Caption", 
+  tab.cap.pre = paste0("Appendix Table ", abcd), 
+  tab.cap.sep = ".-- ", 
+  # tab.cap.align = "left",
+  fig.cap.style = "Image Caption",
+  fig.cap.pre = paste0("Appendix Figure ", abcd, " "),
+  fig.cap.sep = ".-- ",
+  fig.align = 'center')
+
+nickname <- "tab-app-fish-EBS-"
+str0 <- list_app(nickname = nickname, 
+                 dir_out_figtab = dir_out_figtab, 
+                 abcd = abcd, 
+                 descr_short = "population estimates by sex and size group for principal fish species in the eastern Bering Sea", 
+                 descr_frag = paste0("presents population estimates by sex and size group from the ", 
+                                     maxyr,
+                                     " eastern Bering Sea bottom trawl survey for principal fish species."))
+```
+
+
+`r str0 `
+
+
+```{r tab-app-fish-EBS-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (abcd == "C" & SRVY == "NEBS" | abcd == "B" & SRVY == "EBS")}
+```
+
+```{r tab-app-fish-NBS-, eval = ("NBS" %in% haul_cruises_maxyr$SRVY)}
+
+abcd <- "D"
+
+knitr::opts_chunk$set(
+  echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, 
+  tab.cap.style = "Table Caption", 
+  tab.cap.pre = paste0("Appendix Table ", abcd), 
+  tab.cap.sep = ".-- ", 
+  # tab.cap.align = "left",
+  fig.cap.style = "Image Caption",
+  fig.cap.pre = paste0("Appendix Figure ", abcd, " "),
+  fig.cap.sep = ".-- ",
+  fig.align = 'center')
+
+nickname <- "tab-app-fish-NBS-"
+str0 <- list_app(nickname = nickname, 
+                 dir_out_figtab = dir_out_figtab, 
+                 abcd = abcd, 
+                 descr_short = "population estimates by sex and size group for principal fish species in the northern Bering Sea", 
+                 descr_frag = paste0("presents population estimates by sex and size group from the ", 
+                                     maxyr,
+                                     " northern Bering Sea bottom trawl survey for principal fish species."))
+```
+
+
+`r str0 `
+
+
+```{r tab-app-fish-NBS-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (abcd == "D" & SRVY == "NEBS")}
+```
+

@@ -418,7 +418,7 @@ for (case_yr in case_yr0) {
   }
     
     if (report_title %in% c("nbspres")) {
-           
+      
       figure <- figure + 
         ggplot2::geom_sf_text(
           data = data.frame(y = 64.500126, x = -165.408402) %>% 
@@ -427,7 +427,21 @@ for (case_yr in case_yr0) {
             dplyr::mutate(label = "Nome"), 
           mapping = aes(label = label), 
           fontface = "italic", 
-          size = 4)
+          size = 4) +
+      geom_text(data = subset(reg_dat$place.labels, 
+                              type == "mainland"), 
+                aes(x = x, y = y, label = lab), 
+                size = 7, group = 99) + 
+      geom_shadowtext(data = subset(reg_dat$place.labels, 
+                                    type == "peninsula"), 
+                      aes(x = x, y = y, label = lab), size = 3, angle = 3, 
+                      bg.color = "white", color = "black", group = 99) + 
+      geom_shadowtext(
+        data = subset(reg_dat$place.labels, 
+                      type %in% c("bathymetry", "islands")),
+        aes(x = x, y = y, label = lab), 
+        bg.color = "white", color = "black", 
+        size = 2, group = 99)
     }  
     
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
