@@ -162,6 +162,19 @@ for (i in 1:length(txtfiles)) {
                  citeproc = TRUE) # not sure if this is needed
 }
 
+a <- list.files(path = dir_out_rawdata, pattern = ".Rmd", full.names = TRUE)
+for (i in 1:length(a)) {
+  b <- readLines(con = a[i])
+  b <- gsub(pattern = ".Rmd", replacement = ".qmd", x = b)
+  b <- gsub(pattern = "\\\\@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\\\@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  writeLines(text = b, con = gsub(pattern = ".Rmd", replacement = ".qmd", x = a[i]), sep = "\n")
+}
+
 ## Load Main Oracle Data -------------------------------------------------------
 
 print("Load oracle data")
@@ -230,17 +243,18 @@ print("report_spp")
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
                               skip = 1, 
                               show_col_types = FALSE) %>% 
-  dplyr::select(!(dplyr::starts_with(ifelse(report_title == "community", "datar_", "community_")))) %>%
+  dplyr::select(!(dplyr::starts_with(
+    ifelse(report_title %in% c("community", "nbspres"), "datar_", "community_")))) %>%
   dplyr::select(where(~ !(all(is.na(.)) | all(. == "")))) %>% 
   dplyr::select(-questions) 
 
 names(report_spp)[
-  grepl(pattern = ifelse(report_title == "community", "community_", "datar_"), 
+  grepl(pattern = ifelse(report_title %in% c("community", "nbspres"), "community_", "datar_"), 
         x = names(report_spp))] <- 
-  gsub(pattern = ifelse(report_title == "community", "community_", "datar_"), 
+  gsub(pattern = ifelse(report_title %in% c("community", "nbspres"), "community_", "datar_"), 
        replacement = "", 
        x = names(report_spp)[
-         grepl(pattern = ifelse(report_title == "community", "community_", "datar_"), 
+         grepl(pattern = ifelse(report_title %in% c("community", "nbspres"), "community_", "datar_"), 
                x = names(report_spp))])
 
 report_spp <- report_spp  %>% # Replace NA by FALSE
@@ -755,14 +769,22 @@ lengths_sap <- dplyr::bind_rows(
   species_code %in% c(68541, 68550, 68560) ~ 8,
   TRUE ~ 7) )
 
-lengths_gap <- race_data_cruises0 %>%
-  dplyr::left_join(race_data_surveys0, by = "survey_id") %>% 
-  dplyr::left_join(race_data_survey_definitions0, by = "survey_definition_id") %>% 
-  dplyr::left_join(race_data_hauls0, by = "cruise_id") %>%
-  dplyr::left_join(race_data_lengths0, by = "haul_id") %>% 
+lengths_gap <- race_data_cruises0 %>% 
+  dplyr::select(cruise_id, survey_id, vessel_id, cruise) %>%
+  dplyr::left_join(race_data_surveys0 %>% 
+                     dplyr::select(survey_definition_id, survey_id, year), 
+                   by = "survey_id") %>% 
+  dplyr::left_join(race_data_survey_definitions0, 
+                   by = "survey_definition_id") %>% 
+  dplyr::left_join(race_data_hauls0 %>% 
+                     dplyr::select(cruise_id, haul_id, performance, haul_type), 
+                   by = "cruise_id") %>%
+  dplyr::left_join(race_data_lengths0 %>% 
+                     dplyr::select(length_type, haul_id, length, species_code, frequency), 
+                   by = "haul_id") %>% 
   dplyr::filter(region == "BS" & 
                   !is.na(species_code) &
-                  survey_definition_id %in% SRVY00 &
+                  survey_definition_id %in% SRVY00 & 
                   performance >= 0 &
                   haul_type == 3) %>%
   dplyr::mutate(species_code = dplyr::case_when(
@@ -1020,13 +1042,13 @@ biomass <- dplyr::bind_rows(biomass_gap, biomass_sap) %>%
     cpue_kgkm2_sd = sqrt(cpue_kgkm2_var), 
     cpue_nokm2_sd = sqrt(cpue_nokm2_var), 
     biomass_sd = sqrt(biomass_var), 
-    biomass_95ci_up = biomass_mt + (2*biomass_sd), 
-    biomass_95ci_dw = biomass_mt - (2*biomass_sd), 
-    biomass_95ci_dw = ifelse(biomass_95ci_dw<0, 0, biomass_95ci_dw), 
+    biomass_up = biomass_mt + (2*biomass_sd), 
+    biomass_dw = biomass_mt - (2*biomass_sd), 
+    biomass_dw = ifelse(biomass_dw<0, 0, biomass_dw), 
     population_sd = sqrt(population_var), 
-    population_95ci_up = population_count + (2*population_sd), 
-    population_95ci_dw = population_count - (2*population_sd), 
-    population_95ci_dw = ifelse(population_95ci_dw<0, 0, population_95ci_dw) )
+    population_up = population_count + (2*population_sd), 
+    population_dw = population_count - (2*population_sd), 
+    population_dw = ifelse(population_dw<0, 0, population_dw) )
 
 biomass_maxyr <- biomass %>%
   dplyr::filter(stratum == 999) %>%

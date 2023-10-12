@@ -1,0 +1,39 @@
+
+```{r, results='asis'}
+
+figtab <- dplyr::case_when(
+  grepl(pattern = "fig-", x = nickname[1]) ~ "fig",
+  grepl(pattern = "tab-", x = nickname[1]) ~ "tab"
+)
+
+dir0 <- dir_out_figtab # here::here("output", paste0("figtab_", maxyr)) # 
+
+nickname0 <- list.files(path = dir0, nickname)
+nickname0 <- unique(substr(nickname0, 1, regexpr("\\.", nickname0)-1))
+
+src_figtab <- list()
+for(i in 1:length(nickname0)){
+  nickname00 <- nickname0[i]
+  if (figtab == "tab"){
+    path <- paste0(dir0, nickname00, ".Rdata", collapse = "")
+    load(path) 
+    caption <- obj$caption
+  } else if (figtab == "fig") {
+    caption <- readtext(file = paste0(dir0, nickname00, ".txt"))$text
+    path <- paste0(dir0, nickname00, ifelse(quarto, ".Rdata", ".png"))
+    img <- magick::image_read(path = paste0(dir0, nickname00, ".png")) # read the image using the magic library
+    img.asp <- image_info(img)$height / image_info(img)$width # calculate the figures aspect ratio
+    fig.width <- 6.5
+  }
+  # if (exists("no_cap")) {
+  #   caption <- ""
+  # }
+  
+  src_figtab[[i]] <- knitr::knit_expand(file = paste0(dir_code, '_child_report_',figtab,'.qmd'))
+}
+
+res <- knitr::knit_child(text = paste0(unlist(src_figtab), collapse = ""), quiet = TRUE)
+cat(res, sep = ifelse(exists("sep0"), sep0, '\n')) # between can be "\\pagebreak" or similar
+if(exists("sep0")){remove(sep0)}
+# if(exists("no_cap")){remove(no_cap)}
+```

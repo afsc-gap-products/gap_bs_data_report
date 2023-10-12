@@ -6,6 +6,7 @@ access_to_internet  <- TRUE # redownload google drive tables and docs?
 pres_img <- FALSE
 font0 <- "Arial Narrow"
 font_size0 <- 12
+quarto <- FALSE
 
 maxyr <- 2022
 compareyr <- 2021
@@ -108,13 +109,9 @@ rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"),
 # Plan team presentation -------------------------------------------------------
 
 SRVY <- "EBS"
-
 report_title <- "ptpres" 
-dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_ptpres")), "/")
-dir.create(dir_out_figtab)
 source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
-
 
 # Presentation Species figures
 comb <- report_spp1 %>% 
@@ -148,20 +145,13 @@ rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"),
 # Strait sci presentation -------------------------------------------------------
 
 SRVY <- "NEBS"
-
 report_title <- "nbspres" 
-dir_out_figtab <- paste0(here::here("output", paste0("figtab_", maxyr, "_nbspres")), "/")
-dir.create(dir_out_figtab)
+dir_googledrive <- dir_googledrive_comm
 source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
 
-
 # Presentation Species figures
-comb <- report_spp1 %>% 
-  dplyr::filter(!is.na(order)) %>%
-  dplyr::select(file_name) %>% 
-  unlist() %>% 
-  unique()
+comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
 for (jj in 1:length(comb)) {
   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
   spp_code <- a$species_code

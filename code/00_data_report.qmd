@@ -1,57 +1,32 @@
 ---
-date: "`r paste0('DRAFT: ', format(Sys.time(), '%B %d, %Y'))`"
-format: html
-csl: "https://raw.githubusercontent.com/citation-style-language/styles/master/apa-no-ampersand.csl"
-bibliography: "https://raw.githubusercontent.com/afsc-gap-products/citations/main/cite/bibliography.bib"
-link-citations: true
-crossref:
-  fig-title: "**Figure**"
-plots:
-  caption:
-    style: Image Caption
-    pre: 'Fig. '
-    sep: '-- '
-tables:
-  caption:
-    style: Table Caption
-    pre: 'Table '
-    sep: '.-- '  
-keywords:
-  - Bering Sea
-  - Alaska
-  - fisheries
-  - NOAA
-  - groundfish
+title: "`r paste0('Results of the ', params$maxyr, ' eastern ', ifelse(params$SRVY == 'NEBS', 'and northern ', '') ,'Bering Sea continental shelf bottom trawl survey of groundfish and invertebrate fauna')`"
+params:
+  # maxyr: 2022
+  # compareyr: 2021
+  # compareyr0: 2019
+  maxyr: 2023
+  compareyr: 2022
+  compareyr0: 2021
+  dir_googledrive: "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
+  ref_compareyr: "@2021NEBS2022"
+  ref_compareyr_nbs: "@RN909"
+  strat_yr: 2022
+  SRVY: "NEBS"
 ---
 
 ```{r setup}
-# title: "`r paste0('Results of the ', maxyr, ' eastern ', ifelse(SRVY == 'NEBS', 'and northern ', '') ,'Bering Sea continental shelf bottom trawl survey of groundfish and invertebrate fauna')`"
 report_title <- "data" 
-
-refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 access_to_internet  <- TRUE # redownload google drive tables and docs?
-pres_img <- FALSE
-font0 <- "Arial Narrow"
-font_size0 <- 12
+quarto <- TRUE
 
-maxyr <- 2022
-compareyr <- 2021
-compareyr0 <- 2019
-strat_yr <- 2022
-SRVY<-"NEBS"
-ref_compareyr <- ref_compareyr_ebs <- "@2021NEBS2022" # CHANGE
-# dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
-ref_compareyr_nbs <- "@RN909" # community report
-# dir_googledrive_comm <- "1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
-
-maxyr <- 2023
-compareyr <- 2022
-compareyr0 <- 2021
-strat_yr <- 2022
-SRVY <- "NEBS"
-ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
-dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
-dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
+maxyr <- params$maxyr
+compareyr <- params$compareyr
+compareyr0 <- params$compareyr0
+dir_googledrive <- params$dir_googledrive
+ref_compareyr <- params$ref_compareyr
+ref_compareyr_nbs <- params$ref_compareyr_nbs
+strat_yr <- params$strat_yr
+SRVY <- params$SRVY
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
@@ -67,11 +42,22 @@ googledrive::drive_auth()
 ```
 
 ```{r setup-files}
-a <- c(paste0(here::here("code"), "/", c("01_abstract", "02_introduction", "04_methods", "05_results", "06_results_spp", "10_endmatter"), ".Rmd"), 
+#| eval: false
+
+a <- c(paste0(here::here("code"), "/", c("01_abstract", "02_introduction", "04_methods", "05_results", "06_results_spp", "10_endmatter",
+                                         "_child_report_figtab", "_child_report_fig", "_child_report_tab"), ".Rmd"),
        list.files(path = dir_out_rawdata, pattern = ".Rmd", full.names = TRUE))
-for (i in 1:length(a)) { 
+for (i in 1:length(a)) {
   b <- readLines(con = a[i])
   b <- gsub(pattern = ".Rmd", replacement = ".qmd", x = b)
+  b <- gsub(pattern = "\\\\@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\\\@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "\\@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "@ref(fig:", replacement = "(#", x = b, fixed = TRUE)
+  b <- gsub(pattern = "@ref(tab:", replacement = "(#", x = b, fixed = TRUE)
+  # b <- gsub(pattern = "\\(", replacement = "(", x = b, fixed = TRUE)
+  # b <- gsub(pattern = "(@@", replacement = "(@", x = b, fixed = TRUE)
   writeLines(text = b, con = gsub(pattern = ".Rmd", replacement = ".qmd", x = a[i]), sep = "\n")
 }
 ```
@@ -97,7 +83,7 @@ for (jj in 1:length(comb)) {
   aa <- catch_haul_cruises %>% 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
-  src[[jj]] <- knitr::knit_expand(paste0(dir_code, '06_results_spp.qmd'))
+    src[[jj]] <- knitr::knit_expand(paste0(dir_code, '06_results_spp.qmd'))
   }
 }
 res = knitr::knit_child(text = unlist(src), quiet = TRUE)
@@ -113,7 +99,7 @@ cat(res, sep = '\n')
 str0 <- ""
 
 list_app <- function(nickname, dir_out_figtab, abcd, srvy, descr_short, descr_frag) {
-
+  
   a <- list.files(path = dir_out_figtab, 
                   pattern = nickname, 
                   full.names = FALSE)
@@ -132,10 +118,10 @@ list_app <- function(nickname, dir_out_figtab, abcd, srvy, descr_short, descr_fr
         "id" = nickname0[i], 
         "capt" = a$text))
   }
-    # # (APPENDIX) Appendix {-}
-    str0 <- paste0(
+  # # (APPENDIX) Appendix {-}
+  str0 <- paste0(
     ifelse(abcd == "A", 
-'
+           '
 
 ', 
 '\\pagebreak
@@ -150,14 +136,14 @@ Appendix ',abcd, " ", descr_frag, '
 
 ',
 text_list(paste0("\n\n - Appendix **", abcd, "** \\@ref(tab:", captions$id, "): ", captions$capt),
-                 # sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")], "[[","header")), 
+          # sapply(list_tables00, #[grepl(x = names(list_tables00), pattern = "tab_app_taxa_encountered_")], "[[","header")), 
           sep = " ", sep_last = " ", sep_last2 = " "),
 '
 
 \\pagebreak
 
 ' )
-    return(str0)
+  return(str0)
 }
 
 # https://support.authorea.com/en-us/article/how-to-create-an-appendix-section-or-supplementary-information-1g25i5a/

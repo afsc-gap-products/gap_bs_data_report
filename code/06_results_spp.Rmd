@@ -64,6 +64,11 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 
 ## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
 
+```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.height=2, fig.width=2}
+cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
+```
+
 ```{r res-spp-lang-{{jj}}, eval = (report_title == "community")}
 # Native Languages Names 
 temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), skip = 1) %>%
@@ -85,11 +90,6 @@ if (ncol(temp)>0) {
 ```
 
 `r lang `
-
-```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.height=2, fig.width=2}
-cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
-```
 
 ```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
 ```
