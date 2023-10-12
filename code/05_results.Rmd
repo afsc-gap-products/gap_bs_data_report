@@ -10,42 +10,42 @@ A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_
 
 <!-- \newpage -->
 
-```{r fig-temperature-1}
+```{r fig-temperature-10}
 nickname <- "fig-temperature-bt-1"
 ```
 
 ```{r temperature-1-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r fig-temperature-2}
+```{r fig-temperature-20}
 nickname <- "fig-temperature-bt-2"
 ```
 
 ```{r temperature-2-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r fig-temperature-3}
+```{r fig-temperature-30}
 nickname <- "fig-temperature-st-1"
 ```
 
 ```{r temperature-3-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r fig-temperature-4}
+```{r fig-temperature-40}
 nickname <- "fig-temperature-st-2"
 ```
 
 ```{r temperature-4-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r fig-mean-temperature}
+```{r fig-mean-temperature0}
 nickname <- "fig-mean-temperature"
 ```
 
 ```{r fig-mean-temperature-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r fig-cold-pool-area}
+```{r fig-cold-pool-area0}
 nickname <- "fig-cold-pool-area"
 ```
 
@@ -56,7 +56,7 @@ nickname <- "fig-cold-pool-area"
 
 Specimens collected during the `r maxyr` `r SURVEY` shelf trawl survey`r plural_surveys` are shown in Table`r plural_surveys` \@ref(fig:tab-specimen-samples-ebs) and \@ref(fig:tab-specimen-samples-nbs). Other special collections are listed in Table \@ref(tab:tab-special-projects).
 
-```{r tab-specimen-samples-}
+```{r tab-specimen-samples-0}
 nickname <- "tab-specimen-samples-"
 ```
 
@@ -113,7 +113,10 @@ temp0 <- dplyr::full_join(
       dplyr::distinct() %>% 
       dplyr::group_by(SRVY) %>%
       dplyr::summarise(genus = n()),
-    by = "SRVY") 
+    by = "SRVY") %>% 
+  dplyr::left_join(
+    data.frame(SRVY = SRVY1, 
+                   SRVY_long = SRVY11))
 
 temp1 <- dplyr::bind_cols(
   temp %>% 
@@ -197,7 +200,7 @@ if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
 str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 ```
 
-A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family)` families and `r xunits(temp1$genus)` genera were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r str0`
+A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family)` families and `r xunits(temp1$genus)` genera were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY_long, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r str0`
 
 ```{r results-count}
 # count spp - invert
@@ -252,7 +255,7 @@ temp1 <- dplyr::bind_cols(
 
 <br>
 
-```{r tab-species-composition, eval = (SRVY == "NEBS")}
+```{r tab-species-composition0, eval = (SRVY == "NEBS")}
 nickname <- "tab-species-composition"
 ```
 
@@ -568,7 +571,7 @@ str0 <- text_list(paste0(
 
 <!---BLOCK_LANDSCAPE_START--->
 
-```{r tab-biomass-est-EBS-}
+```{r tab-biomass-est-EBS-0}
 nickname <- "tab-biomass-est-EBS-"
 # sep0 <- "\\pagebreak"
 ```
@@ -578,7 +581,7 @@ nickname <- "tab-biomass-est-EBS-"
 
 <!---BLOCK_LANDSCAPE_STOP--->
 
-```{r tab-biomass-est-NBS-}
+```{r tab-biomass-est-NBS-0}
 nickname <- "tab-biomass-est-NBS-"
 ```
 
@@ -587,7 +590,7 @@ nickname <- "tab-biomass-est-NBS-"
 
 \pagebreak
 
-```{r tab-majortaxa-pchange-}
+```{r tab-majortaxa-pchange-0}
 nickname <- "tab-majortaxa-pchange-"
 sep0 <- "\\pagebreak"
 ```
@@ -597,14 +600,14 @@ sep0 <- "\\pagebreak"
 
 \pagebreak
 
-```{r tab-est-spp-wt}
+```{r tab-est-spp-wt0}
 nickname <- "tab-est-spp-wt"
 ```
 
 ```{r tab-est-spp-wt-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r tab-est-spp-num}
+```{r tab-est-spp-num0}
 nickname <- "tab-est-spp-num"
 ```
 

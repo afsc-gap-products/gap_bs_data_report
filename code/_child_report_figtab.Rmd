@@ -6,17 +6,10 @@ figtab <- dplyr::case_when(
   grepl(pattern = "tab-", x = nickname[1]) ~ "tab"
 )
 
-dir0 <- dir_out_figtab
+dir0 <- dir_out_figtab # here::here("output", paste0("figtab_", maxyr)) # 
 
-if (length(a)>1) {
-a <- list.files(path = dir0,
-                pattern = nickname,
-                full.names = FALSE)
-} else {
-  a <- paste0(nickname, ifelse(figtab == "fig", ".png", ".Rdata"))
-}
-# if this is a partial name, we can collect all the names like this
-nickname0 <- unique(sapply(strsplit(x = a, split = ".", fixed = TRUE), "[[", 1)) 
+nickname0 <- list.files(path = dir0, nickname)
+nickname0 <- unique(substr(nickname0, 1, regexpr("\\.", nickname0)-1))
 
 src_figtab <- list()
 for(i in 1:length(nickname0)){
@@ -27,8 +20,8 @@ for(i in 1:length(nickname0)){
     caption <- obj$caption
   } else if (figtab == "fig") {
     caption <- readtext(file = paste0(dir0, nickname00, ".txt"))$text
-    dir00 <- paste0(dir0, nickname00, ".png")
-    img <- magick::image_read(path = dir00) # read the image using the magic library
+    path <- paste0(dir0, nickname00, ifelse(quarto, ".Rdata", ".png"))
+    img <- magick::image_read(path = paste0(dir0, nickname00, ".png")) # read the image using the magic library
     img.asp <- image_info(img)$height / image_info(img)$width # calculate the figures aspect ratio
     fig.width <- 6.5
   }

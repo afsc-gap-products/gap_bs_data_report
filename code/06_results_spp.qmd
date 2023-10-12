@@ -1,0 +1,159 @@
+
+
+```{r res-spp-vars-{{jj}} }
+a <- report_spp1[which(report_spp1$file_name == comb[{{jj}}]), ]
+
+spp_sci <- text_list(unique(a$species_name))
+spp_code <- a$species_code[1]
+spp_print <- a$print_name[1]
+spp_file <- a$file_name[1]
+# spp_taxon <- a$taxon[1]
+
+# report_title == "community"
+dataTcommF <- FALSE
+spp_plot_sizecomp <- a$plot_sizecomp[1]
+spp_plot_idw <- a$plot_idw[1]
+spp_plot_pa <- FALSE
+spp_table_cpue <- FALSE
+spp_text <- TRUE
+
+if (report_title == "data") {
+  dataTcommF <- TRUE
+  # spp_plot_pa <- FALSE
+  spp_table_cpue <- a$table_cpue[1]
+  spp_text <- a$text_spp[1]
+}
+
+land_start <- "" #felse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_START--->", "")
+land_end <- "" # ifelse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_STOP--->", "")
+show <- FALSE
+pagebreak <- ifelse(report_title == "community" & !spp_table_cpue, "", "\\pagebreak")
+lang <- ""
+```
+
+```{r prep-cite-{{jj}}}
+# fig_dist <- fig_sizecomp <- tab_wt <- tab_no <- NA
+
+if (spp_plot_idw) {
+  fig_dist <- paste0("(#", "fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
+
+}
+
+if (spp_plot_sizecomp) {
+  fig_sizecomp <- paste0("(#fig-sizecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
+} 
+
+if (spp_table_cpue) {
+  tab_wt <- paste0("(#tab-est-", spp_file, "-wt)")
+  tab_no <- paste0("(#tab-est-", spp_file, "-num)")
+}
+
+fig_bt <- "(#fig-temperature-bt-1) and (#fig-temperature-bt-2)"
+fig_st <- "(#fig-temperature-st-1) and (#fig-temperature-st-2)"
+
+  if (report_title == "community") {
+    tab_majorspp_bio <- tab_majortaxa_pchange <- c("\\@ref(tab-majortaxa-pchange-NBS)")
+  } else if (report_title == "data") {
+    tab_majorspp_bio_EBS <- "(#tab-majortaxa-pchange-EBS)"
+    tab_majorspp_bio_NBS <- "(#tab-majortaxa-pchange-NBS)"
+  }
+str0 <- ""
+
+ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
+```
+
+## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
+
+```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.height=2, fig.width=2}
+cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
+```
+
+```{r res-spp-lang-{{jj}}, eval = (report_title == "community")}
+# Native Languages Names 
+temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), skip = 1) %>%
+  dplyr::filter(print_name == spp_print) %>%
+  dplyr::select(dplyr::starts_with("lang_")) %>%
+  dplyr::select_if(~sum(!is.na(.)) > 0)
+
+temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv")) %>%
+  head(1) %>%
+  t() %>%
+  data.frame()
+names(temp) <- rownames(temp0)[which(temp0$. %in% names(temp))]
+
+  lang <- ""
+if (ncol(temp)>0) {
+  lang <- paste0("**", names(temp), "**: ", temp, collapse = "\n\n")
+  # lang <- paste0(names(temp), ": ", temp, collapse = "\n\n")
+}
+```
+
+`r lang `
+
+```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".qmd"), eval=(spp_text), results='asis'}
+```
+
+<!-- `r ifelse(spp_text & (report_title == "community"), "<br>", "") ` -->
+
+```{r tab-stats-{{jj}}, eval = (report_title %in% c("community", "data"))}
+nickname <- paste0("tab-stats-", spp_file)
+no_cap <- TRUE
+```
+
+```{r tab-stats-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (report_title %in% c("community", "data"))}
+```
+
+```{r tab-bio-timeseries-{{jj}}, eval = (report_title %in% c("community", "data"))}
+nickname <- paste0("fig-biomass-", spp_file)
+```
+
+```{r tab-bio-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (report_title %in% c("community", "data"))}
+```
+
+```{r tab-pop-timeseries-{{jj}}, eval = (report_title %in% c("data"))}
+nickname <- paste0("fig-population-", spp_file)
+```
+
+```{r tab-pop-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (report_title %in% c("data"))}
+```
+
+
+
+```{r fig-dist-{{jj}}}
+nickname <- paste0("fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
+```
+
+```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval=(spp_plot_idw | spp_plot_pa)}
+```
+
+```{r fig-sizecomp-{{jj}}}
+nickname <- paste0("fig-sizecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
+```
+
+```{r fig-sizecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval=spp_plot_sizecomp}
+```
+
+<!-- `r land_start ` -->
+
+`r ifelse(spp_table_cpue, "\\pagebreak", "")`
+
+```{r tab-est-{{jj}}-wt}
+nickname <- paste0("tab-est-", spp_file, "-wt")
+```
+
+```{r tab-est-{{jj}}-wt-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval=spp_table_cpue}
+```
+
+`r ifelse(spp_table_cpue, "<br>", "")`
+
+```{r tab-est-{{jj}}-num}
+nickname <- paste0("tab-est-",spp_file, "-num")
+```
+
+```{r tab-est-{{jj}}-num-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval=spp_table_cpue}
+```
+
+\pagebreak
+
+<!-- `r land_end ` -->

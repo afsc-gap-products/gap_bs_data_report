@@ -28,7 +28,7 @@ for (i in 1:length(dirs)) {
   assign(x = paste0("dir_out_", dirs[i]), value = paste0(dir_out_todaysrun, "/",dirs[i],"/"))
 }
 
-options("citation_format" = "pandoc")
+# options("citation_format" = "pandoc")
 
 # Install Libraries ------------------------------------------------------------
 
@@ -58,6 +58,9 @@ PKG <- c(
   "readr",
   "tidyr",
   "readxl", 
+  "here",
+  "viridis",
+  "janitor",
   
   # Text Management
   "stringr",
@@ -96,7 +99,7 @@ for (p in PKG) {
     require(p,character.only = TRUE)}
 }
 
-loadfonts(device = "win")
+extrafont::loadfonts(device = "win")
 
 # Aesthetics -------------------------------------------------------------------
 
@@ -2108,12 +2111,21 @@ plot_timeseries <- function(
     yrs_plotted = NULL, 
     legend_font_size = 12){
   
-  a<-find_units(unit, unt, dat = dat$y) 
+  a <- find_units(unit, unt, dat = dat$y) 
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) } 
   
   table_raw <- dat %>% 
     dplyr::arrange(-year) %>% 
     dplyr::mutate(y = y/a$divby) 
+  
+  table_raw_mean <- table_raw %>% 
+    dplyr::group_by(SRVY_long, SRVY) %>% 
+    dplyr::summarise(y = mean(y, na.rm = TRUE), 
+                     minyr = min(year, na.rm = TRUE), 
+                     maxyr = max(year, na.rm = TRUE))  %>% 
+    dplyr::mutate(SRVY_long1 = SRVY_long,
+                  yy = y*divby) #%>% 
+    # dplyr::filter(yy>100)
   
   if (error_bar) {
     table_raw <- table_raw %>% 
@@ -2149,15 +2161,6 @@ plot_timeseries <- function(
     temp1$taxon <- unlist(unique(table_raw[,c("taxon")]))
     table_raw <- dplyr::bind_rows(temp1, table_raw)
   }
-  
-  table_raw_mean <- table_raw %>% 
-    dplyr::group_by(SRVY_long, SRVY) %>% 
-    dplyr::summarise(y = mean(y, na.rm = TRUE), 
-                     minyr = min(year, na.rm = TRUE), 
-                     maxyr = max(year, na.rm = TRUE))  %>% 
-    dplyr::mutate(SRVY_long1 = SRVY_long,
-                  yy = y*divby) %>% 
-    dplyr::filter(yy>100)
   
   if (mean_in_legend){
     table_raw_mean <- table_raw_mean %>% 
@@ -2740,9 +2743,9 @@ plot_mean_temperatures <- function(maxyr, SRVY){
 theme_flextable_nmfstm <- function(x,
                                    pgwidth = 6.5,
                                    row_lines = TRUE,
-                                   body_size = 10,
-                                   header_size = 10,
-                                   font0 = "Times New Roman",
+                                   body_size = 12,
+                                   header_size = 12,
+                                   font0 = "Arial Narrow",
                                    spacing = 0.6,
                                    pad = 2) {
   

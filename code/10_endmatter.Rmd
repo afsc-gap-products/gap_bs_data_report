@@ -4,6 +4,8 @@
 `r ifelse((report_title == "community"), "## Scientist Profiles", "") `
 
 ```{r sci-profile, eval = (report_title == "community")}
+#| tbl-cap: "NOAA report writing science team members. "
+
 nickname <- "tab-sci-profile"
 
 table_raw <- readr::read_csv(file = paste0(dir_out_rawdata, "/0-survey-team-bios.csv"), 
@@ -17,11 +19,11 @@ table_print <- table_raw %>%
   flextable::compose(j = "dummy", part = "body",
                      value = as_paragraph(
                        as_chunk(paste0(name, "\n"),
-                                props = fp_text_default(bold = TRUE, font.size = 12, font.family = font0)), 
+                                props = fp_text_default(bold = TRUE, font.size = 12)), 
                        as_chunk(paste0(title, "\n"),
-                                props = fp_text_default(italic = TRUE, bold = TRUE, font.size = 10, font.family = font0)), 
+                                props = fp_text_default(italic = TRUE, bold = TRUE, font.size = 10)), 
                        as_chunk(bio,
-                                props = fp_text_default(font.size = 10, font.family = font0)))) %>%  
+                                props = fp_text_default(font.size = 10)))) %>%  
   flextable::colformat_image(j = "img" , 
                              width = 2, 
                              height = 2) %>% 

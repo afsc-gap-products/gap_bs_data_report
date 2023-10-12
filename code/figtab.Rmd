@@ -46,12 +46,18 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r fig-survey-sample-stations}
 nickname <- "fig-survey-sample-stations"
+
+vessels0 <- vessels 
+if (sum(vessels0$vess_shape == "X")>0) {
+vessels0 <- vessels0 %>% 
+  dplyr::mutate(vessel_ital = ifelse(vess_shape == "X", "stations that were not surveyed", vessel_ital))
+}
 header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
                  text_list(haul_cruises_maxyr$SRVY_long),
                  " shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
                  ". The map also depicts the stations sampled by the ",
-                 text_list(paste0(vessels$vessel_ital, " (",
-                                  vessels$vess_shape, ")")), 
+                 text_list(paste0(vessels0$vessel_ital, " (",
+                                  vessels0$vess_shape, ")")), 
                  ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
 
 height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 
@@ -426,7 +432,7 @@ table_print <- table_raw %>%
                          font0 = font0, 
                          row_lines = TRUE, 
                          pgwidth = full_page_portrait_width)  %>%
-  flextable::width(width = c((full_page_portrait_width - (4.5/length(SRVY1))), 
+  flextable::width(width = c((full_page_portrait_width - 4.5), 
                              rep_len(length.out = length(SRVY1), (4.5/length(SRVY1)))))  
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -1505,7 +1511,7 @@ for (taxon0 in c("fish", "invert")) {
     strat <- strat0[strat0 %in% names(table_raw0)]
     strat = strat[strat %in% report_types[[haul_cruises_maxyr$SRVY[i]]]$strat0]
     
-    a <- temp1(table_raw = table_raw0  %>% 
+    a <- temp1(table_raw = table_raw0 %>% 
   dplyr::left_join(
     y = data.frame(SRVY = SRVY1, 
                    SRVY_long = SRVY11)) %>% 
@@ -1658,12 +1664,8 @@ for (i in 1:2) {
   if (i == 1){ # CPUE (WT/HA) and BIOMASS
     
     header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for common groundfish species for the ",
-                     maxyr," ", text_list(paste0(SRVY1), 
-                                          # text_list(paste0( 
-                                          #   haul_cruises_maxyr$SRVY, " (",
-                                          #   haul_cruises_maxyr$stations_completed,
-                                          #   " stations completed)")),
-                                          " shelf bottom trawl survey."))
+                     maxyr," ", text_list(paste0(SRVY11, " (", SRVY1, ")")), 
+                     " shelf bottom trawl survey",plural_surveys,".")
     
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
