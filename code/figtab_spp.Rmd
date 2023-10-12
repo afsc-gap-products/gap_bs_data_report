@@ -279,7 +279,7 @@ for (case_yr in case_yr0) {
     }
   }
     
-    header <- paste0("The distribution (Weight CPUE (kg/km^2^)) of ", header0)
+    header <- paste0("Distribution (Weight CPUE (kg/km^2^)) of ", header0)
     
     set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgkm2")
     
@@ -508,14 +508,10 @@ if (!(nrow(table_raw) == 0)) {
   if (report_title %in% c("community", "data")) {
     if (report_title == "community") {
       
-      header <- paste0("Total population estimates at each length of ",
+      header <- paste0("Total population estimates at length for ",
                        spp_print, ifelse(is.na(spp_sci), "", 
                                          paste0(" (",spp_sci,")")), 
-                       " by sex (",text_list(tolower(unique(table_raw$sex))),
-                       ") in ",
-                       ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
-                              "centimeters (cm)", "millimeters (mm)"),
-                       " encountered during the ",
+                       " calculated from ",
                        range_text(yrs)," ",
                        text_list(paste0(unique(table_raw$SRVY_long))), 
                        " shelf bottom trawl survey", 
@@ -632,8 +628,8 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 nickname <- paste0("tab-stats-", spp_file)
 
-header <- paste0("Summary ranges of biomass and population information, and environmental variables that ", 
-                 spp_print, " (", spp_sci, ") have been found in across the ", 
+header <- paste0("Summary ranges of biomass, population, and environmental variables in which ", 
+                 spp_print, " (", spp_sci, ") have been found across the ", 
                  SURVEY, " survey area", plural_surveys,". ")
 
 ### Stats table ----------------------------------------------------------------
@@ -1267,7 +1263,7 @@ figure <- figure_bio <- temp00(table_raw0 = table_raw,
                  description = description, 
                  legend_font_size = legend_font_size)
 
-header <- paste0("Timeseries of ", spp_print, 
+header <- paste0("Estimates of ", spp_print, 
                  ifelse(is.na(spp_sci), "", 
                         paste0(" (",spp_sci,")")), 
                  " ", tolower(y_long), 
