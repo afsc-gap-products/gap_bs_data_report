@@ -169,7 +169,7 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
 str0 <- gsub(pattern = "  ", replacement = " ", x = str0)
 ```
 
-From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r str0`. 
+From the `r SURVEY` shelf trawl survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r str0`. 
 
 ## Estimates of Fishes and Invertebrates
 
@@ -177,14 +177,14 @@ From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measu
 
 # million metric tons of biomass collected in each region in each year
 temp <- total_biomass %>% 
-  dplyr::group_by(year, SRVY) %>% 
+  dplyr::group_by(year, SRVY, SRVY_long) %>% 
   dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1)) %>% 
   dplyr::ungroup() %>% 
   dplyr::arrange(desc(year)) %>% 
   dplyr::filter(year %in% c(maxyr, compareyr))
 ```
 
-In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-NBS)). 
+In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY_long[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table \@ref(tab:tab-majortaxa-pchange-NBS)). 
 
 ```{r biomass-inc-dec-spp}
 
