@@ -1523,7 +1523,7 @@ plot_pa_facet <- function(
 #' @export
 #'
 #' @examples
-plot_temperature_facet <- function(raster_nebs, 
+plot_temperature_map <- function(raster_nebs, 
                                    raster_ebs, 
                                    key.title = "Temperature (°C)", 
                                    reg_dat, 
@@ -1590,7 +1590,7 @@ plot_temperature_facet <- function(raster_nebs,
                                        temperature_sf)
   }
   
-  temperature_zscore <- coldpool::cold_pool_index %>% 
+  temperature_zscore1 <- coldpool::cold_pool_index %>% 
     dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE")), 
                   year = YEAR) %>%
     dplyr::select(year, var) %>% 
@@ -1665,10 +1665,10 @@ plot_temperature_facet <- function(raster_nebs,
       plot.margin=grid::unit(c(0,0,0,0), "mm")
     )
   
-  if (! is.null(temperature_zscore)) {
+  if (temperature_zscore) {
     
     figure <- figure +
-      ggplot2::geom_label(data = temperature_zscore, 
+      ggplot2::geom_label(data = temperature_zscore1, 
                           aes(label = sign, 
                               color = sign,
                               x = quantile(x = reg_dat$plot.boundary$x, .96),
@@ -1679,9 +1679,9 @@ plot_temperature_facet <- function(raster_nebs,
                           show.legend = FALSE) +
       scale_colour_manual(
         na.value = "transparent",
-        breaks = (unique(temperature_zscore$sign)), 
-        labels = (unique(temperature_zscore$sign)), 
-        values = (unique(temperature_zscore$color)))
+        breaks = (unique(temperature_zscore1$sign)), 
+        labels = (unique(temperature_zscore1$sign)), 
+        values = (unique(temperature_zscore1$color)))
   }
   
   if (2020 %in% temperature_sf$year)  {

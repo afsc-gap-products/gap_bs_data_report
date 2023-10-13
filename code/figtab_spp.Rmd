@@ -47,7 +47,6 @@ figure <-
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-
 ## fig-dist-[taxon]-[spp]
 
 ```{r dist_funct} 
@@ -233,14 +232,13 @@ if (report_title == "data") {
 } 
 yrs <- sort(yrs, decreasing = TRUE)
 
-
-  table_raw <- cpue %>% 
-    dplyr::mutate(cpue_kgkm2 = ifelse(is.na(cpue_kgkm2), 0, cpue_kgkm2)) %>%
-    dplyr::filter(
-      SRVY %in% SRVY1 &
-        species_code %in% spp_code & 
-        year %in% yrs) %>% 
-    dplyr::arrange(desc(year))
+table_raw <- cpue %>% 
+  dplyr::mutate(cpue_kgkm2 = ifelse(is.na(cpue_kgkm2), 0, cpue_kgkm2)) %>%
+  dplyr::filter(
+    SRVY %in% SRVY1 &
+      species_code %in% spp_code & 
+      year %in% yrs) %>% 
+  dplyr::arrange(desc(year))
 
 # only if both species are only found in prt of the region, chnge the extrp.box
 map.area0 <- map.area
@@ -278,156 +276,156 @@ for (case_yr in case_yr0) {
       yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
     }
   }
-    
-    header <- paste0("Distribution (Weight CPUE (kg/km^2^)) of ", header0)
-    
-    set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgkm2")
-    
-    a <- table_raw %>% 
-      dplyr::select(year, SRVY) %>% 
-      dplyr::distinct() %>% 
-      dplyr::select(year) %>%
-      table()
-    
-    if (sum(a==2)>0) {
-      raster_nebs <- stars0 <- make_idw_stack(
-        x = table_raw %>% 
-          dplyr::rename(COMMON_NAME = common_name,
-                        LATITUDE = latitude_dd_start,
-                        LONGITUDE = longitude_dd_start,
-                        CPUE_KGHA = cpue_kgkm2) %>% 
-          dplyr::filter(year %in% as.numeric(names(a[a == 2]))),
-        region = "bs.all", 
-        grouping.vars = "year", 
-        set.breaks = set.breaks)
-    }
-    
-    if (sum(a==1)>0) {
-      raster_ebs <- stars0 <- make_idw_stack(
-        x = table_raw %>% 
-          dplyr::rename(COMMON_NAME = common_name,
-                        LATITUDE = latitude_dd_start,
-                        LONGITUDE = longitude_dd_start,
-                        CPUE_KGHA = cpue_kgkm2) %>% 
-          dplyr::filter(year %in% as.numeric(names(a[a == 1]))),
-        region = "bs.south", 
-        grouping.vars = "year", 
-        set.breaks = set.breaks)
-    }
-    
-    if (sum(c(1, 2) %in% a) == 2) {
-      temp <- data.frame(raster_nebs$extrapolation.stack)
-      for (i in names(a[a %in% 1])) {
-        temp$temp <- factor(NA)
-        names(temp)[ncol(temp)] <- paste0("X", i)
-      }
-      
-      stars0 <- dplyr::bind_rows(
-        temp, 
-        data.frame(raster_ebs$extrapolation.stack)) %>% 
-        tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")), 
-                            names_to = "year", values_to = "bin") %>% 
-        dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>% 
-        stars::st_as_stars(df, dims = c("x", "y", "year"))
-    } else {
-      stars0 <- stars0$extrapolation.stack %>% 
-        data.frame() %>% 
-        tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")), 
-                            names_to = "year", values_to = "bin") %>% 
-        dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>% 
-        stars::st_as_stars(df, dims = c("x", "y", "year"))
-    }
-    
-    viridis_palette_option <- "mako"
-    key.title <- paste0(stringr::str_to_sentence(spp_print),
-                        ifelse(report_title == "ptpres", " ", '\n'), 
-                        'Weight CPUE (kg/km²)')
   
-    figure <- ggplot() +
-      ggplot2::geom_sf(data = reg_dat0$akland,
-                       color = NA,
-                       fill = "grey50")  +
-      ggplot2::geom_sf(data = reg_dat0$graticule,
-                       color = "grey80",
-                       alpha = 0.2) +
-      ggplot2::scale_y_continuous(name = "", #"Latitude",
-                                  limits = reg_dat0$plot.boundary$y,
-                                  breaks = reg_dat0$lat.breaks) +
-      ggplot2::scale_x_continuous(name = "", #"Longitude",
-                                  limits = reg_dat0$plot.boundary$x,
-                                  breaks = reg_dat0$lon.breaks) +
-      geom_stars(data = stars0,
-                 na.rm = FALSE,
-                 show.legend = TRUE) +
-      ggplot2::facet_wrap( ~ year, nrow = row0) + 
-      coord_sf() + 
-      ggplot2::scale_fill_manual(
-        name = key.title, 
-        values =  c("gray90",
-                    viridis::viridis(
-                      option = viridis_palette_option,
-                      direction = -1,
-                      n = length(set.breaks)-1,
-                      begin = 0.20,
-                      end = 0.80)),
-        na.translate = FALSE, # Don't use NA
-        drop = FALSE)  +
-      ggplot2::geom_sf(
-        data = reg_dat$survey.area, 
-        mapping = aes(color = SURVEY, 
-                      geometry = geometry), 
-        fill = "transparent", 
-        linewidth = ifelse(row0 > 2, 1.5, 1), 
-        show.legend = FALSE) +
-      ggplot2::scale_color_manual(
-        name = " ", 
-        values = reg_dat$survey.area$color,
-        breaks = reg_dat$survey.area$SURVEY,
-        labels = reg_dat$survey.area$SRVY) + 
-      ggplot2::guides(
-        fill = guide_legend(
-          order = 1,
-          title.position = "top",
-          label.position = "bottom",
-          title.hjust = 0.5,
-          override.aes = list(color = NA),
-          nrow = 1),
-        color = "none")  +
-      ggplot2::theme( 
-        panel.background = element_rect(fill = "white", 
-                                        colour = NA), 
-        panel.border = element_rect(fill = NA, 
-                                    colour = "grey20"), 
-        axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
-        
-        strip.background = element_blank(), 
-        strip.text = element_text(size = 10, 
-                                  face = "bold"), 
-        legend.text = element_text(size = 9),
-        legend.background = element_rect(colour = "transparent", 
-                                         fill = "transparent"),
-        legend.key = element_rect(colour = "transparent", 
-                                  fill = "transparent"),
-        legend.position = "bottom", 
-        legend.box = "horizontal") 
+  header <- paste0("Distribution (Weight CPUE (kg/km^2^)) of ", header0)
+  
+  set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgkm2")
+  
+  a <- table_raw %>% 
+    dplyr::select(year, SRVY) %>% 
+    dplyr::distinct() %>% 
+    dplyr::select(year) %>%
+    table()
+  
+  if (sum(a==2)>0) {
+    raster_nebs <- stars0 <- make_idw_stack(
+      x = table_raw %>% 
+        dplyr::rename(COMMON_NAME = common_name,
+                      LATITUDE = latitude_dd_start,
+                      LONGITUDE = longitude_dd_start,
+                      CPUE_KGHA = cpue_kgkm2) %>% 
+        dplyr::filter(year %in% as.numeric(names(a[a == 2]))),
+      region = "bs.all", 
+      grouping.vars = "year", 
+      set.breaks = set.breaks)
+  }
+  
+  if (sum(a==1)>0) {
+    raster_ebs <- stars0 <- make_idw_stack(
+      x = table_raw %>% 
+        dplyr::rename(COMMON_NAME = common_name,
+                      LATITUDE = latitude_dd_start,
+                      LONGITUDE = longitude_dd_start,
+                      CPUE_KGHA = cpue_kgkm2) %>% 
+        dplyr::filter(year %in% as.numeric(names(a[a == 1]))),
+      region = "bs.south", 
+      grouping.vars = "year", 
+      set.breaks = set.breaks)
+  }
+  
+  if (sum(c(1, 2) %in% a) == 2) {
+    temp <- data.frame(raster_nebs$extrapolation.stack)
+    for (i in names(a[a %in% 1])) {
+      temp$temp <- factor(NA)
+      names(temp)[ncol(temp)] <- paste0("X", i)
+    }
     
+    stars0 <- dplyr::bind_rows(
+      temp, 
+      data.frame(raster_ebs$extrapolation.stack)) %>% 
+      tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")), 
+                          names_to = "year", values_to = "bin") %>% 
+      dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>% 
+      stars::st_as_stars(df, dims = c("x", "y", "year"))
+  } else {
+    stars0 <- stars0$extrapolation.stack %>% 
+      data.frame() %>% 
+      tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")), 
+                          names_to = "year", values_to = "bin") %>% 
+      dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>% 
+      stars::st_as_stars(df, dims = c("x", "y", "year"))
+  }
+  
+  viridis_palette_option <- "mako"
+  key.title <- paste0(stringr::str_to_sentence(spp_print),
+                      ifelse(report_title == "ptpres", " ", '\n'), 
+                      'Weight CPUE (kg/km²)')
+  
+  figure <- ggplot() +
+    ggplot2::geom_sf(data = reg_dat0$akland,
+                     color = NA,
+                     fill = "grey50")  +
+    ggplot2::geom_sf(data = reg_dat0$graticule,
+                     color = "grey80",
+                     alpha = 0.2) +
+    ggplot2::scale_y_continuous(name = "", #"Latitude",
+                                limits = reg_dat0$plot.boundary$y,
+                                breaks = reg_dat0$lat.breaks) +
+    ggplot2::scale_x_continuous(name = "", #"Longitude",
+                                limits = reg_dat0$plot.boundary$x,
+                                breaks = reg_dat0$lon.breaks) +
+    geom_stars(data = stars0,
+               na.rm = FALSE,
+               show.legend = TRUE) +
+    ggplot2::facet_wrap( ~ year, nrow = row0) + 
+    coord_sf() + 
+    ggplot2::scale_fill_manual(
+      name = key.title, 
+      values =  c("gray90",
+                  viridis::viridis(
+                    option = viridis_palette_option,
+                    direction = -1,
+                    n = length(set.breaks)-1,
+                    begin = 0.20,
+                    end = 0.80)),
+      na.translate = FALSE, # Don't use NA
+      drop = FALSE)  +
+    ggplot2::geom_sf(
+      data = reg_dat$survey.area, 
+      mapping = aes(color = SURVEY, 
+                    geometry = geometry), 
+      fill = "transparent", 
+      linewidth = ifelse(row0 > 2, 1.5, 1), 
+      show.legend = FALSE) +
+    ggplot2::scale_color_manual(
+      name = " ", 
+      values = reg_dat$survey.area$color,
+      breaks = reg_dat$survey.area$SURVEY,
+      labels = reg_dat$survey.area$SRVY) + 
+    ggplot2::guides(
+      fill = guide_legend(
+        order = 1,
+        title.position = "top",
+        label.position = "bottom",
+        title.hjust = 0.5,
+        override.aes = list(color = NA),
+        nrow = 1),
+      color = "none")  +
+    ggplot2::theme( 
+      panel.background = element_rect(fill = "white", 
+                                      colour = NA), 
+      panel.border = element_rect(fill = NA, 
+                                  colour = "grey20"), 
+      axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
+      
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 10, 
+                                face = "bold"), 
+      legend.text = element_text(size = 9),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", 
+                                fill = "transparent"),
+      legend.position = "bottom", 
+      legend.box = "horizontal") 
+  
   if (report_title == "ptpres") {
     figure <- figure +
       ggplot2::theme(legend.title=element_blank() ) +
       ggplot2::ggtitle(key.title) 
   }
+  
+  if (report_title %in% c("nbspres")) {
     
-    if (report_title %in% c("nbspres")) {
-      
-      figure <- figure + 
-        ggplot2::geom_sf_text(
-          data = data.frame(y = 64.500126, x = -165.408402) %>% 
-            sf::st_as_sf(coords=c("x","y"), crs="+proj=longlat") %>% 
-            sf::st_transform(crs = "EPSG:3338") %>%
-            dplyr::mutate(label = "Nome"), 
-          mapping = aes(label = label), 
-          fontface = "italic", 
-          size = 4) +
+    figure <- figure + 
+      ggplot2::geom_sf_text(
+        data = data.frame(y = 64.500126, x = -165.408402) %>% 
+          sf::st_as_sf(coords=c("x","y"), crs="+proj=longlat") %>% 
+          sf::st_transform(crs = "EPSG:3338") %>%
+          dplyr::mutate(label = "Nome"), 
+        mapping = aes(label = label), 
+        fontface = "italic", 
+        size = 4) +
       geom_text(data = subset(reg_dat$place.labels, 
                               type == "mainland"), 
                 aes(x = x, y = y, label = lab), 
@@ -442,8 +440,17 @@ for (case_yr in case_yr0) {
         aes(x = x, y = y, label = lab), 
         bg.color = "white", color = "black", 
         size = 2, group = 99)
-    }  
-    
+  }  
+  
+  if (report_title %in% c("community")) { 
+    figure <-
+      cowplot::ggdraw(figure) +
+      cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+                          x = 0.07, y = -.4,
+                          hjust = 0, vjust = 0,
+                          width = .18)
+  }
+  
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
@@ -604,15 +611,15 @@ if (!(nrow(table_raw) == 0)) {
       figure <- cowplot::plot_grid(figure1, figure2)
     }
   }
-  # if (!(pres_img)) { #  & report_title == "community"
-  # 
-  #   figure <-
-  #     cowplot::ggdraw(figure) +
-  #     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-  #                         x = 0.07, y = -.42,
-  #                         hjust = 0, vjust = 0,
-  #                         width = .18)
-  # }
+  
+  if (report_title %in% c("community")) { 
+    figure <-
+      cowplot::ggdraw(figure) +
+      cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+                          x = 0.07, y = -.42,
+                          hjust = 0, vjust = 0,
+                          width = .18)
+  }
   
 } else {
   header <- ""
@@ -924,11 +931,11 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
                                              digits = ifelse(biomass_mt0$divby>1, 2, 0), 
                                              format = "f", big.mark = ",") , 
                         biomass_up = formatC(x = biomass_up/biomass_mt0$divby,
-                                                  digits = ifelse(biomass_mt0$divby>1, 2, 0),
-                                                  format = "f", big.mark = ",") ,
+                                             digits = ifelse(biomass_mt0$divby>1, 2, 0),
+                                             format = "f", big.mark = ",") ,
                         biomass_dw = formatC(x = biomass_dw/biomass_mt0$divby,
-                                                  digits = ifelse(biomass_mt0$divby>1, 2, 0),
-                                                  format = "f", big.mark = ",") ,
+                                             digits = ifelse(biomass_mt0$divby>1, 2, 0),
+                                             format = "f", big.mark = ",") ,
                         biomass_sd = formatC(x = biomass_sd/biomass_sd0$divby, 
                                              digits = ifelse(biomass_sd0$divby>1, 2, 0), 
                                              format = "f", big.mark = ","))
@@ -988,11 +995,11 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
                                                    digits = ifelse(population_count0$divby>1, 2, 0), 
                                                    format = "f", big.mark = ",") , 
                         population_up = formatC(x = population_up/population_count0$divby,
-                                                     digits = ifelse(population_count0$divby>1, 2, 0),
-                                                     format = "f", big.mark = ",") ,
+                                                digits = ifelse(population_count0$divby>1, 2, 0),
+                                                format = "f", big.mark = ",") ,
                         population_dw = formatC(x = population_dw/population_count0$divby,
-                                                     digits = ifelse(population_count0$divby>1, 2, 0),
-                                                     format = "f", big.mark = ",") ,
+                                                digits = ifelse(population_count0$divby>1, 2, 0),
+                                                format = "f", big.mark = ",") ,
                         population_sd = formatC(x = population_sd/population_sd0$divby, 
                                                 digits = ifelse(population_sd0$divby>1, 2, 0), 
                                                 format = "f", big.mark = ","))
@@ -1026,7 +1033,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
                      ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
                      " by stratum encountered during the ",
                      maxyr," ", 
-                      text_list(paste0(SRVY11, " (", SRVY1, ")")), 
+                     text_list(paste0(SRVY11, " (", SRVY1, ")")), 
                      " shelf bottom trawl survey",plural_surveys,". ", 
                      # ifelse(length(unique(table_raw$SRVY)) > 1, SURVEY, unique(table_raw$SRVY_long)), 
                      # " shelf bottom trawl survey",
@@ -1252,16 +1259,25 @@ table_raw <- table_raw0 %>%
                 taxon = spp_taxon)
 
 figure <- figure_bio <- temp00(table_raw0 = table_raw, 
-                 var = "biomass_mt", 
-                 maxyr = maxyr, 
-                 compareyr = compareyr, 
-                 unit = unit, 
-                 unt = unt, 
-                 y_long = y_long, 
-                 mean_in_legend = TRUE, 
-                 error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
-                 description = description, 
-                 legend_font_size = legend_font_size)
+                               var = "biomass_mt", 
+                               maxyr = maxyr, 
+                               compareyr = compareyr, 
+                               unit = unit, 
+                               unt = unt, 
+                               y_long = y_long, 
+                               mean_in_legend = TRUE, 
+                               error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                               description = description, 
+                               legend_font_size = legend_font_size)
+
+if (report_title %in% c("community")) { 
+  figure <-
+    cowplot::ggdraw(figure) +
+    cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+                        x = 0.07, y = -.42,
+                        hjust = 0, vjust = 0,
+                        width = .18)
+}
 
 header <- paste0("Estimates of ", spp_print, 
                  ifelse(is.na(spp_sci), "", 
@@ -1360,50 +1376,50 @@ table_raw <- table_raw0 %>%
                 taxon = spp_taxon)
 
 legend0 <- temp00(table_raw0 = table_raw, 
-                 var = "biomass_mt", 
-                 maxyr = maxyr, 
-                 compareyr = compareyr, 
-                 unit = unit, 
-                 unt = unt, 
-                 y_long = y_long, 
-                 mean_in_legend = TRUE, 
-                 error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
-                 description = description, 
-                 legend_font_size = legend_font_size) %>% 
+                  var = "biomass_mt", 
+                  maxyr = maxyr, 
+                  compareyr = compareyr, 
+                  unit = unit, 
+                  unt = unt, 
+                  y_long = y_long, 
+                  mean_in_legend = TRUE, 
+                  error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                  description = description, 
+                  legend_font_size = legend_font_size) %>% 
   get_legend()
 
 if ("EBS" %in% unique(table_raw$SRVY)) {
-figure_ebs <- temp00(table_raw0 = table_raw %>% 
-                                     dplyr::filter(SRVY == "EBS"), 
-                 var = "biomass_mt", 
-                 maxyr = maxyr, 
-                 compareyr = compareyr, 
-                 unit = unit, 
-                 unt = unt, 
-                 y_long = y_long, 
-                 mean_in_legend = TRUE, 
-                 error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
-                 description = description, 
-                 legend_font_size = legend_font_size) + 
-  ggplot2::theme(legend.position = "none") + 
-  ggplot2::ylab("")
+  figure_ebs <- temp00(table_raw0 = table_raw %>% 
+                         dplyr::filter(SRVY == "EBS"), 
+                       var = "biomass_mt", 
+                       maxyr = maxyr, 
+                       compareyr = compareyr, 
+                       unit = unit, 
+                       unt = unt, 
+                       y_long = y_long, 
+                       mean_in_legend = TRUE, 
+                       error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                       description = description, 
+                       legend_font_size = legend_font_size) + 
+    ggplot2::theme(legend.position = "none") + 
+    ggplot2::ylab("")
 }
 
 if ("NBS" %in% unique(table_raw$SRVY)) {
-figure_nbs <- figure_bio <- temp00(table_raw0 = table_raw %>% 
-                                     dplyr::filter(SRVY == "NBS"), 
-                 var = "biomass_mt", 
-                 maxyr = maxyr, 
-                 compareyr = compareyr, 
-                 unit = unit, 
-                 unt = unt, 
-                 y_long = y_long, 
-                 mean_in_legend = TRUE, 
-                 error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
-                 description = description, 
-                 legend_font_size = legend_font_size) + 
-  ggplot2::theme(legend.position = "none") + 
-  ggplot2::ylab("") #+ 
+  figure_nbs <- figure_bio <- temp00(table_raw0 = table_raw %>% 
+                                       dplyr::filter(SRVY == "NBS"), 
+                                     var = "biomass_mt", 
+                                     maxyr = maxyr, 
+                                     compareyr = compareyr, 
+                                     unit = unit, 
+                                     unt = unt, 
+                                     y_long = y_long, 
+                                     mean_in_legend = TRUE, 
+                                     error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                                     description = description, 
+                                     legend_font_size = legend_font_size) + 
+    ggplot2::theme(legend.position = "none") + 
+    ggplot2::ylab("") #+ 
   # ggtitle("Northern Bering Sea")
 }
 
@@ -1421,7 +1437,7 @@ header <- paste0("Timeseries of ", spp_print,
                  range_text(range(table_raw$year)), " ", 
                  SURVEY, 
                  " shelf bottom trawl survey", plural_surveys, ". ")
-  
+
 res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 

@@ -66,7 +66,7 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 
 ```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.height=2, fig.width=2}
 cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
 
 ```{r res-spp-lang-{{jj}}, eval = (report_title == "community")}
@@ -94,8 +94,6 @@ if (ncol(temp)>0) {
 ```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
 ```
 
-<!-- `r ifelse(spp_text & (report_title == "community"), "<br>", "") ` -->
-
 ```{r tab-stats-{{jj}}, eval = (report_title %in% c("community", "data"))}
 nickname <- paste0("tab-stats-", spp_file)
 no_cap <- TRUE
@@ -117,8 +115,6 @@ nickname <- paste0("fig-population-", spp_file)
 
 ```{r tab-pop-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% c("data"))}
 ```
-
-
 
 ```{r fig-dist-{{jj}}}
 nickname <- paste0("fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"))

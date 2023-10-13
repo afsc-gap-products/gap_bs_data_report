@@ -49,8 +49,8 @@ nickname <- "fig-survey-sample-stations"
 
 vessels0 <- vessels 
 if (sum(vessels0$vess_shape == "X")>0) {
-vessels0 <- vessels0 %>% 
-  dplyr::mutate(vessel_ital = ifelse(vess_shape == "X", "stations that were not surveyed", vessel_ital))
+  vessels0 <- vessels0 %>% 
+    dplyr::mutate(vessel_ital = ifelse(vess_shape == "X", "stations that were not surveyed", vessel_ital))
 }
 header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
                  text_list(haul_cruises_maxyr$SRVY_long),
@@ -118,18 +118,18 @@ reg_dat0$survey.grid <-
                    y = dplyr::left_join(x = haul_maxyr,
                                         y = vessels) %>%
                      dplyr::select(station, vessel_name, vess_shape))
-  
-    reg_dat0$survey.grid <- dplyr::left_join(
-    x = reg_dat0$survey.grid, 
-    y = haul_maxyr_crabretow %>% 
-      dplyr::mutate(study = "15_30_minute_tows", 
-                    study_col = nmfspalette::nmfs_cols("medgray"),
-                    study_long = "15/30 minute tows") %>% 
-      dplyr::select(station, study, study_col, study_long) %>%
-      dplyr::rename(station = station) %>% 
-      unique(), 
-    by = ("station")) 
-    
+
+reg_dat0$survey.grid <- dplyr::left_join(
+  x = reg_dat0$survey.grid, 
+  y = haul_maxyr_crabretow %>% 
+    dplyr::mutate(study = "15_30_minute_tows", 
+                  study_col = nmfspalette::nmfs_cols("medgray"),
+                  study_long = "15/30 minute tows") %>% 
+    dplyr::select(station, study, study_col, study_long) %>%
+    dplyr::rename(station = station) %>% 
+    unique(), 
+  by = ("station")) 
+
 figure <- plot_survey_stations(
   reg_dat = reg_dat0, 
   stratum_grid = FALSE, 
@@ -462,9 +462,9 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_proje
                   labels = c("EBS and NBS", "EBS", "NBS"), 
                   ordered = TRUE), 
     SRVY_long = factor(x = SRVY_long, 
-                  levels = c("Eastern and northern Bering Sea Combined", "Eastern Bering Sea", "Northern Bering Sea"), 
-                  labels = c("Eastern and northern Bering Sea Combined", "Eastern Bering Sea", "Northern Bering Sea"), 
-                  ordered = TRUE)) %>%
+                       levels = c("Eastern and northern Bering Sea Combined", "Eastern Bering Sea", "Northern Bering Sea"), 
+                       labels = c("Eastern and northern Bering Sea Combined", "Eastern Bering Sea", "Northern Bering Sea"), 
+                       ordered = TRUE)) %>%
   dplyr::arrange(SRVY, Agency, `Principal investigator`, `Project title`)
 
 header <- paste0("Special projects and collections undertaken during the ",
@@ -790,29 +790,29 @@ temp <- function(yrs,
                    ifelse(SRVY=="NEBS", "s", ""),
                    ". ") 
   if (temperature_zscore) {
-  header <- paste0(header, "Years in which the mean ", case,
-                   " temperature is 1 or more standard deviations above or below the time-series mean ", case,
-                   " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
+    header <- paste0(header, "Years in which the mean ", case,
+                     " temperature is 1 or more standard deviations above or below the time-series mean ", case,
+                     " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
   }
   
   # Create figure
   key.title = ifelse(case == "bottom", 
                      expression(bold("Bottom temperature (°C)")), 
                      expression(bold("Surface temperature (°C)")))
-  reg_dat = reg_dat0
-  if(is.null(title0)) {
-  title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
-                  " Bering Sea\n", 
-                  case, " temperature (", range_text(yrs), ")") 
+  # reg_dat <- reg_dat0
+  if (is.null(title0)) {
+    title0 <- paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
+                     " Bering Sea\n", 
+                     case, " temperature (", range_text(yrs), ")") 
   }
-  figure <- plot_temperature_facet(
+  figure <- plot_temperature_map(
     raster_nebs = raster_nebs, 
     raster_ebs = raster_ebs, 
     colorbar_breaks = colorbar_breaks, 
     yrs = yrs, 
     yrs_nbs = nbsyr[nbsyr %in% names(raster_nebs)], # in case data isn't ready yet at time of run 
     key.title = key.title, 
-    reg_dat = reg_dat0, 
+    reg_dat = reg_dat,#0, 
     row0 = row0, 
     title0 = title0, 
     temperature_zscore = temperature_zscore) 
@@ -839,8 +839,11 @@ for (case in c("bottom", "surface")) {
     } else if (case_yr == 2) {
       yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
     }
-    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr))
-    a <- temp(yrs, row0, case)
+    nickname <- paste0("fig-temperature-", 
+                       ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr))
+    a <- temp(yrs = yrs, 
+              row0 = row0, 
+              case = case)
     figure <- a$figure
     header <- a$header
     
@@ -851,10 +854,10 @@ for (case in c("bottom", "surface")) {
 
 ## fig-temperature-[st/bt]-comm
 
-```{r fig-temperature-[st/bt]}
+```{r fig-temperature-[st/bt]-comm}
+temperature_zscore <- FALSE
 height <- full_page_portrait_height
 width <- full_page_portrait_width
-temperature_zscore <- FALSE
 yrs0 <- (maxyr-17):maxyr
 row0 <- 3
 case_yr0 <- 1:2
@@ -868,7 +871,10 @@ for (case in c("bottom", "surface")) {
       yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
     }
     nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr))
-    a <- temp(yrs, row0, case, temperature_zscore)
+    a <- temp(yrs = yrs, 
+              row0 = row0, 
+              case = case, 
+              temperature_zscore = temperature_zscore)
     figure <- a$figure
     header <- a$header
     
@@ -889,9 +895,12 @@ reg_dat0 <- report_types$NEBS$reg_dat
 
 for (case in c("bottom", "surface")) {
   nickname <- paste0("fig-ptpres-temperature-", ifelse(case=="bottom", "bt", "st"))
-  a <- temp(yrs, row0, case, 
-            title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), " ",  
-                   case, " temperature (", range_text(yrs), ")"))
+  title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), " ",  
+                  case, " temperature (", range_text(yrs), ")")
+  a <- temp(yrs = yrs, 
+            row0 = row0, 
+            case = case, 
+            title0 = title0)
   figure <- a$figure
   header <- a$header
   
@@ -911,7 +920,13 @@ reg_dat0 <- report_types$NEBS$reg_dat
 
 for (case in c("bottom", "surface")) {
   nickname <- paste0("fig-nbspres-temperature-", ifelse(case=="bottom", "bt", "st"))
-  a <- temp(yrs, row0, case, temperature_zscore)
+  title0 <- paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), " ",  
+                   case, " temperature (", range_text(yrs), ")")
+  a <- temp(yrs = yrs, 
+            row0 = row0, 
+            case = case, 
+            title0 = title0, 
+            temperature_zscore = temperature_zscore)
   figure <- a$figure
   header <- a$header
   
@@ -1545,9 +1560,9 @@ for (taxon0 in c("fish", "invert")) {
     strat = strat[strat %in% report_types[[haul_cruises_maxyr$SRVY[i]]]$strat0]
     
     a <- temp1(table_raw = table_raw0 %>% 
-  dplyr::left_join(
-    y = data.frame(SRVY = SRVY1, 
-                   SRVY_long = SRVY11)) %>% 
+                 dplyr::left_join(
+                   y = data.frame(SRVY = SRVY1, 
+                                  SRVY_long = SRVY11)) %>% 
                  dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]), 
                strat = strat, 
                total = total_biomass %>% 
@@ -1884,7 +1899,7 @@ header <- paste0("Biomass and abundance change for major species in ",
 
 table_raw <- biomass %>%
   dplyr::left_join(
-  #   x = biomass, 
+    #   x = biomass, 
     y = report_spp1 %>%
       dplyr::filter(!is.na(order) & table_bio_portion ) %>%
       dplyr::select(species_code, order) %>%
@@ -1894,7 +1909,7 @@ table_raw <- biomass %>%
                   stratum == 999 & 
                   !is.na(order) &
                   !is.na(common_name)
-                  ) %>% 
+  ) %>% 
   dplyr::group_by(common_name, year, SRVY, order) %>% 
   dplyr::summarise(biomass = sum(biomass_mt, na.rm = TRUE), 
                    population = sum(population_count, na.rm = TRUE)) %>% 
@@ -2033,6 +2048,38 @@ if (SRVY == "NEBS") {
 }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+
+# Endmatter
+
+## tab-glossary
+
+```{r tab-glossary}
+
+nickname <- "tab-glossary"
+header <- "Glossary of terms. "
+
+table_raw <- readr::read_csv(file = paste0(dir_out_rawdata, "glossary-of-terms.csv")) %>% 
+  dplyr::mutate(include = ifelse(is.na(include), TRUE, include)) %>% 
+  dplyr::filter(include) %>% 
+  dplyr::select(-include) %>% 
+  dplyr::arrange(desc(term))
+
+names(table_raw) <- stringr::str_to_title(names(table_raw))
+
+table_print <- table_raw %>% 
+  flextable::flextable()  %>%
+    theme_flextable_nmfstm(x = ., 
+                           pad = 0, 
+                           spacing = 0.4,
+                           font0 = font0, 
+                           pgwidth = full_page_portrait_width) %>% 
+  flextable::width(width = c(2, 6)) %>% 
+  flextable::theme_zebra()
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
 
 # Appendix A and B
 
@@ -2342,7 +2389,7 @@ tab_app_fish_ <- function(temp,
         dplyr::mutate(
           prop = total/sum(total, na.rm = TRUE), 
           cumprop = cumsum(prop))
-
+      
       table_raw <- 
         dplyr::bind_rows(table_raw %>% 
                            dplyr::mutate(length_mm = as.character(length_mm)), 
@@ -2430,7 +2477,7 @@ if (SRVY == "NEBS") {
                           report_spp1 %>% 
                             dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
                             dplyr::select(file_name, print_name, common_name1, species_name) %>% 
-                          dplyr::mutate(species_name = gsub(species_name, pattern = " larva", replacement = "")) %>% 
+                            dplyr::mutate(species_name = gsub(species_name, pattern = " larva", replacement = "")) %>% 
                             dplyr::distinct())
   if (nrow(temp) != 0) {   
     list_tables0 <- tab_app_fish_(

@@ -12,9 +12,9 @@
 
 str0 <- c()
 
-for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
+for (i in 1:length(SRVY1)){
   
-  srvy <- unique(haul_cruises_vess_maxyr$SRVY)[i]
+  srvy <- SRVY1[i]
   cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
     dplyr::filter(SRVY %in% srvy &
                     year %in% maxyr) %>% 
@@ -39,10 +39,10 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
     # 1. vessels started and ended on different dates
     temp <- paste0(temp, 
                    text_list(paste0("the ", cruises_maxyr0$vessel_ital, 
-                                    " started sampling on ", 
+                                    " started sampling ", 
                                     format((cruises_maxyr0$start_date_haul), format = date_format), 
-                                    " and ended on ", 
-                                    format((cruises_maxyr0$end_date_haul), format = date_format) )) )
+                                    " and ended ", 
+                                    format((cruises_maxyr0$end_date_haul), format = date_format) ), sep_last2 = ", while ") )
     # temp<-gsub(pattern = "and ,", replacement = "and,", x = temp)
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
@@ -52,9 +52,9 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
                    text_list(cruises_maxyr0$vessel_ital), 
                    # ifelse(length(unique(vessels0$vessel)) == 1, 
                    #        "the vessel", "both vessels"), 
-                   " started sampling on ",
+                   " started sampling ",
                    format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
-                   " and ended sampling on ", 
+                   " and ended sampling ", 
                    format(unique(cruises_maxyr0$end_date_haul), format = date_format))
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
@@ -63,10 +63,10 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
     temp <- paste0(temp, "started for ", 
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
                           "the vessel", "both vessels"), 
-                   " on ",
+                   " ",
                    format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
                    " and ended ", 
-                   text_list(paste0("on ", 
+                   text_list(paste0(" ", 
                                                  format(cruises_maxyr0$end_date_haul, 
                                                         format = date_format) , 
                                                  " for the ", cruises_maxyr0$vessel_ital) ))
@@ -75,14 +75,14 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY))){
              length(unique(cruises_maxyr0$end_date_haul)) == 1) {
     # 4. vessels started on different dates and ended on the same dates
     temp <- paste0(temp, "the sampling started ", 
-                   text_list(paste0("on ", 
+                   text_list(paste0(" ", 
                                                  format(cruises_maxyr0$start_date_haul, 
                                                         format = date_format) , 
                                                  " for the ", cruises_maxyr0$vessel_ital) ), 
                    " and ended for ", 
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
                           "the vessel", "both vessels"), 
-                   " on ",
+                   " ",
                    format((unique(cruises_maxyr0$end_date_haul)), 
                           format = date_format) )
   }
@@ -95,15 +95,15 @@ str <- str0 <- data.frame(str = str0,
 
 
 nbs_insert  <- paste0(
-    "The eastern Bering Sea shelf survey ",
+    "Sampling for the eastern Bering Sea shelf survey on ",
     str$str[str$SRVY == "EBS"],
-    ". The northern Bering Sea shelf survey ", 
+    ". Sampling for the northern Bering Sea shelf survey on ", 
     str$str[str$SRVY == "NBS"], 
     ".")
 
 ```
 
-The `r maxyr` eastern Bering Sea shelf and northern Bering Sea bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. (#fig-vessels)). `r nbs_insert ` The northern Bering Sea shelf was divided into three strata (regions): one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50-m (`r round(50/divmforft, digits = 1)`-ft) isobath (depth contour). 
+The `r maxyr` eastern Bering Sea shelf and northern Bering Sea bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. (#fig-vessels)). `r nbs_insert `  
 
 ```{r fig-vessels}
 nickname <- "fig-vessels"
@@ -117,19 +117,7 @@ nickname <- "fig-vessels"
 
 The northern Bering Sea survey was designed as a continuation of the systematic 20 × 20 nautical mile (nmi) sampling grid established for the annual eastern Bering Sea shelf survey. The northern Bering Sea survey contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations distributed throughout the `r xunits(sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2[stratum$SRVY == "NBS"], na.rm=TRUE))` km^2^). The eastern Bering Sea shelf survey area contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "EBS"] ` stations distributed over `r xunits(sum(stratum$area_nmi2[stratum$SRVY == "EBS"], na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2[stratum$SRVY == "EBS"], na.rm=TRUE))` km^2^). The addition of the northern Bering Sea survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^) and contains bottom depths ranging from `r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m). 
 
-```{r nbs-trawl-survey-area}
-# area of nbs trawl stations
-# area =  l*w * number of areas
-# temp <- haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] * # number of stations
-#   (10 / 1852) * # width of trawl net (m/nmi -> nmi)
-#   1.5 # calculate distance nmi = velocity (3 knots) * time (30 min)
-
-temp <- sum((haul_maxyr$net_width_m[haul_maxyr$SRVY == "NBS"]/ 1852) * # net width in meters, divided 1852 (m->nmi)
-      ((haul_maxyr$distance_fished_km[haul_maxyr$SRVY == "NBS"] * 1000)/ 1852), # distance fished in km converted to m,  divided 1852 (m->nmi)
-    na.rm = TRUE) 
-```
-
-Both vessels sampled using an 83/112 Eastern otter trawl that has been historically used for eastern Bering Sea shelf, Chukchi, and Beaufort Sea surveys (Fig. (#fig-trawl-gear-alt)). This trawl is significantly smaller and weighs less than trawls used for commercial fishing in Alaska. Each trawl tow is ideally conducted for 30-minutes at 3 knots.
+Both vessels sampled using an 83/112 Eastern otter trawl that has been historically used for eastern Bering Sea shelf, Chukchi, and Beaufort Sea surveys (Fig. (#fig-trawl-gear-alt)). This trawl is significantly smaller and weighs less than trawls used for commercial fishing in Alaska. Each trawl tow is ideally conducted for 30minutes at a speed of 3 knots.
 
 ```{r fig-trawl-gear-alt}
 nickname <- "fig-trawl-gear-alt"
@@ -140,6 +128,6 @@ nickname <- "fig-trawl-gear-alt"
 
 Catches were sorted and weighed in their entirety. Fishes, crabs, and other invertebrates were identified and sorted by species to the greatest extent possible. Subsamples of predominant fish species were weighed, sorted by sex, and measured to the nearest centimeter (cm). For the predominant crab species, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information that included their size, weight, sex, age, reproductive state, genetics, health (condition factor), and stomach content/diet.
 
-Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), population biomass, population abundance, population abundance by size class for measured species and population abundance by age class for species for which otoliths were extracted. CPUE can be used as a measurement of the density of a caught species. CPUE is the estimated catch of organisms caught (in kilograms (kg) or number of individuals) per amount of effort (generally, a combination of gear type, gear size, and tow duration). For these surveys, effort is estimated as the area swept (area sampled). Mean CPUE values were calculated for the overall survey areas. Biomass and population estimates were derived for each survey area by multiplying the mean CPUE by the total survey area.
+Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), population biomass, population abundance, and size distribution for measured species and population age structure for certain species. CPUE is the estimated catch of organisms caught (in kilograms (kg) or number of individuals) per amount of effort (generally, a combination of gear type, gear size, and tow duration), and can be used as a measure of the density of a species. For these surveys, effort was estimated as the area swept (area sampled), and mean CPUE values were calculated for the overall survey areas. Biomass and population estimates were derived for each survey area by multiplying the mean CPUE by the total survey area.
 
 Environmental data, including water temperature in degrees Celsius (°C), depth in meters (m), salinity (parts per thousand), and underwater downwelling light were also recorded at each sampling station. Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).
