@@ -2059,7 +2059,8 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 nickname <- "tab-glossary"
 header <- "Glossary of terms. "
 
-table_raw <- readr::read_csv(file = paste0(dir_out_rawdata, "glossary-of-terms.csv")) %>% 
+table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/glossary-of-terms.xlsx"), 
+                           sheet = "Sheet1") %>%
   dplyr::mutate(include = ifelse(is.na(include), TRUE, include)) %>% 
   dplyr::filter(include) %>% 
   dplyr::select(-include) %>% 
@@ -2074,7 +2075,7 @@ table_print <- table_raw %>%
                            spacing = 0.4,
                            font0 = font0, 
                            pgwidth = full_page_portrait_width) %>% 
-  flextable::width(width = c(2, 6)) %>% 
+  flextable::width(width = c(2, 4)) %>% 
   flextable::theme_zebra()
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)

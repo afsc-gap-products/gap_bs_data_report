@@ -446,9 +446,9 @@ for (case_yr in case_yr0) {
     figure <-
       cowplot::ggdraw(figure) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = 0.07, y = -.4,
-                          hjust = 0, vjust = 0,
-                          width = .18)
+                        hjust = 0, vjust = 0,
+                        x = 0.70, y = .40, # x = 0.07, y = -.42,
+                        width = .25)
   }
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -616,9 +616,9 @@ if (!(nrow(table_raw) == 0)) {
     figure <-
       cowplot::ggdraw(figure) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = 0.07, y = -.42,
-                          hjust = 0, vjust = 0,
-                          width = .18)
+                        hjust = 0, vjust = 0,
+                        x = 0.65, y = -.42,
+                        width = .25)
   }
   
 } else {
@@ -1231,7 +1231,8 @@ temp00 <- function(table_raw0,
 
 ```{r, fig-[spp]-biomass-timeseries, eval = (report_title != "nbspres")}
 if (report_title %in% c("community", "data")) {
-  nickname <- paste0("fig-biomass-", spp_file)
+  nickname <- paste0("fig-biomass-", spp_file, 
+                     ifelse((report_title %in% c("community")), "-comm", "-data"))
   description <- FALSE
   height <- 3
   width <- full_page_portrait_width
@@ -1274,9 +1275,9 @@ if (report_title %in% c("community")) {
   figure <-
     cowplot::ggdraw(figure) +
     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                        x = 0.07, y = -.42,
                         hjust = 0, vjust = 0,
-                        width = .18)
+                        x = 0.70, y = .40, # x = 0.07, y = -.42,
+                        width = .25)
 }
 
 header <- paste0("Estimates of ", spp_print, 
