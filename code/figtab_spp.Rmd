@@ -942,8 +942,8 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
         
         table_print <- table_print0 %>% 
           dplyr::select(-SRVY) %>% 
-  flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL)  %>%
-  flextable::as_flextable(hide_grouplabel = TRUE) %>%
+          flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL)  %>%
+          flextable::as_flextable(hide_grouplabel = TRUE) %>%
           flextable::set_header_labels(
             cpue_kgkm2_mean = paste0("CPUE Mean ", ifelse(cpue_kgkm2_mean0$unit_wrd=="", "", paste0(" ",cpue_kgkm2_mean0$unit_wrd))), 
             cpue_kgkm2_sd = paste0("CPUE\nSD ", ifelse(cpue_kgkm2_sd0$unit_wrd=="", "", paste0("\n",cpue_kgkm2_sd0$unit_wrd))), 
@@ -958,7 +958,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
       nickname <- paste0(nickname0, "num")
       
       table_raw <- temp %>% 
-        dplyr::select(SRVY, stratum, 
+        dplyr::select(SRVY_long, SRVY, stratum, 
                       cpue_nokm2_mean, cpue_nokm2_sd, population_dw, population_up, 
                       population_count, population_sd, n_haul, n_length)
       
@@ -1006,7 +1006,9 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
         table_print0[table_print0 == "NA"] <- "-"
         
         table_print <- table_print0 %>% 
-          flextable::flextable(data = .) %>% 
+          dplyr::select(-SRVY) %>%
+  flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL)  %>%
+  flextable::as_flextable(hide_grouplabel = TRUE) %>%
           flextable::set_header_labels(
             cpue_nokm2_mean = paste0("CPUE Mean", ifelse(cpue_nokm2_mean0$unit_wrd=="", "", paste0(" ", cpue_nokm2_mean0$unit_wrd))), 
             cpue_nokm2_sd = paste0("CPUE\nSD ", ifelse(cpue_nokm2_sd0$unit_wrd=="", "", paste0("\n", cpue_nokm2_sd0$unit_wrd))), 
@@ -1017,7 +1019,6 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
             population_up = paste0("95% UCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd)))
           ) 
       }
-      
     }
     
     header <- paste0(header,
