@@ -2718,7 +2718,9 @@ theme_flextable_nmfstm <- function(x,
   x <- flextable::bold(x = x, bold = TRUE, part = "header")
   x <- flextable::align_text_col(x = x, align = "left", header = TRUE)
   x <- flextable::align_nottext_col(x = x, align = "right", header = TRUE)
-  x <- flextable::padding(x = x, padding.left = pad, padding.right = pad, part = "all") # remove all line spacing in a flextable
+  x <- flextable::padding(x = x, padding.left = pad, padding.right = pad, 
+                          padding.top = 0, padding.bottom = 0, 
+                          part = "all") # remove all line spacing in a flextable
   x <- flextable::font(x = x, fontname = font0, part = "all")
   x <- flextable::fontsize(x = x, size = body_size-2, part = "footer")
   x <- flextable::fontsize(x = x, size = body_size, part = "body")
@@ -2734,7 +2736,6 @@ theme_flextable_nmfstm <- function(x,
   
   return(x)
 }
-
 
 # Save Tables and Figures ------------------------------------------------------
 
