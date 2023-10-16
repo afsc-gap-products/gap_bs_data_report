@@ -292,39 +292,34 @@ table_raw <- dplyr::bind_rows(
 
 table_print <- table_raw %>%
   dplyr::select(-SRVY) %>% 
-  flextable::as_grouped_data(x = ., groups = c("SRVY_long"), columns = NULL)  %>%
-  flextable::as_flextable(font = font0, x = ., hide_grouplabel = TRUE) %>%
-  flextable::compose(x = ., i = 1, j = "area_km2", part = "header",
+  flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL)  %>%
+  flextable::as_flextable(hide_grouplabel = TRUE) %>%
+  flextable::compose(i = 1, j = "area_km2", part = "header",
                      value = as_paragraph("Representative\narea (km", as_sup("2"), ")")) %>%
-  flextable::compose(x = ., i = 1, j = "density", part = "header",
+  flextable::compose(i = 1, j = "density", part = "header",
                      value = as_paragraph("Sampling density\n(km", as_sup("2"), "/Stations successfully sampled)")) %>%  
-  flextable::set_header_labels(., 
-                               area_name = "",
+  flextable::set_header_labels(area_name = "",
                                stratum = "Stratum",
                                stations_avail = "Stations\nin stratum",
                                stations_completed = "Stations\nsuccessfully sampled") %>% 
   flextable::merge_v(j = "area_name") %>%
-  flextable::merge_h_range(x = ., 
-                           i = ~ stratum == "", 
+  flextable::merge_h_range(i = ~ stratum == "", 
                            j1 = "area_name", 
                            j2 = "stratum", 
                            part = "body") %>%
   flextable::valign(valign = "top") %>%
-  theme_flextable_nmfstm(x = ., 
-                         row_lines = FALSE, 
-                         pad = 0, 
-                         font0 = font0, 
+  theme_flextable_nmfstm(row_lines = FALSE, 
                          pgwidth = full_page_portrait_width)  %>%
-  flextable::align(x = ., j = c("stratum", "area_km2", "stations_completed", "density"), 
+  flextable::align(j = c("stratum", "area_km2", "stations_completed", "density"), 
                    align = "right", part = "all")  %>% 
-  flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY_long) ) %>%
-  flextable::padding(x = .,
-                     j = 1, i = ~ is.na(SRVY_long),
-                     padding.left = 5)   %>%
-  flextable::hline(x = ., i = ~ !is.na(area_name), #j = SRVY, #border = fp_border(width = 3), 
+  flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
+  flextable::padding(j = 1, i = ~ is.na(SRVY_long),
+                     padding.left = 7)   %>%
+  flextable::hline(i = ~ !is.na(area_name), #j = SRVY, #border = fp_border(width = 3), 
                    part = "body")  %>%
-  flextable::hline(x = ., i = ~ (area_name == "Total"), #j = SRVY, #border = fp_border(width = 3), 
-                   part = "body", border = fp_border(width = 2)) 
+  flextable::hline(i = ~ (area_name == "Total"), #j = SRVY, #border = fp_border(width = 3), 
+                   part = "body",
+                   border = fp_border(width = 2)) 
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -359,28 +354,24 @@ header <- paste0("Otolith collection types and counts during the ",
 
 table_print <- table_raw %>% 
   dplyr::select(-SRVY) %>% 
-  flextable::as_grouped_data(x = ., groups = c(
-    "SRVY_long", "oto_samp_type"), 
+  flextable::as_grouped_data(groups = c("SRVY_long", "oto_samp_type"), 
     columns = NULL) %>% 
-  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
-  flextable::bold(x = ., j = 1, i = ~ !is.na(oto_samp_type) ) %>% 
-  flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY_long) ) %>% 
-  flextable::set_header_labels(.,
-                               print_name = "Common name", 
+  flextable::as_flextable(hide_grouplabel = TRUE) %>% 
+  flextable::bold(j = 1, i = ~ !is.na(oto_samp_type) ) %>% 
+  flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>% 
+  flextable::set_header_labels(print_name = "Common name", 
                                oto_target = "Target collection number per haul") %>%
-  theme_flextable_nmfstm(x = ., pad = 0, 
-                         font0 = font0, 
-                         row_lines = TRUE, 
+  theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_portrait_width)  %>%
-  flextable::padding(x = .,
-                     j = 1, i = ~ !is.na(oto_samp_type),
-                     padding.left = 5) %>%
-  flextable::padding(x = .,
-                     j = 1, i = ~ (is.na(oto_samp_type) &  is.na(SRVY)),
+  flextable::padding(j = 1, 
+                     i = ~ !is.na(oto_samp_type),
+                     padding.left = 7) %>%
+  flextable::padding(j = 1, 
+                     i = ~ !(is.na(print_name)),
                      padding.left = 10) %>%
-  flextable::width(x = ., j = "oto_target", width = 4.5, unit = "in") %>%
-  flextable::width(x = ., j = c("print_name"), width = 2) %>% 
-  flextable::hline(x = ., i = ~ !is.na(oto_samp_type), 
+  flextable::width(j = "oto_target", width = 4.5, unit = "in") %>%
+  flextable::width(j = c("print_name"), width = 2) %>% 
+  flextable::hline(i = ~ !is.na(oto_samp_type), 
                    border = fp_border(color = "white"), 
                    part = "body") 
 
@@ -424,13 +415,9 @@ table_raw[is.na(table_raw)] <- "-"
 
 table_print <- table_raw %>% 
   flextable::flextable() %>% 
-  flextable::set_header_labels(x = .,
-                               print_name = "Common name", 
+  flextable::set_header_labels(print_name = "Common name", 
                                stomach_target = "Target collection number per survey") %>%
-  theme_flextable_nmfstm(x = ., 
-                         pad = 0, 
-                         font0 = font0, 
-                         row_lines = TRUE, 
+  theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_portrait_width)  %>%
   flextable::width(width = c((full_page_portrait_width - 4.5), 
                              rep_len(length.out = length(SRVY1), (4.5/length(SRVY1)))))  
@@ -483,24 +470,19 @@ table_print <- table_raw %>%
   dplyr::select(-SRVY) %>% 
   flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>% 
   flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
-  flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY_long) ) %>%
-  flextable::width(x = ., j = "Agency", width = 2, unit = "in") %>%
-  flextable::width(x = ., j = "Principal investigator", width = 3, unit = "in") %>%
-  flextable::width(x = ., j = "Project title", width = 4, unit = "in") %>% 
-  flextable::footnote(x = ., 
-                      value = as_paragraph(footnote0), 
+  flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
+  flextable::width(j = "Agency", width = 2, unit = "in") %>%
+  flextable::width(j = "Principal investigator", width = 3, unit = "in") %>%
+  flextable::width(j = "Project title", width = 4, unit = "in") %>% 
+  flextable::footnote(value = as_paragraph(footnote0), 
                       ref_symbols = "1",
                       part = "header", 
                       j = "Agency", i = 1)  %>%
-  theme_flextable_nmfstm(x = ., 
-                         font0 = font0, 
-                         pad = 0, 
-                         row_lines = TRUE, 
+  theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_portrait_width) %>% 
-  flextable::padding(x = .,
-                     j = 1, i = ~ is.na(SRVY_long),
-                     padding.left = 5) %>% 
-  flextable::hline(x = ., i = ~ !is.na(SRVY_long), 
+  flextable::padding(j = 1, i = ~ is.na(SRVY_long),
+                     padding.left = 7) %>% 
+  flextable::hline(i = ~ !is.na(SRVY_long), 
                    border = fp_border(color = "white"), 
                    part = "body")
 
@@ -536,14 +518,13 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_proje
   dplyr::rename("Special Projects" = nickname)
 
 table_print <- table_raw %>% 
-  flextable::as_grouped_data(x = ., groups = c("group"), columns = NULL) %>% 
-  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
-  flextable::bold(x = ., j = 1, i = ~ !is.na(group) ) %>%
-  theme_flextable_nmfstm(x = ., 
-                         row_lines = FALSE, 
-                         font = "Arial")  %>%
-  flextable::padding(x = ., 
-                     j = 1, i = ~ is.na(group), 
+  flextable::as_grouped_data(groups = c("group"), columns = NULL) %>% 
+  flextable::as_flextable(hide_grouplabel = TRUE) %>% 
+  flextable::bold(j = 1, 
+                  i = ~ !is.na(group) ) %>%
+  theme_flextable_nmfstm(row_lines = FALSE)  %>%
+  flextable::padding(j = 1, 
+                     i = ~ is.na(group), 
                      padding.left = 20)
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -615,14 +596,13 @@ table_print <- table_print0 %>%
                                                                  text_list(paste0(names(table_print0), " = '", h_r2, "'"),
                                                                            sep_last = ", ", sep_last2 = ", "), ") " ) ) )
   ) %>% 
-  theme_flextable_nmfstm(x = ., 
-                         font = "Arial")  %>%
+  theme_flextable_nmfstm() %>%
   flextable::merge_h(i = 1, part = "header") %>% 
   flextable::merge_v(j = "common_name", part = "header") %>%
   flextable::valign(valign = "top") %>%
-  flextable::bold(x = ., i = ~(common_name == "TOTAL") ) %>%
+  flextable::bold(i = ~(common_name == "TOTAL") ) %>%
   flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") %>% 
-  flextable::hline(x = ., border = std_b, part = "header")  
+  flextable::hline(border = std_b, part = "header")  
 
 if (SRVY == "NEBS" & 
     paste0("EBS_", compareyr) %in% names(table_raw)) {
@@ -693,12 +673,11 @@ h_r2 <- c("Common name", sapply(strsplit(x = names(table_print0)[-(1:2)], split 
 std_b <- officer::fp_border(width = 2, color = "grey10")
 
 table_print <- table_print0 %>% 
-  flextable::as_grouped_data(x = ., groups = c("specimen_subsample_method")) %>% 
-  flextable::as_flextable(x = ., hide_grouplabel = TRUE) %>% 
-  flextable::bold(x = ., j = 1, i = ~ !is.na(specimen_subsample_method) ) %>%
-  flextable::bold(x = ., i = ~(common_name == "TOTAL") ) %>%
+  flextable::as_grouped_data(groups = c("specimen_subsample_method")) %>% 
+  flextable::as_flextable(hide_grouplabel = TRUE) %>% 
+  flextable::bold(j = 1, i = ~ !is.na(specimen_subsample_method) ) %>%
+  flextable::bold(i = ~(common_name == "TOTAL") ) %>%
   flextable::add_header(
-    x = .,
     values = eval(parse(text = paste0("list(",
                                       text_list(paste0(names(table_print0)[-1], " = '", h_r1, "'"),
                                                 sep_last = ", ", sep_last2 = ", "), ") " ) ) ),
@@ -708,18 +687,15 @@ table_print <- table_print0 %>%
                                                                  text_list(paste0(names(table_print0)[-1], " = '", h_r2, "'"),
                                                                            sep_last = ", ", sep_last2 = ", "), ") " ) ) )
   ) %>% 
-  theme_flextable_nmfstm(x = ., 
-                         font = "Arial")  %>%
+  theme_flextable_nmfstm() %>%
   flextable::merge_h(i = 1, part = "header") %>% 
   flextable::merge_v(j = "common_name", part = "header") %>%
   flextable::valign(valign = "top") %>%
-  # flextable::bold(x = ., 
-  #                 i = c((nrow(table_print0)-1), nrow(table_print0))) %>% 
   flextable::align(i = 1, j = 2:(ncol(table_print0)-1), align = "center", part = "header") %>% 
-  flextable::padding(x = ., 
-                     j = 1, i = ~ is.na(specimen_subsample_method), 
+  flextable::padding(j = 1, 
+                     i = ~ is.na(specimen_subsample_method), 
                      padding.left = 20) %>%   
-  flextable::hline(x = ., border = std_b, part = "header") 
+  flextable::hline(border = std_b, part = "header") 
 
 if (SRVY == "NEBS") {
   table_print <- table_print %>% 
@@ -799,7 +775,7 @@ temp <- function(yrs,
   key.title = ifelse(case == "bottom", 
                      expression(bold("Bottom temperature (°C)")), 
                      expression(bold("Surface temperature (°C)")))
-  # reg_dat <- reg_dat0
+
   if (is.null(title0)) {
     title0 <- paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
                      " Bering Sea\n", 
@@ -812,7 +788,7 @@ temp <- function(yrs,
     yrs = yrs, 
     yrs_nbs = nbsyr[nbsyr %in% names(raster_nebs)], # in case data isn't ready yet at time of run 
     key.title = key.title, 
-    reg_dat = reg_dat,#0, 
+    reg_dat = reg_dat,  
     row0 = row0, 
     title0 = title0, 
     temperature_zscore = temperature_zscore) 
@@ -855,7 +831,7 @@ for (case in c("bottom", "surface")) {
 
 ```{r fig-temperature-[st/bt]-comm}
 temperature_zscore <- FALSE
-height <- full_page_portrait_height
+height <- full_page_portrait_height+1
 width <- full_page_portrait_width
 yrs0 <- (maxyr-17):maxyr
 row0 <- 3
@@ -967,8 +943,7 @@ names(temp) <- gsub(pattern = "count_", replacement = "", x = names(temp))
 table_raw0 <- 
   dplyr::full_join(x = l, y = a, 
                    by = c("SRVY", "species_code")) %>% 
-  dplyr::left_join(x = ., 
-                   y = spp_info %>% 
+  dplyr::left_join(y = spp_info %>% 
                      dplyr::mutate(
                        common_name = gsub(pattern = " (juvenile)", 
                                           replacement = "", x = common_name, fixed = TRUE), 
@@ -981,8 +956,7 @@ table_raw0 <-
   dplyr::group_by(SRVY, common_name) %>% 
   dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
   dplyr::ungroup() %>% 
-  dplyr::full_join(x = ., 
-                   y = temp, 
+  dplyr::full_join(y = temp, 
                    by = c("SRVY", "common_name" = "print_name")) %>% 
   dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0))) %>%
   dplyr::select(-species_code) %>% 
@@ -1036,19 +1010,15 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   
   table_print <- table_print %>% 
     flextable::flextable(data = .) %>%
-    flextable::set_header_labels(x = .,
-                                 common_name = stringr::str_to_title(haul_cruises_maxyr$SRVY_long[i])) %>% 
-    flextable::bold(x = ., i = which(table_print$common_name == "Total")) %>%
+    flextable::set_header_labels(
+      common_name = stringr::str_to_title(haul_cruises_maxyr$SRVY_long[i])) %>% 
+    flextable::bold(i = which(table_print$common_name == "Total")) %>%
     flextable::valign(valign = "top") %>%
-    theme_flextable_nmfstm(x = ., 
-                           pad = 0, 
-                           spacing = 0.4,
-                           font0 = font0, 
-                           pgwidth = full_page_portrait_width) %>%
-    flextable::align(x = ., j = 2:ncol(table_print), 
+    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>%
+    flextable::align(j = 2:ncol(table_print), 
                      align = "right", part = "all")  %>%
-    flextable::width(x = ., width = (5/(ncol(table_raw)-2)), unit = "in") %>%
-    flextable::width(x = ., j = "common_name", width = 1.5, unit = "in")
+    flextable::width(width = (5/(ncol(table_raw)-2)), unit = "in") %>%
+    flextable::width(j = "common_name", width = 1.5, unit = "in")
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
@@ -1162,23 +1132,19 @@ if (!("NBS" %in% catch_haul_cruises_maxyr$SRVY)) {
                          as_chunk(ifelse(!is.na(common_name), 
                                          paste0(" (", common_name, ")"), ""),
                                   props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
-    flextable::compose(x = ., i = 1, j = "dummy_ebs", part = "header",
+    flextable::compose(i = 1, j = "dummy_ebs", part = "header",
                        as_paragraph("Encountered in eastern but not in northern Bering Sea\nCommon Name ", 
                                     as_chunk(paste0("(Scientific Name)"),
                                              props = fp_text_default(italic = TRUE, bold = TRUE, 
                                                                      font.size = 10, font.family = font0)))) %>%  
-    flextable::compose(x = ., i = 1, j = "dummy_nbs", part = "header",
+    flextable::compose(i = 1, j = "dummy_nbs", part = "header",
                        as_paragraph("Encountered in northern but not in eastern Bering Sea\nCommon Name ", 
                                     as_chunk(paste0("(Scientific Name)"),
                                              props = fp_text_default(italic = TRUE, bold = TRUE, 
                                                                      font.size = 10, font.family = font0)))) %>%  
-    theme_flextable_nmfstm(x = ., 
-                           font0 = font0, 
-                           pad = 0, 
-                           row_lines = FALSE, 
+    theme_flextable_nmfstm(row_lines = FALSE, 
                            pgwidth = full_page_portrait_width) %>%
-    flextable::vline(x = ., j = "dummy_ebs", part = "all") %>%
-    flextable::padding(x = ., j = "dummy_nbs", padding.left = 5, part = "all")
+    flextable::vline(j = "dummy_ebs", part = "all") 
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
@@ -1359,40 +1325,38 @@ temp1 <- function(table_raw, strat, total) {
   
   table_print <- table_raw0 %>%
     flextable::flextable(data = .)  %>%
-    flextable::merge_v(x = ., j = ~ group) %>%
-    flextable::merge_h_range(x = ., i = ~ is.na(taxon), 
+    flextable::merge_v(j = ~ group) %>%
+    flextable::merge_h_range(i = ~ is.na(taxon), 
                              j1 = "group", j2 = "taxon", part = "body") %>%
-    flextable::add_header_row(x = .,
-                              top = TRUE,
+    flextable::add_header_row(top = TRUE,
                               values = c("Taxon",
                                          "Estimated total biomass (t)\n± 95% confidence interval",
                                          "Proportion of total animal biomass",
                                          "Estimated biomass by stratum (t)"),
                               colwidths = c(2,3,1,length(strat)-1)) %>%
-    flextable::width(x = .,  
-                     width = ifelse(length(strat)>3, 0.7, 1.25),
+    flextable::width(width = ifelse(length(strat)>3, 0.7, 1.25),
                      unit = "in") %>%
-    flextable::width(x = ., j = "prop", 
+    flextable::width(j = "prop", 
                      width = 0.8, unit = "in") %>%
-    flextable::width(x = ., j = c("a"), 
+    flextable::width(j = c("a"), 
                      width = 0.25, unit = "in") %>%   
-    flextable::width(x = ., j = c("group"), 
+    flextable::width(j = c("group"), 
                      width = 1, unit = "in") %>%    
-    flextable::width(x = ., j = c("taxon"), 
+    flextable::width(j = c("taxon"), 
                      ifelse(length(strat)>3, 1.5, 1), 
                      unit = "in") %>% 
-    flextable::footnote(x = ., part = "header", i = 1, j = 5, ref_symbols = "1",
+    flextable::footnote(part = "header", i = 1, j = 5, ref_symbols = "1",
                         value = as_paragraph(footnote0)) %>%
-    flextable::bold(x = ., i = ~ (grepl(pattern = "Total", x = group) )) %>%
+    flextable::bold(i = ~ (grepl(pattern = "Total", x = group) )) %>%
     flextable::set_header_labels(.,
                                  "group" = "", 
                                  "taxon" = "",
                                  "999" = "", 
                                  "CI95" = "",
                                  "prop" = "") %>%
-    flextable::merge_at(x = ., j = c("group", "taxon"), part = "header") %>% 
-    flextable::merge_at(x = ., j = c("999", "a", "CI95"), part = "header") %>% 
-    flextable::merge_at(x = ., j = c("prop"), part = "header") 
+    flextable::merge_at(j = c("group", "taxon"), part = "header") %>% 
+    flextable::merge_at(j = c("999", "a", "CI95"), part = "header") %>% 
+    flextable::merge_at(j = c("prop"), part = "header") 
   
   row_lines <- TRUE
   pad = 0
@@ -1409,33 +1373,30 @@ temp1 <- function(table_raw, strat, total) {
   }
   
   table_print <- table_print %>% 
-    flextable::hline(x = ., border = std_b, part = "header") %>% 
-    flextable::hline_bottom(x = ., border = std_b, part = "body") %>% 
-    flextable::bold(x = ., bold = TRUE, part = "header") %>% 
-    flextable::align_text_col(x = ., align = "left", header = TRUE) %>% 
-    flextable::align_nottext_col(x = ., align = "right", header = TRUE) %>% 
-    flextable::padding(x = ., padding = pad, part = "all") %>% 
-    flextable::font(x = ., fontname = font0, part = "all") %>% 
-    flextable::fontsize(x = ., size = body_size - 2, part = "footer") %>% 
-    flextable::fontsize(x = ., size = body_size, part = "body") %>% 
-    flextable::fontsize(x = ., size = header_size, part = "header") %>% 
-    flextable::fix_border_issues(x = .) %>% 
-    flextable::align(x = ., j = c("999", "CI95", "prop",  strat), 
+    flextable::hline(border = std_b, part = "header") %>% 
+    flextable::hline_bottom(border = std_b, part = "body") %>% 
+    flextable::bold(bold = TRUE, part = "header") %>% 
+    flextable::align_text_col(align = "left", header = TRUE) %>% 
+    flextable::align_nottext_col(align = "right", header = TRUE) %>% 
+    flextable::padding(padding = pad, part = "all") %>% 
+    flextable::font(fontname = font0, part = "all") %>% 
+    flextable::fontsize(size = body_size - 2, part = "footer") %>% 
+    flextable::fontsize(size = body_size, part = "body") %>% 
+    flextable::fontsize(size = header_size, part = "header") %>% 
+    flextable::fix_border_issues() %>% 
+    flextable::align(j = c("999", "prop"), # , "CI95", strat
                      align = "right", part = "all") %>%
-    flextable::align(x = ., 
-                     j = c(strat), 
-                     align = "center", i = 1, part = "header") %>%
-    flextable::padding(padding.left = 3, x = ., j = "a", part = "body")
+    flextable::align(j = strat, i = 1, 
+                     align = "center", part = "header") %>%
+    flextable::padding(padding.left = 3, padding.right = 3, j = "a", part = "body")
   
   return(list("table_raw" = table_raw, 
               "table_print" = table_print))
 }
 
-
 nickname0 <- "tab-biomass-est-"
 
 for (taxon0 in c("fish", "invert")) {
-  
   # # Select data and make plot
   # place species codes into groups and major species
   if (taxon0 == "fish") {
@@ -1651,26 +1612,20 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     dplyr::select(-SRVY, -change0) %>%
     flextable::flextable(data = ., 
                          col_keys = c("print_name",
-                                      # "dummy", 
                                       nbsyr, 
                                       "change")) %>%
-    # flextable::compose(j = "dummy",
-    #                    value = as_paragraph(as_i(species_name_ital), species_name_noital, " ", spp)) %>%
     flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
                      i = ~ grepl(pattern = "-", x = change), 
                      j = "change") %>% 
-    flextable::width(x = ., j = "change", width = 1) %>% 
+    flextable::width(j = "change", width = 1) %>% 
     flextable::set_header_labels(.,
                                  print_name = "Common name", 
                                  dummy = "Scientific name", 
                                  change = paste0("Change (", maxyr, ", ", compareyr, ")" )) %>% 
-    theme_flextable_nmfstm(x = ., 
-                           font0 = font0, 
-                           pad = 0, 
-                           row_lines = FALSE, 
+    theme_flextable_nmfstm(row_lines = FALSE, 
                            pgwidth = full_page_portrait_width) %>% 
-    flextable::align(x = ., part = "all", align = "right") %>%
-    flextable::align(x = ., part = "all", align = "left", j = c("print_name"))
+    flextable::align(part = "all", align = "right") %>%
+    flextable::align(part = "all", align = "left", j = c("print_name"))
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
@@ -1689,15 +1644,13 @@ temp <- biomass %>%
                 biomass_mt, biomass_sd, #upperb, lowerb, 
                 cpue_nokm2_mean, cpue_nokm2_sd, 
                 population_count, population_sd, # upperp, lowerp, 
-                n_weight) %>%# n_haul, n_count, n_length
+                n_weight) %>% 
   dplyr::left_join(
-    x = ., 
     y = report_spp1 %>% 
       dplyr::select(species_code, print_name, order, taxon), 
     by = "species_code") %>% 
   dplyr::filter(taxon == "fish" &
-                  (n_weight != 0# & n_count != 0 & n_length != 0
-                  ) & # if there were none in that survey, don't include
+                  (n_weight != 0) & # if there were none in that survey, don't include
                   order > 0) %>% 
   dplyr::arrange(order) %>% 
   dplyr::select(-species_code, -order, -taxon) %>% 
@@ -1708,19 +1661,16 @@ for (i in 1:2) {
   
   nickname <- paste0(nickname0, type[i]) 
   
-  if (i == 1){ # CPUE (WT/HA) and BIOMASS
+  if (i == 1){ # CPUE (WT/km²) and BIOMASS
     
-    header <- paste0("Mean CPUE by weight (kg/ha) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for common groundfish species for the ",
+    header <- paste0("Mean CPUE by weight (kg/km²) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for common groundfish species for the ",
                      maxyr," ", text_list(paste0(SRVY11, " (", SRVY1, ")")), 
                      " shelf bottom trawl survey",plural_surveys,".")
     
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
                     cpue_kgkm2_mean, cpue_kgkm2_sd, 
-                    biomass_mt, biomass_sd, #lowerb, upperb, 
-                    # n_haul, 
-                    n_weight#, n_count, n_length
-      ) 
+                    biomass_mt, biomass_sd, n_weight) 
     
     table_print <- table_raw %>% 
       dplyr::mutate(cpue_kgkm2_mean = formatC(x = cpue_kgkm2_mean, 
@@ -1746,44 +1696,33 @@ for (i in 1:2) {
       table_print <- table_print %>% 
         flextable::flextable(data = .) %>% 
         flextable::set_header_labels(
-          x = ., 
           print_name = "Species", 
           SRVY = "Shelf area", 
-          cpue_kgkm2_mean = paste0("Mean CPUE (kg/ha)"), 
+          cpue_kgkm2_mean = paste0("Mean CPUE (kg/km²)"), 
           cpue_kgkm2_sd = paste0("SD CPUE"), 
           biomass_mt = paste0("Estimated\nBiomass"), 
           biomass_sd = paste0("SD Biomass"), 
           # lowerb = paste0("95% LCL"), 
           # upperb = paste0("95% UCL"), 
-          # n_haul = "Total hauls", 
-          n_weight = "Hauls with\nweights"#, 
-          # n_count = "Hauls with\ncounts", 
-          # n_length = "Hauls with\nlengths"
-        ) 
+          n_weight = "Hauls with\nweights") 
     } else {
       table_print <- table_print %>% 
         dplyr::select(-SRVY) %>%
         flextable::flextable(data = .) %>% 
         flextable::set_header_labels(
-          x = ., 
           print_name = "Species", 
-          # SRVY = "Shelf area", 
-          cpue_kgkm2_mean = paste0("Mean CPUE (kg/ha)"), 
+          cpue_kgkm2_mean = paste0("Mean CPUE (kg/km²)"), 
           cpue_kgkm2_sd = paste0("SD CPUE"), 
           biomass_mt = paste0("Estimated\nBiomass"), 
           biomass_sd = paste0("SD Biomass"), 
           # lowerb = paste0("95% LCL"), 
           # upperb = paste0("95% UCL"), 
-          # n_haul = "Total hauls", 
-          n_weight = "Hauls with\nweights"#, 
-          # n_count = "Hauls with\ncounts", 
-          # n_length = "Hauls with\nlengths"
-        ) 
+          n_weight = "Hauls with\nweights") 
     } 
     
-  } else { # CPUE No/HA and population_count
+  } else { # CPUE No/km² and population_count
     
-    header <- paste0("Mean CPUE by number (no./ha) with standard deviation, and estimated population with standard deviation ", 
+    header <- paste0("Mean CPUE by number (no/km²) with standard deviation, and estimated population with standard deviation ", 
                      # "and 95% lower (LCL) and upper (UCL) confidence limits ",
                      "for other common groundfish species for the ", 
                      maxyr," ",
@@ -1797,10 +1736,7 @@ for (i in 1:2) {
     table_raw <- temp %>% 
       dplyr::select(print_name, SRVY, 
                     cpue_nokm2_mean, cpue_nokm2_sd, 
-                    population_count, population_sd, #lowerp, upperp, 
-                    # n_haul, 
-                    n_weight#, n_count, n_length
-      )
+                    population_count, population_sd, n_weight)
     
     # population_count0 <- find_units(unit = "", unt = "", dat = table_raw$population_count)
     # population_sd0 <- find_units(unit = "", unt = "", dat = table_raw$population_sd)
@@ -1830,57 +1766,42 @@ for (i in 1:2) {
         dplyr::select(-SRVY) %>%
         flextable::flextable(data = .) %>% 
         flextable::set_header_labels(
-          x = ., 
           print_name = "Species", 
-          # SRVY = "Shelf area", 
-          cpue_nokm2_mean = paste0("Mean CPUE (no/ha)"), 
+          cpue_nokm2_mean = paste0("Mean CPUE (no/km²)"), 
           cpue_nokm2_sd = paste0("SD CPUE"), 
           population_count = paste0("Estimated\npopulation"), 
           population_sd = paste0("SD population"), 
           # lowerp = paste0("95% LCL"), 
           # upperp = paste0("95% UCL"), 
-          # n_haul = "Total hauls", 
-          n_weight = "Hauls with\nweights"#, 
-          # n_count = "Hauls with\ncounts", 
-          # n_length = "Hauls with\nlengths"
-        ) 
+          n_weight = "Hauls with\nweights") 
     } else {
       table_print <- table_print %>% 
         flextable::flextable(data = .) %>% 
         flextable::set_header_labels(
-          x = ., 
           print_name = "Species", 
           SRVY = "Shelf area", 
-          cpue_nokm2_mean = paste0("Mean CPUE (no/ha)"), 
+          cpue_nokm2_mean = paste0("Mean CPUE (no/km²)"), 
           cpue_nokm2_sd = paste0("SD CPUE"), 
           population_count = paste0("Estimated\npopulation"), 
           population_sd = paste0("SD population"), 
           # lowerp = paste0("95% LCL"), 
           # upperp = paste0("95% UCL"), 
-          # n_haul = "Total hauls", 
-          n_weight = "Hauls with\nweights"#, 
-          # n_count = "Hauls with\ncounts", 
-          # n_length = "Hauls with\nlengths"
-        ) 
+          n_weight = "Hauls with\nweights") 
     }
   }
-  
-  
+
   table_print <- table_print %>% 
-    flextable::width(x = ., j = "print_name", width = 3) %>%
-    # flextable::width(x = ., j = "SRVY", width = 0.5) %>%
-    flextable::merge_v(x = ., target = "print_name", 
+    flextable::width(j = "print_name", width = 3) %>%
+    flextable::merge_v(target = "print_name", 
                        j = "print_name", part = "body") %>% 
     flextable::valign(valign = "top") %>%  
-    theme_flextable_nmfstm(x = ., 
-                           font0 = font0, 
-                           pad = 0, 
-                           row_lines = TRUE, 
-                           pgwidth = full_page_portrait_width) %>%
-    flextable::align(x = ., align = "right", part = "all") %>%
-    flextable::align(x = ., j = c("print_name"), #, "SRVY"
-                     align = "left", part = "all") #%>%
-  # flextable::hline(x = ., i = 1, part = "header")
+    theme_flextable_nmfstm(row_lines = TRUE, 
+      pgwidth = full_page_portrait_width) %>%
+    flextable::align(align = "right", 
+                     part = "all") %>%
+    flextable::align(j = "print_name", 
+                     align = "left", 
+                     part = "all") 
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
@@ -1964,82 +1885,70 @@ h_r2[grepl(pattern = "Population", x = h_r2)] <- "Population (x1,000)"
 
 table_print <- table_raw %>% 
   flextable::flextable()  %>%  
-  theme_flextable_nmfstm(x = ., 
-                         font0 = font0, 
-                         pad = 0, 
-                         row_lines = TRUE, 
+  theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_landscape_width) %>% 
   flextable::merge_v(j = "common_name", part = "body") %>%
-  flextable::bold(x = ., j = 1, i = ~ !is.na(common_name) ) %>% 
+  flextable::bold(j = 1, i = ~ !is.na(common_name) ) %>% 
   flextable::add_header(
-    x = .,
     values = eval(parse(text = paste0("list(", 
                                       text_list(paste0(names(table_raw), " = '", h_r1, "'"), 
                                                 sep_last = ", ", sep_last2 = ", "), ") " ) ) ), 
     top = TRUE) %>%
   flextable::set_header_labels(
-    x = .,
-    values = eval(parse(text = paste0("list(", 
-                                      text_list(paste0(names(table_raw), " = '", h_r2, "'"), 
-                                                sep_last = ", ", sep_last2 = ", "), ") " ) ) ), 
-    # year = "Year",
-    # common_name = "Common name", 
-    # biomass_EBS = "Biomass (mt)", 
-    # population_EBS = "Population (x1,000)", 
-    # biomass_NBS = "Biomass (mt)", 
-    # population_NBS = "Population (x1,000)"
-  )  %>%
-  flextable::merge_h(i = c(1), part = "header") %>%
+    values = eval(parse(
+      text = paste0("list(", 
+                    text_list(paste0(names(table_raw), " = '", h_r2, "'"), 
+                              sep_last = ", ", sep_last2 = ", "), ") " ) ) ) ) %>%
+  flextable::merge_h(i = 1, part = "header") %>%
   flextable::align(i = 1, align = "center", part = "header") %>% 
   flextable::vline(j = "population_EBS", part = "all") %>% 
   # make all biomass and population columns green
-  flextable::bg(x = ., bg = positive, 
+  flextable::bg(bg = positive, 
                 j = c(which(grepl(x = names(table_raw), pattern = "biomass")),
                       which(grepl(x = names(table_raw), pattern = "population")))) %>%
   # EBS biomass
-  flextable::bg(x = ., bg = negative,
+  flextable::bg(bg = negative,
                 i = ~ grepl(pattern = "-", x = biomass_EBS),
                 j = c("biomass_EBS")) %>%
-  flextable::bg(x = ., bg = "white",
+  flextable::bg(bg = "white",
                 i = ~ (is.na(biomass_EBS) | 
                          grepl(pattern = "\\(0%)", x = biomass_EBS) | 
                          !grepl(pattern = "%)", x = biomass_EBS)) ,
                 j = c("biomass_EBS")) %>% 
   # EBS population
-  flextable::bg(x = ., bg = negative,
+  flextable::bg(bg = negative,
                 i = ~ grepl(pattern = "-", x = population_EBS),
                 j = c("population_EBS")) %>%
-  flextable::bg(x = ., bg = "white",
+  flextable::bg(bg = "white",
                 i = ~ (is.na(population_EBS) | 
                          grepl(pattern = "\\(0%)", x = population_EBS) | 
                          !grepl(pattern = "%)", x = population_EBS)) ,
                 j = c("population_EBS")) %>% 
-  flextable::padding(padding = 5) %>% 
-  flextable::valign(x = ., valign = "top", part = "body", 
+  flextable::valign(valign = "top", part = "body", 
                     j = c(which(grepl(x = names(table_raw), pattern = "biomass")),
                           which(grepl(x = names(table_raw), pattern = "population"))) ) %>%
-  flextable::fontsize(x = .,  size = 14, part = "header") %>%
-  flextable::fontsize(x = .,  size = 12, part = "body") %>%
-  flextable::fontsize(x = .,  size = 14, part = "body", j = 1) %>%
-  flextable::hline_bottom(x = ., part = "body",
+  flextable::fontsize(size = 14, part = "header") %>%
+  flextable::fontsize(size = 12, part = "body") %>%
+  flextable::fontsize(size = 14, part = "body", j = 1) %>%
+  flextable::hline_bottom(part = "body",
                           border = fp_border(color = "transparent", style = "solid", width = 1))
 
 if (SRVY == "NEBS") {
   table_print <- table_print  %>% 
     # NBS biomass
-    flextable::bg(x = ., bg = negative,
+    flextable::bg(bg = negative,
                   i = ~ grepl(pattern = "-", x = biomass_NBS),
                   j = c("biomass_NBS")) %>%
-    flextable::bg(x = ., bg = "white",
+    flextable::bg(bg = "white",
                   i = ~ (is.na(biomass_NBS) | 
                            grepl(pattern = "\\(0%)", x = biomass_NBS) | 
                            !grepl(pattern = "%)", x = biomass_NBS)) ,
                   j = c("biomass_NBS")) %>% 
     # NBS biomass
-    flextable::bg(x = ., bg = negative,
+    flextable::bg(bg = negative,
                   i = ~ grepl(pattern = "-", x = population_NBS),
                   j = c("population_NBS")) %>%
-    flextable::bg(x = ., bg = "white",
+    flextable::bg(bg = "white",
                   i = ~ (is.na(population_NBS) | 
                            grepl(pattern = "\\(0%)", x = population_NBS) | 
                            !grepl(pattern = "%)", x = population_NBS)) ,
@@ -2069,13 +1978,8 @@ names(table_raw) <- stringr::str_to_title(names(table_raw))
 
 table_print <- table_raw %>% 
   flextable::flextable()  %>%
-    theme_flextable_nmfstm(x = ., 
-                           pad = 0, 
-                           spacing = 0.4,
-                           font0 = font0, 
-                           pgwidth = full_page_portrait_width) %>% 
+    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
   flextable::width(width = c(2, full_page_portrait_width-2)) %>% 
-  flextable::padding(padding = 5) %>% 
   flextable::theme_zebra()
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -2189,13 +2093,12 @@ tab_taxa_found_ <- function(temp,
                                         "common_name", "stations_n", 
                                         "depth_min", "depth_max", "depth_mean", 
                                         "spacer", "lat_min", "lat_max"))  %>%
-      flextable::merge_v(x = ., j = ~ taxon) %>%
-      flextable::merge_h_range(x = ., i = ~ is.na(taxon), j1 = "species_name", j2 = "taxon", part = "body") %>%
+      flextable::merge_v(j = ~ taxon) %>%
+      flextable::merge_h_range(i = ~ is.na(taxon), j1 = "species_name", j2 = "taxon", part = "body") %>%
       flextable::compose(j = "species_name",
-                         value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
-      # flextable::width(x = ., j = "taxon", width = 0.5, unit = "in") %>%
-      flextable::set_header_labels(., 
-                                   values = list(
+                         value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% 
+      flextable::set_header_labels(
+        values = list(
                                      taxon = "", #ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
                                      species_name = "", #"Scientific name",
                                      common_name = "", #"Common name",
@@ -2206,35 +2109,27 @@ tab_taxa_found_ <- function(temp,
                                      spacer = " ", 
                                      lat_max = "S", 
                                      lat_min = "N")) %>%
-      flextable::add_header_row(x = .,
-                                top = TRUE,
+      flextable::add_header_row(top = TRUE,
                                 values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
                                            "Scientific name", "Common name", "Number stations present",
                                            "Bottom depth (m)", "", "Latitude range"),
                                 colwidths = c(1,1,1,1,3,1,2)) %>%
       flextable::align(i = 1, align = "center", part = "header")  %>%  
-      flextable::merge_at(x = ., j = c("taxon"), part = "header") %>%
-      flextable::merge_at(x = ., j = c("species_name"), part = "header") %>%
-      flextable::merge_at(x = ., j = c("common_name"), part = "header") %>%
-      flextable::merge_at(x = ., j = c("spacer"), part = "header") %>%
-      flextable::merge_at(x = ., j = c("stations_n"), part = "header") %>%
-      theme_flextable_nmfstm(x = ., 
-                             font0 = font0, 
-                             row_lines = TRUE, 
-                             # body_size = 8, 
-                             # header_size = 9, 
-                             pad = 0, 
+      flextable::merge_at(j = c("taxon"), part = "header") %>%
+      flextable::merge_at(j = c("species_name"), part = "header") %>%
+      flextable::merge_at(j = c("common_name"), part = "header") %>%
+      flextable::merge_at(j = c("spacer"), part = "header") %>%
+      flextable::merge_at(j = c("stations_n"), part = "header") %>%
+      theme_flextable_nmfstm(row_lines = TRUE, 
                              pgwidth = full_page_portrait_width) %>%
-      # flextable::hline(x = ., part = "header") %>%
-      flextable::width(x = ., width = .5, unit = "in") %>%
-      # flextable::width(x = ., width = .75, j = "stations_n", unit = "in") %>%
-      flextable::width(x = ., width = .1, j = c("spacer"), unit = "in") %>%
-      flextable::width(x = ., width = 1, j = c("taxon", "common_name"), unit = "in") %>%
-      flextable::width(x = ., width = 1.25, j = c("species_name"), unit = "in") %>%
-      flextable::align(x = ., 
+      flextable::width(width = .5, unit = "in") %>%
+      flextable::width(width = .1, j = c("spacer"), unit = "in") %>%
+      flextable::width(width = 1, j = c("taxon", "common_name"), unit = "in") %>%
+      flextable::width(width = 1.25, j = c("species_name"), unit = "in") %>%
+      flextable::align(
                        j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
                        align = "right", part = "all") %>%
-      flextable::align(x = ., 
+      flextable::align(
                        j = c("depth_max", "depth_min", "depth_mean", "lat_max", "lat_min"), 
                        align = "center", i = 1, part = "header") 
     
@@ -2405,8 +2300,8 @@ tab_app_fish_ <- function(temp,
       
       table_print <- table_raw %>%
         flextable::flextable(data = .) %>% 
-        flextable::set_header_labels(.,
-                                     length_mm = "Length (cm)",
+        flextable::set_header_labels(
+          length_mm = "Length (cm)",
                                      males = "Males",
                                      females = "Females",
                                      unsexed = "Unsexed", 
@@ -2414,14 +2309,11 @@ tab_app_fish_ <- function(temp,
                                      prop = "Proportion", 
                                      cumprop = "Cumulative proportion") %>%
         flextable::align(i = 1, align = "center", part = "header")  %>%  
-        flextable::bold(x = ., i = nrow(table_raw), part = "body") %>%
-        theme_flextable_nmfstm(x = ., 
-                               font0 = font0, 
-                               row_lines = FALSE, 
-                               pad = 0, 
+        flextable::bold(i = nrow(table_raw), part = "body") %>%
+        theme_flextable_nmfstm(row_lines = FALSE, 
                                pgwidth = full_page_portrait_width) %>%
-        flextable::width(x = ., width = .9, unit = "in") %>% 
-        flextable::hline_bottom(x = ., border = fp_border(width = 2), part = "header")
+        flextable::width(width = .9, unit = "in") %>% 
+        flextable::hline_bottom(border = fp_border(width = 2), part = "header")
       
       list_tables0$temp <- list("table_print" = table_print, 
                                 "table_raw" = table_raw, 

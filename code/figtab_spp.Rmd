@@ -446,7 +446,7 @@ for (case_yr in case_yr0) {
     figure <-
       cowplot::ggdraw(figure) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = 0.07, y = -.42,
+                          x = 0.09, y = -.38, # y = -.42,
                           hjust = 0, vjust = 0,
                           width = .18)
   }
@@ -791,7 +791,7 @@ table_raw <- temp_stat %>%
   dplyr::select(-SRVY) %>% 
   dplyr::relocate(Survey) %>% 
   dplyr::arrange(Survey) %>% 
-  dplyr::rename("Bering Sea\nSurvey" = Survey)
+  dplyr::rename("Bering Sea\nShelf Survey" = Survey)
 
 if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
   table_raw <- table_raw %>% 
@@ -819,18 +819,11 @@ table_print <-
                             values = c(names(table_raw)[1:3], "Temperature (°C)", names(table_raw)[6:9]), 
                             colwidths = c(1,1,1,2,1,1,1,1)) %>% 
   theme_flextable_nmfstm(row_lines = FALSE, 
-                         font = font0, 
-                         pad = 0, 
                          pgwidth = full_page_portrait_width+1) %>% 
-  flextable::padding(x = ., 
-                     part = "all", 
-                     padding.left = 5) %>% 
   flextable::align(i = 2, align = "center", part = "header") %>% 
   flextable::merge_v(part = "header") %>% 
   flextable::hline(i = 1, 
                    j = which(names(table_raw) %in% c("Bottom Temperature (°C)", "Surface Temperature (°C)")), 
-                   part = "header") %>% 
-  flextable::hline(i = 2, border = fp_border(width = 0), 
                    part = "header") %>% 
   flextable::vline(border = fp_border(color="grey70"))
 
@@ -856,6 +849,8 @@ temp <- biomass %>%
                                       stratum %in% strat0) %>% 
                       dplyr::select(SRVY, stratum) %>%
                       dplyr::distinct()) %>% 
+  dplyr::left_join(y = data.frame(SRVY = SRVY1, 
+                                  SRVY_long = stringr::str_to_title(SRVY11))) %>%
   dplyr::mutate(stratum = as.character(stratum)) %>%
   dplyr::arrange(stratum) %>% 
   dplyr::arrange(SRVY) %>% 
@@ -874,8 +869,9 @@ if (sum(is.na(temp$cpue_kgkm2_mean[temp$SRVY == "EBS"])) ==
 }
 
 # Were lengths taken for this taxon? If not, we wont include the n_length column in the table and optomize for space
-include_n_length <- !(sum(temp$n_length[temp$stratum == "Total"] %in% 0) == 
-                        length(temp$n_length[temp$stratum == "Total"]))
+# include_n_length <- !(sum(temp$n_length[temp$stratum == "Total"] %in% 0) == 
+#                         length(temp$n_length[temp$stratum == "Total"]))
+include_n_length <- FALSE
 
 if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
   
@@ -890,13 +886,13 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
     dplyr::filter(SRVY %in% unique(temp$SRVY))
   
   for (i in 1:2) {
-    table_raw <- table_print <- data.frame()
+    table_raw <- data.frame()
     
     if (i == 1) { # CPUE (WT/km²) and BIOMASS
       nickname <- paste0(nickname0, "wt")
       
       table_raw <- temp %>% 
-        dplyr::select(SRVY, stratum, 
+        dplyr::select(SRVY, SRVY_long, stratum, 
                       cpue_kgkm2_mean, cpue_kgkm2_sd, 
                       biomass_mt, biomass_sd, biomass_dw, biomass_up, 
                       n_haul, n_length) 
@@ -945,13 +941,14 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
         table_print0[table_print0 == "NA"] <- "-"
         
         table_print <- table_print0 %>% 
-          flextable::flextable(data = .) %>% 
+          dplyr::select(-SRVY) %>% 
+  flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL)  %>%
+  flextable::as_flextable(hide_grouplabel = TRUE) %>%
           flextable::set_header_labels(
-            x = ., 
-            cpue_kgkm2_mean = paste0("Mean CPUE", ifelse(cpue_kgkm2_mean0$unit_wrd=="", "", paste0("\n",cpue_kgkm2_mean0$unit_wrd))), 
-            cpue_kgkm2_sd = paste0("SD CPUE", ifelse(cpue_kgkm2_sd0$unit_wrd=="", "", paste0("\n",cpue_kgkm2_sd0$unit_wrd))), 
-            biomass_mt = paste0("Estimated biomass", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))), 
-            biomass_sd = paste0("SD biomass", ifelse(biomass_sd0$unit_wrd=="", "", paste0("\n",biomass_sd0$unit_wrd))), 
+            cpue_kgkm2_mean = paste0("CPUE Mean ", ifelse(cpue_kgkm2_mean0$unit_wrd=="", "", paste0(" ",cpue_kgkm2_mean0$unit_wrd))), 
+            cpue_kgkm2_sd = paste0("CPUE\nSD ", ifelse(cpue_kgkm2_sd0$unit_wrd=="", "", paste0("\n",cpue_kgkm2_sd0$unit_wrd))), 
+            biomass_mt = paste0("Biomass", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))), 
+            biomass_sd = paste0("Biomass\nSD ", ifelse(biomass_sd0$unit_wrd=="", "", paste0(" ",biomass_sd0$unit_wrd))), 
             biomass_dw = paste0("95% LCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))),
             biomass_up = paste0("95% UCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd)))
           ) 
@@ -1011,23 +1008,17 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
         table_print <- table_print0 %>% 
           flextable::flextable(data = .) %>% 
           flextable::set_header_labels(
-            x = ., 
-            cpue_nokm2_mean = paste0("Mean CPUE", ifelse(cpue_nokm2_mean0$unit_wrd=="", "", paste0("\n", cpue_nokm2_mean0$unit_wrd))), 
-            cpue_nokm2_sd = paste0("SD CPUE", ifelse(cpue_nokm2_sd0$unit_wrd=="", "", paste0("\n", cpue_nokm2_sd0$unit_wrd))), 
-            population_count = paste0("Estimated Population", 
+            cpue_nokm2_mean = paste0("CPUE Mean", ifelse(cpue_nokm2_mean0$unit_wrd=="", "", paste0(" ", cpue_nokm2_mean0$unit_wrd))), 
+            cpue_nokm2_sd = paste0("CPUE\nSD ", ifelse(cpue_nokm2_sd0$unit_wrd=="", "", paste0("\n", cpue_nokm2_sd0$unit_wrd))), 
+            population_count = paste0("Population", 
                                       ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd))),
-            population_sd = paste0("SD Population", ifelse(population_sd0$unit_wrd=="", "", paste0("\n", population_sd0$unit_wrd))), 
+            population_sd = paste0("Population\nSD ", ifelse(population_sd0$unit_wrd=="", "", paste0(" ", population_sd0$unit_wrd))), 
             population_dw = paste0("95% LCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd))),
             population_up = paste0("95% UCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd)))
           ) 
       }
       
     }
-    
-    table_raw <- table_raw %>% 
-      dplyr::left_join(x = ., 
-                       y = haul_cruises_maxyr %>% 
-                         dplyr::select(SRVY, SRVY_long))
     
     header <- paste0(header,
                      spp_print, 
@@ -1036,57 +1027,44 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
                      maxyr," ", 
                      text_list(paste0(SRVY11, " (", SRVY1, ")")), 
                      " shelf bottom trawl survey",plural_surveys,". ", 
-                     # ifelse(length(unique(table_raw$SRVY)) > 1, SURVEY, unique(table_raw$SRVY_long)), 
-                     # " shelf bottom trawl survey",
-                     # ifelse(length(unique(table_raw$SRVY)) > 1, "s", ""),". ",
-                     
                      ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0, 
                             paste0("This species was not encountered in the ", 
                                    maxyr, " ",
                                    haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
                                    " shelf trawl survey. "), 
-                            ""),
-                     ifelse(!include_n_length, "No lengths were collected for this taxon. ", ""))
+                            ""))#,
+                     # ifelse(!include_n_length, "No lengths were collected for this taxon. ", ""))
     
     table_print <- table_print %>% 
-      flextable::merge_v(x = ., j = "SRVY", part = "body") %>% 
-      flextable::bold(x = ., 
-                      i = ~ (stratum == "Total") ) %>%
+      # flextable::merge_v(j = "SRVY_long", part = "body") %>% 
+      flextable::bold(i = ~ (stratum == "Total") ) %>%
       flextable::valign(valign = "top") %>% 
       flextable::set_header_labels(
-        x = ., 
-        SRVY = "",
+        # SRVY = "",
         stratum = "Stratum",
-        n_haul = "Hauls with\nweight"
-      )  %>%
+        n_haul = "# Hauls")  %>%
       theme_flextable_nmfstm(row_lines = FALSE, 
-                             font = font0, 
-                             pad = 0, 
                              pgwidth = full_page_landscape_width)  %>%
-      flextable::width(x = ., width = .75, unit = "in") %>%
-      flextable::width(x = ., width = .5, unit = "in", j = c("stratum", "n_haul")) %>%
-      flextable::width(x = ., width = .25, unit = "in", j = c("SRVY")) %>%
-      flextable::align(x = ., align = "right", part = "all") %>%
-      flextable::align(x = ., align = "center", part = "body", j = "stratum")
+      flextable::width(width = .75, unit = "in") %>%
+      flextable::width(width = .5, unit = "in", j = c("stratum", "n_haul")) %>%
+      # flextable::width(width = .25, unit = "in", j = c("SRVY")) %>%
+      flextable::align(align = "right", part = "all") %>%
+      flextable::align(align = "center", part = "body", j = "stratum") %>% 
+      flextable::merge_v(j = 1:2, part = "header")
     
     if (include_n_length) { # if lengths were collected, include the column
       table_print <- table_print %>%
         flextable::set_header_labels(
-          x = .,
           n_length = "Hauls with\nlengths") %>% 
-        flextable::width(x = ., width = .5, unit = "in", j = "n_length") 
+        flextable::width(width = .5, unit = "in", j = "n_length") 
     }
     
     if (length(unique(table_raw$SRVY)) > 1) {
       table_print <- table_print %>% 
-        flextable::bold(x = ., j = 1, i = ~ !is.na(SRVY) ) %>%
-        flextable::padding(x = .,
-                           j = 1, i = ~ is.na(SRVY),
-                           padding.left = 5)
-    }
-    
-    if (sum(table_raw$SRVY %in% "NBS")>0) {
-      table_print <- table_print %>% 
+        flextable::align(j = 1, i = ~ !is.na(SRVY_long), align = "left") %>%
+        flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
+        flextable::padding(j = 1, i = ~ is.na(SRVY_long),
+                           padding.left = 7) %>% 
         flextable::hline(x = .,i = ~ (stratum == "Total"), part = "body")
     }
     

@@ -1127,7 +1127,6 @@ set_breaks <- function(dat, var) {
 #' @param key.title A character string that will be used as the legend title
 #' @param row0 How many rows in the face_wrap. Feeds from ggplot2::facet_wrap. 
 #' @param region Defualt = "bs.south". Inherited from akgfmaps::make_idw_map. 
-#' @param dist_unit Default = "nm" (nautical miles). This is the unit that will be used for the map's scale bar.  
 #' @param viridis_palette_option Defauly = "mako". Inherited from ggplot2::scale_fill_viridis_c. This will be the color scheme for the inverse distance weighted plot. 
 #' @param plot_coldpool Default = TRUE Logical. Will plot cold pool outlines on the plot. 
 #' @param plot_stratum Default = FALSE. Logical. This will plot stratun areas on the plot. 
@@ -1157,7 +1156,6 @@ plot_pa_facet <- function(
     key.title = "", 
     row0 = 2, 
     reg_dat,
-    dist_unit = "nm", # nautical miles
     viridis_palette_option = "mako", 
     plot_coldpool = FALSE, 
     plot_stratum = FALSE, 
@@ -1396,46 +1394,7 @@ plot_pa_facet <- function(
               size = 0.1,
               # alpha = 0,
               fill = NA)
-    
-    
-    
   }
-  
-  # lon_break <- reg_dat$lon.breaks
-  # lat_break <- reg_dat$lat.breaks
-  # lon_label <- reg_dat$lon.label
-  # lat_label <- reg_dat$lat.label
-  # if (length(yrs) > 6) { # are there a lot of plots on the page? In which case we'd want detail
-  #   lon_break <- lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_break))]
-  #   lat_break <- lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_break))]
-  #   lon_label <- lon.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lon_label))]
-  #   lat_label <- lat.breaks[rep_len(x = c(FALSE, TRUE), length.out = length(lat_label))]
-  # }
-  
-  # figure <- figure +
-  #   ggplot2::scale_y_continuous(name = "", #"Latitude", 
-  #                               limits = reg_dat$plot.boundary$y,
-  #                               breaks = reg_dat$lat.breaks) +
-  #   ggplot2::scale_x_continuous(name = "", #"Longitude", 
-  #                               limits = reg_dat$plot.boundary$x,
-  #                               breaks = reg_dat$lon.breaks) #+ 
-  # ggsn::scalebar(data = reg_dat$survey.grid,
-  #                location = "bottomleft",
-  #                dist = 100,
-  #                dist_unit = dist_unit,
-  #                transform = FALSE,
-  #                st.dist = dplyr::case_when(row0 ==1 & length(yrs)>4 ~ 0.07,
-  #                                           row0 == 1 ~ 0.04, 
-  #                                           row0 == 2 ~ 0.06, 
-  #                                           TRUE ~ 0.05),  # ifelse(row0 > 1, 0.08, 0.04), #ifelse(row0 == 1, 0.04, ifelse(row0 == 2, 0.06, 0.05)),  # ifelse(row0 > 1, 0.08, 0.04),
-  #                height = ifelse(row0 == 1, 0.02, ifelse(row0 == 2, 0.04, 0.04)),  # ifelse(row0 > 1, 0.04, 0.02),
-  #                st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-  #                st.size = dplyr::case_when(row0 ==1 & length(yrs) > 4 ~ 1.5,
-  #                                           row0 == 1 & length(yrs) > 3 ~ 2, 
-  #                                           row0 == 1 ~ 3, 
-  #                                           row0 == 2 ~ 2.25, 
-  #                                           TRUE ~ 2)) 
-  
   
   if (plot_bubble) {
     figure <- figure +
@@ -1511,7 +1470,6 @@ plot_pa_facet <- function(
 #' @param reg_data list containing regional survey strata, land polygon, etc. from akgfmaps::get_base_layer()
 #' @param colorbar_breaks numeric vector of breaks to use for temperature plots
 #' @param yrs 
-#' @param dist_unit 
 #' @param viridi_palette_option Viridis palette option passed to viridis::viridis_pal(). Default = "H" (turbo)
 #' @param row0 
 #' @param title0 
@@ -1530,7 +1488,6 @@ plot_temperature_map <- function(raster_nebs,
                                    colorbar_breaks = c(-Inf, seq(from = 0, to = 8, by = 2), Inf),
                                    yrs,
                                    yrs_nbs, 
-                                   dist_unit = "nm", # nautical miles
                                    viridis_palette_option = "H", 
                                    row0 = 2, 
                                    title0 = NULL, 
@@ -1628,7 +1585,7 @@ plot_temperature_map <- function(raster_nebs,
     ggplot2::geom_sf(data = reg_dat$graticule,
                      color = "grey80",
                      alpha = 0.2)  +
-    geom_sf(data = temperature_sf,
+    ggplot2::geom_sf(data = temperature_sf,
             mapping = aes(fill = bt),
             color = NA) +
     ggplot2::facet_wrap( ~ year, 
@@ -1662,8 +1619,7 @@ plot_temperature_map <- function(raster_nebs,
       strip.background = element_blank(),
       strip.text = element_text(size = 10, face = "bold"),
       legend.position = "none", 
-      plot.margin=grid::unit(c(0,0,0,0), "mm")
-    )
+      plot.margin=grid::unit(c(0,0,0,0), "mm") )
   
   if (temperature_zscore) {
     
@@ -1677,7 +1633,7 @@ plot_temperature_map <- function(raster_nebs,
                           fill = "grey20",
                           label.size = NA,
                           show.legend = FALSE) +
-      scale_colour_manual(
+      ggplot2::scale_colour_manual(
         na.value = "transparent",
         breaks = (unique(temperature_zscore1$sign)), 
         labels = (unique(temperature_zscore1$sign)), 
@@ -1705,28 +1661,25 @@ plot_temperature_map <- function(raster_nebs,
       ggplot2::ggtitle(label = title0)
   }
   
-  # cold_pool_cbar 
-  # https://github.com/sean-rohan-NOAA/coldpool/blob/main/1_cold_pool_index.Rmd#L169 
-  cbar_legend <- legend_discrete_cbar(breaks = colorbar_breaks,
-                                      colors = fig_palette,
-                                      legend_direction = "horizontal",
-                                      font_size = 3,
-                                      width = 0.1,
-                                      expand_size.x = 0.3,
-                                      expand_size.y = 0.3,
-                                      expand.x = 0.3,
-                                      expand.y = 0.9,
-                                      spacing_scaling = 1,
-                                      text.hjust = 0.5,
-                                      text.vjust = 0.5,
-                                      font.family = "sans",
-                                      neat.labels = FALSE) + 
-    annotate("text", 
+  cbar_legend <- coldpool::legend_discrete_cbar(breaks = colorbar_breaks,
+                                                  colors = fig_palette,
+                                                  legend_direction = "horizontal",
+                                                  font_size = 3,
+                                                  width = 0.1,
+                                                  expand_size.x = 0.3,
+                                                  expand_size.y = 0.3,
+                                                  expand.x = 0.3,
+                                                  expand.y = 0.9,
+                                                  spacing_scaling = 1.2,
+                                                  text.hjust = 0.5,
+                                                  font.family = "sans",
+                                                  neat.labels = FALSE) + 
+    ggplot2::annotate("text", 
              x = 1.15, 
-             y = mean(colorbar_breaks[!is.infinite(colorbar_breaks)]), 
-             label = key.title, 
+             y = 3.5, 
+             label =  expression(bold("Bottom Temperature"~(degree*C))), 
              size = rel(3.2)) + 
-    theme(plot.margin = unit(c(-5,5,5, 5), units = "mm"))
+    ggplot2::theme(plot.margin = unit(c(0,0,0,0), units = "mm"))
   
   if (legend_seperate) { 
     figure_and_legend <- list("figure" = figure, 
@@ -1736,7 +1689,7 @@ plot_temperature_map <- function(raster_nebs,
     figure_and_legend <- cowplot::plot_grid(figure,
                                             cbar_legend,
                                             nrow = 2,
-                                            rel_heights = c(0.8,0.2))
+                                            rel_heights = c(0.85,0.15))
   }
   return(figure_and_legend)
 }
@@ -2284,15 +2237,14 @@ plot_survey_stations <- function(reg_dat,
                                  station_pts = "stn", # c("pts", "ves", "names")
                                  bathymetry = FALSE, 
                                  study = FALSE, 
-                                 # dist_unit = "km", 
                                  place_labels = TRUE
 ) {
   
   figure <- ggplot()  +
-    geom_sf(data = reg_dat$akland, 
+    ggplot2::geom_sf(data = reg_dat$akland, 
             color = NA, 
             fill = "grey80") +
-    geom_sf(data = reg_dat$graticule, 
+    ggplot2::geom_sf(data = reg_dat$graticule, 
             color = NA,
             fill = "grey50")+
     ggplot2::scale_y_continuous(name = "Latitude", 
@@ -2301,16 +2253,7 @@ plot_survey_stations <- function(reg_dat,
     ggplot2::scale_x_continuous(name = "Longitude", 
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) + 
-    # ggsn::scalebar(data = reg_dat$survey.grid,
-    #                location = "bottomleft",
-    #                dist = 100,
-    #                dist_unit = dist_unit,
-    #                transform = FALSE,
-    #                st.dist = ifelse(row0 > 1, 0.08, 0.02),
-    #                height = ifelse(row0 > 1, 0.04, 0.02),
-    #                st.bottom = FALSE, #ifelse(row0 <= 2, TRUE, FALSE),
-    #                st.size = ifelse(row0 > 1, 2.5, 3) ) +#, # 2.5
-    theme( # set legend position and vertical arrangement
+    ggplot2::theme( # set legend position and vertical arrangement
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
@@ -2747,7 +2690,7 @@ theme_flextable_nmfstm <- function(x,
                                    header_size = 12,
                                    font0 = "Arial Narrow",
                                    spacing = 0.6,
-                                   pad = 2) {
+                                   pad = 5) {
   
   if (!inherits(x, "flextable")) {
     stop("theme_flextable_nmfstm supports only flextable objects.")

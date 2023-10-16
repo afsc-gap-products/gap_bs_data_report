@@ -48,7 +48,11 @@ if (spp_table_cpue) {
   tab_no <- paste0("\\@ref(tab:tab-est-", spp_file, "-num)")
 }
 
-fig_bt <- "\\@ref(fig:fig-temperature-bt-1) and \\@ref(fig:fig-temperature-bt-2)"
+fig_bt <- paste0("\\@ref(fig:fig-temperature-bt-1-", 
+                 ifelse(report_title == "data", "data", "comm"),
+                 ") and \\@ref(fig:fig-temperature-bt-2-", 
+                 ifelse(report_title == "data", "data", "comm"),
+                 ")")
 fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
 
   if (report_title == "community") {
@@ -64,7 +68,13 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 
 ## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
 
-```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width=2}
+```{r spp-text-0-{{jj}}
+img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
+fig.width <- 3
+fig.height <- (image_info(img)$height * fig.width) / image_info(img)$width
+```
+
+```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width=img.width, fig.height=}
 cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
