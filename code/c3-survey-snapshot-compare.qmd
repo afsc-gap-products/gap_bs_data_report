@@ -6,46 +6,46 @@
 ```{r results-cold-pool_insert, child=paste0(dir_out_rawdata, "/0-cold-pool.qmd")}
 ```
 
-```{r fig-temperature-1}
+```{r fig-temperature-10}
 nickname <- "fig-temperature-bt-1-comm"
 ```
 
-```{r temperature-1-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r temperature-10-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
-```{r fig-temperature-2}
+```{r fig-temperature-20}
 nickname <- "fig-temperature-bt-2-comm"
 ```
 
-```{r temperature-2-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r temperature-20-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
-```{r fig-temperature-3}
+```{r fig-temperature-30}
 nickname <- "fig-temperature-st-1-comm"
 ```
 
-```{r temperature-3-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r temperature-30-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
 ```{r fig-temperature-4}
 nickname <- "fig-temperature-st-2-comm"
 ```
 
-```{r temperature-4-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r temperature-40-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
-```{r fig-mean-temperature}
+```{r fig-mean-temperature0}
 nickname <- "fig-mean-temperature"
 ```
 
-```{r fig-mean-temperature-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r fig-mean-temperature0-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
-```{r fig-cold-pool-area}
+```{r fig-cold-pool-area0}
 nickname <- "fig-cold-pool-area"
 ```
 
-```{r fig-cold-pool-area-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r fig-cold-pool-area0-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
 ## Survey Data and Specimen Collections
@@ -169,7 +169,7 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
 str0 <- gsub(pattern = "  ", replacement = " ", x = str0)
 ```
 
-From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r str0`. 
+From the `r SURVEY` shelf trawl survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r str0`. 
 
 ## Estimates of Fishes and Invertebrates
 
@@ -177,14 +177,14 @@ From the `r text_list(SRVY1)` shelf trawl survey`r plural_surveys`, length measu
 
 # million metric tons of biomass collected in each region in each year
 temp <- total_biomass %>% 
-  dplyr::group_by(year, SRVY) %>% 
+  dplyr::group_by(year, SRVY, SRVY_long) %>% 
   dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1)) %>% 
   dplyr::ungroup() %>% 
   dplyr::arrange(desc(year)) %>% 
   dplyr::filter(year %in% c(maxyr, compareyr))
 ```
 
-In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the NBS shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table (#tab-majortaxa-pchange-NBS)). 
+In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the northern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY_long[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. The percent change in biomass varied by fish and invertebrate taxon (Table (#tab-majortaxa-pchange-NBS)). 
 
 ```{r biomass-inc-dec-spp}
 
@@ -257,7 +257,7 @@ str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 
 ```
 
-`r str0`Prominent organisms are listed in Table (#tab-majortaxa-pchange-NBS) in order of largest increase to largest decrease in biomass. 
+`r str0`Prominent organism's biomasses are listed in Table (#tab-majortaxa-pchange-NBS) in order of largest increase to largest decrease. 
 
 ```{r ebs-vs-nbs}
 temp5 <- biomass %>% 
@@ -279,7 +279,7 @@ temp5 <- biomass %>%
   dplyr::mutate(print_name = sub(" \\(.*", "", x = print_name))
 ```
 
-NBS survey catches were generally smaller than those from the EBS. Distributions of many predominant species extended throughout much of both survey regions. Several key species were found in the NBS in greater numbers than the EBS, including `r text_list(temp5$print_name)`.
+Northern Bering Sea survey catches were generally smaller than those from the eastern Bering Sea. Distributions of many predominant species extended throughout much of both survey regions. Several key species were found in the northern Bering Sea in greater numbers than the eastern Bering Sea, including `r text_list(temp5$print_name)`.
 
 ```{r biomass-inc-dec}
 
@@ -369,15 +369,19 @@ temp3 <- temp3  %>%
 
 `r str0`. 
 
-Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`.
+Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`. 
+
+\pagebreak
 
 ```{r tab-majortaxa-pchange-NBS0}
 nickname <- "tab-majortaxa-pchange-NBS"
 ```
 
-```{r tab-majortaxa-pchange-NBS-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r tab-majortaxa-pchange-NBS0-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
 # Summary Results for Select Major Taxa
 
-Survey results for select taxa are presented with a photograph of the taxon, maps of geographic distribution of CPUE (kg/km^2^), plots showing total population estimates by size, and a short summary of results. Maps of species distributions include both the eastern and northern Bering Sea survey regions to better illustrate patterns and trends in fish distribution and movement. For comparison, distribution maps and abundance-at-size plots show survey data for the `r text_list(nbsyr) ` surveys. Detailed summary profiles outlining several of the species showing ecologically significant trends are included below. **You can help us with this document by providing names in local language(s) and cultural or traditional uses for each fish and invertebrate species reviewed in this report.**
+Survey results for select taxa are presented with a photograph of the taxon, a short summary of results, maps of geographic distribution of CPUE (kg/km^2^), and plots showing total population estimates by size. Maps of species distributions include both the eastern and northern Bering Sea survey regions to better illustrate patterns and trends in fish distribution and movement. For comparison, distribution maps and abundance-at-size plots show survey data for the `r text_list(nbsyr) ` surveys. Detailed summary profiles outlining several of the species showing ecologically significant trends are included below. 
+
+**You can help us with this document by providing names in local language(s) and cultural or traditional uses for each fish and invertebrate species reviewed in this report by reaching out to [afsc.gap.metadata@noaa.gov](afsc.gap.metadata@noaa.gov).**

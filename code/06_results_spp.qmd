@@ -48,7 +48,11 @@ if (spp_table_cpue) {
   tab_no <- paste0("(#tab-est-", spp_file, "-num)")
 }
 
-fig_bt <- "(#fig-temperature-bt-1) and (#fig-temperature-bt-2)"
+fig_bt <- paste0("(#fig-temperature-bt-1-", 
+                 ifelse(report_title == "data", "data", "comm"),
+                 ") and (#fig-temperature-bt-2-", 
+                 ifelse(report_title == "data", "data", "comm"),
+                 ")")
 fig_st <- "(#fig-temperature-st-1) and (#fig-temperature-st-2)"
 
   if (report_title == "community") {
@@ -64,9 +68,15 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 
 ## `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
 
-```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.height=2, fig.width=2}
+```{r spp-text-0-{{jj}}}
+img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
+fig_width <- 3
+fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
+```
+
+```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
 cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
 
 ```{r res-spp-lang-{{jj}}, eval = (report_title == "community")}
@@ -99,14 +109,21 @@ nickname <- paste0("tab-stats-", spp_file)
 no_cap <- TRUE
 ```
 
-```{r tab-stats-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (report_title %in% c("community", "data"))}
+```{r tab-stats-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (report_title %in% c("data"))}
 ```
 
-```{r tab-bio-timeseries-{{jj}}, eval = (report_title %in% c("community", "data"))}
-nickname <- paste0("fig-biomass-", spp_file)
+```{r tab-bio-timeseries-{{jj}}, eval = (report_title %in% c("data"))}
+nickname <- paste0("fig-biomass-", spp_file, "-data")
 ```
 
-```{r tab-bio-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (report_title %in% c("community", "data"))}
+```{r tab-bio-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (report_title %in% c("community"))}
+```
+
+```{r tab-bio-timeseries-comm-{{jj}}, eval = (report_title %in% c("community"))}
+nickname <- paste0("fig-biomass-", spp_file, "-comm")
+```
+
+```{r tab-bio-timeseries-comm-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.qmd"), eval = (report_title %in% c("community", "data"))}
 ```
 
 ```{r tab-pop-timeseries-{{jj}}, eval = (report_title %in% c("data"))}

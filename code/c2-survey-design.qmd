@@ -12,11 +12,11 @@
 
 str0 <- c()
 
-for (i in 1:length(SRVY1)){
+for (i in 1:length(SRVY11)){
   
-  srvy <- SRVY1[i]
+    srvy <- SRVY11[i]
   cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
-    dplyr::filter(SRVY %in% srvy &
+    dplyr::filter(SRVY %in% SRVY1[i] &
                     year %in% maxyr) %>% 
     dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
                   "vessel_ital", "SRVY", "SRVY_long", 
@@ -65,7 +65,7 @@ for (i in 1:length(SRVY1)){
                           "the vessel", "both vessels"), 
                    " ",
                    format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
-                   " and ended ", 
+                   " and ended", 
                    text_list(paste0(" ", 
                                                  format(cruises_maxyr0$end_date_haul, 
                                                         format = date_format) , 
@@ -89,45 +89,57 @@ for (i in 1:length(SRVY1)){
   str0 = c(str0, temp)
 }
 
-str <- str0 <- data.frame(str = str0, 
+str0 <- data.frame(str = str0, 
                   SRVY = unique(cruises_maxyr$SRVY))
-
-
 
 nbs_insert  <- paste0(
     "Sampling for the eastern Bering Sea shelf survey on ",
-    str$str[str$SRVY == "EBS"],
+    str0$str[str0$SRVY == "EBS"],
     ". Sampling for the northern Bering Sea shelf survey on ", 
-    str$str[str$SRVY == "NBS"], 
+    str0$str[str0$SRVY == "NBS"], 
     ".")
 
 ```
 
 The `r maxyr` eastern Bering Sea shelf and northern Bering Sea bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. (#fig-vessels)). `r nbs_insert `  
 
-```{r fig-vessels}
+```{r fig-vessels0}
 nickname <- "fig-vessels"
 ```
 
-```{r fig-vessels-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r fig-vessels0-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
 ```{r team-desc-insert-text, child=paste0(dir_out_rawdata, "/0-team-desc.qmd")}
 ```
 
-The northern Bering Sea survey was designed as a continuation of the systematic 20 × 20 nautical mile (nmi) sampling grid established for the annual eastern Bering Sea shelf survey. The northern Bering Sea survey contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations distributed throughout the `r xunits(sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2[stratum$SRVY == "NBS"], na.rm=TRUE))` km^2^). The eastern Bering Sea shelf survey area contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "EBS"] ` stations distributed over `r xunits(sum(stratum$area_nmi2[stratum$SRVY == "EBS"], na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2[stratum$SRVY == "EBS"], na.rm=TRUE))` km^2^). The addition of the northern Bering Sea survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^) and contains bottom depths ranging from `r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m). 
+```{r survey-area1}
+str0 <- ""
+for (i in 1:length(SRVY1)) {
+str0 <- 
+  paste0(str0, 
+         "The ", haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY == SRVY1[i]],
+         " shelf survey area contains ", 
+         haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == SRVY1[i]],
+         " stations distributed over ", 
+         xunits(sum(stratum$area_nmi2[stratum$SRVY %in% SRVY1[i]], na.rm=TRUE)),
+         " nmi^2^ (", xunits(sum(stratum$area_km2[stratum$SRVY %in% SRVY1[i]], na.rm=TRUE))," km^2^). " )
+}
+```
 
-Both vessels sampled using an 83/112 Eastern otter trawl that has been historically used for eastern Bering Sea shelf, Chukchi, and Beaufort Sea surveys (Fig. (#fig-trawl-gear-alt)). This trawl is significantly smaller and weighs less than trawls used for commercial fishing in Alaska. Each trawl tow is ideally conducted for 30minutes at a speed of 3 knots.
+The northern Bering Sea survey was designed as a continuation of the systematic 20 × 20 nautical mile (nmi) sampling grid established for the annual eastern Bering Sea shelf survey. `r str0 `The addition of the northern Bering Sea survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^) and contains bottom depths ranging from `r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m). 
 
-```{r fig-trawl-gear-alt}
+Both vessels sampled using an 83-112 Eastern otter trawl that has been historically used for eastern Bering Sea shelf, Chukchi, and Beaufort Sea surveys (Fig. (#fig-trawl-gear-alt)). This trawl is significantly smaller and weighs less than trawls used for commercial fishing in Alaska. Each trawl tow is conducted for 30 minutes at a speed of 3 knots.
+
+```{r fig-trawl-gear-alt0}
 nickname <- "fig-trawl-gear-alt"
 ```
 
-```{r fig-trawl-gear-alt-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
+```{r fig-trawl-gear-alt0-child, child = paste0(dir_code, "_child_report_figtab.qmd")}
 ```
 
-Catches were sorted and weighed in their entirety. Fishes, crabs, and other invertebrates were identified and sorted by species to the greatest extent possible. Subsamples of predominant fish species were weighed, sorted by sex, and measured to the nearest centimeter (cm). For the predominant crab species, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information that included their size, weight, sex, age, reproductive state, genetics, health (condition factor), and stomach content/diet.
+Fishes, crabs, and other invertebrates were identified and sorted by species to the greatest extent possible and weighed. A subsample of fishes were sorted by sex and measured to the nearest centimeter (cm). For the predominant crab species, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information that included their size, weight, sex, age, reproductive state, genetics, health (condition factor), and stomach content/diet.
 
-Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), population biomass, population abundance, and size distribution for measured species and population age structure for certain species. CPUE is the estimated catch of organisms caught (in kilograms (kg) or number of individuals) per amount of effort (generally, a combination of gear type, gear size, and tow duration), and can be used as a measure of the density of a species. For these surveys, effort was estimated as the area swept (area sampled), and mean CPUE values were calculated for the overall survey areas. Biomass and population estimates were derived for each survey area by multiplying the mean CPUE by the total survey area.
+Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), biomass, population, size distribution for measured species, and population age structure for certain species. CPUE is the estimated catch of organisms caught (in kilograms (kg) or number of individuals) per amount of effort (generally, a combination of gear type, gear size, and tow duration), and can be used as a measure of the density of a species. For these surveys, effort was estimated as the area swept (area sampled), and mean CPUE values were calculated for the overall survey areas. Biomass and population estimates were derived for each survey area by multiplying the mean CPUE by the total survey area.
 
 Environmental data, including water temperature in degrees Celsius (°C), depth in meters (m), salinity (parts per thousand), and underwater downwelling light were also recorded at each sampling station. Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).
