@@ -2028,7 +2028,7 @@ plot_sizecomp <- function(sizecomp0,
   }
   
   figure <- figure + 
-    theme(panel.background = element_rect(fill = "white"),
+    ggplot2::theme(panel.background = element_rect(fill = "white"),
           panel.grid.major.y = element_line(colour = "grey80"),
           panel.grid.minor.y = element_blank(),
           panel.grid.minor.x = element_blank(),
@@ -2177,11 +2177,11 @@ plot_timeseries <- function(
                                 limits = range(yrs_plotted, na.rm = TRUE))  +
     ggplot2::scale_color_manual(values = unique(table_raw$col))
   
-  
   if (error_bar) {
     figure <- figure +
       geom_errorbar(aes(ymin=y_ci_dw, ymax=y_ci_up), width=.2,
-                    position=position_dodge(.9), alpha = 0.5)
+                    # position=position_dodge(.9), 
+                    alpha = 0.5)
   }
   
   
@@ -2718,7 +2718,7 @@ theme_flextable_nmfstm <- function(x,
   x <- flextable::bold(x = x, bold = TRUE, part = "header")
   x <- flextable::align_text_col(x = x, align = "left", header = TRUE)
   x <- flextable::align_nottext_col(x = x, align = "right", header = TRUE)
-  x <- flextable::padding(x = x, padding = pad, part = "all") # remove all line spacing in a flextable
+  x <- flextable::padding(x = x, padding.left = pad, padding.right = pad, part = "all") # remove all line spacing in a flextable
   x <- flextable::font(x = x, fontname = font0, part = "all")
   x <- flextable::fontsize(x = x, size = body_size-2, part = "footer")
   x <- flextable::fontsize(x = x, size = body_size, part = "body")

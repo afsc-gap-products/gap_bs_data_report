@@ -446,7 +446,7 @@ for (case_yr in case_yr0) {
     figure <-
       cowplot::ggdraw(figure) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = 0.09, y = -.38, # y = -.42,
+                          x = 0.09, y = -.35, # y = -.42,
                           hjust = 0, vjust = 0,
                           width = .18)
   }
@@ -467,12 +467,14 @@ if (report_title == "data") {
   print_n <- FALSE
   srvy <- SRVY1
   nickname <- paste0(nickname, "-data")
+  legend_font_size <- 10
 } else if (report_title == "community") {
   yrs <- unique(c(maxyr, nbsyr))
   height <- full_page_portrait_height
   print_n <- TRUE
   srvy <-"NBS"
   nickname <- paste0(nickname, "-comm")
+  legend_font_size <- 10
 } else if (report_title == "ptpres") {
   yrs <- unique(sizecomp$year)
   print_n <- FALSE
@@ -791,7 +793,7 @@ table_raw <- temp_stat %>%
   dplyr::select(-SRVY) %>% 
   dplyr::relocate(Survey) %>% 
   dplyr::arrange(Survey) %>% 
-  dplyr::rename("Bering Sea\nShelf Survey" = Survey)
+  dplyr::rename("Bering Sea\nSurvey" = Survey)
 
 if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
   table_raw <- table_raw %>% 
@@ -825,7 +827,8 @@ table_print <-
   flextable::hline(i = 1, 
                    j = which(names(table_raw) %in% c("Bottom Temperature (°C)", "Surface Temperature (°C)")), 
                    part = "header") %>% 
-  flextable::vline(border = fp_border(color="grey70"))
+  flextable::vline(border = fp_border(color="grey70")) %>% 
+  flextable::width(width = c(.8))
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
