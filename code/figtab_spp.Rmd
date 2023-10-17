@@ -782,6 +782,7 @@ table_raw <- temp_stat %>%
                      dplyr::filter(year == maxyr) %>% 
                      dplyr::select(-year)) %>% 
   dplyr::left_join(data.frame(SRVY = SRVY1, 
+                              SRVY_long = stringr::str_to_title(SRVY11), 
                               Survey = gsub(" .*$", "", stringr::str_to_title(SRVY11)))) %>% 
   dplyr::select(-SRVY) %>% 
   dplyr::relocate(Survey) %>% 
@@ -870,14 +871,17 @@ header <- paste0("Summary ranges of biomass, population, and environmental varia
 #   flextable::vline(border = fp_border(color="grey70")) %>%
 #   # flextable::width(width = c(.9, .9, .85, .85, .85, .65, .65, .65, 1.2)) %>%
 #   flextable::align(i = 1, j = 4, align = "center", part = "header")
-
-table_print0 <- data.frame("var" = rownames(t(table_raw))[-1], 
-                          data.frame(t(table_raw)[-1,]))  
-names(table_print0) <- c("var", stringr::str_to_title(SRVY11))
+table_raw0 <- table_raw %>% 
+  dplyr::select(-SRVY_long)
+table_print0 <- data.frame("var" = rownames(t(table_raw0))[-1], 
+                          data.frame(t(table_raw0)[-1,]))  
+names(table_print0) <- c("var", stringr::str_to_title(table_raw$SRVY_long))
 rownames(table_print0) <- NULL
 table_print0[,1] <- gsub(x = table_print0[,1], pattern = "\n", replacement = " ")
 table_print0[,2] <- gsub(x = table_print0[,2], pattern = "\n", replacement = " ")
-table_print0[,3] <- gsub(x = table_print0[,3], pattern = "\n", replacement = " ")
+if (ncol(table_print0) > 2) {
+  table_print0[,3] <- gsub(x = table_print0[,3], pattern = "\n", replacement = " ")
+}
 table_print <- table_print0 %>% 
   flextable::flextable()  %>% 
   flextable::bold(j = 1, part = "body") %>% 
