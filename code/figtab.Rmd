@@ -28,8 +28,8 @@ reg_dat0$survey.grid <- reg_dat0$survey.grid %>%
   # dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station)) %>% 
   dplyr::left_join(station) %>% 
   dplyr::mutate(in_maxyr = ifelse(is.na(in_maxyr), FALSE, in_maxyr))
-reg_dat0$place.labels <- reg_dat0$place.labels %>% 
-  dplyr::filter(type %in% c("mainland", "peninsula"))
+# reg_dat0$place.labels <- reg_dat0$place.labels %>% 
+#   dplyr::filter(type %in% c("mainland", "peninsula"))
 
 figure <- plot_survey_stations(reg_dat = reg_dat0, 
                                survey_outline = TRUE, 
@@ -205,7 +205,7 @@ figure <- cowplot::plot_grid(
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## fig-trawl-gear
+## fig-trawl-gear-diagram
 
 ```{r fig-trawl-gear}
 header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used during the ", 
@@ -471,15 +471,14 @@ table_print <- table_raw %>%
   flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>% 
   flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
   flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
-  flextable::width(j = "Agency", width = 2, unit = "in") %>%
-  flextable::width(j = "Principal investigator", width = 3, unit = "in") %>%
-  flextable::width(j = "Project title", width = 4, unit = "in") %>% 
+
   flextable::footnote(value = as_paragraph(footnote0), 
                       ref_symbols = "1",
                       part = "header", 
                       j = "Agency", i = 1)  %>%
   theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_portrait_width) %>% 
+  flextable::width(width = c(full_page_portrait_width-2.5, 1.5, 1), unit = "in") %>% 
   flextable::padding(j = 1, i = ~ is.na(SRVY_long),
                      padding.left = 7) %>% 
   flextable::hline(i = ~ !is.na(SRVY_long), 
@@ -752,7 +751,7 @@ temp <- function(yrs,
   if (case == "surface") {
     raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
     raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
-    colorbar_breaks <- c(-Inf, seq(2, 14, 1), Inf)
+    colorbar_breaks <- c(-Inf, seq(2, 14, 2), Inf)
   } else if (case == "bottom") {
     raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
     raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
@@ -849,7 +848,8 @@ for (case in c("bottom", "surface")) {
     a <- temp(yrs = yrs, 
               row0 = row0, 
               case = case, 
-              temperature_zscore = temperature_zscore)
+              temperature_zscore = temperature_zscore, 
+              title0 = "")
     figure <- a$figure
     header <- a$header
     
@@ -1972,7 +1972,7 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/glossary-of-ter
   dplyr::mutate(include = ifelse(is.na(include), TRUE, include)) %>% 
   dplyr::filter(include) %>% 
   dplyr::select(-include) %>% 
-  dplyr::arrange(desc(term))
+  dplyr::arrange(term)
 
 names(table_raw) <- stringr::str_to_title(names(table_raw))
 

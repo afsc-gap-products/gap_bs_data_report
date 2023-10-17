@@ -2045,7 +2045,7 @@ plot_sizecomp <- function(sizecomp0,
     figure <- figure +
       ggplot2::geom_text(mapping = aes(label = label, 
                                        x = (quantile(x = range(table_raw$length_mm), .8))[[1]], 
-                                       y = (quantile(x = range(table_raw$population_count), .98))[[1]]), 
+                                       y = (quantile(x = range(table_raw$population_count), .93))[[1]]), 
                          check_overlap = TRUE) 
   }
   
@@ -2298,13 +2298,12 @@ plot_survey_stations <- function(reg_dat,
               color = "grey50")
   }
   
-  if (bathymetry) { #else {
+  if (bathymetry) { 
     figure <- figure  +
       geom_sf(data = reg_dat$bathymetry, 
               fill = NA, 
               color = "grey50")
   }
-  
   
   if (survey_outline) { 
     figure <- figure +
@@ -2412,20 +2411,20 @@ plot_survey_stations <- function(reg_dat,
   
   if (place_labels) {
     figure <- figure +
-      geom_text(data = subset(reg_dat$place.labels, 
+      ggplot2::geom_text(data = subset(reg_dat$place.labels, 
                               type == "mainland"), 
                 aes(x = x, y = y, label = lab), 
                 size = 7, group = 99) + 
-      geom_shadowtext(data = subset(reg_dat$place.labels, 
+      shadowtext::geom_shadowtext(data = subset(reg_dat$place.labels, 
                                     type == "peninsula"), 
-                      aes(x = x, y = y, label = lab), size = 3, angle = 3, 
+                      aes(x = x, y = y, label = lab), size = 4, angle = 30, 
                       bg.color = "white", color = "black", group = 99) + 
-      geom_shadowtext(
+      shadowtext::geom_shadowtext(
         data = subset(reg_dat$place.labels, 
                       type %in% c("bathymetry", "islands")),
         aes(x = x, y = y, label = lab), 
         bg.color = "white", color = "black", 
-        size = 2, group = 99)
+        size = 3, group = 99)
   }
   
   return(figure)

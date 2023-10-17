@@ -634,15 +634,8 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## tab-stats-[spp] pres
 
 ```{r tab-stats-[spp], eval = c(report_title %in% c("community", "data"))}
-
 nickname <- paste0("tab-stats-", spp_file)
-
-header <- paste0("Summary ranges of biomass, population, and environmental variables in which ", 
-                 spp_print, " (", spp_sci, ") have been found across the ", 
-                 SURVEY, " survey area", plural_surveys,". ")
-
 ### Stats table ----------------------------------------------------------------
-
 haul0 <- catch_haul_cruises %>% 
   dplyr::select("station", "stratum", "latitude_dd_start", "longitude_dd_start", 
                 "depth_m", "bottom_temperature_c" ,"surface_temperature_c", 
@@ -692,10 +685,10 @@ temp_env <- haul0 %>%
                       names_to=c('variable', '.value')) %>%
   dplyr::mutate(across(dplyr::ends_with("C)"), 
                        formatC, big.mark = ",", digits = 1, format = "f"), 
-                val = paste0(Min, " — ", Max)) %>%
+                val = ifelse(Min == Max, Min, paste0(Min, " — ", Max))) %>%
   dplyr::mutate(across(dplyr::ends_with("m)"), 
                        formatC, big.mark = ",", digits = 0, format = "f"), 
-                val = paste0(Min, " — ", Max)) %>%
+                val = ifelse(Min == Max, Min, paste0(Min, " — ", Max))) %>%
   dplyr::relocate(variable, dplyr::ends_with(SRVY1[1])) %>% 
   dplyr::select(-Min, -Max) %>% 
   tidyr::pivot_wider(id_cols = "SRVY",
@@ -802,34 +795,125 @@ if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
 
 ### print table ----------------------------------------------------------------
 
-table_print <- 
-  flextable::flextable(data = table_raw) %>% 
+header <- paste0("Summary ranges of biomass, population, and environmental variables in which ", 
+                 spp_print, " (", spp_sci, ") were found in the ", 
+                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
+                 " shelf bottom trawl survey", 
+                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, "", plural_surveys),". ")
+
+# table_print <- 
+#   flextable::flextable(data = table_raw) %>% 
+#   flextable::bold(j = 1, part = "body") %>% 
+#   flextable::theme_zebra() %>% 
+#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "increase"), 
+#                 bg = positive, 
+#                 j = "Biomass\n% Change") %>% 
+#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "decrease"), 
+#                 bg = negative, 
+#                 j = "Biomass\n% Change")  %>%
+#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "no change"), 
+#                 bg = neutral, 
+#                 j = "Biomass\n% Change")  %>% 
+#   flextable::set_header_labels("Bottom Temperature (°C)" = "Bottom", 
+#                                "Surface Temperature (°C)" = "Surface") %>%
+#   flextable::add_header_row(top = TRUE, 
+#                             values = c(names(table_raw)[1:3], "Temperature (°C)", names(table_raw)[6:9]), 
+#                             colwidths = c(1,1,1,2,1,1,1,1)) %>% 
+#   theme_flextable_nmfstm(row_lines = FALSE, 
+#                          pgwidth = full_page_portrait_width+1) %>% 
+#   flextable::align(i = 2, align = "center", part = "header") %>% 
+#   flextable::merge_v(part = "header") %>% 
+#   flextable::hline(i = 1, 
+#                    j = which(names(table_raw) %in% c("Bottom Temperature (°C)", "Surface Temperature (°C)")), 
+#                    part = "header") %>% 
+#   flextable::vline(border = fp_border(color="grey70")) %>% 
+#   flextable::width(width = c(.9, .9, .85, .85, .85, .65, .65, .65, 1.2)) %>% 
+#   flextable::align(i = 1, j = 4, align = "center", part = "header")
+
+# table_print_env <-
+#   flextable::flextable(data = table_raw[,1:5]) %>%
+#   flextable::bold(j = 1, part = "body") %>%
+#   flextable::theme_zebra() %>%
+#   flextable::set_header_labels("Bottom Temperature (°C)" = "Bottom",
+#                                "Surface Temperature (°C)" = "Surface") %>%
+#   flextable::add_header_row(top = TRUE,
+#                             values = c(names(table_raw)[1:3], "Temperature (°C)"),
+#                             colwidths = c(1,1,1,2)) %>%
+#   theme_flextable_nmfstm(row_lines = FALSE,
+#                          pgwidth = full_page_portrait_width) %>%
+#   flextable::align(i = 2, align = "center", part = "header") %>%
+#   flextable::merge_v(part = "header") %>%
+#   flextable::vline(border = fp_border(color="grey70")) %>%
+#   # flextable::width(width = c(.9, .9, .85, .85, .85, .65, .65, .65, 1.2)) %>%
+#   flextable::align(i = 1, j = 4, align = "center", part = "header")
+# 
+# table_print_bio <-
+#   flextable::flextable(data = table_raw[,c(1, 6:9)]) %>%
+#   flextable::bold(j = 1, part = "body") %>%
+#   flextable::theme_zebra() %>%
+#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "increase"),
+#                 bg = positive,
+#                 j = "Biomass\n% Change") %>%
+#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "decrease"),
+#                 bg = negative,
+#                 j = "Biomass\n% Change")  %>%
+#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "no change"),
+#                 bg = neutral,
+#                 j = "Biomass\n% Change")  %>%
+#   theme_flextable_nmfstm(row_lines = FALSE,
+#                          pgwidth = full_page_portrait_width) %>%
+#   # flextable::align(i = 2, align = "center", part = "header") %>%
+#   flextable::merge_v(part = "header") %>%
+#   flextable::hline(i = 1,
+#                    j = which(names(table_raw) %in% c("Bottom Temperature (°C)", "Surface Temperature (°C)")),
+#                    part = "header") %>%
+#   flextable::vline(border = fp_border(color="grey70")) %>%
+#   # flextable::width(width = c(.9, .9, .85, .85, .85, .65, .65, .65, 1.2)) %>%
+#   flextable::align(i = 1, j = 4, align = "center", part = "header")
+
+table_print0 <- data.frame("var" = rownames(t(table_raw))[-1], 
+                          data.frame(t(table_raw)[-1,]))  
+names(table_print0) <- c("var", stringr::str_to_title(SRVY11))
+rownames(table_print0) <- NULL
+table_print0[,1] <- gsub(x = table_print0[,1], pattern = "\n", replacement = " ")
+table_print0[,2] <- gsub(x = table_print0[,2], pattern = "\n", replacement = " ")
+table_print0[,3] <- gsub(x = table_print0[,3], pattern = "\n", replacement = " ")
+table_print <- table_print0 %>% 
+  flextable::flextable()  %>% 
   flextable::bold(j = 1, part = "body") %>% 
   flextable::theme_zebra() %>% 
-  flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "increase"), 
-                bg = positive, 
-                j = "Biomass\n% Change") %>% 
-  flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "decrease"), 
-                bg = negative, 
-                j = "Biomass\n% Change")  %>%
-  flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "no change"), 
-                bg = neutral, 
-                j = "Biomass\n% Change")  %>% 
-  flextable::set_header_labels("Bottom Temperature (°C)" = "Bottom", 
-                               "Surface Temperature (°C)" = "Surface") %>%
-  flextable::add_header_row(top = TRUE, 
-                            values = c(names(table_raw)[1:3], "Temperature (°C)", names(table_raw)[6:9]), 
-                            colwidths = c(1,1,1,2,1,1,1,1)) %>% 
-  theme_flextable_nmfstm(row_lines = FALSE, 
-                         pgwidth = full_page_portrait_width+1) %>% 
-  flextable::align(i = 2, align = "center", part = "header") %>% 
-  flextable::merge_v(part = "header") %>% 
-  flextable::hline(i = 1, 
-                   j = which(names(table_raw) %in% c("Bottom Temperature (°C)", "Surface Temperature (°C)")), 
-                   part = "header") %>% 
   flextable::vline(border = fp_border(color="grey70")) %>% 
-  flextable::width(width = c(.9, .9, .85, .85, .85, .65, .65, .65, 1.2)) %>% 
-  flextable::align(i = 1, j = 4, align = "center", part = "header")
+  flextable::set_header_labels("var" = "")   %>%
+  theme_flextable_nmfstm(row_lines = FALSE,
+                         pgwidth = full_page_portrait_width) %>%
+  flextable::bg(
+    i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "increase")), 
+                bg = positive, 
+                j = names(table_print0)[2]) %>% 
+    flextable::bg(
+    i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "decrease")), 
+                bg = negative, 
+                j = names(table_print0)[2]) %>% 
+    flextable::bg(
+    i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "no change")), 
+                bg = positive, 
+                j = names(table_print0)[2]) 
+
+if (ncol(table_print0) > 2) {
+table_print <- table_print %>% 
+  flextable::bg(
+    i = ~ (grepl(x = table_print0[,names(table_print0)[3]], pattern = "increase")), 
+                bg = positive, 
+                j = names(table_print0)[3]) %>% 
+    flextable::bg(
+    i = ~ (grepl(x = table_print0[,names(table_print0)[3]], pattern = "decrease")), 
+                bg = negative, 
+                j = names(table_print0)[3]) %>% 
+    flextable::bg(
+    i = ~ (grepl(x = table_print0[,names(table_print0)[3]], pattern = "no change")), 
+                bg = positive, 
+                j = names(table_print0)[3]) 
+}
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1271,8 +1355,9 @@ header <- paste0("Estimates of ", spp_print,
                  ifelse(unt == "", "", paste0(" (",unt, ")")), 
                  " from the ",
                  range_text(range(table_raw$year)), " ", 
-                 SURVEY, 
-                 " shelf bottom trawl survey", plural_surveys, ". ")
+                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
+                 " shelf bottom trawl survey", 
+                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, "", plural_surveys),". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1329,8 +1414,9 @@ header <- paste0("Timeseries of ", spp_print,
                  ifelse(unt == "", "", paste0(" (",unt, ")")), 
                  " from the ",
                  range_text(range(table_raw$year)), " ", 
-                 SURVEY, 
-                 " shelf bottom trawl survey", plural_surveys, ". ")
+                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
+                 " shelf bottom trawl survey", 
+                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, "", plural_surveys),". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1420,8 +1506,9 @@ header <- paste0("Timeseries of ", spp_print,
                  ifelse(unt == "", "", paste0(" (",unt, ")")), 
                  " from the ",
                  range_text(range(table_raw$year)), " ", 
-                 SURVEY, 
-                 " shelf bottom trawl survey", plural_surveys, ". ")
+                 ifelse(length(table_raw0$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw0$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
+                 " shelf bottom trawl survey", 
+                 ifelse(length(table_raw0$`Bering Sea\nSurvey`) == 1, "", plural_surveys),". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
