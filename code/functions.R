@@ -1495,7 +1495,7 @@ plot_temperature_map <- function(raster_nebs,
                                    temperature_zscore = FALSE, 
                                    out_crs = "EPSG:3338") {
   
-  for(ii in 1:length(yrs)) {
+  for (ii in 1:length(yrs)) {
     
     if (!(2020 %in% yrs[ii])) {
       
@@ -1675,11 +1675,12 @@ plot_temperature_map <- function(raster_nebs,
                                                   font.family = "sans",
                                                   neat.labels = FALSE) + 
     ggplot2::annotate("text", 
-             x = 1.15, 
-             y = 3.5, 
-             label =  expression(bold("Bottom Temperature"~(degree*C))), 
-             size = rel(3.2)) + 
-    ggplot2::theme(plot.margin = unit(c(0,0,0,0), units = "mm"))
+                      y = mean(colorbar_breaks[c(2:(length(colorbar_breaks)-1))]),
+             x = 1.15,
+             # y = 3.5,
+             label =  key.title,
+             size = rel(3.2)) +
+    ggplot2::theme(plot.margin = unit(c(0,0,0,0), units = "mm")) 
   
   if (legend_seperate) { 
     figure_and_legend <- list("figure" = figure, 
