@@ -15,6 +15,7 @@ a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 spp_sci <- text_list(unique(a$species_name))
 spp_code <- a$species_code
 spp_print <- a$print_name[1]
+
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
@@ -444,9 +445,11 @@ for (case_yr in case_yr0) {
   
   if (report_title %in% c("community")) { 
     figure <-
-      cowplot::ggdraw(figure) +
+      cowplot::ggdraw(figure + 
+       ggplot2::theme( plot.margin = margin(1.8, 0, 0, 0, "cm") ) ) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = 0.09, y = -.35, # y = -.42,
+                          x = .77, y = .42, # top right
+                          # x = 0.09, y = -.35, # lower left
                           hjust = 0, vjust = 0,
                           width = .18)
   }
@@ -461,6 +464,7 @@ for (case_yr in case_yr0) {
 width <- full_page_portrait_width # 6.5  
 nickname <- paste0("fig-sizecomp-", spp_file)
 header <- ""
+  legend_font_size <- 12
 if (report_title == "data") {
   yrs <- unique(c(maxyr, nbsyr)) # c(compareyr, maxyr)
   height <- full_page_portrait_height-1 # ifelse(SRVY == "NEBS", full_page_portrait_height-1, 3.25) 
@@ -474,7 +478,7 @@ if (report_title == "data") {
   print_n <- TRUE
   srvy <-"NBS"
   nickname <- paste0(nickname, "-comm")
-  legend_font_size <- 10
+  legend_font_size <- 12
 } else if (report_title == "ptpres") {
   yrs <- unique(sizecomp$year)
   print_n <- FALSE
@@ -482,6 +486,7 @@ if (report_title == "data") {
   width <- 7
   srvy <- SRVY1 # "NBS"
   nickname <- paste0("fig-", jj, "-", spp_file, "-4-sizecomp-pres")
+  legend_font_size <- 12
 } else if (report_title == "nbspres") {
   yrs <- c(maxyr, compareyr)
   print_n <- FALSE
@@ -489,6 +494,7 @@ if (report_title == "data") {
   width <- 7
   srvy <- SRVY1 # "NBS"
   nickname <- paste0("fig-", jj, "-", spp_file, "-3-sizecomp-nbspres")
+  legend_font_size <- 12
 }
 
 lengths0 <- lengths %>%
@@ -614,11 +620,16 @@ if (!(nrow(table_raw) == 0)) {
     }
   }
   
+  figure <- figure +
+    ggplot2::theme(strip.text = element_text(size = legend_font_size, face = "bold"))
+  
   if (report_title %in% c("community")) { 
     figure <-
-      cowplot::ggdraw(figure) +
+      cowplot::ggdraw(figure + 
+       ggplot2::theme( plot.margin = margin(1.2, 0, 0, 0, "cm") ) ) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = 0.07, y = -.42,
+                          x = .78, y = .44, # top right
+                          # x = 0.07, y = -.42, # lower left
                           hjust = 0, vjust = 0,
                           width = .18)
   }
@@ -628,6 +639,7 @@ if (!(nrow(table_raw) == 0)) {
   figure <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
     geom_text(mapping = aes(label = label))
 }
+
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
@@ -796,7 +808,7 @@ if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
 
 ### print table ----------------------------------------------------------------
 
-header <- paste0("Summary of the catch location environmental variables, as well as popluation and biomass estimates, for ", 
+header <- paste0("Summary of the catch haul, environmental, and popluation and biomass estimates for ", 
                  spp_print, " (", spp_sci, ") in the ", 
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
                  " survey area", 

@@ -1493,6 +1493,7 @@ plot_temperature_map <- function(raster_nebs,
                                    title0 = NULL, 
                                    legend_seperate = FALSE, 
                                    temperature_zscore = FALSE, 
+                                   legend_font_size = 12, 
                                    out_crs = "EPSG:3338") {
   
   for (ii in 1:length(yrs)) {
@@ -1610,14 +1611,14 @@ plot_temperature_map <- function(raster_nebs,
                           title.hjust = 0.5, nrow = 1)) +
     
     ggplot2::theme(
-      legend.text = element_text(size = 9),
+      legend.text = element_text(size = legend_font_size-2),
       panel.background = element_rect(fill = "white",
                                       colour = NA),
       panel.border = element_rect(fill = NA,
                                   colour = "grey20"),
-      axis.text = element_text(size = 6),
+      axis.text = element_text(size = legend_font_size-2),
       strip.background = element_blank(),
-      strip.text = element_text(size = 10, face = "bold"),
+      strip.text = element_text(size = legend_font_size, face = "bold"),
       legend.position = "none", 
       plot.margin=grid::unit(c(0,0,0,0), "mm") )
   
@@ -1679,8 +1680,7 @@ plot_temperature_map <- function(raster_nebs,
              x = 1.15,
              # y = 3.5,
              label =  key.title,
-             size = rel(3.2)) +
-    ggplot2::theme(plot.margin = unit(c(0,0,0,0), units = "mm")) 
+             size = rel(3.2))
   
   if (legend_seperate) { 
     figure_and_legend <- list("figure" = figure, 
@@ -1969,7 +1969,7 @@ plot_sizecomp <- function(sizecomp0,
         panel.border = element_rect(fill = NA,
                                     colour = "grey20"),
         legend.title = element_blank(), 
-        legend.text = element_text(size = 10),
+        legend.text = element_text(size = legend_font_size),
         legend.background = element_rect(colour = "transparent", 
                                          fill = "transparent"),
         legend.key = element_rect(colour = "transparent",

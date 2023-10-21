@@ -62,11 +62,10 @@ fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)
     tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
   }
 
-if (report_title) {
+if (report_title == "community") {
   tab_stat <- paste0("\\@ref(tab:tab-stats-", spp_file, ")")
   fig_bio <- paste0("\\@ref(fig:fig-biomass-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
 }
-
 
 str0 <- ""
 
@@ -79,6 +78,11 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
 fig_width <- 3
 fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
+
+if (fig_height > 3) {
+  fig_height <- 2.5
+  fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
+}
 ```
 
 ```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}

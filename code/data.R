@@ -1,6 +1,7 @@
 # Report types ---------------------------------------------------
 
 out.crs <- "EPSG:3338"
+in.crs = "+proj=longlat"
 
 report_types <- list(
   "EBS" = list(
@@ -82,6 +83,19 @@ for (ii in 1:length(report_types)) {
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
+temp <- sf::st_point(c(-169.69, 64)) %>% # -169.698826, 64.599971
+  sf::st_sfc(crs = in.crs) %>% 
+  sf::st_transform(crs = out.crs) %>% 
+  sf::st_coordinates() %>% 
+  data.frame() 
+
+reg_dat$place.labels <- dplyr::bind_rows(
+  reg_dat$place.labels, 
+  data.frame(type = "islands", 
+             region = map.area, 
+             lab = "Chirikov Basin", 
+             x = temp$X, 
+             y = temp$Y))
 plural_surveys <- ifelse(length(SRVY1) > 1, "s", "")
 
 # Load data --------------------------------------------------------------------
@@ -99,7 +113,7 @@ if (access_to_internet ) {
   googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
                               type = "csv",
                               overwrite = TRUE,
-                              path = paste0(dir_out_rawdata, "/0_species_local_names"))
+                              path = paste0(dir_out_rawdata, "/species-local-names"))
   
   # Spreadsheets
   # https://drive.google.com/drive/folders/1Vbe_mH5tlnE6eheuiSVAFEnsTJvdQGD_?usp=sharing
@@ -240,7 +254,7 @@ spp_info_maxyr <- spp_info %>%
 
 print("report_spp")
 
-report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/0_species_local_names.csv"), 
+report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
                               skip = 1, 
                               show_col_types = FALSE) %>% 
   dplyr::select(!(dplyr::starts_with(

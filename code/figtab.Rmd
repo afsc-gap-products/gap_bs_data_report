@@ -15,15 +15,15 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ```{r fig-survey-points}
 nickname <- "fig-survey-points"
 
-header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".") 
+header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
 
 height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
-if (length(cruises_race$data_in_final == "N")>0) {
-  reg_dat0 <- report_types$NEBS$reg_dat
-}
+# if (length(cruises_race$data_in_final == "N")>0) {
+#   reg_dat0 <- report_types$NEBS$reg_dat
+# }
 reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
   # dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station)) %>% 
   dplyr::left_join(station) %>% 
@@ -60,13 +60,13 @@ header <- paste0("Stratification scheme used for data analysis of the ", maxyr,"
                                   vessels0$vess_shape, ")")), 
                  ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
 
-height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) # height <- 
+height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) 
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
-if (length(cruises_race$data_in_final == "N")>0) {
-  reg_dat0 <- report_types$NEBS$reg_dat
-}
+# if (length(cruises_race$data_in_final == "N")>0) {
+#   reg_dat0 <- report_types$NEBS$reg_dat
+# }
 
 reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
   dplyr::mutate(station = STATIONID) %>% 
@@ -329,7 +329,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-oto-collection-scheme-[SRVY]}
 nickname <- paste0("tab-oto-collection-scheme") 
 
-table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_scheme.xlsx"), 
+table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-scheme.xlsx"), 
                                 sheet = "Sheet1", 
                                 skip = 1) %>% 
   dplyr::filter(year == maxyr & 
@@ -389,7 +389,7 @@ header <- paste0("Stomach collection targets during the ",
                    haul_cruises_maxyr$SRVY_long)),
                  " shelf bottom trawl survey.")
 
-table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_collection_scheme.xlsx"), 
+table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-scheme.xlsx"), 
                                 sheet = "Sheet1", 
                                 skip = 1) %>% 
   dplyr::filter(year == maxyr & !is.na(stomach_target)) %>% 
@@ -429,11 +429,11 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r tab-special-projects}
 nickname <- "tab-special-projects" 
-places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
+places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                              sheet = "affiliations", 
                              skip = 1)
 
-table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
+table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                                 sheet = "projects", 
                                 skip = 1)  %>% 
   dplyr::filter(!is.na(`Project title`) & 
@@ -498,7 +498,7 @@ header <- paste0("Special projects and collections undertaken during the ",
                  text_list(haul_cruises_maxyr$SRVY_long), 
                  " shelf bottom trawl survey, sorted by principal investigator and agency.")
 
-table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_special_projects.xlsx"), 
+table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                                 sheet = "projects", 
                                 skip = 1)  %>% 
   dplyr::filter(!is.na(`Project title`) & 
@@ -932,7 +932,7 @@ a <- specimen_maxyr %>%
   dplyr::ungroup()
 
 # other collections not in oracle
-temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/0_other_field_collections.xlsx"), 
+temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/other-field-collections.xlsx"), 
                            sheet = "Sheet1", 
                            skip = 1) %>%
   dplyr::filter(year == maxyr) %>% 
@@ -1958,7 +1958,6 @@ if (SRVY == "NEBS") {
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-
 # Endmatter
 
 ## tab-glossary
@@ -1985,7 +1984,6 @@ table_print <- table_raw %>%
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
-
 
 # Appendix A and B
 
