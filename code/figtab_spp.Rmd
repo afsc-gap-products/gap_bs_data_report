@@ -281,6 +281,12 @@ for (case_yr in case_yr0) {
   header <- paste0("Distribution (Weight CPUE (kg/km^2^)) of ", header0)
   
   set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgkm2")
+  # if (spp_print == "jellyfish") {
+  #   set.breaks <- c(0, 0.01, #0.1, 
+  #                   .5, 1,#2,3, 
+  #                   7, set.breaks[length(set.breaks)])
+  # }
+  
   
   a <- table_raw %>% 
     dplyr::select(year, SRVY) %>% 
@@ -443,16 +449,16 @@ for (case_yr in case_yr0) {
         size = 2, group = 99)
   }  
   
-  if (report_title %in% c("community")) { 
-    figure <-
-      cowplot::ggdraw(figure + 
-       ggplot2::theme( plot.margin = margin(1.8, 0, 0, 0, "cm") ) ) +
-      cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = .77, y = .42, # top right
-                          # x = 0.09, y = -.35, # lower left
-                          hjust = 0, vjust = 0,
-                          width = .18)
-  }
+  # if (report_title %in% c("community")) { 
+  #   figure <-
+  #     cowplot::ggdraw(figure + 
+  #      ggplot2::theme( plot.margin = margin(1.8, 0, 0, 0, "cm") ) ) +
+  #     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+  #                         x = .77, y = .42, # top right
+  #                         # x = 0.09, y = -.35, # lower left
+  #                         hjust = 0, vjust = 0,
+  #                         width = .18)
+  # }
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
@@ -1374,6 +1380,17 @@ header <- paste0("Estimates of ", spp_print,
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
                  " shelf bottom trawl survey", 
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, "", plural_surveys),". ")
+
+  if (report_title %in% c("community")) { 
+    figure <-
+      cowplot::ggdraw(figure + 
+       ggplot2::theme( plot.margin = margin(1.8, 0, 0, 0, "cm") ) ) +
+      cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+                          x = .77, y = .38, # top right
+                          # x = 0.09, y = -.35, # lower left
+                          hjust = 0, vjust = 0,
+                          width = .18)
+  }
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```

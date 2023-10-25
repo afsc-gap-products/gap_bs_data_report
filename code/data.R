@@ -221,12 +221,12 @@ catch <- gap_products_akfin_catch0 %>%
 
 print("report_spp and spp_info")
 
-spp_info0 <- gap_products_taxonomic_classification0
+spp_info0 <- gap_products_akfin_taxonomic_classification0
 
 names(spp_info0) <- gsub(pattern = "_taxon", replacement = "", x = names(spp_info0))
 
 spp_info <- spp_info0  %>% 
-  dplyr::filter(survey_species == 1) %>% 
+  # dplyr::filter(survey_species == 1) %>% 
   dplyr::mutate(
     taxon = dplyr::case_when(
       species_code <= 31550 ~ "fish", 
@@ -971,6 +971,18 @@ sizecomp_sap <- crab_nbs_size1mm_all_species0 %>%
       sex == "number_males" ~ "males",
       sex == "number_immature_females" ~ "immature females",
       sex == "number_mature_females" ~ "mature females"))
+
+# 2023 short term fix until data is rerun in march 2024
+gap_products_akfin_sizecomp0 <- gap_products_akfin_sizecomp0 %>% 
+  dplyr::filter(!(survey_definition_id == 143 & 
+                    year == 2017 &
+                    length_mm == 940 &
+                    species_code == 21371 &
+                    sex == 1)) %>% 
+  dplyr::filter(!(survey_definition_id == 143 & 
+                    year == 2010 &
+                    length_mm >= 330 &
+                    species_code == 21725) )
 
 sizecomp_gap <- gap_products_akfin_sizecomp0 %>% # GAP data
   dplyr::filter(
