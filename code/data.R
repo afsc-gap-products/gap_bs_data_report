@@ -1041,14 +1041,27 @@ biomass_gap <- gap_products_akfin_biomass0 %>%
     SRVY = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS", 
       survey_definition_id == 98 ~ "EBS"),
-    stratum = ifelse(area_id %in% c(99900, 99902), 999, area_id))
+    stratum = ifelse(area_id %in% c(99900, 99902), 999, area_id)) %>% 
+  dplyr::mutate(
+    cpue_kgkm2_sd = sqrt(cpue_kgkm2_var), 
+    cpue_nokm2_sd = sqrt(cpue_nokm2_var), 
+    biomass_sd = sqrt(biomass_var), 
+    biomass_up = biomass_mt + (2*biomass_sd), 
+    biomass_dw = biomass_mt - (2*biomass_sd), 
+    population_sd = sqrt(population_var), 
+    population_up = population_count + (2*population_sd), 
+    population_dw = population_count - (2*population_sd))
 
 biomass_sap <- crab_gap_ebs_nbs_abundance_biomass0 %>% 
-  dplyr::rename(biomass_mt = biomass_total,
+  dplyr::select(SRVY = survey_region, 
+                year = survey_year, 
+                species_code, 
+                biomass_mt = biomass_total, 
+                biomass_up = biomass_upper_ci, 
+                biomass_dw = biomass_lower_ci, 
                 population_count = abundance, 
-                SRVY = survey_region,
-                year = survey_year) %>%
-  dplyr::select(biomass_mt, population_count, SRVY, year, species_code) %>%
+                population_up = abundance_upper_ci, 
+                population_dw = abundance_lower_ci) %>%
   dplyr::mutate(survey_definition_id = dplyr::case_when(
     SRVY == "NBS" ~ 143, 
     SRVY == "EBS" ~ 98), 
@@ -1065,15 +1078,7 @@ biomass <- dplyr::bind_rows(biomass_gap, biomass_sap) %>%
       dplyr::select(species_code, common_name, species_name, taxon), 
     by = "species_code") %>% 
   dplyr::mutate(
-    cpue_kgkm2_sd = sqrt(cpue_kgkm2_var), 
-    cpue_nokm2_sd = sqrt(cpue_nokm2_var), 
-    biomass_sd = sqrt(biomass_var), 
-    biomass_up = biomass_mt + (2*biomass_sd), 
-    biomass_dw = biomass_mt - (2*biomass_sd), 
     biomass_dw = ifelse(biomass_dw<0, 0, biomass_dw), 
-    population_sd = sqrt(population_var), 
-    population_up = population_count + (2*population_sd), 
-    population_dw = population_count - (2*population_sd), 
     population_dw = ifelse(population_dw<0, 0, population_dw) )
 
 biomass_maxyr <- biomass %>%
