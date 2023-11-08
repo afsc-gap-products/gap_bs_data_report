@@ -824,12 +824,12 @@ lengths_maxyr <- lengths %>%
 print("specimen")
 
 specimen <- gap_products_akfin_specimen0 %>% 
-  dplyr::select(hauljoin, cruisejoin, species_code, length_mm, sex, age_years, 
+  dplyr::select(hauljoin, species_code, length_mm, sex, age_years, 
                 specimen_subsample_method, specimen_sample_type) %>% 
   dplyr::left_join(
     y = haul %>% 
-      dplyr::select(cruisejoin, hauljoin, station, stratum),  
-    by = c("cruisejoin", "hauljoin")) %>% 
+      dplyr::select(hauljoin, cruisejoin, station, stratum),  
+    by = c("hauljoin")) %>% 
   dplyr::left_join(
     y = cruises %>% 
       dplyr::select(cruisejoin, survey_name, SRVY, survey_definition_id, year),  
