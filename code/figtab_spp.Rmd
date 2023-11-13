@@ -921,7 +921,7 @@ table_print <- table_print0 %>%
                 j = names(table_print0)[2]) %>% 
     flextable::bg(
     i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "no change")), 
-                bg = positive, 
+                bg = neutral, 
                 j = names(table_print0)[2]) 
 
 if (ncol(table_print0) > 2) {
@@ -936,7 +936,7 @@ table_print <- table_print %>%
                 j = names(table_print0)[3]) %>% 
     flextable::bg(
     i = ~ (grepl(x = table_print0[,names(table_print0)[3]], pattern = "no change")), 
-                bg = positive, 
+                bg = neutral, 
                 j = names(table_print0)[3]) 
 }
 
@@ -956,7 +956,7 @@ temp <- biomass %>%
                 biomass_mt, biomass_sd, biomass_dw, biomass_up, 
                 cpue_nokm2_mean, cpue_nokm2_sd, 
                 population_count, population_sd, population_dw, population_up, 
-                n_haul, n_length)  %>% 
+                n_weight, n_count, n_length)  %>% 
   dplyr::right_join(y = biomass %>% 
                       dplyr::filter(year == maxyr &
                                       stratum %in% strat0) %>% 
@@ -1008,19 +1008,19 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
         dplyr::select(SRVY, SRVY_long, stratum, 
                       cpue_kgkm2_mean, cpue_kgkm2_sd, 
                       biomass_mt, biomass_sd, biomass_dw, biomass_up, 
-                      n_haul, n_length) 
+                      n_weight) 
       
-      if (!include_n_length) {
-        table_raw <- table_raw %>% 
-          dplyr::select(-n_length)
-      }
+      # if (!include_n_length) {
+      #   table_raw <- table_raw %>% 
+      #     dplyr::select(-n_length)
+      # }
       
       if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
         
         cpue_kgkm2_mean0<-find_units(unit = "kg/km²", unt = "kg/km²", dat = table_raw$cpue_kgkm2_mean[table_raw$cpue_kgkm2_mean != 0])    
-        cpue_kgkm2_sd0<-find_units(unit = "", unt = "", table_raw$cpue_kgkm2_sd[table_raw$cpue_kgkm2_sd != 0])
-        biomass_mt0<-find_units(unit = "t", unt = "t", table_raw$biomass_mt [table_raw$biomass_mt  != 0])
-        biomass_sd0<-find_units(unit = "", unt = "", table_raw$biomass_sd[table_raw$biomass_sd != 0])
+        cpue_kgkm2_sd0 <- find_units(unit = "", unt = "", table_raw$cpue_kgkm2_sd[table_raw$cpue_kgkm2_sd != 0])
+        biomass_mt0 <- find_units(unit = "t", unt = "t", table_raw$biomass_mt [table_raw$biomass_mt  != 0])
+        biomass_sd0 <- find_units(unit = "", unt = "", table_raw$biomass_sd[table_raw$biomass_sd != 0])
         
         header <- paste0("Mean weight CPUE",cpue_kgkm2_mean0$unit_word,
                          " with standard deviation",cpue_kgkm2_sd0$unit_wrd,
@@ -1052,6 +1052,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
         table_print0[is.na(table_print0)] <- 0
         table_print0[table_print0 == " NA"] <- "-"
         table_print0[table_print0 == "NA"] <- "-"
+        table_print0$n_weight[table_print0$n_weight == 0] <- "-"
         
         table_print <- table_print0 %>% 
           dplyr::select(-SRVY) %>% 
@@ -1063,7 +1064,8 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
             biomass_mt = paste0("Biomass", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))), 
             biomass_sd = paste0("Biomass\nSD ", ifelse(biomass_sd0$unit_wrd=="", "", paste0(" ",biomass_sd0$unit_wrd))), 
             biomass_dw = paste0("95% LCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))),
-            biomass_up = paste0("95% UCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd)))
+            biomass_up = paste0("95% UCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))),
+        n_weight = "# Hauls w. weights"
           ) 
       }
     } else { # CPUE No/km² and population_count
@@ -1073,7 +1075,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
       table_raw <- temp %>% 
         dplyr::select(SRVY_long, SRVY, stratum, 
                       cpue_nokm2_mean, cpue_nokm2_sd, population_dw, population_up, 
-                      population_count, population_sd, n_haul, n_length)
+                      population_count, population_sd, n_count, n_length)
       
       if (!include_n_length) {
         table_raw <- table_raw %>% 
@@ -1117,6 +1119,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
         table_print0[is.na(table_print0)] <- 0
         table_print0[table_print0 == " NA"] <- "-"
         table_print0[table_print0 == "NA"] <- "-"
+        table_print0$n_count[table_print0$n_count == 0] <- "-"
         
         table_print <- table_print0 %>% 
           dplyr::select(-SRVY) %>%
@@ -1129,7 +1132,8 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
                                       ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd))),
             population_sd = paste0("Population\nSD ", ifelse(population_sd0$unit_wrd=="", "", paste0(" ", population_sd0$unit_wrd))), 
             population_dw = paste0("95% LCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd))),
-            population_up = paste0("95% UCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd)))
+            population_up = paste0("95% UCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd))),
+        n_count = "# Hauls w. counts"
           ) 
       }
     }
@@ -1155,12 +1159,11 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
       flextable::valign(valign = "top") %>% 
       flextable::set_header_labels(
         # SRVY = "",
-        stratum = "Stratum",
-        n_haul = "# Hauls")  %>%
+        stratum = "Stratum")  %>%
       theme_flextable_nmfstm(row_lines = FALSE, 
-                             pgwidth = full_page_landscape_width)  %>%
-      flextable::width(width = .75, unit = "in") %>%
-      flextable::width(width = .5, unit = "in", j = c("stratum", "n_haul")) %>%
+                             pgwidth = full_page_portrait_width)  %>%
+      # flextable::width(width = .91, unit = "in") %>%
+      flextable::width(width = .5, unit = "in", j = c("stratum")) %>%
       # flextable::width(width = .25, unit = "in", j = c("SRVY")) %>%
       flextable::align(align = "right", part = "all") %>%
       flextable::align(align = "center", part = "body", j = "stratum") %>% 
