@@ -8,9 +8,16 @@
 #' ---
 
 # This has a specific username and password because I DONT want people to have access to this!
-source("Z:/Projects/ConnectToOracle.R")
-channel0 <- channel
-channel <- channel_products
+if (file.exists("Z:/Projects/ConnectToOracle.R")) {
+  source("Z:/Projects/ConnectToOracle.R")
+  channel0 <- channel
+  channel <- channel_products
+} else {
+  library(devtools)
+  devtools::install_github("afsc-gap-products/gapindex")
+  library(gapindex)
+  channel <- channel0 <- gapindex::get_connected()
+}
 
 # I set up a ConnectToOracle.R that looks like this: 
 #   
