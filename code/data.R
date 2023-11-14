@@ -433,7 +433,7 @@ cruises_race <- race_data_cruises0 %>%
 if (length(cruises_race$data_in_final == "N")>0 | nrow(cruises_race) == 0) {
   haul_missing <- cruises_race %>%
     dplyr::distinct() %>%
-    dplyr::left_join(y = race_data_edit_haul0, 
+    dplyr::left_join(y = race_data_edit_hauls0, 
                      by = c("cruise_id")) %>%
     dplyr::filter(year == maxyr & 
                     abundance_haul == "Y" &
@@ -487,7 +487,7 @@ temp <- cruises_race %>%
 if (length(cruises_race$data_in_final == "N")>0) {
   haul_missing <- cruises_race %>%
     dplyr::distinct() %>%
-    dplyr::left_join(y = race_data_edit_haul0, 
+    dplyr::left_join(y = race_data_edit_hauls0, 
                      by = c("cruise_id")) %>%
     dplyr::filter(year == maxyr & 
                     # abundance_haul == "Y" &
@@ -501,7 +501,7 @@ if (length(cruises_race$data_in_final == "N")>0) {
 
 # temp <- cruises_race %>%
 #   dplyr::distinct() %>%
-#   dplyr::left_join(y = race_data_edit_haul0, 
+#   dplyr::left_join(y = race_data_edit_hauls0, 
 #                    by = c("cruise_id")) %>%
 #   dplyr::filter(year == maxyr & 
 #                   haul_type %in% c(17, 20))

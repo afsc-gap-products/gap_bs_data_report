@@ -106,6 +106,8 @@ locations <- c(
   "crab.ebscrab_nbs", # length data
   "crab.nbs_size1mm_all_species", 
   "RACE_DATA.LENGTHS",   # "RACE_DATA.V_EXTRACT_FINAL_LENGTHS" also works, but is ephemeral # "GAP_PRODUCTS.AKFIN_LENGTH", # has extrapolated lengths, not how many were actually counted
+  "RACE_DATA.EDIT_HAULS", 
+  "race_data.edit_events",
   "RACE_DATA.HAULS", # need for manipulating RACE_DATA.LENGTHS
   "RACE_DATA.CRUISES", 
   "RACE_DATA.SURVEYS", 
