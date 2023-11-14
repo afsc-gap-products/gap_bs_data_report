@@ -2686,8 +2686,8 @@ plot_mean_temperatures <- function(maxyr, SRVY){
 theme_flextable_nmfstm <- function(x,
                                    pgwidth = 6.5,
                                    row_lines = TRUE,
-                                   body_size = 12,
-                                   header_size = 12,
+                                   body_size = 11,
+                                   header_size = 11,
                                    font0 = "Arial Narrow",
                                    spacing = 0.6,
                                    pad = 5) {
