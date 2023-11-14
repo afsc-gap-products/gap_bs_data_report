@@ -1,39 +1,15 @@
-#' ---
-#' title: 'Data Report: MAXYR Eastern Bering Sea continental shelf Bottom Trawl Survey of Groundfish and Invertebrate Fauna'
-#' author: 'L. Britt, E. H. Markowitz, E. J. Dawson, and R. Haehn'
-#' purpose: Download data
-#' start date: 2021-03-03
-#' date modified: 2021-09-01        # CHANGE
-#' Notes:                             # CHANGE
-#' ---
 
-# This has a specific username and password because I DONT want people to have access to this!
 if (file.exists("Z:/Projects/ConnectToOracle.R")) {
+  # This has a specific username and password because I DONT want people to have access to this!
   source("Z:/Projects/ConnectToOracle.R")
-  channel0 <- channel
-  channel <- channel_products
 } else {
-  library(devtools)
-  devtools::install_github("afsc-gap-products/gapindex")
-  library(gapindex)
-  channel <- channel0 <- gapindex::get_connected()
+  username <- getPass::getPass(msg = "Enter your ORACLE Username: ")
+  password <- getPass::getPass(msg = "Enter your ORACLE Password: ")
+  channel <- RODBC::odbcConnect(dsn = paste(schema), 
+                                                 uid = paste(username), 
+                                                 pwd = paste(password),
+                                                 believeNRows = FALSE)
 }
-
-# I set up a ConnectToOracle.R that looks like this: 
-#   
-#   PKG <- c("RODBC")
-# for (p in PKG) {
-#   if(!require(p,character.only = TRUE)) {  
-#     install.packages(p)
-#     require(p,character.only = TRUE)}
-# }
-# 
-# channel<-odbcConnect(dsn = "AFSC",
-#                      uid = "USERNAME", # change
-#                      pwd = "PASSWORD", #change
-#                      believeNRows = FALSE)
-# 
-# odbcGetInfo(channel)
 
 # DOWNLOAD CPUE and BIOMASS EST ------------------------------------------------
 
@@ -124,7 +100,7 @@ locations <- c(
 
 for (i in 1:length(locations)) {
   print(locations[i])
-  a <- RODBC::sqlQuery(channel = channel0, # NOT RACEBASE.HAUL
+  a <- RODBC::sqlQuery(channel = channel, # NOT RACEBASE.HAUL
                        query = paste0("SELECT *
 FROM ",locations[i],"; ")) 
   write.csv(x = a, 
