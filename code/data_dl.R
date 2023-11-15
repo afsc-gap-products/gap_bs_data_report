@@ -3,12 +3,12 @@ if (file.exists("Z:/Projects/ConnectToOracle.R")) {
   # This has a specific username and password because I DONT want people to have access to this!
   source("Z:/Projects/ConnectToOracle.R")
 } else {
-  username <- getPass::getPass(msg = "Enter your ORACLE Username: ")
-  password <- getPass::getPass(msg = "Enter your ORACLE Password: ")
-  channel <- RODBC::odbcConnect(dsn = paste(schema), 
-                                                 uid = paste(username), 
-                                                 pwd = paste(password),
-                                                 believeNRows = FALSE)
+  # For those without a ConnectToOracle file
+  channel <- odbcConnect(dsn = "AFSC", 
+                         uid = rstudioapi::showPrompt(title = "Username", 
+                                                      message = "Oracle Username", default = ""), 
+                         pwd = rstudioapi::askForPassword("Enter Password"),
+                         believeNRows = FALSE)
 }
 
 # DOWNLOAD CPUE and BIOMASS EST ------------------------------------------------
