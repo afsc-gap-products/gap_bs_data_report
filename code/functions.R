@@ -23,14 +23,6 @@ if (dir.exists(dir_out_figtab) == FALSE) {
   dir.create(dir_out_figtab)
 }
 
-dirs <- c("chapters", "rawdata")#, "documentation", "code", "figtab", "cite", "ref")
-for (i in 1:length(dirs)) {
-  if (dir.exists(paste0(dir_out_todaysrun, dirs[i])) == FALSE) {
-    dir.create(paste0(dir_out_todaysrun, "/", dirs[i]))
-  }
-  assign(x = paste0("dir_out_", dirs[i]), value = paste0(dir_out_todaysrun, "/",dirs[i],"/"))
-}
-
 # options("citation_format" = "pandoc")
 
 # Install Libraries ------------------------------------------------------------
