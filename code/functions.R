@@ -19,6 +19,9 @@ dir_out_todaysrun <- paste0(dir_out_todaysrun, maxyr, "_", report_title, "/")
 dir.create(dir_out_todaysrun)
 
 dir_out_figtab <- paste0(dir_output, "figtab_",maxyr,"/")
+if (dir.exists(dir_out_figtab) == FALSE) {
+  dir.create(dir_out_figtab)
+}
 
 dirs <- c("chapters", "rawdata")#, "documentation", "code", "figtab", "cite", "ref")
 for (i in 1:length(dirs)) {
