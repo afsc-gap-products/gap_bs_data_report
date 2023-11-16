@@ -76,7 +76,7 @@ PKG <- c(
   "shadowtext",
   "ggspatial", 
   "digest", 
-  "ggsn",
+  # "ggsn",
   "ps", 
   "magrittr", 
   "raster",
