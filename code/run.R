@@ -36,6 +36,8 @@ googledrive::drive_auth()
 ## Source Scripts --------------------------------------------------------------
 
 report_title <- "data" 
+# devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
+# devtools::install_github("sean-rohan-noaa/coldpool")
 source(here::here("code","functions.R"))
 # source('./code/data_dl.R') # Run when there is new data!
 source(here::here("code","data.R"))

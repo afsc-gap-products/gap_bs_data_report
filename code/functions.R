@@ -42,7 +42,7 @@ PKG <- c(
   "officedown", # landscpe pges! https://github.com/rstudio/rmarkdown/issues/2034#issuecomment-774494900
   
   # Graphics
-  "ggplot2", # Create Elegant Data Visualisations Using the Grammar of Graphics
+  "ggplot2", # Create Elegant Data Visualizations Using the Grammar of Graphics
   "cowplot",
   "png",
   "magick",
