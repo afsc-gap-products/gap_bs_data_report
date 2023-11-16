@@ -4,6 +4,8 @@ if (file.exists("Z:/Projects/ConnectToOracle.R")) {
   source("Z:/Projects/ConnectToOracle.R")
 } else {
   # For those without a ConnectToOracle file
+  library(rstudioapi)
+  library(RODBC)
   channel <- odbcConnect(dsn = "AFSC", 
                          uid = rstudioapi::showPrompt(title = "Username", 
                                                       message = "Oracle Username", default = ""), 
