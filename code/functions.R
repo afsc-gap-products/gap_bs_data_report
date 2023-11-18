@@ -79,13 +79,11 @@ PKG <- c(
   "shadowtext",
   "ggspatial", 
   "digest", 
-  # "ggsn",
   "ps", 
   "magrittr", 
   "raster",
   "stars",
-  # "grid", 
-  
+
   "scales", # nicer lables in ggplot2
   "pingr", # check website links
   "httr", # check website links
@@ -93,7 +91,6 @@ PKG <- c(
   "XML", # For editing XML files
   "RODBC"  # Oracle
 )
-
 
 PKG <- unique(PKG)
 for (p in PKG) {

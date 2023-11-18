@@ -61,6 +61,11 @@ fig_st <- "(#fig-temperature-st-1) and (#fig-temperature-st-2)"
     tab_majorspp_bio_EBS <- "(#tab-majortaxa-pchange-EBS)"
     tab_majorspp_bio_NBS <- "(#tab-majortaxa-pchange-NBS)"
   }
+
+  tab_stat <- paste0("\\@ref(tab:tab-stats-", spp_file, ")")
+  fig_bio <- paste0("\\@ref(fig:fig-biomass-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
+  fig_pop <- paste0("\\@ref(fig:fig-population-", spp_file, ")")
+  
 str0 <- ""
 
 ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
@@ -100,6 +105,80 @@ if (ncol(temp)>0) {
 ```
 
 `r lang `
+
+```{r bio-pop-txt-1-{{jj}}}
+str0 <- ""
+```
+
+```{r bio-pop-txt-{{jj}}, eval = (spp_text & (report_title == "data"))}
+
+str0 <- paste0("Between ", maxyr," and ", compareyr,", ", spp_print, " ")
+load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
+temp <- obj$raw
+cite_bio <- paste0(" (Tables ", tab_stat,", ", tab_wt,", ", tab_majorspp_bio_EBS, "; Fig. ", fig_bio,")")
+cite_pop <- paste0(" (Tables ", tab_stat,", ", tab_no,"; Fig. ", fig_pop,")")
+
+  if ("Eastern Bering Sea" %in% temp$SRVY_long) {
+  temp0 <- temp[temp$SRVY_long == "Eastern Bering Sea", ]
+  case <- dplyr::case_when(
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ 
+      paste0("decreased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"), 
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ 
+      paste0("increased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"),
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ 
+      "did not noteably change"
+  )
+  case_transition_ebs <- dplyr::case_when(
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ paste0("decrease"), 
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ paste0("increase"),
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ "no change"
+  )
+    
+  str0 <- paste0(str0, 
+                 "biomass ", case, 
+                 " in the eastern Bering Sea", cite_bio, 
+                 " and the population was estimated at ",
+                 temp0$Population," individuals",cite_pop,". ")
+  }
+  
+  if ("Northern Bering Sea" %in% temp$SRVY_long) {
+  temp0 <- temp[temp$SRVY_long == "Northern Bering Sea", ]
+  case <- dplyr::case_when(
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ 
+      paste0("decreased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"), 
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ 
+      paste0("increased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"),
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ 
+      "did not noteably change"
+  )
+  case_transition_nbs <- dplyr::case_when(
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ paste0("decrease"), 
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ paste0("increase"),
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ "no change"
+  )
+  
+  if (!("Eastern Bering Sea" %in% temp$SRVY_long)) { # if there is no EBS data and therefore nothing to 'transition' to, = ""
+  str0_transition <- ""
+  cite_bio <- gsub(pattern = "_EBS", replacement = "_NBS", x = cite_bio)
+  } else if (case_transition_nbs == case_transition_ebs) {
+  str0_transition <- "Similarly, "
+  cite_bio <- paste0(" (Table ",tab_majorspp_bio_NBS,")")
+  cite_pop <- ""
+  } else {
+  str0_transition <- "However, "
+  cite_bio <- ""
+  cite_pop <- ""
+  } 
+  
+  str0 <- paste0(str0, str0_transition, 
+                 "biomass ", case, 
+                 " in the northern Bering Sea", cite_bio, 
+                 " and the population was estimated at ",
+                 temp0$Population," individuals",cite_pop,". ")
+}
+```
+
+`r str0`
 
 ```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".qmd"), eval=(spp_text), results='asis'}
 ```
