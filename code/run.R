@@ -36,10 +36,10 @@ googledrive::drive_auth()
 ## Source Scripts --------------------------------------------------------------
 
 report_title <- "data" 
-# devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
-# devtools::install_github("sean-rohan-noaa/coldpool")
+# devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
+# devtools::install_github("afsc-gap-products/coldpool")
 source(here::here("code","functions.R"))
-# source('./code/data_dl.R') # Run when there is new data!
+# source('./code/data_dl.R') # devtools::install_github("afsc-gap-products/gapindex") # Run when there is new data!
 source(here::here("code","data.R"))
 
 ## Figures and Tables ----------------------------------------------------------

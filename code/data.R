@@ -553,13 +553,14 @@ cpue <- dplyr::bind_rows(
     dplyr::select(species_code, hauljoin, 
                   cpue_kgkm2 = cpuewgt_total, 
                   cpue_nokm2 = cpuenum_total) )  %>% 
+  dplyr::bind_rows(complex_cpue0 %>% 
+                     dplyr::select(species_code, hauljoin, cpue_kgkm2, cpue_nokm2) %>% 
+                     dplyr::mutate(group = species_code, 
+                                   species_code = NA)) %>% 
   dplyr::right_join(y = haul %>% 
                       dplyr::select(hauljoin, station, stratum, survey_definition_id, SRVY, 
                                     year, cruisejoin, longitude_dd_start, latitude_dd_start), 
                     by = "hauljoin") %>% 
-  dplyr::filter(!(year < 1996 & species_code == 10261) & # modify for spp
-                  !(year < 2000 & species_code == 435 ) &
-                  !(year < 2000 & species_code == 471) )  %>% # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
   dplyr::left_join(y = spp_info %>% 
                      dplyr::select(species_code, common_name, species_name, taxon), 
                    by = "species_code") 
@@ -972,28 +973,17 @@ sizecomp_sap <- crab_nbs_size1mm_all_species0 %>%
       sex == "number_immature_females" ~ "immature females",
       sex == "number_mature_females" ~ "mature females"))
 
-# 2023 short term fix until data is rerun in march 2024
-gap_products_akfin_sizecomp0 <- gap_products_akfin_sizecomp0 %>% 
-  dplyr::filter(!(survey_definition_id == 143 & 
-                    year == 2017 &
-                    length_mm == 940 &
-                    species_code == 21371 &
-                    sex == 1)) %>% 
-  dplyr::filter(!(survey_definition_id == 143 & 
-                    year == 2010 &
-                    length_mm >= 330 &
-                    species_code == 21725) )
-
 sizecomp_gap <- gap_products_akfin_sizecomp0 %>% # GAP data
+  dplyr::bind_rows(complex_sizecomp0 %>% 
+                     dplyr::select(names(gap_products_akfin_sizecomp0)) %>% 
+                     dplyr::mutate(group = species_code, 
+                                   species_code = NA)) %>% 
   dplyr::filter(
     area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
       survey_definition_id %in% SRVY00 &
       year <= maxyr &
       # area_id > 99900 & 
-      length_mm > 0 &
-      !(year < 1996 & species_code == 10261) &
-      !(year < 2000 & species_code == 435) & # 2022/10/28 - Duane - Alaska skate abundance/distribution figures should include only data from 2000 and later, due to earlier identification issues (which are clearly indicated in the plots).
-      !(year < 2000 & species_code == 471)) %>% 
+      length_mm > 0) %>% 
   dplyr::mutate(
     sex = dplyr::case_when(
       sex == 1 ~ "males", 
@@ -1007,8 +997,7 @@ sizecomp <- dplyr::bind_rows(sizecomp_sap, sizecomp_gap) %>%
       year > 1981 & 
       !is.na(length_mm) & 
       !is.na(population_count) & 
-      population_count!= 0 & 
-      !is.na(species_code)) %>%
+      population_count!= 0) %>%
   dplyr::left_join(y = spp_info %>% 
                      dplyr::select(species_code, taxon),
                    by  = "species_code") %>% 
@@ -1028,14 +1017,17 @@ sizecomp_compareyr <- sizecomp %>%
 
 print("biomass")
 
-biomass_gap <- gap_products_akfin_biomass0 %>%
+biomass_gap <- dplyr::bind_rows(
+  gap_products_akfin_biomass0, 
+  complex_biomass0 %>% 
+    dplyr::mutate(group = species_code, 
+                  species_code = NA)) %>%
   dplyr::filter(
     area_id %in% as.numeric(strat0) &
       survey_definition_id %in% SRVY00 &
       n_weight > 0 & 
       year <= maxyr &
-      !(species_code %in% c(69323, 69322, 68580, 68560)) &
-      !is.na(species_code) ) %>%  
+      !(species_code %in% c(69323, 69322, 68580, 68560)) ) %>%  
   unique() %>%
   dplyr::mutate(
     SRVY = dplyr::case_when(
@@ -1106,9 +1098,9 @@ temp <- spp_info %>%   # dplyr::filter(species_code %in% c(99991, 99993, 99994, 
                   !grepl(x = common_name, pattern = "egg")) %>% 
   dplyr::select(species_code, common_name, species_name) 
 
-
 total_biomass <- biomass %>% 
   dplyr::filter(stratum == 999 & 
+                  !(is.na(species_code)) & 
                   !(species_code %in% temp)) %>%
   dplyr::group_by(SRVY, year, taxon) %>% 
   dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 

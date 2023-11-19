@@ -13,7 +13,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 
 spp_sci <- text_list(unique(a$species_name))
-spp_code <- a$species_code
+spp_code <- a$species_code0[1]
+if(grepl(pattern = "c(", x = spp_code, fixed = TRUE)) {spp_code <- a$species_code}
 spp_print <- a$print_name[1]
 
 spp_file <- a$file_name[1]
@@ -50,7 +51,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## fig-dist-[taxon]-[spp]
 
-```{r dist_funct} 
+```{r dist_funct0, eval = FALSE} 
 make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE = NA, 
                             CPUE_KGHA = NA, region = "bs.south", extrap.box = NULL, extrapolation.grid.type = "stars", 
                             set.breaks = "jenks", grouping.vars, grid.cell = c(5000, 5000), 
@@ -202,6 +203,249 @@ make_idw_stack <- function (x = NA, COMMON_NAME = NA, LATITUDE = NA, LONGITUDE =
 ```
 
 
+
+```{r dist_funct}
+make_idw_stack <- function(x = NA, 
+                           COMMON_NAME = NA, 
+                           LATITUDE = NA, 
+                           LONGITUDE = NA, 
+                           CPUE_KGHA = NA, 
+                           region = "bs.south", 
+                           extrap.box = NULL, 
+                           extrapolation.grid.type = "stars",
+                           set.breaks = "jenks",
+                           grouping.vars,
+                           grid.cell = c(5000,5000), 
+                           in.crs = "+proj=longlat", 
+                           out.crs = "EPSG:3338", 
+                           log.transform = FALSE, 
+                           idw.nmax = 4,
+                           use.survey.bathymetry = TRUE) {
+  
+  # .check_region(select.region = region, type = "survey")
+  
+  stopifnot("make_idw_map: extra.grid.type must be 'stars', 'sf', or 'sf.simple'" = extrapolation.grid.type %in% c("stars", "sf", "sf.simple"))
+  
+  # Convert vectors to data frame if x is not a data.frame or tbl-----------------------------------
+  if(!is.data.frame(x)) {
+    
+    stopifnot("make_idw_map: LATITUDE must be a numeric vector." = is.numeric(LATITUDE))
+    stopifnot("make_idw_map: LONGITUDE must be a numeric vector." = is.numeric(LONGITUDE))
+    stopifnot("make_idw_map: CPUE_KGHA must be a numeric vector." = is.numeric(CPUE_KGHA))
+    
+    x <- data.frame(COMMON_NAME = COMMON_NAME,
+                    LATITUDE = LATITUDE,
+                    LONGITUDE = LONGITUDE,
+                    CPUE_KGHA = CPUE_KGHA)
+  }
+  
+  # Load map layers---------------------------------------------------------------------------------
+  map_layers <- akgfmaps::get_base_layers(select.region = region, set.crs = out.crs)
+  
+  # Set up mapping region---------------------------------------------------------------------------
+  if(is.null(extrap.box)) {
+    extrap.box <- sf::st_bbox(map_layers$survey.area)
+  }
+  
+  # Assign CRS to handle automatic selection--------------------------------------------------------
+  if(out.crs == "auto") {
+    out.crs <- map_layers$crs
+  }
+  
+  # Use survey bathymetry---------------------------------------------------------------------------
+  if(use.survey.bathymetry) {
+    map_layers$bathymetry <- akgfmaps::get_survey_bathymetry(select.region = region, set.crs = out.crs)
+  }
+  
+  # Generate extrapolation grid---------------------------------------------------------------------
+  extrap_raster <- terra::rast(xmin = extrap.box['xmin'],
+                                     xmax = extrap.box['xmax'],
+                                     ymin = extrap.box['ymin'],
+                                     ymax = extrap.box['ymax'],
+                                     ncol = (extrap.box['xmax']-extrap.box['xmin'])/grid.cell[1],
+                                     nrow = (extrap.box['ymax']-extrap.box['ymin'])/grid.cell[2],
+                                     crs = out.crs)
+  
+  loc_df <- suppressWarnings(terra::crds(extrap_raster, df = TRUE, na.rm = FALSE)) |>
+    sf::st_as_sf(coords = c("x", "y"),
+                 crs = out.crs)
+  
+  # Assign CRS to input data------------------------------------------------------------------------
+  unique_groups <- dplyr::select(x, dplyr::all_of(grouping.vars)) |>
+    unique()
+  
+  x <- sf::st_as_sf(x, 
+                    coords = c(x = "LONGITUDE", y = "LATITUDE"), 
+                    crs = sf::st_crs(in.crs)) |> 
+    sf::st_transform(crs = map_layers$crs)
+  
+  for(ii in 1:nrow(unique_groups)) {
+    
+    if(length(grouping.vars) > 1) {
+      
+      x_sub <- dplyr::inner_join(x, unique_groups[ii, ], by = grouping.vars)
+      
+    } else{
+      
+      x_sub <- x[which(x[[grouping.vars]] == unlist(unique_groups)[ii]), ] ## changed this line
+      #Not sure why this little change is making the difference in my code (only sometimes) 
+      
+    }
+
+    # Inverse distance weighting----------------------------------------------------------------------
+    idw_fit <- gstat::gstat(formula = CPUE_KGHA~1, locations = x_sub, nmax = idw.nmax)
+    
+    # Predict station points--------------------------------------------------------------------------
+    stn.predict <- predict(idw_fit, x_sub)
+    
+    # Predict, rasterize, mask------------------------------------------------------------------------
+
+    extrap.grid <- predict(idw_fit, loc_df) |> 
+      sf::st_transform(crs = sf::st_crs(x)) |> 
+      stars::st_rasterize() |>
+      sf::st_join(map_layers$survey.area, join = st_intersects) 
+    
+    # Format breaks for plotting----------------------------------------------------------------------
+    # Automatic break selection based on character vector.
+    alt.round <- 0 # Set alternative rounding factor to zero based on user-specified breaks
+    
+    if(is.character(set.breaks[1])) {
+      set.breaks <- tolower(set.breaks)
+      
+      # Set breaks ----
+      break.vals <- classInt::classIntervals(x$CPUE_KGHA, n = 5, style = set.breaks)$brks
+      
+      # Setup rounding for small CPUE ----
+      alt.round <- floor(-1*(min((log10(break.vals)-2)[abs(break.vals) > 0])))
+      
+      set.breaks <- c(-1, round(break.vals, alt.round))
+    }
+    
+    # Ensure breaks go to zero------------------------------------------------------------------------
+    if(min(set.breaks) > 0) {
+      set.breaks <- c(0, set.breaks)
+    }
+    
+    if(min(set.breaks) == 0) {
+      set.breaks <- c(-1, set.breaks)
+    }
+    
+    # Ensure breaks span the full range---------------------------------------------------------------
+    if(max(set.breaks) < max(x$CPUE_KGHA)){
+      set.breaks[length(set.breaks)] <- max(x$CPUE_KGHA) + 1
+    }
+    
+    
+    # Trim breaks to significant digits to account for differences in range among species-------------
+    dig.lab <- 7
+    set.levels <- cut(x$CPUE_KGHA, set.breaks, right = TRUE, dig.lab = dig.lab)
+    
+    if(alt.round > 0) {
+      while(dig.lab > alt.round) { # Rounding for small CPUE
+        dig.lab <- dig.lab - 1
+        set.levels <- cut(x$CPUE_KGHA, set.breaks, right = TRUE, dig.lab = dig.lab)
+      }
+    } else { # Rounding for large CPUE
+      while(length(grep("\\.", set.levels)) > 0) {
+        dig.lab <- dig.lab - 1
+        set.levels <- cut(x$CPUE_KGHA, set.breaks, right = TRUE, dig.lab = dig.lab)
+      }
+    }
+    
+    continuous.grid <- extrap.grid
+    
+    continuous.grid <- continuous.grid["var1.pred"]
+    names(continuous.grid) <- paste(unique_groups[ii,], collapse = "_")
+    
+    # Cut extrapolation grid to support discrete scale------------------------------------------------
+    extrap.grid$var1.pred <- cut(extrap.grid$var1.pred, set.breaks, right = TRUE, dig.lab = dig.lab)
+
+    # Which breaks need commas?-----------------------------------------------------------------------
+    sig.dig <- round(set.breaks[which(nchar(round(set.breaks)) >= 4)])
+
+    # Drop brackets, add commas, create 'No catch' level to legend labels-----------------------------
+    make_level_labels <- function(vec) {
+      vec <- as.character(vec)
+      vec[grep("-1", vec)] <- "No catch"
+      vec <- sub("\\(", "\\>", vec)
+      vec <- sub("\\,", "–", vec)
+      vec <- sub("\\]", "", vec)
+      if(length(sig.dig) > 3) {
+        for(j in 1:length(sig.dig)) {
+          vec <- sub(sig.dig[j], format(sig.dig[j], nsmall=0, big.mark=","), vec)
+        }
+      }
+      return(vec)
+    }
+
+    # Assign level names to breaks for plotting-----------------------------------------------------
+    extrap.grid$var1.pred <- factor(make_level_labels(extrap.grid$var1.pred),
+                                    levels = make_level_labels(levels(set.levels)))
+    
+    if(ii == 1) {
+      
+      continuous.stack <- continuous.grid
+    } else {
+      continuous.stack <- c(continuous.stack, continuous.grid)
+    }
+    
+    if(extrapolation.grid.type %in% c("sf", "sf.simple")) {
+      
+      extrap.grid <- extrap.grid |>
+        sf::st_as_sf() |>
+        dplyr::select(-var1.var) |>
+        dplyr::group_by(var1.pred) |>
+        dplyr::summarise(n = n()) |>
+        sf::st_intersection(map_layers$survey.area)
+      
+      extrap.grid <- extrap.grid |>
+        dplyr::select(which(names(extrap.grid) %in% c("var1.pred", "n", "SURVEY", "geometry")))
+      
+      if(length(grouping.vars) > 1) {
+        
+        extrap.grid <- dplyr::bind_cols(extrap.grid, unique_groups[ii, ])
+        
+      } else{
+        
+        extrap.grid[grouping.vars] <- unique_groups[ii, ]
+        
+      }
+      
+      # Simplify geometry using ms_simplify function from the rmapshaper package
+      if(extrapolation.grid.type == "sf.simple") {
+        extrap.grid <- extrap.grid |>
+          rmapshaper::ms_simplify(keep_shapes = TRUE,
+                                  keep = 0.04)
+      }
+      
+      if(ii == 1) {
+        extrap.stack <- extrap.grid
+      } else {
+        extrap.stack <- dplyr::bind_rows(extrap.stack, extrap.grid)
+      }
+      
+    } else {
+      
+      extrap.grid <- extrap.grid["var1.pred"]
+      names(extrap.grid) <- paste(unique_groups[ii,], collapse = "_")
+      
+      if(ii == 1) {
+        extrap.stack <- extrap.grid
+      } else {
+        extrap.stack <- c(extrap.stack, extrap.grid)
+      }
+    }
+    
+  }
+  
+  return(list(map_layers = map_layers,
+              extrapolation.stack = extrap.stack,
+              continuous.stack = continuous.stack,
+              region = region,
+              crs = out.crs))
+}
+```
+
 ```{r fig-dist-[taxon]-[spp], eval = (spp_plot_idw | spp_plot_pa)}
 width <- full_page_portrait_width # 6.5  
 case_yr0 <- 1
@@ -233,11 +477,19 @@ if (report_title == "data") {
 } 
 yrs <- sort(yrs, decreasing = TRUE)
 
-table_raw <- cpue %>% 
+if (length(spp_code) > 1) {
+  table_raw <- cpue %>%
+  dplyr::filter(group %in% spp_print)
+} else {
+  table_raw <- cpue %>%
+  dplyr::filter(species_code %in% spp_code)
+}
+
+table_raw <- table_raw %>% 
   dplyr::mutate(cpue_kgkm2 = ifelse(is.na(cpue_kgkm2), 0, cpue_kgkm2)) %>%
   dplyr::filter(
     SRVY %in% SRVY1 &
-      species_code %in% spp_code & 
+      # species_code %in% spp_code & 
       year %in% yrs) %>% 
   dplyr::arrange(desc(year))
 
@@ -282,70 +534,110 @@ for (case_yr in case_yr0) {
   
   set.breaks <- set_breaks(dat = table_raw, var = "cpue_kgkm2")
   # if (spp_print == "jellyfish") {
-  #   set.breaks <- c(0, #0.01, 
+  #   set.breaks <- c(0, #0.01,
   #                   # 0.1,
   #                   0.5,
-  #                   # 1,#2,3,
-  #                   7, 
-  #                   set.breaks[length(set.breaks)]) # (length(set.breaks)-3):
+  #                   1, #2,3,
+  #                   7,
+  #                   set.breaks[(length(set.breaks)-1)], 
+  #                   set.breaks[length(set.breaks)]) # 
   # }
   
+# find which years need to be prepared with which region # crude, but here we are
+a <- table_raw %>% 
+    dplyr::select(year, survey_definition_id) %>% 
+    dplyr::distinct()  %>% 
+    dplyr::mutate(survey_definition_id = dplyr::case_when(
+      survey_definition_id == 98 ~ "EBS", 
+      survey_definition_id == 143 ~ "NBS"
+    )) %>% 
+    tidyr::pivot_wider(id_cols = year, names_from = survey_definition_id, values_from = survey_definition_id) %>% 
+    dplyr::mutate(case = dplyr::case_when(
+      !is.na(EBS) & !is.na(NBS) ~ "both", 
+      !is.na(EBS) ~ "EBS", 
+      !is.na(NBS) ~ "NBS"
+    ))
   
-  a <- table_raw %>% 
-    dplyr::select(year, SRVY) %>% 
-    dplyr::distinct() %>% 
-    dplyr::select(year) %>%
-    table()
+  raster_test <- stars00 <- make_idw_stack(
+    x = table_raw %>% 
+      dplyr::rename(COMMON_NAME = common_name,
+                    LATITUDE = latitude_dd_start,
+                    LONGITUDE = longitude_dd_start,
+                    CPUE_KGHA = cpue_kgkm2) %>% 
+      dplyr::filter(year %in% a$year[1]),
+    region = map.area0, 
+    grouping.vars = "year", 
+    set.breaks = set.breaks)$extrapolation.stack %>% 
+    data.frame() %>% 
+    dplyr::select(x, y)
   
-  if (sum(a==2)>0) {
-    raster_nebs <- stars0 <- make_idw_stack(
-      x = table_raw %>% 
-        dplyr::rename(COMMON_NAME = common_name,
-                      LATITUDE = latitude_dd_start,
-                      LONGITUDE = longitude_dd_start,
-                      CPUE_KGHA = cpue_kgkm2) %>% 
-        dplyr::filter(year %in% as.numeric(names(a[a == 2]))),
-      region = "bs.all", 
-      grouping.vars = "year", 
-      set.breaks = set.breaks)
-  }
+  print("NEBS")
+if ("both" %in% a$case) { # spans across EBS and NBS
+  raster <- make_idw_stack(
+    x = table_raw %>% 
+      dplyr::rename(COMMON_NAME = common_name,
+                    LATITUDE = latitude_dd_start,
+                    LONGITUDE = longitude_dd_start,
+                    CPUE_KGHA = cpue_kgkm2) %>% 
+      dplyr::filter(year %in% a$year[a$case == "both"]),
+    region = "bs.all", 
+    grouping.vars = "year", 
+    set.breaks = set.breaks)
   
-  if (sum(a==1)>0) {
-    raster_ebs <- stars0 <- make_idw_stack(
-      x = table_raw %>% 
-        dplyr::rename(COMMON_NAME = common_name,
-                      LATITUDE = latitude_dd_start,
-                      LONGITUDE = longitude_dd_start,
-                      CPUE_KGHA = cpue_kgkm2) %>% 
-        dplyr::filter(year %in% as.numeric(names(a[a == 1]))),
-      region = "bs.south", 
-      grouping.vars = "year", 
-      set.breaks = set.breaks)
-  }
+  stars00 <- dplyr::bind_cols(
+    stars00,
+    raster$extrapolation.stack %>% 
+      stars::st_extract(at = as.matrix(raster_test)) %>% 
+      data.frame()  )
+}
+
+  print("EBS")
+if ("EBS" %in% a$case) { # only in EBS 
+  raster <- make_idw_stack(
+    x = table_raw %>% 
+      dplyr::rename(COMMON_NAME = common_name,
+                    LATITUDE = latitude_dd_start,
+                    LONGITUDE = longitude_dd_start,
+                    CPUE_KGHA = cpue_kgkm2) %>% 
+      dplyr::filter(year %in% a$year[a$case == "EBS"]),
+    region = "bs.south", 
+    grouping.vars = "year", 
+    set.breaks = set.breaks)
   
-  if (sum(c(1, 2) %in% a) == 2) {
-    temp <- data.frame(raster_nebs$extrapolation.stack)
-    for (i in names(a[a %in% 1])) {
-      temp$temp <- factor(NA)
-      names(temp)[ncol(temp)] <- paste0("X", i)
-    }
-    
-    stars0 <- dplyr::bind_rows(
-      temp, 
-      data.frame(raster_ebs$extrapolation.stack)) %>% 
-      tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")), 
-                          names_to = "year", values_to = "bin") %>% 
-      dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>% 
-      stars::st_as_stars(df, dims = c("x", "y", "year"))
-  } else {
-    stars0 <- stars0$extrapolation.stack %>% 
-      data.frame() %>% 
-      tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")), 
-                          names_to = "year", values_to = "bin") %>% 
-      dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>% 
-      stars::st_as_stars(df, dims = c("x", "y", "year"))
-  }
+  stars00 <- dplyr::bind_cols(
+    stars00,
+    raster$extrapolation.stack %>% 
+      stars::st_extract(at = as.matrix(raster_test)) %>% 
+      data.frame() )
+}
+
+  print("NBS")
+if ("NBS" %in% a$case) { # only in NBS 
+  raster <- make_idw_stack(
+    x = table_raw %>% 
+      dplyr::rename(COMMON_NAME = common_name,
+                    LATITUDE = latitude_dd_start,
+                    LONGITUDE = longitude_dd_start,
+                    CPUE_KGHA = cpue_kgkm2) %>% 
+      dplyr::filter(year %in% a$year[a$case == "NBS"]),
+    region = "bs.north", 
+    grouping.vars = "year", 
+    set.breaks = set.breaks)
   
+  stars00 <- dplyr::bind_cols(
+    stars00,
+    raster$extrapolation.stack %>% 
+      stars::st_extract(at = as.matrix(raster_test)) %>% 
+      data.frame() )
+}
+
+stars0 <- stars00 %>%
+  tidyr::pivot_longer(cols = c(dplyr::starts_with("X2")),
+                      names_to = "year", values_to = "bin") %>%
+  dplyr::mutate(year = as.numeric(gsub(pattern = "X", replacement = "", x = year))) %>%
+  dplyr::filter(!is.na(x)) %>% 
+  stars::st_as_stars(df, dims = c("x", "y", "year"))
+
   viridis_palette_option <- "mako"
   key.title <- paste0(stringr::str_to_sentence(spp_print),
                       ifelse(report_title == "ptpres", " ", '\n'), 
@@ -473,7 +765,7 @@ for (case_yr in case_yr0) {
 width <- full_page_portrait_width # 6.5  
 nickname <- paste0("fig-sizecomp-", spp_file)
 header <- ""
-  legend_font_size <- 12
+legend_font_size <- 12
 if (report_title == "data") {
   yrs <- unique(c(maxyr, nbsyr)) # c(compareyr, maxyr)
   height <- full_page_portrait_height-1 # ifelse(SRVY == "NEBS", full_page_portrait_height-1, 3.25) 
@@ -513,9 +805,16 @@ lengths0 <- lengths %>%
 
 type <- unique(lengths0$sentancefrag)
 
-table_raw <- sizecomp %>%
-  dplyr::filter(species_code %in% spp_code &
-                  SRVY %in% srvy &
+if (length(spp_code) > 1) {
+  table_raw <- sizecomp %>%
+  dplyr::filter(group %in% spp_print)
+} else {
+  table_raw <- sizecomp %>%
+  dplyr::filter(species_code %in% spp_code)
+}
+
+table_raw <- table_raw  %>%
+  dplyr::filter(SRVY %in% srvy &
                   year %in% yrs) %>% 
   dplyr::mutate(sex = str_to_sentence(sex), 
                 sex = factor(sex, 
@@ -948,10 +1247,17 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-est-[taxon]-[spp]-[wt or num], eval = ((report_title == "data") & spp_table_cpue)}
 nickname0 <- paste0("tab-est-", spp_file, "-") 
 
-temp <- biomass %>% 
+if (length(spp_code) > 1) {
+  table_raw <- biomass %>%
+  dplyr::filter(group %in% spp_print)
+} else {
+  table_raw <- biomass %>%
+  dplyr::filter(species_code %in% spp_code)
+}
+
+temp <- table_raw %>% 
   dplyr::filter(year == maxyr &
-                  stratum %in% strat0 &
-                  species_code %in% spp_code) %>% 
+                  stratum %in% strat0) %>% 
   dplyr::select(SRVY, stratum, cpue_kgkm2_mean, cpue_kgkm2_sd, 
                 biomass_mt, biomass_sd, biomass_dw, biomass_up, 
                 cpue_nokm2_mean, cpue_nokm2_sd, 
@@ -986,9 +1292,9 @@ if (sum(is.na(temp$cpue_kgkm2_mean[temp$SRVY == "EBS"])) ==
 #                         length(temp$n_length[temp$stratum == "Total"]))
 include_n_length <- FALSE
 
-if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
+if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
   
-  if (sum(temp$biomass_mt [temp$stratum == "Total"] %in% 0)>0) {
+  if (sum(temp$biomass_mt [temp$stratum == "Total"] %in% 0, na.rm = TRUE)>0) {
     
     temp <- temp %>% 
       dplyr::filter(SRVY == temp$SRVY[temp$stratum == "Total" & 
@@ -1152,7 +1458,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
                                    " shelf trawl survey. "), 
                             ""))#,
                      # ifelse(!include_n_length, "No lengths were collected for this taxon. ", ""))
-    
+
     table_print <- table_print %>% 
       # flextable::merge_v(j = "SRVY_long", part = "body") %>% 
       flextable::bold(i = ~ (stratum == "Total") ) %>%
@@ -1162,7 +1468,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
         stratum = "Stratum")  %>%
       theme_flextable_nmfstm(row_lines = FALSE, 
                              pgwidth = full_page_portrait_width)  %>%
-      flextable::width(width = ((full_page_portrait_width-.5)/(nrow(table_print)-1)), unit = "in") %>%
+      flextable::width(width = ((full_page_portrait_width-.5)/(nrow(table_raw)-1)), unit = "in") %>%
       flextable::width(width = .5, unit = "in", j = c("stratum")) %>%
       # flextable::width(width = .25, unit = "in", j = c("SRVY")) %>%
       flextable::align(align = "right", part = "all") %>%
@@ -1193,9 +1499,17 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0) > 0) {
 ## fig-[spp]-[bio/pop]-pres prep
 
 ```{r fig-[spp]-[bio/pop]-pres)}
-table_raw0 <- biomass %>%
-  dplyr::filter(stratum == 999 & 
-                  species_code %in% spp_code) %>% 
+
+if (length(spp_code) > 1) {
+  table_raw <- biomass %>%
+  dplyr::filter(group %in% spp_print)
+} else {
+  table_raw <- biomass %>%
+  dplyr::filter(species_code %in% spp_code)
+}
+
+table_raw0 <- table_raw %>%
+  dplyr::filter(stratum == 999) %>% 
   dplyr::left_join(x = . , 
                    y = haul_cruises %>% 
                      dplyr::select(SRVY, SRVY_long) %>% 
@@ -1363,7 +1677,7 @@ figure <- figure_bio <- temp00(table_raw0 = table_raw,
                                unt = unt, 
                                y_long = y_long, 
                                mean_in_legend = TRUE, 
-                               error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                               error_bar = TRUE, #ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
                                description = description, 
                                legend_font_size = legend_font_size)
 
@@ -1444,7 +1758,7 @@ figure <- temp00(table_raw0 = table_raw,
                  unt = unt, 
                  y_long = y_long, 
                  mean_in_legend = TRUE, 
-                 error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                 error_bar = TRUE, # ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
                  description = description, 
                  legend_font_size = legend_font_size)
 
@@ -1495,7 +1809,7 @@ legend0 <- temp00(table_raw0 = table_raw,
                   unt = unt, 
                   y_long = y_long, 
                   mean_in_legend = TRUE, 
-                  error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                  error_bar = TRUE, # ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
                   description = description, 
                   legend_font_size = legend_font_size) %>% 
   get_legend()
@@ -1510,7 +1824,7 @@ if ("EBS" %in% unique(table_raw$SRVY)) {
                        unt = unt, 
                        y_long = y_long, 
                        mean_in_legend = TRUE, 
-                       error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                       error_bar = TRUE, # ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
                        description = description, 
                        legend_font_size = legend_font_size) + 
     ggplot2::theme(legend.position = "none") + 
@@ -1527,7 +1841,7 @@ if ("NBS" %in% unique(table_raw$SRVY)) {
                                      unt = unt, 
                                      y_long = y_long, 
                                      mean_in_legend = TRUE, 
-                                     error_bar = ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
+                                     error_bar = TRUE, # ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
                                      description = description, 
                                      legend_font_size = legend_font_size) + 
     ggplot2::theme(legend.position = "none") + 

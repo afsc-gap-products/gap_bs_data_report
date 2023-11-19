@@ -70,8 +70,8 @@ PKG <- c(
   "readtext",
   
   # RACE-GAP Specific
-  "akgfmaps", # devtools::install_github("sean-rohan-noaa/akgfmaps", build_vignettes = TRUE)
-  "coldpool", # devtools::install_github("sean-rohan-noaa/coldpool")
+  "akgfmaps", # devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
+  "coldpool", # devtools::install_github("afsc-gap-products/coldpool")
   
   # Spatial mapping
   "sf",
@@ -1089,9 +1089,29 @@ add_report_spp <- function(spp_info,
 # https://github.com/trevorld/gridpattern
 
 
-set_breaks <- function(dat, var) {
+#' Set scale breaks for a variable
+#' 
+#' @description
+#' This function will automatically choose neatly binned scale bins for a given vector of variables. 
+#'
+#' @param dat The data.frame from which `var` is a column that needs to be binned. 
+#' @param var A column in the data.frame `dat` that needs to be binned for a scale bar. 
+#' @param n The number of bins to return (other than including 0). 
+#'
+#' @return A vector. 
+#' @export
+#'
+#' @examples
+#' set_breaks(dat = akgfmaps::YFS2017, var = "CPUE_KGHA")
+#' # compare with unrounded default: 
+#' dat = akgfmaps::YFS2017; var = "CPUE_KGHA"
+#' a <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
+#'                          n = 5, style = "jenks")$brks
+#' a
+#' round(a)
+set_breaks <- function(dat, var, n = 5) {
   set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
-                                          n = 5, style = "jenks")$brks
+                                          n = n, style = "jenks")$brks
   set.breaks <- c()
   
   for (i in 1:length(set.breaks0)) {
@@ -1114,8 +1134,6 @@ set_breaks <- function(dat, var) {
   
   return(set.breaks)
 }
-
-
 
 #' Plot IDW maps in x by x facet_wraps
 #'

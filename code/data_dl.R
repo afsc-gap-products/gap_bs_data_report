@@ -82,7 +82,7 @@ for (i in 1:length(locations)){
 }
 error_loading
 
-# pull data from RACE_DATA
+# pull data from RACE_DATA -----------------------------------------------------
 
 locations <- c(
   "crab.gap_ebs_nbs_abundance_biomass", # Biomass
@@ -113,3 +113,95 @@ FROM ",locations[i],"; "))
                                            fixed = TRUE)),
                               ".csv")))
 }
+
+# Prepare data for complexes ---------------------------------------------------
+
+library(googledrive)
+googledrive::drive_deauth()
+googledrive::drive_auth()
+2
+
+# Species Covered
+# https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
+googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
+                            type = "csv",
+                            overwrite = TRUE,
+                            path = paste0(dir_out_rawdata, "/species-local-names"))
+
+# identify which species complexes you need
+report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
+                              skip = 1, 
+                              show_col_types = FALSE) %>%  
+  dplyr::filter(grepl(x = species_code0, pattern = "c(", fixed = TRUE)) 
+
+temp1 <- data.frame()
+for (i in 1:nrow(report_spp)){
+  temp2 <- eval(expr = parse(text = report_spp$species_code[i]))
+  temp1 <- dplyr::bind_rows(temp1, 
+                            dplyr::bind_cols(GROUP = report_spp$print_name[i], 
+                                             SPECIES_CODE = eval(expr = parse(text = report_spp$species_code[i]))))
+}
+
+# follow instructions from https://afsc-gap-products.github.io/gapindex/articles/ex_species_complex.html
+## Pull data. Note the format of the `spp_codes` argument with the GROUP column
+library(gapindex)
+production_data <- get_data(
+  year_set = c(1982:maxyr),
+  survey_set = c("EBS", "NBS"),
+  spp_codes = temp1,
+  pull_lengths = TRUE, 
+  haul_type = 3, 
+  abundance_haul = "Y",
+  sql_channel = channel)
+
+## Zero-fill and calculate CPUE
+production_cpue <- calc_cpue(racebase_tables = production_data)
+
+## Calculate Biomass, abundance, mean CPUE, and associated variances by stratum
+production_biomass_stratum <- 
+  gapindex::calc_biomass_stratum(racebase_tables = production_data,
+                                 cpue = production_cpue)
+
+## Aggregate Biomass to subareas and region
+production_biomass_subarea <- 
+  calc_biomass_subarea(racebase_tables = production_data, 
+                       biomass_strata = production_biomass_stratum)
+
+## Calculate size composition by stratum. Note fill_NA_method == "BS" because
+## our region is EBS, NBS, or BSS. If the survey region of interest is AI or 
+## GOA, use "AIGOA". See ?gapindex::gapindex::calc_sizecomp_stratum for more
+## details. 
+production_sizecomp_stratum <- 
+  gapindex::calc_sizecomp_stratum(
+    racebase_tables = production_data,
+    racebase_cpue = production_cpue,
+    racebase_stratum_popn = production_biomass_stratum,
+    spatial_level = "stratum",
+    fill_NA_method = "BS")
+
+## Aggregate size composition to subareas/region
+production_sizecomp_subarea <- gapindex::calc_sizecomp_subarea(
+  racebase_tables = production_data,
+  size_comps = production_sizecomp_stratum)
+
+
+## rbind stratum and subarea/region biomass estimates into one dataframe
+names(x = production_biomass_stratum)[
+  names(x = production_biomass_stratum) == "STRATUM"
+] <- "AREA_ID"
+production_biomass <- rbind(production_biomass_stratum, 
+                            production_biomass_subarea)
+
+## rbind stratum and subarea/region biomass estimates into one dataframe
+names(x = production_sizecomp_stratum)[
+  names(x = production_sizecomp_stratum) == "STRATUM"] <- "AREA_ID"
+production_sizecomp <- 
+  rbind(production_sizecomp_subarea,
+        production_sizecomp_stratum[, names(production_sizecomp_subarea)])
+
+write.csv(x = production_cpue, file = here::here("data/complex_cpue.csv"), row.names = FALSE)
+write.csv(x = production_biomass, file = here::here("data/complex_biomass.csv"), row.names = FALSE)
+write.csv(x = production_sizecomp, file = here::here("data/complex_sizecomp.csv"), row.names = FALSE)
+
+
+
