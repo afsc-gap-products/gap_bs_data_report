@@ -572,7 +572,7 @@ print("stratum")
 stratum <- gap_products_akfin_area0 %>% 
   dplyr::filter(
     survey_definition_id %in% SRVY00 &
-      type == "STRATUM" &
+      area_type == "STRATUM" &
       design_year == strat_yr) %>%  
   dplyr::mutate(
     SRVY = dplyr::case_when(
@@ -825,7 +825,7 @@ lengths_maxyr <- lengths %>%
 print("specimen")
 
 specimen <- gap_products_akfin_specimen0 %>% 
-  dplyr::select(hauljoin, species_code, length_mm, sex, age_years, 
+  dplyr::select(hauljoin, species_code, length_mm, sex, age, 
                 specimen_subsample_method, specimen_sample_type) %>% 
   dplyr::left_join(
     y = haul %>% 
