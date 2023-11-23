@@ -1084,57 +1084,6 @@ add_report_spp <- function(spp_info,
 
 # Plotting ---------------------------------------------------------------------
 
-
-# https://coolbutuseless.github.io/package/ggpattern/
-# https://github.com/trevorld/gridpattern
-
-
-#' Set scale breaks for a variable
-#' 
-#' @description
-#' This function will automatically choose neatly binned scale bins for a given vector of variables. 
-#'
-#' @param dat The data.frame from which `var` is a column that needs to be binned. 
-#' @param var A column in the data.frame `dat` that needs to be binned for a scale bar. 
-#' @param n The number of bins to return (other than including 0). 
-#'
-#' @return A vector. 
-#' @export
-#'
-#' @examples
-#' set_breaks(dat = akgfmaps::YFS2017, var = "CPUE_KGHA")
-#' # compare with unrounded default: 
-#' dat = akgfmaps::YFS2017; var = "CPUE_KGHA"
-#' a <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
-#'                          n = 5, style = "jenks")$brks
-#' a
-#' round(a)
-set_breaks <- function(dat, var, n = 5) {
-  set.breaks0 <- classInt::classIntervals(var = as.numeric(unlist(dat[,var]))[as.numeric(unlist(dat[,var])) != 0], 
-                                          n = n, style = "jenks")$brks
-  set.breaks <- c()
-  
-  for (i in 1:length(set.breaks0)) {
-    
-    if (i == length(set.breaks0)) {
-      set.breaks<-c(set.breaks, ceiling(x = set.breaks0[i])) #Inf)# #round(set.breaks0[i], digits = 0))
-    } else if (i == 1) {
-      set.breaks<-c(set.breaks, 0)
-    } else {    
-      set.breaks <- c(set.breaks, 
-                      plyr::round_any(x = set.breaks0[i], 
-                                      accuracy = ifelse(max(set.breaks0[i])>300, 100, 
-                                                        ifelse(max(set.breaks0[i])>100, 50, 
-                                                               ifelse(max(set.breaks0[i])>20, 10, 
-                                                                      1))), 
-                                      f = ceiling))    
-    }
-  }
-  set.breaks <- unique(set.breaks)
-  
-  return(set.breaks)
-}
-
 #' Plot IDW maps in x by x facet_wraps
 #'
 #' @param yrs The years, as a vector, that subplots should be created for
@@ -1694,9 +1643,8 @@ plot_temperature_map <- function(raster_nebs,
                                                   font.family = "sans",
                                                   neat.labels = FALSE) + 
     ggplot2::annotate("text", 
-                      y = mean(colorbar_breaks[c(2:(length(colorbar_breaks)-1))]),
+                      y = mean(colorbar_breaks[c(2:(length(colorbar_breaks)-1))]), # y = 3.5,
              x = 1.15,
-             # y = 3.5,
              label =  key.title,
              size = rel(3.2))
   
