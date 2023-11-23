@@ -201,7 +201,7 @@ if (map.area0 == "bs.all") {
 }
 
 # Create shapefile of species IDW ----------------------------------------------
-raster <- make_idw_stack(
+idw <- make_idw_stack(
   x = table_raw,
   region = "ebs", #map.area0, 
   grouping.vars = "YEAR", 
@@ -245,16 +245,27 @@ for (case_yr in case_yr0) {
     ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
     coord_sf() + 
     ggplot2::scale_fill_manual(
-      name = key.title, 
-      values =  c("gray90",
-                  viridis::viridis(
-                    option = viridis_palette_option,
-                    direction = -1,
-                    n = length(set.breaks)-1,
-                    begin = 0.20,
-                    end = 0.80)),
-      na.translate = FALSE, # Don't use NA
-      drop = FALSE)  +
+    name = key.title,
+    values =  c(
+                viridis::viridis(
+                  option = viridis_palette_option,
+                  direction = -1,
+                  n = length(set.breaks)-1,
+                  begin = 0.20,
+                  end = 0.80), 
+                "gray90"),
+    na.translate = FALSE, # Don't use NA
+    drop = FALSE)  +
+      # scale_fill_viridis_d(name = key.title, 
+      # values =  c("gray90",
+      #             viridis::viridis(
+      #               option = viridis_palette_option,
+      #               direction = -1,
+      #               n = length(set.breaks)-1,
+      #               begin = 0.20,
+      #               end = 0.80)),
+      # na.translate = FALSE, # Don't use NA
+      # drop = FALSE) +
     ggplot2::geom_sf(
       data = reg_dat$survey.area, 
       mapping = aes(color = SURVEY, 
