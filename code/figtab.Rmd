@@ -2429,4 +2429,115 @@ if (SRVY == "NEBS") {
 }
 ```
 
+# data changes
 
+## tab-taxon-changes
+
+```{r tab-taxon-changes}
+nickname <- "tab-taxon-changes"
+header <- paste0(maxyr, " changes to taxon species names and species codes (if changed), along with specific action taken and reason for update. ")
+
+table_raw <- gap_products_taxonomic_changes0 %>%
+  dplyr::filter(year_changed == maxyr) %>% 
+  dplyr::arrange(new_species_name) %>% 
+  dplyr::mutate(dplyr::across(dplyr::everything(), as.character))
+
+# separate text to italize and not ---------------------------------------------
+table_raw$new_species_name_noi <- table_raw$old_species_name_noi <- ""
+table_raw$new_species_name_i <- table_raw$new_species_name
+table_raw$old_species_name_i <- table_raw$old_species_name
+table_raw$new_species_name <- paste0(table_raw$new_species_name, " ")
+table_raw$old_species_name <- paste0(table_raw$old_species_name, " ")
+cases <- c(" larvae", " n.", " sp.", " spp.", " egg case", " (", " egg") # , " n."
+which0_old <- which0_new <- c()
+for (ii in cases) {
+  # new names
+  which0 <- which(sapply(strsplit(x = table_raw$new_species_name, split = ii, fixed = TRUE), length) == 2)
+  which0 <- which0[!(which0 %in% which0_new)]
+  table_raw$new_species_name_i[which0] <- 
+    paste0(sapply(strsplit(x = table_raw$new_species_name[which0], split = ii, fixed = TRUE), "[[", 1))
+  table_raw$new_species_name_noi[which0] <- 
+    paste0(ii, sapply(strsplit(x = table_raw$new_species_name[which0], split = ii, fixed = TRUE), "[[", 2))
+  which0_new <- c(which0_new, which0)
+  
+  # old names
+  which0 <- which(sapply(strsplit(x = table_raw$old_species_name, split = ii, fixed = TRUE), length) == 2)
+  which0 <- which0[!(which0 %in% which0_old)]
+  table_raw$old_species_name_i[which0] <- 
+    paste0(sapply(strsplit(x = table_raw$old_species_name[which0], split = ii, fixed = TRUE), "[[", 1))
+  table_raw$old_species_name_noi[which0] <- 
+    paste0(ii, sapply(strsplit(x = table_raw$old_species_name[which0], split = ii, fixed = TRUE), "[[", 2))
+  which0_old <- c(which0_old, which0)
+}
+table_raw$new_species_name_noi <- trimws(paste0(trimws(table_raw$new_species_name_noi), 
+    ifelse(is.na(table_raw$new_species_code), "", paste0(" (", table_raw$new_species_code, ")")) ))
+table_raw$old_species_name_noi <- trimws(paste0(trimws(table_raw$old_species_name_noi), 
+    ifelse(is.na(table_raw$old_species_code), "", paste0(" (", table_raw$old_species_code, ")")) ))
+
+# Prepare final table ----------------------------------------------------------
+table_print <- table_raw %>% 
+  flextable::flextable(col_keys = c("dummy_old", "dummy_new", "action", "reason")) %>%
+  flextable::compose(
+    j = "dummy_new", 
+    value = flextable::as_paragraph(
+      flextable::as_i(new_species_name_i), " ", new_species_name_noi)) %>% 
+  flextable::compose(
+    j = "dummy_old", 
+    value = flextable::as_paragraph(
+      flextable::as_i(old_species_name_i), " ", old_species_name_noi)) %>% 
+    flextable::set_header_labels(dummy_new = "New",
+                               dummy_old = "Previous",
+                               action = "Action",
+                               reason = "Reason") %>% 
+    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
+  flextable::width(width = c(2, 2, 1.5, 1) )
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+## tab-species-year
+
+May only be relevant in the 2023 year
+
+```{r tab-species-year}
+nickname <- "tab-species-year"
+header <- paste0(maxyr, " changes to taxon species names and species codes (if changed), along with specific action taken and reason for update. ")
+
+table_raw <- gap_products_species_year0 %>%
+  dplyr::left_join(spp_info %>% 
+                     dplyr::select(common_name, species_name, species_code)) %>% 
+  dplyr::arrange(species_code) %>% 
+  dplyr::mutate(dplyr::across(dplyr::everything(), as.character)) %>% 
+  dplyr::select(common_name, species_name, year_started)
+
+# separate text to italize and not ---------------------------------------------
+table_raw$species_name_noi <- ""
+table_raw$species_name_i <- table_raw$species_name
+table_raw$species_name <- paste0(table_raw$species_name, " ")
+cases <- c(" larvae", " n.", " sp.", " spp.", " egg case", " (", " egg") # , " n."
+which00 <- c()
+for (ii in cases) {
+  which0 <- which(sapply(strsplit(x = table_raw$species_name, split = ii, fixed = TRUE), length) == 2)
+  which0 <- which0[!(which0 %in% which00)]
+  table_raw$species_name_i[which0] <- 
+    paste0(sapply(strsplit(x = table_raw$species_name[which0], split = ii, fixed = TRUE), "[[", 1))
+  table_raw$species_name_noi[which0] <- 
+    paste0(ii, sapply(strsplit(x = table_raw$species_name[which0], split = ii, fixed = TRUE), "[[", 2))
+  which00 <- c(which00, which0)
+}
+
+# Prepare final table ----------------------------------------------------------
+table_print <- table_raw %>% 
+  flextable::flextable(col_keys = c("dummy", "common_name", "year_started")) %>%
+  flextable::compose(
+    j = "dummy", 
+    value = flextable::as_paragraph(
+      flextable::as_i(species_name_i), " ", species_name_noi)) %>% 
+  flextable::set_header_labels(dummy = "Species Name",
+                               common_name = "Common Name",
+                               year_started = "First Year") %>% 
+    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
+  flextable::width(width = c(3, 3, .5) )
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
