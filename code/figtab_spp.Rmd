@@ -710,7 +710,7 @@ if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
 
 ### print table ----------------------------------------------------------------
 
-header <- paste0("Summary of catch location environmental variables, as well as biomass and population estimates, for ", 
+header <- paste0("Summary of catch location environmental variables, as well as biomass and population estimates for ", 
                  spp_print, " (", spp_sci, ") in the ", 
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
                  " survey area", 
@@ -733,8 +733,10 @@ table_print <- table_print0 %>%
   flextable::theme_zebra() %>% 
   flextable::vline(border = fp_border(color="grey70")) %>% 
   flextable::set_header_labels("var" = "")   %>%
-  theme_flextable_nmfstm(row_lines = FALSE,
-                         pgwidth = full_page_portrait_width) %>%
+  # theme_flextable_nmfstm(row_lines = FALSE,
+  #                        pgwidth = full_page_portrait_width) %>%
+  flextable::width(width = 2.25) %>%
+  flextable::width(j = 1, width = 2) %>%
   flextable::bg(
     i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "increase")), 
     bg = positive, 
@@ -990,8 +992,11 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
       flextable::set_header_labels(stratum = "Stratum")  %>%
       theme_flextable_nmfstm(row_lines = FALSE, 
                              pgwidth = full_page_portrait_width)  %>%
-      flextable::width(width = ((full_page_portrait_width-.3)/(ncol(table_print0)-1)), unit = "in") %>%
-      flextable::width(width = .3, unit = "in", j = c("stratum")) %>%
+      flextable::width(width = (full_page_portrait_width/ncol(table_print0)), unit = "in") %>%
+      flextable::width(j = 1, width = .5, unit = "in") %>%
+      flextable::width(j = 2, width = .9, unit = "in") %>%
+      # flextable::width(width = ((full_page_portrait_width-.4)/(ncol(table_print0)-1)), unit = "in") %>%
+      # flextable::width(width = .4, unit = "in", j = c("stratum")) %>%
       flextable::align(align = "right", part = "all") %>%
       flextable::align(align = "center", part = "body", j = "stratum") %>% 
       flextable::merge_v(j = 1:2, part = "header")
