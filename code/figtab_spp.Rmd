@@ -111,13 +111,24 @@ table_raw <- table_raw %>%
                 CPUE_KGHA = cpue_kgkm2, 
                 YEAR = year) %>% 
   dplyr::mutate(COMMON_NAME = spp_print) %>% 
+  dplyr::ungroup() %>% 
   data.frame()
+
+# is one of the areas zero-filled that for this subset, doesn't need to be?
+# needs to be clean here so the downstream code picks the right map.area extent
+temp <- table_raw %>% 
+  dplyr::group_by(SRVY) %>% 
+  dplyr::summarise(maxcpue = max(CPUE_KGHA, na.rm = TRUE))
+if (0 %in% temp$maxcpue) {
+  table_raw <- table_raw %>% 
+    dplyr::filter(!(SRVY %in% temp$SRVY[temp$maxcpue == 0]))
+}
 
 # Find set.breaks --------------------------------------------------------------
 if (!(NA %in% spp_bin)) {
-  set.breaks <- c(0, spp_bin, max(table_raw$cpue_kgkm2))
+  set.breaks <- c(0, spp_bin, max(table_raw$CPUE_KGHA))
 } else {
-  set.breaks <- akgfmaps::eval_plot_breaks(CPUE = table_raw$cpue_kgkm2, n.breaks = 5)
+  set.breaks <- akgfmaps::eval_plot_breaks(CPUE = table_raw$CPUE_KGHA, n.breaks = 5)
   set.breaks <- as.vector(unlist(set.breaks[set.breaks$style == "pretty", -1]))
 }
 
@@ -716,75 +727,6 @@ header <- paste0("Summary of catch location environmental variables, as well as 
                  " survey area", 
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, "s", plural_surveys),". ")
 
-# table_print <- 
-#   flextable::flextable(data = table_raw) %>% 
-#   flextable::bold(j = 1, part = "body") %>% 
-#   flextable::theme_zebra() %>% 
-#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "increase"), 
-#                 bg = positive, 
-#                 j = "Biomass\n% Change") %>% 
-#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "decrease"), 
-#                 bg = negative, 
-#                 j = "Biomass\n% Change")  %>%
-#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "no change"), 
-#                 bg = neutral, 
-#                 j = "Biomass\n% Change")  %>% 
-#   flextable::set_header_labels("Bottom Temperature (°C)" = "Bottom", 
-#                                "Surface Temperature (°C)" = "Surface") %>%
-#   flextable::add_header_row(top = TRUE, 
-#                             values = c(names(table_raw)[1:3], "Temperature (°C)", names(table_raw)[6:9]), 
-#                             colwidths = c(1,1,1,2,1,1,1,1)) %>% 
-#   theme_flextable_nmfstm(row_lines = FALSE, 
-#                          pgwidth = full_page_portrait_width+1) %>% 
-#   flextable::align(i = 2, align = "center", part = "header") %>% 
-#   flextable::merge_v(part = "header") %>% 
-#   flextable::hline(i = 1, 
-#                    j = which(names(table_raw) %in% c("Bottom Temperature (°C)", "Surface Temperature (°C)")), 
-#                    part = "header") %>% 
-#   flextable::vline(border = fp_border(color="grey70")) %>% 
-#   flextable::width(width = c(.9, .9, .85, .85, .85, .65, .65, .65, 1.2)) %>% 
-#   flextable::align(i = 1, j = 4, align = "center", part = "header")
-
-# table_print_env <-
-#   flextable::flextable(data = table_raw[,1:5]) %>%
-#   flextable::bold(j = 1, part = "body") %>%
-#   flextable::theme_zebra() %>%
-#   flextable::set_header_labels("Bottom Temperature (°C)" = "Bottom",
-#                                "Surface Temperature (°C)" = "Surface") %>%
-#   flextable::add_header_row(top = TRUE,
-#                             values = c(names(table_raw)[1:3], "Temperature (°C)"),
-#                             colwidths = c(1,1,1,2)) %>%
-#   theme_flextable_nmfstm(row_lines = FALSE,
-#                          pgwidth = full_page_portrait_width) %>%
-#   flextable::align(i = 2, align = "center", part = "header") %>%
-#   flextable::merge_v(part = "header") %>%
-#   flextable::vline(border = fp_border(color="grey70")) %>%
-#   # flextable::width(width = c(.9, .9, .85, .85, .85, .65, .65, .65, 1.2)) %>%
-#   flextable::align(i = 1, j = 4, align = "center", part = "header")
-# 
-# table_print_bio <-
-#   flextable::flextable(data = table_raw[,c(1, 6:9)]) %>%
-#   flextable::bold(j = 1, part = "body") %>%
-#   flextable::theme_zebra() %>%
-#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "increase"),
-#                 bg = positive,
-#                 j = "Biomass\n% Change") %>%
-#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "decrease"),
-#                 bg = negative,
-#                 j = "Biomass\n% Change")  %>%
-#   flextable::bg(i = ~ grepl(x = `Biomass\n% Change`, pattern = "no change"),
-#                 bg = neutral,
-#                 j = "Biomass\n% Change")  %>%
-#   theme_flextable_nmfstm(row_lines = FALSE,
-#                          pgwidth = full_page_portrait_width) %>%
-#   # flextable::align(i = 2, align = "center", part = "header") %>%
-#   flextable::merge_v(part = "header") %>%
-#   flextable::hline(i = 1,
-#                    j = which(names(table_raw) %in% c("Bottom Temperature (°C)", "Surface Temperature (°C)")),
-#                    part = "header") %>%
-#   flextable::vline(border = fp_border(color="grey70")) %>%
-#   # flextable::width(width = c(.9, .9, .85, .85, .85, .65, .65, .65, 1.2)) %>%
-#   flextable::align(i = 1, j = 4, align = "center", part = "header")
 table_raw0 <- table_raw %>% 
   dplyr::select(-SRVY_long)
 table_print0 <- data.frame("var" = rownames(t(table_raw0))[-1], 
@@ -1462,3 +1404,6 @@ header <- paste0("Timeseries of ", spp_print,
 res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
+
+
+fig-biopop-timeseries-

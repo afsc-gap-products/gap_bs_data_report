@@ -125,8 +125,8 @@ if (access_to_internet ) {
                                 overwrite = TRUE, 
                                 path = paste0(dir_out_rawdata, "/", a$name[i]))
   }
-  
-  # Word documents
+
+  # Spreadsheets  
   a <- googledrive::drive_ls(path = id_googledrive, 
                              type = "spreadsheet")
   for (i in 1:nrow(a)){
@@ -135,7 +135,8 @@ if (access_to_internet ) {
                                 overwrite = TRUE, 
                                 path = paste0(dir_out_rawdata, "/", a$name[i]))
   }
-  a <- googledrive::drive_ls(path = id_googledrive, 
+   # Word documents
+ a <- googledrive::drive_ls(path = id_googledrive, 
                              type = "document")
   for (i in 1:nrow(a)){
     googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
@@ -152,7 +153,7 @@ for (i in 1:length(txtfiles)) {
   
   # get rid of comments
   a <- readLines(con = paste0(dir_out_rawdata, txtfiles[i]), warn = FALSE)
-  comment_id <-sapply(X = strsplit(x = a[which(lapply(a, FUN = substr, start = 1, stop = 1) == "[")], 
+  comment_id <- sapply(X = strsplit(x = a[which(lapply(a, FUN = substr, start = 1, stop = 1) == "[")], 
                                    split = "]", 
                                    fixed = TRUE),"[[",1)
   if (length(comment_id) > 0) {
@@ -163,17 +164,31 @@ for (i in 1:length(txtfiles)) {
       a <- gsub(pattern = comment_id[ii], replacement = "", x = a, fixed = TRUE)
     }
   }
-  write.table(x = a, 
-              file = paste0(dir_out_rawdata, txtfiles[i]), 
+  
+  # add extra returns because converting this is weird
+  b <- c()
+  for (ii in 1:length(a)) {
+    b <- c(b, a[ii], "")
+  }
+  
+  # write.table(x = b, 
+  #             file = paste0(dir_out_rawdata, txtfiles[i]), 
+  #             quote = FALSE, 
+  #             row.names = FALSE, 
+  #             col.names = FALSE, 
+  #             append = FALSE)
+  
+  write.table(x = b, 
+              file = paste0(dir_out_rawdata, gsub(txtfiles[i], pattern = ".txt", replacement = ".Rmd")), 
               quote = FALSE, 
               row.names = FALSE, 
               col.names = FALSE, 
-              append = FALSE, )
+              append = FALSE)
   
-  pandoc_convert(input = paste0(dir_out_rawdata, paste(txtfiles[i])),
-                 to = "markdown",
-                 output = paste0(dir_out_rawdata, gsub(txtfiles[i], pattern = ".txt", replacement = ".Rmd")),
-                 citeproc = TRUE) # not sure if this is needed
+  # pandoc_convert(input = paste0(dir_out_rawdata, paste(txtfiles[i])),
+  #                to = "markdown",
+  #                output = paste0(dir_out_rawdata, gsub(txtfiles[i], pattern = ".txt", replacement = ".Rmd")),
+  #                citeproc = TRUE) # not sure if this is needed
 }
 
 a <- list.files(path = dir_out_rawdata, pattern = ".Rmd", full.names = TRUE)
