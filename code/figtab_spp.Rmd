@@ -985,17 +985,13 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
     # ifelse(!include_n_length, "No lengths were collected for this taxon. ", ""))
     
     table_print <- table_print %>% 
-      # flextable::merge_v(j = "SRVY_long", part = "body") %>% 
       flextable::bold(i = ~ (stratum == "Total") ) %>%
       flextable::valign(valign = "top") %>% 
-      flextable::set_header_labels(
-        # SRVY = "",
-        stratum = "Stratum")  %>%
+      flextable::set_header_labels(stratum = "Stratum")  %>%
       theme_flextable_nmfstm(row_lines = FALSE, 
                              pgwidth = full_page_portrait_width)  %>%
-      flextable::width(width = ((full_page_portrait_width-.5)/(ncol(table_print0)-1)), unit = "in") %>%
-      flextable::width(width = .5, unit = "in", j = c("stratum")) %>%
-      # flextable::width(width = .25, unit = "in", j = c("SRVY")) %>%
+      flextable::width(width = ((full_page_portrait_width-.3)/(ncol(table_print0)-1)), unit = "in") %>%
+      flextable::width(width = .3, unit = "in", j = c("stratum")) %>%
       flextable::align(align = "right", part = "all") %>%
       flextable::align(align = "center", part = "body", j = "stratum") %>% 
       flextable::merge_v(j = 1:2, part = "header")
@@ -1323,8 +1319,7 @@ table_raw <- table_raw %>%
   dplyr::left_join(y = haul_cruises %>% 
                      dplyr::select(SRVY, SRVY_long) %>% 
                      dplyr::distinct(),
-                   by = "SRVY")  %>% 
-  dplyr::arrange(SRVY_long) %>%
+                   by = "SRVY") %>%
   dplyr::mutate(print_name = spp_print, 
                 SRVY_long = stringr::str_to_title(SRVY_long) ) %>% 
   dplyr::ungroup() %>% 
@@ -1354,7 +1349,6 @@ table_raw <- table_raw %>%
                      id_expand = TRUE) %>% 
   dplyr::ungroup() 
 
-
   # find missing years in timeseries and re-enter them so plot breaks for missing years
   yr_missing <- data.frame()
   for (i in 1:length(unique(table_raw$SRVY_long))){
@@ -1362,19 +1356,17 @@ table_raw <- table_raw %>%
     
     yr_missing <- tidyr::crossing(year = setdiff((min(temp$year):max(temp$year)),
                                       unique(temp$year)),
-                 SRVY_long = unique(table_raw$SRVY_long)[i]) %>% 
-    tidyr::crossing(data.frame(var = unique(temp$var), 
-                 ci_up_var = unique(temp$ci_up_var), 
-                 ci_dw_var = unique(temp$ci_dw_var)))
+                                  y_long = unique(table_raw$y_long), 
+                 SRVY_long = unique(table_raw$SRVY_long)[i]) 
   }
 
   a_bio <- find_units(unit = "metric tons", 
                   unt = "t", 
-                  dat = table_raw$val[table_raw$var == "biomass_mt"]) 
+                  dat = table_raw$val[table_raw$y_long == "Biomass"]) 
   
   a_pop <- find_units(unit = "individuals", 
                   unt = "", 
-                  dat = table_raw$val[table_raw$var == "population_count"]) 
+                  dat = table_raw$val[table_raw$y_long == "Population"]) 
 
   table_raw <- table_raw %>% 
     dplyr::bind_rows(yr_missing) %>% 
@@ -1387,9 +1379,9 @@ table_raw <- table_raw %>%
       SRVY_long == "Eastern Bering Sea" ~ pcol[1],
       SRVY_long == "Northern Bering Sea" ~ pcol[2]), 
       var_ = dplyr::case_when(
-        grepl(x = var, pattern = "biomass") ~ 
+        y_long == "Biomass" ~ 
           paste0("Biomass", ifelse(a_bio$unit_word == "", "", "\n"), a_bio$unit_word), 
-        grepl(x = var, pattern = "population") ~ 
+        y_long == "Population" ~ 
           paste0("Population", ifelse(a_pop$unit_word == "", "", "\n"), a_pop$unit_word)        
       ), 
       divby = dplyr::case_when(
@@ -1406,16 +1398,23 @@ table_raw <- table_raw %>%
       ),
       y = val/divby, 
       y_ci_dw = ci_dw/divby, 
-      y_ci_up = ci_up/divby
-      ) %>% 
+      y_ci_up = ci_up/divby  ) %>% 
     dplyr::arrange(desc(year))
+  
 
   # find mean for mean line
   table_raw_mean <- table_raw %>% 
-    dplyr::group_by(SRVY_long, var) %>% 
-    dplyr::summarise(y_mean = mean(y, na.rm = TRUE), 
-                     minyr = min(year, na.rm = TRUE), 
-                     maxyr = max(year, na.rm = TRUE))
+    dplyr::group_by(SRVY_long, y_long, var_) %>% 
+    dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) %>% 
+    dplyr::left_join(biomass %>% 
+  dplyr::group_by(survey_definition_id) %>% 
+    dplyr::summarise(minyr = min(year, na.rm = TRUE), 
+                     maxyr = max(year, na.rm = TRUE)) %>% 
+  dplyr::left_join(y = haul_cruises %>% 
+                     dplyr::select(survey_definition_id, SRVY_long) %>% 
+                     dplyr::distinct()) %>% 
+  dplyr::select(-survey_definition_id) %>% 
+    dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)))
   
   anno<-NA
   temp<-setdiff(x = unique(table_raw$SRVY), 
@@ -1430,10 +1429,10 @@ table_raw <- table_raw %>%
   }
   
   # add mean data to table_raw
-  table_raw <- 
+  table_raw <-
     dplyr::left_join(
-      x = table_raw, 
-      y = table_raw_mean) 
+      x = table_raw,
+      y = table_raw_mean)
   
   figure <-
     # general plotting aesthetics
