@@ -1297,7 +1297,7 @@ header <- paste0("Estimates of ", spp_print,
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## fig-[spp]-biomass-population-timeseries-nbspres
+## fig-biopop-timeseries-[spp]
 
 ```{r, fig-biopop-timeseries-[spp], eval = (report_title == "data")}
 nickname <- paste0("fig-biopop-timeseries-", spp_file)
@@ -1406,7 +1406,10 @@ table_raw <- table_raw %>%
   table_raw_mean <- table_raw %>% 
     dplyr::group_by(SRVY_long, y_long, var_) %>% 
     dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) %>% 
-    dplyr::left_join(biomass %>% 
+    dplyr::left_join(
+      biomass %>%
+  dplyr::filter(stratum == 999 &
+                  year >= 1987) %>% 
   dplyr::group_by(survey_definition_id) %>% 
     dplyr::summarise(minyr = min(year, na.rm = TRUE), 
                      maxyr = max(year, na.rm = TRUE)) %>% 
