@@ -39,7 +39,8 @@ report_title <- "data"
 # devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
 # devtools::install_github("afsc-gap-products/coldpool")
 source(here::here("code","functions.R"))
-# source('./code/data_dl.R') # devtools::install_github("afsc-gap-products/gapindex") # Run when there is new data!
+# devtools::install_github("afsc-gap-products/gapindex")
+# source('./code/data_dl.R')  # Run when there is new data!
 source(here::here("code","data.R"))
 
 ## Figures and Tables ----------------------------------------------------------
@@ -51,7 +52,7 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
 
 # Species figures
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
-comb <- "yellowfin sole"  # single species for debugging
+# comb <- "yellowfin sole"  # single species for debugging
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
