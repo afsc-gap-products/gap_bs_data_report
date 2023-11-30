@@ -29,7 +29,7 @@ dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQ
 
 googledrive::drive_deauth()
 googledrive::drive_auth()
-2
+2  # Set this to 1 when first running to allow access in subsequent sessions
 
 # Data Report ------------------------------------------------------------------
 
@@ -51,6 +51,7 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
 
 # Species figures
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
+comb <- "yellowfin sole"  # single species for debugging
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
