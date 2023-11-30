@@ -1022,293 +1022,9 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
 }
 ```
 
-## fig-[spp]-[bio/pop]-pres prep
-
-```{r fig-[spp]-[bio/pop]-pres)}
-
-if (length(spp_code) > 1) {
-  table_raw <- biomass %>%
-    dplyr::filter(group %in% spp_print)
-} else {
-  table_raw <- biomass %>%
-    dplyr::filter(species_code %in% spp_code)
-}
-
-table_raw0 <- table_raw %>%
-  dplyr::filter(stratum == 999) %>% 
-  dplyr::left_join(x = . , 
-                   y = haul_cruises %>% 
-                     dplyr::select(SRVY, SRVY_long) %>% 
-                     dplyr::distinct(),
-                   by = "SRVY")  %>% 
-  dplyr::arrange(SRVY_long) %>%
-  dplyr::mutate(print_name = spp_print, 
-                SRVY_long = stringr::str_to_title(SRVY_long) ) %>% 
-  dplyr::ungroup()
-
-temp00 <- function(table_raw0, 
-                   var, 
-                   maxyr, 
-                   compareyr, 
-                   unit, 
-                   unt, 
-                   y_long, 
-                   legend_combined = TRUE, 
-                   mean_in_legend = FALSE, 
-                   error_bar = TRUE, 
-                   description = TRUE, 
-                   legend_font_size = 9) {
-  
-  pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
-  
-  table_raw <- table_raw0 %>% 
-    dplyr::rename(y = paste0(var))  %>% 
-    dplyr::mutate(col = dplyr::case_when(
-      SRVY == "EBS" ~ pcol[1],
-      SRVY == "NBS" ~ pcol[2]))
-  
-  if (error_bar) {
-    table_raw <- table_raw %>% 
-      dplyr::rename(
-        y_ci_up = ci_up, 
-        y_ci_dw = ci_dw) 
-  }
-  
-  figure <- plot_timeseries(dat = table_raw,
-                            unit = unit,
-                            unt = unt,
-                            y_long = y_long,
-                            error_bar = error_bar,
-                            spp_print = table_raw$print_name[1],
-                            mean_in_legend = TRUE, 
-                            legend_font_size = legend_font_size)
-  
-  if (description) {
-    
-    table_raw00 <- table_raw %>%
-      dplyr::filter(year %in% c(maxyr,compareyr)) %>% 
-      dplyr::select(year, y, SRVY)
-    
-    a <- find_units(dat = table_raw0[names(table_raw0) == var], unt = unt, unit = unit)
-    
-    b <- table_raw00 %>% 
-      dplyr::mutate(year0 = dplyr::case_when(
-        year == maxyr ~ "maxyr",
-        year == compareyr ~ "compareyr"), 
-        y = y/a$divby) %>% 
-      tidyr::pivot_wider(id_cols = "SRVY", names_from = "year0", values_from = "y") %>% 
-      dplyr::mutate(pchange0 = pchange(start = compareyr, end = maxyr, value_only = TRUE), 
-                    dplyr::across(dplyr::ends_with("yr"), formatC, format = "f", big.mark = ",", digits = 2), 
-                    col = dplyr::case_when(
-                      pchange0 > 0 ~ positive, 
-                      pchange0 < 0 ~ negative, 
-                      TRUE ~ "black"), 
-                    pchange0 = formatC(x = pchange0, format = "f", big.mark = ",", digits = 2))
-    
-    mean_in_legend <- FALSE
-    str0 <- c()
-    col0 <- c()
-    for (i in 1:nrow(b)){
-      b0 <- b[i,]
-      
-      str00 <- c(paste0(b0$SRVY, " ", y_long), # ifelse(i == 1, paste0(" ", y_long), "")), 
-                 # compareyr total
-                 ifelse(b0$compareyr %in% c("NA", "Inf"), 
-                        "", 
-                        paste0(compareyr, ": ", b0$compareyr, " ", a$unit_wrd)), 
-                 # maxyr total
-                 ifelse(b0$maxyr %in% c("NA", "Inf"), 
-                        "", 
-                        paste0(maxyr, ": ", b0$maxyr, " ", a$unit_wrd)), 
-                 # maxyr and compareyr % change
-                 ifelse(b0$pchange0 %in% c(" NA", "NA", "Inf"), 
-                        "", 
-                        paste0("\n(", b0$pchange0, "%)\n")), 
-                 "")
-      
-      col00 <- c(
-        rep_len(x = "#00447C", 
-                length.out = (length(str00)-2)),
-        b0$col,  "#00447C")
-      str0 <- c(str0, str00)
-      col0 <- c(col0, col00)
-    }
-    
-    if (nrow(b) == 1) {
-      str00 <- c(str00, rep_len(x = "", length.out = length(str00)))
-    }
-    
-    descr <- ggdraw() + 
-      draw_text(text = str0, 
-                fontface = 
-                  rep_len(x = c('bold', 
-                                rep_len(x = "plain", 
-                                        length.out = 4)), 
-                          length.out = length(str0)), 
-                y = seq(from = 0.8, 
-                        to = ifelse(length(str0) == ifelse(mean_in_legend, 5, 6), 0.7, 0.1), 
-                        length.out = length(str0)),
-                color = col0)
-    
-    
-    figure <- cowplot::plot_grid(figure,
-                                 descr,
-                                 nrow = 1,
-                                 rel_widths = c(.7, .3),
-                                 rel_heights = c(0.5, 0.5))
-    
-  }
-  
-  return(figure)
-}
-```
-
-## fig-[spp]-biomass-timeseries
-
-```{r, fig-[spp]-biomass-timeseries, eval = (report_title != "nbspres")}
-if (report_title %in% c("community", "data")) {
-  nickname <- paste0("fig-biomass-", spp_file, 
-                     ifelse((report_title %in% c("community")), "-comm", "-data"))
-  description <- FALSE
-  height <- 3
-  width <- full_page_portrait_width
-  legend_font_size <- 10
-} else if (report_title %in% c("ptpres")) {
-  nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres")
-  height <- 4
-  legend_font_size <- 8
-}
-y_long = "Biomass"
-unit = "metric tons"
-unt = "t"
-
-table_raw <- table_raw0 %>% 
-  dplyr::rename(ci_up = biomass_up, 
-                ci_dw = biomass_dw) %>% 
-  dplyr::group_by(year, survey_definition_id, SRVY, SRVY_long) %>% 
-  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                   ci_up = sum(ci_up, na.rm = TRUE), 
-                   ci_dw = sum(ci_dw, na.rm = TRUE)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(species_name = spp_print, 
-                common_name = spp_print, 
-                print_name = spp_print, 
-                taxon = spp_taxon)
-
-figure <- figure_bio <- temp00(table_raw0 = table_raw, 
-                               var = "biomass_mt", 
-                               maxyr = maxyr, 
-                               compareyr = compareyr, 
-                               unit = unit, 
-                               unt = unt, 
-                               y_long = y_long, 
-                               mean_in_legend = TRUE, 
-                               error_bar = TRUE, #ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
-                               description = description, 
-                               legend_font_size = legend_font_size)
-
-# if (report_title %in% c("community")) { 
-#   figure <-
-#     cowplot::ggdraw(figure) +
-#     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-#                         hjust = 0, vjust = 0,
-#                         x = 0.70, y = .40, # x = 0.07, y = -.42,
-#                         width = .25)
-# }
-
-header <- paste0("Estimates of ", spp_print, 
-                 ifelse(is.na(spp_sci), "", 
-                        paste0(" (",spp_sci,")")), 
-                 " ", tolower(y_long), 
-                 ifelse(unt == "", "", paste0(" (",unt, ")")), 
-                 " from the ",
-                 paste0(range(table_raw$year), collapse="-"), " ", 
-                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
-                 " shelf bottom trawl survey", 
-                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, "", plural_surveys),". ")
-
-# if (report_title %in% c("community")) { 
-#   # figure <- figure + 
-#   #   ggplot2::theme(legend.direction="horizontal") 
-#   figure <-  
-#     cowplot::ggdraw(figure + 
-#      ggplot2::theme(plot.margin = margin(1.5, 0, 0, 0, "cm") ) ) +
-#     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-#                         x = .77, y = .35, # top right
-#                         # x = 0.09, y = -.35, # lower left
-#                         hjust = 0, vjust = 0,
-#                         width = .18)
-# }
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-## fig-[spp]-population-timeseries
-
-```{r, fig-[spp]-population-timeseries, eval = (report_title != "nbspres")}
-
-if (report_title %in% c("community", "data")) {
-  nickname <- paste0("fig-population-",spp_file)
-  description <- FALSE
-  height <- 3
-  width <- full_page_portrait_width
-  legend_font_size <- 10
-} else if (report_title %in% c("ptpres")) {
-  nickname <- paste0("fig-", jj, "-", spp_file, "-2-population-pres")
-  height <- 4
-  legend_font_size <- 8
-}
-
-unit = "individuals"
-unt = ""
-y_long = "Population"
-
-table_raw <- table_raw0 %>% 
-  dplyr::rename(ci_up = population_up, 
-                ci_dw = population_dw) %>% 
-  dplyr::group_by(year, survey_definition_id, SRVY, SRVY_long) %>% 
-  dplyr::summarise(population_count = sum(population_count, na.rm = TRUE), 
-                   ci_up = sum(ci_up, na.rm = TRUE), 
-                   ci_dw = sum(ci_dw, na.rm = TRUE)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(species_name = spp_print, 
-                common_name = spp_print, 
-                print_name = spp_print, 
-                taxon = spp_taxon)
-
-figure <- temp00(table_raw0 = table_raw, 
-                 var = "population_count", 
-                 maxyr = maxyr, 
-                 compareyr = compareyr, 
-                 unit = unit, 
-                 unt = unt, 
-                 y_long = y_long, 
-                 mean_in_legend = TRUE, 
-                 error_bar = TRUE, # ifelse(length(unique(table_raw0$species_code))>1, FALSE, TRUE), 
-                 description = description, 
-                 legend_font_size = legend_font_size)
-
-header <- paste0("Estimates of ", spp_print, 
-                 ifelse(is.na(spp_sci), "", 
-                        paste0(" (",spp_sci,")")), 
-                 " ", tolower(y_long), 
-                 ifelse(unt == "", "", paste0(" (",unt, ")")), 
-                 " from the ",
-                 paste0(range(table_raw$year), collapse="-"), " ", 
-                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
-                 " shelf bottom trawl survey", 
-                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, "", plural_surveys),". ")
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
 ## fig-biopop-timeseries-[spp]
 
 ```{r, fig-biopop-timeseries-[spp], eval = (report_title == "data")}
-nickname <- paste0("fig-biopop-timeseries-", spp_file)
-height <- 5
-width <- full_page_portrait_width
-legend_font_size <- 10
 pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
 
 if (length(spp_code) > 1) {
@@ -1441,6 +1157,24 @@ table_raw <- table_raw %>%
     dplyr::left_join(
       x = table_raw,
       y = table_raw_mean)
+  
+if (report_title %in% "community") {
+  nickname <- paste0("fig-biomass-", spp_file, "-comm")
+  height <- 3
+  width <- full_page_portrait_width
+  legend_font_size <- 10
+  table_raw <- table_raw %>% dplyr::filter(y_long == "Biomass")
+} else if (report_title %in% c("ptpres")) {
+  nickname <- paste0("fig-", jj, "-", spp_file, "-1-biomass-pres")
+  height <- 4
+  legend_font_size <- 8
+  table_raw <- table_raw %>% dplyr::filter(y_long == "Biomass")
+} else if (report_title %in% "data") {
+  nickname <- paste0("fig-biopop-timeseries-", spp_file)
+  height <- 5
+  width <- full_page_portrait_width
+  legend_font_size <- 10
+}
   
   figure <-
     # general plotting aesthetics
