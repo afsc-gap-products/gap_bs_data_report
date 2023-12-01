@@ -51,7 +51,7 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_file = paste0("figtab.docx"))
 
 # Species figures
-# comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
+comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
 # comb <- "yellowfin-sole"  # single species for debugging
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
