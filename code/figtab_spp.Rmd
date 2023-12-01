@@ -1153,10 +1153,10 @@ table_raw <- table_raw %>%
   }
   
   # add mean data to table_raw
-  table_raw <-
-    dplyr::left_join(
-      x = table_raw,
-      y = table_raw_mean)
+  # table_raw <-
+  #   dplyr::left_join(
+  #     x = table_raw,
+  #     y = table_raw_mean)
   
 if (report_title %in% "community") {
   nickname <- paste0("fig-biomass-", spp_file, "-comm")
@@ -1185,7 +1185,7 @@ if (report_title %in% "community") {
                          group = SRVY_long)) +
     # plot mean line 
     ggplot2::geom_segment(
-        # data = table_raw_mean,
+        data = table_raw_mean,
         mapping = aes(x = minyr, 
                       xend = maxyr, 
                       y = y_mean, 
@@ -1211,6 +1211,10 @@ if (report_title %in% "community") {
     ggplot2::geom_errorbar(mapping = aes(ymin = y_ci_dw, ymax = y_ci_up), 
                            width = .2,
                     alpha = 0.5) + 
+    # Set y axis minimum to always be 0 & remove resulting "y" label
+    ylim(0, NA) +
+    ylab(" ") +
+    
     # facet grid
     ggplot2::facet_grid(rows = vars(var_), 
                         scales = "free", 
