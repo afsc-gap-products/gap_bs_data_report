@@ -1197,7 +1197,7 @@ if (report_title %in% "community") {
     ggplot2::geom_line(size = 1) +
     ggplot2::geom_point(size = 1.5) + 
     # axis aesthetics 
-    ggplot2::ggtitle(spp_print) + 
+    # ggplot2::ggtitle(spp_print) +  # No title
     ggplot2::scale_x_continuous(
       name = "Year", 
       # limits = range(yrs_plotted, na.rm = TRUE), 
@@ -1214,13 +1214,15 @@ if (report_title %in% "community") {
     # Set y axis minimum to always be 0 & remove resulting "y" label
     ylim(0, NA) +
     ylab(" ") +
-    
     # facet grid
     ggplot2::facet_grid(rows = vars(var_), 
                         scales = "free", 
                         switch = "both") +
     # aesthetics
-    ggplot2::guides(color = guide_legend(title = "", nrow = 1)) +
+    ggplot2::labs(color = spp_print) +  # Create & position legend title
+    ggplot2::guides(color = guide_legend(title.position = "top",
+                                         title.hjust = 0.5,
+                                         title.vjust = -0.5)) +
     ggplot2::theme( 
       strip.placement = "outside",
       strip.background = element_blank(), 
@@ -1231,7 +1233,7 @@ if (report_title %in% "community") {
       panel.grid.minor.x = element_blank(),
       panel.grid.major.x = element_line(colour = "grey95"),
       panel.border = element_rect(fill = NA, colour = "grey20"),
-      legend.title = element_blank(), 
+      # legend.title = element_blank(), # We do want a legend title!
       legend.text = element_text(size = legend_font_size),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
