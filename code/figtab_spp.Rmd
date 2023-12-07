@@ -1085,7 +1085,7 @@ table_raw <- table_raw %>%
                   unt = "t", 
                   dat = table_raw$val[table_raw$y_long == "Biomass"]) 
   
-  a_pop <- find_units(unit = "indvs.", 
+  a_pop <- find_units(unit = "", 
                   unt = "", 
                   dat = table_raw$val[table_raw$y_long == "Population"]) 
 
@@ -1171,7 +1171,7 @@ if (report_title %in% "community") {
   table_raw <- table_raw %>% dplyr::filter(y_long == "Biomass")
 } else if (report_title %in% "data") {
   nickname <- paste0("fig-biopop-timeseries-", spp_file)
-  height <- 4.2
+  height <- 4
   width <- full_page_portrait_width
   legend_font_size <- 10
 }
@@ -1195,7 +1195,7 @@ if (report_title %in% "community") {
         linewidth = 2)  +
     # plot points and lines
     ggplot2::geom_line(size = 1) +
-    ggplot2::geom_point(size = 1.5) + 
+    ggplot2::geom_point(size = 1.5, aes(shape = SRVY_long)) + 
     # axis aesthetics 
     # ggplot2::ggtitle(spp_print) +  # No title
     ggplot2::scale_x_continuous(
@@ -1219,8 +1219,13 @@ if (report_title %in% "community") {
                         scales = "free", 
                         switch = "both") +
     # aesthetics
-    ggplot2::labs(color = spp_print) +  # Create & position legend title
+    # Create & position legend title
+    ggplot2::labs(color = stringr::str_to_sentence(spp_print)) +  # force sentence case
+    ggplot2::labs(shape = stringr::str_to_sentence(spp_print)) +
     ggplot2::guides(color = guide_legend(title.position = "top",
+                                         title.hjust = 0.5,
+                                         title.vjust = -0.5),
+                    shape = guide_legend(title.position = "top",
                                          title.hjust = 0.5,
                                          title.vjust = -0.5)) +
     ggplot2::theme( 
@@ -1242,7 +1247,8 @@ if (report_title %in% "community") {
       axis.title = element_text(size = legend_font_size, face = "bold"),
       axis.text = element_text(size = legend_font_size),
       legend.position = "bottom", 
-      legend.box = "horizontal"  )
+      legend.box = "horizontal",
+      legend.box.spacing = unit(0, "pt"))
   
   if (!is.na(anno)) {
     figure <- figure +
