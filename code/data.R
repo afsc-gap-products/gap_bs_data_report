@@ -301,6 +301,7 @@ for (i in 1:nrow(report_spp)){
                             dplyr::bind_cols(report_spp[i,], 
                                              species_code1 = eval(expr = parse(text = report_spp$species_code[i]))))
 }
+# temp1$species_code <- temp1$species_code1 
 
 temp1 <- temp1 %>% 
   dplyr::mutate(taxon = dplyr::case_when(
