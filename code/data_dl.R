@@ -1,4 +1,6 @@
 
+# Run content from run.R first
+
 if (file.exists("Z:/Projects/ConnectToOracle.R")) {
   # This has a specific username and password because I DONT want people to have access to this!
   source("Z:/Projects/ConnectToOracle.R")
@@ -118,11 +120,6 @@ FROM ",locations[i],"; "))
 
 # Prepare data for complexes ---------------------------------------------------
 
-library(googledrive)
-googledrive::drive_deauth()
-googledrive::drive_auth()
-2
-
 # Species Covered
 # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
 googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
@@ -201,9 +198,21 @@ production_sizecomp <-
   rbind(production_sizecomp_subarea,
         production_sizecomp_stratum[, names(production_sizecomp_subarea)])
 
+production_cpue <- production_cpue %>% 
+  dplyr::left_join(
+    y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
+    relationship = "many-to-many")
+
+production_biomass <- production_biomass %>% 
+  dplyr::left_join(
+    y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
+    relationship = "many-to-many")
+
+production_sizecomp <- production_sizecomp %>% 
+  dplyr::left_join(
+    y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
+    relationship = "many-to-many")
+
 write.csv(x = production_cpue, file = here::here("data/complex_cpue.csv"), row.names = FALSE)
 write.csv(x = production_biomass, file = here::here("data/complex_biomass.csv"), row.names = FALSE)
 write.csv(x = production_sizecomp, file = here::here("data/complex_sizecomp.csv"), row.names = FALSE)
-
-
-

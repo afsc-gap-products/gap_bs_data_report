@@ -390,7 +390,7 @@ header <- paste0("Otolith collection types and counts during the ",
 table_print <- table_raw %>% 
   dplyr::select(-SRVY) %>% 
   flextable::as_grouped_data(groups = c("SRVY_long", "oto_samp_type"), 
-    columns = NULL) %>% 
+                             columns = NULL) %>% 
   flextable::as_flextable(hide_grouplabel = TRUE) %>% 
   flextable::bold(j = 1, i = ~ !is.na(oto_samp_type) ) %>% 
   flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>% 
@@ -506,7 +506,7 @@ table_print <- table_raw %>%
   flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>% 
   flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
   flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
-
+  
   flextable::footnote(value = as_paragraph(footnote0), 
                       ref_symbols = "1",
                       part = "header", 
@@ -807,9 +807,9 @@ temp <- function(yrs,
   
   # Create figure
   key.title <- ifelse(case == "bottom", 
-                     expression(bold("Bottom temperature (°C)")), 
-                     expression(bold("Surface temperature (°C)")))
-
+                      expression(bold("Bottom temperature (°C)")), 
+                      expression(bold("Surface temperature (°C)")))
+  
   if (is.null(title0)) {
     title0 <- paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), 
                      " Bering Sea\n", 
@@ -1189,178 +1189,197 @@ if (!("NBS" %in% catch_haul_cruises_maxyr$SRVY)) {
 ## tab-biomass-est-[SRVY]-[taxon]
 
 ```{r tab-biomass-est-[SRVY]-[taxon]}
+nickname0 <- "tab-biomass-est-"
 
-temp <- function(exp0, 
-                 maxyr, 
-                 biomass_by_stratum0,
-                 catch_haul_cruises_maxyr0,
-                 total_biomass0,
-                 spp_code_rnge) {
-  
-  confint <- function(n_haul, biomass_var) {
-    out <- qt(p = 0.025, df = n_haul - 1, lower.tail = F) * sqrt(biomass_var)
-    return(out)
-  }
-  
-  biomass_by_stratum0 <- biomass_by_stratum0 %>% 
-    dplyr::filter(year == maxyr)
-  
-  # species level --------------------------------------------------------------
-  
-  dat <- eval(parse( # select spp 
-    text=gsub(pattern = "DATAFRAME", 
-              replacement = "biomass_by_stratum0", 
-              x = exp0) )) %>% 
-    dplyr::ungroup() %>% 
-    tidyr::separate(
-      col = group0, 
-      into = c("group", "taxon"), 
-      sep = "_", 
-      remove = FALSE) %>% 
-    dplyr::select(SRVY, stratum, group, group0, taxon, biomass_mt, n_haul, biomass_var) %>% 
-    dplyr::group_by(SRVY, stratum, group, group0, taxon) %>% 
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                     biomass_var = sum(biomass_var, na.rm = TRUE), 
-                     n_haul = sum(n_haul, na.rm = TRUE), 
-                     ci = confint(n_haul, biomass_var)) %>% 
-    dplyr::ungroup()
-  
-  biomass_spp_bystrata <- dat %>%
-    dplyr::group_by(SRVY, stratum, group, taxon) %>% # , n_haul
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE),
-                     biomass_var = sum(biomass_var, na.rm = TRUE),
-                     n_haul = mean(n_haul, na.rm = TRUE)) %>% 
-    dplyr::mutate(ci = confint(n_haul, biomass_var))
-  
-  # group level --------------------------------------------------------------
-  
-  dat0 <- eval(parse(
-    text = gsub(pattern = "DATAFRAME",
-                replacement = "catch_haul_cruises_maxyr0",
-                x = exp0) )) %>%
-    ungroup() %>%
-    tidyr::separate(
-      col = group0,
-      into = c("group", "taxon"),
-      sep = "_",
-      remove = FALSE) %>%
-    dplyr::filter(year == maxyr) %>%
-    dplyr::distinct(SRVY, stratum, station, group, # not strictly necessary, but helpful
-                    hauljoin, species_code) %>%
-    dplyr::group_by(SRVY, group) %>%
-    dplyr::summarise(num = n()) # the number of hauls the group was caught in for all stratum
-  
-  ## find estimated total biomass by stratum for group complexes (e.g., groups with more than one line)
-  biomass_group_bystrata <- dat %>%
-    dplyr::filter(grepl(pattern = "_", x = group0)) %>% 
-    dplyr:: group_by(SRVY, stratum, group) %>%
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                     biomass_var = sum(biomass_var, na.rm = TRUE), 
-                     n_haul = sum(n_haul, na.rm = TRUE)) %>% # do I need to sum n_haul from all spp or sum of tows where any of those species ever occured
-    dplyr::mutate(ci = confint(n_haul, biomass_var), 
-                  taxon = paste0("total ", gsub("\\s*\\([^\\)]+\\)","",as.character(group)))) %>% 
-    dplyr::ungroup()
-  
-  # total level -----------------------------------------------------------------
-  
-  biomass_total_bystrata <- # find estimated total biomass for all stratum for all taxon
-    biomass_by_stratum0 %>% 
-    dplyr::filter(eval(parse( text = spp_code_rnge))) %>% # species codes greater than 35000 are invertebrates
-    dplyr::mutate(group0 = "Total") %>% 
-    dplyr::ungroup() %>% 
-    dplyr::select(SRVY, group0, stratum, biomass_mt, n_haul, biomass_var) %>% 
-    dplyr::group_by(SRVY, group0, stratum) %>% 
-    dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
-                     biomass_var = sum(biomass_var, na.rm = TRUE)) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::left_join(
-      y = catch_haul_cruises_maxyr0 %>% 
-        dplyr::mutate(stratum = dplyr::case_when(
-          (stratum == 31 | stratum == 32) ~ 30,
-          (stratum == 41 | stratum == 42) | stratum == 43 ~ 40,
-          (stratum == 61 | stratum == 62) ~ 60, 
-          TRUE ~ as.numeric(stratum))) %>%
-        dplyr::filter(eval(parse( text = spp_code_rnge))) %>% # species_code < 35000
-        dplyr::group_by(year, SRVY, stratum) %>%
-        dplyr::distinct(hauljoin) %>%
-        dplyr::summarize(num = n()),  # number of hauls the group was caught in for all stratum,
-      by = c("SRVY", "stratum")) %>% 
-    dplyr::mutate(
-      n_haul = ifelse(num == 1, 1, (num-1)), # ifelse require bc lumpsuckers only caught in 1 hauls (can't divide by 0)
-      ci = NA, 
-      taxon = NA, 
-      group = "Total")
-  
-  out <- dplyr::bind_rows(biomass_group_bystrata, 
-                          biomass_spp_bystrata,
-                          biomass_total_bystrata ) %>% 
-    dplyr::select(-num, -n_haul, -biomass_var) %>%
-    dplyr::mutate(
-      order = dplyr::case_when(
-        grepl(pattern = "other ", x = taxon) ~ 2,
-        grepl(pattern = "total ", x = taxon) ~ 3,
-        TRUE ~ 1)) %>%
-    tidyr::pivot_wider(id_cols = c("group", "taxon", "order", "SRVY"), 
-                       names_from = c("stratum"), 
-                       values_from = c("biomass_mt", "ci")) %>% 
-    dplyr::arrange(SRVY, group, order, taxon) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::left_join(
-      y = total_biomass0, 
-      by = "SRVY")
-  
-  out$order <- 1:nrow(out)
-  out$order[grepl(pattern = "other", x = out$group, ignore.case = TRUE)] <- nrow(out)+1
-  out$order[grepl(pattern = "total", x = out$group, ignore.case = TRUE)] <- nrow(out)+2
-  names(out) <- gsub(pattern = "biomass_mt_", replacement = "", x = names(out))
-  
-  out <- out %>% 
-    dplyr::mutate(CI95 = ci_999, 
-                  a = "±",
-                  prop = `999`/total) %>% 
-    dplyr::arrange(order) %>%
-    dplyr::relocate(SRVY, group, taxon, `999`, a, CI95, prop) %>% 
-    dplyr::filter(`999` != 0) %>% # TOLEDO 
+  # if (taxon0 == "fish") {
+  #   exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes greater than 35000 are invertebrates
+  # dplyr::mutate(group0 = case_when(
+  #   species_code == 471 ~ "Rajidae (skates)_Alaska skate",
+  #   species_code >= 401 & 
+  #     species_code <= 495 & 
+  #     species_code != 471 ~ "Rajidae (skates)_other skates",
+  #   species_code == 10210 ~ "Pleuronectidae (flatfishes)_yellowfin sole",
+  #   species_code == 10261 ~ "Pleuronectidae (flatfishes)_northern rock sole",
+  #   species_code == 10130 ~ "Pleuronectidae (flatfishes)_flathead sole",
+  #   species_code == 10140 ~ "Pleuronectidae (flatfishes)_Bering flounder",
+  #   species_code == 10285 ~ "Pleuronectidae (flatfishes)_Alaska plaice",
+  #   species_code == 10110 ~ "Pleuronectidae (flatfishes)_arrowtooth flounder",
+  #   species_code == 10112 ~ "Pleuronectidae (flatfishes)_Kamchatka flounder",
+  #   species_code == 10120 ~ "Pleuronectidae (flatfishes)_Pacific halibut",
+  #   species_code >= 10041 & 
+  #     species_code <= 10295 & 
+  #     species_code != 10210 &
+  #     species_code != 10261 &
+  #     species_code != 10130 &
+  #     species_code != 10140 &
+  #     species_code != 10285 &
+  #     species_code != 10110 &
+  #     species_code != 10112 &
+  #     species_code != 10115 &
+  #     species_code != 10120 ~ "Pleuronectidae (flatfishes)_other flatfish",
+  #   species_code >= 21740 & species_code <= 21741 ~ "Gadidae (cods)_walleye pollock",
+  #   species_code >= 21720 & species_code <= 21721 ~ "Gadidae (cods)_Pacific cod",
+  #   species_code >= 21710 & 
+  #     species_code <= 21737 &
+  #     species_code != 21740 &
+  #     species_code != 21741 &
+  #     species_code != 21720 &
+  #     species_code != 21721 ~ "Gadidae (cods)_other cods",
+  #   species_code >= 20000 & species_code <= 20075 ~ "Agonidae (poachers)",
+  #   species_code >= 21300 & species_code <= 21447 ~ "Cottidae (sculpins)",
+  #   species_code >= 21900 & species_code <= 21935 ~ "Hexagrammidae (greenlings)",
+  #   species_code >= 22170 & species_code <= 22199 ~ "Cyclopteridae (lumpsuckers)",
+  #   species_code >= 22200 & species_code <= 22286 ~ "Liparidae (snailfishes)",
+  #   species_code >= 23000 & species_code <= 23099 ~ "Osmeridae (smelts)",
+  #   species_code >= 23800 & species_code <= 23870 ~ "Stichaeidae (blennies)", 
+  #   species_code >= 24100 & species_code <= 24395 ~ "Zoarcidae (eelpouts)",
+  #   species_code == 30060 ~ "Scorpaenidae (rockfishes)_Pacific ocean perch",
+  #   species_code >= 30000 & 
+  #     species_code <= 31550 & 
+  #     species_code != 30060 ~ "Scorpaenidae (rockfishes)_other rockfish",
+  #   TRUE ~ "Other"))')
+  #   
+  #   spp_code_rnge = "species_code < 35000"
+  #   
+  # } else {
+  #   exp0 <- ('DATAFRAME %>% dplyr::filter(species_code >= 40000 & 
+  #                 species_code < 99991) %>% # groups greater than 99991 are empty shells, empty barnacles
+  # dplyr::mutate(group0 = dplyr::case_when(
+  #   species_code >= 66000 & species_code <= 67499 ~ "Crustacea_shrimps",
+  #   species_code >= 60000 & species_code <= 65999 ~ "Crustacea_other crustaceans",
+  #   species_code >= 67500 & species_code <=	67999 ~ "Crustacea_other crustaceans", 
+  #   species_code >= 69550	& species_code <= 68999 ~ "Crustacea_other crustaceans",
+  #   species_code >= 71000 & species_code <= 73999 ~ "Mollusca_Gastropoda (snails)",
+  #   species_code >= 74000 & species_code <= 75799 ~ "Mollusca_Pelecypoda (bivalves)",
+  #   species_code >= 78500 & species_code <= 79600 ~ "Mollusca_squids",
+  #   species_code >= 78010 & species_code <= 78499 ~ "Mollusca_octopuses",
+  #   species_code >= 70000	& species_code <= 70999	~ "Mollusca_other mollusks",
+  #   species_code >= 78000 & species_code <=	78009 ~ "Mollusca_other mollusks",
+  #   species_code >= 80000	& species_code <= 82499 ~ "Echinodermata_Asteroidea (sea stars)",
+  #   species_code >= 83000	& species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
+  #   species_code >= 83800 & species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
+  #   species_code >= 82500	& species_code <= 82749 ~ "Echinodermata_Echinoidea (sea urchins)",
+  #   species_code >= 85000 & species_code <= 85999 ~ "Echinodermata_Holothuroidea (sea cucumbers)",
+  #   species_code >= 98000	& species_code <= 99909 ~ "Ascidiacea",
+  #   species_code >= 91000 & species_code <=	91999 ~ "Porifera (sponges)",
+  #   species_code >= 40000	& species_code <= 44999 ~ "Coelenterata",
+  #   species_code >= 45000	& species_code <= 59999 ~ "Other",
+  #   species_code >= 92000	& species_code <= 97999 ~ "Other",
+  #   species_code >= 99990 & species_code <=	99992 ~ "Other",
+  #   species_code >= 77011 & species_code <= 77012 ~ "Other",
+  #   species_code == 99987 ~ "Porifera (sponges)",
+  #   TRUE ~ "Other"))')
+  #   spp_code_rnge = "species_code >= 40000 & species_code < 99991"
+  # }
+
+table_raw0 <- biomass  %>% 
+  dplyr::filter(year == maxyr &
+                  # place species codes into groups and major species
+                  group %in% unlist(report_spp %>% 
+                                      dplyr::filter(table_est) %>% #  & group == taxon0
+                                      dplyr::select(print_name)) )  %>% 
+  dplyr::left_join(total_biomass) %>% 
+  dplyr::mutate(taxon0 = taxon, 
+                ci = biomass_mt - biomass_dw) %>% 
+  # dplyr::mutate(stratum = dplyr::case_when(
+  #                      (stratum == 31 | stratum == 32) ~ 30,
+  #                      (stratum == 41 | stratum == 42) | stratum == 43 ~ 40,
+  #                      (stratum == 61 | stratum == 62) ~ 60, 
+  #                      TRUE ~ as.numeric(stratum))) %>%
+  #                    dplyr::group_by(year, SRVY, stratum, common_name, taxon, species_code) %>%
+  #                    dplyr::summarize(biomass_mt = sum(biomass_mt, na.rm = TRUE),  
+  #                                     biomass_var = sum(biomass_var, na.rm = TRUE), 
+  #                                     population_count = sum(population_count, na.rm = TRUE), 
+  #                                     population_var = sum(population_var, na.rm = TRUE), 
+  #                                     n_haul = sum(n_haul, na.rm = TRUE)) %>% 
+#                    dplyr::ungroup()
+tidyr::separate(
+  col = group, 
+  into = c("group", "taxon"), 
+  sep = "_", 
+  remove = FALSE) %>% 
+  dplyr::select(SRVY, stratum, year, biomass_mt, ci, 
+                group, taxon, taxon0, total)  %>%
+  tidyr::pivot_wider(id_cols = c("group", "taxon", "taxon0", "SRVY", "total"), 
+                     names_from = c("stratum"), 
+                     values_from = c("biomass_mt", "ci"))  %>% 
+  dplyr::arrange(taxon)
+
+table_raw0 <- table_raw0 %>% 
+  dplyr::mutate(order = as.numeric(factor((table_raw0$group))), 
+                order = ifelse(grepl(x = taxon, pattern = "other"), order+.1, order), 
+                order = ifelse(grepl(x = taxon, pattern = "total"), order+.2, order)) 
+
+table_raw0$order[grepl(pattern = "other", x = table_raw0$group, ignore.case = TRUE)] <- nrow(table_raw0)+10
+table_raw0$order[grepl(pattern = "total", x = table_raw0$group, ignore.case = TRUE)] <- nrow(table_raw0)+20
+
+table_raw0 <- table_raw0  %>% 
+  dplyr::arrange(taxon) %>%
+  dplyr::arrange(SRVY, taxon0, order) %>%
+  dplyr::mutate(
+    CI95 = ci_999, 
+    a = "±",
+    prop = biomass_mt_999/total) %>% 
+  dplyr::relocate(SRVY, group, taxon, biomass_mt_999, a, CI95, prop) %>% 
     dplyr::select(-order, -total, -dplyr::starts_with("ci_"))
-  
-  return(out)
-}
 
-FitFlextableToPage <- function(x, pgwidth = 6) {
-  ft_out <- x %>% flextable::autofit()
-  ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths * 
-                               pgwidth/(flextable::flextable_dim(ft_out)$widths))
-  return(ft_out)
-}
+names(table_raw0) <- gsub(pattern = "biomass_mt_", replacement = "", x = names(table_raw0))
 
-temp1 <- function(table_raw, strat, total) {
+comb <- tidyr::crossing(taxon = c("fish", "invert"), 
+                        data.frame(SRVY = SRVY1, 
+                                   SRVY_long = SRVY11))
+
+for (i in 1:nrow(comb)) {
+  header <- paste0("Biomass estimates (t) for major ", 
+                   ifelse(comb$taxon[i] =="invert", "invertebrate", "fish") ,
+                   " taxa collected during the ", 
+                   maxyr, " ", 
+                   comb$SRVY_long[i],
+                   " shelf bottom trawl survey.")
   
-  footnote0 <- paste0("Total estimated biomass is ", 
-                      formatC(x = total, digits = 0, format = "f", big.mark = ","), 
-                      " t for fish and invertebrates in the ",  
-                      unique(table_raw$SRVY_long), " bottom trawl survey.")
+  nickname <- paste0(nickname0, comb$SRVY[i], "-", comb$taxon[i]) 
   
-  table_raw0 <- table_raw %>% 
-    dplyr::select(group, taxon, `999`, a, CI95, 
-                  prop, 
-                  all_of(strat)) %>% 
+  total <- total_biomass %>% 
+    dplyr::filter(year == maxyr &
+                    SRVY == comb$SRVY[i]) %>% 
+    dplyr::left_join(y = data.frame(taxon = c("fish", "invert"), 
+                                    taxon_long = c("fishes", "invertebrates")))
+  
+  # Select data and make plot --------------------------------------------------
+  table_raw <- table_raw0  %>% 
+    dplyr::filter(taxon0 == comb$taxon[i] &
+                    SRVY == comb$SRVY[i]) %>% 
+    janitor::remove_empty(which = "cols") %>% 
+    # dplyr::select(group, taxon, `999`, a, CI95, 
+    #               prop, 
+    #               all_of(strat)) %>% 
     mutate_if(is.numeric , replace_na, replace = 0) %>% 
     dplyr::mutate(
-      
-      # biomass_mt = ifelse(is.na(biomass_mt), "-", round(biomass_mt, digits = 0)),
-      # ci = ifelse(is.na(ci), "-", round(ci, digits = 0)),
       prop = ifelse(prop < 0.0001, "<0.0001", 
                     formatC(x = prop, digits = 4, 
                             format = "f", big.mark = ",")), 
       across(where(is.numeric), 
-             formatC, big.mark=",", digits = 0, format = "f"))#, 
-  # across(everything(), ~replace_na(.x, "-")),
-  # across(everything(), ~replace_na(.x, "-")),
-  # `999` = paste0(`999`, " ", a)) %>% 
-  # dplyr::select(-a)
+             formatC, big.mark=",", digits = 0, format = "f")) %>% 
+    dplyr::select(-taxon0, -SRVY)
   
-  table_print <- table_raw0 %>%
-    flextable::flextable(data = .)  %>%
+    strat <- names(table_raw)[7:ncol(table_raw)]
+  
+  # Make table_print -------------------------------------------------------------
+  
+  FitFlextableToPage <- function(x, pgwidth = 6) {
+    ft_out <- x %>% flextable::autofit()
+    ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths * 
+                                 pgwidth/(flextable::flextable_dim(ft_out)$widths))
+    return(ft_out)
+  }
+  
+  footnote0 <- paste0("Total estimated biomass is ", 
+                      text_list(formatC(x = total$total, digits = 0, format = "f", big.mark = ",")), 
+                      " t for ", text_list(total$taxon_long)," in the ",  
+                      unique(total$SRVY_long), " bottom trawl survey.")
+
+  table_print <- table_raw %>%
+    flextable::flextable()  %>%
     flextable::merge_v(j = ~ group) %>%
     flextable::merge_h_range(i = ~ is.na(taxon), 
                              j1 = "group", j2 = "taxon", part = "body") %>%
@@ -1369,8 +1388,8 @@ temp1 <- function(table_raw, strat, total) {
                                          "Estimated total biomass (t)\n± 95% confidence interval",
                                          "Proportion of total animal biomass",
                                          "Estimated biomass by stratum (t)"),
-                              colwidths = c(2,3,1,length(strat)-1)) %>%
-    flextable::width(width = ifelse(length(strat)>3, 0.7, 1.25),
+                              colwidths = c(2,3,1,(length(strat)))) %>%
+    flextable::width(width = ifelse((length(strat))>3, 0.7, 1.25),
                      unit = "in") %>%
     flextable::width(j = "prop", 
                      width = 0.8, unit = "in") %>%
@@ -1379,7 +1398,7 @@ temp1 <- function(table_raw, strat, total) {
     flextable::width(j = c("group"), 
                      width = 1, unit = "in") %>%    
     flextable::width(j = c("taxon"), 
-                     ifelse(length(strat)>3, 1.5, 1), 
+                     ifelse((length(strat))>3, 1.5, 1), 
                      unit = "in") %>% 
     flextable::footnote(part = "header", i = 1, j = 5, ref_symbols = "1",
                         value = as_paragraph(footnote0)) %>%
@@ -1420,161 +1439,16 @@ temp1 <- function(table_raw, strat, total) {
     flextable::fontsize(size = body_size, part = "body") %>% 
     flextable::fontsize(size = header_size, part = "header") %>% 
     flextable::fix_border_issues() %>% 
-    flextable::align(j = c("999", "prop"), # , "CI95", strat
+    flextable::align(j = c("999", "prop", strat), # , "CI95", strat
                      align = "right", part = "all") %>%
     flextable::align(j = strat, i = 1, 
                      align = "center", part = "header") %>%
     flextable::padding(padding.left = 3, padding.right = 3, j = "a", part = "body")
   
-  return(list("table_raw" = table_raw, 
-              "table_print" = table_print))
-}
-
-nickname0 <- "tab-biomass-est-"
-
-for (taxon0 in c("fish", "invert")) {
-  # # Select data and make plot
-  # place species codes into groups and major species
-  if (taxon0 == "fish") {
-    exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes greater than 35000 are invertebrates
-  dplyr::mutate(group0 = case_when(
-    species_code == 471 ~ "Rajidae (skates)_Alaska skate",
-    species_code >= 401 & 
-      species_code <= 495 & 
-      species_code != 471 ~ "Rajidae (skates)_other skates",
-    species_code == 10210 ~ "Pleuronectidae (flatfishes)_yellowfin sole",
-    species_code == 10261 ~ "Pleuronectidae (flatfishes)_northern rock sole",
-    species_code == 10130 ~ "Pleuronectidae (flatfishes)_flathead sole",
-    species_code == 10140 ~ "Pleuronectidae (flatfishes)_Bering flounder",
-    species_code == 10285 ~ "Pleuronectidae (flatfishes)_Alaska plaice",
-    species_code == 10110 ~ "Pleuronectidae (flatfishes)_arrowtooth flounder",
-    species_code == 10112 ~ "Pleuronectidae (flatfishes)_Kamchatka flounder",
-    species_code == 10120 ~ "Pleuronectidae (flatfishes)_Pacific halibut",
-    species_code >= 10041 & 
-      species_code <= 10295 & 
-      species_code != 10210 &
-      species_code != 10261 &
-      species_code != 10130 &
-      species_code != 10140 &
-      species_code != 10285 &
-      species_code != 10110 &
-      species_code != 10112 &
-      species_code != 10115 &
-      species_code != 10120 ~ "Pleuronectidae (flatfishes)_other flatfish",
-    species_code >= 21740 & species_code <= 21741 ~ "Gadidae (cods)_walleye pollock",
-    species_code >= 21720 & species_code <= 21721 ~ "Gadidae (cods)_Pacific cod",
-    species_code >= 21710 & 
-      species_code <= 21737 &
-      species_code != 21740 &
-      species_code != 21741 &
-      species_code != 21720 &
-      species_code != 21721 ~ "Gadidae (cods)_other cods",
-    species_code >= 20000 & species_code <= 20075 ~ "Agonidae (poachers)",
-    species_code >= 21300 & species_code <= 21447 ~ "Cottidae (sculpins)",
-    species_code >= 21900 & species_code <= 21935 ~ "Hexagrammidae (greenlings)",
-    species_code >= 22170 & species_code <= 22199 ~ "Cyclopteridae (lumpsuckers)",
-    species_code >= 22200 & species_code <= 22286 ~ "Liparidae (snailfishes)",
-    species_code >= 23000 & species_code <= 23099 ~ "Osmeridae (smelts)",
-    species_code >= 23800 & species_code <= 23870 ~ "Stichaeidae (blennies)", 
-    species_code >= 24100 & species_code <= 24395 ~ "Zoarcidae (eelpouts)",
-    species_code == 30060 ~ "Scorpaenidae (rockfishes)_Pacific ocean perch",
-    species_code >= 30000 & 
-      species_code <= 31550 & 
-      species_code != 30060 ~ "Scorpaenidae (rockfishes)_other rockfish",
-    TRUE ~ "Other"))')
-    
-    spp_code_rnge = "species_code < 35000"
-    
-  } else {
-    exp0 <- ('DATAFRAME %>% dplyr::filter(species_code >= 40000 & 
-                  species_code < 99991) %>% # groups greater than 99991 are empty shells, empty barnacles
-  dplyr::mutate(group0 = dplyr::case_when(
-    species_code >= 66000 & species_code <= 67499 ~ "Crustacea_shrimps",
-    species_code >= 60000 & species_code <= 65999 ~ "Crustacea_other crustaceans",
-    species_code >= 67500 & species_code <=	67999 ~ "Crustacea_other crustaceans", 
-    species_code >= 69550	& species_code <= 68999 ~ "Crustacea_other crustaceans",
-    species_code >= 71000 & species_code <= 73999 ~ "Mollusca_Gastropoda (snails)",
-    species_code >= 74000 & species_code <= 75799 ~ "Mollusca_Pelecypoda (bivalves)",
-    species_code >= 78500 & species_code <= 79600 ~ "Mollusca_squids",
-    species_code >= 78010 & species_code <= 78499 ~ "Mollusca_octopuses",
-    species_code >= 70000	& species_code <= 70999	~ "Mollusca_other mollusks",
-    species_code >= 78000 & species_code <=	78009 ~ "Mollusca_other mollusks",
-    species_code >= 80000	& species_code <= 82499 ~ "Echinodermata_Asteroidea (sea stars)",
-    species_code >= 83000	& species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
-    species_code >= 83800 & species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
-    species_code >= 82500	& species_code <= 82749 ~ "Echinodermata_Echinoidea (sea urchins)",
-    species_code >= 85000 & species_code <= 85999 ~ "Echinodermata_Holothuroidea (sea cucumbers)",
-    species_code >= 98000	& species_code <= 99909 ~ "Ascidiacea",
-    species_code >= 91000 & species_code <=	91999 ~ "Porifera (sponges)",
-    species_code >= 40000	& species_code <= 44999 ~ "Coelenterata",
-    species_code >= 45000	& species_code <= 59999 ~ "Other",
-    species_code >= 92000	& species_code <= 97999 ~ "Other",
-    species_code >= 99990 & species_code <=	99992 ~ "Other",
-    species_code >= 77011 & species_code <= 77012 ~ "Other",
-    species_code == 99987 ~ "Porifera (sponges)",
-    TRUE ~ "Other"))')
-    spp_code_rnge = "species_code >= 40000 & species_code < 99991"
-  }
-  
-  table_raw1 <- temp(exp0 = exp0, 
-                     maxyr = maxyr, 
-                     biomass_by_stratum0 = biomass %>% 
-                       dplyr::mutate(stratum = dplyr::case_when(
-                         (stratum == 31 | stratum == 32) ~ 30,
-                         (stratum == 41 | stratum == 42) | stratum == 43 ~ 40,
-                         (stratum == 61 | stratum == 62) ~ 60, 
-                         TRUE ~ as.numeric(stratum))) %>%
-                       dplyr::group_by(year, SRVY, stratum, common_name, taxon, species_code) %>%
-                       dplyr::summarize(biomass_mt = sum(biomass_mt, na.rm = TRUE),  
-                                        biomass_var = sum(biomass_var, na.rm = TRUE), 
-                                        population_count = sum(population_count, na.rm = TRUE), 
-                                        population_var = sum(population_var, na.rm = TRUE), 
-                                        n_haul = sum(n_haul, na.rm = TRUE)) %>% 
-                       dplyr::ungroup(),
-                     catch_haul_cruises_maxyr0 = catch_haul_cruises_maxyr,
-                     total_biomass0 = total_biomass %>% 
-                       dplyr::filter(year == maxyr &
-                                       taxon == taxon0) %>% 
-                       dplyr::select(total, SRVY), 
-                     spp_code_rnge = spp_code_rnge)
-  
-  for (i in 1:nrow(haul_cruises_maxyr)) {
-    
-    header <- paste0("Biomass estimates (t) for major ", 
-                     ifelse(taxon0 =="invert", "invertebrate", "fish") ,
-                     " taxa collected during the ", 
-                     maxyr, " ", 
-                     haul_cruises_maxyr$SRVY_long[i],
-                     " shelf bottom trawl survey.")
-    
-    nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i], "-", taxon0) 
-    
-    table_raw0 <- table_raw1 %>% 
-      janitor::remove_empty(which = "cols")
-    
-    strat <- strat0[strat0 %in% names(table_raw0)]
-    strat = strat[strat %in% report_types[[haul_cruises_maxyr$SRVY[i]]]$strat0]
-    
-    a <- temp1(table_raw = table_raw0 %>% 
-                 dplyr::left_join(
-                   y = data.frame(SRVY = SRVY1, 
-                                  SRVY_long = SRVY11)) %>% 
-                 dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]), 
-               strat = strat, 
-               total = total_biomass %>% 
-                 dplyr::filter(year == maxyr &
-                                 SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-                 dplyr::select(total) %>% 
-                 unlist() %>% 
-                 sum())
-    
-    table_raw <- a$table_raw
-    table_print <- a$table_print
-    
-    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  } 
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
+
 
 ## tab-majortaxa-pchange-[SRVY]
 
@@ -1825,14 +1699,14 @@ for (i in 1:2) {
           n_weight = "Hauls with\nweights") 
     }
   }
-
+  
   table_print <- table_print %>% 
     flextable::width(j = "print_name", width = 3) %>%
     flextable::merge_v(target = "print_name", 
                        j = "print_name", part = "body") %>% 
     flextable::valign(valign = "top") %>%  
     theme_flextable_nmfstm(row_lines = TRUE, 
-      pgwidth = full_page_portrait_width) %>%
+                           pgwidth = full_page_portrait_width) %>%
     flextable::align(align = "right", 
                      part = "all") %>%
     flextable::align(j = "print_name", 
@@ -2003,7 +1877,7 @@ nickname <- "tab-glossary"
 header <- "Glossary of terms. "
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/glossary-of-terms.xlsx"), 
-                           sheet = "Sheet1") %>%
+                                sheet = "Sheet1") %>%
   dplyr::mutate(include = ifelse(is.na(include), TRUE, include)) %>% 
   dplyr::filter(include) %>% 
   dplyr::select(-include) %>% 
@@ -2013,7 +1887,7 @@ names(table_raw) <- stringr::str_to_title(names(table_raw))
 
 table_print <- table_raw %>% 
   flextable::flextable()  %>%
-    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
+  theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
   flextable::width(width = c(2, full_page_portrait_width-2)) %>% 
   flextable::theme_zebra()
 
@@ -2133,16 +2007,16 @@ tab_taxa_found_ <- function(temp,
                          value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) %>% 
       flextable::set_header_labels(
         values = list(
-                                     taxon = "", #ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
-                                     species_name = "", #"Scientific name",
-                                     common_name = "", #"Common name",
-                                     stations_n = "", #"Number stations present", 
-                                     depth_min = "Min.", 
-                                     depth_max = "Max.", 
-                                     depth_mean = "Avg.", 
-                                     spacer = " ", 
-                                     lat_max = "S", 
-                                     lat_min = "N")) %>%
+          taxon = "", #ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
+          species_name = "", #"Scientific name",
+          common_name = "", #"Common name",
+          stations_n = "", #"Number stations present", 
+          depth_min = "Min.", 
+          depth_max = "Max.", 
+          depth_mean = "Avg.", 
+          spacer = " ", 
+          lat_max = "S", 
+          lat_min = "N")) %>%
       flextable::add_header_row(top = TRUE,
                                 values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
                                            "Scientific name", "Common name", "# Stns Present",
@@ -2161,11 +2035,11 @@ tab_taxa_found_ <- function(temp,
       flextable::width(width = 1, j = c("taxon", "common_name"), unit = "in") %>%
       flextable::width(width = 1.25, j = c("species_name"), unit = "in") %>%
       flextable::align(
-                       j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
-                       align = "right", part = "all") %>%
+        j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
+        align = "right", part = "all") %>%
       flextable::align(
-                       j = c("depth_max", "depth_min", "depth_mean", "lat_max", "lat_min"), 
-                       align = "center", i = 1, part = "header") 
+        j = c("depth_max", "depth_min", "depth_mean", "lat_max", "lat_min"), 
+        align = "center", i = 1, part = "header") 
     
     # output from function
     list_tables0$temp <- list("table_print" = table_print, 
@@ -2336,12 +2210,12 @@ tab_app_fish_ <- function(temp,
         flextable::flextable(data = .) %>% 
         flextable::set_header_labels(
           length_mm = "Length (cm)",
-                                     males = "Males",
-                                     females = "Females",
-                                     unsexed = "Unsexed", 
-                                     total = "Total", 
-                                     prop = "Proportion", 
-                                     cumprop = "Cumulative proportion") %>%
+          males = "Males",
+          females = "Females",
+          unsexed = "Unsexed", 
+          total = "Total", 
+          prop = "Proportion", 
+          cumprop = "Cumulative proportion") %>%
         flextable::align(i = 1, align = "center", part = "header")  %>%  
         flextable::bold(i = nrow(table_raw), part = "body") %>%
         theme_flextable_nmfstm(row_lines = FALSE, 
@@ -2471,9 +2345,9 @@ for (ii in cases) {
   which0_old <- c(which0_old, which0)
 }
 table_raw$new_species_name_noi <- trimws(paste0(trimws(table_raw$new_species_name_noi), 
-    ifelse(is.na(table_raw$new_species_code), "", paste0(" (", table_raw$new_species_code, ")")) ))
+                                                ifelse(is.na(table_raw$new_species_code), "", paste0(" (", table_raw$new_species_code, ")")) ))
 table_raw$old_species_name_noi <- trimws(paste0(trimws(table_raw$old_species_name_noi), 
-    ifelse(is.na(table_raw$old_species_code), "", paste0(" (", table_raw$old_species_code, ")")) ))
+                                                ifelse(is.na(table_raw$old_species_code), "", paste0(" (", table_raw$old_species_code, ")")) ))
 
 # Prepare final table ----------------------------------------------------------
 table_print <- table_raw %>% 
@@ -2486,11 +2360,11 @@ table_print <- table_raw %>%
     j = "dummy_old", 
     value = flextable::as_paragraph(
       flextable::as_i(old_species_name_i), " ", old_species_name_noi)) %>% 
-    flextable::set_header_labels(dummy_new = "New",
+  flextable::set_header_labels(dummy_new = "New",
                                dummy_old = "Previous",
                                action = "Action",
                                reason = "Reason") %>% 
-    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
+  theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
   flextable::width(width = c(2, 2, 1.5, 1) )
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -2537,7 +2411,7 @@ table_print <- table_raw %>%
   flextable::set_header_labels(dummy = "Species Name",
                                common_name = "Common Name",
                                year_started = "First Year") %>% 
-    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
+  theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>% 
   flextable::width(width = c(3, 3, .5) )
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)

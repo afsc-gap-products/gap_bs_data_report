@@ -1034,7 +1034,11 @@ sizecomp_compareyr <- sizecomp %>%
 print("biomass")
 
 biomass_gap <- dplyr::bind_rows(
-  gap_products_akfin_biomass0, 
+  gap_products_akfin_biomass0 %>%
+    dplyr::left_join(
+      y = spp_info %>% 
+        dplyr::select(species_code, common_name, species_name, taxon), 
+      by = "species_code"), 
   complex_biomass0 %>% 
     dplyr::mutate(group = species_code, 
                   species_code = NA)) %>%
@@ -1076,15 +1080,12 @@ biomass_sap <- crab_gap_ebs_nbs_abundance_biomass0 %>%
     area_id = dplyr::case_when(
       SRVY == "NBS" ~ 99902, 
       SRVY == "EBS" ~ 99900), 
-    stratum = 999) 
+    stratum = 999, 
+    taxon = "invert") 
 
 biomass <- dplyr::bind_rows(biomass_gap, biomass_sap) %>%
   dplyr::filter(year > 1981 & 
-                  stratum %in% c(strat0)) %>%
-  dplyr::left_join(
-    y = spp_info %>% 
-      dplyr::select(species_code, common_name, species_name, taxon), 
-    by = "species_code") %>% 
+                  stratum %in% c(strat0)) %>% 
   dplyr::mutate(
     biomass_dw = ifelse(biomass_dw<0, 0, biomass_dw), 
     population_dw = ifelse(population_dw<0, 0, population_dw) )
