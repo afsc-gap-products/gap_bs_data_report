@@ -1737,29 +1737,29 @@ plot_sizecomp <- function(sizecomp0,
                            begin = .2,
                            end = .6,
                            na.value = "transparent") +
-      guides(fill=guide_legend(title="")) +
-      scale_y_continuous(name = paste0(spp_print, " population ",pop_unit_word), 
+      scale_y_continuous(name = paste0("Population ",pop_unit_word), 
                          breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1))))) +
       scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
                          breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
       facet_grid(year ~ SRVY_long,
                  scales = "free_x")  +
+      ggplot2::labs(fill = spp_print) +
       ggplot2::guides(
-        fill = guide_legend(title.position = "top", 
+        fill = guide_legend(title.position = "top",
                             title.hjust = 0.5,
-                            nrow = 1 )) +
+                            title.vjust = -0.5)) +
       ggplot2::theme(
         panel.grid.major.x = element_blank(),
         panel.border = element_rect(fill = NA,
                                     colour = "grey20"),
-        legend.title = element_blank(), 
         legend.text = element_text(size = legend_font_size),
         legend.background = element_rect(colour = "transparent", 
                                          fill = "transparent"),
         legend.key = element_rect(colour = "transparent",
                                   fill = "transparent"),
         legend.position = "bottom",
-        legend.box = "horizontal" )
+        legend.box = "horizontal",
+        legend.box.spacing = unit(0, "pt"))
     
   } else {
     table_raw1 <- table_raw %>% 
