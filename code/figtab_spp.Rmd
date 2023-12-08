@@ -256,7 +256,7 @@ for (case_yr in case_yr0) {
     ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
     coord_sf() + 
     ggplot2::scale_fill_manual(
-    name = key.title,
+    name = stringr::str_to_title(key.title),
     values =  c("gray90",
                 viridis::viridis(
                   option = viridis_palette_option,
@@ -303,7 +303,9 @@ for (case_yr in case_yr0) {
       legend.key = element_rect(colour = "transparent", 
                                 fill = "transparent"),
       legend.position = "bottom", 
-      legend.box = "horizontal") 
+      legend.box = "horizontal",
+      legend.box.spacing = unit(0, "pt"),  # reduce space between legend & plot
+      legend.margin=margin(0, 0, 0, 0)) 
   
   if (report_title == "ptpres") {
     figure <- figure +
@@ -488,7 +490,7 @@ if (!(nrow(table_raw) == 0)) {
           SRVY_long = stringr::str_to_title(SRVY_long)),
       lengths0 = lengths0,
       spp_code = spp_code,
-      spp_print = stringr::str_to_sentence(spp_print),
+      spp_print = stringr::str_to_title(spp_print),
       type = type,
       print_n = print_n, 
       ridgeline = FALSE)
@@ -1220,8 +1222,8 @@ if (report_title %in% "community") {
                         switch = "both") +
     # aesthetics
     # Create & position legend title
-    ggplot2::labs(color = stringr::str_to_sentence(spp_print)) +  # force sentence case
-    ggplot2::labs(shape = stringr::str_to_sentence(spp_print)) +
+    ggplot2::labs(color = stringr::str_to_title(spp_print)) +  # force title case
+    ggplot2::labs(shape = stringr::str_to_title(spp_print)) +
     ggplot2::guides(color = guide_legend(title.position = "top",
                                          title.hjust = 0.5,
                                          title.vjust = -0.5),
@@ -1248,7 +1250,8 @@ if (report_title %in% "community") {
       axis.text = element_text(size = legend_font_size),
       legend.position = "bottom", 
       legend.box = "horizontal",
-      legend.box.spacing = unit(0, "pt"))
+      legend.box.spacing = unit(0, "pt"),
+      legend.margin=margin(0, 0, 0, 0))
   
   if (!is.na(anno)) {
     figure <- figure +
