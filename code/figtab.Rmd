@@ -1341,9 +1341,10 @@ for (i in 1:nrow(comb)) {
   
   total <- total_biomass %>% 
     dplyr::filter(year == maxyr &
+                    taxon == comb$taxon[i] &
                     SRVY == comb$SRVY[i]) %>% 
     dplyr::left_join(y = data.frame(taxon = c("fish", "invert"), 
-                                    taxon_long = c("fishes", "invertebrates")))
+                                    taxon_long = c("fish", "invertebrate")))
   
   # Select data and make plot --------------------------------------------------
   table_raw <- table_raw0  %>% 
@@ -1365,18 +1366,18 @@ for (i in 1:nrow(comb)) {
     strat <- names(table_raw)[7:ncol(table_raw)]
   
   # Make table_print -------------------------------------------------------------
-  
+
+      
+  footnote0 <- paste0("The ", total$SRVY_long, " bottom trawl survey total estimated ", text_list(total$taxon_long)," biomass is ", 
+                      text_list(formatC(x = total$total, digits = 0, format = "f", big.mark = ",")), 
+                      " t." )
+    
   FitFlextableToPage <- function(x, pgwidth = 6) {
     ft_out <- x %>% flextable::autofit()
     ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths * 
                                  pgwidth/(flextable::flextable_dim(ft_out)$widths))
     return(ft_out)
   }
-  
-  footnote0 <- paste0("Total estimated biomass is ", 
-                      text_list(formatC(x = total$total, digits = 0, format = "f", big.mark = ",")), 
-                      " t for ", text_list(total$taxon_long)," in the ",  
-                      unique(total$SRVY_long), " bottom trawl survey.")
 
   table_print <- table_raw %>%
     flextable::flextable()  %>%
@@ -1455,7 +1456,24 @@ for (i in 1:nrow(comb)) {
 ```{r tab-majortaxa-pchange-[SRVY]}
 
 nickname0 <- "tab-majortaxa-pchange-" 
-yrs <- nbsyr
+yrs <- nbsyr[(length(nbsyr)-2):length(nbsyr)]
+
+# table_raw0 <- 
+#   dplyr::left_join(
+#     y = biomass %>% 
+#       dplyr::filter(stratum == 999 & 
+#                       SRVY %in% SRVY1 &
+#                       year %in% yrs)  %>%
+#   # dplyr::filter(!is.na(group) & 
+#   #                 !is.na(year)) %>% 
+#       # dplyr::mutate(species_code = ifelse(is.na(species_code), group, species_code)) %>% 
+#       dplyr::select(print_name = group, year, taxon, SRVY, biomass_mt), 
+#     x = report_spp %>% 
+#       dplyr::filter(table_bio_spp) %>% 
+#       dplyr::select(print_name, table_bio_spp)#, # species_name = species_name1, species_code, taxon, 
+#     # relationship = "many-to-many",
+#     # by = c("species_code")
+#     ) %>%
 
 table_raw0 <- 
   dplyr::left_join(
