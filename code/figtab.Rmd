@@ -331,7 +331,7 @@ table_print <- table_raw %>%
   flextable::compose(i = 1, j = "area_km2", part = "header",
                      value = as_paragraph("Representative\narea (km", as_sup("2"), ")")) %>%
   flextable::compose(i = 1, j = "density", part = "header",
-                     value = as_paragraph("Sampling density\n(km", as_sup("2"), "/Stations successfully sampled)")) %>%  
+                     value = as_paragraph("Sampling density\n(km", as_sup("2"), "/stations successfully sampled)")) %>%  
   flextable::set_header_labels(area_name = "",
                                stratum = "Stratum",
                                stations_avail = "Stations\nin stratum",
@@ -761,7 +761,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-cold-pool-area
 
 ```{r fig-cold-pool-area}
-header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea shelf, based on observations from the eastern Bering Sea bottom trawl survey. The extent of the cold pool is shown as a percentage of the total eastern Bering Sea shelf survey area. Shading denotes near-bottom temperatures \u2264 2°C, \u2264 1°C, \u2264 0°C, and \u2264 -1°C.")
+header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea shelf, based on observations from the eastern Bering Sea bottom trawl survey. The extent of the cold pool is shown as a percentage of the total eastern Bering Sea shelf survey area (northern Bering Sea area not included). Shading denotes near-bottom temperatures \u2264 2°C, \u2264 1°C, \u2264 0°C, and \u2264 -1°C.")
 
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig-cold-pool-area"
@@ -996,7 +996,7 @@ table_raw0 <-
                    by = c("SRVY", "common_name" = "print_name")) %>% 
   dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0))) %>%
   dplyr::select(-species_code) %>% 
-  dplyr::arrange(SRVY, common_name) %>% 
+  dplyr::arrange(common_name) %>% 
   dplyr::filter(!grepl(pattern = " crab", x = common_name, ignore.case = TRUE))
 
 table_raw0$common_name[is.na(table_raw0$common_name)] <- "other" # TOLEDO
@@ -1015,7 +1015,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
                    haul_cruises_maxyr$SRVY_long[i],
-                   " shelf bottom trawl survey. The annual crab Technical Memorandum produced by the shellfish assessment program summarizes crab samples collected during the survey. ")
+                   " shelf bottom trawl survey. For crab data, see ",paste0("@SAPcrab", maxyr),". ")
   
   table_raw <- table_raw0 %>% 
     dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
@@ -1387,7 +1387,9 @@ for (i in 1:nrow(comb)) {
     flextable::add_header_row(top = TRUE,
                               values = c("Taxon",
                                          "Estimated total biomass (t)\n± 95% confidence interval",
-                                         "Proportion of total animal biomass",
+                                         paste0("Proportion of total ",
+                                                ifelse(comb$taxon[i] =="invert", "invertebrate", "fish"),
+                                                " biomass"),
                                          "Estimated biomass by stratum (t)"),
                               colwidths = c(2,3,1,(length(strat)))) %>%
     flextable::width(width = ifelse((length(strat))>3, 0.7, 1.25),
@@ -1532,7 +1534,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     "Total estimated biomass in metric tons (t) and the percent change between the ",
     compareyr," and ",maxyr," ", 
     haul_cruises_maxyr$SRVY_long[i], 
-    ' shelf bottom trawl surveys for predominant fish and invertebrate taxa. ') 
+    ' shelf bottom trawl surveys for predominant fish and invertebrate taxa. Taxa are listeed in descending order of percent (%) change from ',compareyr,' to ',maxyr,'. ') 
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
   
   table_print <- table_print0  %>% 
@@ -1592,7 +1594,9 @@ for (i in 1:2) {
   if (i == 1){ # CPUE (WT/km²) and BIOMASS
     
     header <- paste0("Mean CPUE by weight (kg/km²) with standard deviation, and estimated biomass (t) with standard deviation and 95% lower (LCL) and upper (UCL) confidence limits for common groundfish species for the ",
-                     maxyr," ", text_list(paste0(SRVY11, " (", SRVY1, ")")), 
+                     maxyr," ", text_list(paste0(haul_cruises_maxyr$SRVY_long, 
+                                                 " (", haul_cruises_maxyr$SRVY, "; ", 
+                                                 haul_cruises_maxyr$stations_completed, " stations completed)")), 
                      " shelf bottom trawl survey",plural_surveys,".")
     
     table_raw <- temp %>% 

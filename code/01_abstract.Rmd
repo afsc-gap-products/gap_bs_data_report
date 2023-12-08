@@ -18,7 +18,7 @@ vessels0 <- vessels %>%
   dplyr::filter(vess_shape != "X")
 ```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessels0)))` chartered commercial stern trawler`r plural_surveys`, the `r text_list(paste0(vessels0$length_m, "-m ",  vessels0$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_avail, " total stations in the ", haul_cruises_maxyr$SRVY_long))`. At each station, species composition, sex, length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
+In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessels0)))` chartered commercial stern trawler`r plural_surveys`, the `r text_list(paste0(vessels0$length_m, "-m ",  vessels0$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, which consisted of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " (of ",  haul_cruises_maxyr$stations_avail, ") total stations in the ", haul_cruises_maxyr$SRVY_long))`. At each station, species composition, sex, length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
 
 ```{r}
 #| label: abstract-temperature
@@ -26,7 +26,7 @@ In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Divisi
 temp0 <- temps_avg_yr %>% 
   dplyr::filter(year == maxyr) %>% 
   dplyr::mutate(
-    dplyr::across(is.numeric, round, digits = 1), 
+    dplyr::across(where(is.numeric), round, digits = 1), 
     bt_case = dplyr::case_when( 
       bt_case == "average" ~ "near", 
       bt_case == "warmer" ~ "above", 
@@ -42,9 +42,8 @@ str0 <- paste0("The ", maxyr, " mean bottom and surface temperatures in the east
                 temp0$bt, "°C and ", temp0$st, "°C) were ",
                 temp0$bt_case, # only need to list one
                 " the ",
-       temp0$bt_mean, "°C and ", temp0$st_mean, 
-       "°C time-series average in ",
-       maxyr, ", respectively. ")
+       temp0$bt_mean, "°C and time-series averages of ", temp0$st_mean, 
+       "°C, respectively. ")
 
 } else {
   str0 <- ""
@@ -263,7 +262,7 @@ for (i in 1:length(unique(cruises_maxyr$SRVY))){
 }
 ```
 
-`r str00`A total of `r fish_sp ` species of fish and `r invert_spp ` invertebrate taxa were identified during the `r SURVEY` survey`r plural_surveys`.
+`r str00`A total of `r fish_sp ` species of fishes and `r invert_spp ` invertebrate taxa were identified during the `r SURVEY` survey`r plural_surveys`.
 
 This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r SURVEY` shelf bottom trawl surveys. For common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r SURVEY` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Tables in the appendix list population estimates by sex and size group for principal fish species and species encountered during the survey`r plural_surveys`. 
 

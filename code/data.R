@@ -669,7 +669,7 @@ vessels <- vessels %>%
     vessel_name = "Not Surveyed", 
     vessel_ital = "Not Surveyed", 
     vess_shape = "X", 
-    vess_col = "#E6E6E6") 
+    vess_col = "grey70") 
 }
 ## haul_cruises + _maxyr + _compareyr ------------------------------------------
 
