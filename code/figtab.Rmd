@@ -1065,126 +1065,145 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 ```{r tab-species-composition, eval = (SRVY == "NEBS")}
 nickname <- "tab-species-composition" 
+height <- full_page_portrait_height # 7
+width <- full_page_portrait_width # 6.5
 header <- paste0("Composition of fish taxa encountered in the ",
                  text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
                                   paste0(haul_cruises_maxyr$SRVY, ")")))," survey catches. ")
 
-height <- full_page_portrait_height # 7
-width <- full_page_portrait_width # 6.5
-
-if (!("NBS" %in% catch_haul_cruises_maxyr$SRVY)) {
-  table_raw <- data.frame(val = "There are no data for this table yet. ")
-  table_print <- table_raw %>% flextable::flextable()
-} else {
-  # Select data and make plot
-  table_raw <- catch_haul_cruises_maxyr %>% 
-    dplyr::select(species_code, SRVY, latitude_dd_start) %>% 
-    dplyr::group_by(species_code, SRVY) %>% 
-    dplyr::summarise(lat_max = max(latitude_dd_start, na.rm = TRUE),
-                     lat_min = min(latitude_dd_start, na.rm = TRUE)) %>%
-    dplyr::mutate(above_60 = (lat_max >= 60 & lat_min >= 60)) %>%
-    tidyr::pivot_wider(data = ., 
-                       id_cols = species_code, 
-                       names_from = SRVY, 
-                       values_from = c(above_60),#, lat_min, lat_max), 
-                       values_fill = NA) %>% 
-    dplyr::mutate(where = dplyr::case_when(
-      !is.na(EBS) & !is.na(NBS) ~ "both", 
-      is.na(NBS) & !is.na(EBS)~ "ebs", 
-      is.na(EBS) & !is.na(NBS) ~ "nbs")) %>% 
-    dplyr::left_join(y = spp_info, 
-                     by = "species_code") %>% 
-    dplyr::filter(taxon == "fish") %>% 
-    dplyr::ungroup() %>% 
-    dplyr::select(species_code, common_name, all_of(SRVY1), where) %>% 
-    dplyr::filter(!grepl(x = common_name, pattern = " unid.", fixed = TRUE) &
+# Select data and make plot
+table_raw <- catch_haul_cruises_maxyr %>% 
+  dplyr::select(species_code, SRVY) %>% 
+  dplyr::mutate(occured = TRUE) %>%
+  dplyr::distinct() %>%
+  tidyr::pivot_wider(id_cols = species_code,
+                     names_from = SRVY, 
+                     values_from = occured, 
+                     values_fill = FALSE) %>% 
+  dplyr::mutate(where = dplyr::case_when(
+    (EBS & NBS) ~ "both", 
+    (EBS & !NBS) ~ "ebs", 
+    (NBS & !EBS) ~ "nbs")) %>% 
+  dplyr::left_join(
+    spp_info %>% 
+      dplyr::select(species_code, 
+                    common_name, 
+                    taxon, 
+                    species_name_ital, 
+                    species_name_noital) %>% 
+      dplyr::distinct()) %>%
+  dplyr::filter(taxon == "fish" & 
+                  !grepl(x = common_name, pattern = " unid.", fixed = TRUE) &
                     !grepl(x = common_name, pattern = " egg", fixed = TRUE) & 
-                    !is.na(common_name)) %>%
-    dplyr::arrange(common_name)
-  
-  
-  temp <- table_raw %>% 
-    dplyr::select(-species_code)
-  
-  temp1 <- temp %>% 
-    dplyr::filter(where == "ebs" & 
-                    !is.na(common_name)) %>% 
-    dplyr::select(-where, -NBS) %>% 
-    dplyr::rename(above_60 = EBS)
-  
-  temp2 <- temp %>% 
-    dplyr::filter(where == "nbs" & 
-                    !is.na(common_name)) %>% 
-    dplyr::select(-where, -EBS) %>% 
-    dplyr::rename(above_60 = NBS)
-  
-  # make the same length so they can be bound together
-  if (nrow(temp1)>nrow(temp2)) {
-    temp2 <- temp2 %>% 
-      dplyr::bind_rows(., 
-                       data.frame(common_name = rep_len(NA, (nrow(temp1)-nrow(temp2))), 
-                                  report_name_scientific = NA, 
-                                  above_60 = FALSE))
-  } else {
-    temp1 <- temp1 %>% 
-      dplyr::bind_rows(., 
-                       data.frame(common_name = rep_len(NA, (nrow(temp2)-nrow(temp1))), 
-                                  report_name_scientific = NA, 
-                                  above_60 = FALSE))
-  }
-  
-  names(temp1) <- paste0(names(temp1), "_")
-  
-  temp0 <- dplyr::bind_cols(temp1, temp2)
-  
-  for (iii in 1:nrow(temp0)) {
-    if (grepl(pattern = " unid.", x = temp0$report_name_scientific[iii])) {
-      temp0$common_name[iii] <- paste0(temp0$common_name[iii], 
-                                       " (", temp0$report_name_scientific[iii], ")")
-      temp0$report_name_scientific[iii] <- NA
-    }
-    if (grepl(pattern = " unid.", x = temp0$report_name_scientific[iii])) {
-      temp0$common_name_[iii] <- paste0(temp0$common_name_[iii], 
-                                        " (", temp0$report_name_scientific_[iii], ")")
-      temp0$report_name_scientific_[iii] <- NA
-    }
-  }
-  
-  table_print <- flextable::flextable(
-    data = temp0,
-    col_keys = c("dummy_ebs","dummy_nbs"))  %>%
-    flextable::compose(j = "dummy_ebs", part = "body",
-                       value = as_paragraph(
-                         as_chunk(ifelse(!is.na(common_name_), 
-                                         paste0(common_name_), ""),
-                                  props = fp_text_default(bold = FALSE, font.size = 10, font.family = font0)), 
-                         as_chunk(ifelse(!is.na(common_name_), 
-                                         paste0(" (", common_name_, ")"), ""),
-                                  props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
-    flextable::compose(j = "dummy_nbs", part = "body",
-                       value = as_paragraph(
-                         as_chunk(ifelse(!is.na(common_name), 
-                                         paste0(common_name), ""),
-                                  props = fp_text_default(bold = FALSE, font.size = 10, font.family = font0)), 
-                         as_chunk(ifelse(!is.na(common_name), 
-                                         paste0(" (", common_name, ")"), ""),
-                                  props = fp_text_default(italic = TRUE, font.size = 10, font.family = font0)))) %>%  
-    flextable::compose(i = 1, j = "dummy_ebs", part = "header",
-                       as_paragraph("Encountered in EBS but not in NBS\nCommon Name ", 
-                                    as_chunk(paste0("(Scientific Name)"),
-                                             props = fp_text_default(italic = TRUE, bold = TRUE, 
-                                                                     font.size = 10, font.family = font0)))) %>%  
-    flextable::compose(i = 1, j = "dummy_nbs", part = "header",
-                       as_paragraph("Encountered in NBS but not in EBS\nCommon Name ", 
-                                    as_chunk(paste0("(Scientific Name)"),
-                                             props = fp_text_default(italic = TRUE, bold = TRUE, 
-                                                                     font.size = 10, font.family = font0)))) %>%  
-    theme_flextable_nmfstm(row_lines = FALSE, 
-                           pgwidth = full_page_portrait_width) %>%
-    flextable::vline(j = "dummy_ebs", part = "all") 
-  
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+                  !is.na(common_name)) %>% 
+  dplyr::mutate(species_name_ital = ifelse(species_name_ital == "", NA, species_name_ital), 
+                species_name_noital = ifelse(species_name_noital == "", NA, species_name_noital) ) %>%
+  dplyr::distinct() %>% 
+  dplyr::arrange(common_name)
+
+temp_ebs <- table_raw %>% 
+  dplyr::filter(where == "ebs")
+
+temp_nbs <- table_raw %>% 
+  dplyr::filter(where == "nbs")
+names(temp_nbs) <- paste0(names(temp_nbs), "_")
+
+# make the same length so they can be bound together
+if (nrow(temp_ebs)>nrow(temp_nbs)) {
+  temp_nbs <- dplyr::bind_rows(
+    temp_nbs, 
+    data.frame(common_name_ = rep_len(NA, (nrow(temp_ebs)-nrow(temp_nbs)) ) ) )
+} else  if (nrow(temp_nbs)>nrow(temp_ebs)) {
+  temp_ebs <- dplyr::bind_rows(
+    temp_ebs, 
+    data.frame(common_name = rep_len(NA, (nrow(temp_nbs)-nrow(temp_ebs)) ) ) )
 }
+
+temp0 <- dplyr::bind_cols(temp_ebs, temp_nbs) %>% 
+  dplyr::select(-where, -NBS, -EBS)
+
+table_print <- flextable::flextable(
+  data = temp0,
+  col_keys = c("dummy_ebs","dummy_nbs"))  %>%
+  flextable::compose(
+    j = "dummy_nbs", part = "body",
+    value = as_paragraph(
+      # common name and first ( if there are sci names
+      as_chunk(paste0(ifelse(is.na(common_name_), "", common_name_), 
+                      ifelse((!is.na(species_name_ital_) | !is.na(species_name_noital_)), " (", "")),
+               props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)), 
+      # italic sci name
+      as_chunk(ifelse(!is.na(species_name_ital_), species_name_ital_, ""),
+               props = fp_text_default(italic = TRUE, font.size = font_size0, font.family = font0)), 
+      # non-italic sci name and/or )
+      as_chunk(paste0(ifelse((!is.na(species_name_ital_) & !is.na(species_name_noital_)), " ", ""),
+                      ifelse(!is.na(species_name_noital_), species_name_noital_, ""),
+                      ifelse((!is.na(species_name_ital_) | !is.na(species_name_noital_)), ")", "")),
+               props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)))) %>%  
+  flextable::compose(
+    j = "dummy_ebs", part = "body",
+    value = as_paragraph(
+      # common name and first ( if there are sci names
+      as_chunk(paste0(ifelse(is.na(common_name), "", common_name), 
+                      ifelse((!is.na(species_name_ital) | !is.na(species_name_noital)), " (", "")),
+               props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)), 
+      # italic sci name
+      as_chunk(ifelse(!is.na(species_name_ital), species_name_ital, ""),
+               props = fp_text_default(italic = TRUE, font.size = font_size0, font.family = font0)), 
+      # non-italic sci name and/or )
+      as_chunk(paste0(ifelse((!is.na(species_name_ital) & !is.na(species_name_noital)), " ", ""),
+                      ifelse(!is.na(species_name_noital), species_name_noital, ""),
+                      ifelse((!is.na(species_name_ital) | !is.na(species_name_noital)), ")", "")),
+               props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)))) %>% 
+  
+  #   flextable::compose(
+  #   j = "dummy_nbs", part = "body",
+  #   value = as_paragraph(
+  #     # common name and first ( if there are sci names
+  #     as_chunk(paste0(ifelse(is.na(common_name_), "", common_name_), 
+  #                     ifelse((species_name_ital_ != "" | species_name_noital_ != ""), " (", "")),
+  #              props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)), 
+  #     # italic sci name
+  #     as_chunk(ifelse(species_name_ital_ != "", species_name_ital_, ""),
+  #              props = fp_text_default(italic = TRUE, font.size = font_size0, font.family = font0)), 
+  #     # non-italic sci name and/or )
+  #     as_chunk(paste0(ifelse((species_name_ital_ != "" & species_name_noital_ != ""), " ", ""),
+  #                     ifelse((species_name_noital_ != ""), species_name_noital_, ""),
+  #                     ifelse((species_name_ital_ != "" | species_name_noital_ != ""), ")", "")),
+  #              props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)) 
+  #     )) %>%  
+  # flextable::compose(
+  #   j = "dummy_ebs", part = "body",
+  #   value = as_paragraph(
+  #     # common name and first ( if there are sci names
+  #     as_chunk(paste0(ifelse(is.na(common_name), "", common_name), 
+  #                     ifelse((species_name_ital != "" | species_name_noital != ""), " (", "")),
+  #              props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)), 
+  #     # italic sci name
+  #     as_chunk(ifelse(species_name_ital != "", species_name_ital, ""),
+  #              props = fp_text_default(italic = TRUE, font.size = font_size0, font.family = font0)), 
+  #     # non-italic sci name and/or )
+  #     as_chunk(paste0(ifelse((species_name_ital != "" & species_name_noital != ""), " ", ""),
+  #                     ifelse((species_name_noital != ""), species_name_noital, ""),
+  #                     ifelse((species_name_ital != "" | species_name_noital != ""), ")", "")),
+  #              props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)) )) %>% 
+  
+  flextable::compose(i = 1, j = "dummy_ebs", part = "header",
+                                                                                                                               as_paragraph("Encountered in EBS, not in NBS\nCommon Name ",
+                                                                                                                                            as_chunk(paste0("(Scientific Name)"),
+                                                                                                                                                     props = fp_text_default(italic = TRUE, bold = TRUE,
+                                                                                                                                                                             font.size = 10, font.family = font0)))) %>%
+  flextable::compose(i = 1, j = "dummy_nbs", part = "header",
+                     as_paragraph("Encountered in NBS, not in EBS\nCommon Name ", 
+                                  as_chunk(paste0("(Scientific Name)"),
+                                           props = fp_text_default(italic = TRUE, bold = TRUE, 
+                                                                   font.size = 10, font.family = font0)))) %>%  
+  theme_flextable_nmfstm(row_lines = FALSE, 
+                         pgwidth = full_page_portrait_width) %>%
+  flextable::width(width = c(full_page_portrait_width/2, full_page_portrait_width/2), unit = "in") %>% 
+  flextable::vline(j = "dummy_ebs", part = "all") 
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## tab-biomass-est-[SRVY]-[taxon]
@@ -1192,86 +1211,86 @@ if (!("NBS" %in% catch_haul_cruises_maxyr$SRVY)) {
 ```{r tab-biomass-est-[SRVY]-[taxon]}
 nickname0 <- "tab-biomass-est-"
 
-  # if (taxon0 == "fish") {
-  #   exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes greater than 35000 are invertebrates
-  # dplyr::mutate(group0 = case_when(
-  #   species_code == 471 ~ "Rajidae (skates)_Alaska skate",
-  #   species_code >= 401 & 
-  #     species_code <= 495 & 
-  #     species_code != 471 ~ "Rajidae (skates)_other skates",
-  #   species_code == 10210 ~ "Pleuronectidae (flatfishes)_yellowfin sole",
-  #   species_code == 10261 ~ "Pleuronectidae (flatfishes)_northern rock sole",
-  #   species_code == 10130 ~ "Pleuronectidae (flatfishes)_flathead sole",
-  #   species_code == 10140 ~ "Pleuronectidae (flatfishes)_Bering flounder",
-  #   species_code == 10285 ~ "Pleuronectidae (flatfishes)_Alaska plaice",
-  #   species_code == 10110 ~ "Pleuronectidae (flatfishes)_arrowtooth flounder",
-  #   species_code == 10112 ~ "Pleuronectidae (flatfishes)_Kamchatka flounder",
-  #   species_code == 10120 ~ "Pleuronectidae (flatfishes)_Pacific halibut",
-  #   species_code >= 10041 & 
-  #     species_code <= 10295 & 
-  #     species_code != 10210 &
-  #     species_code != 10261 &
-  #     species_code != 10130 &
-  #     species_code != 10140 &
-  #     species_code != 10285 &
-  #     species_code != 10110 &
-  #     species_code != 10112 &
-  #     species_code != 10115 &
-  #     species_code != 10120 ~ "Pleuronectidae (flatfishes)_other flatfish",
-  #   species_code >= 21740 & species_code <= 21741 ~ "Gadidae (cods)_walleye pollock",
-  #   species_code >= 21720 & species_code <= 21721 ~ "Gadidae (cods)_Pacific cod",
-  #   species_code >= 21710 & 
-  #     species_code <= 21737 &
-  #     species_code != 21740 &
-  #     species_code != 21741 &
-  #     species_code != 21720 &
-  #     species_code != 21721 ~ "Gadidae (cods)_other cods",
-  #   species_code >= 20000 & species_code <= 20075 ~ "Agonidae (poachers)",
-  #   species_code >= 21300 & species_code <= 21447 ~ "Cottidae (sculpins)",
-  #   species_code >= 21900 & species_code <= 21935 ~ "Hexagrammidae (greenlings)",
-  #   species_code >= 22170 & species_code <= 22199 ~ "Cyclopteridae (lumpsuckers)",
-  #   species_code >= 22200 & species_code <= 22286 ~ "Liparidae (snailfishes)",
-  #   species_code >= 23000 & species_code <= 23099 ~ "Osmeridae (smelts)",
-  #   species_code >= 23800 & species_code <= 23870 ~ "Stichaeidae (blennies)", 
-  #   species_code >= 24100 & species_code <= 24395 ~ "Zoarcidae (eelpouts)",
-  #   species_code == 30060 ~ "Scorpaenidae (rockfishes)_Pacific ocean perch",
-  #   species_code >= 30000 & 
-  #     species_code <= 31550 & 
-  #     species_code != 30060 ~ "Scorpaenidae (rockfishes)_other rockfish",
-  #   TRUE ~ "Other"))')
-  #   
-  #   spp_code_rnge = "species_code < 35000"
-  #   
-  # } else {
-  #   exp0 <- ('DATAFRAME %>% dplyr::filter(species_code >= 40000 & 
-  #                 species_code < 99991) %>% # groups greater than 99991 are empty shells, empty barnacles
-  # dplyr::mutate(group0 = dplyr::case_when(
-  #   species_code >= 66000 & species_code <= 67499 ~ "Crustacea_shrimps",
-  #   species_code >= 60000 & species_code <= 65999 ~ "Crustacea_other crustaceans",
-  #   species_code >= 67500 & species_code <=	67999 ~ "Crustacea_other crustaceans", 
-  #   species_code >= 69550	& species_code <= 68999 ~ "Crustacea_other crustaceans",
-  #   species_code >= 71000 & species_code <= 73999 ~ "Mollusca_Gastropoda (snails)",
-  #   species_code >= 74000 & species_code <= 75799 ~ "Mollusca_Pelecypoda (bivalves)",
-  #   species_code >= 78500 & species_code <= 79600 ~ "Mollusca_squids",
-  #   species_code >= 78010 & species_code <= 78499 ~ "Mollusca_octopuses",
-  #   species_code >= 70000	& species_code <= 70999	~ "Mollusca_other mollusks",
-  #   species_code >= 78000 & species_code <=	78009 ~ "Mollusca_other mollusks",
-  #   species_code >= 80000	& species_code <= 82499 ~ "Echinodermata_Asteroidea (sea stars)",
-  #   species_code >= 83000	& species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
-  #   species_code >= 83800 & species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
-  #   species_code >= 82500	& species_code <= 82749 ~ "Echinodermata_Echinoidea (sea urchins)",
-  #   species_code >= 85000 & species_code <= 85999 ~ "Echinodermata_Holothuroidea (sea cucumbers)",
-  #   species_code >= 98000	& species_code <= 99909 ~ "Ascidiacea",
-  #   species_code >= 91000 & species_code <=	91999 ~ "Porifera (sponges)",
-  #   species_code >= 40000	& species_code <= 44999 ~ "Coelenterata",
-  #   species_code >= 45000	& species_code <= 59999 ~ "Other",
-  #   species_code >= 92000	& species_code <= 97999 ~ "Other",
-  #   species_code >= 99990 & species_code <=	99992 ~ "Other",
-  #   species_code >= 77011 & species_code <= 77012 ~ "Other",
-  #   species_code == 99987 ~ "Porifera (sponges)",
-  #   TRUE ~ "Other"))')
-  #   spp_code_rnge = "species_code >= 40000 & species_code < 99991"
-  # }
+# if (taxon0 == "fish") {
+#   exp0 <- ('DATAFRAME %>% dplyr::filter(species_code < 35000) %>% # species codes greater than 35000 are invertebrates
+# dplyr::mutate(group0 = case_when(
+#   species_code == 471 ~ "Rajidae (skates)_Alaska skate",
+#   species_code >= 401 & 
+#     species_code <= 495 & 
+#     species_code != 471 ~ "Rajidae (skates)_other skates",
+#   species_code == 10210 ~ "Pleuronectidae (flatfishes)_yellowfin sole",
+#   species_code == 10261 ~ "Pleuronectidae (flatfishes)_northern rock sole",
+#   species_code == 10130 ~ "Pleuronectidae (flatfishes)_flathead sole",
+#   species_code == 10140 ~ "Pleuronectidae (flatfishes)_Bering flounder",
+#   species_code == 10285 ~ "Pleuronectidae (flatfishes)_Alaska plaice",
+#   species_code == 10110 ~ "Pleuronectidae (flatfishes)_arrowtooth flounder",
+#   species_code == 10112 ~ "Pleuronectidae (flatfishes)_Kamchatka flounder",
+#   species_code == 10120 ~ "Pleuronectidae (flatfishes)_Pacific halibut",
+#   species_code >= 10041 & 
+#     species_code <= 10295 & 
+#     species_code != 10210 &
+#     species_code != 10261 &
+#     species_code != 10130 &
+#     species_code != 10140 &
+#     species_code != 10285 &
+#     species_code != 10110 &
+#     species_code != 10112 &
+#     species_code != 10115 &
+#     species_code != 10120 ~ "Pleuronectidae (flatfishes)_other flatfish",
+#   species_code >= 21740 & species_code <= 21741 ~ "Gadidae (cods)_walleye pollock",
+#   species_code >= 21720 & species_code <= 21721 ~ "Gadidae (cods)_Pacific cod",
+#   species_code >= 21710 & 
+#     species_code <= 21737 &
+#     species_code != 21740 &
+#     species_code != 21741 &
+#     species_code != 21720 &
+#     species_code != 21721 ~ "Gadidae (cods)_other cods",
+#   species_code >= 20000 & species_code <= 20075 ~ "Agonidae (poachers)",
+#   species_code >= 21300 & species_code <= 21447 ~ "Cottidae (sculpins)",
+#   species_code >= 21900 & species_code <= 21935 ~ "Hexagrammidae (greenlings)",
+#   species_code >= 22170 & species_code <= 22199 ~ "Cyclopteridae (lumpsuckers)",
+#   species_code >= 22200 & species_code <= 22286 ~ "Liparidae (snailfishes)",
+#   species_code >= 23000 & species_code <= 23099 ~ "Osmeridae (smelts)",
+#   species_code >= 23800 & species_code <= 23870 ~ "Stichaeidae (blennies)", 
+#   species_code >= 24100 & species_code <= 24395 ~ "Zoarcidae (eelpouts)",
+#   species_code == 30060 ~ "Scorpaenidae (rockfishes)_Pacific ocean perch",
+#   species_code >= 30000 & 
+#     species_code <= 31550 & 
+#     species_code != 30060 ~ "Scorpaenidae (rockfishes)_other rockfish",
+#   TRUE ~ "Other"))')
+#   
+#   spp_code_rnge = "species_code < 35000"
+#   
+# } else {
+#   exp0 <- ('DATAFRAME %>% dplyr::filter(species_code >= 40000 & 
+#                 species_code < 99991) %>% # groups greater than 99991 are empty shells, empty barnacles
+# dplyr::mutate(group0 = dplyr::case_when(
+#   species_code >= 66000 & species_code <= 67499 ~ "Crustacea_shrimps",
+#   species_code >= 60000 & species_code <= 65999 ~ "Crustacea_other crustaceans",
+#   species_code >= 67500 & species_code <=	67999 ~ "Crustacea_other crustaceans", 
+#   species_code >= 69550	& species_code <= 68999 ~ "Crustacea_other crustaceans",
+#   species_code >= 71000 & species_code <= 73999 ~ "Mollusca_Gastropoda (snails)",
+#   species_code >= 74000 & species_code <= 75799 ~ "Mollusca_Pelecypoda (bivalves)",
+#   species_code >= 78500 & species_code <= 79600 ~ "Mollusca_squids",
+#   species_code >= 78010 & species_code <= 78499 ~ "Mollusca_octopuses",
+#   species_code >= 70000	& species_code <= 70999	~ "Mollusca_other mollusks",
+#   species_code >= 78000 & species_code <=	78009 ~ "Mollusca_other mollusks",
+#   species_code >= 80000	& species_code <= 82499 ~ "Echinodermata_Asteroidea (sea stars)",
+#   species_code >= 83000	& species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
+#   species_code >= 83800 & species_code <= 83701 ~ "Echinodermata_Ophiuroidea (brittle stars)",
+#   species_code >= 82500	& species_code <= 82749 ~ "Echinodermata_Echinoidea (sea urchins)",
+#   species_code >= 85000 & species_code <= 85999 ~ "Echinodermata_Holothuroidea (sea cucumbers)",
+#   species_code >= 98000	& species_code <= 99909 ~ "Ascidiacea",
+#   species_code >= 91000 & species_code <=	91999 ~ "Porifera (sponges)",
+#   species_code >= 40000	& species_code <= 44999 ~ "Coelenterata",
+#   species_code >= 45000	& species_code <= 59999 ~ "Other",
+#   species_code >= 92000	& species_code <= 97999 ~ "Other",
+#   species_code >= 99990 & species_code <=	99992 ~ "Other",
+#   species_code >= 77011 & species_code <= 77012 ~ "Other",
+#   species_code == 99987 ~ "Porifera (sponges)",
+#   TRUE ~ "Other"))')
+#   spp_code_rnge = "species_code >= 40000 & species_code < 99991"
+# }
 
 table_raw0 <- biomass  %>% 
   dplyr::filter(year == maxyr &
@@ -1322,7 +1341,7 @@ table_raw0 <- table_raw0  %>%
     a = "±",
     prop = biomass_mt_999/total) %>% 
   dplyr::relocate(SRVY, group, taxon, biomass_mt_999, a, CI95, prop) %>% 
-    dplyr::select(-order, -total, -dplyr::starts_with("ci_"))
+  dplyr::select(-order, -total, -dplyr::starts_with("ci_"))
 
 names(table_raw0) <- gsub(pattern = "biomass_mt_", replacement = "", x = names(table_raw0))
 
@@ -1364,22 +1383,22 @@ for (i in 1:nrow(comb)) {
              formatC, big.mark=",", digits = 0, format = "f")) %>% 
     dplyr::select(-taxon0, -SRVY)
   
-    strat <- names(table_raw)[7:ncol(table_raw)]
+  strat <- names(table_raw)[7:ncol(table_raw)]
   
   # Make table_print -------------------------------------------------------------
-
-      
+  
+  
   footnote0 <- paste0("The ", total$SRVY_long, " bottom trawl survey total estimated ", text_list(total$taxon_long)," biomass is ", 
                       text_list(formatC(x = total$total, digits = 0, format = "f", big.mark = ",")), 
                       " t." )
-    
+  
   FitFlextableToPage <- function(x, pgwidth = 6) {
     ft_out <- x %>% flextable::autofit()
     ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths * 
                                  pgwidth/(flextable::flextable_dim(ft_out)$widths))
     return(ft_out)
   }
-
+  
   table_print <- table_raw %>%
     flextable::flextable()  %>%
     flextable::merge_v(j = ~ group) %>%
