@@ -682,6 +682,11 @@ ageoffile<-function(path, format = "%B %d, %Y") {
   return(x)
 }
 
+# LowerFirstPhrase <- function(x) {
+#   substr(x, 1, 1) <- tolower(substr(x, 1, 1))
+#   return(x)
+# }
+
 CapFirst <- function(x) {
   xx <- c()
   for (i in 1:length(x)){

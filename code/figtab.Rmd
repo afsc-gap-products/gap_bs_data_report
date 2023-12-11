@@ -418,7 +418,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-stomach-collection-scheme}
 nickname <- paste0("tab-stomach-collection-scheme") 
 
-header <- paste0("Stomach collection targets during the ", 
+header <- paste0("Stomach collection target size bins (cm) used to collect each study fish during the ", 
                  maxyr, " ", 
                  text_list(paste0( 
                    haul_cruises_maxyr$SRVY_long)),
@@ -476,7 +476,8 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-project
   dplyr::select(SRVY, `Project title`, `Principal investigator`, Agency) %>% 
   dplyr::left_join(
     y = data.frame(SRVY = c(SRVY1, "EBS & NBS"), 
-                   SRVY_long = c(stringr::str_to_title(SRVY11), "Eastern and northern Bering Sea Combined"))) %>% 
+                   SRVY_long = c(stringr::str_to_title(SRVY11), 
+                                 "Eastern and northern Bering Sea Combined"))) %>% 
   dplyr::mutate(
     SRVY = gsub(pattern = "&", x = SRVY, replacement = "and"), 
     SRVY = factor(x = SRVY, 
@@ -484,10 +485,26 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-project
                   labels = c("EBS and NBS", "EBS", "NBS"), 
                   ordered = TRUE), 
     SRVY_long = factor(x = SRVY_long, 
-                       levels = c("Eastern and northern Bering Sea Combined", "Eastern Bering Sea", "Northern Bering Sea"), 
-                       labels = c("Eastern and northern Bering Sea Combined", "Eastern Bering Sea", "Northern Bering Sea"), 
+                       levels = c("Eastern and northern Bering Sea Combined", 
+                                  "Eastern Bering Sea", "Northern Bering Sea"), 
+                       labels = c("Eastern and northern Bering Sea Combined", 
+                                  "Eastern Bering Sea", "Northern Bering Sea"), 
                        ordered = TRUE)) %>%
   dplyr::arrange(SRVY, Agency, `Principal investigator`, `Project title`)
+
+# howmanyitals <- max(stringr::str_count(table_raw$`Project title`, "\\*")/2)
+# if (howmanyitals>0) {
+#   temp <- tidyr::crossing(
+#        temp2 = rep_len(length.out = howmanyitals, x = 1:howmanyitals), 
+#        temp1 = c("italno", "ital")) %>% 
+#     data.frame() %>%
+#     dplyr::mutate(cols = paste0(temp1, temp2)) 
+#   
+# table_raw <- table_raw %>% 
+#   tidyr::separate(col = `Project title`, sep = "//*", 
+#                   into = temp$cols, 
+#                   remove = FALSE)
+# }
 
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
@@ -501,10 +518,27 @@ temp1 <- places[places$Agency %in% unique(temp0), ]
 
 footnote0 <- paste(paste(temp1$Agency, " - ", temp1$agency_long, sep = ""), collapse = "; ")
 
+# eval(parse(text=paste0('flextable::compose(
+#     j = "dummy", part = "body",', paste0(''))))
+
+
+# table_print <- table_raw %>%
+#   dplyr::select(-SRVY) %>% 
+#   flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>% 
+#   flextable::as_flextable(hide_grouplabel = TRUE)  %>%
+  # flextable::compose(
+  #   j = "dummy", 
+  #   part = "body",
+  #   value = as_paragraph(
+  #     as_chunk(ifelse(is.na(italno1), "", italno1)),
+  #              props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)), 
+  #     as_chunk(ifelse(is.na(ital1), "", ital1),
+  #              props = fp_text_default(italic = TRUE, font.size = font_size0, font.family = font0))) %>% 
+
 table_print <- table_raw %>%
-  dplyr::select(-SRVY) %>% 
-  flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>% 
-  flextable::as_flextable(., hide_grouplabel = TRUE)  %>% 
+  dplyr::select(-SRVY, -dplyr::starts_with("ital")) %>%
+  flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>%
+  flextable::as_flextable(., hide_grouplabel = TRUE)  %>%
   flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
   
   flextable::footnote(value = as_paragraph(footnote0), 
@@ -1060,14 +1094,13 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 }
 ```
 
-
 ## tab-species-composition
 
 ```{r tab-species-composition, eval = (SRVY == "NEBS")}
 nickname <- "tab-species-composition" 
 height <- full_page_portrait_height # 7
 width <- full_page_portrait_width # 6.5
-header <- paste0("Composition of fish taxa encountered in the ",
+header <- paste0("List of fish taxa encountered in the ",
                  text_list(paste0(haul_cruises_maxyr$SRVY_long, " shelf (", 
                                   paste0(haul_cruises_maxyr$SRVY, ")")))," survey catches. ")
 
@@ -1371,9 +1404,6 @@ for (i in 1:nrow(comb)) {
     dplyr::filter(taxon0 == comb$taxon[i] &
                     SRVY == comb$SRVY[i]) %>% 
     janitor::remove_empty(which = "cols") %>% 
-    # dplyr::select(group, taxon, `999`, a, CI95, 
-    #               prop, 
-    #               all_of(strat)) %>% 
     mutate_if(is.numeric , replace_na, replace = 0) %>% 
     dplyr::mutate(
       prop = ifelse(prop < 0.0001, "<0.0001", 

@@ -319,12 +319,12 @@ temp <- obj$raw %>%
   dplyr::mutate(SRVY = dplyr::case_when(
     SRVY == "EBS and NBS" ~ "both the EBS and NBS", 
     SRVY == "EBS" ~ "only the EBS",
-    SRVY == "NBS" ~ "only the NBS" )) %>% 
+    SRVY == "NBS" ~ "only the NBS" ), 
+  SRVY_long = dplyr::case_when(
+    SRVY_long == "Eastern and northern Bering Sea Combined" ~ "eastern and northern Bering Sea combined", 
+    SRVY_long == "Northern Bering Sea" ~ "northern Bering Sea",
+    SRVY_long == "Eastern Bering Sea" ~ "eastern Bering Sea" )) %>% 
   dplyr::arrange(-n)
-
-if (SRVY != "NEBS") {
-  temp$SRVY <- gsub(pattern = "only ", replacement = "", x = temp$SRVY)
-}
 
 temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                          sheet = "solicitation_date", 
@@ -332,12 +332,10 @@ temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xl
   dplyr::filter(year == maxyr) %>% 
   dplyr::select(solicitation_date) %>% 
   dplyr::mutate(solicitation_date = date_formatter(solicitation_date)) %>% 
-                  # format(x = as.POSIXlt(x = solicitation_date), 
-                  #        format = date_format)) %>% 
   unlist()
 ```
 
-In addition to standard survey operations, `r gsub(x = text_list(paste0(temp$n, " additional research project", ifelse(temp$n>1, "s were", " was"), " undertaken in ", temp$SRVY_long), sep_last = " and "), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). A request for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC Strategic Science Plans and mission and the feasibility of proposed projects given available survey resources and time. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) identified in Table \@ref(tab:tab-special-projects).
+In addition to standard survey operations, `r gsub(x = text_list(paste0(temp$n, " additional research project", ifelse(temp$n>1, "s were", " was"), " undertaken in ", temp$SRVY_long)), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). A request for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC Strategic Science Plans and mission and the feasibility of proposed projects given available survey resources and time. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) identified in Table \@ref(tab:tab-special-projects).
 
 ```{r tab-special-projects0}
 nickname <- "tab-special-projects"

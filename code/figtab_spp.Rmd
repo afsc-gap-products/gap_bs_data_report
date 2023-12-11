@@ -731,6 +731,8 @@ if (ncol(table_print0) > 2) {
 }
 table_print <- table_print0 %>% 
   flextable::flextable()  %>% 
+  theme_flextable_nmfstm(row_lines = FALSE, 
+                             pgwidth = full_page_portrait_width)  %>%
   flextable::bold(j = 1, part = "body") %>% 
   flextable::theme_zebra() %>% 
   flextable::vline(border = fp_border(color="grey70")) %>% 
@@ -858,10 +860,10 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
         biomass_sd0 <- find_units(unit = "", unt = "", table_raw$biomass_sd[table_raw$biomass_sd != 0])
         
         header <- paste0("Mean weight CPUE",cpue_kgkm2_mean0$unit_word,
-                         " with standard deviation",cpue_kgkm2_sd0$unit_wrd,
+                         " ", cpue_kgkm2_sd0$unit_wrd,
                          ", and estimated biomass",biomass_mt0$unit_word,
-                         " with standard deviation",biomass_sd0$unit_word, 
-                         " and 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
+                         " with standard deviation (SD;",gsub("[()]", "", biomass_sd0$unit_word), 
+                         ", and 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") confidence limits for ")
         
@@ -977,8 +979,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                      spp_print, 
                      ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
                      " by stratum encountered during the ",
-                     maxyr," ", 
-                     text_list(paste0(SRVY11, " (", SRVY1, ")")), 
+                     maxyr," ", SURVEY, 
                      " shelf bottom trawl survey",plural_surveys,". ", 
                      ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0, 
                             paste0("This species was not encountered in the ", 
@@ -994,9 +995,10 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
       flextable::set_header_labels(stratum = "Stratum")  %>%
       theme_flextable_nmfstm(row_lines = FALSE, 
                              pgwidth = full_page_portrait_width)  %>%
-      flextable::width(width = (full_page_portrait_width/(ncol(table_print0)-1)), unit = "in") %>% # need to not account for the SRVY_long column
-      flextable::width(j = 1, width = .5, unit = "in") %>%
+      flextable::width(width = ((full_page_portrait_width-.2-.9)/(ncol(table_print0)-1)), unit = "in") %>% # need to not account for the SRVY_long column
+      flextable::width(j = 1, width = .2, unit = "in") %>%
       flextable::width(j = 2, width = .9, unit = "in") %>%
+      # flextable::width(j = (ncol(table_print0)-1), width = .9, unit = "in") %>%
       # flextable::width(width = ((full_page_portrait_width-.4)/(ncol(table_print0)-1)), unit = "in") %>%
       # flextable::width(width = .4, unit = "in", j = c("stratum")) %>%
       flextable::align(align = "right", part = "all") %>%
@@ -1278,8 +1280,9 @@ if (report_title %in% "community") {
                  ifelse(is.na(spp_sci), "",
                         paste0(" (",spp_sci,")")), " ",
                  text_list(temp$str0), 
-                 " from the ",
-                 range_text(range(table_raw$year)), " ", 
+                 " from the ", min(table_raw$year, na.rm = TRUE),"-", 
+                 max(table_raw$year, na.rm = TRUE), " ", 
+                 # range_text(range(table_raw$year)), " ", 
                  ifelse(length(unique(table_raw$SRVY_long)) > 1, 
                         SURVEY, 
                         unique(table_raw$SRVY_long)), 
