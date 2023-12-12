@@ -83,7 +83,7 @@ for (ii in 1:length(report_types)) {
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
-temp <- sf::st_point(c(-169.69, 64)) %>% # -169.698826, 64.599971
+temp <- sf::st_point(c(-169.69, 64.5)) %>% # -169.698826, 64.599971
   sf::st_sfc(crs = in.crs) %>% 
   sf::st_transform(crs = out.crs) %>% 
   sf::st_coordinates() %>% 

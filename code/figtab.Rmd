@@ -332,10 +332,11 @@ table_print <- table_raw %>%
                      value = as_paragraph("Representative\narea (km", as_sup("2"), ")")) %>%
   flextable::compose(i = 1, j = "density", part = "header",
                      value = as_paragraph("Sampling density\n(km", as_sup("2"), "/stations successfully sampled)")) %>%  
-  flextable::set_header_labels(area_name = "",
+  flextable::set_header_labels(area_name = "Stratum",
                                stratum = "Stratum",
                                stations_avail = "Stations\nin stratum",
                                stations_completed = "Stations\nsuccessfully sampled") %>% 
+  flextable::merge_h(i = 1, part = "header") %>% 
   flextable::merge_v(j = "area_name") %>%
   flextable::merge_h_range(i = ~ stratum == "", 
                            j1 = "area_name", 
@@ -344,7 +345,7 @@ table_print <- table_raw %>%
   flextable::valign(valign = "top") %>%
   theme_flextable_nmfstm(row_lines = FALSE, 
                          pgwidth = full_page_portrait_width)  %>%
-  flextable::width(width = c(.5, .5, 1, 1, 1, 1.5)) %>% 
+  flextable::width(width = c(1, .5, 1.1, 1.1, 1.1, 1.7)) %>% 
   flextable::align(j = c("stratum", "area_km2", "stations_completed", "density"), 
                    align = "right", part = "all")  %>% 
   flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
@@ -1329,7 +1330,7 @@ table_raw0 <- biomass  %>%
   dplyr::filter(year == maxyr &
                   # place species codes into groups and major species
                   group %in% unlist(report_spp %>% 
-                                      dplyr::filter(table_est) %>% #  & group == taxon0
+                                      dplyr::filter(table_est) %>% 
                                       dplyr::select(print_name)) )  %>% 
   dplyr::left_join(total_biomass) %>% 
   dplyr::mutate(taxon0 = taxon, 
@@ -1372,7 +1373,8 @@ table_raw0 <- table_raw0  %>%
   dplyr::mutate(
     CI95 = ci_999, 
     a = "±",
-    prop = biomass_mt_999/total) %>% 
+    prop = biomass_mt_999/total, 
+    prop0 = prop) %>% 
   dplyr::relocate(SRVY, group, taxon, biomass_mt_999, a, CI95, prop) %>% 
   dplyr::select(-order, -total, -dplyr::starts_with("ci_"))
 
@@ -1403,33 +1405,31 @@ for (i in 1:nrow(comb)) {
   table_raw <- table_raw0  %>% 
     dplyr::filter(taxon0 == comb$taxon[i] &
                     SRVY == comb$SRVY[i]) %>% 
-    janitor::remove_empty(which = "cols") %>% 
-    mutate_if(is.numeric , replace_na, replace = 0) %>% 
+    janitor::remove_empty(which = "cols") 
+  
+  table_raw1 <- table_raw %>% 
+    dplyr::mutate_if(is.numeric, replace_na, replace = 0) %>% 
     dplyr::mutate(
       prop = ifelse(prop < 0.0001, "<0.0001", 
                     formatC(x = prop, digits = 4, 
                             format = "f", big.mark = ",")), 
-      across(where(is.numeric), 
+      dplyr::across(where(is.numeric), 
              formatC, big.mark=",", digits = 0, format = "f")) %>% 
-    dplyr::select(-taxon0, -SRVY)
+    dplyr::select(-taxon0, -SRVY) %>%
+    dplyr::select(-prop0)
   
-  strat <- names(table_raw)[7:ncol(table_raw)]
+  strat <- names(table_raw1)[7:ncol(table_raw1)]
   
   # Make table_print -------------------------------------------------------------
   
   
-  footnote0 <- paste0("The ", total$SRVY_long, " bottom trawl survey total estimated ", text_list(total$taxon_long)," biomass is ", 
+  footnote0 <- paste0("The ", total$SRVY_long, 
+                      " bottom trawl survey total estimated ", 
+                      text_list(total$taxon_long)," biomass is ", 
                       text_list(formatC(x = total$total, digits = 0, format = "f", big.mark = ",")), 
                       " t." )
   
-  FitFlextableToPage <- function(x, pgwidth = 6) {
-    ft_out <- x %>% flextable::autofit()
-    ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths * 
-                                 pgwidth/(flextable::flextable_dim(ft_out)$widths))
-    return(ft_out)
-  }
-  
-  table_print <- table_raw %>%
+  table_print <- table_raw1 %>% 
     flextable::flextable()  %>%
     flextable::merge_v(j = ~ group) %>%
     flextable::merge_h_range(i = ~ is.na(taxon), 
