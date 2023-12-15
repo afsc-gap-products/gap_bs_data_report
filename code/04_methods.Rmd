@@ -9,10 +9,10 @@ The standardized `r SURVEY` bottom trawl survey`r plural_surveys` use`r ifelse(p
 
 ```{r, vessel_method}
 vessels0 <- vessels %>% 
-  dplyr::filter(!(vess_shape %in% "X"))
+  dplyr::filter(vess_shape != "X")
 ```
 
-The `r maxyr` `r SURVEY` survey`r plural_surveys` `r ifelse(plural_surveys == "s", "were", "was")` conducted aboard the chartered commercial stern-trawlers `r text_list(vessels$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r ifelse(nrow(vessels) == 1, "The vessel", "Both vessels") ` are house-forward trawlers with stern ramps. The length overall of `r text_list(paste0("the ", vessels0$vessel_ital, " is ", vessels0$length_m, " m (", vessels0$length_ft, " ft)") ) `. All fishing operations were conducted in compliance with national and regional protocols detailed in @RN933. Trawl sampling was conducted using 83-112 eastern otter trawls, each with a 25.3 m (83 ft) headrope and 34.1 m (112 ft) footrope (Fig. \@ref(fig:fig-trawl-gear-diagram)). The net was attached to tail chains with 54.9 m (30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
+The `r maxyr` `r SURVEY` survey`r plural_surveys` `r ifelse(plural_surveys == "s", "were", "was")` conducted aboard the chartered commercial stern-trawlers `r text_list(vessels0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r ifelse(nrow(vessels0) == 1, "The vessel", "Both vessels") ` are house-forward trawlers with stern ramps. The length overall of `r text_list(paste0("the ", vessels0$vessel_ital, " is ", vessels0$length_m, " m (", vessels0$length_ft, " ft)") ) `. All fishing operations were conducted in compliance with national and regional protocols detailed in @RN933. Trawl sampling was conducted using 83-112 eastern otter trawls, each with a 25.3 m (83 ft) headrope and 34.1 m (112 ft) footrope (Fig. \@ref(fig:fig-trawl-gear-diagram)). The net was attached to tail chains with 54.9 m (180 ft or 30 fm) paired dandylines. Each lower dandyline had a 0.61 m chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1,800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
 
 ```{r fig-vessels0}
 nickname <- "fig-vessels" # Fig. \@ref(fig:fig-vessels)
@@ -200,7 +200,7 @@ if ("NBS" %in% haul_cruises_maxyr$SRVY) {
   str00 <- paste0(
     "After the completion of the eastern Bering Sea shelf survey, both vessels began sampling survey stations in the southwest corner of the NBS survey region. In the northern Bering Sea, ", 
     str0$str[str0$SRVY == "NBS"], # from 2 chunks above! 
-    ". After the northern Bering Sea survey was completed, both vessels returned to Dutch Harbor. The northern Bering Sea shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-survey-sample-stations)). Sampling density was ", 
+    ". After the northern Bering Sea survey was completed, both vessels returned to Dutch Harbor. The northern Bering Sea shelf was divided into three strata: one including the area north of St. Lawrence Island and Norton Sound, and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-survey-sample-stations)). Sampling density was ", 
     # Sampling density was 1,367 km2 /station for Stratum 70, 1,475 km2 /station for Stratum 71, 1,370 km2 /station for Stratum 81, 
     text_list(paste0(xunits(temp$density), " km^2^/station for stratum ", temp$stratum)), 
     ". Overall sampling density for the northern Bering Sea survey area was ", xunits(temp_tot$density), " km^2^/station (Table \\@ref(tab:tab-stratum-areas)).")
@@ -232,7 +232,7 @@ obj$raw <- obj$raw %>% # creates object called 'obj'
   dplyr::filter(SRVY == "EBS")
 ```
 
-Length measurements were obtained from a random subsample of select fish species from every haul. `r ifelse(sum(obj$raw$oto_samp_type %in% "random-by-haul")>0, paste0("The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of ", ifelse(maxyr>2021, "100", "300"), " specimens. "), "")`For each fish in a length subsample, sex was determined and then the fork length or total length (depending on the species) was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture`r ifelse(maxyr > 2020, "", " and 50% were randomly selected to receive a preopercle tag")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@RN895].
+Length measurements were obtained from a random subsample of select fish species from every haul. `r ifelse(sum(obj$raw$oto_samp_type %in% "random-by-haul")>0, paste0("The number of fish in a random length subsample for a species was dependent on the size range of that species in the haul, up to a maximum target of ", ifelse(maxyr>2021, "100", "300"), " specimens. "), "")`For each fish in a length subsample, sex was determined and then the fork length or total length (depending on the species) was measured to the nearest 1.0 cm. Unless retained for biological sampling by the International Pacific Halibut Commission (IPHC), Pacific halibut were measured to fork length upon capture`r ifelse(maxyr > 2020, "", " and 50% were randomly selected to receive a preopercle tag")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an IPHC length-weight regression [@IPHC2023].
 
 ```{r methods-collection-scheme}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
@@ -319,12 +319,12 @@ temp <- obj$raw %>%
   dplyr::mutate(SRVY = dplyr::case_when(
     SRVY == "EBS and NBS" ~ "both the EBS and NBS", 
     SRVY == "EBS" ~ "only the EBS",
-    SRVY == "NBS" ~ "only the NBS" )) %>% 
+    SRVY == "NBS" ~ "only the NBS" ), 
+  SRVY_long = dplyr::case_when(
+    SRVY_long == "Eastern and northern Bering Sea Combined" ~ "eastern and northern Bering Sea combined", 
+    SRVY_long == "Northern Bering Sea" ~ "northern Bering Sea",
+    SRVY_long == "Eastern Bering Sea" ~ "eastern Bering Sea" )) %>% 
   dplyr::arrange(-n)
-
-if (SRVY != "NEBS") {
-  temp$SRVY <- gsub(pattern = "only ", replacement = "", x = temp$SRVY)
-}
 
 temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                          sheet = "solicitation_date", 
@@ -332,12 +332,10 @@ temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xl
   dplyr::filter(year == maxyr) %>% 
   dplyr::select(solicitation_date) %>% 
   dplyr::mutate(solicitation_date = date_formatter(solicitation_date)) %>% 
-                  # format(x = as.POSIXlt(x = solicitation_date), 
-                  #        format = date_format)) %>% 
   unlist()
 ```
 
-In addition to standard survey operations, `r gsub(x = text_list(paste0(temp$n, " additional research project", ifelse(temp$n>1, "s were", " was"), " undertaken in ", temp$SRVY_long), sep_last = " and "), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). A request for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC Strategic Science Plans and mission and the feasibility of proposed projects given available survey resources and time. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) identified in Table \@ref(tab:tab-special-projects).
+In addition to standard survey operations, `r gsub(x = text_list(paste0(temp$n, " additional research project", ifelse(temp$n>1, "s were", " was"), " undertaken in ", temp$SRVY_long)), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). A request for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC Strategic Science Plans and mission and the feasibility of proposed projects given available survey resources and time. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for additional research projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a special project or collection, please contact the investigator(s) identified in Table \@ref(tab:tab-special-projects).
 
 ```{r tab-special-projects0}
 nickname <- "tab-special-projects"

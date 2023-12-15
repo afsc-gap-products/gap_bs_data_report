@@ -83,7 +83,7 @@ for (ii in 1:length(report_types)) {
 a <- report_types[names(report_types) == SRVY][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
-temp <- sf::st_point(c(-169.69, 64)) %>% # -169.698826, 64.599971
+temp <- sf::st_point(c(-169.69, 64.5)) %>% # -169.698826, 64.599971
   sf::st_sfc(crs = in.crs) %>% 
   sf::st_transform(crs = out.crs) %>% 
   sf::st_coordinates() %>% 
@@ -251,6 +251,8 @@ spp_info <- spp_info0  %>%
                                           string = species_name, 
                                           replacement = ""), 
                      ""),
+    # report_name_scientific_ital = paste0(genus, ifelse(is.na(species), "", paste0(" ", species))), 
+    # report_name_scientific_notital = ifelse(species_name != report_name_scientific_ital, species_name, ""), 
     used_in_counts = 
       dplyr::if_else(
         species_code %in% #10:99988, 
@@ -260,6 +262,26 @@ spp_info <- spp_info0  %>%
                      col_out = "species_code"), 
         TRUE, FALSE)) %>% # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
   dplyr::distinct()
+
+spp_info <- spp_info %>%
+  dplyr::mutate(
+  species_name0 = species_name, 
+  species_name0 = gsub(replacement = "", pattern = " larva", x = species_name0), 
+  type = ifelse(grepl(pattern = " ", x = species_name0, fixed = TRUE), "ital", NA), 
+  species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")),
+  species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE),
+  species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE),
+  species_name0 = gsub(r"{\s*\([^\)]+\)}","", species_name0)) 
+
+spp_info <- spp_info %>%
+  dplyr::mutate(species_name_ital = species_name0, 
+                species_name_ital = gsub(replacement = "&&", pattern = "*", x = species_name_ital, fixed = TRUE) ) %>% #, 
+  tidyr::separate(species_name_ital, into = c("temp1", "species_name_ital", "temp2"), sep = "&&") %>% 
+  dplyr::mutate(species_name_noital = paste0(ifelse(is.na(temp1), "", temp1), ifelse(is.na(temp2), "", temp2))) %>% 
+  # dplyr::select(-type, -temp, -species_name0, -genus, -species) %>% 
+  dplyr::mutate(dplyr::across(dplyr::starts_with('species_name_'), ~replace(., is.na(.), "")), 
+                species_name_ital = trimws(species_name_ital), 
+                species_name_noital = trimws(species_name_noital))
 
 spp_info_maxyr <- spp_info %>%
   dplyr::filter(species_code %in%
@@ -364,13 +386,22 @@ report_spp1 <-
   dplyr::mutate(
     species_name0 = species_name, 
     species_name0 = gsub(replacement = "", pattern = " larva", x = species_name0), 
-                species_name1 = species_name, 
-                species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
-                species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
-                species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE), 
-                species_name0 = gsub(r"{\s*\([^\)]+\)}","", species_name0), 
-                species_name = species_name0) %>% 
-  dplyr::select(-type, -temp, -species_name0, -genus, -species)
+    species_name1 = species_name, 
+    species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
+    species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
+    species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE), 
+    species_name0 = gsub(r"{\s*\([^\)]+\)}","", species_name0), 
+    species_name = species_name0) 
+
+report_spp1 <- report_spp1 %>% 
+  dplyr::mutate(species_name_ital = species_name0, 
+                species_name_ital = gsub(replacement = "&&", pattern = "*", x = species_name_ital, fixed = TRUE) ) %>% #, 
+  tidyr::separate(species_name_ital, into = c("temp1", "species_name_ital", "temp2"), sep = "&&") %>% 
+  dplyr::mutate(species_name_noital = paste0(ifelse(is.na(temp1), "", temp1), ifelse(is.na(temp2), "", temp2))) %>% 
+  dplyr::select(-type, -temp, -species_name0, -genus, -species) %>% 
+  dplyr::mutate(dplyr::across(dplyr::starts_with('species_name_'), ~replace(., is.na(.), "")), 
+                species_name_ital = trimws(species_name_ital), 
+                species_name_noital = trimws(species_name_noital))
 
 ## cruises + maxyr + compareyr -------------------------------------------------
 print("cruises + maxyr  + compareyr")
@@ -669,7 +700,7 @@ vessels <- vessels %>%
     vessel_name = "Not Surveyed", 
     vessel_ital = "Not Surveyed", 
     vess_shape = "X", 
-    vess_col = "#E6E6E6") 
+    vess_col = "grey70") 
 }
 ## haul_cruises + _maxyr + _compareyr ------------------------------------------
 

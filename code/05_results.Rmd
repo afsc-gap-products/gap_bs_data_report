@@ -158,7 +158,7 @@ if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
     xunits(nrow(temp3[temp3$where == "nbs",])), 
     " of the ",
     xunits(nrow(temp[temp$SRVY == "NBS",])),
-    " fish species encountered in the northern Bering Sea were not encountered in eastern Bering Sea (Table \\@ref(tab:tab-species-composition)). ")
+    " fish species encountered in the northern Bering Sea were not encountered in the eastern Bering Sea (Table \\@ref(tab:tab-species-composition)). ")
   
   # flatfish
   temp4 <- temp3[temp3$order %in% c("Pleuronectiformes"), ]
@@ -200,7 +200,7 @@ if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
 str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 ```
 
-A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family)` families and `r xunits(temp1$genus)` genera were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY_long, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species), " were identified to the species level"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r str0`
+A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family)` families and `r xunits(temp1$genus)` genera were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY_long, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species), " were identified to the species level,"))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r str0`
 
 ```{r results-count}
 # count spp - invert
@@ -251,7 +251,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY_long, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level"))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
+`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY_long, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level,"))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
 
 <br>
 
@@ -337,7 +337,7 @@ if (SRVY == "NEBS") {
                  paste0(ifelse(temp1$prop[temp1$SRVY=="EBS"]>temp1$prop[temp1$SRVY=="NBS"], 
                                "The lower relative fish biomass in the northern Bering Sea than in the eastern Bering Sea is consistent", 
                                "The higher relative fish biomass in the northern Bering Sea than in the eastern Bering Sea is inconsistent"), 
-                        " with results of a broader analysis of all survey years presented by @RN936 which showed decreasing fish biomass with increasing latitude on the eastern Bering Sea continental shelf. ", 
+                        " with results of a broader analysis of all survey years presented by @RN936, which showed decreasing fish biomass with increasing latitude on the eastern Bering Sea continental shelf. ", 
                         "") ) 
 }
 
@@ -361,7 +361,7 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
                       grepl(pattern = "Total", x = taxon, ignore.case = TRUE )) %>% 
       dplyr::filter(!grepl(pattern = "Total", x = group, ignore.case = TRUE ) &
                       !grepl(pattern = "Other", x = group, ignore.case = TRUE )) %>% 
-      dplyr::select(SRVY, group, `999`, prop) %>% 
+      dplyr::select(SRVY, group, `999`, prop = prop0) %>% 
       dplyr::arrange(-prop) %>% 
       dplyr::mutate(order = 1:nrow(.)) %>% 
       dplyr::bind_rows(temp1, .)
@@ -370,7 +370,7 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
       dplyr::mutate(SRVY = SRVY1[i]) %>%
       dplyr::filter(group %in% temp1$group[1:2] & 
                       !grepl(pattern = "Total ", x = taxon, ignore.case = TRUE )) %>% 
-      dplyr::select(SRVY, group, taxon, `999`, prop) %>% 
+      dplyr::select(SRVY, group, taxon, `999`, prop = prop0) %>% 
       dplyr::arrange(-prop) %>% 
       dplyr::mutate(order = 1:nrow(.)) %>% 
       dplyr::bind_rows(temp2, .)
@@ -414,7 +414,10 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
                     SRVY = temp0$SRVY[i]) %>%
       dplyr::arrange(order) %>% 
       dplyr::select(SRVY, group, taxon, species_name, prop) %>% # 
-      dplyr::filter(prop != "0%") 
+      dplyr::filter(prop != "0%") %>% 
+      dplyr::filter(!grepl(pattern = "Total", x = taxon, ignore.case = TRUE ) &
+                      !grepl(pattern = "Other", x = taxon, ignore.case = TRUE )) 
+
     
     if (nrow(temp3)>1) {
       temp0$str0[temp0$SRVY == temp0$SRVY[i] & 
@@ -461,19 +464,19 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
 
 ```{r results-benthic-community}
 
-str0 <- paste0("Noticeable changes were observed in the ", SURVEY," the benthic communities between ",
+str0 <- paste0("Noticeable changes were observed in the ", SURVEY," benthic communities between ",
                compareyr," and ", maxyr,". ")
 
-for (i in 1:nrow(haul_cruises_maxyr)) {
+for (i in 1:length(SRVY1)) {
   load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-", haul_cruises_maxyr$SRVY[i], ".rdata"))
-
   temp0 <- obj$raw
   temp <- 
     temp0 %>% 
-    dplyr::filter(!is.na(change0)) %>%
+    dplyr::filter(!is.na(change0) &
+                    SRVY == SRVY1[i]) %>%
     dplyr::mutate(case = case_when(
-      change>0 ~ "increased", 
-      change<0 ~ "decreased")) %>% 
+      change0 > 0 ~ "increased", 
+      change0 < 0 ~ "decreased")) %>% 
     dplyr::arrange(-change0) %>%
       dplyr::select(print_name, maxyr, compareyr, change, case) 
   
@@ -616,11 +619,9 @@ nickname <- "tab-est-spp-num"
 
 ## Summary of Results for Selected Fish and Invertebrate Fauna of the `r gsub(pattern = "And", replacement = "and", x = stringr::str_to_title(SURVEY))`
 
-An interactive map of species CPUE is available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). The CPUE data with associated station information including position, surface and bottom temperatures, and bottom depth can be downloaded from the NOAA Fisheries One Stop Shop data platform (FOSS; @FOSSAFSCData). Users can interactively select, view, and download data on the platform for this survey and others.
-
 The spatial distribution maps below illustrate where species were found during the surveys. The distributions are presented as inverse distance weighted interpolations, and assumes that data from stations that are closer to one another are more alike than those that are farther apart.
 
-### Selected Fish Species Estimates
+An interactive map of species CPUE is available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). The CPUE data with associated station information including position, surface and bottom temperatures, and bottom depth can be downloaded from the NOAA Fisheries One Stop Shop data platform (FOSS; @FOSSAFSCData). Users can interactively select, view, and download data on the platform for this survey and others.
 
 ```{r results-spatial-distribution_fish}
 temp <- report_spp1 %>% 
@@ -634,11 +635,9 @@ temp2 <- report_spp1 %>%
   dplyr::distinct()
 ```
 
-Plots of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r length(unique(report_spp1$file_name[report_spp1$taxon == "fish"]))` major fish species caught during the `r SURVEY` continental shelf survey are presented in Figs. `r paste0("\\@ref(fig:fig-dist-",temp$taxon[1],"-",temp$file_name[1],"-data)")` to `r paste0("\\@ref(fig:fig-dist-",temp$taxon[nrow(temp)],"-",temp$file_name[nrow(temp)],"-data)")` and Tables `r paste0("\\@ref(tab:tab-est-",temp2$taxon[1],"-",temp2$file_name[1],"-wt)")` to `r paste0("\\@ref(tab:tab-est-",temp2$taxon[nrow(temp2)],"-",temp2$file_name[nrow(temp2)],"-num)")`. Differences in estimates and totals may be due to rounding.
+Plots of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r sum(!is.na(report_spp$order[report_spp$taxon == "fish"]))` major fish species caught during the `r SURVEY` continental shelf survey are presented in below. Differences in estimates and totals may be due to rounding.
 
-### Selected Invertebrates Estimates
+Plots of spatial distribution and tables of CPUE (kg/km^2^ and no/km^2^) for the `r sum(!is.na(report_spp$order[report_spp$taxon == "invert"]))` major invertebrate species caught during the `r SURVEY` continental shelf surveys presented below. Differences in estimates and totals may be due to rounding. 
 
-Plots of spatial distribution and tables of CPUE (kg/hectare and no./hectare) for the `r length(unique(report_spp1$file_name[report_spp1$taxon == "invert"]))` major invertebrate species caught during the `r SURVEY` continental shelf surveys presented below. Differences in estimates and totals may be due to rounding. 
-
-Detailed information on bottom trawl survey results for commercial crab species are discussed and analyzed in the AFSC Shellfish Assessment Program's annual data report [`r paste0("@SAPcrab", maxyr)`]. Commercial crab stocks are managed by the ADF&G with federal oversight by NOAA Fisheries. The most recent modeling results on the status of these commercial crab stocks are reported in the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC [@NPFMC].
+Detailed information on bottom trawl survey results for commercial crab species are discussed and analyzed in the AFSC Shellfish Assessment Program's annual data report [`r paste0("@SAPcrab", maxyr)`]. Commercial crab stocks are managed by the ADF&G with federal oversight by NOAA Fisheries. The most recent modeling results on the status of these commercial crab stocks are reported in the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC [@NPFMC]. 
 
