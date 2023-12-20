@@ -147,7 +147,7 @@ pchange<-function(start, end,
     start0 <- rep_len(x = start0, length.out = length(end0))
   }
   
-  #calculate percent change:
+  # calculate percent change:
   for (i in 1:length(start0)) {
     start <- start0[i]
     end <- end0[i]
