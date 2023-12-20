@@ -855,14 +855,15 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
       if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
         
         cpue_kgkm2_mean0<-find_units(unit = "kg/km²", unt = "kg/km²", dat = table_raw$cpue_kgkm2_mean[table_raw$cpue_kgkm2_mean != 0])    
-        cpue_kgkm2_sd0 <- find_units(unit = "", unt = "", table_raw$cpue_kgkm2_sd[table_raw$cpue_kgkm2_sd != 0])
+        cpue_kgkm2_sd0 <- find_units(unit = "kg/km²", unt = "kg/km²", table_raw$cpue_kgkm2_sd[table_raw$cpue_kgkm2_sd != 0])
         biomass_mt0 <- find_units(unit = "t", unt = "t", table_raw$biomass_mt [table_raw$biomass_mt  != 0])
-        biomass_sd0 <- find_units(unit = "", unt = "", table_raw$biomass_sd[table_raw$biomass_sd != 0])
+        biomass_sd0 <- find_units(unit = "t", unt = "t", table_raw$biomass_sd[table_raw$biomass_sd != 0])
         
         header <- paste0("Mean weight CPUE",cpue_kgkm2_mean0$unit_word,
-                         " ", cpue_kgkm2_sd0$unit_wrd,
-                         ", and estimated biomass",biomass_mt0$unit_word,
-                         " with standard deviation (SD;",gsub("[()]", "", biomass_sd0$unit_word), 
+                         " with standard deviation (SD;", 
+                         gsub("[()]", "", cpue_kgkm2_sd0$unit_word), ")",
+                         ", estimated biomass", biomass_mt0$unit_word,
+                         " with SD", biomass_sd0$unit_word, 
                          ", and 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") confidence limits for ")
