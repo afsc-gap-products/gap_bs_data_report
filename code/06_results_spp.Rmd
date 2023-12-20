@@ -122,7 +122,7 @@ str0 <- ""
 
 ```{r bio-pop-txt-{{jj}}, eval = (spp_text & (report_title == "data"))}
 
-str0 <- paste0("Between ", compareyr," and ", maxyr,", the ", spp_print, " estimate ")
+str0 <- paste0("Between ", maxyr," and ", compareyr,", ", spp_print, " ")
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw
 cite_bio <- paste0(" (Tables ", tab_stat," and ", tab_wt,"; Fig. ", fig_biopop,")")
@@ -154,6 +154,9 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,"
   if ("Northern Bering Sea" %in% temp$SRVY_long) {
   temp0 <- temp[temp$SRVY_long == "Northern Bering Sea", ]
   case <- dplyr::case_when(
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "Not caught") ~ 
+      paste0("was ", temp0$`Biomass\n(t)`, 
+             " t (and none were caught in ",compareyr," to compare to)"), 
     grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ 
       paste0("decreased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"), 
     grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ 
@@ -162,6 +165,7 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,"
       "did not noteably change"
   )
   case_transition_nbs <- dplyr::case_when(
+    grepl(x = temp0$`Biomass\n% Change`, pattern = "Not caught") ~ paste0("XXX"), 
     grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ paste0("decrease"), 
     grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ paste0("increase"),
     grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ "no change"
@@ -180,7 +184,7 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,"
   } 
   
   str0 <- paste0(str0, str0_transition, 
-                 "the biomass estimate ", case, 
+                 "biomass ", case, 
                  " in the northern Bering Sea", cite_bio, 
                  " and the population was estimated at ",
                  temp0$Population," individuals",cite_pop,". ")

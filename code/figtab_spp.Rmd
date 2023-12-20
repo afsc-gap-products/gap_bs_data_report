@@ -681,7 +681,7 @@ for (i in 1:nrow(temp_bio)) {
         temp_bio$year[i] == min(yrs) ~ "-",
         is.na(temp_bio$biomass_mt[i]) ~ "-", #paste0("none caught in ", temp_bio$year[i]), 
         is.na(temp_bio0) ~ "-", #paste0("none caught in ", compareyr0), 
-        temp_bio0 == 0 ~ "-"
+        temp_bio0 == 0 ~ paste0("Not caught in ", compareyr),
         abs(pchange(start = temp_bio$biomass_mt[i], end = temp_bio0, value_only = TRUE)) < 1 ~ "no change",
         TRUE ~ sub(replacement = "", pattern = "an ", 
                    x = gsub(pattern = "a ", replacement = "", 
@@ -855,7 +855,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
       
       if (nrow(table_raw) != 0) { # if none were caught, don't do any of this
         
-        cpue_kgkm2_mean0<-find_units(unit = "kg/km²", unt = "kg/km²", dat = table_raw$cpue_kgkm2_mean[table_raw$cpue_kgkm2_mean != 0])    
+        cpue_kgkm2_mean0 <- find_units(unit = "kg/km²", unt = "kg/km²", dat = table_raw$cpue_kgkm2_mean[table_raw$cpue_kgkm2_mean != 0])    
         cpue_kgkm2_sd0 <- find_units(unit = "", unt = "", table_raw$cpue_kgkm2_sd[table_raw$cpue_kgkm2_sd != 0])
         biomass_mt0 <- find_units(unit = "t", unt = "t", table_raw$biomass_mt [table_raw$biomass_mt  != 0])
         biomass_sd0 <- find_units(unit = "", unt = "", table_raw$biomass_sd[table_raw$biomass_sd != 0])
