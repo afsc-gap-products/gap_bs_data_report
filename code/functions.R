@@ -147,7 +147,7 @@ pchange<-function(start, end,
     start0 <- rep_len(x = start0, length.out = length(end0))
   }
   
-  #calculate percent change:
+  # calculate percent change:
   for (i in 1:length(start0)) {
     start <- start0[i]
     end <- end0[i]
@@ -167,7 +167,10 @@ pchange<-function(start, end,
       p<-ifelse(is.nan(p), 0, p)
       # decide direction, Omit if percent = 0:
       x<-p
-      if (x<0) {
+      if (is.infinite(p)) {
+        txt<-paste0(" was zero")
+        p<-paste0("")
+      } else if (x<0) {
         txt<-paste0(" decrease",ending)
         p<-paste0("a ", abs(p),"%")
       } else if (x>0) {
