@@ -1443,7 +1443,7 @@ for (i in 1:nrow(comb)) {
                  paste0(ifelse(comb$taxon[i] =="invert", "Invertebrate", "Fish"), " biomass"),
                  "", # spacer
                  "Estimated biomass by stratum"),
-                              colwidths = c(2,4,1,(length(strat)))) %>%
+                              colwidths = c(1,5,1,(length(strat)))) %>%
     flextable::width(width = (pgwidth-1-.25-1-1-.05)/length(strat), 
                      unit = "in") %>%
     flextable::width(j = "prop", width = 1, unit = "in") %>%
@@ -1456,15 +1456,15 @@ for (i in 1:nrow(comb)) {
     flextable::bold(i = ~ (grepl(pattern = "Total", x = group) )) %>%
     flextable::set_header_labels(
       "group" = "Taxon", 
-      "taxon" = "",
-      "999" = "Estimated biomass\n± 95% CI",
+      "taxon" = "Estimated biomass ± 95% CI",
+      "999" = "",
       "a" = "",
       "CI95" = "",
       "prop" = "Proportion of total",
       "spacer" = "") %>%
     flextable::merge_at(j = c("spacer"), part = "header") %>%
-    flextable::merge_at(j = c("group", "taxon"), part = "header") %>%
-    flextable::merge_at(j = c("999", "a", "CI95"), i = 2, part = "header") 
+    flextable::merge_at(j = c("group"), part = "header") %>%
+    flextable::merge_at(j = c("taxon", "999", "a", "CI95"), i = 2, part = "header") 
   row_lines <- TRUE
   pad <- 0
   body_size = 10
@@ -1492,6 +1492,8 @@ for (i in 1:nrow(comb)) {
     flextable::fix_border_issues() %>% 
     flextable::align(j = c("999", "prop", strat), # , "CI95", strat
                      align = "right", part = "all") %>%
+    flextable::align(j = c("taxon"), i = 2, 
+                     align = "center", part = "header") %>%    
     flextable::align(j = c("taxon", strat), i = 1, 
                      align = "center", part = "header") %>%
     flextable::padding(padding.left = 3, padding.right = 3, j = "a", part = "body")
