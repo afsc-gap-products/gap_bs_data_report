@@ -419,7 +419,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-stomach-collection-scheme}
 nickname <- paste0("tab-stomach-collection-scheme") 
 
-header <- paste0("Stomach collection target size bins (cm) used to collect each study fish during the ", 
+header <- paste0("Stomach collection target size category bins (cm) used to collect each study fish during the ", 
                  maxyr, " ", 
                  text_list(paste0( 
                    haul_cruises_maxyr$SRVY_long)),
@@ -448,15 +448,24 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
                      values_from = "stomach_target")
 
 table_raw[is.na(table_raw)] <- "-"
+thin_b <- officer::fp_border(width = 0.5, color = "grey10")
 
 table_print <- table_raw %>% 
   flextable::flextable() %>% 
   flextable::set_header_labels(print_name = "Common name", 
                                stomach_target = "Target collection number per survey") %>%
+      flextable::add_header_row(
+      top = TRUE,
+      values = c("",
+                 "Target collection size categories per haul"),
+                              colwidths = c(1,2)) %>%
+        flextable::merge_at(j = "print_name", part = "header") %>% 
   theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_portrait_width)  %>%
   flextable::width(width = c((full_page_portrait_width - 4.5), 
-                             rep_len(length.out = length(SRVY1), (4.5/length(SRVY1)))))  
+                             rep_len(length.out = length(SRVY1), (4.5/length(SRVY1))))) %>% 
+    flextable::hline(border = thin_b, part = "header") %>% 
+  flextable::align(i = 1, align = "center", part = "header")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
