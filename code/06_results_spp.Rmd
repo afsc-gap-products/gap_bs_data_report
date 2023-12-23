@@ -92,12 +92,20 @@ cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
 
-```{r res-spp-lang-{{jj}}, eval = (report_title == "community")}
+```{r res-spp-lang-{{jj}}}
 # Native Languages Names 
 temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), skip = 1) %>%
   dplyr::filter(print_name == spp_print) %>%
   dplyr::select(dplyr::starts_with("lang_")) %>%
   dplyr::select_if(~sum(!is.na(.)) > 0)
+
+# in data reports, only publish prev sci and common names
+if (report_title == "data") {
+  col0 <- c("lang_scientific_name_prev", "lang_common_name_prev")[names(temp) %in% c("lang_scientific_name_prev", "lang_common_name_prev")]
+  if (sum(names(temp) %in% c("lang_scientific_name_prev", "lang_common_name_prev")) > 0) {
+    temp <- temp[,col0]
+  }
+}
 
 temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv")) %>%
   head(1) %>%
