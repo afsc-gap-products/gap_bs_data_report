@@ -419,7 +419,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-stomach-collection-scheme}
 nickname <- paste0("tab-stomach-collection-scheme") 
 
-header <- paste0("Stomach collection target size bins (cm) used to collect each study fish during the ", 
+header <- paste0("Stomach collection target size category bins (cm) used to collect each study fish during the ", 
                  maxyr, " ", 
                  text_list(paste0( 
                    haul_cruises_maxyr$SRVY_long)),
@@ -448,15 +448,24 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
                      values_from = "stomach_target")
 
 table_raw[is.na(table_raw)] <- "-"
+thin_b <- officer::fp_border(width = 0.5, color = "grey10")
 
 table_print <- table_raw %>% 
   flextable::flextable() %>% 
   flextable::set_header_labels(print_name = "Common name", 
                                stomach_target = "Target collection number per survey") %>%
+      flextable::add_header_row(
+      top = TRUE,
+      values = c("",
+                 "Target collection size categories per haul"),
+                              colwidths = c(1,2)) %>%
+        flextable::merge_at(j = "print_name", part = "header") %>% 
   theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_portrait_width)  %>%
   flextable::width(width = c((full_page_portrait_width - 4.5), 
-                             rep_len(length.out = length(SRVY1), (4.5/length(SRVY1)))))  
+                             rep_len(length.out = length(SRVY1), (4.5/length(SRVY1))))) %>% 
+    flextable::hline(border = thin_b, part = "header") %>% 
+  flextable::align(i = 1, align = "center", part = "header")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1385,16 +1394,16 @@ comb <- tidyr::crossing(taxon = c("fish", "invert"),
                                    SRVY_long = SRVY11))
 
 for (i in 1:nrow(comb)) {
-  header <- paste0("Biomass estimates (t) for major ", 
+  header <- paste0("Total taxon biomass estimates (t) ± 95% confidence interval (CI) and biomass estimates by stratum for major ", 
                    ifelse(comb$taxon[i] =="invert", "invertebrate", "fish") ,
                    " taxa collected during the ", 
                    maxyr, " ", 
                    comb$SRVY_long[i],
-                   " shelf bottom trawl survey.")
+                   " shelf bottom trawl survey. Proportion of taxon biomass is divided by the total ",ifelse(comb$taxon[i] =="invert", "invertebrate", "fish") ," biomass caught on the survey. ")
   
   nickname <- paste0(nickname0, comb$SRVY[i], "-", comb$taxon[i]) 
   
-  total <- total_biomass %>% 
+  total <- total_biomass %>%
     dplyr::filter(year == maxyr &
                     taxon == comb$taxon[i] &
                     SRVY == comb$SRVY[i]) %>% 
@@ -1421,7 +1430,8 @@ for (i in 1:nrow(comb)) {
   strat <- names(table_raw1)[7:ncol(table_raw1)]
   
   # Make table_print -------------------------------------------------------------
-  
+  pgwidth <- ifelse(comb$SRVY[i] == "EBS", 
+                    full_page_landscape_width, full_page_portrait_width)
   
   footnote0 <- paste0("The ", total$SRVY_long, 
                       " bottom trawl survey total estimated ", 
@@ -1430,55 +1440,52 @@ for (i in 1:nrow(comb)) {
                       " t." )
   
   table_print <- table_raw1 %>% 
+    dplyr::mutate(spacer = "") %>% 
+    dplyr::relocate("group", "taxon", "999", "a", "CI95", "prop", "spacer") %>% 
     flextable::flextable()  %>%
     flextable::merge_v(j = ~ group) %>%
     flextable::merge_h_range(i = ~ is.na(taxon), 
                              j1 = "group", j2 = "taxon", part = "body") %>%
-    flextable::add_header_row(top = TRUE,
-                              values = c("Taxon",
-                                         "Estimated total biomass (t)\n± 95% confidence interval",
-                                         paste0("Proportion of total ",
-                                                ifelse(comb$taxon[i] =="invert", "invertebrate", "fish"),
-                                                " biomass"),
-                                         "Estimated biomass by stratum (t)"),
-                              colwidths = c(2,3,1,(length(strat)))) %>%
-    flextable::width(width = ifelse((length(strat))>3, 0.7, 1.25),
+    flextable::add_header_row(
+      top = TRUE,
+      values = c("Taxon",
+                 paste0(ifelse(comb$taxon[i] =="invert", "Invertebrate", "Fish"), " biomass"),
+                 "", # spacer
+                 "Estimated biomass by stratum"),
+                              colwidths = c(1,5,1,(length(strat)))) %>%
+    flextable::width(width = (pgwidth-1-.25-1-1-.05)/length(strat), 
                      unit = "in") %>%
-    flextable::width(j = "prop", 
-                     width = 0.8, unit = "in") %>%
-    flextable::width(j = c("a"), 
-                     width = 0.25, unit = "in") %>%   
-    flextable::width(j = c("group"), 
-                     width = 1, unit = "in") %>%    
-    flextable::width(j = c("taxon"), 
-                     ifelse((length(strat))>3, 1.5, 1), 
-                     unit = "in") %>% 
+    flextable::width(j = "prop", width = 1, unit = "in") %>%
+    flextable::width(j = c("a"), width = 0.25, unit = "in") %>%   
+    flextable::width(j = c("spacer"), width = 0.1, unit = "in") %>%   
+    flextable::width(j = c("group"), width = 1, unit = "in") %>%    
+    flextable::width(j = c("taxon"), width = 1, unit = "in") %>% 
     flextable::footnote(part = "header", i = 1, j = 5, ref_symbols = "1",
                         value = as_paragraph(footnote0)) %>%
     flextable::bold(i = ~ (grepl(pattern = "Total", x = group) )) %>%
-    flextable::set_header_labels(.,
-                                 "group" = "", 
-                                 "taxon" = "",
-                                 "999" = "", 
-                                 "CI95" = "",
-                                 "prop" = "") %>%
-    flextable::merge_at(j = c("group", "taxon"), part = "header") %>% 
-    flextable::merge_at(j = c("999", "a", "CI95"), part = "header") %>% 
-    flextable::merge_at(j = c("prop"), part = "header") 
-  
+    flextable::set_header_labels(
+      "group" = "Taxon", 
+      "taxon" = "Estimated biomass ± 95% CI",
+      "999" = "",
+      "a" = "",
+      "CI95" = "",
+      "prop" = "Proportion of total",
+      "spacer" = "") %>%
+    flextable::merge_at(j = c("spacer"), part = "header") %>%
+    flextable::merge_at(j = c("group"), part = "header") %>%
+    flextable::merge_at(j = c("taxon", "999", "a", "CI95"), i = 2, part = "header") 
   row_lines <- TRUE
-  pad = 0
+  pad <- 0
   body_size = 10
   header_size = 10
   spacing = 0.6
-  pgwidth = full_page_landscape_width
   std_b <- officer::fp_border(width = 2, color = "grey10")
-  thin_b <- officer::fp_border(width = 0.5, color = "grey10") 
+  thin_b <- officer::fp_border(width = 0.5, color = "grey10")
   
   x <- flextable::border_remove(x = table_print)
-  if (row_lines == TRUE) {
+  # if (row_lines == TRUE) {
     table_print <- flextable::hline(x = table_print, border = thin_b, part = "body")
-  }
+  # }
   
   table_print <- table_print %>% 
     flextable::hline(border = std_b, part = "header") %>% 
@@ -1494,7 +1501,9 @@ for (i in 1:nrow(comb)) {
     flextable::fix_border_issues() %>% 
     flextable::align(j = c("999", "prop", strat), # , "CI95", strat
                      align = "right", part = "all") %>%
-    flextable::align(j = strat, i = 1, 
+    flextable::align(j = c("taxon"), i = 2, 
+                     align = "center", part = "header") %>%    
+    flextable::align(j = c("taxon", strat), i = 1, 
                      align = "center", part = "header") %>%
     flextable::padding(padding.left = 3, padding.right = 3, j = "a", part = "body")
   
