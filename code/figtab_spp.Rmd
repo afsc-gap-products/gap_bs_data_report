@@ -1137,7 +1137,8 @@ table_raw <- table_raw %>%
     dplyr::left_join(
       biomass %>%
   dplyr::filter(stratum == 999 &
-                  year >= 1987) %>% 
+                  year >= min(table_raw$year, na.rm = TRUE) # 1987
+                ) %>% 
   dplyr::group_by(survey_definition_id) %>% 
     dplyr::summarise(minyr = min(year, na.rm = TRUE), 
                      maxyr = max(year, na.rm = TRUE)) %>% 
@@ -1158,12 +1159,6 @@ table_raw <- table_raw %>%
     col_anno <- table_raw$col[which(unique(table_raw$SRVY)==temp)]
     col <- table_raw$col[which(unique(table_raw$SRVY)!=temp)]
   }
-  
-  # add mean data to table_raw
-  # table_raw <-
-  #   dplyr::left_join(
-  #     x = table_raw,
-  #     y = table_raw_mean)
   
 if (report_title %in% "community") {
   nickname <- paste0("fig-biomass-", spp_file, "-comm")
@@ -1283,7 +1278,8 @@ if (report_title %in% "community") {
                  ifelse(is.na(spp_sci), "",
                         paste0(" (",spp_sci,")")), " ",
                  text_list(temp$str0), 
-                 " from the ", min(table_raw$year, na.rm = TRUE),"-", 
+                 " from the ", 
+                 min(table_raw$year, na.rm = TRUE),"-", 
                  max(table_raw$year, na.rm = TRUE), " ", 
                  # range_text(range(table_raw$year)), " ", 
                  ifelse(length(unique(table_raw$SRVY_long)) > 1, 
