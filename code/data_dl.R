@@ -1,5 +1,5 @@
 
-# Run content from run.R first
+# Log into Oracle --------------------------------------------------------------
 
 if (file.exists("Z:/Projects/ConnectToOracle.R")) {
   # This has a specific username and password because I DONT want people to have access to this!
@@ -15,7 +15,7 @@ if (file.exists("Z:/Projects/ConnectToOracle.R")) {
                          believeNRows = FALSE)
 }
 
-# DOWNLOAD CPUE and BIOMASS EST ------------------------------------------------
+# Pull data from GAP_PRODUCTS --------------------------------------------------
 
 locations <- c(
   "GAP_PRODUCTS.OLD_STATION",
@@ -86,7 +86,7 @@ for (i in 1:length(locations)){
 }
 error_loading
 
-# pull data from RACE_DATA -----------------------------------------------------
+# Pull data from RACE_DATA and CRAB --------------------------------------------
 
 locations <- c(
   "crab.gap_ebs_nbs_abundance_biomass", # Biomass
@@ -118,7 +118,7 @@ FROM ",locations[i],"; "))
                               ".csv")))
 }
 
-# Prepare data for complexes ---------------------------------------------------
+# Create species complex tables ------------------------------------------------
 
 # Species Covered
 # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
@@ -144,13 +144,13 @@ for (i in 1:nrow(report_spp)){
 # follow instructions from https://afsc-gap-products.github.io/gapindex/articles/ex_species_complex.html
 ## Pull data. Note the format of the `spp_codes` argument with the GROUP column
 library(gapindex)
-production_data <- get_data(
+production_data <- gapindex::get_data(
   year_set = c(1982:maxyr),
   survey_set = c("EBS", "NBS"),
   spp_codes = temp1,
   pull_lengths = TRUE, 
   haul_type = 3, 
-  abundance_haul = "Y",
+  abundance_haul = "Y", 
   sql_channel = channel)
 
 ## Zero-fill and calculate CPUE
