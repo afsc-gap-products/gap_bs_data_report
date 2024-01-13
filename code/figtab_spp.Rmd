@@ -487,13 +487,14 @@ if (!(nrow(table_raw) == 0)) {
           # SRVY0 = SRVY, 
           #             SRVY = SRVY_long, 
           SRVY_long = gsub(replacement = "", x = SRVY_long, pattern = SURVEY), 
-          SRVY_long = stringr::str_to_title(SRVY_long)),
+          SRVY_long = trimws(stringr::str_to_title(SRVY_long))),
       lengths0 = lengths0,
       spp_code = spp_code,
       spp_print = stringr::str_to_title(spp_print),
       type = type,
       print_n = print_n, 
       ridgeline = FALSE)
+    
   } else if (report_title %in% c("ptpres", "nbspres")) {
     if ("EBS" %in% table_raw$SRVY) {
       figure1 <- figure <- plot_sizecomp(
@@ -865,9 +866,9 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          gsub("[()]", "", cpue_kgkm2_sd0$unit_word), ")",
                          ", estimated biomass", biomass_mt0$unit_word,
                          " with SD", biomass_sd0$unit_word, 
-                         ", and 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
+                         ", 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
-                         ") confidence limits for ")
+                         ") confidence limits, and number of hauls where species were weighed for ")      
         
         table_print0 <- table_raw %>% 
           dplyr::mutate(cpue_kgkm2_mean = formatC(x = cpue_kgkm2_mean/cpue_kgkm2_mean0$divby, 
@@ -898,13 +899,13 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
           flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL)  %>%
           flextable::as_flextable(hide_grouplabel = TRUE) %>%
           flextable::set_header_labels(
-            cpue_kgkm2_mean = paste0("CPUE Mean ", ifelse(cpue_kgkm2_mean0$unit_wrd=="", "", paste0(" ",cpue_kgkm2_mean0$unit_wrd))), 
-            cpue_kgkm2_sd = paste0("CPUE\nSD ", ifelse(cpue_kgkm2_sd0$unit_wrd=="", "", paste0("\n",cpue_kgkm2_sd0$unit_wrd))), 
-            biomass_mt = paste0("Biomass", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))), 
-            biomass_sd = paste0("Biomass\nSD ", ifelse(biomass_sd0$unit_wrd=="", "", paste0(" ",biomass_sd0$unit_wrd))), 
-            biomass_dw = paste0("95% LCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))),
-            biomass_up = paste0("95% UCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n",biomass_mt0$unit_wrd))),
-            n_weight = "# Hauls w/weights"
+            cpue_kgkm2_mean = paste0("CPUE Mean ", ifelse(cpue_kgkm2_mean0$unit_wrd=="", "", paste0(" (",cpue_kgkm2_mean0$unit_wrd, ")"))), 
+            cpue_kgkm2_sd = paste0("CPUE SD ", ifelse(cpue_kgkm2_sd0$unit_wrd=="", "", paste0("\n(",cpue_kgkm2_sd0$unit_wrd, ")"))), 
+            biomass_mt = paste0("Biomass", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n(",biomass_mt0$unit_wrd, ")"))), 
+            biomass_sd = paste0("Biomass SD ", ifelse(biomass_sd0$unit_wrd=="", "", paste0(" (",biomass_sd0$unit_wrd, ")"))), 
+            biomass_dw = paste0("95% LCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n(",biomass_mt0$unit_wrd, ")"))),
+            biomass_up = paste0("95% UCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n(",biomass_mt0$unit_wrd, ")"))),
+            n_weight = "Hauls w/weights"
           ) 
       }
     } else { # CPUE No/km² and population_count
@@ -933,9 +934,9 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          gsub("[()]", "", cpue_nokm2_sd0$unit_word), ")",
                          ", estimated population", population_count0$unit_word,
                          " with SD", population_sd0$unit_word, 
-                         ", and 95% lower (LCL;", gsub("[()]", "", population_count0$unit_word),
+                         ", 95% lower (LCL;", gsub("[()]", "", population_count0$unit_word),
                          ") and upper (UCL;", gsub("[()]", "", population_count0$unit_word),
-                         ") confidence limits for ")
+                         ") confidence limits, and number of hauls where species were counted for ")
         
         table_print0 <- table_raw %>% 
           dplyr::mutate(cpue_nokm2_mean = formatC(x = cpue_nokm2_mean/cpue_nokm2_mean0$divby, 
@@ -966,14 +967,14 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
           flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL)  %>%
           flextable::as_flextable(hide_grouplabel = TRUE) %>%
           flextable::set_header_labels(
-            cpue_nokm2_mean = paste0("CPUE Mean", ifelse(cpue_nokm2_mean0$unit_wrd=="", "", paste0(" ", cpue_nokm2_mean0$unit_wrd))), 
-            cpue_nokm2_sd = paste0("CPUE\nSD ", ifelse(cpue_nokm2_sd0$unit_wrd=="", "", paste0("\n", cpue_nokm2_sd0$unit_wrd))), 
+            cpue_nokm2_mean = paste0("CPUE Mean", ifelse(cpue_nokm2_mean0$unit_wrd=="", "", paste0(" (", cpue_nokm2_mean0$unit_wrd, ")"))), 
+            cpue_nokm2_sd = paste0("CPUE SD ", ifelse(cpue_nokm2_sd0$unit_wrd=="", "", paste0("\n(", cpue_nokm2_sd0$unit_wrd, ")"))), 
             population_count = paste0("Population", 
-                                      ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd))),
-            population_sd = paste0("Population\nSD ", ifelse(population_sd0$unit_wrd=="", "", paste0(" ", population_sd0$unit_wrd))), 
-            population_dw = paste0("95% LCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd))),
-            population_up = paste0("95% UCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n", population_count0$unit_wrd))),
-            n_count = "# Hauls w/counts"
+                                      ifelse(population_count0$unit_wrd=="", "", paste0("\n(", population_count0$unit_wrd, ")"))),
+            population_sd = paste0("Population SD", ifelse(population_sd0$unit_wrd=="", "", paste0(" (", population_sd0$unit_wrd, ")"))), 
+            population_dw = paste0("95% LCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n(", population_count0$unit_wrd, ")"))),
+            population_up = paste0("95% UCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n(", population_count0$unit_wrd, ")"))),
+            n_count = "Hauls w/counts"
           ) 
       }
     }
@@ -997,9 +998,11 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
       flextable::valign(valign = "top") %>% 
       flextable::set_header_labels(stratum = "Stratum")  %>%
       theme_flextable_nmfstm(row_lines = FALSE, 
+                             body_size = 10,
+                             header_size = 10,
                              pgwidth = full_page_portrait_width)  %>%
-      flextable::width(width = ((full_page_portrait_width-.4-.9)/6), unit = "in") %>% # need to not account for the SRVY_long column
-      flextable::width(j = 1, width = .4, unit = "in") %>%
+      flextable::width(width = ((full_page_portrait_width-.6-.9)/6), unit = "in") %>% # need to not account for the SRVY_long column
+      flextable::width(j = 1, width = .6, unit = "in") %>%
       flextable::width(j = 2, width = .9, unit = "in") %>%
       
       # flextable::width(j = (ncol(table_print0)-1), width = .9, unit = "in") %>%
@@ -1012,7 +1015,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
     if (include_n_length) { # if lengths were collected, include the column
       table_print <- table_print %>%
         flextable::set_header_labels(
-          n_length = "# Hauls w/lengths") %>% 
+          n_length = "Hauls w/lengths") %>% 
         flextable::width(width = .5, unit = "in", j = "n_length") 
     }
     

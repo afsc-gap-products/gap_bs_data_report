@@ -1601,13 +1601,18 @@ plot_temperature_map <- function(raster_nebs,
     
     figure <- figure +
       ggplot2::geom_label(data = temperature_zscore1, 
-                          aes(label = sign, 
-                              color = sign,
-                              x = quantile(x = reg_dat$plot.boundary$x, .96),
-                              y = quantile(x = reg_dat$plot.boundary$y, .96) ), 
+                          aes(label = sign,
+                              # x = quantile(x = reg_dat$plot.boundary$x, .96),
+                              # y = quantile(x = reg_dat$plot.boundary$y, .96), 
+                              color = sign ), 
+                          x = Inf, 
+                          y = Inf, 
+                          hjust = 1, 
+                          vjust = 1, 
                           fontface = "bold", 
                           fill = "grey20",
-                          label.size = NA,
+                          label.size = NA, 
+                          label.r = unit(0, "lines"), 
                           show.legend = FALSE) +
       ggplot2::scale_colour_manual(
         na.value = "transparent",
@@ -1746,9 +1751,11 @@ plot_sizecomp <- function(sizecomp0,
                            end = .6,
                            na.value = "transparent") +
       scale_y_continuous(name = paste0("Population ",pop_unit_word), 
-                         breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1))))) +
+                         # breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1)))), 
+                         labels = scales::label_number(accuracy = 10, big.mark = ",")) +
       scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
-                         breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
+                         # breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1)))), 
+                         labels = scales::label_number(accuracy = 10, big.mark = ",")) +
       facet_grid(year ~ SRVY_long,
                  scales = "free_x")  +
       ggplot2::labs(fill = spp_print) +
@@ -1768,6 +1775,24 @@ plot_sizecomp <- function(sizecomp0,
         legend.position = "bottom",
         legend.box = "horizontal",
         legend.box.spacing = unit(0, "pt"))
+    
+    # are there any plots with no data?
+      figure <- figure + 
+        # ggplot2::labs(caption = "+ None of this species was lengthed. ") +
+        # ggplot2::theme(plot.caption = element_text(hjust=0, size = 10)) +
+        ggplot2::geom_text(data = table(year = table_raw$year, SRVY_long = table_raw$SRVY_long) %>% 
+                             data.frame() %>% 
+                             dplyr::mutate(sex  = "Males", # had to pick something and this is the most generalizable across species
+                                           sign = ifelse(Freq == 0, "* No specimens lengthed", NA), 
+                                           SRVY_long = stringr::str_to_title(SRVY_long)), 
+                            mapping = aes(label = sign), 
+                            fontface = "italic", 
+                            color = "grey20",
+                            x = Inf, 
+                            y = -Inf, 
+                            show.legend = FALSE,
+                            hjust = 1.1,
+                            vjust = -.5)
     
   } else {
     table_raw1 <- table_raw %>% 
@@ -1836,12 +1861,14 @@ plot_sizecomp <- function(sizecomp0,
   if (print_n & !is.null(lengths0)) {
     
     figure <- figure +
-      ggplot2::geom_text(mapping = aes(label = label, 
-                                       x = (quantile(x = range(table_raw$length_mm), .8))[[1]], 
-                                       y = (quantile(x = range(table_raw$population_count), .93))[[1]]), 
+      ggplot2::geom_text(mapping = aes(label = label), 
+                                       x = Inf, 
+                                       y = Inf, 
+                                       hjust = 1.1, 
+                                       vjust = 2,
                          check_overlap = TRUE) 
   }
-  
+
   return(figure)
 }
 

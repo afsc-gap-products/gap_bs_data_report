@@ -1118,8 +1118,8 @@ biomass <- dplyr::bind_rows(biomass_gap, biomass_sap) %>%
   dplyr::filter(year > 1981 & 
                   stratum %in% c(strat0)) %>% 
   dplyr::mutate(
-    biomass_dw = ifelse(biomass_dw<0, 0, biomass_dw), 
-    population_dw = ifelse(population_dw<0, 0, population_dw) )
+    biomass_dw = ifelse(biomass_dw < 0, 0, biomass_dw), 
+    population_dw = ifelse(population_dw < 0, 0, population_dw) )
 
 biomass_maxyr <- biomass %>%
   dplyr::filter(stratum == 999) %>%
