@@ -36,7 +36,7 @@ lang <- ""
 
 if (spp_plot_idw) {
   fig_dist <- paste0("\\@ref(fig:", "fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
-
+  
 }
 
 if (spp_plot_sizecomp) {
@@ -55,18 +55,18 @@ fig_bt <- paste0("\\@ref(fig:fig-temperature-bt-1-",
                  ")")
 fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
 
-  if (report_title == "community") {
-    tab_majorspp_bio <- tab_majortaxa_pchange <- c("\\@ref(tab-majortaxa-pchange-NBS)")
-  } else if (report_title == "data") {
-    tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
-    tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
-  }
+if (report_title == "community") {
+  tab_majorspp_bio <- tab_majortaxa_pchange <- c("\\@ref(tab-majortaxa-pchange-NBS)")
+} else if (report_title == "data") {
+  tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
+  tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
+}
 
 # if (report_title == "community") {
-  tab_stat <- paste0("\\@ref(tab:tab-stats-", spp_file, ")")
-  fig_bio <- paste0("\\@ref(fig:fig-biomass-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
-  fig_pop <- paste0("\\@ref(fig:fig-population-", spp_file, ")")
-  fig_biopop <- paste0("\\@ref(fig:fig-biopop-timeseries-", spp_file, ")")
+tab_stat <- paste0("\\@ref(tab:tab-stats-", spp_file, ")")
+fig_bio <- paste0("\\@ref(fig:fig-biomass-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
+fig_pop <- paste0("\\@ref(fig:fig-population-", spp_file, ")")
+fig_biopop <- paste0("\\@ref(fig:fig-biopop-timeseries-", spp_file, ")")
 # }
 
 str0 <- ""
@@ -94,20 +94,11 @@ cowplot::ggdraw() +
 
 ```{r res-spp-lang-{{jj}}}
 # Native Languages Names 
-temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
-                        skip = 1, 
-                        show_col_types = FALSE) %>%
-  dplyr::filter(print_name == spp_print) #%>%
-  # dplyr::select(dplyr::starts_with("lang_")) %>%
-  # dplyr::select_if(~sum(!is.na(.)) > 0)
-
-temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
-                        show_col_types = FALSE) %>%
-    # dplyr::select_if(~sum(!is.na(.)) > 0) %>%
-  head(1)
-
-temp0 <- temp0[which(!is.na(temp))]
-temp <- temp[which(!is.na(temp))]
+temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv", 
+                        show_col_types = FALSE, skip = 1) %>%
+  dplyr::filter(print_name == spp_print) %>%
+  dplyr::select(dplyr::starts_with("lang_")) %>%
+  dplyr::select_if(~sum(!is.na(.)) > 0)
 
 if (report_title == "data") {
   # in data reports, only publish prev sci and common names
@@ -116,10 +107,14 @@ if (report_title == "data") {
   which0 <- which(grepl(pattern = "lang_", x = names(temp)))
 }
 
-temp <- temp[,which0]
-names(temp) <- unlist(names(temp0[,which0]))
+temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
+                         show_col_types = FALSE) %>%
+  head(1) %>%
+  t() %>%
+  data.frame()
+names(temp) <- rownames(temp0)[which(temp0$. %in% names(temp))]
 
-  lang <- ""
+lang <- ""
 if (ncol(temp)>0) {
   lang <- paste0("**", names(temp), "**: ", 
                  ifelse(names(temp) == "Previous scientific name", paste0("*", temp, "*"), temp), 
@@ -136,13 +131,13 @@ str0 <- ""
 
 ```{r bio-pop-txt-{{jj}}, eval = (spp_text & (report_title == "data"))}
 
-str0 <- paste0("Between ", maxyr," and ", compareyr,", ", spp_print, " ")
+str0 <- paste0("Between ", compareyr," and ", maxyr,", the ", spp_print, " ")
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw
 cite_bio <- paste0(" (Tables ", tab_stat," and ", tab_wt,"; Fig. ", fig_biopop,")")
 cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,")")
 
-  if ("Eastern Bering Sea" %in% temp$SRVY_long) {
+if ("Eastern Bering Sea" %in% temp$SRVY_long) {
   temp0 <- temp[temp$SRVY_long == "Eastern Bering Sea", ]
   case <- dplyr::case_when(
     grepl(x = temp0$`Biomass\n% Change`, pattern = "Not caught") ~ 
@@ -160,15 +155,15 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,"
     grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ paste0("increase"),
     grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ "no change"
   )
-    
+  
   str0 <- paste0(str0, 
-                 "the biomass estimate ", case, 
+                 "biomass estimate ", case, 
                  " in the eastern Bering Sea", cite_bio, 
                  " and the population was estimated at ",
                  temp0$Population," individuals",cite_pop,". ")
-  }
-  
-  if ("Northern Bering Sea" %in% temp$SRVY_long) {
+}
+
+if ("Northern Bering Sea" %in% temp$SRVY_long) {
   temp0 <- temp[temp$SRVY_long == "Northern Bering Sea", ]
   case <- dplyr::case_when(
     grepl(x = temp0$`Biomass\n% Change`, pattern = "Not caught") ~ 
@@ -189,19 +184,19 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,"
   )
   
   if (!("Eastern Bering Sea" %in% temp$SRVY_long)) { # if there is no EBS data and therefore nothing to 'transition' to, = ""
-  str0_transition <- ""
+    str0_transition <- ""
   } else if (case_transition_nbs == case_transition_ebs) {
-  str0_transition <- "Similarly, the "
-  cite_bio <- ""
-  cite_pop <- ""
+    str0_transition <- "Similarly, the "
+    cite_bio <- ""
+    cite_pop <- ""
   } else {
-  str0_transition <- "The " # "However, "
-  cite_bio <- ""
-  cite_pop <- ""
+    str0_transition <- "The " # "However, "
+    cite_bio <- ""
+    cite_pop <- ""
   } 
   
   str0 <- paste0(str0, str0_transition, 
-                 "biomass ", case, 
+                 "biomass estimate ", case, 
                  " in the northern Bering Sea", cite_bio, 
                  " and the population was estimated at ",
                  temp0$Population," individuals",cite_pop,". ")
