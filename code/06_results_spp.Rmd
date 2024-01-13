@@ -94,27 +94,27 @@ cowplot::ggdraw() +
 
 ```{r res-spp-lang-{{jj}}}
 # Native Languages Names 
-temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv", 
-                        show_col_types = FALSE, skip = 1) %>%
-  dplyr::filter(print_name == spp_print) %>%
-  dplyr::select(dplyr::starts_with("lang_")) %>%
-  dplyr::select_if(~sum(!is.na(.)) > 0)
-
+temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
+                        skip = 1, 
+                        show_col_types = FALSE) %>%
+  dplyr::filter(print_name == spp_print) #%>%
+  # dplyr::select(dplyr::starts_with("lang_")) %>%
+  # dplyr::select_if(~sum(!is.na(.)) > 0)
+temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
+                        show_col_types = FALSE) %>%
+    # dplyr::select_if(~sum(!is.na(.)) > 0) %>%
+  head(1)
+temp0 <- temp0[which(!is.na(temp))]
+temp <- temp[which(!is.na(temp))]
 if (report_title == "data") {
   # in data reports, only publish prev sci and common names
   which0 <- which(names(temp) %in% c("lang_scientific_name_prev", "lang_common_name_prev"))
 } else {
   which0 <- which(grepl(pattern = "lang_", x = names(temp)))
 }
-
-temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
-                         show_col_types = FALSE) %>%
-  head(1) %>%
-  t() %>%
-  data.frame()
-names(temp) <- rownames(temp0)[which(temp0$. %in% names(temp))]
-
-lang <- ""
+temp <- temp[,which0]
+names(temp) <- unlist(names(temp0[,which0]))
+  lang <- ""
 if (ncol(temp)>0) {
   lang <- paste0("**", names(temp), "**: ", 
                  ifelse(names(temp) == "Previous scientific name", paste0("*", temp, "*"), temp), 
