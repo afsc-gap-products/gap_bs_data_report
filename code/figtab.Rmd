@@ -322,7 +322,7 @@ table_raw <- dplyr::bind_rows(
   dplyr::mutate(SRVY = gsub(replacement = "", x = SRVY, pattern = "Z")) %>% 
   dplyr::left_join(
     y = data.frame(SRVY = c(SRVY1, "EBS and NBS"), 
-                   SRVY_long = c(stringr::str_to_title(SRVY11), "Eastern and northern Bering Sea Combined")))
+                   SRVY_long = c(stringr::str_to_title(SRVY11), "Eastern and northern Bering Sea combined")))
 
 table_print <- table_raw %>%
   dplyr::select(-SRVY) %>% 
@@ -1337,9 +1337,9 @@ for (i in 1:nrow(comb)) {
                  paste0("Estimated ", ifelse(comb$taxon[i] =="invert", "invertebrate", "fish"), " biomass by stratum")),
       colwidths = c(1,5,#1,4,
                     1,(length(strat)))) %>%
-    flextable::width(width = ((pgwidth-.15-.05-1-1-.4)/(length(strat)+2)), 
+    flextable::width(width = ((pgwidth-.15-.05-1-1-.6)/(length(strat)+2)), 
                      unit = "in") %>%
-    flextable::width(j = c("prop"), width = 0.4, unit = "in") %>%   
+    flextable::width(j = c("prop"), width = 0.6, unit = "in") %>%   
     flextable::width(j = c("a"), width = 0.15, unit = "in") %>%   
     flextable::width(j = c("spacer"), width = 0.05, unit = "in") %>%   
     flextable::width(j = c("group"), width = 1, unit = "in") %>%    
@@ -1401,7 +1401,7 @@ for (i in 1:nrow(comb)) {
 ```{r tab-majortaxa-pchange-[SRVY]}
 
 nickname0 <- "tab-majortaxa-pchange-" 
-yrs <- nbsyr[(length(nbsyr)-2):length(nbsyr)]
+yrs <- nbsyr[(length(nbsyr)-3):length(nbsyr)]
 
 table_raw0 <- 
   dplyr::left_join(
@@ -1468,7 +1468,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     dplyr::select(-SRVY, -change0) %>%
     flextable::flextable(data = ., 
                          col_keys = c("print_name",
-                                      nbsyr, 
+                                      yrs, 
                                       "change")) %>%
     flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
                      i = ~ grepl(pattern = "-", x = change), 
@@ -1565,7 +1565,7 @@ for (i in 1:2) {
         flextable::set_header_labels(
           print_name = "Species", 
           # SRVY = "Shelf area", 
-          cpue_kgkm2_mean = paste0("Mean CPUE (kg/km²)"), 
+          cpue_kgkm2_mean = paste0("CPUE mean (kg/km²)"), 
           cpue_kgkm2_sd = paste0("CPUE SD (kg/km²)"), 
           biomass_mt = paste0("Biomass (t)"), 
           biomass_sd = paste0("Biomass SD (t)"), 
@@ -1612,7 +1612,7 @@ for (i in 1:2) {
         flextable::flextable(data = .) %>% 
         flextable::set_header_labels(
           print_name = "Species", 
-          cpue_nokm2_mean = paste0("Mean CPUE (no/km²)"), 
+          cpue_nokm2_mean = paste0("CPUE mean (no/km²)"), 
           cpue_nokm2_sd = paste0("CPUE SD (no/km²)"), 
           population_count = paste0("Population"), 
           population_sd = paste0("Population SD"), 
@@ -1620,10 +1620,17 @@ for (i in 1:2) {
           population_up = paste0("95% UCL"),
           n_count = "Hauls w/counts") 
   }
-  
+
+  table_print <- table_print %>% 
+    flextable::merge_v(target = "print_name", 
+                       j = "print_name", part = "body") %>% 
+    flextable::valign(valign = "top") %>%  
+    theme_flextable_nmfstm(row_lines = TRUE, 
+                           pgwidth = full_page_portrait_width)  
+    
    if (SRVY == "NEBS") {
       table_print <- table_print %>% 
-    flextable::width(j = "SRVY", width = .3) %>%
+    flextable::width(j = "SRVY", width = .25) %>%
         flextable::set_header_labels(
           SRVY = "Shelf area") 
     }
@@ -1634,15 +1641,10 @@ for (i in 1:2) {
                                                  haul_cruises_maxyr$stations_completed, " stations completed)")), 
                      " shelf bottom trawl survey",plural_surveys,". ")
   
-  table_print <- table_print %>% 
-    flextable::merge_v(target = "print_name", 
-                       j = "print_name", part = "body") %>% 
-    flextable::valign(valign = "top") %>%  
-    theme_flextable_nmfstm(row_lines = TRUE, 
-                           pgwidth = full_page_portrait_width) %>%
-    flextable::width(j = "print_name", width = 1) %>%
-    flextable::width(j = 3:(ncol(table_raw)), 
-                     width = (full_page_portrait_width-1-ifelse(SRVY == "NEBS", .3, 0))/(ncol(table_raw)-1)) %>%
+table_print <- table_print %>% 
+    flextable::width(j = "print_name", width = .8) %>%
+    flextable::width(j = ifelse(SRVY == "NEBS", 3, 2):(length(dim(table_print)$widths)), 
+                     width = (full_page_portrait_width-.8-ifelse(SRVY == "NEBS", .25, 0))/(length(dim(table_print)$widths)-ifelse(SRVY == "NEBS", 2, 1))) %>%
     flextable::align(align = "right", 
                      part = "all") %>%
     flextable::align(j = "print_name", 
@@ -1954,8 +1956,8 @@ tab_taxa_found_ <- function(temp,
           lat_min = "N")) %>%
       flextable::add_header_row(top = TRUE,
                                 values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
-                                           "Scientific name", "Common name", "# Stns Present",
-                                           "Bottom depth (m)", "", "Latitude range"),
+                                           "Scientific name", "Common name", "#Haul",
+                                           "Bottom depth (m)", "", "Latitude"),
                                 colwidths = c(1,1,1,1,3,1,2)) %>%
       flextable::align(i = 1, align = "center", part = "header")  %>%  
       flextable::merge_at(j = c("taxon"), part = "header") %>%
@@ -1966,9 +1968,12 @@ tab_taxa_found_ <- function(temp,
       theme_flextable_nmfstm(row_lines = TRUE, 
                              pgwidth = full_page_portrait_width) %>%
       flextable::width(width = .5, unit = "in") %>%
+      flextable::width(width = .5, j = c("stations_n"), unit = "in") %>%
       flextable::width(width = .1, j = c("spacer"), unit = "in") %>%
-      flextable::width(width = 1, j = c("taxon", "common_name"), unit = "in") %>%
+      flextable::width(width = 1.2, j = c("taxon"), unit = "in") %>%
+      flextable::width(width = 1, j = c("common_name"), unit = "in") %>%
       flextable::width(width = 1.25, j = c("species_name"), unit = "in") %>%
+    flextable::padding(padding = .6, part = "all") %>% 
       flextable::align(
         j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
         align = "right", part = "all") %>%
@@ -2311,7 +2316,7 @@ May only be relevant in the 2023 year
 
 ```{r tab-species-year}
 nickname <- "tab-species-year"
-header <- paste0(maxyr, " changes to taxon species names and species codes (if changed), along with specific action taken and reason for update. ")
+header <- paste0("Established species time-series cutoff guidelines for when the time series of some species should begin. These cutoffs were formally established in 2023. ")
 
 table_raw <- gap_products_species_year0 %>%
   dplyr::left_join(spp_info %>% 
@@ -2337,6 +2342,8 @@ for (ii in cases) {
 }
 
 table_raw <- table_raw[order(table_raw$common_name),]
+table_raw$species_name <- trimws(table_raw$species_name)
+table_raw$species_name_noi <- trimws(table_raw$species_name_noi)
 
 # Prepare final table ----------------------------------------------------------
 table_print <- table_raw %>% 

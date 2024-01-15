@@ -1414,22 +1414,16 @@ plot_pa_facet <- function(
   
   figure <- figure +
     theme(  #set legend position and vertical arrangement
-      panel.background = element_rect(fill = "white", 
-                                      colour = NA), 
-      panel.border = element_rect(fill = NA, 
-                                  colour = "grey20"), 
+      panel.background = element_rect(fill = "white", colour = NA), 
+      panel.border = element_rect(fill = NA, colour = "grey20"), 
       axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
       strip.background = element_blank(), 
       strip.text = element_text(size = 10, face = "bold"), 
-      # legend.title = ,element_blank(),
       legend.text = element_text(size = 9),
-      legend.background = element_rect(colour = "transparent", 
-                                       fill = "transparent"),
-      legend.key = element_rect(colour = "transparent", 
-                                fill = "transparent"),
+      legend.background = element_rect(colour = "transparent", fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", fill = "transparent"),
       legend.position = "bottom",
-      legend.box = "horizontal")# ifelse(plot_bubble, "vertical", "horizontal"))
-  
+      legend.box = "horizontal")
   
   return(figure)
   
@@ -1878,8 +1872,7 @@ plot_survey_stations <- function(reg_dat,
                                  station_pts = "stn", # c("pts", "ves", "names")
                                  bathymetry = FALSE, 
                                  study = FALSE, 
-                                 place_labels = TRUE
-) {
+                                 place_labels = TRUE) {
   
   figure <- ggplot()  +
     ggplot2::geom_sf(data = reg_dat$akland, 
@@ -1895,22 +1888,16 @@ plot_survey_stations <- function(reg_dat,
                                 limits = reg_dat$plot.boundary$x,
                                 breaks = reg_dat$lon.breaks) + 
     ggplot2::theme( # set legend position and vertical arrangement
-      panel.background = element_rect(fill = "white", 
-                                      colour = NA), 
-      panel.border = element_rect(fill = NA, 
-                                  colour = "grey20"), 
-      strip.background = element_rect(fill = "grey85", 
-                                      colour = "grey20"),
+      panel.background = element_rect(fill = "white", colour = "grey20"), 
+      strip.background = element_rect(fill = "grey85",colour = "grey20"), 
       legend.spacing.y = unit(-0.35, "cm"),
       legend.title = element_text(size = 9),
       legend.text = element_text(size = 7),
       legend.background=element_blank(),
-      legend.key = element_rect(colour = "transparent", 
-                                fill = "transparent"),
+      legend.key = element_rect(colour = "transparent", fill = "transparent"),
       legend.position = c(.15, .15),
       legend.box.just = "left",
-      legend.box = "vertical"
-    )
+      legend.box = "vertical" )
   
   if (study) {
     
@@ -2158,7 +2145,7 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                                 fill = "transparent"),
       legend.position = c(0.1, 0.8),
       legend.title = element_blank(),
-      legend.box = "vertical")
+      legend.box = "vertical" )
   
   return(figure)
 }
@@ -2278,7 +2265,7 @@ plot_mean_temperatures <- function(maxyr, SRVY){
       panel.grid.minor = element_blank(),
       strip.background = element_blank(), 
       strip.text = element_text(size = 12, face = "bold"), 
-      legend.title = element_blank(), #, vjust = .5, hjust = .3),
+      legend.title = element_blank(), 
       legend.text = element_text(size = 10),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
