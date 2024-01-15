@@ -1,7 +1,7 @@
 
 # Results and Discussion
 
-A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY_long, " stations"))` were successfully sampled in `r maxyr` (Fig. \@ref(fig:fig-survey-sample-stations)). Haul and catch data from successfully trawled stations that were used for analyses in this section are available for download from the Fisheries One Stop Shop [@FOSSAFSCData].
+A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " ", haul_cruises_maxyr$SRVY_long, " stations"))` were successfully sampled in `r maxyr` (Fig. \@ref(fig:fig-survey-sample-stations)). 
 
 ## Ocean Temperatures and the Cold Pool
 
@@ -251,7 +251,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-`r stringr::str_to_sentence(numbers2words(temp1$species_code))` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY_long, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level", c(",", "")))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
+There were `r xunits(temp1$species_code)` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY_long, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level", c(",", "")))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
 
 <br>
 
@@ -267,6 +267,9 @@ nickname <- "tab-species-composition"
 ## Biomass, Abundance, and Catch per Unit Effort
 
 ```{r results-tot-biomass}
+
+# example output: 
+# [1] "The total demersal organismal biomass for the eastern Bering Sea was estimated at 12 million t and total demersal organismal biomass for the northern Bering Sea was estimated at 2.9 million t. In the eastern Bering Sea, the proportion of fishes (76%; Table \\@ref(tab:tab-biomass-est-EBS-fish)) was higher than invertebrates (24%; Table \\@ref(tab:tab-biomass-est-EBS-invert)) and in the northern Bering Sea, the proportion of fishes (48%; Table \\@ref(tab:tab-biomass-est-NBS-fish)) was lower than invertebrates (52%; Table \\@ref(tab:tab-biomass-est-NBS-invert)). The lower relative fish biomass in the northern Bering Sea than in the eastern Bering Sea is consistent with results of a broader analysis of all survey years presented by @RN936, which showed decreasing fish biomass with increasing latitude on the eastern Bering Sea continental shelf. "
 
 total_biomass0 <- total_biomass %>% 
   dplyr::filter(year == maxyr) %>% 
@@ -348,6 +351,10 @@ str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 `r str0`
 
 ```{r results-tot-biomass2}
+
+# example output:
+# [1] "Pleuronectidae (flatfishes) and Gadidae (cods) were the fish families with highest biomass in both the eastern Bering Sea (49.7% and 7.3% of the total biomass, respectively), and the northern Bering Sea (57.5% and 10.6% of the total biomass, respectively; Tables \\@ref(tab:tab-biomass-est-EBS-fish) and \\@ref(tab:tab-biomass-est-NBS-fish)). In the eastern Bering Sea, the family Gadidae was primarily comprised of walleye pollock (*Gadus chalcogrammus*, 34.5%) and Pacific cod (*Gadus macrocephalus*, 7.3%); and the family Pleuronectidae was primarily comprised of yellowfin sole (*Limanda aspera*, 15.2%) and northern rock sole (*Lepidopsetta polyxystra*, 15.1%). In the northern Bering Sea, the family Gadidae was primarily comprised of walleye pollock (*Gadus chalcogrammus*, 26.2%) and Pacific cod (*Gadus macrocephalus*, 7.8%); and the family Pleuronectidae was primarily comprised of yellowfin sole (*Limanda aspera*, 28.3%) and Alaska plaice (*Pleuronectes quadrituberculatus*, 22.2%). "
+
 str0 <- ""
 if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
   
@@ -442,7 +449,7 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
     temp4 <- text_list(paste0(
       temp0$group0[temp0$SRVY == SRVY1[i]], 
       " was primarily comprised of ", 
-      temp0$str0[temp0$SRVY == SRVY1[i]]), sep_last2 = "; ")
+      temp0$str0[temp0$SRVY == SRVY1[i]]), sep_last2 = "; and ")
     temp3 <- paste0(temp3, 
                     paste0("In the ", SRVY11[i], ", ", temp4, ". "))
   }
@@ -619,9 +626,7 @@ nickname <- "tab-est-spp-num"
 
 ## Summary of Results for Selected Fish and Invertebrate Fauna of the `r gsub(pattern = "And", replacement = "and", x = stringr::str_to_title(SURVEY))`
 
-The spatial distribution maps below illustrate where species were found during the surveys. The distributions are presented as inverse distance weighted interpolations, and assumes that data from stations that are closer to one another are more alike than those that are farther apart.
 
-An interactive map of species CPUE is available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). The CPUE data with associated station information including position, surface and bottom temperatures, and bottom depth can be downloaded from the NOAA Fisheries One Stop Shop data platform (FOSS; @FOSSAFSCData). Users can interactively select, view, and download data on the platform for this survey and others.
 
 ```{r results-spatial-distribution_fish}
 temp <- report_spp1 %>% 
@@ -635,9 +640,4 @@ temp2 <- report_spp1 %>%
   dplyr::distinct()
 ```
 
-Plots of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r sum(!is.na(report_spp$order[report_spp$taxon == "fish"]))` major fish species caught during the `r SURVEY` continental shelf survey are presented in below. Differences in estimates and totals may be due to rounding.
-
-Plots of spatial distribution and tables of CPUE (kg/km^2^ and no/km^2^) for the `r sum(!is.na(report_spp$order[report_spp$taxon == "invert"]))` major invertebrate species caught during the `r SURVEY` continental shelf surveys presented below. Differences in estimates and totals may be due to rounding. 
-
-Detailed information on bottom trawl survey results for commercial crab species are discussed and analyzed in the AFSC Shellfish Assessment Program's annual data report [`r paste0("@SAPcrab", maxyr)`]. Commercial crab stocks are managed by the ADF&G with federal oversight by NOAA Fisheries. The most recent modeling results on the status of these commercial crab stocks are reported in the annual Stock Assessment and Fishery Evaluation report prepared by the NPFMC [@NPFMC]. 
-
+Plots, as appropriate, of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r sum(!is.na(report_spp$order[report_spp$taxon == "fish"]))` major fish and `r sum(!is.na(report_spp$order[report_spp$taxon == "invert"]))` major invertebrate species caught during the `r SURVEY` continental shelf surveys presented below. The spatial distribution maps below illustrate where species were found during the surveys. The distributions are presented as inverse distance weighted interpolations of CPUE (kg/km^2^) which assumes that data from stations that are closer to one another are more alike than those that are farther apart. Similar interactive maps of these highlighted species and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [Data Sources](#data-sources). Differences in estimates and totals may be due to rounding. 

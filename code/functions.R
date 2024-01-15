@@ -1483,7 +1483,6 @@ plot_temperature_map <- function(raster_nebs,
         mask_layer <- dplyr::filter(reg_dat0$survey.area, SURVEY == "EBS_SHELF")
       }
       
-      
       temp_sf <- sel_raster_layer |>
         terra::mask(mask_layer, touches = TRUE) |>
         as.data.frame(na.rm = TRUE, xy = TRUE) |>
@@ -1502,8 +1501,7 @@ plot_temperature_map <- function(raster_nebs,
         dplyr::summarise(n = n()) |>
         dplyr::select(-n) |>
         sf::st_intersection(mask_layer) |>
-        rmapshaper::ms_simplify(keep_shapes = TRUE,
-                                keep = 0.04)
+        rmapshaper::ms_simplify(keep_shapes = TRUE, keep = 0.04)
       
       temp_sf$year <- yrs[ii]
       
@@ -1518,8 +1516,7 @@ plot_temperature_map <- function(raster_nebs,
   if (2020 %in% yrs) {
     temperature_sf <- dplyr::bind_rows(temperature_sf %>% 
                                          head(n = 1) %>% 
-                                         dplyr::mutate(bt = NA, 
-                                                       year = 2020) , 
+                                         dplyr::mutate(bt = NA, year = 2020) , 
                                        temperature_sf)
   }
   
@@ -1591,7 +1588,7 @@ plot_temperature_map <- function(raster_nebs,
                                       colour = NA),
       panel.border = element_rect(fill = NA,
                                   colour = "grey20"),
-      axis.text = element_text(size = legend_font_size-3.5),
+      axis.text = element_text(size = legend_font_size-4),
       strip.background = element_blank(),
       strip.text = element_text(size = legend_font_size, face = "bold"),
       legend.position = "none", 
@@ -1750,7 +1747,7 @@ plot_sizecomp <- function(sizecomp0,
                            begin = .2,
                            end = .6,
                            na.value = "transparent") +
-      scale_y_continuous(name = paste0("Population ",pop_unit_word), 
+      scale_y_continuous(name = paste0("Population", pop_unit_word), 
                          # breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1)))), 
                          labels = scales::label_number(accuracy = 10, big.mark = ",")) +
       scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
@@ -1787,6 +1784,7 @@ plot_sizecomp <- function(sizecomp0,
                                            SRVY_long = stringr::str_to_title(SRVY_long)), 
                             mapping = aes(label = sign), 
                             fontface = "italic", 
+                           size = 2.5, 
                             color = "grey20",
                             x = Inf, 
                             y = -Inf, 

@@ -74,7 +74,7 @@ str0 <- ""
 ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 ```
 
-### `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `
+### `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) ` {#`r spp_file``}
 
 ```{r spp-text-0-{{jj}}}
 img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
@@ -134,13 +134,14 @@ if (ncol(temp)>0) {
 str0 <- ""
 ```
 
-```{r bio-pop-txt-{{jj}}, eval = (spp_text & (report_title == "data"))}
+```{r bio-pop-txt-{{jj}}}
+# , eval = (spp_text & (report_title == "data"))
 
-str0 <- paste0("Between ", maxyr," and ", compareyr,", ", spp_print, " ")
+str0 <- paste0("Between ", compareyr," and ", maxyr,", the ", spp_print, " biomass estimate ")
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw
-cite_bio <- paste0(" (Tables ", tab_stat," and ", tab_wt,"; Fig. ", fig_biopop,")")
-cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,")")
+cite_bio <- paste0(" (Tables \\@ref(tab:tab-est-spp-wt), ", tab_stat,", and ", tab_wt,"; Fig. ", fig_biopop,")")
+cite_pop <- paste0(" (Tables \\@ref(tab:tab-est-spp-num), ", tab_stat,", and ", tab_no,"; Fig. ", fig_biopop,")")
 
   if ("Eastern Bering Sea" %in% temp$SRVY_long) {
   temp0 <- temp[temp$SRVY_long == "Eastern Bering Sea", ]
@@ -162,7 +163,7 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,"
   )
     
   str0 <- paste0(str0, 
-                 "the biomass estimate ", case, 
+                 case, 
                  " in the eastern Bering Sea", cite_bio, 
                  " and the population was estimated at ",
                  temp0$Population," individuals",cite_pop,". ")
@@ -198,13 +199,21 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no,"; Fig. ", fig_biopop,"
   str0_transition <- "The " # "However, "
   cite_bio <- ""
   cite_pop <- ""
-  } 
+  }
   
   str0 <- paste0(str0, str0_transition, 
-                 "biomass ", case, 
+                 " the biomass estimate ", case, 
                  " in the northern Bering Sea", cite_bio, 
                  " and the population was estimated at ",
-                 temp0$Population," individuals",cite_pop,". ")
+                 temp0$Population," individuals",cite_pop,". ", 
+                 str0_nonsamp)
+  }
+
+if (nrow(temp) == 1 & length(SRVY11)==2) { # temp$SRVY_long %in% stringr::str_to_title(SRVY11)
+  str0 <- paste0(str0, 
+                 "No ", spp_print, " were observed in the ", 
+                 SRVY11[!(stringr::str_to_title(SRVY11) %in% temp$SRVY_long)], 
+                 " in ",maxyr,"  (Fig. ", fig_dist,"; Tables \\@ref(tab:tab-est-spp-wt), \\@ref(tab:tab-est-spp-num),", tab_stat,", ", tab_wt,", and ", tab_no, "). ")
 }
 ```
 
@@ -243,7 +252,7 @@ nickname <- paste0("fig-dist-", spp_file, ifelse(report_title == "data", "-data"
 ```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval=(spp_plot_idw | spp_plot_pa)}
 ```
 
-`r pagebreak`
+<!-- `r pagebreak` -->
 
 ```{r fig-sizecomp-{{jj}}}
 nickname <- paste0("fig-sizecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
@@ -272,6 +281,6 @@ nickname <- paste0("tab-est-",spp_file, "-num")
 ```{r tab-est-{{jj}}-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_table_cpue}
 ```
 
-\pagebreak
+<!-- \pagebreak -->
 
 <!-- `r land_end ` -->
