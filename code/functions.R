@@ -2121,7 +2121,7 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
     geom_ribbon() + 
     scale_fill_manual(name = "Temperature", 
                       values = viridis::mako(4, direction = -1, begin = 0.2, end = .8)) +  
-    scale_y_continuous(name = "Proportion of EBS Shelf Survey Area",
+    scale_y_continuous(name = "Proportion of Survey Area",
                        limits = c(0, 1),
                        expand = c(0, 0),
                        breaks = seq(0,1,0.1)) +
@@ -2130,7 +2130,10 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                                   maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
                        expand = c(0, 0),
                        breaks = c(seq(1980, maxyr, 5))) +
-    guides(fill = guide_legend(label.position = "right")) +
+    ggplot2::guides(
+      fill = guide_legend(title.position = "top",
+                          title.hjust = 0.5,
+                          title.vjust = -0.5)) +
     theme_bw() +
     theme(
       panel.background = element_rect(fill = "white", colour = NA), 
@@ -2138,15 +2141,16 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
       panel.grid.minor = element_blank(),
       strip.background = element_blank(), 
       strip.text = element_text(size = 12, face = "bold"), 
-      legend.text = element_text(size = 10),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
-      legend.key = element_rect(colour = "transparent", 
+      legend.key = element_rect(colour = "transparent",
                                 fill = "transparent"),
-      legend.position = c(0.1, 0.8),
-      legend.title = element_blank(),
-      legend.box = "vertical" )
-  
+      legend.position = "bottom",
+      legend.box = "horizontal",
+      legend.box.spacing = unit(0, "pt"),
+      plot.title = element_text(hjust = 0.5)) +
+    ggtitle("Eastern Bering Sea")
+
   return(figure)
 }
 
