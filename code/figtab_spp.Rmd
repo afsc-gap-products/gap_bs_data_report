@@ -1108,7 +1108,10 @@ table_raw <- table_raw %>%
       SRVY_long == "Northern Bering Sea" ~ pcol[2]), 
     var_ = dplyr::case_when(
       y_long == "Biomass" ~ 
-        paste0("Biomass", ifelse(a_bio$unit_word == "", "", "\n"), a_bio$unit_word), 
+        paste0("Biomass", 
+               # if no bio divby or pop divby (bc then would stay on same line)
+               ifelse(a_bio$unit_word == " (t)" & a_pop$unit_word == "", 
+                      "", "\n"), a_bio$unit_word), 
       y_long == "Population" ~ 
         paste0("Population", ifelse(a_pop$unit_word == "", "", "\n"), a_pop$unit_word)        
     ), 
@@ -1201,12 +1204,13 @@ figure <-
   # axis aesthetics 
   # ggplot2::ggtitle(spp_print) +  # No title
   ggplot2::scale_x_continuous(
-    name = "Year", 
+    name = "", # "Year", 
     # limits = range(yrs_plotted, na.rm = TRUE), 
     labels = scales::label_number(accuracy = 1, big.mark = ""))  +
   ggplot2::scale_y_continuous(
-    name = "", # spp_print,
-    labels = scales::comma) +
+    name = "", # spp_print, 
+    labels = scales::label_number(accuracy = 1, big.mark = ","), 
+    limits = c(0, NA)) +
   # survey area color aesthetics
   ggplot2::scale_color_manual(values = unique(table_raw$col)) +
   # plot error bars
@@ -1214,8 +1218,8 @@ figure <-
                          width = .2,
                          alpha = 0.5) + 
   # Set y axis minimum to always be 0 & remove resulting "y" label
-  ylim(0, NA) +
-  ylab(" ") +
+  # ylim(0, NA) +
+  # ylab(" ") +
   # facet grid
   ggplot2::facet_grid(rows = vars(var_), 
                       scales = "free", 

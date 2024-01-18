@@ -2119,7 +2119,7 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                                           ymin = ymin, 
                                           fill = variable)) + 
     geom_ribbon() + 
-    scale_fill_manual(name = "Temperature", 
+    scale_fill_manual(name = "", # "Temperature", 
                       values = viridis::mako(4, direction = -1, begin = 0.2, end = .8)) +  
     scale_y_continuous(name = "Proportion of Survey Area",
                        limits = c(0, 1),
@@ -2130,25 +2130,24 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
                                   maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
                        expand = c(0, 0),
                        breaks = c(seq(1980, maxyr, 5))) +
-    ggplot2::guides(
-      fill = guide_legend(title.position = "top",
-                          title.hjust = 0.5,
-                          title.vjust = -0.5)) +
+    # ggplot2::guides(
+    #   fill = guide_legend(title.position = "top",
+    #                       title.hjust = 0.5,
+    #                       title.vjust = -0.5)) +
     theme_bw() +
     theme(
       panel.background = element_rect(fill = "white", colour = NA), 
       panel.border = element_rect(fill = NA, colour = "grey20"), 
       panel.grid.minor = element_blank(),
-      strip.background = element_blank(), 
-      strip.text = element_text(size = 12, face = "bold"), 
+      plot.title = element_text(hjust = 0.5, size = 12), 
+      legend.text = element_text(size = 10),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
       legend.key = element_rect(colour = "transparent",
                                 fill = "transparent"),
       legend.position = "bottom",
-      legend.box = "horizontal",
-      legend.box.spacing = unit(0, "pt"),
-      plot.title = element_text(hjust = 0.5)) +
+      legend.box = "horizontal", 
+      legend.box.spacing = unit(0, "pt")) +
     ggtitle("Eastern Bering Sea")
 
   return(figure)
@@ -2268,7 +2267,7 @@ plot_mean_temperatures <- function(maxyr, SRVY){
                                   colour = "grey20"), 
       panel.grid.minor = element_blank(),
       strip.background = element_blank(), 
-      strip.text = element_text(size = 12, face = "bold"), 
+      strip.text = element_text(size = 12), 
       legend.title = element_blank(), 
       legend.text = element_text(size = 10),
       legend.background = element_rect(colour = "transparent", 
