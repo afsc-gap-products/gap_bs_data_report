@@ -1,7 +1,7 @@
 
 # Results and Discussion{#results}
 
-A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " (of ",  haul_cruises_maxyr$stations_avail, ") total stations in the ", haul_cruises_maxyr$SRVY_long))` were successfully sampled in `r maxyr` (Fig. \@ref(fig:fig-survey-sample-stations)). 
+A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " (of ",  haul_cruises_maxyr$stations_avail, ") stations in the ", haul_cruises_maxyr$SRVY_long))` were successfully sampled in `r maxyr` (Fig. \@ref(fig:fig-survey-sample-stations)). 
 
 ## Ocean Temperatures and the Cold Pool
 
@@ -251,7 +251,7 @@ temp1 <- dplyr::bind_cols(
 
 ```
 
-There were `r xunits(temp1$species_code)` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY_long, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level", c(",", "")))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
+There were `r xunits(temp1$species_code)` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY_long, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level", c(",", "")))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
 
 <br>
 
@@ -448,6 +448,7 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
   for (i in 1:length(SRVY1)){
     temp4 <- text_list(paste0(
       temp0$group0[temp0$SRVY == SRVY1[i]], 
+      c(", by biomass,", rep_len(x = "", length.out = nrow(temp0)-1)), 
       " was primarily comprised of ", 
       temp0$str0[temp0$SRVY == SRVY1[i]]), sep_last2 = "; and ")
     temp3 <- paste0(temp3, 
@@ -459,7 +460,7 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
     " were the fish families with highest biomass in both the eastern Bering Sea (",
     text_list(
       paste0(round(x = temp1$prop_EBS[1:2]*100, digits = 1), "%")), 
-    " of the total biomass, respectively), and the northern Bering Sea (",
+    " of the total biomass, respectively) and the northern Bering Sea (",
     text_list(
       paste0(round(x = temp1$prop_NBS[1:2]*100, digits = 1), "%")), 
     " of the total biomass, respectively; Tables \\@ref(tab:tab-biomass-est-EBS-fish) and \\@ref(tab:tab-biomass-est-NBS-fish)). ", 
@@ -512,7 +513,7 @@ for (i in 1:length(SRVY1)) {
                  xunits(temp1$maxyr)," t in ", maxyr, ". ", 
                  
                  # taxa increased
-                 "Taxa that significantly increased in biomass in the ", SRVY11[i], " included ", 
+                 "Large increases in ", SRVY11[i], " biomass were observed for ", 
                  text_list(paste0(temp$print_name[temp$case == "increased"],
                                   " (", temp$change[temp$case == "increased"], ")")), 
                  " (Table \\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). ",
@@ -568,7 +569,7 @@ temp <- biomass %>%
                    SRVY_long = SRVY11))
 
 str0 <- text_list(paste0(
-  "The 10 most abundant fish taxa in the ",temp$SRVY_long,
+  "The ten most abundant fish taxa in the ",temp$SRVY_long,
   " accounted for ", temp$perc_topfish,
   " (an average of ",temp$topfish," kg/km^2^ per station) ", 
   "of total mean fish and invertebrate CPUE (an average of ",
@@ -638,7 +639,6 @@ temp2 <- report_spp1 %>%
   dplyr::distinct()
 ```
 
-Plots, as appropriate, of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r sum(!is.na(report_spp$order[report_spp$taxon == "fish"]))` major fish and `r sum(!is.na(report_spp$order[report_spp$taxon == "invert"]))` major invertebrate species caught during the `r SURVEY` continental shelf surveys presented below. The spatial distribution maps below illustrate where species were found during the surveys. The distributions are presented as inverse distance weighted interpolations of CPUE (kg/km^2^) which assumes that data from stations that are closer to one another are more alike than those that are farther apart. Similar interactive maps of these highlighted species and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [Data Sources](#data-sources). Differences in estimates and totals may be due to rounding. 
+Plots, as appropriate, of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r sum(!is.na(report_spp$order[report_spp$taxon == "fish"]))` major fish and `r sum(!is.na(report_spp$order[report_spp$taxon == "invert"]))` major invertebrate species caught during the `r SURVEY` continental shelf surveys are presented below. The spatial distribution maps illustrate where species were found during the surveys. The distributions are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^) which assumes that data from stations that are closer to one another are more alike than those that are farther apart. Similar interactive maps of these highlighted species and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [Data Sources](#data-sources). Differences in estimates and totals may be due to rounding. 
 
 \pagebreak
-

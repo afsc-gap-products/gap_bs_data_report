@@ -370,7 +370,8 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
                                 skip = 1) %>% 
   dplyr::filter(year == maxyr & 
                   !is.na(oto_target)) %>% 
-  dplyr::mutate(oto_target = paste0(oto_target, ifelse(oto_rules != 1, paste0("; collect when \u2265", oto_rules, " individuals caught in each haul"), ""))) %>% 
+  dplyr::mutate(oto_target = paste0(oto_target, ifelse(oto_rules != 1, paste0("; collect when \u2265", oto_rules, " individuals caught in each haul"), "")), 
+                print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name)))) %>% 
   dplyr::left_join(
     y = report_spp1 %>% 
       dplyr::select(print_name, order) %>% 
@@ -438,7 +439,8 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
   dplyr::arrange(SRVY, stomach_target, order) %>% 
   dplyr::select(SRVY, print_name, stomach_target) %>%
   # dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0)))  %>% 
-  dplyr::mutate(stomach_target = paste0(stomach_target, " cm"))  %>%
+  dplyr::mutate(stomach_target = paste0(stomach_target, " cm"), 
+                print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))  %>%
   dplyr::left_join(
     y = data.frame(SRVY = SRVY1, 
                    SRVY_long = stringr::str_to_title(SRVY11))) %>%
@@ -654,7 +656,8 @@ table_print0 <-
       dplyr::group_by(common_name) %>% 
       dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE)) %>%
       dplyr::ungroup())  %>% 
-  dplyr::mutate(dplyr::across(dplyr::where(is.numeric), xunits, val_under_x_words = -1))
+  dplyr::mutate(dplyr::across(dplyr::where(is.numeric), xunits, val_under_x_words = -1), 
+                common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
 
 table_print0[is.na(table_print0)]<- "-"
 
@@ -734,8 +737,8 @@ table_raw <- specimen %>%
   dplyr::select(-order) %>%
   dplyr::arrange(specimen_subsample_method) %>% 
   dplyr::relocate(specimen_subsample_method) %>% 
-  dplyr::ungroup()
-
+  dplyr::ungroup() %>% 
+  dplyr::mutate(common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
 
 table_print0 <- dplyr::bind_rows(
   table_raw, 
@@ -1041,7 +1044,9 @@ table_raw0 <-
   dplyr::ungroup() %>% 
   dplyr::full_join(y = temp, 
                    by = c("SRVY", "common_name" = "print_name")) %>% 
-  dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0))) %>%
+  dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0)), 
+                common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name)))
+) %>%
   dplyr::select(-species_code) %>% 
   dplyr::arrange(common_name) %>% 
   dplyr::filter(!grepl(pattern = " crab", x = common_name, ignore.case = TRUE))
@@ -1153,7 +1158,8 @@ table_raw <- catch_haul_cruises_maxyr %>%
   dplyr::mutate(species_name_ital = ifelse(species_name_ital == "", NA, species_name_ital), 
                 species_name_noital = ifelse(species_name_noital == "", NA, species_name_noital) ) %>%
   dplyr::distinct() %>% 
-  dplyr::arrange(common_name)
+  dplyr::arrange(common_name) %>% 
+  dplyr::mutate(common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
 
 temp_ebs <- table_raw %>% 
   dplyr::filter(where == "ebs")
@@ -1174,7 +1180,8 @@ if (nrow(temp_ebs)>nrow(temp_nbs)) {
 }
 
 temp0 <- dplyr::bind_cols(temp_ebs, temp_nbs) %>% 
-  dplyr::select(-where, -NBS, -EBS)
+  dplyr::select(-where, -NBS, -EBS) 
+
 
 table_print <- flextable::flextable(
   data = temp0,
@@ -1426,7 +1433,8 @@ table_raw0 <-
   dplyr::mutate(
     print_name = gsub(pattern = "smelts (*Osmeridae*) include eulachon, capelin, and rainbow smelt",
                       replacement = "smelts",
-                      x = print_name, fixed = TRUE))
+                      x = print_name, fixed = TRUE), 
+    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))
 
 table_raw0$maxyr <- unlist(table_raw0[names(table_raw0) %in% maxyr])
 table_raw0$compareyr <- unlist(table_raw0[names(table_raw0) %in% compareyr])
@@ -1514,7 +1522,9 @@ temp <- biomass %>%
   # dplyr::arrange(order) %>% 
   dplyr::arrange(print_name) %>%
   dplyr::select(-species_code, -order, -taxon) %>% 
-  dplyr::relocate(print_name)
+  dplyr::relocate(print_name) %>% 
+  dplyr::mutate(print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name)))
+)
 
    if (SRVY != "NEBS") {
       temp <- temp %>% 
@@ -1931,6 +1941,8 @@ tab_taxa_found_ <- function(temp,
         species_name1 = dplyr::case_when(
           grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1))
     
+    std_b <- officer::fp_border(width = 2, color = "grey10")
+
     table_print <- table_print %>%
       flextable::flextable(data = ., 
                            col_keys = c("taxon" ,
@@ -1956,7 +1968,7 @@ tab_taxa_found_ <- function(temp,
           lat_min = "N")) %>%
       flextable::add_header_row(top = TRUE,
                                 values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
-                                           "Scientific name", "Common name", "#Haul",
+                                           "Scientific name", "Common name", "#Hauls",
                                            "Bottom depth (m)", "", "Latitude"),
                                 colwidths = c(1,1,1,1,3,1,2)) %>%
       flextable::align(i = 1, align = "center", part = "header")  %>%  
@@ -1969,8 +1981,8 @@ tab_taxa_found_ <- function(temp,
                              pgwidth = full_page_portrait_width) %>%
       flextable::width(width = .5, unit = "in") %>%
       flextable::width(width = .5, j = c("stations_n"), unit = "in") %>%
-      flextable::width(width = .1, j = c("spacer"), unit = "in") %>%
-      flextable::width(width = 1.2, j = c("taxon"), unit = "in") %>%
+      flextable::width(width = .05, j = c("spacer"), unit = "in") %>%
+      flextable::width(width = 1.3, j = c("taxon"), unit = "in") %>%
       flextable::width(width = 1, j = c("common_name"), unit = "in") %>%
       flextable::width(width = 1.25, j = c("species_name"), unit = "in") %>%
     flextable::padding(padding = .6, part = "all") %>% 
@@ -1979,7 +1991,8 @@ tab_taxa_found_ <- function(temp,
         align = "right", part = "all") %>%
       flextable::align(
         j = c("depth_max", "depth_min", "depth_mean", "lat_max", "lat_min"), 
-        align = "center", i = 1, part = "header") 
+        align = "center", i = 1, part = "header") %>% 
+      flextable::hline(border = std_b, part = "header") 
     
     # output from function
     list_tables0$temp <- list("table_print" = table_print, 
@@ -2093,7 +2106,7 @@ tab_app_fish_ <- function(temp,
     
     spp_code <- temp0$species_code[temp0$file_name == temp$file_name[i]]
     
-    header <- paste0("Population estimates by sex and size for ",
+    header <- paste0("Population estimates by sex and size by size for ",
                      temp$print_name[i], " (", temp$species_name[i], ")", 
                      " from the ", 
                      maxyr, " ", temp$SRVY_long[i], 
@@ -2323,7 +2336,8 @@ table_raw <- gap_products_species_year0 %>%
                      dplyr::select(common_name, species_name, species_code)) %>% 
   dplyr::arrange(species_code) %>% 
   dplyr::mutate(dplyr::across(dplyr::everything(), as.character)) %>% 
-  dplyr::select(common_name, species_name, year_started)
+  dplyr::select(common_name, species_name, year_started)  %>% 
+  dplyr::mutate(common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))) )
 
 # separate text to italize and not ---------------------------------------------
 table_raw$species_name_noi <- ""
