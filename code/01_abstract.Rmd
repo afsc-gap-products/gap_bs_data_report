@@ -2,27 +2,34 @@
 # Abstract{#abstract}
 
 ```{r survey_summary}
-nbs_str0 <- ifelse(SRVY == "NEBS", 
+#| label: abstract-text
+
+# Surveys ----------------------------------------------------------------------
+str0_srvys <- gsub(pattern = " ,", replacement = ",", 
+             x = text_list(paste0(temp$yrofsurvey, 
+                                  temp$stndth, " ", stringr::str_to_title(haul_cruises_maxyr$SRVY_long), 
+                                  " (", haul_cruises_maxyr$SRVY, ") Crab/Groundfish Bottom Trawl Survey"), 
+                           sep_last = ", as well as the "))
+
+# Survey coverage --------------------------------------------------------------
+str0_coverage <- ifelse(SRVY == "NEBS", 
                    # NBS + EBS
                    paste0("The survey covered the eastern Bering Sea continental shelf (bottom depths between approximately 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait."), 
                    # EBS
                    paste0("The EBS bottom trawl survey covers the Bering Sea continental shelf (bottom depths between approximately 20 and 200 meters (m)) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude."))
 
-temp <- haul_cruises_maxyr 
-str1 <- gsub(pattern = " ,", replacement = ",", 
-             x = text_list(paste0(temp$yrofsurvey, 
-                                  temp$stndth, " ", stringr::str_to_title(temp$SRVY_long), " (", temp$SRVY, ") Crab/Groundfish Bottom Trawl Survey"), 
-                           sep_last = ", as well as the "))
-
+# Station count ----------------------------------------------------------------
 vessels0 <- vessels %>% 
   dplyr::filter(vess_shape != "X")
-```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str1`. `r nbs_str0` Survey sampling was conducted using `r (numbers2words(nrow(vessels0)))` chartered commercial stern trawler`r plural_surveys`, the `r text_list(paste0(vessels0$length_m, "-m ",  vessels0$vessel_ital)) `. Demersal populations of fishes and invertebrates were sampled by trawling for 30 minutes at stations arranged on a systematic grid, consisting of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " (of ",  haul_cruises_maxyr$stations_avail, ") total stations in the ", haul_cruises_maxyr$SRVY_long))`. At each station, species composition, sex, length-frequency composition, and age structure samples were collected from ecologically and commercially important fish species. 
+str0_stations <- paste0(
+  "Survey sampling was conducted using ", (numbers2words(nrow(vessels0))),
+  " chartered commercial stern trawler", plural_surveys," the ", 
+  text_list(paste0(vessels0$length_m, "-m ",  vessels0$vessel_ital)), " across ", 
+  text_list(paste0(haul_cruises_maxyr$stations_completed, " (of ",  haul_cruises_maxyr$stations_avail, 
+                   ") stations in the ", haul_cruises_maxyr$SRVY_long)), ". ")
 
-```{r}
-#| label: abstract-temperature
-
+# Temperature ------------------------------------------------------------------
 temp0 <- temps_avg_yr %>% 
   dplyr::filter(year == maxyr) %>% 
   dplyr::mutate(
@@ -83,11 +90,9 @@ if ((temp0$warmest_rank > (nrow(temps_avg_yr)-6)) |  (temp0$warmest_rank < 6)) {
                  " observed since the beginning of the EBS shelf bottom trawl survey time series in 1982. ")
 }
 
-```
+str0_temperature <- str0
 
-Environmental data, including temperature, salinity, and irradiance were collected at every survey station. `r str0` 
-
-```{r abstract-species-counts-biomass}
+# Biomass ----------------------------------------------------------------------
 
 # count fish spp
 temp <- dplyr::left_join(
@@ -236,36 +241,39 @@ temp1 <- dplyr::bind_cols(
 invert_spp <- xunits(temp1$species_code) 
 invert_phyla <- xunits(temp1$phylum) 
 
-
 str00 <- ""
-# if (SRVY == "NEBS") {
-for (i in 1:length(unique(cruises_maxyr$SRVY))){
+for (i in 1:length(SRVY1)){
   
-  srvy <- sort(unique(cruises_maxyr$SRVY))[i]
-  srvy1 <- sort(unique(cruises_maxyr$SRVY_long))[i]
+  srvy <- SRVY1[i]
+  srvy1 <- SRVY11[i]
+  
+  temp_max <- sum(total_biomass$total[total_biomass$SRVY == srvy & total_biomass$year == maxyr], na.rm = TRUE)
+  temp_compare <- sum(total_biomass$total[total_biomass$SRVY == srvy & total_biomass$year == compareyr], na.rm = TRUE)
   
   str0 <- paste0(
     "The estimated total biomass in the ", srvy1 ," ",
-    ifelse(sum(biomass_compareyr$biomass_mt[biomass_compareyr$SRVY == srvy]) < 
-             sum(biomass_maxyr$biomass_mt[biomass_maxyr$SRVY == srvy]), 
-           "increased", "decreased"),
+    ifelse(temp_compare < temp_max, "increased", "decreased"),
     " from ", 
-    xunits(sum(biomass_compareyr$biomass_mt[biomass_compareyr$SRVY == srvy], na.rm = TRUE)) ,
+    xunits(temp_compare) ,
     ifelse(i == 1, " metric tons (t) ", " t "), 
     "in ", compareyr, " to ", 
-    xunits(sum(biomass_maxyr$biomass_mt[biomass_maxyr$SRVY == srvy], na.rm = TRUE)), " t", 
+    xunits(temp_max), " t", 
     " in ", maxyr)
   
   str00 <- paste0(str00, str0, ". ")
-  
 }
+
+str0_biomass <- paste0(
+  str00, 
+  "Combined, a total of ", fish_sp ," species of fishes and ", invert_spp, 
+  " invertebrate taxa were identified on the ", 
+  SURVEY, " survey", plural_surveys, " in ", maxyr, ". ")
+
+# Conclusion -------------------------------------------------------------------
+str0_conclusion <-  paste0(readLines(con = paste0(dir_out_rawdata, "/0-abstract-conclusion.Rmd"), skipNul = TRUE), collapse = "")
+
 ```
 
-`r str00`Combined, a total of `r fish_sp ` species of fishes and `r invert_spp ` invertebrate taxa were identified on the `r SURVEY` survey`r plural_surveys` in `r maxyr`.
-
-This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))`  fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r SURVEY` shelf bottom trawl surveys. For common fish species, abundance-at-length plots comparing the `r compareyr ` and `r maxyr` `r SURVEY` surveys are also presented. Survey results reported herein include estimates of biomass for most fishes and invertebrates, and estimates of population size, geographic distributions, and abundance-at-length of select fish species. Tables in the appendix list population estimates by sex and size group for principal fish species, species encountered during the survey`r plural_surveys`, and data changes and improvements implemented between `r compareyr` to `r maxyr`. 
-
-```{r abstract-insert-text, child=paste0(dir_out_rawdata, "/0-abstract-conclusion.Rmd")}
-```
+In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "fish"])))` fish species and `r xunits(length(unique(report_spp1$order[report_spp1$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r SURVEY` shelf bottom trawl surveys. `r str0_conclusion`
 
 \pagebreak

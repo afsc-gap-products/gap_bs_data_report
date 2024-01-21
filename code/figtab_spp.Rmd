@@ -242,12 +242,7 @@ for (case_yr in case_yr0) {
                                 breaks = reg_dat0$lat.breaks) +
     ggplot2::scale_x_continuous(name = "", #"Longitude",
                                 limits = reg_dat0$plot.boundary$x,
-                                breaks = reg_dat0$lon.breaks) +
-    # geom_stars(data = stars0,
-    #            na.rm = FALSE,
-    #            show.legend = TRUE) +
-    # Note here that the output already includes the survey region. You could filter this to exclude a region without data and it wouldn't affect estimation, etc because IDW is deterministic.
-    
+                                breaks = reg_dat0$lon.breaks) + 
     geom_sf(data = idw$extrapolation.stack,
             mapping = aes(fill = var1.pred),
             na.rm = FALSE,
@@ -267,7 +262,7 @@ for (case_yr in case_yr0) {
       na.translate = FALSE, # Don't use NA
       drop = FALSE) + 
     ggplot2::geom_sf(
-      data = reg_dat$survey.area, 
+      data = reg_dat0$survey.area, 
       mapping = aes(color = SURVEY, 
                     geometry = geometry), 
       fill = "transparent", 
@@ -275,9 +270,9 @@ for (case_yr in case_yr0) {
       show.legend = FALSE) +
     ggplot2::scale_color_manual(
       name = " ", 
-      values = reg_dat$survey.area$color,
-      breaks = reg_dat$survey.area$SURVEY,
-      labels = reg_dat$survey.area$SRVY) + 
+      values = reg_dat0$survey.area$color,
+      breaks = reg_dat0$survey.area$SURVEY,
+      labels = reg_dat0$survey.area$SRVY) + 
     ggplot2::guides(
       fill = guide_legend(
         order = 1,
@@ -321,16 +316,16 @@ for (case_yr in case_yr0) {
         mapping = aes(label = label), 
         fontface = "italic", 
         size = 4) +
-      geom_text(data = subset(reg_dat$place.labels, 
+      geom_text(data = subset(reg_dat0$place.labels, 
                               type == "mainland"), 
                 aes(x = x, y = y, label = lab), 
                 size = 7, group = 99) + 
-      geom_shadowtext(data = subset(reg_dat$place.labels, 
+      geom_shadowtext(data = subset(reg_dat0$place.labels, 
                                     type == "peninsula"), 
                       aes(x = x, y = y, label = lab), size = 3, angle = 3, 
                       bg.color = "white", color = "black", group = 99) + 
       geom_shadowtext(
-        data = subset(reg_dat$place.labels, 
+        data = subset(reg_dat0$place.labels, 
                       type %in% c("bathymetry", "islands")),
         aes(x = x, y = y, label = lab), 
         bg.color = "white", color = "black", 
