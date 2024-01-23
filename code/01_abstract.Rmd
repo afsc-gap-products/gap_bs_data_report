@@ -249,7 +249,11 @@ for (i in 1:length(SRVY1)){
   
   temp_max <- sum(total_biomass$total[total_biomass$SRVY == srvy & total_biomass$year == maxyr], na.rm = TRUE)
   temp_compare <- sum(total_biomass$total[total_biomass$SRVY == srvy & total_biomass$year == compareyr], na.rm = TRUE)
-  
+  temp_mean <- total_biomass %>% 
+    dplyr::group_by(SRVY) %>% 
+    dplyr::summarise(total_mean = mean(total, na.rm = TRUE)) %>% 
+    dplyr::filter(SRVY == srvy) 
+
   str0 <- paste0(
     "The estimated total biomass in the ", srvy1 ," ",
     ifelse(temp_compare < temp_max, "increased", "decreased"),
@@ -258,7 +262,8 @@ for (i in 1:length(SRVY1)){
     ifelse(i == 1, " metric tons (t) ", " t "), 
     "in ", compareyr, " to ", 
     xunits(temp_max), " t", 
-    " in ", maxyr)
+    " in ", maxyr, ", which is similar to the time series average of ", 
+    temp_mean$total_mean)
   
   str00 <- paste0(str00, str0, ". ")
 }
