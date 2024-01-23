@@ -74,11 +74,11 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
 
-# Appendix (could be combined with above, but both are just such big files!)
-rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"), 
-                  output_format = "officedown::rdocx_document", 
-                  output_dir = dir_out_chapters, 
-                  output_file = paste0("00_data_report_app_", maxyr, ".docx"))
+# # Appendix (could be combined with above, but both are just such big files!)
+# rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"),
+#                   output_format = "officedown::rdocx_document",
+#                   output_dir = dir_out_chapters,
+#                   output_file = paste0("00_data_report_app_", maxyr, ".docx"))
 
 # Community Highlights ---------------------------------------------------------
 

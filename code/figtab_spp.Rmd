@@ -1044,9 +1044,10 @@ table_raw <- table_raw %>%
                      dplyr::distinct(),
                    by = "SRVY") %>%
   dplyr::mutate(print_name = spp_print, 
+                SRVY_long0 = SRVY_long, 
                 SRVY_long = stringr::str_to_title(SRVY_long) ) %>% 
   dplyr::ungroup() %>% 
-  dplyr::select(SRVY_long, year, 
+  dplyr::select(SRVY_long, SRVY_long0, year, 
                 biomass_mt, population_count, 
                 biomass_up, population_up, 
                 biomass_dw, population_dw) %>% 
@@ -1067,7 +1068,7 @@ table_raw <- table_raw %>%
       var == "biomass_dw" ~ "ci_dw", 
       var == "population_dw" ~ "ci_dw"
     )) %>% 
-  tidyr::pivot_wider(id_cols = c(SRVY_long, year, y_long), 
+  tidyr::pivot_wider(id_cols = c(SRVY_long, SRVY_long0, year, y_long), 
                      names_from = coll, values_from = val, 
                      id_expand = TRUE) %>% 
   dplyr::ungroup() 
@@ -1281,11 +1282,11 @@ header <- paste0("Time series of ",
                  min(table_raw$year, na.rm = TRUE),"-", 
                  max(table_raw$year, na.rm = TRUE), " ", 
                  # range_text(range(table_raw$year)), " ", 
-                 ifelse(length(unique(table_raw$SRVY_long)) > 1, 
+                 ifelse(length(unique(table_raw$SRVY_long0)) > 1, 
                         SURVEY, 
-                        unique(table_raw$SRVY_long)), 
+                        unique(table_raw$SRVY_long0)), 
                  " shelf bottom trawl survey", 
-                 ifelse(length(unique(table_raw$SRVY_long)) > 1, plural_surveys, ""),". ")
+                 ifelse(length(unique(table_raw$SRVY_long0)) > 1, plural_surveys, ""),". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
