@@ -232,6 +232,14 @@ catch <- gap_products_akfin_catch0 %>%
   dplyr::filter(hauljoin %in% unique(gap_products_akfin_haul0$hauljoin)) %>%
   dplyr::ungroup()
 
+# Manual fixes - TOLEDO!!
+# Thaddaeus: This is a placeholder taxon for a fish that wasn't ID'd to species in the field, I'd consider removing it since it doesn't really say much. I think a manual fix would be the simplest solution. I'm not sure when the ID will get updated in Oracle.
+catch$species_code[catch$cruisejoin == -764 & # Longfin Irish lord (Hemilepidotus zapus)
+                  catch$species_code == 21345] <- 21348 # 21348 Hemilepidotus papilio butterfly sculpin
+
+catch$species_code[catch$cruisejoin == -764 & # Irish lord (Hemilepidotus sp.) 
+                     catch$species_code == 21342] <- 3 # fish unid.
+
 ## spp_info --------------------------------------------------------------------
 
 print("report_spp and spp_info")
@@ -672,10 +680,10 @@ haul_cruises_vess <-
   dplyr::ungroup() 
 
 haul_cruises_vess_maxyr <- haul_cruises_vess %>% # temp(cruises_ = cruises_maxyr, haul_ = haul_maxyr) 
-  dplyr::filter(year(haul_cruises_vess$start_date_haul) == maxyr)
+  dplyr::filter(format(haul_cruises_vess$start_date_haul, format = "%Y") == maxyr)
 
 haul_cruises_vess_compareyr <- haul_cruises_vess %>% # temp(cruises_compareyr, haul_compareyr) 
-  dplyr::filter(year(haul_cruises_vess$start_date_haul) == compareyr)
+  dplyr::filter(format(haul_cruises_vess$start_date_haul, format = "%Y") == compareyr)
 
 ## vessels ----------------------------------------------------------------------
 
@@ -723,8 +731,8 @@ haul_cruises <-
                        end_date_haul = max(end_date_haul), 
                        start_date_cruise = min(start_date_cruise), 
                        end_date_cruise = max(end_date_cruise)) %>% 
-      dplyr::mutate(start_mo_long = month(start_date_haul, label = TRUE, abbr = FALSE), 
-                    end_mo_long = month(end_date_haul, label = TRUE, abbr = FALSE)),
+      dplyr::mutate(start_mo_long = format(start_date_haul, "%B"), 
+                    end_mo_long = format(end_date_haul, "%B")),
     by = "cruise") %>% 
   dplyr::left_join(
     x = ., 

@@ -704,7 +704,7 @@ if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
 
 ### print table ----------------------------------------------------------------
 
-header <- paste0("Summary of catch location environmental variables, as well as biomass and population estimates for ", 
+header <- paste0("Summary of catch location environmental variables and biomass and population estimates for ", 
                  spp_print, " (", spp_sci, ") in the ", 
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
                  " survey area", 
@@ -1193,10 +1193,10 @@ figure <-
                   yend = y_mean),
     alpha = .5,
     linetype = "dashed", 
-    linewidth = 2)  +
+    linewidth = 1.5)  +
   # plot points and lines
-  ggplot2::geom_line(size = 1) +
-  ggplot2::geom_point(size = 1.5, aes(shape = SRVY_long)) + 
+  ggplot2::geom_line(size = .5) +
+  ggplot2::geom_point(size = 1.5, mapping = aes(shape = SRVY_long)) + 
   # axis aesthetics 
   # ggplot2::ggtitle(spp_print) +  # No title
   ggplot2::scale_x_continuous(
@@ -1286,7 +1286,7 @@ header <- paste0("Time series of ",
                         SURVEY, 
                         unique(table_raw$SRVY_long0)), 
                  " shelf bottom trawl survey", 
-                 ifelse(length(unique(table_raw$SRVY_long0)) > 1, plural_surveys, ""),". ")
+                 ifelse(length(unique(table_raw$SRVY_long0)) > 1, plural_surveys, ""),". Dashed lines represent time series average and error bars represent estimated 95% confidence intervals. ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```

@@ -200,7 +200,7 @@ if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
 str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 ```
 
-A total of `r xunits(temp1$species_code)` different fish species representing `r xunits(temp1$family)` families and `r xunits(temp1$genus)` genera were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY_long, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species), " were identified to the species level", c(",", "")))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r str0`
+A total of `r xunits(temp1$species_code)` fish species representing `r xunits(temp1$family)` families and `r xunits(temp1$genus)` genera were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY_long, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species), " were identified to the species level", c(",", "")))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r str0`
 
 ```{r results-count}
 # count spp - invert
@@ -446,11 +446,12 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
   
   temp3 <- c()
   for (i in 1:length(SRVY1)){
+    temp00 <- temp0[temp0$SRVY == SRVY1[i],]
     temp4 <- text_list(paste0(
-      temp0$group0[temp0$SRVY == SRVY1[i]], 
-      c(", by biomass,", rep_len(x = "", length.out = nrow(temp0)-1)), 
+      temp00$group0, 
+      c(", by biomass,", rep_len(x = "", length.out = nrow(temp00)-1)), 
       " was primarily comprised of ", 
-      temp0$str0[temp0$SRVY == SRVY1[i]]), sep_last2 = "; and ")
+      temp00$str0), sep_last2 = "; and ")
     temp3 <- paste0(temp3, 
                     paste0("In the ", SRVY11[i], ", ", temp4, ". "))
   }
@@ -625,6 +626,5 @@ temp2 <- report_spp1 %>%
   dplyr::distinct()
 ```
 
-Plots, as appropriate, of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r sum(!is.na(report_spp$order[report_spp$taxon == "fish"]))` major fish and `r sum(!is.na(report_spp$order[report_spp$taxon == "invert"]))` major invertebrate species caught during the `r SURVEY` continental shelf surveys are presented below. The spatial distribution maps illustrate where species were found during the surveys. The distributions are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^) which assumes that data from stations that are closer to one another are more alike than those that are farther apart. Similar interactive maps of these highlighted species and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [Data Sources](#data-sources). Differences in estimates and totals may be due to rounding. Species are presented in alphabetical order by common name.
+Plots, as appropriate, of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r sum(!is.na(report_spp$order[report_spp$taxon == "fish"]))` major fish and `r sum(!is.na(report_spp$order[report_spp$taxon == "invert"]))` major invertebrate species caught during the `r SURVEY` continental shelf surveys are presented below. The spatial distribution maps illustrate where species were found during the surveys. The distributions are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^) which assumes that data from stations that are closer to one another are more alike than those that are farther apart. Similar interactive maps of these highlighted species and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [data sources](#data-sources). Differences in estimates and totals may be due to rounding. Species are presented in alphabetical order by common name.
 
-\pagebreak

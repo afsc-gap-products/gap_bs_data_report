@@ -1271,11 +1271,11 @@ table_raw0 <- table_raw0  %>%
   dplyr::arrange(taxon) %>%
   dplyr::arrange(SRVY, taxon0, order) %>%
   dplyr::mutate(
-    CI95 = ci_999, 
+    CL95 = ci_999, 
     a = "±",
     prop = biomass_mt_999/total, 
     prop0 = prop) %>% 
-  dplyr::relocate(SRVY, group, taxon, biomass_mt_999, a, CI95, prop) %>% 
+  dplyr::relocate(SRVY, group, taxon, biomass_mt_999, a, CL95, prop) %>% 
   dplyr::select(-order, -total, -dplyr::starts_with("ci_"))
 
 names(table_raw0) <- gsub(pattern = "biomass_mt_", replacement = "", x = names(table_raw0))
@@ -1295,7 +1295,7 @@ for (i in 1:nrow(comb)) {
     dplyr::left_join(y = data.frame(taxon = c("fish", "invert"), 
                                     taxon_long = c("fish", "invertebrate")))  
   
-  header <- paste0("Total taxon biomass estimates (t) ± 95% confidence interval (CI) and biomass estimates by stratum for major ", 
+  header <- paste0("Total taxon biomass estimates (t), ± 95% confidence limits (CL), and biomass estimates by stratum for major ", 
                    ifelse(comb$taxon[i] =="invert", "invertebrate", "fish") ,
                    " taxa collected during the ", 
                    maxyr, " ", 
@@ -1331,7 +1331,7 @@ for (i in 1:nrow(comb)) {
   
   table_print <- table_raw1 %>% 
     dplyr::mutate(spacer = "") %>% 
-    dplyr::relocate("group", "taxon", "999", "a", "CI95", "prop", "spacer") %>% 
+    dplyr::relocate("group", "taxon", "999", "a", "CL95", "prop", "spacer") %>% 
     flextable::flextable()  %>%
     flextable::merge_v(j = ~ group) %>%
     flextable::merge_h_range(i = ~ is.na(taxon), 
@@ -1358,12 +1358,12 @@ for (i in 1:nrow(comb)) {
       "taxon" = "",
       "999" = "Biomass", # ± 95% CI",
       "a" = "±",
-      "CI95" = "95% CI",
+      "CL95" = "95% CL",
       "prop" = "Proportion",
       "spacer" = "") %>%
     flextable::merge_at(j = c("spacer"), part = "header") %>%
     flextable::merge_at(j = c("group"), part = "header") #, "taxon"
-    # flextable::merge_at(j = c("999", "a", "CI95"), i = 2, part = "header") 
+    # flextable::merge_at(j = c("999", "a", "CL95"), i = 2, part = "header") 
   row_lines <- TRUE
   pad <- 0
   body_size = 10
@@ -1387,7 +1387,7 @@ for (i in 1:nrow(comb)) {
     flextable::fontsize(size = body_size, part = "body") %>% 
     flextable::fontsize(size = header_size, part = "header") %>% 
     flextable::fix_border_issues() %>% 
-    flextable::align(j = c("999", "prop", strat), # , "CI95", strat
+    flextable::align(j = c("999", "prop", strat), # , "CL95", strat
                      align = "right", part = "all") %>%
     flextable::align(j = c("taxon"), i = 2, 
                      align = "center", part = "header") %>%    
@@ -1395,7 +1395,7 @@ for (i in 1:nrow(comb)) {
                      align = "center", part = "header") %>%
     flextable::align(align = "right", j = "999", i = 2, part = "header") %>%
     flextable::align(align = "center", j = "a", i = 2, part = "header") %>%
-    flextable::align(align = "left", j = "CI95", i = 2, part = "header") %>%
+    flextable::align(align = "left", j = "CL95", i = 2, part = "header") %>%
     flextable::padding(padding.left = 3, padding.right = 3, j = "a", part = "body")
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -1497,7 +1497,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
 
 ## tab-est-spp-[SRVY]
 
-```{r tab-est-spp-[SRVY], eval = FALSE}
+```{r tab-est-spp-[SRVY]}
 nickname0 <- paste0("tab-est-spp-") 
 
 temp <- biomass %>% 

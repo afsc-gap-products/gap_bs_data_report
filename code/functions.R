@@ -64,6 +64,7 @@ PKG <- c(
   "here",
   "viridis",
   "janitor",
+  "ggplot2", 
   
   # Text Management
   "stringr",
@@ -1173,9 +1174,9 @@ plot_pa_facet <- function(
     geom_sf(data = reg_dat$akland,
             color = NA,
             fill = "grey50")  +  
-    geom_sf(data = reg_dat$graticule,
-            color = "grey80",
-            alpha = 0.2) +
+    ggplot2::geom_sf(data = reg_dat$graticule,
+                     color = "grey80",
+                     alpha = 0.2)  +
     ggplot2::scale_y_continuous(name = "", #"Latitude", 
                                 limits = reg_dat$plot.boundary$y,
                                 breaks = reg_dat$lat.breaks) +
@@ -1875,12 +1876,12 @@ plot_survey_stations <- function(reg_dat,
                                  place_labels = TRUE) {
   
   figure <- ggplot()  +
-    ggplot2::geom_sf(data = reg_dat$akland, 
-            color = NA, 
-            fill = "grey80") +
-    ggplot2::geom_sf(data = reg_dat$graticule, 
+    ggplot2::geom_sf(data = reg_dat$akland,
             color = NA,
-            fill = "grey50")+
+            fill = "grey80") +
+    ggplot2::geom_sf(data = reg_dat$graticule,
+                     color = "grey80",
+                     alpha = 0.2)  +
     ggplot2::scale_y_continuous(name = "Latitude", 
                                 limits = reg_dat$plot.boundary$y,
                                 breaks = reg_dat$lat.breaks) +

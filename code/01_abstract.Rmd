@@ -14,9 +14,9 @@ str0_srvys <- gsub(pattern = " ,", replacement = ",",
 # Survey coverage --------------------------------------------------------------
 str0_coverage <- ifelse(SRVY == "NEBS", 
                    # NBS + EBS
-                   paste0("The survey covered the eastern Bering Sea continental shelf (bottom depths between approximately 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait. "), 
+                   paste0("The survey covered the eastern Bering Sea continental shelf (bottom depths between 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait. "), 
                    # EBS
-                   paste0("The EBS bottom trawl survey covers the Bering Sea continental shelf (bottom depths between approximately 20 and 200 meters (m)) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude. "))
+                   paste0("The EBS bottom trawl survey covers the Bering Sea continental shelf (bottom depths between 20 and 200 meters (m)) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude. "))
 
 # Station count ----------------------------------------------------------------
 vessels0 <- vessels %>% 
@@ -254,23 +254,26 @@ for (i in 1:length(SRVY1)){
     dplyr::summarise(total_mean = mean(total, na.rm = TRUE)) %>% 
     dplyr::filter(SRVY == srvy) 
 
-  str0 <- paste0(
-    "The estimated total biomass in the ", srvy1 ," ",
-    ifelse(temp_compare < temp_max, "increased", "decreased"),
+  str00 <- paste0(str00, 
+    "The estimated total biomass in the ", srvy1 ," was ",
+    xunits(temp_max), " ",
+    ifelse(i == 1, "metric tons (t)", "t"),
+    " in ", maxyr, ", a ",
+    ifelse(temp_compare < temp_max, "increase", "decrease"),
     " from ", 
-    xunits(temp_compare) ,
-    ifelse(i == 1, " metric tons (t) ", " t "), 
-    "in ", compareyr, " to ", 
-    xunits(temp_max), " t", 
-    " in ", maxyr, ", which is similar to the time series average of ", 
-    xunits(temp_mean$total_mean))
+    xunits(temp_compare),
+    " t in ", compareyr, ", which ",
+    ifelse(temp_mean$total_mean < temp_max, "greater", "less"),
+    " than the time series of average of ", 
+    # ", which is similar to the time series average of ", 
+    xunits(temp_mean$total_mean), " t. ")
   
-  str00 <- paste0(str00, str0, ". ")
+  # str00 <- paste0(str00, str0, ". ")
 }
 
 str0_biomass <- paste0(
   str00, 
-  "Combined, a total of ", fish_sp ," species of fishes and ", invert_spp, 
+  "A total of ", fish_sp ," species of fishes and ", invert_spp, 
   " invertebrate taxa were identified on the ", 
   SURVEY, " survey", plural_surveys, " in ", maxyr, ". ")
 
