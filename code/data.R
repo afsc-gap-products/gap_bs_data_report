@@ -235,7 +235,7 @@ catch <- gap_products_akfin_catch0 %>%
 # Manual fixes - TOLEDO!!
 # Thaddaeus: This is a placeholder taxon for a fish that wasn't ID'd to species in the field, I'd consider removing it since it doesn't really say much. I think a manual fix would be the simplest solution. I'm not sure when the ID will get updated in Oracle.
 catch$species_code[catch$cruisejoin == -764 & # Longfin Irish lord (Hemilepidotus zapus)
-                  catch$species_code == 21345] <- 21348 # 21348 Hemilepidotus papilio butterfly sculpin
+                  catch$species_code == 21345] <- 21375 # Myoxocephalus sp.
 
 catch$species_code[catch$cruisejoin == -764 & # Irish lord (Hemilepidotus sp.) 
                      catch$species_code == 21342] <- 3 # fish unid.
