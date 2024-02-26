@@ -1039,15 +1039,7 @@ if (length(spp_code) > 1) {
 
 table_raw <- table_raw %>%
   dplyr::filter(stratum == 999) %>% 
-  dplyr::left_join(y = haul_cruises %>% 
-                     dplyr::select(SRVY, SRVY_long) %>% 
-                     dplyr::distinct(),
-                   by = "SRVY") %>%
-  dplyr::mutate(print_name = spp_print, 
-                SRVY_long0 = SRVY_long, 
-                SRVY_long = stringr::str_to_title(SRVY_long) ) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::select(SRVY_long, SRVY_long0, year, 
+  dplyr::select(SRVY, year, 
                 biomass_mt, population_count, 
                 biomass_up, population_up, 
                 biomass_dw, population_dw) %>% 
@@ -1056,21 +1048,32 @@ table_raw <- table_raw %>%
                                biomass_dw, population_dw), 
                       names_to = "var", 
                       values_to = "val") %>% 
-  dplyr::mutate(
-    y_long = dplyr::case_when(
-      grepl(x = var, pattern = "biomass") ~ "Biomass", 
-      grepl(x = var, pattern = "population") ~ "Population"
-    ), coll = dplyr::case_when(
+  dplyr::mutate(coll = dplyr::case_when(
       var == "biomass_mt" ~ "val", 
       var == "population_count" ~ "val", 
       var == "biomass_up" ~ "ci_up", 
       var == "population_up" ~ "ci_up", 
       var == "biomass_dw" ~ "ci_dw", 
       var == "population_dw" ~ "ci_dw"
-    )) %>% 
-  tidyr::pivot_wider(id_cols = c(SRVY_long, SRVY_long0, year, y_long), 
-                     names_from = coll, values_from = val, 
-                     id_expand = TRUE) %>% 
+    ), 
+    var = dplyr::case_when(
+      grepl(x = var, pattern = "biomass") ~ "biomass_mt", 
+      grepl(x = var, pattern = "population") ~ "population_count")) %>% 
+  tidyr::pivot_wider(id_cols = c(SRVY, year, var), 
+                     names_from = coll, 
+                     values_from = val) %>%   
+  dplyr::left_join(y = haul_cruises %>% 
+                     dplyr::select(SRVY, SRVY_long) %>% 
+                     dplyr::distinct(),
+                   by = "SRVY") %>%
+  dplyr::mutate(
+    print_name = spp_print, 
+    SRVY_long0 = SRVY_long, 
+    SRVY_long = stringr::str_to_title(SRVY_long), 
+    y_long = dplyr::case_when(
+      grepl(x = var, pattern = "biomass") ~ "Biomass", 
+      grepl(x = var, pattern = "population") ~ "Population"
+    ) ) %>% 
   dplyr::ungroup() 
 
 # find missing years in timeseries and re-enter them so plot breaks for missing years
@@ -1078,11 +1081,20 @@ yr_missing <- data.frame()
 for (i in 1:length(unique(table_raw$SRVY_long))){
   temp <- table_raw[table_raw$SRVY_long %in% unique(table_raw$SRVY_long)[i], ]
   
-  yr_missing <- tidyr::crossing(year = setdiff((min(temp$year):max(temp$year)),
+  yr_missing <- yr_missing %>% 
+    dplyr::bind_rows(tidyr::crossing(year = setdiff((min(temp$year):max(temp$year)),
                                                unique(temp$year)),
                                 y_long = unique(table_raw$y_long), 
-                                SRVY_long = unique(table_raw$SRVY_long)[i]) 
+                                SRVY_long = unique(table_raw$SRVY_long)[i]) )
 }
+
+yr_missing <- yr_missing %>%
+  dplyr::left_join(y = haul_cruises %>% 
+                     dplyr::select(SRVY, SRVY_long) %>% 
+                     dplyr::distinct() %>% 
+  dplyr::mutate(SRVY_long0 = SRVY_long, 
+                SRVY_long = stringr::str_to_title(SRVY_long)),
+                   by = "SRVY_long")
 
 a_bio <- find_units(unit = "t", 
                     unt = "t", 
@@ -1093,7 +1105,8 @@ a_pop <- find_units(unit = "",
                     dat = table_raw$val[table_raw$y_long == "Population"]) 
 
 table_raw <- table_raw %>% 
-  dplyr::bind_rows(yr_missing) %>% 
+  dplyr::bind_rows(yr_missing %>% dplyr::mutate(var = "biomass_mt")) %>% 
+  dplyr::bind_rows(yr_missing %>% dplyr::mutate(var = "population_count")) %>% 
   dplyr::mutate(
     species_name = spp_print, 
     common_name = spp_print, 
@@ -1126,12 +1139,12 @@ table_raw <- table_raw %>%
     y = val/divby, 
     y_ci_dw = ci_dw/divby, 
     y_ci_up = ci_up/divby  ) %>% 
-  dplyr::arrange(desc(year))
-
+  dplyr::arrange(desc(year))  %>% 
+  dplyr::mutate(group = paste0(SRVY, "_", y_long))
 
 # find mean for mean line
 table_raw_mean <- table_raw %>% 
-  dplyr::group_by(SRVY_long, y_long, var_) %>% 
+  dplyr::group_by(SRVY_long, y_long, group, var_) %>% 
   dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) %>% 
   dplyr::left_join(
     biomass %>%
@@ -1147,17 +1160,17 @@ table_raw_mean <- table_raw %>%
       dplyr::select(-survey_definition_id) %>% 
       dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)))
 
-anno<-NA
-temp<-setdiff(x = unique(table_raw$SRVY), 
-              y = unique(table_raw_mean$SRVY))
-if (length(temp) != 0) {
-  anno <- paste0("Data for this species in the\n", 
-                 temp, 
-                 " is too limited to plot.")
-  
-  col_anno <- table_raw$col[which(unique(table_raw$SRVY)==temp)]
-  col <- table_raw$col[which(unique(table_raw$SRVY)!=temp)]
-}
+# anno<-NA
+# temp<-setdiff(x = unique(table_raw$SRVY), 
+#               y = unique(table_raw_mean$SRVY))
+# if (length(temp) != 0) {
+#   anno <- paste0("Data for this species in the\n", 
+#                  temp, 
+#                  " is too limited to plot.")
+#   
+#   col_anno <- table_raw$col[which(unique(table_raw$SRVY)==temp)]
+#   col <- table_raw$col[which(unique(table_raw$SRVY)!=temp)]
+# }
 
 if (report_title %in% "community") {
   nickname <- paste0("fig-biomass-", spp_file, "-comm")
@@ -1179,11 +1192,11 @@ if (report_title %in% "community") {
 
 figure <-
   # general plotting aesthetics
-  ggplot2::ggplot(data = table_raw, 
+  ggplot2::ggplot(data = table_raw,
                   mapping = aes(x = year, 
                                 y = y, 
-                                color = SRVY_long, 
-                                group = SRVY_long)) +
+                                group = group,
+                                color = SRVY_long)) +
   # plot mean line 
   ggplot2::geom_segment(
     data = table_raw_mean,
@@ -1193,10 +1206,10 @@ figure <-
                   yend = y_mean),
     alpha = .5,
     linetype = "dashed", 
-    linewidth = 1.5)  +
+    linewidth = 1.5) +
   # plot points and lines
-  ggplot2::geom_line(size = .5) +
-  ggplot2::geom_point(size = 1.5, mapping = aes(shape = SRVY_long)) + 
+  ggplot2::geom_line(linewidth = .25) +
+  ggplot2::geom_point(size = 2, mapping = aes(shape = SRVY_long)) + 
   # axis aesthetics 
   # ggplot2::ggtitle(spp_print) +  # No title
   ggplot2::scale_x_continuous(
@@ -1208,7 +1221,7 @@ figure <-
     labels = scales::label_number(accuracy = 1, big.mark = ","), 
     limits = c(0, NA)) +
   # survey area color aesthetics
-  ggplot2::scale_color_manual(values = unique(table_raw$col)) +
+  ggplot2::scale_color_manual(values = pcol) +
   # plot error bars
   ggplot2::geom_errorbar(mapping = aes(ymin = y_ci_dw, ymax = y_ci_up), 
                          width = .2,
@@ -1253,18 +1266,18 @@ figure <-
     legend.box.spacing = unit(0, "pt"),
     legend.margin=margin(0, 0, 0, 0))
 
-if (!is.na(anno)) {
-  figure <- figure +
-    ggplot2::geom_text(x = Inf, 
-                       y = -Inf, 
-                       hjust = 1.2, 
-                       vjust = -.3, 
-                       label = anno, 
-                       show.legend = FALSE, 
-                       size = 4, 
-                       fontface = "italic",
-                       color = col_anno)
-}
+# if (!is.na(anno[1])) {
+#   figure <- figure +
+#     ggplot2::geom_text(x = Inf, 
+#                        y = -Inf, 
+#                        hjust = 1.2, 
+#                        vjust = -.3, 
+#                        label = anno, 
+#                        show.legend = FALSE, 
+#                        size = 4, 
+#                        fontface = "italic",
+#                        color = col_anno)
+# }
 
 temp <- table_raw %>% 
   dplyr::select(y_long, unit_word, unit_wrd) %>% 
