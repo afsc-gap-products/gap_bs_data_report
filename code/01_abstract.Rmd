@@ -260,6 +260,14 @@ for (i in 1:length(SRVY1)){
     dplyr::group_by(SRVY) %>%
     dplyr::summarise(total_mean = mean(biomass, na.rm = TRUE)) %>% 
     dplyr::filter(SRVY == srvy) 
+  
+  # Text for period being averaged
+  if(srvy == "EBS") {
+    period <- " than the five-year average of "
+  }
+  if(srvy == "NBS") {
+    period <- " than the time series average of "
+  }
 
   str00 <- paste0(str00, 
     "The estimated total biomass in the ", srvy1 ," was ",
@@ -269,10 +277,9 @@ for (i in 1:length(SRVY1)){
     ifelse(temp_compare < temp_max, "increase", "decrease"),
     " from ", 
     xunits(temp_compare),
-    " t in ", compareyr, ", which ",
+    " t in ", compareyr, " and ",
     ifelse(temp_mean$total_mean < temp_max, "greater", "less"),
-    " than the time series of average of ", 
-    # ", which is similar to the time series average of ", 
+    period, 
     xunits(temp_mean$total_mean), " t. ")
   
   # str00 <- paste0(str00, str0, ". ")
