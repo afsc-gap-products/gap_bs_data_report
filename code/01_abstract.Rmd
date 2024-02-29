@@ -246,13 +246,28 @@ for (i in 1:length(SRVY1)){
   
   srvy <- SRVY1[i]
   srvy1 <- SRVY11[i]
-  
+
   temp_max <- sum(total_biomass$total[total_biomass$SRVY == srvy & total_biomass$year == maxyr], na.rm = TRUE)
   temp_compare <- sum(total_biomass$total[total_biomass$SRVY == srvy & total_biomass$year == compareyr], na.rm = TRUE)
-  temp_mean <- total_biomass %>% 
-    dplyr::group_by(SRVY) %>% 
-    dplyr::summarise(total_mean = mean(total, na.rm = TRUE)) %>% 
+  total_biomass_new <- total_biomass  # copy of total_biomass that can be updated
+  # Filter for last five years for EBS
+  if(srvy == "EBS") {
+    total_biomass_new <- total_biomass_new %>% filter(year >= maxyr - 5)
+  }
+  temp_mean <- total_biomass_new %>% 
+    dplyr::group_by(SRVY, year) %>% 
+    dplyr::mutate(biomass = sum(total)) %>%  # sum over inverts & fish
+    dplyr::group_by(SRVY) %>%
+    dplyr::summarise(total_mean = mean(biomass, na.rm = TRUE)) %>% 
     dplyr::filter(SRVY == srvy) 
+  
+  # Text for period being averaged
+  if(srvy == "EBS") {
+    period <- " than the five-year average of "
+  }
+  if(srvy == "NBS") {
+    period <- " than the time series average of "
+  }
 
   str00 <- paste0(str00, 
     "The estimated total biomass in the ", srvy1 ," was ",
@@ -262,10 +277,9 @@ for (i in 1:length(SRVY1)){
     ifelse(temp_compare < temp_max, "increase", "decrease"),
     " from ", 
     xunits(temp_compare),
-    " t in ", compareyr, ", which is ",
+    " t in ", compareyr, " and ",
     ifelse(temp_mean$total_mean < temp_max, "greater", "less"),
-    " than the time series of average of ", 
-    # ", which is similar to the time series average of ", 
+    period, 
     xunits(temp_mean$total_mean), " t. ")
   
   # str00 <- paste0(str00, str0, ". ")
