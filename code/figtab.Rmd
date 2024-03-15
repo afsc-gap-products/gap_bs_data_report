@@ -1434,6 +1434,7 @@ table_raw0 <-
     print_name = gsub(pattern = "smelts (*Osmeridae*) include eulachon, capelin, and rainbow smelt",
                       replacement = "smelts",
                       x = print_name, fixed = TRUE), 
+    print_name1 = print_name, 
     print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))
 
 table_raw0$maxyr <- unlist(table_raw0[names(table_raw0) %in% maxyr])
@@ -1452,6 +1453,7 @@ table_raw0 <- table_raw0 %>%
 table_raw  <- table_raw0
 
 table_print0 <- table_raw %>% 
+  dplyr::select(-print_name1) %>% 
   dplyr::mutate(
     dplyr::across(dplyr::starts_with("20"), formatC, big.mark=",", digits = 0, format = "f"), 
     dplyr::across(dplyr::starts_with("20"), gsub, pattern = "NA%", replacement = ""), 
@@ -1463,7 +1465,6 @@ table_print0 <- table_raw %>%
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
-  table_raw <- table_raw0
   header <- paste0(
     "Total estimated biomass (t) and the percent change between the ",
     compareyr," and ",maxyr," ", 
