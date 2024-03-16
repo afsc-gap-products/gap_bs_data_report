@@ -1146,6 +1146,14 @@ temp <- spp_info %>%
   dplyr::distinct() %>%
   unlist()
 
+# TOLEDO -- Shouldn't have to do this:
+biomass <- biomass %>% 
+  dplyr::mutate(
+    taxon = dplyr::case_when(
+      !is.na(taxon) ~ taxon,
+      species_code <= 31550 ~ "fish", 
+      species_code >= 40001 ~ "invert") ) 
+
 temp <- spp_info %>%   # dplyr::filter(species_code %in% c(99991, 99993, 99994, 99997, 99998, 99999, 1) %>% 
   dplyr::filter(!((species_code >= 40000 &
                      species_code < 99991) |
@@ -1154,14 +1162,28 @@ temp <- spp_info %>%   # dplyr::filter(species_code %in% c(99991, 99993, 99994, 
                   !grepl(x = common_name, pattern = "egg")) %>% 
   dplyr::select(species_code, common_name, species_name) 
 
-total_biomass <- biomass %>% 
-  dplyr::filter(stratum == 999 & 
-                  !(is.na(species_code)) & 
-                  !(species_code %in% temp)) %>%
-  dplyr::group_by(SRVY, year, taxon) %>% 
-  dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 
+total_biomass <- complex_biomass0 %>% 
+  dplyr::filter(species_code %in% c("Total fish", "Total invertebrates") &
+                  area_id %in% c(99900, 99902) ) %>%
+  dplyr::mutate(taxon = ifelse(grepl(x = species_code, pattern = "invertebrates"), "invert", "fish")) %>% 
+  dplyr::group_by(survey_definition_id, year, taxon) %>% 
+  dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE)) %>% 
   dplyr::ungroup() %>% 
   dplyr::arrange(desc(year), desc(taxon)) %>% 
   dplyr::left_join(
-    y = data.frame(SRVY = SRVY1, 
+    y = data.frame(survey_definition_id = SRVY00, 
+                   SRVY = SRVY1, 
                    SRVY_long = SRVY11))
+
+
+# total_biomass <- biomass %>% 
+#   dplyr::filter(stratum == 999 & 
+#                   !(is.na(species_code)) & 
+#                   !(species_code %in% temp)) %>%
+#   dplyr::group_by(SRVY, year, taxon) %>% 
+#   dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 
+#   dplyr::ungroup() %>% 
+#   dplyr::arrange(desc(year), desc(taxon)) %>% 
+#   dplyr::left_join(
+#     y = data.frame(SRVY = SRVY1, 
+#                    SRVY_long = SRVY11))
