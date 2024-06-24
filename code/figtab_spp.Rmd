@@ -44,7 +44,7 @@ header <- spp_file
 nickname <- paste0("fig-", jj, "-", spp_file, "-0-ptpres")
 height <- width <- 5
 
-figure <- 
+figure_print <- 
   cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
 
@@ -145,7 +145,7 @@ if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in o
   }
 }
 
-# Write header for figure ------------------------------------------------------
+# Write header for figure_print ------------------------------------------------------
 header <- paste0("Weight CPUE (kg/km^2^) distribution of ", 
                  spp_print, 
                  ifelse(is.na(spp_sci), "", 
@@ -230,7 +230,7 @@ for (case_yr in case_yr0) {
     }
   }
   
-  figure <- ggplot() +
+  figure_print <- ggplot() +
     ggplot2::geom_sf(data = reg_dat0$akland,
                      color = NA,
                      fill = "grey50")  +
@@ -300,14 +300,14 @@ for (case_yr in case_yr0) {
       legend.margin=margin(0, 0, 0, 0) ) 
   
   if (report_title == "ptpres") {
-    figure <- figure +
+    figure_print <- figure_print +
       ggplot2::theme(legend.title=element_blank() ) +
       ggplot2::ggtitle(key.title) 
   }
   
   if (report_title %in% c("nbspres")) {
     
-    figure <- figure + 
+    figure_print <- figure_print + 
       ggplot2::geom_sf_text(
         data = data.frame(y = 64.500126, x = -165.408402) %>% 
           sf::st_as_sf(coords=c("x","y"), crs="+proj=longlat") %>% 
@@ -333,8 +333,8 @@ for (case_yr in case_yr0) {
   }  
   
   if (report_title %in% c("community")) {
-    figure <-
-      cowplot::ggdraw(figure +
+    figure_print <-
+      cowplot::ggdraw(figure_print +
                         ggplot2::theme( plot.margin = margin(1.8, 0, 0, 0, "cm") ) ) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
                           x = .77, y = .42, # top right
@@ -473,7 +473,7 @@ if (!(nrow(table_raw) == 0)) {
                               "Total number of individuals measured during the survey is indicated in the upper right corner of each plot.", ""))
     }
     
-    figure <- plot_sizecomp(
+    figure_print <- plot_sizecomp(
       sizecomp0 = table_raw %>% 
         dplyr::mutate(
           SRVY_long = gsub(replacement = "", x = SRVY_long, pattern = SURVEY), 
@@ -487,7 +487,7 @@ if (!(nrow(table_raw) == 0)) {
     
   } else if (report_title %in% c("ptpres", "nbspres")) {
     if ("EBS" %in% table_raw$SRVY) {
-      figure1 <- figure <- plot_sizecomp(
+      figure1 <- figure_print <- plot_sizecomp(
         sizecomp0 = table_raw %>% 
           dplyr::filter(SRVY == "EBS") %>% 
           dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)),
@@ -499,7 +499,7 @@ if (!(nrow(table_raw) == 0)) {
         ridgeline = TRUE)
     }
     if ("NBS" %in% table_raw$SRVY) {
-      figure2 <- figure <- plot_sizecomp(
+      figure2 <- figure_print <- plot_sizecomp(
         sizecomp0 = table_raw %>% 
           dplyr::filter(SRVY == "NBS") %>% 
           dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)),
@@ -511,16 +511,16 @@ if (!(nrow(table_raw) == 0)) {
         ridgeline = FALSE)
     }
     if (sum(unique(table_raw$SRVY) %in% c("NBS", "EBS")) == 2) {
-      figure <- cowplot::plot_grid(figure1, figure2)
+      figure_print <- cowplot::plot_grid(figure1, figure2)
     }
   }
   
-  figure <- figure +
+  figure_print <- figure_print +
     ggplot2::theme(strip.text = element_text(size = legend_font_size, face = "bold"))
   
   if (report_title %in% c("community")) { 
-    figure <-
-      cowplot::ggdraw(figure + 
+    figure_print <-
+      cowplot::ggdraw(figure_print + 
                         ggplot2::theme( plot.margin = margin(1.2, 0, 0, 0, "cm") ) ) +
       cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
                           x = .78, y = .44, # top right
@@ -531,7 +531,7 @@ if (!(nrow(table_raw) == 0)) {
   
 } else {
   header <- ""
-  figure <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
+  figure_print <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
     geom_text(mapping = aes(label = label))
 }
 
@@ -1190,7 +1190,7 @@ if (report_title %in% "community") {
   legend_font_size <- 10
 }
 
-figure <-
+figure_print <-
   # general plotting aesthetics
   ggplot2::ggplot(data = table_raw,
                   mapping = aes(x = year, 
@@ -1267,7 +1267,7 @@ figure <-
     legend.margin=margin(0, 0, 0, 0))
 
 # if (!is.na(anno[1])) {
-#   figure <- figure +
+#   figure_print <- figure_print +
 #     ggplot2::geom_text(x = Inf, 
 #                        y = -Inf, 
 #                        hjust = 1.2, 

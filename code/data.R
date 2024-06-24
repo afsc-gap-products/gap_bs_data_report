@@ -461,7 +461,7 @@ haul <- dplyr::left_join(
                   haul_type == 3) 
 
 station <- gap_products_old_station0 %>%
-  dplyr::filter(srvy %in% c("EBS", "NBS") &
+  dplyr::filter(srvy %in% SRVY1 &
                   grepl(x = station, pattern = "[A-Z]") &
                   design_year == max(design_year, na.rm = TRUE)) %>%
   dplyr::select(station, stratum, SRVY = srvy) %>%

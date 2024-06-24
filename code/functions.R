@@ -2278,7 +2278,7 @@ plot_mean_temperatures <- function(maxyr, SRVY){
       legend.position = "bottom",
       legend.box = "horizontal")
   
-  return(list("figure" = figure, 
+  return(list("figure_print" = figure, 
               "table_raw" = all_temperatures))
   
 }
