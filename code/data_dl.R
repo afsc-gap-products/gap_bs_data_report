@@ -146,11 +146,12 @@ for (i in 1:nrow(report_spp)){
 library(gapindex)
 production_data <- gapindex::get_data(
   year_set = c(1982:maxyr),
-  survey_set = c("EBS", "NBS"),
+  survey_set = c("EBS"), #, "NBS"),
   spp_codes = temp1,
   pull_lengths = TRUE, 
   haul_type = 3, 
   abundance_haul = "Y", 
+  taxonomic_source = "GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION", # "RACEBASE.SPECIES", 
   sql_channel = channel)
 
 ## Zero-fill and calculate CPUE

@@ -38,16 +38,29 @@ National Oceanic and Atmospheric Administration,
 
 Seattle, WA 98195
 
+# Table of contents
+
+```{r toc}
+toc <- strsplit(x = readtext::readtext(file = "./README.Rmd", verbosity = 0)[[2]], split = "\n")
+toc <- toc[[1]][substr(x = toc[[1]], start = 1, stop = 1) == "#"]
+toc <- toc[-c(1:3)]
+toc_list <- toc
+toc_list <- gsub(pattern = "### ", replacement = ">      - [*", x = toc_list, fixed = TRUE)
+toc_list <- gsub(pattern = "## ", replacement = ">    - [*", x = toc_list, fixed = TRUE)
+toc_list <- gsub(pattern = "# ", replacement = ">  - [*", x = toc_list, fixed = TRUE)
+toc_link <- tolower(gsub(pattern = " ", replacement = "-", 
+                          x = gsub(pattern = "#", replacement = "", 
+                                   x = gsub(pattern = "# ", replacement = "", 
+                                            x = toc, fixed = TRUE), fixed = TRUE)))
+toc <- paste0(toc_list, "*](#", toc_link, ")", collapse = "\n")
+```
+
+`r toc`
 
 ## This code and the associated releases were used to develop the following reports, outreach documents, and presentations:
 
 <div id="refs"></div>
 
-<!-- Use .bib file to cite reports in subsection titles -->
-
-**Annual Bering Sea Data Report and presentations** [@2022NEBS2023; @2021NEBS2022; @2019NEBS2022; @2018EBS2022; 2021NEBS2022PlanTeamPres; 2022NEBS2022PlanTeamPres]
-
-**Northern Bering Sea Groundfish and Crab Trawl Survey Highlights** [@2022NBSCommunity; @2021NBSCommunity]
 
 > This document is for informational purposes only and does not necessarily represent the views or official position of the Department of Commerce, the National Oceanic and Atmospheric Administration, or the National Marine Fisheries Service. Not to be cited without permission from the authors.
 

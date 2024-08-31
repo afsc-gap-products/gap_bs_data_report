@@ -27,9 +27,9 @@ quarto <- FALSE
 # dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
 # dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
 
-maxyr <- 2023
-compareyr <- 2022
-compareyr0 <- 2021
+maxyr <- 2024
+compareyr <- 2023
+compareyr0 <- 2023
 strat_yr <- 2022
 SRVY <- "EBS"
 ref_compareyr <- ref_compareyr_ebs <- "@2023NEBS" # CHANGE
@@ -61,7 +61,8 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
 
 # Species figures
 comb <- sort(report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique())
-comb <- comb[comb != "variegated-snailfish"]
+comb <- comb[comb != "snailfishes"]
+# comb <- comb[comb != "snailfish"]
 # comb <- "yellowfin-sole"  # single species for debugging
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
@@ -83,12 +84,6 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_chapters, 
                   output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
-
-# # Appendix (could be combined with above, but both are just such big files!)
-# rmarkdown::render(input = paste0(dir_code, "00_data_report_app.Rmd"),
-#                   output_format = "officedown::rdocx_document",
-#                   output_dir = dir_out_chapters,
-#                   output_file = paste0("00_data_report_app_", maxyr, ".docx"))
 
 # Community Highlights ---------------------------------------------------------
 
@@ -163,6 +158,7 @@ report_title <- "nbspres"
 dir_googledrive <- dir_googledrive_comm
 source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
+srvy <- "EBS"
 
 # Presentation Species figures
 comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
