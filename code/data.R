@@ -305,7 +305,7 @@ report_spp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-na
 
 report_spp <- report_spp0 %>% 
   dplyr::select(!(dplyr::starts_with(
-    ifelse(report_title %in% c("community"), "community_", "datar_")))) %>%
+    ifelse(report_title %in% c("community"), "datar_", "community_")))) %>%
   dplyr::select(where(~ !(all(is.na(.)) | all(. == "")))) %>% 
   dplyr::select(-questions) 
 

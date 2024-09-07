@@ -325,8 +325,12 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0) {
                             hjust = 0, vjust = 0,
                             width = .18)
     }
-    return(figure_print)
-    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+    return(list("figure_print" = figure_print, 
+                "header" = header, 
+                "height" = height, 
+                "width" = width, 
+                "nickname" = nickname))
+    # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   }
 }
 ```
@@ -340,8 +344,9 @@ row0 <- 2
 nickname <- paste0("fig-dist-", spp_file, "-data")
 report_title0 <- "data"
 
-figure_print <- dist_plot(yrs, height, row0, nickname, report_title0)
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- dist_plot(yrs, height, row0, nickname, report_title0)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-dist-[spp]-comm
@@ -353,24 +358,26 @@ row0 <- 2
 nickname <- paste0("fig-dist-", spp_file, "-comm")
 report_title0 <- "community"
 
-figure_print <- dist_plot(yrs, height, row0, nickname, report_title0) 
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- dist_plot(yrs, height, row0, nickname, report_title0) 
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-dist-[spp]-pres
 
 ```{r fig-dist-[spp]-pres}
 nickname <- paste0("fig-dist-", spp_file, "-pres")
-yrs <- sort(unique(cpue$year), decreasing = TRUE)[1:8]
-height <- 6
-width <- 8
+yrs <- c(maxyr-1, maxyr)
+height <- ifelse(SRVY == "NEBS", 5, 4)
+width <- 5
 row0 <- 2
 width <- 5
 row0 <- 1
 report_title0 <- "pres"
 
-figure_print <- dist_plot(yrs, height, row0, nickname, report_title0) 
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- dist_plot(yrs, height, row0, nickname, report_title0) 
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-sizecomp-[spp]-prep
@@ -482,6 +489,7 @@ size_plot <- function(srvy, yrs, print_n, height, width, nickname, legend_font_s
         ridgeline = FALSE)
       
     } else if (report_title0 == "pres") {
+      header <- ""
       if ("EBS" %in% table_raw$SRVY) {
         figure1 <- figure_print <- plot_sizecomp(
           sizecomp0 = table_raw %>% 
@@ -531,8 +539,12 @@ size_plot <- function(srvy, yrs, print_n, height, width, nickname, legend_font_s
       geom_text(mapping = aes(label = label))
   }
   
-    return(figure_print)
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+    return(list("figure_print" = figure_print, 
+                "header" = header, 
+                "height" = height, 
+                "width" = width, 
+                "nickname" = nickname))
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -547,8 +559,9 @@ nickname <- paste0("fig-sizecomp-", spp_file, "-data")
 legend_font_size <- 10
 report_title0 <- "data"
 
-figure_print <- size_plot(srvy, yrs, print_n, height, width, nickname, legend_font_size, report_title0) 
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- size_plot(srvy, yrs, print_n, height, width, nickname, legend_font_size, report_title0) 
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-sizecomp-[spp]-comm
@@ -562,8 +575,9 @@ nickname <- paste0("fig-sizecomp-", spp_file, "-comm")
 legend_font_size <- 12
 report_title0 <- "community"
 
-figure_print <- size_plot(srvy, yrs, print_n, height, width, nickname, legend_font_size, report_title0) 
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- size_plot(srvy, yrs, print_n, height, width, nickname, legend_font_size, report_title0) 
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-sizecomp-[spp]-pres
@@ -578,8 +592,9 @@ width <- 5
 legend_font_size <- 12
 report_title0 <- "pres"
 
-figure_print <- size_plot(srvy, yrs, print_n, height, width, nickname, legend_font_size, report_title0) 
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- size_plot(srvy, yrs, print_n, height, width, nickname, legend_font_size, report_title0) 
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## tab-stats-[spp]
@@ -1184,12 +1199,18 @@ table_raw <- table_raw %>%
     y_ci_dw = ci_dw/divby, 
     y_ci_up = ci_up/divby  ) %>% 
   dplyr::arrange(desc(year))  %>% 
-  dplyr::mutate(group = paste0(SRVY, "_", y_long))
+  dplyr::mutate(group = paste0(SRVY, "_", y_long)) %>% 
+  dplyr::ungroup()
 
-# find mean for mean line
+table_raw1 <- table_raw
+
+timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises) {
+  
+  # find mean for mean line
 table_raw_mean <- table_raw %>% 
   dplyr::group_by(SRVY_long, y_long, group, var_) %>% 
   dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) %>% 
+  dplyr::filter(!is.na(y_mean)) %>% 
   dplyr::left_join(
     biomass %>%
       dplyr::filter(stratum == 999 &
@@ -1202,7 +1223,8 @@ table_raw_mean <- table_raw %>%
                          dplyr::select(survey_definition_id, SRVY_long) %>% 
                          dplyr::distinct()) %>% 
       dplyr::select(-survey_definition_id) %>% 
-      dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long)))
+      dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))) %>% 
+  dplyr::ungroup()
 
 # anno<-NA
 # temp<-setdiff(x = unique(table_raw$SRVY), 
@@ -1216,8 +1238,6 @@ table_raw_mean <- table_raw %>%
 #   col <- table_raw$col[which(unique(table_raw$SRVY)!=temp)]
 # }
 
-timeseries_plot <- function(table_raw, nickname, height, width, legend_font_size) {
-  
   figure_print <-
     # general plotting aesthetics
     ggplot2::ggplot(data = table_raw,
@@ -1257,10 +1277,7 @@ timeseries_plot <- function(table_raw, nickname, height, width, legend_font_size
     # Set y axis minimum to always be 0 & remove resulting "y" label
     # ylim(0, NA) +
     # ylab(" ") +
-    # facet grid
-    ggplot2::facet_grid(rows = vars(var_), 
-                        scales = "free", 
-                        switch = "both") +
+
     # aesthetics
     # Create & position legend title
     ggplot2::labs(color = stringr::str_to_title(spp_print)) +  # force title case
@@ -1281,7 +1298,6 @@ timeseries_plot <- function(table_raw, nickname, height, width, legend_font_size
       panel.grid.minor.x = element_blank(),
       panel.grid.major.x = element_line(colour = "grey95"),
       panel.border = element_rect(fill = NA, colour = "grey20"),
-      # legend.title = element_blank(), # We do want a legend title!
       legend.text = element_text(size = legend_font_size),
       legend.background = element_rect(colour = "transparent", 
                                        fill = "transparent"),
@@ -1294,6 +1310,18 @@ timeseries_plot <- function(table_raw, nickname, height, width, legend_font_size
       legend.box.spacing = unit(0, "pt"),
       legend.margin=margin(0, 0, 0, 0))
   
+  if (length(table_raw_mean$y_long) > 1) {
+      # facet grid
+    figure_print <- figure_print + 
+      ggplot2::facet_grid(rows = vars(var_), 
+                        scales = "free", 
+                        switch = "both") 
+  } else {
+    figure_print <- figure_print + 
+              ggplot2::theme( 
+legend.title = element_blank()) # We do want a legend title!
+
+  }
   # if (!is.na(anno[1])) {
   #   figure_print <- figure_print +
   #     ggplot2::geom_text(x = Inf, 
@@ -1329,8 +1357,13 @@ timeseries_plot <- function(table_raw, nickname, height, width, legend_font_size
                    " shelf bottom trawl survey", 
                    ifelse(length(unique(table_raw$SRVY_long0)) > 1, plural_surveys, ""),". Dashed lines represent time series average and error bars represent estimated 95% confidence intervals. ")
   
-    return(figure_print)
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+    return(list("figure_print" = figure_print, 
+                "table_raw" = table_raw, 
+                "header" = header, 
+                "height" = height, 
+                "width" = width, 
+                "nickname" = nickname))
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 
 ```
@@ -1338,13 +1371,14 @@ timeseries_plot <- function(table_raw, nickname, height, width, legend_font_size
 ## fig-timeseries-[spp]-data
 
 ```{r, fig-timeseries-[spp]-data, eval = TRUE}
-nickname <- paste0("fig-biomass-", spp_file, spp_file)
+nickname <- paste0("fig-biomass-", spp_file, "-data")
 height <- 4
 width <- full_page_portrait_width
 legend_font_size <- 10
 
-figure_print <- timeseries_plot(table_raw, nickname, height, width, legend_font_size)
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- timeseries_plot(table_raw = table_raw1, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-timeseries-[spp]-comm
@@ -1354,10 +1388,11 @@ nickname <- paste0("fig-biomass-", spp_file, "-comm")
 height <- 3
 width <- full_page_portrait_width
 legend_font_size <- 10
-table_raw <- table_raw %>% dplyr::filter(y_long == "Biomass")
+table_raw0 <- table_raw1 %>% dplyr::filter(var == "biomass_mt")
 
-figure_print <- timeseries_plot(table_raw, nickname, height, width, legend_font_size)
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-timeseries-[spp]-pres
@@ -1366,8 +1401,9 @@ figure_print <- timeseries_plot(table_raw, nickname, height, width, legend_font_
 nickname <- paste0("fig-biomass-", spp_file, "-pres")
 height <- 4
 legend_font_size <- 8
-table_raw <- table_raw %>% dplyr::filter(y_long == "Biomass")
+table_raw0 <- table_raw1 %>% dplyr::filter(var == "biomass_mt")
 
-figure_print <- timeseries_plot(table_raw, nickname, height, width, legend_font_size)
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
