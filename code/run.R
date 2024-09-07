@@ -71,7 +71,7 @@ comb <- unique(sort(comb$file_name))
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp3[which(report_spp3$file_name == comb[jj]), ]
-  spp_code <- a$species_code
+  spp_code <- a$species_code1
   aa <- catch_haul_cruises %>% 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
