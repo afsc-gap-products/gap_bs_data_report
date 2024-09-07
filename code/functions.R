@@ -1,4 +1,7 @@
 
+font0 <- "Arial Narrow"
+font_size0 <- 12
+
 # Directories ------------------------------------------------------------------
 
 # Just in case you change the base name for any reason, it will change for anytime you load the files inside the folder, too! (e.g., if you have something against "scripts" being the name of the folder, just let the script know in one place aka right here).
@@ -23,7 +26,7 @@ if (dir.exists(dir_out_figtab) == FALSE) {
   dir.create(dir_out_figtab)
 }
 
-dirs <- c("chapters", "rawdata")#, "documentation", "code", "figtab", "cite", "ref")
+dirs <- c("rawdata")#, "chapters", "documentation", "code", "figtab", "cite", "ref")
 for (i in 1:length(dirs)) {
   if (dir.exists(paste0(dir_out_todaysrun, dirs[i])) == FALSE) {
     dir.create(paste0(dir_out_todaysrun, "/", dirs[i]))

@@ -131,7 +131,7 @@ googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LX
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
                               skip = 1, 
                               show_col_types = FALSE) %>%  
-  dplyr::filter(grepl(x = species_code0, pattern = "c(", fixed = TRUE)) 
+  dplyr::filter(grepl(x = species_code, pattern = "c(", fixed = TRUE)) 
 
 temp1 <- data.frame()
 for (i in 1:nrow(report_spp)){

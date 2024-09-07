@@ -299,11 +299,13 @@ spp_info_maxyr <- spp_info %>%
 
 print("report_spp")
 
-report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
+report_spp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
                               skip = 1, 
-                              show_col_types = FALSE) %>% 
+                              show_col_types = FALSE) 
+
+report_spp <- report_spp0 %>% 
   dplyr::select(!(dplyr::starts_with(
-    ifelse(report_title %in% c("community", "nbspres"), "datar_", "community_")))) %>%
+    ifelse(report_title %in% c("community"), "community_", "datar_")))) %>%
   dplyr::select(where(~ !(all(is.na(.)) | all(. == "")))) %>% 
   dplyr::select(-questions) 
 
@@ -471,6 +473,11 @@ station <- gap_products_old_station0 %>%
       SRVY == "NBS" ~ 143, 
       SRVY == "EBS" ~ 98 ) )
 
+if (maxyr >= 2024) { # remove corner stations
+  station <- station %>% 
+    dplyr::filter(grepl(x = station, pattern = "-", fixed = TRUE))
+}
+
 # if NBS is not released
 
 cruises_race <- race_data_cruises0 %>% 
@@ -601,6 +608,7 @@ nbsyr <- gap_products_akfin_cruise0 %>%
     unique() %>% 
     unlist() %>% 
     sort(decreasing = FALSE)
+  nbsyr <- nbsyr[(length(nbsyr)-6):length(nbsyr)]
 }
 
 lastyr <- max(haul$year[haul$year != maxyr])

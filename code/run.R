@@ -1,11 +1,7 @@
 
 # Report knowns ----------------------------------------------------------------
 
-refcontent <- FALSE # produce extra summary text and tables for each spp to help with writing
 access_to_internet  <- TRUE # redownload google drive tables and docs?
-pres_img <- FALSE
-font0 <- "Arial Narrow"
-font_size0 <- 12
 quarto <- FALSE
 
 # maxyr <- 2022
@@ -49,7 +45,7 @@ report_title <- "data"
 # devtools::install_github("afsc-gap-products/coldpool")
 # devtools::install_github("afsc-gap-products/gapindex")
 source(here::here("code","functions.R"))
-# source('./code/data_dl.R')  # Run when there is new data!
+# source(here::here("code","data_dl.R"))  # Run when there is new data!
 source(here::here("code","data.R"))
 
 ## Figures and Tables ----------------------------------------------------------
@@ -60,13 +56,21 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_file = paste0("figtab.docx"))
 
 # Species figures
-comb <- sort(report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique())
-comb <- comb[comb != "snailfishes"]
-# comb <- comb[comb != "snailfish"]
-# comb <- "yellowfin-sole"  # single species for debugging
+comb <- report_spp0 %>% 
+  dplyr::filter(!is.na(community_order) |	!is.na(datar_order)) %>% 
+  dplyr::select(file_name, species_code) 
+
+report_spp3 <- data.frame()
+for (i in 1:nrow(comb)){
+  temp2 <- eval(expr = parse(text = comb$species_code[i]))
+  report_spp3 <- dplyr::bind_rows(report_spp3, 
+                            dplyr::bind_cols(comb[i,], 
+                                             species_code1 = eval(expr = parse(text = comb$species_code[i]))))
+}
+comb <- unique(sort(comb$file_name))
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
-  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+  a <- report_spp3[which(report_spp3$file_name == comb[jj]), ]
   spp_code <- a$species_code
   aa <- catch_haul_cruises %>% 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
@@ -83,12 +87,11 @@ for (jj in 1:length(comb)) {
 rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_chapters, 
-                  output_file = paste0("00_data_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+                  output_file = paste0("00_data_report_", maxyr, ".docx"))
 
 # Community Highlights ---------------------------------------------------------
 
 report_title <- "community"
-dir_googledrive <- dir_googledrive_comm
 source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
 
@@ -112,73 +115,19 @@ for (jj in 1:length(comb)) {
 
 rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"), 
                   output_format = "officedown::rdocx_document", 
-                  output_dir = dir_out_chapters, 
-                  output_file = paste0("00_community_report_", maxyr, ifelse(refcontent, "_ref", ""), ".docx"))
+                  output_dir = dir_out_todaysrun, 
+                  output_file = paste0("00_community_report_", maxyr, ".docx"))
 
-# Plan team presentation -------------------------------------------------------
+# Presentation slides ----------------------------------------------------------
 
-SRVY <- "EBS"
-report_title <- "ptpres" 
 source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
 
-# Presentation Species figures
-comb <- report_spp1 %>% 
-  dplyr::filter(!is.na(order) & 
-                  file_name %in%  
-                  c("walleye-pollock", "pacific-cod", "yellowfin-sole", 
-                    "northern-rock-sole", "flathead-sole", "alaska-plaice",
-                    "pacific-halibut", "alaska-skate", "arrowtooth-flounder", "pacific-ocean-perch")) %>%
-  dplyr::select(file_name) %>% 
-  unlist() %>% 
-  unique()
-for (jj in 1:length(comb)) {
-  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
-  spp_code <- a$species_code
-  aa <- catch_haul_cruises %>% 
-    dplyr::filter(species_code %in% spp_code & year == maxyr)
-  if (nrow(aa)>0) {
-    print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
-    rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                      output_dir = dir_out_rawdata,
-                      output_file = paste0("figtab_spp_", comb[jj],".docx"))
-  }
-}
-
 # Build Presentation
-rmarkdown::render(input = paste0(dir_code, "00_plan_team_pres.Rmd"), 
-                  output_dir = dir_out_chapters, 
-                  output_file = paste0("00_plan_team_pres_", maxyr, ".pptx"))
+rmarkdown::render(input = paste0(dir_code, "00_presentation.Rmd"), 
+                  output_dir = dir_out_todaysrun, 
+                  output_file = paste0("00_presentation_", maxyr, ".pptx"))
 
-
-# Strait sci presentation -------------------------------------------------------
-
-SRVY <- "NEBS"
-report_title <- "nbspres" 
-dir_googledrive <- dir_googledrive_comm
-source(here::here("code","functions.R"))
-source(here::here("code","data.R"))
-srvy <- "EBS"
-
-# Presentation Species figures
-comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
-for (jj in 1:length(comb)) {
-  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
-  spp_code <- a$species_code
-  aa <- catch_haul_cruises %>% 
-    dplyr::filter(species_code %in% spp_code & year == maxyr)
-  if (nrow(aa)>0) {
-    print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
-    rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                      output_dir = dir_out_rawdata,
-                      output_file = paste0("figtab_spp_", comb[jj],".docx"))
-  }
-}
-
-# Build Presentation
-rmarkdown::render(input = paste0(dir_code, "00_strait_sci_pres.Rmd"), 
-                  output_dir = dir_out_chapters, 
-                  output_file = paste0("00_strait_sci_pres_", maxyr, ".pptx"))
 
 # Write README -----------------------------------------------------------------
 
