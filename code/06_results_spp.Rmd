@@ -2,25 +2,22 @@
 \pagebreak
 
 ```{r res-spp-vars-{{jj}} }
-a <- report_spp1[which(report_spp1$file_name == comb[{{jj}}]), ]
+a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 
 spp_sci <- text_list(unique(a$species_name))
-spp_code <- a$species_code[1]
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
-# spp_taxon <- a$taxon[1]
+spp_taxon <- a$taxon[1]
 
 # report_title == "community"
-dataTcommF <- FALSE
 spp_plot_sizecomp <- a$plot_sizecomp[1]
 spp_plot_idw <- a$plot_idw[1]
-spp_plot_pa <- FALSE
+dataTcommF <- FALSE
 spp_table_cpue <- FALSE
 spp_text <- TRUE
 
 if (report_title == "data") {
   dataTcommF <- TRUE
-  # spp_plot_pa <- FALSE
   spp_table_cpue <- a$table_cpue[1]
   spp_text <- a$text_spp[1]
 }
@@ -231,15 +228,8 @@ nickname <- paste0("tab-stats-", spp_file)
 
 <!-- `r pagebreak` -->
 
-```{r tab-bio-timeseries-comm-{{jj}}, eval = (report_title %in% "community")}
-nickname <- paste0("fig-biomass-", spp_file, "-comm")
-```
-
-```{r tab-bio-timeseries-comm-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% "community")}
-```
-
 ```{r fig-biopop-timeseries-{{jj}}, eval = (report_title %in% "data")}
-nickname <- paste0("fig-biopop-timeseries-", spp_file)
+nickname <- paste0("fig-timeseries-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
 ```
 
 ```{r fig-biopop-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% "data")}

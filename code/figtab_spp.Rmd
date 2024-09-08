@@ -13,26 +13,14 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 
 spp_sci <- text_list(unique(a$species_name))
-spp_code <- a$species_code[1]
-if(grepl(pattern = "c(", x = spp_code, fixed = TRUE)) {spp_code <- a$species_code}
 spp_print <- a$print_name[1]
-
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
 # report_title == "community"
 spp_plot_sizecomp <- a$plot_sizecomp[1]
 spp_plot_idw <- a$plot_idw[1]
-spp_plot_pa <- FALSE
-spp_table_cpue <- FALSE
-spp_text <- TRUE
-
-if (report_title == "data") {
-  spp_plot_idw <- a$plot_idw[1]
-  spp_plot_pa <- FALSE # a$plot_pa[1]
-  spp_table_cpue <- a$table_cpue[1]
-  spp_text <- a$text_spp[1]
-}
+spp_table_cpue <- a$table_cpue[1]
 
 spp_bin <- eval(expr = parse(text = a$dist_bin))
 ```
@@ -376,6 +364,7 @@ row0 <- 1
 report_title0 <- "pres"
 
 temp <- dist_plot(yrs, height, row0, nickname, report_title0) 
+pres_dist <- temp$figure_print
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -593,6 +582,7 @@ legend_font_size <- 12
 report_title0 <- "pres"
 
 temp <- size_plot(srvy, yrs, print_n, height, width, nickname, legend_font_size, report_title0) 
+pres_size <- temp$figure_print
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -820,7 +810,7 @@ if (ncol(table_print0) > 2) {
       bg = neutral, 
       j = names(table_print0)[3]) 
 }
-
+pres_stats <- table_raw
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
@@ -1362,7 +1352,8 @@ legend.title = element_blank()) # We do want a legend title!
                 "header" = header, 
                 "height" = height, 
                 "width" = width, 
-                "nickname" = nickname))
+                "nickname" = nickname, 
+                "table_raw_mean" = table_raw_mean))
   # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 
@@ -1371,7 +1362,7 @@ legend.title = element_blank()) # We do want a legend title!
 ## fig-timeseries-[spp]-data
 
 ```{r, fig-timeseries-[spp]-data, eval = TRUE}
-nickname <- paste0("fig-biomass-", spp_file, "-data")
+nickname <- paste0("fig-timeseries-", spp_file, "-data")
 height <- 4
 width <- full_page_portrait_width
 legend_font_size <- 10
@@ -1384,7 +1375,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-timeseries-[spp]-comm
 
 ```{r, fig-timeseries-[spp]-comm, eval = TRUE}
-nickname <- paste0("fig-biomass-", spp_file, "-comm")
+nickname <- paste0("fig-timeseries-", spp_file, "-comm")
 height <- 3
 width <- full_page_portrait_width
 legend_font_size <- 10
@@ -1398,12 +1389,78 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-timeseries-[spp]-pres
 
 ```{r, fig-timeseries-[spp]-pres, eval = TRUE}
-nickname <- paste0("fig-biomass-", spp_file, "-pres")
-height <- 4
+nickname <- paste0("fig-timeseries-", spp_file, "-pres")
+height <- 3
 legend_font_size <- 8
 table_raw0 <- table_raw1 %>% dplyr::filter(var == "biomass_mt")
 
 temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+pres_timeseries <- temp$figure_print
+pres_timeseries_mean <- temp$table_raw_mean
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+## fig-combined-[spp]-pres
+
+```{r, fig-combined-[spp]-pres, eval = TRUE}
+nickname <- paste0("fig-combined-", spp_file, "-pres")
+height <-8
+width <- 10
+pres_dist1 <- pres_dist + 
+                              ggplot2::ggtitle("") + 
+                              ggplot2::guides(fill=guide_legend(title="Weight CPUE (kg/km2)")) 
+if (exists("pres_size")) {
+temp1 <- cowplot::plot_grid(pres_dist1, 
+                            pres_size + 
+                              ggplot2::ggtitle("") + 
+                              ggplot2::guides(fill=guide_legend(title="")) +
+                              ggplot2::theme(legend.title=element_blank()), 
+                            ncol = 2)
+} else {
+temp1 <- cowplot::plot_grid(pres_dist1, 
+                            NULL, 
+                            ncol = 2)  
+}
+temp2 <- cowplot::plot_grid(pres_timeseries + 
+                              ggplot2::ggtitle("") + 
+                              ggplot2::guides(fill = guide_legend(title="")) +
+                              ggplot2::labs(color = "") + 
+                              ggplot2::labs(shape = "") +
+                              ggplot2::theme(legend.title=element_blank()), 
+                            NULL,
+  # cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) ),
+                            ncol = 2, 
+                            rel_widths = c(.8, .2)) 
+temp2 <- ggdraw() +
+  draw_plot(temp2) +
+  draw_image(
+    paste0(dir_img, spp_file, ".png"), width = 2, x = 1,
+    hjust = 1, halign = 1, valign = 0
+  )
+
+# then combine with the top row for final plot
+figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1,1))
+figure_print <- ggdraw(add_sub(plot = figure_print, 
+                               label = paste0(pres_stats$SRVY_long, " Biomass Mean: ", 
+                                              round(x = pres_timeseries_mean$y_mean, digits = 1),
+                                              " mt ", maxyr, ": ",
+                                              pres_stats$`Biomass\n(t)`," mt (",
+                                              gsub(pattern = "\n", replace = " ", x = pres_stats$`Biomass\n% Change`, fixed = TRUE), "%)\n")#, 
+                               # vpadding = grid::unit(0, "lines"),
+                               # y = 3, x = 5, hjust = 0)
+                       ))
+
+header = ""
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r, eval = TRUE}
+remove("pres_dist")
+remove("pres_size")
+remove("pres_timeseries_mean")
+remove("pres_timeseries")
+remove("pres_stats")
+```
+

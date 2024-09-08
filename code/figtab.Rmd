@@ -134,6 +134,47 @@ figure_print <- plot_survey_stations(
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
+## fig-survey-sample-stations-simple
+
+```{r fig-survey-sample-station-simple}
+nickname <- "fig-survey-sample-stations-simple"
+
+vessels0 <- vessels 
+if (sum(vessels0$vess_shape == "X")>0) {
+  vessels0 <- vessels0 %>% 
+    dplyr::mutate(vessel_ital = ifelse(vess_shape == "X", "stations that were not surveyed", vessel_ital))
+}
+header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
+                 text_list(haul_cruises_maxyr$SRVY_long),
+                 " shelf bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
+                 ". The map also depicts the stations sampled by the ",
+                 text_list(paste0(vessels0$vessel_ital, " (",
+                                  vessels0$vess_shape, ")")), 
+                 ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
+
+height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) 
+width <- full_page_portrait_width
+
+reg_dat0 <- reg_dat
+
+reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
+  dplyr::mutate(station = STATIONID) %>% 
+  dplyr::left_join(y = haul_maxyr) %>% 
+  dplyr::left_join(y = vessels) %>%
+  dplyr::ungroup() 
+
+figure_print <- plot_survey_stations(
+  reg_dat = reg_dat0, 
+  survey_outline = TRUE,
+  stratum_grid = FALSE, 
+  stratum_no = FALSE, 
+  place_labels = TRUE, 
+  bathymetry = TRUE, 
+  station_pts = "vess") # defined in data.r
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
 ## fig-survey-sample-stations-1530
 
 ```{r fig-survey-sample-stations-1530, eval = FALSE}
