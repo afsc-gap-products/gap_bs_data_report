@@ -18,11 +18,12 @@ spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
 # report_title == "community"
-spp_plot_sizecomp <- a$plot_sizecomp[1]
+spp_plot_sizecomp <- (nrow(sizecomp %>% dplyr::filter(species_code %in% spp_code))>0)
 spp_plot_idw <- a$plot_idw[1]
 spp_table_cpue <- a$table_cpue[1]
 
 spp_bin <- eval(expr = parse(text = a$dist_bin))
+
 ```
 
 ## fig-[spp]-0-pres
@@ -96,7 +97,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0) {
   }
   
   # Find set.breaks --------------------------------------------------------------
-  if (!(NA %in% spp_bin)) {
+  if (!(NA %in% spp_bin) ) {
     set.breaks <- c(0, spp_bin, max(table_raw$CPUE_KGHA))
   } else {
     set.breaks <- akgfmaps::eval_plot_breaks(CPUE = table_raw$CPUE_KGHA, n.breaks = 5)
@@ -222,6 +223,8 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0) {
       ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
       coord_sf() + 
       ggplot2::scale_fill_manual(
+        # labels = scales::label_comma(),
+        # labels = function(x) format(x, big.mark = ",", scientific = FALSE), 
         name = key.title,
         values =  c("gray90",
                     viridis::viridis(
@@ -325,8 +328,11 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0) {
 
 ## fig-dist-[spp]-data
 
-```{r fig-dist-[spp]-data}
+```{r fig-dist-[spp]-data, eval = FALSE}
 yrs <- unique(c(maxyr, nbsyr)) 
+if (spp_file == "greenland-turbot") {
+  yrs <- c(2022, 2023, 2024)
+}
 height <- full_page_portrait_height - 1
 row0 <- 2
 nickname <- paste0("fig-dist-", spp_file, "-data")
@@ -339,8 +345,11 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## fig-dist-[spp]-comm
 
-```{r fig-dist-[spp]-comm}
+```{r fig-dist-[spp]-comm, eval = FALSE }
 yrs <- unique(sort(c(maxyr, nbsyr, 2020)))
+if (spp_file == "greenland-turbot") {
+  yrs <- c(2022, 2023, 2024)
+}
 height <- full_page_portrait_height-1
 row0 <- 2
 nickname <- paste0("fig-dist-", spp_file, "-comm")
@@ -528,11 +537,11 @@ size_plot <- function(srvy, yrs, print_n, height, width, nickname, legend_font_s
       geom_text(mapping = aes(label = label))
   }
   
-    return(list("figure_print" = figure_print, 
-                "header" = header, 
-                "height" = height, 
-                "width" = width, 
-                "nickname" = nickname))
+  return(list("figure_print" = figure_print, 
+              "header" = header, 
+              "height" = height, 
+              "width" = width, 
+              "nickname" = nickname))
   # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
@@ -1134,7 +1143,13 @@ for (i in 1:length(unique(table_raw$SRVY_long))){
     dplyr::bind_rows(tidyr::crossing(year = setdiff((min(temp$year):max(temp$year)),
                                                     unique(temp$year)),
                                      y_long = unique(table_raw$y_long), 
-                                     SRVY_long = unique(table_raw$SRVY_long)[i]) )
+                                     # var = unique(table_raw$var), 
+                                     SRVY_long = unique(table_raw$SRVY_long)[i]) ) # %>% 
+    # dplyr::mutate(var = dplyr::case_when(
+    #   y_long == "Biomass" ~ "biomass_mt",
+    #   y_long == "Population" ~ "population_count"
+    # ))
+  
 }
 
 yr_missing <- yr_missing %>%
@@ -1154,8 +1169,8 @@ a_pop <- find_units(unit = "",
                     dat = table_raw$val[table_raw$y_long == "Population"]) 
 
 table_raw <- table_raw %>% 
-  dplyr::bind_rows(yr_missing %>% dplyr::mutate(var = "biomass_mt")) %>% 
-  dplyr::bind_rows(yr_missing %>% dplyr::mutate(var = "population_count")) %>% 
+  dplyr::bind_rows(yr_missing) %>% 
+  # dplyr::bind_rows(yr_missing %>% dplyr::mutate(var = "population_count")) %>% 
   dplyr::mutate(
     species_name = spp_print, 
     common_name = spp_print, 
@@ -1190,44 +1205,53 @@ table_raw <- table_raw %>%
     y_ci_up = ci_up/divby  ) %>% 
   dplyr::arrange(desc(year))  %>% 
   dplyr::mutate(group = paste0(SRVY, "_", y_long)) %>% 
-  dplyr::ungroup()
+  dplyr::ungroup() %>% 
+    dplyr::mutate(var = dplyr::case_when(
+      y_long == "Biomass" ~ "biomass_mt",
+      y_long == "Population" ~ "population_count", 
+    ))
 
 table_raw1 <- table_raw
 
 timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises) {
   
+  if (length(unique(table_raw$var_)) == 1) {
+    table_raw$var_ <- gsub(x = table_raw$var_, replacement = "", pattern = "\n", fixed = TRUE)
+    table_raw$var_ <- gsub(x = table_raw$var_, replacement = " ", pattern = "  ", fixed = TRUE)
+  }
+  
   # find mean for mean line
-table_raw_mean <- table_raw %>% 
-  dplyr::group_by(SRVY_long, y_long, group, var_) %>% 
-  dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) %>% 
-  dplyr::filter(!is.na(y_mean)) %>% 
-  dplyr::left_join(
-    biomass %>%
-      dplyr::filter(stratum == 999 &
-                      year >= min(table_raw$year, na.rm = TRUE) # 1987
-      ) %>% 
-      dplyr::group_by(survey_definition_id) %>% 
-      dplyr::summarise(minyr = min(year, na.rm = TRUE), 
-                       maxyr = max(year, na.rm = TRUE)) %>% 
-      dplyr::left_join(y = haul_cruises %>% 
-                         dplyr::select(survey_definition_id, SRVY_long) %>% 
-                         dplyr::distinct()) %>% 
-      dplyr::select(-survey_definition_id) %>% 
-      dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))) %>% 
-  dplyr::ungroup()
-
-# anno<-NA
-# temp<-setdiff(x = unique(table_raw$SRVY), 
-#               y = unique(table_raw_mean$SRVY))
-# if (length(temp) != 0) {
-#   anno <- paste0("Data for this species in the\n", 
-#                  temp, 
-#                  " is too limited to plot.")
-#   
-#   col_anno <- table_raw$col[which(unique(table_raw$SRVY)==temp)]
-#   col <- table_raw$col[which(unique(table_raw$SRVY)!=temp)]
-# }
-
+  table_raw_mean <- table_raw %>% 
+    dplyr::group_by(SRVY_long, y_long, group, var_) %>% 
+    dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) %>% 
+    dplyr::filter(!is.na(y_mean)) %>% 
+    dplyr::left_join(
+      biomass %>%
+        dplyr::filter(stratum == 999 &
+                        year >= min(table_raw$year, na.rm = TRUE) # 1987
+        ) %>% 
+        dplyr::group_by(survey_definition_id) %>% 
+        dplyr::summarise(minyr = min(year, na.rm = TRUE), 
+                         maxyr = max(year, na.rm = TRUE)) %>% 
+        dplyr::left_join(y = haul_cruises %>% 
+                           dplyr::select(survey_definition_id, SRVY_long) %>% 
+                           dplyr::distinct()) %>% 
+        dplyr::select(-survey_definition_id) %>% 
+        dplyr::mutate(SRVY_long = stringr::str_to_title(SRVY_long))) %>% 
+    dplyr::ungroup()
+  
+  # anno<-NA
+  # temp<-setdiff(x = unique(table_raw$SRVY), 
+  #               y = unique(table_raw_mean$SRVY))
+  # if (length(temp) != 0) {
+  #   anno <- paste0("Data for this species in the\n", 
+  #                  temp, 
+  #                  " is too limited to plot.")
+  #   
+  #   col_anno <- table_raw$col[which(unique(table_raw$SRVY)==temp)]
+  #   col <- table_raw$col[which(unique(table_raw$SRVY)!=temp)]
+  # }
+  
   figure_print <-
     # general plotting aesthetics
     ggplot2::ggplot(data = table_raw,
@@ -1267,7 +1291,7 @@ table_raw_mean <- table_raw %>%
     # Set y axis minimum to always be 0 & remove resulting "y" label
     # ylim(0, NA) +
     # ylab(" ") +
-
+    
     # aesthetics
     # Create & position legend title
     ggplot2::labs(color = stringr::str_to_title(spp_print)) +  # force title case
@@ -1298,20 +1322,10 @@ table_raw_mean <- table_raw %>%
       legend.position = "bottom", 
       legend.box = "horizontal",
       legend.box.spacing = unit(0, "pt"),
-      legend.margin=margin(0, 0, 0, 0))
-  
-  if (length(table_raw_mean$y_long) > 1) {
-      # facet grid
-    figure_print <- figure_print + 
+      legend.margin=margin(0, 0, 0, 0)) + 
       ggplot2::facet_grid(rows = vars(var_), 
-                        scales = "free", 
-                        switch = "both") 
-  } else {
-    figure_print <- figure_print + 
-              ggplot2::theme( 
-legend.title = element_blank()) # We do want a legend title!
-
-  }
+                          scales = "free", 
+                          switch = "both") 
   # if (!is.na(anno[1])) {
   #   figure_print <- figure_print +
   #     ggplot2::geom_text(x = Inf, 
@@ -1347,13 +1361,14 @@ legend.title = element_blank()) # We do want a legend title!
                    " shelf bottom trawl survey", 
                    ifelse(length(unique(table_raw$SRVY_long0)) > 1, plural_surveys, ""),". Dashed lines represent time series average and error bars represent estimated 95% confidence intervals. ")
   
-    return(list("figure_print" = figure_print, 
-                "table_raw" = table_raw, 
-                "header" = header, 
-                "height" = height, 
-                "width" = width, 
-                "nickname" = nickname, 
-                "table_raw_mean" = table_raw_mean))
+  return(list("figure_print" = figure_print, 
+              "table_raw" = table_raw, 
+              "header" = header, 
+              "height" = height, 
+              "width" = width, 
+              "nickname" = nickname, 
+              "table_raw_mean" = table_raw_mean, 
+              "unit_wrd" = unique(table_raw$unit_wrd[table_raw$var == "biomass_mt"])))
   # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 
@@ -1397,6 +1412,7 @@ table_raw0 <- table_raw1 %>% dplyr::filter(var == "biomass_mt")
 temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
 pres_timeseries <- temp$figure_print
 pres_timeseries_mean <- temp$table_raw_mean
+pres_timeseries_unit_wrd <- temp$unit_wrd
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1408,19 +1424,20 @@ nickname <- paste0("fig-combined-", spp_file, "-pres")
 height <-8
 width <- 10
 pres_dist1 <- pres_dist + 
-                              ggplot2::ggtitle("") + 
-                              ggplot2::guides(fill=guide_legend(title="Weight CPUE (kg/km2)")) 
+  ggplot2::ggtitle("") + 
+  ggplot2::guides(fill=guide_legend(title="Weight CPUE (kg/km2)")) 
 if (exists("pres_size")) {
-temp1 <- cowplot::plot_grid(pres_dist1, 
-                            pres_size + 
-                              ggplot2::ggtitle("") + 
-                              ggplot2::guides(fill=guide_legend(title="")) +
-                              ggplot2::theme(legend.title=element_blank()), 
-                            ncol = 2)
+  temp1 <- cowplot::plot_grid(pres_dist1, 
+                              pres_size + 
+                                ggplot2::ggtitle("") + 
+                                ggplot2::guides(fill=guide_legend(title="")) +
+                                ggplot2::theme(legend.title=element_blank()), 
+                              ncol = 2, 
+                              rel_widths = c(1,.5))
 } else {
-temp1 <- cowplot::plot_grid(pres_dist1, 
-                            NULL, 
-                            ncol = 2)  
+  temp1 <- cowplot::plot_grid(pres_dist1, 
+                              NULL, 
+                              ncol = 2)  
 }
 temp2 <- cowplot::plot_grid(pres_timeseries + 
                               ggplot2::ggtitle("") + 
@@ -1429,27 +1446,27 @@ temp2 <- cowplot::plot_grid(pres_timeseries +
                               ggplot2::labs(shape = "") +
                               ggplot2::theme(legend.title=element_blank()), 
                             NULL,
-  # cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) ),
+                            # cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) ),
                             ncol = 2, 
                             rel_widths = c(.8, .2)) 
-temp2 <- ggdraw() +
-  draw_plot(temp2) +
-  draw_image(
-    paste0(dir_img, spp_file, ".png"), width = 2, x = 1,
-    hjust = 1, halign = 1, valign = 0
-  )
+# temp2 <- ggdraw() +
+#   draw_plot(temp2) +
+#   draw_image(
+#     paste0(dir_img, spp_file, ".png"), width = 1, x = 1,
+#     hjust = 1, halign = 1, valign = 0
+#   )
 
 # then combine with the top row for final plot
-figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1,1))
+figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1,.8))
 figure_print <- ggdraw(add_sub(plot = figure_print, 
-                               label = paste0(pres_stats$SRVY_long, " Biomass Mean: ", 
+                               label = paste0(pres_stats$SRVY_long, " ", spp_print, " Biomass Mean: ", 
                                               round(x = pres_timeseries_mean$y_mean, digits = 1),
-                                              " mt ", maxyr, ": ",
-                                              pres_stats$`Biomass\n(t)`," mt (",
-                                              gsub(pattern = "\n", replace = " ", x = pres_stats$`Biomass\n% Change`, fixed = TRUE), "%)\n")#, 
+                                              " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
+                                              pres_stats$`Biomass\n(t)`," (",
+                                              gsub(pattern = "\n", replace = " ", x = pres_stats$`Biomass\n% Change`, fixed = TRUE), ")\n")#, 
                                # vpadding = grid::unit(0, "lines"),
                                # y = 3, x = 5, hjust = 0)
-                       ))
+))
 
 header = ""
 

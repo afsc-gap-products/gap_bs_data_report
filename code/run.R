@@ -3,6 +3,7 @@
 
 access_to_internet  <- TRUE # redownload google drive tables and docs?
 quarto <- FALSE
+options(scipen=999)
 
 # maxyr <- 2022
 # compareyr <- 2021
