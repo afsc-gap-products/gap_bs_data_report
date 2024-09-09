@@ -18,7 +18,9 @@ spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
 
 # report_title == "community"
-spp_plot_sizecomp <- (nrow(sizecomp %>% dplyr::filter(species_code %in% spp_code))>0)
+spp_plot_sizecomp <- (nrow(sizecomp %>% 
+                             dplyr::filter(species_code %in% spp_code) %>% 
+                             dplyr::filter(year %in% nbsyr) ) >0)
 spp_plot_idw <- a$plot_idw[1]
 spp_table_cpue <- a$table_cpue[1]
 
@@ -1437,7 +1439,8 @@ if (exists("pres_size")) {
 } else {
   temp1 <- cowplot::plot_grid(pres_dist1, 
                               NULL, 
-                              ncol = 2)  
+                              ncol = 2, 
+                              rel_widths = c(1,.5))
 }
 temp2 <- cowplot::plot_grid(pres_timeseries + 
                               ggplot2::ggtitle("") + 

@@ -87,7 +87,7 @@ for (jj in 1:length(comb)) {
 # Main Body
 rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 
                   output_format = "officedown::rdocx_document", 
-                  output_dir = dir_out_chapters, 
+                  output_dir = dir_out_todaysrun, 
                   output_file = paste0("00_data_report_", maxyr, ".docx"))
 
 # Community Highlights ---------------------------------------------------------
