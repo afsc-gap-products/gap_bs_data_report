@@ -2,12 +2,12 @@
 \pagebreak
 
 ```{r res-spp-vars-{{jj}} }
-a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+a <- report_spp1[which(report_spp1$file_name == "{{jj}}"), ]
 
 spp_sci <- text_list(unique(a$species_name))
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
-spp_taxon <- a$taxon[1]
+# spp_taxon <- a$taxon[1]
 
 # report_title == "community"
 spp_plot_sizecomp <- a$plot_sizecomp[1]
@@ -30,7 +30,6 @@ lang <- ""
 ```
 
 ```{r prep-cite-{{jj}}}
-# fig_dist <- fig_sizecomp <- tab_wt <- tab_no <- NA
 
 if (spp_plot_idw) {
   fig_dist <- paste0("\\@ref(fig:", "fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
@@ -62,9 +61,9 @@ fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)
 
 # if (report_title == "community") {
   tab_stat <- paste0("\\@ref(tab:tab-stats-", spp_file, ")")
-  fig_bio <- paste0("\\@ref(fig:fig-biomass-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
-  fig_pop <- paste0("\\@ref(fig:fig-population-", spp_file, ")")
-  fig_biopop <- paste0("\\@ref(fig:fig-biopop-timeseries-", spp_file, ")")
+  # fig_bio <- paste0("\\@ref(fig:fig-biomass-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
+  # fig_pop <- paste0("\\@ref(fig:fig-population-", spp_file, ")")
+  fig_biopop <- paste0("\\@ref(fig:fig-timeseries-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
 # }
 
 str0 <- ""
@@ -74,7 +73,8 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 
 ### `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `{#`r spp_file`}
 
-```{r spp-text-0-{{jj}}}
+```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
+# ```{r spp-text-0-{{jj}}}
 img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
 fig_width <- 4
 fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
@@ -83,9 +83,8 @@ if (fig_height > 4) {
   fig_height <- 3
   fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
 }
-```
+# ```
 
-```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
 cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
@@ -128,7 +127,7 @@ if (ncol(temp)>0) {
 
 `r lang `
 
-```{r bio-pop-txt-1-{{jj}}}
+```{r bio-pop-txt-1-{{jj}}, eval = FALSE}
 str0 <- ""
 ```
 
@@ -219,20 +218,20 @@ if (nrow(temp) == 1 & length(SRVY11)==2) { # temp$SRVY_long %in% stringr::str_to
 ```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
 ```
 
-```{r tab-stats-{{jj}}, eval = (report_title %in% c("community", "data"))}
+```{r tab-stats-{{jj}}}
 nickname <- paste0("tab-stats-", spp_file)
 ```
 
-```{r tab-stats-{{jj}}-child1, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% c("data"))}
+```{r tab-stats-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 <!-- `r pagebreak` -->
 
-```{r fig-biopop-timeseries-{{jj}}, eval = (report_title %in% "data")}
+```{r fig-timeseries-{{jj}}}
 nickname <- paste0("fig-timeseries-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
 ```
 
-```{r fig-biopop-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% "data")}
+```{r fig-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 ```{r fig-dist-{{jj}}}
@@ -270,6 +269,5 @@ nickname <- paste0("tab-est-",spp_file, "-num")
 
 ```{r tab-est-{{jj}}-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_table_cpue}
 ```
-
 
 <!-- `r land_end ` -->

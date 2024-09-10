@@ -45,7 +45,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-dist-[spp]-prep
 
 ```{r fig-dist-[spp]-prep}
-width <- full_page_portrait_width # 6.5  
+fig_width <- width <- full_page_portrait_width # 6.5  
 case_yr0 <- 1
 place_labels <- FALSE
 viridis_palette_option <- "mako"
@@ -107,7 +107,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0) {
   }
   
   # find appropriate map.area0 ---------------------------------------------------
-  # only if both species are only found in prt of the region, chnge the extrp.box
+  # only if both species are only found in prt of the region, change the extrp.box
   map.area0 <- map.area
   reg_dat0 <- reg_dat
   if (length(unique(table_raw$SRVY))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when SRVY == NEBS)?
@@ -331,12 +331,13 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0) {
 ## fig-dist-[spp]-data
 
 ```{r fig-dist-[spp]-data, eval = FALSE}
-yrs <- unique(c(maxyr, nbsyr)) 
+yrs <- nbsyr
 if (spp_file == "greenland-turbot") {
   yrs <- c(2022, 2023, 2024)
 }
+width <- full_page_portrait_width # 6.5  
 height <- full_page_portrait_height - 1
-row0 <- 2
+row0 <- 3
 nickname <- paste0("fig-dist-", spp_file, "-data")
 report_title0 <- "data"
 
@@ -347,11 +348,12 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## fig-dist-[spp]-comm
 
-```{r fig-dist-[spp]-comm, eval = FALSE }
+```{r fig-dist-[spp]-comm, eval = FALSE}
 yrs <- unique(sort(c(maxyr, nbsyr, 2020)))
 if (spp_file == "greenland-turbot") {
   yrs <- c(2022, 2023, 2024)
 }
+width <- full_page_portrait_width # 6.5  
 height <- full_page_portrait_height-1
 row0 <- 2
 nickname <- paste0("fig-dist-", spp_file, "-comm")
@@ -551,7 +553,7 @@ size_plot <- function(srvy, yrs, print_n, height, width, nickname, legend_font_s
 ## fig-sizecomp-[spp]-data
 
 ```{r fig-sizecomp-[spp]-data, eval = spp_plot_sizecomp}
-yrs <- unique(c(maxyr, nbsyr)) 
+yrs <- nbsyr
 height <- full_page_portrait_height 
 print_n <- FALSE
 srvy <- SRVY1
@@ -567,13 +569,14 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-sizecomp-[spp]-comm
 
 ```{r fig-sizecomp-[spp]-comm, eval = spp_plot_sizecomp}
-yrs <- unique(c(maxyr, nbsyr))
-height <- full_page_portrait_height
-print_n <- TRUE
-srvy <-"NBS"
+yrs <- nbsyr
+height <- full_page_portrait_height 
+print_n <- FALSE
+srvy <- SRVY1
 nickname <- paste0("fig-sizecomp-", spp_file, "-comm")
-legend_font_size <- 12
+legend_font_size <- 10
 report_title0 <- "community"
+srvy <-"NBS"
 
 temp <- size_plot(srvy, yrs, print_n, height, width, nickname, legend_font_size, report_title0) 
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
@@ -669,13 +672,18 @@ temp_env <- haul0 %>%
 
 yrs <- c(maxyr, compareyr)
 
+if (length(spp_code) == 1) {
+temp_bio <- biomass %>% dplyr::filter(species_code %in% spp_code)
+} else {
+temp_bio <- biomass %>% dplyr::filter(group %in% spp_print)
+}
 temp_bio <- dplyr::left_join(
   x = total_biomass %>% 
     dplyr::group_by(SRVY, year) %>% 
     dplyr::summarise(total = sum(total, na.rm = TRUE)), 
-  y = biomass %>% 
+  y = temp_bio %>% 
     dplyr::filter(year %in% yrs & 
-                    species_code %in% spp_code &
+                    # species_code %in% spp_code &
                     stratum %in% 999) %>%
     dplyr::select(SRVY, year, biomass_mt, population_count, 
                   cpue_kgkm2_mean, cpue_nokm2_mean) %>% 
@@ -1466,7 +1474,7 @@ figure_print <- ggdraw(add_sub(plot = figure_print,
                                               round(x = pres_timeseries_mean$y_mean, digits = 1),
                                               " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
                                               pres_stats$`Biomass\n(t)`," (",
-                                              gsub(pattern = "\n", replace = " ", x = pres_stats$`Biomass\n% Change`, fixed = TRUE), ")\n")#, 
+                                              gsub(pattern = "\n", replace = " ", x = pres_stats$`Biomass\n% Change`, fixed = TRUE), ")", collapse = "\n")#, 
                                # vpadding = grid::unit(0, "lines"),
                                # y = 3, x = 5, hjust = 0)
 ))

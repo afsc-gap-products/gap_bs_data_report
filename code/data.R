@@ -475,7 +475,7 @@ station <- gap_products_old_station0 %>%
 
 if (maxyr >= 2024) { # remove corner stations
   station <- station %>% 
-    dplyr::filter(grepl(x = station, pattern = "-", fixed = TRUE))
+    dplyr::filter(station == "AZ0504" | grepl(x = station, pattern = "-", fixed = TRUE))
 }
 
 # if NBS is not released
@@ -600,7 +600,7 @@ nbsyr <- gap_products_akfin_cruise0 %>%
   unique() %>% 
   unlist() %>% 
   sort(decreasing = FALSE)
-} else if (SRVY1 %in% c("EBS")) {
+} else {
   nbsyr <- gap_products_akfin_cruise0 %>% 
     dplyr::filter(#survey_definition_id == 143 & 
                     year <= maxyr) %>% 
@@ -608,7 +608,7 @@ nbsyr <- gap_products_akfin_cruise0 %>%
     unique() %>% 
     unlist() %>% 
     sort(decreasing = FALSE)
-  nbsyr <- nbsyr[(length(nbsyr)-6):length(nbsyr)]
+  nbsyr <- nbsyr[(length(nbsyr)-5):length(nbsyr)]
 }
 
 lastyr <- max(haul$year[haul$year != maxyr])
