@@ -1122,6 +1122,7 @@ biomass_gap <- dplyr::bind_rows(
     population_dw = population_count - (2*population_sd))
 
 biomass_sap <- crab_gap_ebs_nbs_abundance_biomass0 %>% 
+  dplyr::filter(survey_region %in% SRVY) %>%
   dplyr::select(SRVY = survey_region, 
                 year = survey_year, 
                 species_code, 

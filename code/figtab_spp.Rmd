@@ -50,7 +50,7 @@ case_yr0 <- 1
 place_labels <- FALSE
 viridis_palette_option <- "mako"
 
-dist_plot <- function(yrs, height, row0, nickname, report_title0) {
+dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp_code) {
   
   width <- full_page_portrait_width # 6.5  
   case_yr0 <- 1
@@ -117,6 +117,10 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0) {
       height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF" & 
                          report_title0 == "data", height, height-1)
     }
+  }
+  
+  if (spp_print == "Arctic cod") {
+    set.breaks <- c(0,5)
   }
   
   # Write header for figure_print ------------------------------------------------------
@@ -330,7 +334,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0) {
 
 ## fig-dist-[spp]-data
 
-```{r fig-dist-[spp]-data, eval = FALSE}
+```{r fig-dist-[spp]-data}
 yrs <- nbsyr
 if (spp_file == "greenland-turbot") {
   yrs <- c(2022, 2023, 2024)
@@ -341,7 +345,7 @@ row0 <- 3
 nickname <- paste0("fig-dist-", spp_file, "-data")
 report_title0 <- "data"
 
-temp <- dist_plot(yrs, height, row0, nickname, report_title0)
+temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -359,7 +363,7 @@ row0 <- 2
 nickname <- paste0("fig-dist-", spp_file, "-comm")
 report_title0 <- "community"
 
-temp <- dist_plot(yrs, height, row0, nickname, report_title0) 
+temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code) 
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -376,7 +380,7 @@ width <- 5
 row0 <- 1
 report_title0 <- "pres"
 
-temp <- dist_plot(yrs, height, row0, nickname, report_title0) 
+temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code) 
 pres_dist <- temp$figure_print
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
