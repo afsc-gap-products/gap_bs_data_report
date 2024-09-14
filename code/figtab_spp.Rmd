@@ -25,7 +25,6 @@ spp_plot_idw <- a$plot_idw[1]
 spp_table_cpue <- a$table_cpue[1]
 
 spp_bin <- eval(expr = parse(text = a$dist_bin))
-
 ```
 
 ## fig-[spp]-0-pres
@@ -100,10 +99,26 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   
   # Find set.breaks --------------------------------------------------------------
   if (!(NA %in% spp_bin) ) {
-    set.breaks <- c(0, spp_bin, max(table_raw$CPUE_KGHA))
+    # if (spp_bin[1] > max(table_raw$CPUE_KGHA)) {
+    #   set.breaks <- c(0, max(table_raw$CPUE_KGHA))
+    # } else {
+    spp_bin <- spp_bin[!(spp_bin > max(table_raw$CPUE_KGHA))]
+    if (length(spp_bin)>0) {
+      set.breaks <- c(0, spp_bin, max(table_raw$CPUE_KGHA))
+    } else {
+      set.breaks <- c(0, max(table_raw$CPUE_KGHA))
+      }
+    # }
   } else {
     set.breaks <- akgfmaps::eval_plot_breaks(CPUE = table_raw$CPUE_KGHA, n.breaks = 5)
     set.breaks <- as.vector(unlist(set.breaks[set.breaks$style == "pretty", -1]))
+  }
+  
+  set.breaks_pretty0 <- formatC(x = set.breaks, big.mark = ",", format = "f", digits = 0)
+  set.breaks_pretty <- set.breaks_pretty0
+  set.breaks_pretty[1] <- "No catch"
+  for (i in 2:length(set.breaks_pretty)) {
+    set.breaks_pretty[i] <- paste0(">", set.breaks_pretty0[i-1], "-", set.breaks_pretty0[i])
   }
   
   # find appropriate map.area0 ---------------------------------------------------
@@ -117,10 +132,6 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
       height <- ifelse(reg_dat0$survey.area$SURVEY == "EBS_SHELF" & 
                          report_title0 == "data", height, height-1)
     }
-  }
-  
-  if (spp_print == "Arctic cod") {
-    set.breaks <- c(0,5)
   }
   
   # Write header for figure_print ------------------------------------------------------
@@ -198,6 +209,13 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
     out.crs = out.crs, 
     extrapolation.grid.type = "sf")
   
+  
+  idw$extrapolation.stack$var1.pred <- 
+    factor(x = idw$extrapolation.stack$var1.pred, 
+                                    levels = levels(idw$extrapolation.stack$var1.pred), 
+                                    labels = set.breaks_pretty,
+                                    ordered = TRUE)
+  
   # Plot -------------------------------------------------------------------------
   for (case_yr in case_yr0) {
     if (length(case_yr0)>1) {
@@ -221,13 +239,12 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
       ggplot2::scale_x_continuous(name = "", #"Longitude",
                                   limits = reg_dat0$plot.boundary$x,
                                   breaks = reg_dat0$lon.breaks) + 
-      geom_sf(data = idw$extrapolation.stack,
+      ggplot2::geom_sf(data = idw$extrapolation.stack,
               mapping = aes(fill = var1.pred),
               na.rm = FALSE,
               show.legend = TRUE, 
               color = NA) +
       ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
-      coord_sf() + 
       ggplot2::scale_fill_manual(
         # labels = scales::label_comma(),
         # labels = function(x) format(x, big.mark = ",", scientific = FALSE), 
@@ -262,6 +279,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
           override.aes = list(color = NA),
           nrow = 1),
         color = "none")  +
+      ggplot2::coord_sf(expand = FALSE) + # coord_sf() + 
       ggplot2::theme( 
         panel.background = element_rect(fill = "white", colour = NA), 
         panel.border = element_rect(fill = NA, colour = "grey20"), 
@@ -1420,7 +1438,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r, fig-timeseries-[spp]-pres, eval = TRUE}
 nickname <- paste0("fig-timeseries-", spp_file, "-pres")
 height <- 3
-legend_font_size <- 8
+legend_font_size <- 12
 table_raw0 <- table_raw1 %>% dplyr::filter(var == "biomass_mt")
 
 temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
@@ -1445,7 +1463,9 @@ if (exists("pres_size")) {
                               pres_size + 
                                 ggplot2::ggtitle("") + 
                                 ggplot2::guides(fill=guide_legend(title="")) +
-                                ggplot2::theme(legend.title=element_blank()), 
+                                ggplot2::theme(legend.title=element_blank(), 
+                                               strip.text.x = element_blank(),
+                                               strip.background = element_blank()), 
                               ncol = 2, 
                               rel_widths = c(1,.5))
 } else {
@@ -1456,10 +1476,11 @@ if (exists("pres_size")) {
 }
 temp2 <- cowplot::plot_grid(pres_timeseries + 
                               ggplot2::ggtitle("") + 
-                              ggplot2::guides(fill = guide_legend(title="")) +
+                              ggplot2::guides(#fill = guide_legend(title=""), 
+                                              fill = "none") +
                               ggplot2::labs(color = "") + 
                               ggplot2::labs(shape = "") +
-                              ggplot2::theme(legend.title=element_blank()), 
+                              ggplot2::theme(legend.position = "none"), 
                             NULL,
                             # cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) ),
                             ncol = 2, 
@@ -1472,7 +1493,7 @@ temp2 <- cowplot::plot_grid(pres_timeseries +
 #   )
 
 # then combine with the top row for final plot
-figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1,.8))
+figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1,.7))
 figure_print <- ggdraw(add_sub(plot = figure_print, 
                                label = paste0(pres_stats$SRVY_long, " ", spp_print, " Biomass Mean: ", 
                                               round(x = pres_timeseries_mean$y_mean, digits = 1),
