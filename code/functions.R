@@ -1475,10 +1475,10 @@ plot_temperature_map <- function(raster_nebs,
       
       if (yrs[ii] %in% yrs_nbs) {
         sel_raster_layer <- raster_nebs[[which(names(raster_nebs) == yrs[ii])]]
-        mask_layer <- reg_dat0$survey.area
+        mask_layer <- report_types$NEBS$reg_dat$survey.area
       } else {
         sel_raster_layer <- raster_ebs[[which(names(raster_ebs) == yrs[ii])]]
-        mask_layer <- dplyr::filter(reg_dat0$survey.area, SURVEY == "EBS_SHELF")
+        mask_layer <- dplyr::filter(report_types$NEBS$reg_dat$survey.area, SURVEY == "EBS_SHELF")
       }
       
       temp_sf <- sel_raster_layer |>
@@ -1739,19 +1739,17 @@ plot_sizecomp <- function(sizecomp0,
                                    y = population_count,
                                    # group = SRVY_long,
                                    fill = sex)) +
-      geom_bar(position="stack", stat="identity", na.rm = TRUE) +
-      scale_fill_viridis_d(direction = -1, 
+      ggplot2::geom_bar(position="stack", stat="identity", na.rm = TRUE) +
+      ggplot2::scale_fill_viridis_d(direction = -1, 
                            option = "mako",
                            begin = .2,
                            end = .6,
                            na.value = "transparent") +
-      scale_y_continuous(name = paste0("Population", pop_unit_word), 
-                         # breaks = function(population_count) unique(floor(pretty(seq(0, (max(population_count) + 1) * 1.1)))), 
-                         labels = scales::label_number(accuracy = 10, big.mark = ",")) +
-      scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
-                         # breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1)))), 
-                         labels = scales::label_number(accuracy = 10, big.mark = ",")) +
-      facet_grid(year ~ SRVY_long,
+      ggplot2::scale_y_continuous(name = paste0("Population", pop_unit_word), 
+                         labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ",")) +
+      ggplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
+                         labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ",")) +
+      ggplot2::facet_grid(year ~ SRVY_long,
                  scales = "free_x")  +
       ggplot2::labs(fill = spp_print) +
       ggplot2::guides(

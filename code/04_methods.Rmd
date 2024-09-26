@@ -53,15 +53,15 @@ temp <-
 
 str0 <- c()
 if (sum(temp$N, na.rm = TRUE)>0) {
-# if (sum(!is.na(temp$vessel_id)) == nrow(temp)) { # if equations were estimated
+  # if (sum(!is.na(temp$vessel_id)) == nrow(temp)) { # if equations were estimated
   for (i in 1:length(unique(temp$SRVY))){
     temp0 <- temp %>% 
       dplyr::filter(!is.na(N) & 
                       SRVY == unique(temp$SRVY)[i])
-  str0 <- paste0(str0, 
-                "In the ",unique(temp$SRVY_long)[i],
-                ", the net mensuration system failed to record data for ", 
-                text_list(paste0(xunits(temp0$N), " tow", ifelse(temp0$N>1, "s", "")," on the ", temp0$vessel_ital)), ". ")
+    str0 <- paste0(str0, 
+                   "In the ",unique(temp$SRVY_long)[i],
+                   ", the net mensuration system failed to record data for ", 
+                   text_list(paste0(xunits(temp0$N), " tow", ifelse(temp0$N>1, "s", "")," on the ", temp0$vessel_ital)), ". ")
   }
   
   str0 <- paste0(str0, "To estimate missing net width values, the *mgcv* R package [@RN997] was used to relate mean net width with the inverse scope (m) and mean net height (m) from valid tows following the relationship investigated by @RN921, where $w$ is the net width (m), $h$ is the net height (m), $s$ is the scope, and $\\epsilon$ represents the modeled error
@@ -111,8 +111,8 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY_long))){
                                     date_formatter(cruises_maxyr0$start_date_haul), 
                                     ", and ended on ", 
                                     date_formatter(cruises_maxyr0$end_date_haul)
-                                    )) )
-
+                   )) )
+    
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
              length(unique(cruises_maxyr0$end_date_haul)) == 1) { 
     # 2. vessels started and ended on the same dates
@@ -121,7 +121,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY_long))){
                    " started sampling on ",
                    date_formatter(unique(cruises_maxyr0$start_date_haul)), 
                    ". Sampling ended on ", 
-                     date_formatter(unique(cruises_maxyr0$end_date_haul)) )
+                   date_formatter(unique(cruises_maxyr0$end_date_haul)) )
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
              length(unique(cruises_maxyr0$end_date_haul)) != 1) {
@@ -133,28 +133,28 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY_long))){
                    date_formatter(unique(cruises_maxyr0$start_date_haul)), 
                    ". Sampling ended ",
                    text_list(paste0("on ", 
-                   date_formatter(unique(cruises_maxyr0$end_date_haul)), 
-                   " for the ", cruises_maxyr0$vessel_ital) ))
+                                    date_formatter(unique(cruises_maxyr0$end_date_haul)), 
+                                    " for the ", cruises_maxyr0$vessel_ital) ))
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
              length(unique(cruises_maxyr0$end_date_haul)) == 1) {
     # 4. vessels started on different dates and ended on the same dates
     temp <- paste0(temp, "the sampling started ", 
                    text_list(paste0("on ", 
-                   date_formatter(unique(cruises_maxyr0$start_date_haul)), 
-                                                 " for the ", cruises_maxyr0$vessel_ital) ), 
+                                    date_formatter(unique(cruises_maxyr0$start_date_haul)), 
+                                    " for the ", cruises_maxyr0$vessel_ital) ), 
                    ". Sampling ended for ", 
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
                           "the vessel", "both vessels"), 
                    " on ",
                    date_formatter(unique(cruises_maxyr0$end_date_haul))
-                   )
+    )
   }
   str0 = c(str0, temp)
 }
 
 str0 <- data.frame(str = str0, 
-                  SRVY = unique(cruises_maxyr$SRVY))
+                   SRVY = unique(cruises_maxyr$SRVY))
 ```
 
 At the beginning of the survey, scientists boarded the chartered vessels in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Fig. \@ref(fig:fig-survey-sample-stations)). The east-to-west survey progression is based on an understanding of historical trends in fish movement and intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. In the eastern Bering Sea, `r str0$str[str0$SRVY == "EBS"]`.
@@ -162,7 +162,7 @@ At the beginning of the survey, scientists boarded the chartered vessels in Dutc
 ```{r methods-ebs-survey-area}
 load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
 temp0 <- obj$raw %>% 
-    dplyr::mutate(Region = paste0(SRVY, " ", area_name))
+  dplyr::mutate(Region = paste0(SRVY, " ", area_name))
 
 temp <- temp0 %>% 
   dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -236,44 +236,44 @@ Sub-sampling for length measurements was dependent on the size range of that fis
 
 ```{r methods-collection-scheme}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
- temp <- obj$raw %>% 
+temp <- obj$raw %>% 
   dplyr::select(SRVY, SRVY_long, print_name) %>% 
-   dplyr::distinct() %>%
+  dplyr::distinct() %>%
   dplyr::group_by(SRVY, SRVY_long) %>% 
   dplyr::summarise(n = length((SRVY))) %>% 
-   dplyr::mutate(SRVY_long = paste(tolower(substr(SRVY_long, 1, 1)), substr(SRVY_long, 2, nchar(SRVY_long)), sep=""))
- 
-  str0 <- text_list(paste0(temp$n, " fish species in the ", temp$SRVY_long))
- if (SRVY == "NEBS") {
-   if (temp$n[1]==temp$n[2]) {
+  dplyr::mutate(SRVY_long = paste(tolower(substr(SRVY_long, 1, 1)), substr(SRVY_long, 2, nchar(SRVY_long)), sep=""))
+
+str0 <- text_list(paste0(temp$n, " fish species in the ", temp$SRVY_long))
+if (SRVY == "NEBS") {
+  if (temp$n[1]==temp$n[2]) {
     str0 <- paste0(temp$n[1], " fish species in the ", 
                    text_list(paste0(temp$SRVY_long)))
-   } 
- }
-  
+  } 
+}
+
 # describing types of oto samples  
-  temp <- obj$raw %>% 
-    dplyr::select(oto_samp_type, SRVY, SRVY_long) %>% 
-    dplyr::distinct()  %>% 
-   dplyr::mutate(SRVY_long = paste(tolower(substr(SRVY_long, 1, 1)), substr(SRVY_long, 2, nchar(SRVY_long)), sep="")) 
-  
-    str2 <- c()
-  for (i in 1:length(unique(temp$SRVY))) {
-    srvy <- (unique(temp$SRVY))[i]
-    str2 <- c(str2, 
-              paste0(text_list(sort(temp$oto_samp_type[temp$SRVY == srvy]))))
-  }
-    
-    if (length(str2)>1 & # if there is more than one region
-        length(unique(str2))==1) { # and the regions have the same samp types
-      str2 <- paste0(str2[1], " sampling method", plural_surveys, 
-                     " in both the ", text_list(unique(temp$SRVY_long)))
-    } else {
-      temp0 <- temp %>% 
-        dplyr::group_by(SRVY) %>% 
-        dplyr::summarise(freq = n())
-      str2 <- text_list(paste0(str2, " sampling method",ifelse(temp0$freq,"s", "")," in the ", (temp0$SRVY_long)))
-    }
+temp <- obj$raw %>% 
+  dplyr::select(oto_samp_type, SRVY, SRVY_long) %>% 
+  dplyr::distinct()  %>% 
+  dplyr::mutate(SRVY_long = paste(tolower(substr(SRVY_long, 1, 1)), substr(SRVY_long, 2, nchar(SRVY_long)), sep="")) 
+
+str2 <- c()
+for (i in 1:length(unique(temp$SRVY))) {
+  srvy <- (unique(temp$SRVY))[i]
+  str2 <- c(str2, 
+            paste0(text_list(sort(temp$oto_samp_type[temp$SRVY == srvy]))))
+}
+
+if (length(str2)>1 & # if there is more than one region
+    length(unique(str2))==1) { # and the regions have the same samp types
+  str2 <- paste0(str2[1], " sampling method", plural_surveys, 
+                 " in both the ", text_list(unique(temp$SRVY_long)))
+} else {
+  temp0 <- temp %>% 
+    dplyr::group_by(SRVY, SRVY_long) %>% 
+    dplyr::summarise(freq = n())
+  str2 <- text_list(paste0(str2, " sampling method", ifelse(temp0$freq>1,"s", "")," in the ", (temp0$SRVY_long)))
+}
 
 ```
 
@@ -320,19 +320,19 @@ temp <- obj$raw %>%
     SRVY == "EBS and NBS" ~ "both the EBS and NBS", 
     SRVY == "EBS" ~ "only the EBS",
     SRVY == "NBS" ~ "only the NBS" ), 
-  SRVY_long = dplyr::case_when(
-    SRVY_long == "Eastern and northern Bering Sea" ~ "eastern and northern Bering Sea", 
-    SRVY_long == "Northern Bering Sea" ~ "the northern Bering Sea",
-    SRVY_long == "Eastern Bering Sea" ~ "the eastern Bering Sea" ), 
-  frag = paste0("project", ifelse(n>1, "s", ""))) %>% 
+    SRVY_long = dplyr::case_when(
+      SRVY_long == "Eastern and northern Bering Sea" ~ "eastern and northern Bering Sea", 
+      SRVY_long == "Northern Bering Sea" ~ "the northern Bering Sea",
+      SRVY_long == "Eastern Bering Sea" ~ "the eastern Bering Sea" ), 
+    frag = paste0("project", ifelse(n>1, "s", ""))) %>% 
   dplyr::arrange(-n)
 
 temp$frag[1] <- paste0("non-core scientific collection", ifelse(temp$n[1]>1, "s", "")," and research project", 
                        ifelse(temp$n[1]>1, "s", ""))
 
 temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
-                         sheet = "solicitation_date", 
-                         skip = 1) %>% 
+                            sheet = "solicitation_date", 
+                            skip = 1) %>% 
   dplyr::filter(year == maxyr) %>% 
   dplyr::select(solicitation_date) %>% 
   dplyr::mutate(solicitation_date = date_formatter(solicitation_date)) %>% 

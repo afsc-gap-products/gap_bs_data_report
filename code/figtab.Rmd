@@ -412,8 +412,10 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
   dplyr::filter(SRVY %in% SRVY1 &
                   year == maxyr & 
                   !is.na(oto_target)) %>% 
-  dplyr::mutate(oto_target = paste0(oto_target, ifelse(oto_rules != 1, paste0("; collect when \u2265", oto_rules, " individuals caught in each haul"), "")), 
-                print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name)))) %>% 
+  dplyr::mutate(
+    oto_target = oto_target1, 
+    # oto_target = paste0(oto_target, ifelse(oto_rules != 1, paste0("; collect when \u2265", oto_rules, " individuals caught in each haul"), "")), 
+    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name)))) %>% 
   dplyr::left_join(
     y = report_spp1 %>% 
       dplyr::select(print_name, order) %>% 
@@ -491,7 +493,7 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
   dplyr::arrange(SRVY, stomach_target, order) %>% 
   dplyr::select(SRVY, print_name, stomach_target) %>%
   # dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0)))  %>% 
-  dplyr::mutate(stomach_target = paste0(stomach_target, " cm"), 
+  dplyr::mutate(#stomach_target = paste0(stomach_target, " cm"), 
                 print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))  %>%
   dplyr::left_join(
     y = data.frame(SRVY = SRVY1, 
@@ -2307,7 +2309,7 @@ if (SRVY == "NEBS") {
 }
 ```
 
-# data changes
+# Data changes
 
 ## tab-taxon-changes
 
@@ -2377,7 +2379,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 May only be relevant in the 2023 year
 
-```{r tab-species-year}
+```{r tab-species-year, eval = FALSE}
 nickname <- "tab-species-year"
 header <- paste0("Established species time-series cutoff guidelines for when the time series of some species should begin. These cutoffs were formally established in 2023. ")
 
