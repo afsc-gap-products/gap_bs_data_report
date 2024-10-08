@@ -1375,6 +1375,10 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
   #                        fontface = "italic",
   #                        color = col_anno)
   # }
+  # If there's only one survey, remove legend with color guide.
+  if (length(unique(table_raw$SRVY_long)) == 1) {
+    figure_print + ggplot2::theme(legend.position = "none")
+  }
   
   temp <- table_raw %>% 
     dplyr::select(y_long, unit_word, unit_wrd) %>% 
