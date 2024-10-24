@@ -5,25 +5,6 @@ access_to_internet  <- TRUE # redownload google drive tables and docs?
 quarto <- FALSE
 options(scipen=999)
 
-# maxyr <- 2022
-# compareyr <- 2021
-# compareyr0 <- 2019
-# strat_yr <- 2022
-# SRVY<-"NEBS"
-# ref_compareyr <- ref_compareyr_ebs <- "@2021NEBS2022" # CHANGE
-# # dir_googledrive <- "1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD" # https://drive.google.com/drive/folders/1x50OKqAyLcqNLYhjQNX84dHLXHcTBnaD
-# ref_compareyr_nbs <- "@RN909" # community report
-# # dir_googledrive_comm <- "1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE" # "https://drive.google.com/drive/folders/1uZy1uDB_poml2KKX3R_Qv8qrWG1WLewE")
-# 
-# maxyr <- 2023
-# compareyr <- 2022
-# compareyr0 <- 2021
-# strat_yr <- 2022
-# SRVY <- "NEBS"
-# ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
-# dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
-# dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
-
 maxyr <- 2024
 compareyr <- 2023
 compareyr0 <- 2023
@@ -31,6 +12,8 @@ strat_yr <- 2022
 SRVY <- "EBS"
 ref_compareyr <- ref_compareyr_ebs <- "@2023NEBS" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/1uLrsMoJsmGRe8vB0-QSS_6NT8AuWAKsp"
+dl_change_start <- "22-APR-02 11.00.00 PM"
+dl_change_end <- "22-OCT-24 11.59.00 PM"
 
 googledrive::drive_deauth()
 googledrive::drive_auth(); 
