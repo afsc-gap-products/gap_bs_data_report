@@ -52,7 +52,8 @@ for (i in 1:length(locations)){
     end0 <- c(end0, "SURVEY_DEFINITION_ID IN (143, 98)")
   }
   if ("YEAR" %in% names(a) & !(locations[i] %in% 
-                               c("GAP_PRODUCTS.AKFIN_SIZECOMP", "GAP_PRODUCTS.AKFIN_BIOMASS", 
+                               c("GAP_PRODUCTS.AKFIN_SIZECOMP", "GAP_PRODUCTS.AKFIN_AGECOMP", 
+                                 "GAP_PRODUCTS.AKFIN_BIOMASS", 
                                  "GAP_PRODUCTS.AKFIN_CRUISE", "GAP_PRODUCTS.AKFIN_CPUE",
                                  "GAP_PRODUCTS.AKFIN_HAUL")) ) {
     end0 <- c(end0, paste0("YEAR IN (",paste0(maxyr:compareyr0, collapse = ","), ")"))
@@ -223,7 +224,11 @@ write.csv(x = production_sizecomp, file = here::here("data/complex_sizecomp.csv"
 source("https://raw.githubusercontent.com/afsc-gap-products/gap_products/refs/heads/main/functions/summarize_gp_updates.R")
 diff <- summarize_gp_updates(channel = channel_products,
                              time_start = dl_change_start,
-                             time_end = dl_change_end)  %>%
+                             time_end = dl_change_end)
+
+if (nrow(diff)) {
+
+diff <- diff %>%
   dplyr::filter(SURVEY_DEFINITION_ID %in% c(98, 143))  %>% 
   dplyr::arrange(SURVEY_DEFINITION_ID) %>%
   dplyr::mutate(OPERATION_TYPE = dplyr::case_when(
@@ -314,3 +319,4 @@ str_notmaxyr <- changes_since_string(diff0 = diff_notmaxyr, str_year = paste0("t
 
 str_data_changes <- paste0(str_maxyr, str_notmaxyr)
 writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.txt"))
+}

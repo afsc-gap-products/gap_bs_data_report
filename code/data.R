@@ -204,6 +204,8 @@ for (i in 1:length(a)) {
   writeLines(text = b, con = gsub(pattern = ".Rmd", replacement = ".qmd", x = a[i]), sep = "\n")
 }
 
+str_data_changes <- readLines(con = here::here("data", "str_data_changes.txt"))
+
 ## Load Main Oracle Data -------------------------------------------------------
 
 print("Load oracle data")
@@ -1084,6 +1086,36 @@ sizecomp_maxyr <- sizecomp %>%
   dplyr::filter(year == maxyr)
 
 sizecomp_compareyr <- sizecomp %>%
+  dplyr::filter(year == compareyr[1])
+
+## agecomps -------------------------------------------------------------------
+
+print("agecomps")
+
+agecomp <- gap_products_akfin_agecomp0 %>% # GAP data
+  dplyr::filter(
+    area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
+      survey_definition_id %in% SRVY00 & 
+      !is.na(population_count) & 
+      population_count > 0 & 
+      age > 0) %>% 
+  dplyr::mutate(
+    sex = dplyr::case_when(
+      sex == 1 ~ "males", 
+      sex == 2 ~ "females", 
+      sex == 3 ~ "unsexed"),
+    SRVY = dplyr::case_when(
+      survey_definition_id == 143 ~ "NBS", 
+      survey_definition_id == 98 ~ "EBS")) %>% 
+  dplyr::left_join(y = spp_info %>% 
+                     dplyr::select(species_code, taxon),
+                   by  = "species_code") %>% 
+  dplyr::select(-area_id)
+
+agecomp_maxyr <- agecomp %>%
+  dplyr::filter(year == maxyr)
+
+agecomp_compareyr <- agecomp %>%
   dplyr::filter(year == compareyr[1])
 
 ## biomass ---------------------------------------------------------------------

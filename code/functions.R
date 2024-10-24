@@ -54,8 +54,7 @@ PKG <- c(
   "magick",
   "extrafont",
   "ggpubr",
-  "ggridges",
-  
+
   # other tidyverse
   "plyr",
   "dplyr",
