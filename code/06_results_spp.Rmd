@@ -11,7 +11,10 @@ spp_file <- a$file_name[1]
 
 # report_title == "community"
 spp_plot_sizecomp <- a$plot_sizecomp[1]
-spp_plot_agecomp <- a$plot_agecomp[1]
+# spp_plot_agecomp <- a$plot_agecomp[1]
+spp_plot_agecomp <- (nrow(agecomp %>%
+                            dplyr::filter(species_code %in% spp_code) %>%
+                            dplyr::filter(year %in% nbsyr) ) >0)
 spp_plot_idw <- a$plot_idw[1]
 dataTcommF <- FALSE
 spp_table_cpue <- FALSE
@@ -34,11 +37,10 @@ lang <- ""
 
 if (spp_plot_idw) {
   fig_dist <- paste0("\\@ref(fig:", "fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
-
 }
 
 if (spp_plot_agecomp) {
-  fig_sizecomp <- paste0("\\@ref(fig:fig-agecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
+  fig_agecomp <- paste0("\\@ref(fig:fig-agecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
 } 
 
 if (spp_plot_sizecomp) {
@@ -89,8 +91,6 @@ if (fig_height > 4) {
   fig_height <- 3
   fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
 }
-# ```
-
 cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
@@ -256,13 +256,17 @@ nickname <- paste0("fig-sizecomp-", spp_file, ifelse(report_title == "data", "-d
 ```{r fig-sizecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_plot_sizecomp}
 ```
 
-<!-- `r pagebreak` -->
+```{r}
+# keeping for later if we choose to use the age comp figures
 
-```{r fig-agecomp-{{jj}}}
-nickname <- paste0("fig-agecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
-```
-
-```{r fig-agecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_plot_agecomp}
+# <!-- `r pagebreak` -->
+#
+# ```{r fig-agecomp-{{jj}}}
+# nickname <- paste0("fig-agecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
+# ```
+# 
+# ```{r fig-agecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_plot_agecomp}
+# ```
 ```
 
 <!-- `r land_start ` -->

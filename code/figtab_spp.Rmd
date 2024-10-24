@@ -631,7 +631,7 @@ for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## fig-agecomp-alt-[spp]-prep
+## fig-agecomp-[spp]-prep
 
 ```{r fig-agecomp-[spp]-prep, eval = spp_plot_agecomp}
 width <- full_page_portrait_width # 6.5  
@@ -672,22 +672,6 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
                   population_count = population_count/pop_unit
     ) %>% 
     dplyr::arrange(sex) 
-  
-  if (!(nrow(table_raw) == 0)) {
-    
-      if (report_title0 == "community") {
-        
-        header <- paste0("Total population estimates at age for ",
-                         spp_print, ifelse(is.na(spp_sci), "", 
-                                           paste0(" (",spp_sci,")")), 
-                         " calculated from ",
-                         range_text(yrs)," ",
-                         text_list(paste0(unique(table_raw$SRVY_long))), 
-                         " shelf bottom trawl survey", 
-                         ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
-                         ". ")
-        
-      } else if (report_title0 == "data") {
         
         if (SRVY == "NEBS" & length(unique(table_raw$SRVY))>1) {
           table_raw <- dplyr::bind_rows(
@@ -721,8 +705,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
                                        " shelf trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
                                 ""),
                          
-                         "Age distributions are scaled up to the total estimated population size. Note that otoliths are not collected for each species each year and require, occassionally, years to process after collection. ")
-      }
+                         "Age distributions are scaled up to the total estimated population size. Note that otoliths are not collected for each species each year and require, occasionally, years to process after collection. ")
       
       figure_print <- ggplot2::ggplot(
         data = table_raw %>% 
@@ -737,7 +720,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
         ggplot2::geom_bar(stat = "identity") +
         ggplot2::coord_flip() +
         # ggplot2::ggtitle(label = "2023 EBS (Standard Area + NW) walleye pollock Age Composition")  + 
-        ggplot2::guides(fill = guide_legend(title = "Sex"))  +
+        ggplot2::guides(fill = guide_legend(title = ""))  +
         scale_fill_viridis_d(option = "G", begin = .3, end = .7) +
         scale_x_continuous(name = "Age bin", 
                            breaks = function(age) unique(floor(pretty(seq(0, (max(age) + 1) * 1.1))))) +
@@ -758,6 +741,8 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
           panel.grid.major.y = element_line(colour = "grey80"),
           panel.grid.minor.y = element_blank(),
           panel.grid.minor.x = element_blank(),
+          panel.border = element_rect(fill = NA,
+                                    colour = "grey20"),
           strip.background = element_blank(),
           strip.text = element_text(size = legend_font_size, face = "bold"),
           legend.text = element_text(size = 9),
@@ -777,12 +762,22 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
                               width = .18)
       }
       
-    } else {
-      header <- ""
-      figure_print <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
-        geom_text(mapping = aes(label = label))
-    }
+    # } else {
+    #   header <- ""
+    #   figure_print <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
+    #     geom_text(mapping = aes(label = label))
+    # }
     
+      if (plural_surveys == "") {
+         figure_print <- figure_print + 
+                                  # ggplot2::ggtitle("") + 
+                                  # ggplot2::guides(fill=guide_legend(title=""))  +
+                                  ggplot2::theme(legend.title=element_blank(), 
+                                                 strip.text.x = element_blank(),
+                                                 strip.background = element_blank())
+      }
+      
+      
     return(list("figure_print" = figure_print, 
                 "header" = header, 
                 "height" = height, 
@@ -811,36 +806,36 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
 ## fig-agecomp-[spp]-comm
   
 ```{r fig-agecomp-[spp]-comm, eval = spp_plot_agecomp}
-  yrs <- nbsyr
-  height <- full_page_portrait_height 
-  print_n <- FALSE
-  srvy <- SRVY1
-  nickname <- paste0("fig-agecomp-", spp_file, "-comm")
-  legend_font_size <- 10
-  report_title0 <- "community"
-  srvy <-"NBS"
-  
-  temp <- age_plot(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0) 
-  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  # yrs <- nbsyr
+  # height <- full_page_portrait_height 
+  # print_n <- FALSE
+  # srvy <- SRVY1
+  # nickname <- paste0("fig-agecomp-", spp_file, "-comm")
+  # legend_font_size <- 10
+  # report_title0 <- "community"
+  # srvy <-"NBS"
+  # 
+  # temp <- age_plot(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0) 
+  # for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
   
-  ## fig-agecomp-[spp]-pres
+## fig-agecomp-[spp]-pres
   
 ```{r fig-agecomp-[spp]-pres, eval = spp_plot_agecomp}
-  srvy <- SRVY1
-  nickname <- paste0("fig-agecomp-", spp_file, "-pres")
-  yrs <- c(maxyr, compareyr)
-  print_n <- FALSE
-  height <- 4.5
-  width <- 5
-  legend_font_size <- 12
-  report_title0 <- "pres"
-  
-  temp <- age_plot(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0) 
-  pres_size <- temp$figure_print
-  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  # srvy <- SRVY1
+  # nickname <- paste0("fig-agecomp-", spp_file, "-pres")
+  # yrs <- c(maxyr, compareyr)
+  # print_n <- FALSE
+  # height <- 4.5
+  # width <- 5
+  # legend_font_size <- 12
+  # report_title0 <- "pres"
+  # 
+  # temp <- age_plot(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0) 
+  # pres_size <- temp$figure_print
+  # for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
   
   ## tab-stats-[spp]
@@ -1634,7 +1629,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
   
 ```{r, fig-timeseries-[spp]-data, eval = TRUE}
   nickname <- paste0("fig-timeseries-", spp_file, "-data")
-  height <- 4
+  height <- 3
   width <- full_page_portrait_width
   legend_font_size <- 10
   
@@ -1643,7 +1638,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
   
-  ## fig-timeseries-[spp]-comm
+## fig-timeseries-[spp]-comm
   
 ```{r, fig-timeseries-[spp]-comm, eval = TRUE}
   nickname <- paste0("fig-timeseries-", spp_file, "-comm")
@@ -1657,7 +1652,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
   
-  ## fig-timeseries-[spp]-pres
+## fig-timeseries-[spp]-pres
   
 ```{r, fig-timeseries-[spp]-pres, eval = TRUE}
   nickname <- paste0("fig-timeseries-", spp_file, "-pres")
@@ -1671,9 +1666,9 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
   pres_timeseries_unit_wrd <- temp$unit_wrd
   for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  ```
+```
   
-  ## fig-combined-[spp]-pres
+## fig-combined-[spp]-pres
   
 ```{r, fig-combined-[spp]-pres, eval = TRUE}
   nickname <- paste0("fig-combined-", spp_file, "-pres")

@@ -494,7 +494,7 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
   dplyr::select(SRVY, print_name, stomach_target) %>%
   # dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0)))  %>% 
   dplyr::mutate(#stomach_target = paste0(stomach_target, " cm"), 
-                print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))  %>%
+    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))  %>%
   dplyr::left_join(
     y = data.frame(SRVY = SRVY1, 
                    SRVY_long = stringr::str_to_title(SRVY11))) %>%
@@ -522,7 +522,7 @@ table_print <- table_raw %>%
   flextable::width(width = c((full_page_portrait_width - 4.5), 
                              rep_len(length.out = length(SRVY1), (4.5/length(SRVY1))))) %>% 
   flextable::hline(border = thin_b, part = "header") %>% 
-  flextable::align(i = 1, align = "center", part = "header") 
+  flextable::align(i = 1, align = "left", part = "header") 
 if (length(SRVY1)>1) {
   table_print <- table_print%>%
     flextable::add_header_row(
@@ -617,24 +617,31 @@ footnote0 <- paste(paste(temp1$Agency, " - ", temp1$agency_long, sep = ""), coll
 #     as_chunk(ifelse(is.na(ital1), "", ital1),
 #              props = fp_text_default(italic = TRUE, font.size = font_size0, font.family = font0))) %>% 
 
-table_print <- table_raw %>%
-  dplyr::select(-SRVY, -dplyr::starts_with("ital")) %>%
-  flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>%
-  flextable::as_flextable(., hide_grouplabel = TRUE)  %>%
-  flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
-  
+if (plural_surveys == "") {
+  table_print <- table_raw %>%
+    dplyr::select(-SRVY, -dplyr::starts_with("ital"), -SRVY_long) %>% 
+    flextable::flextable()
+} else {
+  table_print <- table_raw %>%
+    dplyr::select(-SRVY, -dplyr::starts_with("ital")) %>%
+    flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>%
+    flextable::as_flextable(., hide_grouplabel = TRUE) %>%
+    flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>% 
+  flextable::padding(j = 1, i = ~ is.na(SRVY_long),
+                     padding.left = 7) %>% 
+  flextable::hline(i = ~ !is.na(SRVY_long), 
+                   border = fp_border(color = "white"), 
+                   part = "body")
+}
+
+table_print <- table_print %>%
   flextable::footnote(value = as_paragraph(footnote0), 
                       ref_symbols = "1",
                       part = "header", 
                       j = "Agency", i = 1)  %>%
   theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_portrait_width) %>% 
-  flextable::width(width = c(full_page_portrait_width-2.5, 1.5, 1), unit = "in") %>% 
-  flextable::padding(j = 1, i = ~ is.na(SRVY_long),
-                     padding.left = 7) %>% 
-  flextable::hline(i = ~ !is.na(SRVY_long), 
-                   border = fp_border(color = "white"), 
-                   part = "body")
+  flextable::width(width = c(full_page_portrait_width-2.5, 1.5, 1), unit = "in")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
