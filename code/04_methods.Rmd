@@ -59,8 +59,8 @@ if (sum(temp$N, na.rm = TRUE)>0) {
       dplyr::filter(!is.na(N) & 
                       SRVY == unique(temp$SRVY)[i])
     str0 <- paste0(str0, 
-                   "In the ",unique(temp$SRVY_long)[i],
-                   ", the net mensuration system failed to record data for ", 
+                   ifelse(plural_surveys == "", "T", paste0("In the ",unique(temp$SRVY_long)[i], ", t")),
+                   "he net mensuration system failed to record data for ", 
                    text_list(paste0(xunits(temp0$N), " tow", ifelse(temp0$N>1, "s", "")," on the ", temp0$vessel_ital)), ". ")
   }
   
@@ -75,7 +75,7 @@ $$ \\epsilon \\sim N(0,\\sigma^{2})  . $$
 
 `r str0 `
 
-## Eastern Bering Sea Sampling Logistics and Stratification Scheme
+## `r ifelse(plural_surveys == "", "", "Eastern Bering Sea ")`Sampling Logistics and Stratification Scheme
 
 ```{r methods-ebs-survey-plan}
 str0 <- c()
@@ -128,7 +128,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY_long))){
     # 3. vessels started on the same dates and ended on different dates
     temp <- paste0(temp, "", 
                    ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
-                          "the vessel", "both vessels"), 
+                          "The vessel", "Both vessels"), 
                    " started sampling on ",
                    date_formatter(unique(cruises_maxyr0$start_date_haul)), 
                    ". Sampling ended ",
@@ -157,7 +157,7 @@ str0 <- data.frame(str = str0,
                    SRVY = unique(cruises_maxyr$SRVY))
 ```
 
-At the beginning of the survey, scientists boarded the chartered vessels in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Fig. \@ref(fig:fig-survey-sample-stations)). The east-to-west survey progression is based on an understanding of historical trends in fish movement and intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. In the eastern Bering Sea, `r str0$str[str0$SRVY == "EBS"]`.
+At the beginning of the survey, scientists boarded the chartered vessels in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward completing north-south columns of grid cells to the shelf edge (Fig. \@ref(fig:fig-survey-sample-stations)). The east-to-west survey progression is based on an understanding of historical trends in fish movement and intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. `r str0$str[str0$SRVY == "EBS"]`.
 
 ```{r methods-ebs-survey-area}
 load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
