@@ -68,80 +68,64 @@ nickname <- "tab-specimen-samples-"
 ```{r results-species-composition}
 str0 <- ""
 
-# count spp
+# count taxon
 temp <- dplyr::left_join(
   x = catch_haul_cruises_maxyr %>% 
     dplyr::select(SRVY, species_code) %>% 
     dplyr::distinct(), 
   y = spp_info %>% 
     dplyr::filter(used_in_counts) %>%
-    dplyr::select(species_code, species, family, genus, taxon) %>%
+    dplyr::select(species_code, phylum, family, genus, species, taxon) %>%
     dplyr::distinct(), 
   by = "species_code") %>% 
-  dplyr::filter(taxon == "fish") %>% 
-  dplyr::select(species_code, species, family, genus, taxon, SRVY) %>% 
-  dplyr::distinct()
+  # dplyr::filter(taxon == "fish") %>%
+  dplyr::select(species_code, phylum, family, genus, species, taxon, SRVY) %>% 
+  dplyr::distinct() %>% 
+  dplyr::filter(!is.na(taxon))
 
-temp0 <- dplyr::full_join(
-  x = temp %>% 
-    dplyr::filter(!is.na(species)) %>% 
-    dplyr::select(SRVY, species) %>% 
-    dplyr::distinct() %>% 
-    dplyr::group_by(SRVY) %>% 
-    dplyr::summarise(species = n()),
-  y = temp %>% 
-    dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(SRVY, species_code) %>% 
-    dplyr::distinct() %>% 
-    dplyr::group_by(SRVY) %>%
-    dplyr::summarise(species_code = n()),
-  by = "SRVY") %>% 
-  dplyr::left_join(
-    x = ., 
-    y = temp %>% 
-      dplyr::filter(!is.na(family)) %>% 
-      dplyr::select(SRVY, family) %>% 
-      dplyr::distinct() %>% 
-      dplyr::group_by(SRVY) %>%
-      dplyr::summarise(family = n()),
-    by = "SRVY")  %>% 
-  dplyr::left_join(
-    x = ., 
-    y = temp %>% 
-      dplyr::filter(!is.na(genus)) %>% 
-      dplyr::select(SRVY, genus) %>% 
-      dplyr::distinct() %>% 
-      dplyr::group_by(SRVY) %>%
-      dplyr::summarise(genus = n()),
-    by = "SRVY") %>% 
-  dplyr::left_join(
-    data.frame(SRVY = SRVY1, 
-                   SRVY_long = SRVY11))
+temp1 <- temp %>% 
+    dplyr::group_by(SRVY, taxon) %>% 
+    dplyr::summarise_all(dplyr::n_distinct, na.rm = TRUE) %>% 
+    dplyr::left_join(
+      data.frame(SRVY = SRVY1, 
+                 SRVY_long = SRVY11)) %>% 
+      dplyr::mutate(dplyr::across(where(is.numeric), xunits)) 
 
-temp1 <- dplyr::bind_cols(
-  temp %>% 
-    dplyr::filter(!is.na(species)) %>% 
-    dplyr::select(species) %>% 
-    dplyr::distinct() %>% 
-    dplyr::summarise(species = n()),
-  temp %>% 
-    dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(species_code) %>% 
-    dplyr::distinct() %>% 
-    dplyr::summarise(species_code = n()), 
-  temp %>% 
-    dplyr::filter(!is.na(family)) %>% 
-    dplyr::select(family) %>% 
-    dplyr::distinct() %>% 
-    dplyr::summarise(family = n()),
-  temp %>% 
-    dplyr::filter(!is.na(genus)) %>% 
-    dplyr::select(genus) %>% 
-    dplyr::distinct() %>% 
-    dplyr::summarise(genus = n())) 
+for (i in 1:length(unique(temp0$SRVY))) {
+  temp0 <- temp1 %>% 
+    dplyr::filter(SRVY == unique(temp0$SRVY)[i])
+  
+str0 <- paste0(
+  "A total of ",temp0$species_code[temp0$taxon == "fish"],
+  " fish taxa representing ",temp0$family[temp0$taxon == "fish"],
+  " families and ",temp0$genus[temp0$taxon == "fish"],
+  " genera were identified during the ",
+  maxyr," ",SURVEY," survey",plural_surveys," (Appendix Table", plural_surveys,
+  " A \\@ref(tab:tab-app-taxa-found-EBS-fish)", 
+  ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", ""),
+  "). Of these ",
+  temp0$species_code[temp0$taxon == "fish"]," taxa, ",
+  temp0$species[temp0$taxon == "fish"]," were identified to species level, while the remaining taxa were identified to the genus level or higher. ",
+               
+  "Similarly, there were ",
+  temp0$species_code[temp0$taxon == "invert"],
+  " different invertebrate taxa representing ",
+               temp0$phylum[temp0$taxon == "invert"],
+  " phyla, of which ",
+  temp0$species[temp0$taxon == "invert"],
+  " taxon were identified to species level (Appendix Table", plural_surveys,
+  " A \\@ref(tab:tab-app-taxa-found-EBS-invert)", 
+  ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-invert)", ""),
+  "). ")
+}
+```
 
+`r str0`The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. 
+
+```{r results-species-composition-encountered-in-one-survey}
+str0 <- ""
 if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
-  # how many species encountered in one survey area but noth the other?
+  # how many species encountered in one survey area but not in the other?
   load(file = paste0(dir_out_figtab, "tab-species-composition.rdata"))
   temp3 <- obj$raw %>%
     dplyr::left_join(x = .,
@@ -195,63 +179,12 @@ if (SRVY == "NEBS" & "NBS" %in% temp0$SRVY) {
                             temp5$including, ")"), 
                      sep = "; "),
                    " (Table \\@ref(tab:tab-species-composition)).")
-}
-
+  
 str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
+}
 ```
 
-A total of `r xunits(temp1$species_code)` fish species representing `r xunits(temp1$family)` families and `r xunits(temp1$genus)` genera were identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-fish)`r ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", "")`). In `r maxyr`, `r text_list(paste0("the ", temp0$SRVY_long, " survey recorded ", xunits(temp0$species_code), " total taxa, of which ", xunits(temp0$species), " were identified to the species level", c(",", "")))`. The remaining fish taxa in each survey area were identified to the genus level or higher. `r str0`
-
-```{r results-count}
-# count spp - invert
-temp <- dplyr::left_join(
-  x = catch_haul_cruises_maxyr %>% 
-    dplyr::select(SRVY, species_code) %>% 
-    dplyr::distinct(), 
-  y = spp_info %>% 
-    dplyr::filter(used_in_counts) %>%
-    dplyr::select(species_code, species, phylum, taxon) %>%
-    dplyr::distinct(), 
-  by = "species_code") %>% 
-  dplyr::filter(taxon == "invert") %>% 
-  dplyr::select(species_code, species, phylum, taxon, SRVY) %>% 
-  dplyr::distinct()
-
-temp0 <- dplyr::full_join(
-  x = temp %>% 
-    dplyr::filter(!is.na(species)) %>% 
-    dplyr::select(SRVY, species) %>% 
-    dplyr::distinct() %>% 
-    dplyr::group_by(SRVY) %>% 
-    dplyr::summarise(species = n()),
-  y = temp %>% 
-    dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(SRVY, species_code) %>% 
-    dplyr::distinct() %>% 
-    dplyr::group_by(SRVY) %>%
-    dplyr::summarise(species_code = n()),
-  by = "SRVY") %>% 
-  dplyr::mutate(perc = round(((species_code - species)/species_code)*100, digits = 2)) %>% 
-  dplyr::left_join(
-    y = data.frame(SRVY = SRVY1, 
-                   SRVY_long = SRVY11))
-
-temp1 <- dplyr::bind_cols(
-  temp %>% 
-    dplyr::select(phylum, species) %>% 
-    dplyr::distinct() %>% 
-    dplyr::summarise(phylum = length(unique(phylum)), 
-                     species = length(unique(species))),
-  temp %>% 
-    dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(species_code) %>% 
-    dplyr::distinct() %>% 
-    dplyr::summarise(species_code = n())) %>% 
-  dplyr::mutate(perc = round(((species_code - species)/species_code)*100, digits = 2))
-
-```
-
-There were `r xunits(temp1$species_code)` different invertebrate taxa representing `r xunits(temp1$phylum)` phyla identified during the `r maxyr` `r SURVEY` survey`r plural_surveys` (Appendix Table`r plural_surveys` A \@ref(tab:tab-app-taxa-found-EBS-invertebrate)`r ifelse(plural_surveys == "s", paste0(" and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)"), "")`). In `r maxyr`, `r text_list(paste0(xunits(temp0$species_code), " invertebrate taxa ", "were recorded in the ", temp0$SRVY_long, " survey",  ", of which ", xunits(temp0$species), " were identified to the species level", c(",", "")))`. The remaining invertebrate taxa `r ifelse(plural_surveys == "s", "in each survey area ", "")`were identified to the genus level or higher. The lack of species level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016.
+`r str0`
 
 <br>
 
@@ -313,17 +246,27 @@ temp1 <- left_join(
 str0 <- paste0("The ", 
                text_list(paste0(
                  "total demersal organismal biomass for the ", total_biomass0$SRVY_long, 
-                 " was estimated at ", xunits(total_biomass0$total), " t")), ". " )
+                 " was estimated at ", xunits(total_biomass0$total), " t")), 
+               ifelse(plural_surveys == "", "", ". ") )
 
 str00 <- ""
 for (ii in 1:length(temp2$SRVY)) {
   
   str000 <- ifelse(ii != 1 & temp2$prop_fish[ii]>temp2$prop_invert[ii], "also ","")
   
+  # sentence transitions
+  if (ii == 2) { # second of 2 surveys being assessed
+  str00 <- paste0(str00, " and in the ")
+  } else if (plural_surveys == "") { # only one survey being assessed
+  str00 <- paste0(str00, " and")
+  } else { # first of 2 surveys being assessed
+  str00 <- paste0(str00, "In the ")
+  }
+  
   str00 <- paste0(str00, 
-                  ifelse(ii==2, " and in the ", "In the "), 
-                  paste0(temp2$SRVY_long[ii], 
-                         ", the proportion of fishes (", 
+                  # ifelse(ii==2, " and in the ", ifelse(plural_surveys == "", "", "In the ")), 
+                  paste0(ifelse(plural_surveys == "", "", paste0(temp2$SRVY_long[ii], ", ")), 
+                         " the proportion of fishes (", 
                          temp2$perc_fish[ii], 
                          "; Table \\@ref(tab:tab-biomass-est-",  temp2$SRVY[ii],
                          "-fish)) was ", str000,  
@@ -508,19 +451,24 @@ for (i in 1:length(SRVY1)) {
         total_biomass$year == compareyr], na.rm = TRUE))
   
   str0 <- paste0(str0, 
-                 "The total estimated biomass in the ",SRVY11[i]," ", 
+                 "The total estimated biomass ", 
+                 ifelse(plural_surveys == "", "", paste0("in the ",SRVY11[i], " ")),
                  ifelse(temp1$compareyr<temp1$maxyr, "increased", "decreased"),
                  " from ",
                  xunits(temp1$compareyr)," t in ", compareyr," to ",
                  xunits(temp1$maxyr)," t in ", maxyr, ". ", 
                  
                  # taxa increased
-                 "Large increases in ", SRVY11[i], " biomass were observed for ", 
+                 "Large increases in ",
+                 ifelse(plural_surveys == "", "", paste0(SRVY11[i], " ")),
+                 "biomass were observed for ", 
                  text_list(paste0(temp$print_name[temp$case == "increased"],
                                   " (", temp$change[temp$case == "increased"], ")")), 
                  " (Table \\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). ",
                  # taxa decreased
-                 "Large decreases in ", SRVY11[i], " biomass were observed for ", 
+                 "Large decreases in ", 
+                                  ifelse(plural_surveys == "", "", paste0(SRVY11[i], " ")),
+                 " biomass were observed for ", 
                  text_list(paste0(temp$print_name[temp$case == "decreased"],
                                   " (", temp$change[temp$case == "decreased"], ")")), 
                  " (Table \\@ref(tab:tab-majortaxa-pchange-", SRVY1[i], ")). "

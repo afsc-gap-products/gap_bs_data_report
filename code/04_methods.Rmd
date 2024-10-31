@@ -176,7 +176,7 @@ temp_tot <- temp0 %>%
   dplyr::select(density)
 ```
 
-The survey footprint included bathymetry between 20 m and 200 m. For design-based index catch analysis, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-survey-sample-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. The purpose of high-density sampling in strata 32, 42, 43, and 62 is to increase sampling resolution and thereby reduce variance estimates for blue king crab [@StevensandMacIntosh1990]. Overall sampling density across the eastern Bering Sea shelf was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (Stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), each high-density stratum was combined with its respective depth-region stratum, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-survey-sample-stations); Table \@ref(tab:tab-stratum-areas)).
+The survey footprint included bathymetry between 20 m and 200 m. For design-based index catch analysis, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-survey-sample-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains, while the overall intention of the design was to reduce the variances of population and biomass estimates [@RN891]. Overall sampling density across the eastern Bering Sea shelf was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), strata were combined with its respective depth-region stratum, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-survey-sample-stations); Table \@ref(tab:tab-stratum-areas)).
 
 ```{r methods-nbs-survey-plan}
 str00 <- ""
@@ -243,7 +243,10 @@ temp <- obj$raw %>%
   dplyr::summarise(n = length((SRVY))) %>% 
   dplyr::mutate(SRVY_long = paste(tolower(substr(SRVY_long, 1, 1)), substr(SRVY_long, 2, nchar(SRVY_long)), sep=""))
 
-str0 <- text_list(paste0(temp$n, " fish species in the ", temp$SRVY_long))
+temp$n <- xunits(temp$n)
+
+str0 <- text_list(paste0(temp$n, " fish species", 
+                         ifelse(plural_surveys == "", "", paste0(" in the ", temp$SRVY_long)) ))
 if (SRVY == "NEBS") {
   if (temp$n[1]==temp$n[2]) {
     str0 <- paste0(temp$n[1], " fish species in the ", 
@@ -272,12 +275,12 @@ if (length(str2)>1 & # if there is more than one region
   temp0 <- temp %>% 
     dplyr::group_by(SRVY, SRVY_long) %>% 
     dplyr::summarise(freq = n())
-  str2 <- text_list(paste0(str2, " sampling method", ifelse(temp0$freq>1,"s", "")," in the ", (temp0$SRVY_long)))
+  str2 <- text_list(paste0(str2, " sampling method", ifelse(temp0$freq>1,"s", ""),
+                         ifelse(plural_surveys == "", "", paste0(" in the ", temp0$SRVY_long))))
 }
-
 ```
 
-Sagittal otoliths were collected from `r str0 ` (Table \@ref(tab:tab-oto-collection-scheme)). Otolith samples were collected following `r str2 `. Otoliths were preserved in a glycerol-thymol solution and then later shipped to the Age and Growth Program of the AFSC’s Resource Ecology and Fisheries Management (REFM) Division for age determination. Weight and length were collected for each fish from which age structures were taken. For walleye pollock, age structure sampling effort was further divided into low-density and high-density regions based on historical population densities and an isobath of approximately 70 m.  
+Sagittal otoliths were collected from `r str0` (Table \@ref(tab:tab-oto-collection-scheme)). Otolith samples were collected following `r str2 `. Otoliths were preserved in a glycerol-thymol solution and then later shipped to the Age and Growth Program of the AFSC’s Resource Ecology and Fisheries Management (REFM) Division for age determination. Weight and length were collected for each fish from which age structures were taken. For walleye pollock, age structure sampling effort was further divided into low-density and high-density regions based on historical population densities and an isobath of approximately 70 m.  
 
 ```{r methods-stomach-collection}
 load(file = paste0(dir_out_figtab, "tab-stomach-collection-scheme.Rdata")) # creates object called 'obj'
@@ -303,9 +306,9 @@ nickname <- "tab-stomach-collection-scheme"
 
 Estimates of biomass, population, and size structure of fishes and invertebrate species were calculated. The standard sampling procedures used are described in detail by @RN939 and @RN933. Some species were grouped by family for catch data analysis because of their limited commercial value or an inability to identify to lower taxonomic level while in the field. 
 
-Mean catch per unit effort (CPUE) for each species was calculated in kilograms per square kilometer (kg/km^2^) and number of fish per square kilometer (no/km^2^) for each stratum  [@RN889; @RN910]. Area swept (km^2^) was computed as the linear distance towed, multiplied by the mean net width (m; @RN889; @RN910). Mean CPUE was calculated for individual strata and summed proportionally for the overall survey area. Design-based biomass (t) and population (count) estimates were calculated for each stratum by multiplying the stratum mean CPUE by the stratum area. Stratum estimates were then summed for total survey area estimates in the `r SURVEY `. 
+Mean catch per unit effort (CPUE) for each species was calculated in kilograms per square kilometer (kg/km^2^) and number of fish per square kilometer (no/km^2^) for each stratum  [@RN889; @RN910]. Area swept (km^2^) was computed as the linear distance towed, multiplied by the mean net width (m; @RN889; @RN910). Mean CPUE was calculated for individual strata and summed proportionally for the overall survey area. Design-based biomass (t) and population (count) estimates were calculated for each stratum by multiplying the stratum mean CPUE by the stratum area. Stratum estimates were then summed for total survey area estimates. 
 
-For size composition estimates, the proportion of fish at each centimeter length interval (from subsamples at each station), weighted by CPUE (no/km^2^), was expanded to the stratum population. Stratum abundance-at-length estimates were summed for the total estimated size composition for the overall survey area in the `r SURVEY`.
+For size composition estimates, the proportion of fish at each centimeter length interval (from subsamples at each station), weighted by CPUE (no/km^2^), was expanded to the stratum population. Stratum abundance-at-length estimates were summed for the total estimated size composition for the overall survey area.
 
 Age estimates were obtained from otolith samples by the AFSC's Age and Growth Program for all fish except for Pacific halibut, whose otoliths are processed by the IPHC. The most current information about age, growth, and population analyses are presented in the `r maxyr` NPFMC Stock Assessment and Fishery Evaluation Report for the Groundfish Resources of the Bering Sea/Aleutian Islands Region (https://www.fisheries.noaa.gov/alaska/population-assessments/north-pacific-groundfish-stock-assessments-and-fishery-evaluation).
 
@@ -338,9 +341,16 @@ temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xl
   dplyr::mutate(solicitation_date = date_formatter(solicitation_date)) %>% 
   unlist()
 
+str0 <- paste0(gsub(x = 
+                      text_list(paste0(xunits(temp$n), " ", 
+                                       temp$frag, 
+                                       ifelse(temp$n>1, " were", " was"), 
+                                       " conducted", 
+                                       ifelse(plural_surveys == "", "", paste0(" in ", temp$SRVY_long)))), 
+                    pattern = " ,", replacement = ","))
 ```
 
-In addition to standard survey operations, `r gsub(x = text_list(paste0(xunits(temp$n), " ", temp$frag, ifelse(temp$n>1, " were", " was"), " conducted in ", temp$SRVY_long)), pattern = " ,", replacement = ",")` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). A request for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC Strategic Science Plans and mission and the feasibility of proposed projects given available survey resources and time. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for these projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a project or collection, please contact the principal investigator(s) identified in Table \@ref(tab:tab-special-projects).
+In addition to standard survey operations, `r str0` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). A request for research proposals was issued on `r paste(temp1)`. Project requests were prioritized and modified based on their potential support of AFSC Strategic Science Plans and mission and the feasibility of proposed projects given available survey resources and time. Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for these projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a project or collection, please contact the principal investigator(s) identified in Table \@ref(tab:tab-special-projects).
 
 ```{r tab-special-projects0}
 nickname <- "tab-special-projects"

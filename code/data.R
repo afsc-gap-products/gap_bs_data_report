@@ -594,7 +594,6 @@ if (sum(unique(temp$haul_type[temp$year == maxyr]) %in% c(20, 4)) >0) {
   tow1530 <- ifelse(nrow(haul_maxyr_tow1530)==0, FALSE, TRUE)
 }
 
-if (SRVY1 %in% c("NBS")) {
 nbsyr <- gap_products_akfin_cruise0 %>% 
   dplyr::filter(survey_definition_id == 143 & 
                   year <= maxyr) %>% 
@@ -602,15 +601,18 @@ nbsyr <- gap_products_akfin_cruise0 %>%
   unique() %>% 
   unlist() %>% 
   sort(decreasing = FALSE)
+
+if (SRVY1 %in% c("NBS")) {
+  analysisyrs <- nbsyr
 } else {
-  nbsyr <- gap_products_akfin_cruise0 %>% 
+  analysisyrs <- gap_products_akfin_cruise0 %>% 
     dplyr::filter(#survey_definition_id == 143 & 
                     year <= maxyr) %>% 
     dplyr::select(year) %>% 
     unique() %>% 
     unlist() %>% 
     sort(decreasing = FALSE)
-  nbsyr <- nbsyr[(length(nbsyr)-5):length(nbsyr)]
+  analysisyrs <- analysisyrs[(length(analysisyrs)-5):length(analysisyrs)]
 }
 
 lastyr <- max(haul$year[haul$year != maxyr])
