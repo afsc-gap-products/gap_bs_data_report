@@ -16,7 +16,7 @@ str0_coverage <- ifelse(SRVY == "NEBS",
                    # NBS + EBS
                    paste0("The survey covered the eastern Bering Sea continental shelf (bottom depths between 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait. "), 
                    # EBS
-                   paste0("The survey covers the Bering Sea continental shelf (bottom depths between 20 and 200 meters (m)) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62° N latitude. "))
+                   paste0("The survey covers the Bering Sea continental shelf (bottom depths between 20 and 200 meters (m)) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62°N. "))
 
 # Station count ----------------------------------------------------------------
 vessels0 <- vessels %>% 
@@ -45,7 +45,8 @@ temp0 <- temps_avg_yr %>%
 
 if (temp0$bt_case == temp0$st_case) {
 
-str0 <- paste0("The ", maxyr, " mean bottom and surface temperatures in the eastern Bering Sea (",
+str0 <- paste0("The ", maxyr, " mean bottom and surface temperatures ",
+               ifelse(plural_surveys == "", "in the eastern Bering Sea "), "(",
                 temp0$bt, "°C and ", temp0$st, "°C) were ",
                 temp0$bt_case, # only need to list one
                 " the time-series averages of ",
@@ -299,6 +300,6 @@ str0_conclusion <-  paste0(readLines(con = paste0(dir_out_rawdata, "/0-abstract-
 
 ```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` fish species and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r compareyr ` and `r maxyr` `r SURVEY` shelf bottom trawl surveys. `r str0_conclusion`
+In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` fish species and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the past surveys and `r maxyr` `r SURVEY` shelf bottom trawl survey. `r str0_conclusion`
 
 \pagebreak
