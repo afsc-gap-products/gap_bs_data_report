@@ -220,14 +220,13 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-survey-grid
 
 ```{r fig-survey-grid}
-
 nickname <- "fig-survey-grid"
 
 header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
                  text_list(haul_cruises_maxyr$SRVY_long),
                  " shelf bottom trawl survey", 
                  ifelse(SRVY == "NEBS", "s", ""), 
-                 ". ", ifelse(SRVY == "NBS", "")) # , "Corner stations (denoted by circles) are not labeled for legibility. "
+                 ". ") # , ifelse(SRVY == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. ")
 
 height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
@@ -422,7 +421,7 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
       dplyr::distinct(), 
     by = "print_name") %>% 
   dplyr::distinct() %>%
-  dplyr::arrange(SRVY, oto_samp_type, order) %>% 
+  dplyr::arrange(SRVY, print_name, order) %>% 
   dplyr::select(SRVY, print_name, oto_target, oto_samp_type) %>% 
   dplyr::left_join(
     y = data.frame(SRVY = SRVY1, 
@@ -490,7 +489,7 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
       dplyr::distinct(), 
     by = "print_name") %>% 
   dplyr::distinct() %>%
-  dplyr::arrange(SRVY, stomach_target, order) %>% 
+  dplyr::arrange(SRVY, print_name, order) %>% 
   dplyr::select(SRVY, print_name, stomach_target) %>%
   # dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0)))  %>% 
   dplyr::mutate(#stomach_target = paste0(stomach_target, " cm"), 
@@ -927,7 +926,7 @@ temp <- function(yrs,
                    ". ") 
   if (temperature_zscore) {
     header <- paste0(header, "Years in which the mean ", case,
-                     " temperature is 1 or more standard deviations above or below the time-series mean ", case,
+                     " temperature is one or more standard deviations above or below the time-series mean ", case,
                      " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
   }
   
@@ -1298,7 +1297,8 @@ table_raw0 <- biomass  %>%
                                       dplyr::select(print_name)) )  %>% 
   dplyr::left_join(total_biomass) %>% 
   dplyr::mutate(taxon0 = taxon, 
-                ci = biomass_mt - biomass_dw) %>% 
+                # dplyr::mutate(ci = biomass_mt - biomass_dw) # NO, DO NOT DO! - biomass_dw can be 0 if negative! 
+                ci = biomass_up - biomass_mt) %>% 
   tidyr::separate(
     col = group, 
     into = c("group", "taxon"), 

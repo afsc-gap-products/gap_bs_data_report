@@ -982,7 +982,8 @@ for (i in 1:nrow(temp_bio)) {
         TRUE ~ sub(replacement = "", pattern = "an ", 
                    x = gsub(pattern = "a ", replacement = "", 
                             x = paste0(pchange(end = temp_bio$biomass_mt[i], 
-                                               start = temp_bio0), "\nfrom ", compareyr0)) ) ))
+                                               start = temp_bio0), 
+                                       "\nfrom ", compareyr0)) ) ))
   )
 }
 
@@ -1009,11 +1010,10 @@ if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
 
 ### print table ----------------------------------------------------------------
 
-header <- paste0("Summary of catch location environmental variables and biomass and population estimates for ", 
+header <- paste0("Summary of catch location, environmental variables, and biomass and population estimates for ", 
                  spp_print, " (", spp_sci, ") in the ", 
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
-                 " survey area", 
-                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, "s", plural_surveys),". ")
+                 " survey area", plural_surveys, ". ")
 
 table_raw0 <- table_raw %>% 
   dplyr::select(-SRVY_long)
@@ -1163,7 +1163,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          " with SD", biomass_sd0$unit_word, 
                          ", 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
-                         ") confidence limits, and number of hauls where species were weighed for ")      
+                         ") confidence limits, and number of hauls where taxon was weighed for ")      
         
         table_print0 <- table_raw %>% 
           dplyr::mutate(
@@ -1201,7 +1201,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
             biomass_sd = paste0("Biomass SD ", ifelse(biomass_sd0$unit_wrd=="", "", paste0(" (",biomass_sd0$unit_wrd, ")"))), 
             biomass_dw = paste0("95% LCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n(",biomass_mt0$unit_wrd, ")"))),
             biomass_up = paste0("95% UCL", ifelse(biomass_mt0$unit_wrd=="", "", paste0("\n(",biomass_mt0$unit_wrd, ")"))),
-            n_weight = "Hauls w/weights"
+            n_weight = "Hauls w/ weights"
           ) 
       }
     } else { # CPUE No/km² and population_count
@@ -1271,7 +1271,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
             population_sd = paste0("Population SD", ifelse(population_sd0$unit_wrd=="", "", paste0(" (", population_sd0$unit_wrd, ")"))), 
             population_dw = paste0("95% LCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n(", population_count0$unit_wrd, ")"))),
             population_up = paste0("95% UCL", ifelse(population_count0$unit_wrd=="", "", paste0("\n(", population_count0$unit_wrd, ")"))),
-            n_count = "Hauls w/counts"
+            n_count = "Hauls w/ counts"
           ) 
       }
     }
@@ -1283,7 +1283,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                      maxyr," ", SURVEY, 
                      " shelf bottom trawl survey",plural_surveys,". ", 
                      ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0, 
-                            paste0("This species was not encountered in the ", 
+                            paste0("This taxon was not encountered in the ", 
                                    maxyr, " ",
                                    haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
                                    " shelf trawl survey. "), 
@@ -1311,7 +1311,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
     if (include_n_length) { # if lengths were collected, include the column
       table_print <- table_print %>%
         flextable::set_header_labels(
-          n_length = "Hauls w/lengths") %>% 
+          n_length = "Hauls w/ lengths") %>% 
         flextable::width(width = .5, unit = "in", j = "n_length") 
     }
     
@@ -1449,9 +1449,10 @@ table_raw <- table_raw %>%
     ),
     y = val/divby, 
     y_ci_dw = ci_dw/divby, 
-    y_ci_up = ci_up/divby  ) %>% 
+    y_ci_up = ci_up/divby, 
+    group = paste0(SRVY, "_", y_long)) %>% 
+  dplyr::relocate(SRVY, year, var, val, y) %>%
   dplyr::arrange(desc(year))  %>% 
-  dplyr::mutate(group = paste0(SRVY, "_", y_long)) %>% 
   dplyr::ungroup() %>% 
   dplyr::mutate(var = dplyr::case_when(
     y_long == "Biomass" ~ "biomass_mt",

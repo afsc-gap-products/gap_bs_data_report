@@ -1,8 +1,6 @@
 
 # Results and Discussion{#results}
 
-A total of `r text_list(paste0(haul_cruises_maxyr$stations_completed, " (of ",  haul_cruises_maxyr$stations_avail, ") stations in the ", haul_cruises_maxyr$SRVY_long))` were successfully sampled in `r maxyr` (Fig. \@ref(fig:fig-survey-sample-stations)). 
-
 ## Ocean Temperatures and the Cold Pool
 
 ```{r results-cold-pool-insert, child=paste0(dir_out_rawdata, "/0-cold-pool.Rmd")}
@@ -54,7 +52,40 @@ nickname <- "fig-cold-pool-area"
 
 ## Survey Data and Specimen Collections
 
-Specimens collected during the `r maxyr` `r SURVEY` shelf trawl survey`r plural_surveys` are shown in Table`r plural_surveys` \@ref(fig:tab-specimen-samples-ebs)`r ifelse(SRVY == "NEBS", " and \\@ref(fig:tab-specimen-samples-nbs)", "")`. Other special collections are listed in Table \@ref(tab:tab-special-projects).
+```{r tab-specimen-samples-howmany}
+  load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))
+  temp <- obj$raw
+  if (plural_surveys == "s") {
+  load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata"))
+    temp <- temp %>% 
+      dplyr::bind_rows(obj$raw)
+  }
+  names(temp) <- gsub(x = names(temp), pattern = "\n", replacement = " ")
+  temp <- temp %>%
+    dplyr::filter(common_name == "Total")  %>% 
+    dplyr::select(-common_name) %>% 
+    dplyr::left_join(cruises_maxyr %>% 
+                       dplyr::select(SRVY, SRVY_long) %>% 
+                       dplyr::distinct()) %>% 
+    dplyr::mutate(across(where(is.numeric), xunits))
+  
+  # str00 <- grepl(x = names(temp %>% 
+  #     dplyr::select(-dplyr::starts_with("SRVY"))), pattern = " deployed")
+  # str00 <- ifelse(str00, "deployed ", "")
+  names(temp) <- gsub(x = names(temp), pattern = "Satellite tags deployed", replacement = "fish for satellite tagging")
+    
+  str0 <- c()
+  for (i in 1:nrow(temp)) {
+    temp0 <- t(temp[i, ] %>% 
+      dplyr::select(-dplyr::starts_with("SRVY")))
+  str0 <- paste0(str0, text_list(paste0(temp0, " ", tolower(rownames(temp0)) )), 
+                                 " during the ", 
+                 ifelse(i == 1, paste0(maxyr, " "), ""), 
+                 temp[i, "SRVY_long"])
+}
+```
+
+Survey teams collected `r str0 ` shelf trawl survey`r plural_surveys` (Table`r plural_surveys` \@ref(fig:tab-specimen-samples-ebs)`r ifelse(SRVY == "NEBS", " and \\@ref(fig:tab-specimen-samples-nbs)", "")`). Other special collections are listed in Table \@ref(tab:tab-special-projects).
 
 ```{r tab-specimen-samples-0}
 nickname <- "tab-specimen-samples-"
@@ -113,7 +144,7 @@ str0 <- paste0(
                temp0$phylum[temp0$taxon == "invert"],
   " phyla, of which ",
   temp0$species[temp0$taxon == "invert"],
-  " taxon were identified to species level (Appendix Table", plural_surveys,
+  " taxa were identified to species level (Appendix Table", plural_surveys,
   " A \\@ref(tab:tab-app-taxa-found-EBS-invertebrate)", 
   ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)", ""),
   "). ")
@@ -414,8 +445,9 @@ if (SRVY == "NEBS" & "NBS" %in% haul_cruises_maxyr$SRVY) {
 
 ```{r results-benthic-community}
 
-str0 <- paste0("Changes were observed in the ", SURVEY," benthic communities between ",
-               compareyr," and ", maxyr,". ")
+str0 <- c()
+  # paste0("Changes were observed in the ", SURVEY," benthic communities between ",
+  #              compareyr," and ", maxyr,". ")
 
 for (i in 1:length(SRVY1)) {
   load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-", haul_cruises_maxyr$SRVY[i], ".rdata"))
@@ -517,7 +549,7 @@ temp <- biomass %>%
                    SRVY_long = SRVY11))
 
 str0 <- text_list(paste0(
-  "The ten most abundant fish taxa in the ",temp$SRVY_long,
+  "The ten most-abundant fish taxa in the ",temp$SRVY_long,
   " accounted for ", temp$perc_topfish,
   " (an average of ",temp$topfish," kg/km^2^ per station) ", 
   "of total mean fish and invertebrate CPUE (an average of ",
@@ -573,5 +605,5 @@ temp2 <- report_spp1 %>%
   dplyr::distinct()
 ```
 
-Plots, as appropriate, of the spatial distribution, abundance-at-length estimates, and tables of CPUE (kg/km^2^ and no/km^2^) for `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` major fish and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` major invertebrate species caught during the `r SURVEY` continental shelf surveys are presented below. The spatial distribution maps illustrate where species were found during the surveys. The distributions are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^) which assumes that data from stations that are closer to one another are more alike than those that are farther apart. Similar interactive maps of these highlighted species and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [data sources](#data-sources). Differences in estimates and totals may be due to rounding. Species are presented in alphabetical order by common name.
+Summary results for `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` major fish and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` major invertebrate taxa caught during the `r SURVEY` surveys are presented below. Plots of biomass and abundance time series, spatial distribution, abundance-at-length estimates, and stratum-level CPUE (kg/km^2^ and no/km^2^) tables are provided, as appropriate for each taxa. The spatial distribution maps illustrate where the taxa were found during the surveys. These distributions are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^), which uses a weighted average of nearby measured stations to estimate values at unmeasured locations between stations. Similar interactive maps of these highlighted taxa and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [data sources](#data-sources). Differences in estimates and totals may be due to rounding. Taxa are presented in alphabetical order by common name.
 
