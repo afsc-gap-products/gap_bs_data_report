@@ -1409,11 +1409,11 @@ yr_missing <- yr_missing %>%
 
 a_bio <- find_units(unit = "t", 
                     unt = "t", 
-                    dat = table_raw$val[table_raw$y_long == "Biomass"]) 
+                    dat = max(table_raw$val[table_raw$y_long == "Biomass"])) 
 
 a_pop <- find_units(unit = "", 
                     unt = "", 
-                    dat = table_raw$val[table_raw$y_long == "Population"]) 
+                    dat = max(table_raw$val[table_raw$y_long == "Population"])) 
 
 table_raw <- table_raw %>% 
   dplyr::bind_rows(yr_missing) %>% 
@@ -1528,7 +1528,8 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
       labels = scales::label_number(accuracy = 1, big.mark = ""))  +
     ggplot2::scale_y_continuous(
       name = "", # spp_print, 
-      labels = scales::label_number(accuracy = 1, big.mark = ","), 
+      breaks = breaks_pretty(), 
+      labels = scales::label_number(big.mark = ","), # accuracy = 1, 
       limits = c(0, NA)) +
     # survey area color aesthetics
     ggplot2::scale_color_manual(values = pcol) +
@@ -1632,7 +1633,7 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
 nickname <- paste0("fig-timeseries-", spp_file, "-data")
 height <- 3
 width <- full_page_portrait_width
-legend_font_size <- 10
+legend_fon_printt_size <- 10
 
 temp <- timeseries_plot(table_raw = table_raw1, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
