@@ -142,6 +142,11 @@ for (i in 1:nrow(report_spp)){
                                              SPECIES_CODE = eval(expr = parse(text = report_spp$species_code[i]))))
 }
 
+# testing: 
+# temp2 <- temp1 %>%
+#   dplyr::filter(grepl(x = temp1$GROUP, "gad", ignore.case = TRUE))
+
+
 # follow instructions from https://afsc-gap-products.github.io/gapindex/articles/ex_species_complex.html
 ## Pull data. Note the format of the `spp_codes` argument with the GROUP column
 library(gapindex)

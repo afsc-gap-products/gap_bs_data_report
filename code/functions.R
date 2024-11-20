@@ -54,7 +54,8 @@ PKG <- c(
   "magick",
   "extrafont",
   "ggpubr",
-
+  "ggridges",
+  
   # other tidyverse
   "plyr",
   "dplyr",
@@ -175,10 +176,10 @@ pchange<-function(start, end,
         p<-paste0("")
       } else if (x<0) {
         txt<-paste0(" decrease",ending)
-        p<-paste0("a ", abs(p),"%")
+        p<-paste0("a ", formatC(x = abs(p), format = "f", big.mark = ",", digits = 0), "%")
       } else if (x>0) {
         txt<-paste0(" increase",ending)
-        p<-paste0("a ", abs(p),"%")
+        p<-paste0("a ", formatC(x = abs(p), format = "f", big.mark = ",", digits = 0),"%")
       } else if (round(x)==0){
         txt<-paste0("remains",ending," unchanged")
         p<-"" #ending must be "s" or "ed" here
