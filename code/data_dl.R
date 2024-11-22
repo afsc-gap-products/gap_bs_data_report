@@ -138,7 +138,7 @@ temp1 <- data.frame()
 for (i in 1:nrow(report_spp)){
   temp2 <- eval(expr = parse(text = report_spp$species_code[i]))
   temp1 <- dplyr::bind_rows(temp1, 
-                            dplyr::bind_cols(GROUP = report_spp$print_name[i], 
+                            dplyr::bind_cols(GROUP_CODE = report_spp$print_name[i], 
                                              SPECIES_CODE = eval(expr = parse(text = report_spp$species_code[i]))))
 }
 
@@ -158,7 +158,7 @@ production_data <- gapindex::get_data(
   haul_type = 3, 
   abundance_haul = "Y", 
   taxonomic_source = "GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION", # "RACEBASE.SPECIES", 
-  sql_channel = channel)
+  channel = channel)
 
 ## Zero-fill and calculate CPUE
 production_cpue <- calc_cpue(racebase_tables = production_data)
@@ -325,3 +325,16 @@ str_notmaxyr <- changes_since_string(diff0 = diff_notmaxyr, str_year = paste0("t
 str_data_changes <- paste0(str_maxyr, str_notmaxyr)
 writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.txt"))
 }
+
+# Date production data last updated --------------------------------------------
+
+library(rvest)
+last_production_run <- read_html("https://afsc-gap-products.github.io/gap_products/content/intro-news.html") %>% 
+  html_element("p") %>% 
+  paste0() 
+
+last_production_run <- strsplit(x = last_production_run, split = "/", fixed = TRUE)
+last_production_run <- last_production_run[[1]][grep(pattern = ".txt", x = last_production_run[[1]])]
+last_production_run <- strsplit(x = last_production_run, split = ".txt", fixed = TRUE)[[1]][1]
+last_production_run <- date_formatter(last_production_run)
+writeLines(text = last_production_run, con = here::here("data", "last_production_run.txt"))
