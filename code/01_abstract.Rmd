@@ -46,8 +46,8 @@ temp0 <- temps_avg_yr %>%
 if (temp0$bt_case == temp0$st_case) {
 
 str0 <- paste0("The ", maxyr, " mean bottom and surface temperatures ",
-               ifelse(plural_surveys == "", "in the eastern Bering Sea "), "(",
-                temp0$bt, "°C and ", temp0$st, "°C) were ",
+               ifelse(plural_surveys == "", "in the eastern Bering Sea "), ",",
+                temp0$bt, "°C and ", temp0$st, "°C, were ",
                 temp0$bt_case, # only need to list one
                 " the time-series averages of ",
        temp0$bt_mean, "°C and ", temp0$st_mean, "°C, respectively. ")
@@ -290,16 +290,15 @@ for (i in 1:length(SRVY1)){
 
 str0_biomass <- paste0(
   str00, 
-  "A total of ", fish_sp ," species of fishes and ", invert_spp, 
-  " invertebrate taxa were identified on the", 
-  ifelse(plural_surveys == "", "", paste0(" ", SURVEY)), 
-  " survey", plural_surveys, ". ")
+  "A total of ", fish_sp ," fish taxa and ", invert_spp, 
+  " invertebrate taxa were identified", 
+  ifelse(plural_surveys == "", "", paste0(" on the", SURVEY, "survey")), plural_surveys, ". ")
 
 # Conclusion -------------------------------------------------------------------
 str0_conclusion <-  paste0(readLines(con = paste0(dir_out_rawdata, "/0-abstract-conclusion.Rmd"), skipNul = TRUE), collapse = "")
 
 ```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` fish species and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the past surveys and `r maxyr` `r SURVEY` shelf bottom trawl survey. `r str0_conclusion`
+In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` fish species and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r maxyr` `r SURVEY` shelf bottom trawl survey and past surveys. `r str0_conclusion`
 
 \pagebreak
