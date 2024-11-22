@@ -205,6 +205,7 @@ for (i in 1:length(a)) {
 }
 
 str_data_changes <- readLines(con = here::here("data", "str_data_changes.txt"))
+last_production_run <- readLines(con = here::here("data", "last_production_run.txt"))
 
 ## Load Main Oracle Data -------------------------------------------------------
 
