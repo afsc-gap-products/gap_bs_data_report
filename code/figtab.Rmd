@@ -427,7 +427,7 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
     y = data.frame(SRVY = SRVY1, 
                    SRVY_long = stringr::str_to_title(SRVY11)))
 
-header <- paste0("Otolith collection types and counts during the ", 
+header <- paste0("Otolith collection types and target counts during the ", 
                  maxyr, " ", 
                  text_list(haul_cruises_maxyr$SRVY_long),
                  " shelf bottom trawl survey", ifelse(length(SRVY1)>1, "s", ""),".")
@@ -472,7 +472,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-stomach-collection-scheme}
 nickname <- paste0("tab-stomach-collection-scheme") 
 
-header <- paste0("Stomach collection target size category bins (cm) used to collect each study fish during the ", 
+header <- paste0("Stomach collection target size category bins (cm) used to collect each fish species during the ", 
                  maxyr, " ", 
                  text_list(paste0( 
                    haul_cruises_maxyr$SRVY_long)),
@@ -869,7 +869,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-mean-temperature}
 # code orig from sean rohan's coldpool package! Jan 23 2021 
 nickname <- "fig-mean-temperature"
-header <- paste0("Average summer surface and bottom, and time-series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during standardized summer bottom trawl surveys from 1982–",maxyr,
+header <- paste0("Average summer surface and bottom (points and solid lines), and time-series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea bottom trawl survey from 1982–",maxyr,
                  ifelse(SRVY == "NEBS", 
                         paste0(" (left), and northern Bering Sea shelf based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
                  ". ")
@@ -886,7 +886,10 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-cold-pool-area
 
 ```{r fig-cold-pool-area}
-header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea shelf, based on observations from the eastern Bering Sea bottom trawl survey. The extent of the cold pool is shown as a percentage of the total eastern Bering Sea shelf survey area. Note that northern Bering Sea areas are not included in this figure. Shading denotes near-bottom temperatures \u2264 2°C, \u2264 1°C, \u2264 0°C, and \u2264 -1°C.")
+header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea shelf, based on observations from the eastern Bering Sea bottom trawl survey. The extent of the cold pool is shown as a percentage of the total survey area.",
+                 ifelse(SRVY == "NEBS", 
+                        paste0(" Note that northern Bering Sea areas are not included in this figure.") , ""),
+                 " Shading denotes near-bottom temperatures \u2264 2°C, \u2264 1°C, \u2264 0°C, and \u2264 -1°C.")
 
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
 nickname <- "fig-cold-pool-area"
