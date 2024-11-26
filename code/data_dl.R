@@ -146,49 +146,59 @@ for (i in 1:nrow(report_spp)){
 # temp2 <- temp1 %>%
 #   dplyr::filter(grepl(x = temp1$GROUP, "gad", ignore.case = TRUE))
 
+library(gapindex)
+
+# filter temp1 for exisiting species codes in GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION
+# note. maybe gp_taxa is already called somewhere but directly pulling here.
+# following advice from Z Oyafuso in https://github.com/afsc-gap-products/gapindex/issues/63#issuecomment-2499660803
+gp_taxa <- 
+  RODBC::sqlQuery(channel = channel, 
+                  query = "SELECT * FROM GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION 
+                           WHERE SURVEY_SPECIES = 1 ORDER BY SPECIES_CODE")
+temp1 <- subset(x = temp1,
+                subset = SPECIES_CODE %in% gp_taxa$SPECIES_CODE)
 
 # follow instructions from https://afsc-gap-products.github.io/gapindex/articles/ex_species_complex.html
 ## Pull data. Note the format of the `spp_codes` argument with the GROUP column
-library(gapindex)
 production_data <- gapindex::get_data(
   year_set = c(1982:maxyr),
   survey_set = c("EBS"), #, "NBS"),
   spp_codes = temp1,
-  pull_lengths = TRUE, 
+  pull_lengths = FALSE, 
   haul_type = 3, 
   abundance_haul = "Y", 
   taxonomic_source = "GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION", # "RACEBASE.SPECIES", 
   channel = channel)
 
 ## Zero-fill and calculate CPUE
-production_cpue <- calc_cpue(racebase_tables = production_data)
+production_cpue <- calc_cpue(gapdata = production_data)
 
 ## Calculate Biomass, abundance, mean CPUE, and associated variances by stratum
 production_biomass_stratum <- 
-  gapindex::calc_biomass_stratum(racebase_tables = production_data,
+  gapindex::calc_biomass_stratum(gapdata = production_data,
                                  cpue = production_cpue)
 
 ## Aggregate Biomass to subareas and region
 production_biomass_subarea <- 
-  calc_biomass_subarea(racebase_tables = production_data, 
+  calc_biomass_subarea(gapdata = production_data, 
                        biomass_strata = production_biomass_stratum)
 
-## Calculate size composition by stratum. Note fill_NA_method == "BS" because
-## our region is EBS, NBS, or BSS. If the survey region of interest is AI or 
-## GOA, use "AIGOA". See ?gapindex::gapindex::calc_sizecomp_stratum for more
-## details. 
-production_sizecomp_stratum <- 
-  gapindex::calc_sizecomp_stratum(
-    racebase_tables = production_data,
-    racebase_cpue = production_cpue,
-    racebase_stratum_popn = production_biomass_stratum,
-    spatial_level = "stratum",
-    fill_NA_method = "BS")
-
-## Aggregate size composition to subareas/region
-production_sizecomp_subarea <- gapindex::calc_sizecomp_subarea(
-  racebase_tables = production_data,
-  size_comps = production_sizecomp_stratum)
+# ## Calculate size composition by stratum. Note fill_NA_method == "BS" because
+# ## our region is EBS, NBS, or BSS. If the survey region of interest is AI or 
+# ## GOA, use "AIGOA". See ?gapindex::gapindex::calc_sizecomp_stratum for more
+# ## details. 
+# production_sizecomp_stratum <- 
+#   gapindex::calc_sizecomp_stratum(
+#     racebase_tables = production_data,
+#     racebase_cpue = production_cpue,
+#     racebase_stratum_popn = production_biomass_stratum,
+#     spatial_level = "stratum",
+#     fill_NA_method = "BS")
+# 
+# ## Aggregate size composition to subareas/region
+# production_sizecomp_subarea <- gapindex::calc_sizecomp_subarea(
+#   racebase_tables = production_data,
+#   size_comps = production_sizecomp_stratum)
 
 
 ## rbind stratum and subarea/region biomass estimates into one dataframe
@@ -198,12 +208,12 @@ names(x = production_biomass_stratum)[
 production_biomass <- rbind(production_biomass_stratum, 
                             production_biomass_subarea)
 
-## rbind stratum and subarea/region biomass estimates into one dataframe
-names(x = production_sizecomp_stratum)[
-  names(x = production_sizecomp_stratum) == "STRATUM"] <- "AREA_ID"
-production_sizecomp <- 
-  rbind(production_sizecomp_subarea,
-        production_sizecomp_stratum[, names(production_sizecomp_subarea)])
+# ## rbind stratum and subarea/region biomass estimates into one dataframe
+# names(x = production_sizecomp_stratum)[
+#   names(x = production_sizecomp_stratum) == "STRATUM"] <- "AREA_ID"
+# production_sizecomp <- 
+#   rbind(production_sizecomp_subarea,
+#         production_sizecomp_stratum[, names(production_sizecomp_subarea)])
 
 production_cpue <- production_cpue %>% 
   dplyr::left_join(
@@ -215,14 +225,14 @@ production_biomass <- production_biomass %>%
     y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
     relationship = "many-to-many")
 
-production_sizecomp <- production_sizecomp %>% 
-  dplyr::left_join(
-    y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
-    relationship = "many-to-many")
+# production_sizecomp <- production_sizecomp %>% 
+#   dplyr::left_join(
+#     y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
+#     relationship = "many-to-many")
 
 write.csv(x = production_cpue, file = here::here("data/complex_cpue.csv"), row.names = FALSE)
 write.csv(x = production_biomass, file = here::here("data/complex_biomass.csv"), row.names = FALSE)
-write.csv(x = production_sizecomp, file = here::here("data/complex_sizecomp.csv"), row.names = FALSE)
+# write.csv(x = production_sizecomp, file = here::here("data/complex_sizecomp.csv"), row.names = FALSE)
 
 
 # Find changes since data report was last published ----------------------------

@@ -1052,10 +1052,10 @@ sizecomp_sap <- crab_nbs_size1mm_all_species0 %>%
       sex == "number_mature_females" ~ "mature females"))
 
 sizecomp_gap <- gap_products_akfin_sizecomp0 %>% # GAP data
-  dplyr::bind_rows(complex_sizecomp0 %>% 
-                     dplyr::select(names(gap_products_akfin_sizecomp0)) %>% 
-                     dplyr::mutate(group = species_code, 
-                                   species_code = NA)) %>% 
+  # dplyr::bind_rows(complex_sizecomp0 %>% 
+  #                    dplyr::select(names(gap_products_akfin_sizecomp0)) %>% 
+  #                    dplyr::mutate(group = species_code, 
+  #                                  species_code = NA)) %>% 
   dplyr::filter(
     area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
       survey_definition_id %in% SRVY00 &
