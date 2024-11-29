@@ -428,13 +428,13 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
   
   type <- unique(lengths0$sentancefrag)
   
-  if (length(spp_code) > 1) {
-    table_raw <- sizecomp %>%
-      dplyr::filter(group %in% spp_print)
-  } else {
+  # if (length(spp_code) > 1) {
+  #   table_raw <- sizecomp %>%
+  #     dplyr::filter(group %in% spp_print)
+  # } else {
     table_raw <- sizecomp %>%
       dplyr::filter(species_code %in% spp_code)
-  }
+  # }
   
   table_raw <- table_raw  %>%
     dplyr::filter(SRVY %in% srvy &
@@ -1010,7 +1010,7 @@ if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
 
 ### print table ----------------------------------------------------------------
 
-header <- paste0("Summary of catch location, environmental variables, and biomass and population estimates for ", 
+header <- paste0("Summary of catch presence, temperature ranges, and biomass and population estimates for ", 
                  spp_print, " (", spp_sci, ") in the ", 
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
                  " survey area", plural_surveys, ". ")
@@ -1612,7 +1612,7 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
                           SURVEY, 
                           unique(table_raw$SRVY_long0)), 
                    " shelf bottom trawl survey", 
-                   ifelse(length(unique(table_raw$SRVY_long0)) > 1, plural_surveys, ""),". Dashed lines represent time series average and error bars represent estimated 95% confidence intervals. ")
+                   ifelse(length(unique(table_raw$SRVY_long0)) > 1, plural_surveys, "")," (points and solid lines). Dashed lines represent time series average and error bars represent estimated 95% confidence intervals. ")
   
   return(list("figure_print" = figure_print, 
               "table_raw" = table_raw, 
