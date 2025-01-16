@@ -341,24 +341,26 @@ temp <- obj$raw %>%
 temp$frag[1] <- paste0("scientific collection", ifelse(temp$n[1]>1, "s", "")," and research project", 
                        ifelse(temp$n[1]>1, "s", ""))
 
-temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
-                            sheet = "solicitation_date", 
-                            skip = 1) %>% 
-  dplyr::filter(year == maxyr) %>% 
-  dplyr::select(solicitation_date) %>% 
-  dplyr::mutate(solicitation_date = date_formatter(solicitation_date)) %>% 
-  unlist()
-
-str0 <- paste0(gsub(x = 
-                      text_list(paste0(xunits(temp$n), " ", 
-                                       temp$frag, 
-                                       ifelse(temp$n>1, " were", " was"), 
-                                       " conducted", 
-                                       ifelse(plural_surveys == "", "", paste0(" in ", temp$SRVY_long)))), 
-                    pattern = " ,", replacement = ","))
+# temp1 no longer needed in text?
+# temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
+#                             sheet = "solicitation_date", 
+#                             skip = 1) %>% 
+#   dplyr::filter(year == maxyr) %>% 
+#   dplyr::select(solicitation_date) %>% 
+#   dplyr::mutate(solicitation_date = date_formatter(solicitation_date)) %>% 
+#   unlist()
+# 
+# str0 ammendment also no longer needed?
+# str0 <- paste0(gsub(x = 
+#                       text_list(paste0(xunits(temp$n), " ", 
+#                                        temp$frag, 
+#                                        ifelse(temp$n>1, " were", " was"), 
+#                                        " conducted", 
+#                                        ifelse(plural_surveys == "", "", paste0(" in ", temp$SRVY_long)))), 
+#                     pattern = " ,", replacement = ","))
 ```
 
-The `r maxyr` survey conducted sampling for `r str0` during the `r maxyr` survey season (Table  \@ref(tab:tab-special-projects)). Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for these projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a project or collection, please contact the principal investigator(s) identified in Table \@ref(tab:tab-special-projects).
+The `r maxyr` survey conducted sampling for `r str0`. Projects were selected through an annual request for proposals starting in January of `r maxyr` and ending in February. (Table  \@ref(tab:tab-special-projects)). Some of the approved projects were new for `r maxyr`, while many continued multi-year observations of supplementary data. Data for these projects were collected at sea and disseminated to the requesting principal investigator(s). To acquire the details about a project or collection, please contact the principal investigator(s) identified in Table \@ref(tab:tab-special-projects).
 
 ```{r tab-special-projects0}
 nickname <- "tab-special-projects"
