@@ -23,11 +23,12 @@ vessels0 <- vessels %>%
   dplyr::filter(vess_shape != "X")
 
 str0_stations <- paste0(
-  "Survey sampling was conducted using ", (numbers2words(nrow(vessels0))),
+  "Survey sampling was conducted aboard ", (numbers2words(nrow(vessels0))),
   " chartered, commercial stern trawlers", plural_surveys,", the ", 
   text_list(paste0(vessels0$length_m, "-m ",  vessels0$vessel_ital)), ", across ", 
-  text_list(paste0(haul_cruises_maxyr$stations_completed, " (of ",  haul_cruises_maxyr$stations_avail, 
-                   ") stations in the ", haul_cruises_maxyr$SRVY_long)), ". ")
+  text_list(paste0(haul_cruises_maxyr$stations_completed, 
+                   ifelse(haul_cruises_maxyr$stations_completed == haul_cruises_maxyr$stations_avail, "", paste0(" (of ",  haul_cruises_maxyr$stations_avail, ")")), 
+                   " stations in the ", haul_cruises_maxyr$SRVY_long)), ". ")
 
 # Temperature ------------------------------------------------------------------
 temp0 <- temps_avg_yr %>% 
@@ -280,7 +281,7 @@ for (i in 1:length(SRVY1)){
     ifelse(temp_compare < temp_max, "an increase", "a decrease"),
     " from ", 
     xunits(temp_compare),
-    " t in ", compareyr, " and ",
+    " t in ", compareyr, ", and ",
     ifelse(temp_mean$total_mean < temp_max, "greater", "less"),
     period, 
     xunits(temp_mean$total_mean), " t. ")
@@ -299,6 +300,6 @@ str0_conclusion <-  paste0(readLines(con = paste0(dir_out_rawdata, "/0-abstract-
 
 ```
 
-In `r maxyr`, the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service’s (NMFS) Alaska Fisheries Science Center (AFSC) conducted the `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` fish species and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r maxyr` `r SURVEY` shelf bottom trawl survey and past surveys. `r str0_conclusion`
+In `r maxyr`, the Groundfish and Shellfish Assessment Programs in the Resource Assessment and Conservation Engineering Division of the National Marine Fisheries Service’s Alaska Fisheries Science Center conducted the `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` fish species and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r maxyr` `r SURVEY` shelf bottom trawl survey and past surveys. `r str0_conclusion`
 
 \pagebreak
