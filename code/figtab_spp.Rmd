@@ -432,8 +432,8 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
   #   table_raw <- sizecomp %>%
   #     dplyr::filter(group %in% spp_print)
   # } else {
-    table_raw <- sizecomp %>%
-      dplyr::filter(species_code %in% spp_code)
+  table_raw <- sizecomp %>%
+    dplyr::filter(species_code %in% spp_code)
   # }
   
   table_raw <- table_raw  %>%
@@ -491,14 +491,16 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
                          ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
                                 "centimeters (cm)", "millimeters (mm)"),
                          " encountered during the ",
-                         range_text(yrs)," ",
+                         min(yrs, na.rm = TRUE), "-", max(yrs, na.rm = TRUE), # range_text(yrs)
+                         " ",
                          text_list(paste0(unique(table_raw$SRVY_long))), 
                          " bottom trawl survey", 
                          ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
                          ". ",
                          ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0,
                                 paste0("There were no lengths collected for this species in the ", 
-                                       range_text(yrs), " ",
+                                       min(yrs, na.rm = TRUE), "-", max(yrs, na.rm = TRUE), # range_text(yrs)
+                                       " ",
                                        haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
                                        " trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
                                 ""),
@@ -647,7 +649,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
     table_raw <- agecomp %>%
       dplyr::filter(species_code %in% spp_code)
   }
-
+  
   # find appropriate units
   a <- find_units(unit = "", unt = " years", dat = max(table_raw$population_count, na.rm = TRUE))
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
@@ -693,14 +695,17 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
                                      paste0(" (",spp_sci,")")), 
                    " by sex (",text_list(tolower(unique(table_raw$sex))),
                    ") encountered during the ",
-                   range_text(sort(unique(table_raw$year)))," ",
+                   
+                   min(yrs, na.rm = TRUE), "-", max(yrs, na.rm = TRUE), # range_text(sort(unique(table_raw$year))),
+                   " ",
                    text_list(paste0(unique(table_raw$SRVY_long))), 
                    " bottom trawl survey", 
                    ifelse(length(unique(table_raw$SRVY))==1 & length(unique(table_raw$year))==1, "", "s"),
                    ". ",
                    ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0,
                           paste0("There were no ages collected for this species in the ", 
-                                 range_text(yrs), " ",
+                                 min(yrs, na.rm = TRUE), "-", max(yrs, na.rm = TRUE), # range_text(sort(unique(table_raw$year))), # range_text(yrs), 
+                                 " ",
                                  haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY != unique(table_raw$SRVY)],
                                  " trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
                           ""),
@@ -967,13 +972,13 @@ for (i in 1:nrow(temp_bio)) {
                               "-", 
                               paste0(xunits(temp_bio$biomass_mt[i], 
                                             val_under_x_words = NULL))), 
-      "Biomass\n% Total" = dplyr::case_when(
+      "Percent of Total\nCatch Biomass" = dplyr::case_when(
         is.na(temp_bio$biomass_mt[i]) ~ "-", 
         paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
                        digits = 1, format = "f", big.mark = ","), "%") == "0.0%" ~ "<0.01%", 
         TRUE ~ paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
                               digits = 1, format = "f", big.mark = ","), "%") ), 
-      "Biomass\n% Change" = dplyr::case_when(
+      "Percent Change\nin Biomass" = dplyr::case_when(
         temp_bio$year[i] == min(yrs) ~ "-",
         is.na(temp_bio$biomass_mt[i]) ~ "-", #paste0("none caught in ", temp_bio$year[i]), 
         is.na(temp_bio0) ~ "-", #paste0("none caught in ", compareyr0), 
@@ -1163,7 +1168,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          " with SD", biomass_sd0$unit_word, 
                          ", 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
-                         ") confidence limits, and number of hauls where taxon was weighed for ")      
+                         ") confidence limits, and number of hauls, by stratum, where ")
         
         table_print0 <- table_raw %>% 
           dplyr::mutate(
@@ -1279,7 +1284,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
     header <- paste0(header,
                      spp_print, 
                      ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
-                     " by stratum encountered during the ",
+                     " were encountered and weighed during the ",
                      maxyr," ", SURVEY, 
                      " bottom trawl survey",plural_surveys,". ", 
                      ifelse(length(setdiff(SRVY1, unique(table_raw$SRVY)))>0, 

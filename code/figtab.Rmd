@@ -320,7 +320,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## tab-stratum-areas
 
 ```{r tab-stratum-areas}
-header <- paste0("Stratum areas and sampling densities used during the ",maxyr,
+header <- paste0("Stratum areas and sampling densities used during the ", maxyr,
                  " ", SURVEY ," bottom trawl survey", 
                  ifelse(length(SRVY1)>1, "s", ""),". Stratum area calculations were updated in ", 
                  strat_yr , ". ")
@@ -328,8 +328,10 @@ header <- paste0("Stratum areas and sampling densities used during the ",maxyr,
 nickname <- "tab-stratum-areas" 
 
 temp <- stratum %>% 
-  dplyr::select(area_km2, stations_avail, stations_completed, stratum, area_name, SRVY) %>% 
-  dplyr::mutate(area_name = gsub(replacement = "Shelf", x = area_name, pattern = "Domain")) 
+  dplyr::mutate(depth_min_m = ifelse(depth_min_m  == 1, 0, depth_min_m ), 
+                area_name = paste0(gsub(replacement = "Shelf", x = area_name, pattern = "Domain") , 
+                "\n(",depth_min_m, "-", depth_max_m, " m)")) %>% 
+  dplyr::select(area_km2, stations_avail, stations_completed, stratum, area_name, SRVY)
 
 if (length(unique(station$SRVY))>1) {
   totals_sub <- temp %>%

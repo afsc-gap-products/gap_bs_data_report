@@ -68,16 +68,12 @@ for (ii in 1:length(report_types)) {
   reg_dat$survey.area <- reg_dat$survey.area %>%
     dplyr::mutate(
       SRVY = dplyr::case_when(
-        SURVEY == "EBS_SHELF" ~ "EBS", 
-        SURVEY == "NBS_SHELF" ~ "NBS"), 
+        SURVEY_DEFINITION_ID == 98 ~ "EBS", 
+        SURVEY_DEFINITION_ID == 143 ~ "NBS"), 
       color = alpha(colour = survey_reg_col, 0.7), 
       SRVY_long = dplyr::case_when(
         SRVY == "EBS" ~ "Eastern Bering Sea", 
         SRVY == "NBS" ~ "Northern Bering Sea") )
-  # reg_dat$survey.grid$SRVY <- reg_dat$SRVY
-  # reg_dat$survey.grid$SURVEY <- reg_dat$SURVEY
-  # fix reg_dat$graticule
-  # reg_dat$graticule <- sf::st_transform(x = reg_dat$graticule, crs = CRS(as.character(reg_dat$crs)[1]))
   report_types[[ii]]$reg_dat <- reg_dat
 }
 
@@ -1001,9 +997,9 @@ temps_avg_yr_abovebelow <- list(
 )
 
 sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs",
-                                         set.crs = coldpool:::ebs_proj_crs)
+                                         set.crs = out.crs)
 
-coldpool_ebs_bin_area <- coldpool:::cold_pool_index %>%
+coldpool_ebs_bin_area <- coldpool::cold_pool_index %>%
   dplyr::rename(year = YEAR) %>%
   dplyr::filter(year <= maxyr) %>%
   dplyr::mutate(lteminus1 = AREA_LTEMINUS1_KM2,
@@ -1017,7 +1013,7 @@ coldpool_ebs_bin_area <- coldpool:::cold_pool_index %>%
                                   levels = c( "lte2", "lte1", "lte0", "lteminus1"),
                                   labels = c("\u2264 2\u00b0C", "\u2264 1\u00b0C", "\u2264 0\u00b0C", "\u2264 -1\u00b0C")),
                 label = variable, 
-                proportion = value/sebs_layers$survey.area$AREA_KM2, 
+                proportion = value/(sebs_layers$survey.area$AREA_M2/1000), 
                 perc = proportion*100)  
 
 coldpool_ebs_total_area <- coldpool_ebs_bin_area %>%
