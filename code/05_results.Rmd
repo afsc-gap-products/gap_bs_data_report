@@ -85,7 +85,7 @@ nickname <- "fig-cold-pool-area"
 }
 ```
 
-Survey teams collected `r str0 ` shelf trawl survey`r plural_surveys` (Table`r plural_surveys` \@ref(fig:tab-specimen-samples-ebs)`r ifelse(SRVY == "NEBS", " and \\@ref(fig:tab-specimen-samples-nbs)", "")`). Other special collections are listed in Table \@ref(tab:tab-special-projects).
+Survey teams collected `r str0 ` trawl survey`r plural_surveys` (Table`r plural_surveys` \@ref(fig:tab-specimen-samples-ebs)`r ifelse(SRVY == "NEBS", " and \\@ref(fig:tab-specimen-samples-nbs)", "")`). Other special collections are listed in Table \@ref(tab:tab-special-projects).
 
 ```{r tab-specimen-samples-0}
 nickname <- "tab-specimen-samples-"
@@ -131,18 +131,18 @@ str0 <- paste0(
   " fish taxa representing ",temp0$family[temp0$taxon == "fish"],
   " families and ",temp0$genus[temp0$taxon == "fish"],
   " genera were identified during the ",
-  maxyr," ",SURVEY," survey",plural_surveys," (Appendix Table", plural_surveys,
+  maxyr," ",SURVEY," shelf survey",plural_surveys," (Appendix Table", plural_surveys,
   " A \\@ref(tab:tab-app-taxa-found-EBS-fish)", 
   ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", ""),
   "). Of these ",
   temp0$species_code[temp0$taxon == "fish"]," taxa, ",
-  temp0$species[temp0$taxon == "fish"]," were identified to species level, while the remaining taxa were identified to the genus level or higher. ",
+  temp0$species[temp0$taxon == "fish"]," were identified to species level, while the remaining taxa were identified to the lowest taxonomic level by field scientist, most often genus. ",
                
-  "Similarly, there were ",
+  "Similarly, ",
   temp0$species_code[temp0$taxon == "invert"],
   " different invertebrate taxa representing ",
                temp0$phylum[temp0$taxon == "invert"],
-  " phyla, of which ",
+  " phyla were identified on the ",maxyr," survey, ",
   temp0$species[temp0$taxon == "invert"],
   " taxa were identified to species level (Appendix Table", plural_surveys,
   " A \\@ref(tab:tab-app-taxa-found-EBS-invertebrate)", 
@@ -231,7 +231,7 @@ nickname <- "tab-species-composition"
 ```{r results-tot-biomass}
 
 # example output: 
-# [1] "The total demersal organismal biomass for the eastern Bering Sea was estimated at 12 million t and total demersal organismal biomass for the northern Bering Sea was estimated at 2.9 million t. In the eastern Bering Sea, the proportion of fishes (76%; Table \\@ref(tab:tab-biomass-est-EBS-fish)) was higher than invertebrates (24%; Table \\@ref(tab:tab-biomass-est-EBS-invert)) and in the northern Bering Sea, the proportion of fishes (48%; Table \\@ref(tab:tab-biomass-est-NBS-fish)) was lower than invertebrates (52%; Table \\@ref(tab:tab-biomass-est-NBS-invert)). The lower relative fish biomass in the northern Bering Sea than in the eastern Bering Sea is consistent with results of a broader analysis of all survey years presented by @RN936, which showed decreasing fish biomass with increasing latitude on the eastern Bering Sea continental shelf. "
+# [1] "The total demersal organismal biomass for the eastern Bering Sea was estimated at 12 million t and total demersal organismal biomass for the northern Bering Sea was estimated at 2.9 million t. In the eastern Bering Sea, the proportion of fishes (76%; Table \\@ref(tab:tab-biomass-est-EBS-fish)) was higher than invertebrates (24%; Table \\@ref(tab:tab-biomass-est-EBS-invert)) and in the northern Bering Sea, the proportion of fishes (48%; Table \\@ref(tab:tab-biomass-est-NBS-fish)) was lower than invertebrates (52%; Table \\@ref(tab:tab-biomass-est-NBS-invert)). The lower relative fish biomass in the northern Bering Sea than in the eastern Bering Sea is consistent with results of a broader analysis of all survey years presented by @RN936, which showed decreasing fish biomass with increasing latitude on the eastern Bering Sea continental. "
 
 total_biomass0 <- total_biomass %>% 
   dplyr::filter(year == maxyr) %>% 
@@ -602,5 +602,5 @@ temp2 <- report_spp1 %>%
   dplyr::distinct()
 ```
 
-Summary results for `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` major fish and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` major invertebrate taxa caught during the `r SURVEY` surveys are presented below. Plots of biomass and abundance time series, spatial distribution, abundance-at-length estimates, and stratum-level CPUE (kg/km^2^ and no/km^2^) tables are provided, as appropriate for each taxa. The spatial distribution maps illustrate where the taxa were found during the surveys. These distributions are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^), which uses a weighted average of nearby measured stations to estimate values at unmeasured locations between stations. Similar interactive maps of these highlighted taxa and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [Data Sources](#data-sources) section. Differences in estimates and totals may be due to rounding. Taxa are presented in alphabetical order by common name.
+Summary results for `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` common fish and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa caught during the `r SURVEY` surveys are presented below. Plots of biomass and abundance time series, spatial distribution, abundance-at-length estimates, and stratum-level CPUE (kg/km^2^ and no/km^2^) tables are provided for each taxa. The spatial distribution maps are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^), which uses a weighted average of nearby measured stations to estimate values at unmeasured locations between stations. Similar interactive maps of these highlighted taxa and others are available through the NOAA Distribution Mapping and Analysis Portal (https://apps-st.fisheries.noaa.gov/dismap/; @DisMAPDataPortal). More information on how to find, download, and interact with the data used to produce this report is available in the [Data Sources](#data-sources) section. Taxa are presented in alphabetical order by common name.
 

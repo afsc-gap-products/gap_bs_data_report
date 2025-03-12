@@ -63,7 +63,7 @@ report_types <- list(
 for (ii in 1:length(report_types)) {
   reg_dat <- report_types[[ii]]$reg_dat
   # add color to survey.area
-  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$SURVEY))+2)
+  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id))+2)
   survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
   reg_dat$survey.area <- reg_dat$survey.area %>%
     dplyr::mutate(
@@ -74,9 +74,10 @@ for (ii in 1:length(report_types)) {
       SRVY_long = dplyr::case_when(
         SRVY == "EBS" ~ "Eastern Bering Sea", 
         SRVY == "NBS" ~ "Northern Bering Sea") )
-  reg_dat$survey.grid$station <- reg_dat$survey.grid$STATIONID
+  # reg_dat$survey.grid$SRVY <- reg_dat$SRVY
+  # reg_dat$survey.grid$SURVEY <- reg_dat$SURVEY
   # fix reg_dat$graticule
-  reg_dat$graticule <- sf::st_transform(x = reg_dat$graticule, crs = CRS(as.character(reg_dat$crs)[1]))
+  # reg_dat$graticule <- sf::st_transform(x = reg_dat$graticule, crs = CRS(as.character(reg_dat$crs)[1]))
   report_types[[ii]]$reg_dat <- reg_dat
 }
 
