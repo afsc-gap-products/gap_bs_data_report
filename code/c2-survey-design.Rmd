@@ -12,19 +12,19 @@
 
 str0 <- c()
 
-for (i in 1:length(SRVY11)){
+for (i in 1:length(srvy11)){
   
-    srvy <- SRVY11[i]
+    srvy <- srvy11[i]
   cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
-    dplyr::filter(SRVY %in% SRVY1[i] &
+    dplyr::filter(srvy %in% srvy1[i] &
                     year %in% maxyr) %>% 
     dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
-                  "vessel_ital", "SRVY", "SRVY_long", 
+                  "vessel_ital", "srvy", "srvy_long", 
                   "start_date_cruise", "end_date_cruise", 
                   "start_date_haul", "end_date_haul") %>% 
     unique() %>% 
     group_by(year, survey_name, vessel_id, vessel_name, 
-             vessel_ital, SRVY, SRVY_long) %>% 
+             vessel_ital, srvy, srvy_long) %>% 
     dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
                      end_date_cruise = as.Date(max(end_date_cruise)), 
                      start_date_haul = as.Date(min(start_date_haul), 
@@ -90,13 +90,13 @@ for (i in 1:length(SRVY11)){
 }
 
 str0 <- data.frame(str = str0, 
-                  SRVY = SRVY1)
+                  srvy = srvy1)
 
 nbs_insert  <- paste0(
     "Sampling for the eastern Bering Sea survey ",
-    str0$str[str0$SRVY == "EBS"],
+    str0$str[str0$srvy == "EBS"],
     ". Sampling for the northern Bering Sea survey ", 
-    str0$str[str0$SRVY == "NBS"], 
+    str0$str[str0$srvy == "NBS"], 
     ".")
 
 ```
@@ -115,19 +115,19 @@ nickname <- "fig-vessels"
 
 ```{r survey-area1}
 str0 <- ""
-for (i in 1:length(SRVY1)) {
+for (i in 1:length(srvy1)) {
 str0 <- 
   paste0(str0, 
-         "The ", haul_cruises_maxyr$SRVY_long[haul_cruises_maxyr$SRVY == SRVY1[i]],
+         "The ", haul_cruises_maxyr$srvy_long[haul_cruises_maxyr$srvy == srvy1[i]],
          " survey area contains ", 
-         haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == SRVY1[i]],
+         haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$srvy == srvy1[i]],
          " stations distributed over ", 
-         xunits(sum(stratum$area_nmi2[stratum$SRVY %in% SRVY1[i]], na.rm=TRUE)),
-         " nmi^2^ (", xunits(sum(stratum$area_km2[stratum$SRVY %in% SRVY1[i]], na.rm=TRUE))," km^2^). " )
+         xunits(sum(stratum$area_nmi2[stratum$srvy %in% srvy1[i]], na.rm=TRUE)),
+         " nmi^2^ (", xunits(sum(stratum$area_km2[stratum$srvy %in% srvy1[i]], na.rm=TRUE))," km^2^). " )
 }
 ```
 
-The northern Bering Sea survey was designed as an extension of the systematic 20 × 20 nautical mile (nmi) sampling grid for the annual eastern Bering Sea survey. `r str0 `The addition of the northern Bering Sea survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^). Bottom depths in the northern Bering Sea survey area range from `r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$SRVY == "NBS"]), digits = 1) ` m). 
+The northern Bering Sea survey was designed as an extension of the systematic 20 × 20 nautical mile (nmi) sampling grid for the annual eastern Bering Sea survey. `r str0 `The addition of the northern Bering Sea survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^). Bottom depths in the northern Bering Sea survey area range from `r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m). 
 
 Both vessels sampled using an 83-112 Eastern otter trawl that has been historically used for eastern Bering Sea, Chukchi Sea, and Beaufort Sea surveys (Fig. \@ref(fig:fig-trawl-gear-alt)). This trawl is significantly smaller and weighs less than trawls typically used for commercial fishing in Alaska. Each trawl tow was conducted for 30 minutes at a speed of 2.8–3.2 knots.
 

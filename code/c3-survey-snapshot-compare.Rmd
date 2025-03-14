@@ -53,22 +53,22 @@ nickname <- "fig-cold-pool-area"
 ```{r nbs-trawl-survey-area}
 # area of nbs trawl stations
 # area =  l*w * number of areas
-# temp <- haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] * # number of stations
+# temp <- haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$srvy == "NBS"] * # number of stations
 #   (10 / 1852) * # width of trawl net (m/nmi -> nmi)
 #   1.5 # calculate distance nmi = velocity (3 knots) * time (30 min)
 
-temp <- sum((haul_maxyr$net_width_m[haul_maxyr$SRVY == "NBS"]/ 1852) * # net width in meters, divided 1852 (m->nmi)
-      ((haul_maxyr$distance_fished_km[haul_maxyr$SRVY == "NBS"] * 1000)/ 1852), # distance fished in km converted to m,  divided 1852 (m->nmi)
+temp <- sum((haul_maxyr$net_width_m[haul_maxyr$srvy == "NBS"]/ 1852) * # net width in meters, divided 1852 (m->nmi)
+      ((haul_maxyr$distance_fished_km[haul_maxyr$srvy == "NBS"] * 1000)/ 1852), # distance fished in km converted to m,  divided 1852 (m->nmi)
     na.rm = TRUE)
 
-temp1 <- sum((haul_compareyr$net_width_m[haul_compareyr$SRVY == "NBS"]/ 1852) * 
-      ((haul_compareyr$distance_fished_km[haul_compareyr$SRVY == "NBS"] * 1000)/ 1852),
+temp1 <- sum((haul_compareyr$net_width_m[haul_compareyr$srvy == "NBS"]/ 1852) * 
+      ((haul_compareyr$distance_fished_km[haul_compareyr$srvy == "NBS"] * 1000)/ 1852),
     na.rm = TRUE)
 
-# In `r maxyr`, the cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. In `r compareyr`, the cumulative area sampled by trawls at the `r haul_cruises_compareyr$stations_completed[haul_cruises_compareyr$SRVY == "NBS"] ` completed stations was approximately `r round(temp1, 2)` nmi^2^ (`r round(temp1/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp1 / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. 
+# In `r maxyr`, the cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$srvy == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$srvy == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. In `r compareyr`, the cumulative area sampled by trawls at the `r haul_cruises_compareyr$stations_completed[haul_cruises_compareyr$srvy == "NBS"] ` completed stations was approximately `r round(temp1, 2)` nmi^2^ (`r round(temp1/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp1 / sum(stratum$area_nmi2[stratum$srvy == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. 
 ```
 
-In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$SRVY == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. In `r compareyr`, the total area sampled by trawls at the `r haul_cruises_compareyr$stations_completed[haul_cruises_compareyr$SRVY == "NBS"] ` completed stations was approximately `r round(temp1, 2)` nmi^2^ (`r round(temp1/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp1 / sum(stratum$area_nmi2[stratum$SRVY == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. 
+In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$srvy == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$srvy == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. In `r compareyr`, the total area sampled by trawls at the `r haul_cruises_compareyr$stations_completed[haul_cruises_compareyr$srvy == "NBS"] ` completed stations was approximately `r round(temp1, 2)` nmi^2^ (`r round(temp1/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp1 / sum(stratum$area_nmi2[stratum$srvy == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. 
 
 ```{r specimen-collections}
   # obtain data
@@ -79,7 +79,7 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE)))
   
-  if (SRVY == "NEBS") {
+  if (srvy == "NEBS") {
   load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata")) # obj
       temp1 <- temp1 %>% dplyr::bind_rows(
     obj$raw %>% 
@@ -94,7 +94,7 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
     obj$raw %>% 
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) ) %>% 
-    dplyr::select(-SRVY) %>% 
+    dplyr::select(-srvy) %>% 
     dplyr::group_by(common_name) %>% 
     dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE))) %>% 
     dplyr::ungroup()
@@ -130,7 +130,7 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
     obj1$raw %>% 
       dplyr::filter(common_name == "Total") ) %>%
     # dplyr::filter(!(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) %>% 
-    dplyr::select(-SRVY, -common_name) %>%
+    dplyr::select(-srvy, -common_name) %>%
     dplyr::ungroup() %>% 
     dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE)))
 
@@ -177,22 +177,22 @@ From the `r SURVEY` trawl survey`r plural_surveys`, length measurements were col
 
 # million metric tons of biomass collected in each region in each year
 temp <- total_biomass %>% 
-  dplyr::group_by(year, SRVY, SRVY_long) %>% 
+  dplyr::group_by(year, srvy, srvy_long) %>% 
   dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1)) %>% 
   dplyr::ungroup() %>% 
   dplyr::arrange(desc(year)) %>% 
   dplyr::filter(year %in% c(maxyr, compareyr))
 ```
 
-In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "EBS"] ` million metric tons (t) and the northern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$SRVY == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$SRVY_long[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. 
+In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$srvy == "EBS"] ` million metric tons (t) and the northern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$srvy == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$srvy_long[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. 
 
 ```{r biomass-inc-dec-spp}
 
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
 
 temp1 <- obj$raw %>%
-      # dplyr::filter(SRVY == "NBS") %>%
-      dplyr::select(print_name, change, change0, maxyr, taxon, SRVY) %>%
+      # dplyr::filter(srvy == "NBS") %>%
+      dplyr::select(print_name, change, change0, maxyr, taxon, srvy) %>%
  # I defined "no marked change" in < 25 and > -25% change to get me through the code. What number should it be?
   dplyr::mutate(
     change_case = dplyr::case_when(
@@ -207,10 +207,10 @@ temp1 <- obj$raw %>%
   dplyr::arrange(desc(change0))
 
 temp44 <- temp1  %>% 
-  dplyr::group_by(taxon, change_case, SRVY) %>%
+  dplyr::group_by(taxon, change_case, srvy) %>%
   dplyr::summarise(n = n()) %>%
   dplyr::ungroup() %>%
-  tidyr::pivot_wider(id_cols = c(change_case, SRVY), 
+  tidyr::pivot_wider(id_cols = c(change_case, srvy), 
                      names_from = taxon, values_from = n) %>%
   dplyr::mutate(
     str0_fish = ifelse(is.na(fish), "", paste0(xunits(fish), " fish", ifelse(fish>1, "es", ""))),
@@ -224,12 +224,12 @@ temp3 <- temp1  %>%
                   !is.na(change_case1))
 
 temp33 <- dplyr::bind_rows(
-  head(temp3[which(temp3$SRVY == "EBS"),]), 
-                          tail(temp3[which(temp3$SRVY == "EBS"),]), 
-                          head(temp3[which(temp3$SRVY == "NBS"),]), 
-                          tail(temp3[which(temp3$SRVY == "NBS"),])) %>%
+  head(temp3[which(temp3$srvy == "EBS"),]), 
+                          tail(temp3[which(temp3$srvy == "EBS"),]), 
+                          head(temp3[which(temp3$srvy == "NBS"),]), 
+                          tail(temp3[which(temp3$srvy == "NBS"),])) %>%
   dplyr::arrange(desc(abs(change0))) %>% 
-  dplyr::group_by(change_case1, SRVY) %>%
+  dplyr::group_by(change_case1, srvy) %>%
   dplyr::summarise(spp_list = text_list(paste0(print_name, " (", change, ")"))) %>%
   dplyr::ungroup() %>%
   dplyr::arrange(change_case1)
@@ -238,12 +238,12 @@ str0 <- ""
 
 for (i in 2:2) {
 
-  temp3 <- temp33 %>% dplyr::filter(SRVY == SRVY1[i])
-  temp4 <- temp44 %>% dplyr::filter(SRVY == SRVY1[i])
+  temp3 <- temp33 %>% dplyr::filter(srvy == srvy1[i])
+  temp4 <- temp44 %>% dplyr::filter(srvy == srvy1[i])
     
 str0 <- paste0(str0, 
 paste0(
-  "In the ",SRVY11[i]," between ", compareyr, " and ", maxyr , ", ",
+  "In the ",srvy11[i]," between ", compareyr, " and ", maxyr , ", ",
                text_list(paste0(temp4$str0, " experienced ", temp4$change_case, " biomass")),
   ifelse(i == 1, " (± 25% change from the previous survey year). ", ". "),
                # paste0("Prominent organisms that exhibited the largest ", 
@@ -264,14 +264,14 @@ temp5 <- biomass %>%
   dplyr::filter(stratum == 999 & 
                   species_code %in% report_spp1$species_code[(report_spp1$plot_idw)] & 
                   year == maxyr) %>% 
-  dplyr::select(SRVY, biomass_mt, species_code, common_name) %>% 
+  dplyr::select(srvy, biomass_mt, species_code, common_name) %>% 
   dplyr::left_join(report_spp1 %>% 
                      dplyr::select(print_name, species_code, order))  %>% 
   # dplyr::arrange(desc(NBS)) 
   dplyr::arrange(desc(order)) %>% 
-  dplyr::group_by(print_name, SRVY) %>% 
+  dplyr::group_by(print_name, srvy) %>% 
   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE))%>% 
-  tidyr::pivot_wider(names_from = SRVY, values_from = biomass_mt) %>% 
+  tidyr::pivot_wider(names_from = srvy, values_from = biomass_mt) %>% 
   dplyr::ungroup() %>% 
   dplyr::mutate(NBS_greater = (NBS > EBS), 
                 NBS_only = (NBS > 0 & is.na(EBS))) %>% 
@@ -289,7 +289,7 @@ temp1 <- obj$raw
 # total biomass
 temp2 <- total_biomass  %>% 
   dplyr::ungroup() %>% 
-  dplyr::filter(SRVY == "NBS") %>%
+  dplyr::filter(srvy == "NBS") %>%
   dplyr::group_by(year) %>% 
   dplyr::summarise(total = sum(total, na.rm = TRUE)) %>% 
   dplyr::ungroup()
@@ -306,7 +306,7 @@ for (i in 1:length(yrs)) {
   temp <- temp2$total[temp2$year == yr]
   
   temp5 <- temp1  %>% 
-  dplyr::filter(SRVY == "NBS") %>% 
+  dplyr::filter(srvy == "NBS") %>% 
     dplyr::rename("x" = all_of(as.character(yr))) %>% 
     dplyr::arrange(desc(x)) %>% 
     dplyr::select(print_name, x, taxon) %>% # species_name, 

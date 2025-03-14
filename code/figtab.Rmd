@@ -17,7 +17,7 @@ nickname <- "fig-survey-points"
 
 header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
 
-height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6)
+height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
@@ -51,7 +51,7 @@ nickname <- "fig-survey-points-strata"
 
 header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
 
-height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6)
+height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
@@ -87,14 +87,14 @@ if (sum(vessels0$vess_shape == "X")>0) {
     dplyr::mutate(vessel_ital = ifelse(vess_shape == "X", "stations that were not surveyed", vessel_ital))
 }
 header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
-                 text_list(haul_cruises_maxyr$SRVY_long),
-                 " bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
+                 text_list(haul_cruises_maxyr$srvy_long),
+                 " bottom trawl survey", ifelse(srvy == "NEBS", "s", ""), 
                  ". The map also depicts the stations sampled by the ",
                  text_list(paste0(vessels0$vessel_ital, " (",
                                   vessels0$vess_shape, ")")), 
                  ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
 
-height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) 
+height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6) 
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
@@ -103,7 +103,7 @@ reg_dat0 <- reg_dat
 # }
 
 reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
-  dplyr::mutate(station = STATIONID) %>% 
+  # dplyr::mutate(station = station) %>% 
   dplyr::left_join(y = haul_maxyr) %>% 
   dplyr::left_join(y = vessels) %>%
   dplyr::ungroup() 
@@ -145,20 +145,20 @@ if (sum(vessels0$vess_shape == "X")>0) {
     dplyr::mutate(vessel_ital = ifelse(vess_shape == "X", "stations that were not surveyed", vessel_ital))
 }
 header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
-                 text_list(haul_cruises_maxyr$SRVY_long),
-                 " bottom trawl survey", ifelse(SRVY == "NEBS", "s", ""), 
+                 text_list(haul_cruises_maxyr$srvy_long),
+                 " bottom trawl survey", ifelse(srvy == "NEBS", "s", ""), 
                  ". The map also depicts the stations sampled by the ",
                  text_list(paste0(vessels0$vessel_ital, " (",
                                   vessels0$vess_shape, ")")), 
                  ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
 
-height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6) 
+height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6) 
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
 
 reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
-  dplyr::mutate(station = STATIONID) %>% 
+  dplyr::mutate(station = station) %>% 
   dplyr::left_join(y = haul_maxyr) %>% 
   dplyr::left_join(y = vessels) %>%
   dplyr::ungroup() 
@@ -223,12 +223,12 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 nickname <- "fig-survey-grid"
 
 header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
-                 text_list(haul_cruises_maxyr$SRVY_long),
+                 text_list(haul_cruises_maxyr$srvy_long),
                  " bottom trawl survey", 
-                 ifelse(SRVY == "NEBS", "s", ""), 
-                 ". ") # , ifelse(SRVY == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. ")
+                 ifelse(srvy == "NEBS", "s", ""), 
+                 ". ") # , ifelse(srvy == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. ")
 
-height <- ifelse(SRVY == "NEBS", full_page_portrait_height, 6)
+height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
 
 reg_dat0 <- reg_dat
@@ -236,7 +236,7 @@ reg_dat0 <- reg_dat
 #   reg_dat0 <- report_types$NEBS$reg_dat
 # }
 reg_dat0$survey.grid <- reg_dat0$survey.grid %>% 
-  dplyr::mutate(STATIONID = ifelse(!grepl(pattern = "-", x = STATIONID), "", STATIONID))
+  dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station))
 reg_dat0$place.labels <- reg_dat0$place.labels %>% 
   dplyr::filter(type %in% c("mainland", "peninsula"))
 
@@ -284,7 +284,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-trawl-gear}
 header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used during the ", 
                  maxyr ," ", SURVEY ," bottom trawl survey", 
-                 ifelse(length(SRVY1)>1, "s", ""), ".")
+                 ifelse(length(srvy1)>1, "s", ""), ".")
 footnote<- NA
 nickname <- "fig-trawl-gear-diagram"
 alttext <- paste0(header)
@@ -322,7 +322,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-stratum-areas}
 header <- paste0("Stratum areas and sampling densities used during the ", maxyr,
                  " ", SURVEY ," bottom trawl survey", 
-                 ifelse(length(SRVY1)>1, "s", ""),". Stratum area calculations were updated in ", 
+                 ifelse(length(srvy1)>1, "s", ""),". Stratum area calculations were updated in ", 
                  strat_yr , ". ")
 
 nickname <- "tab-stratum-areas" 
@@ -331,11 +331,11 @@ temp <- stratum %>%
   dplyr::mutate(depth_min_m = ifelse(depth_min_m  == 1, 0, depth_min_m ), 
                 area_name = paste0(gsub(replacement = "Shelf", x = area_name, pattern = "Domain") , 
                 "\n(",depth_min_m, "-", depth_max_m, " m)")) %>% 
-  dplyr::select(area_km2, stations_avail, stations_completed, stratum, area_name, SRVY)
+  dplyr::select(area_km2, stations_avail, stations_completed, stratum, area_name, srvy)
 
-if (length(unique(station$SRVY))>1) {
+if (length(unique(station$srvy))>1) {
   totals_sub <- temp %>%
-    dplyr::group_by(SRVY) %>%
+    dplyr::group_by(srvy) %>%
     dplyr::summarise(
       area_km2 = sum(area_km2, na.rm = TRUE),
       stations_completed = sum(stations_completed, na.rm = TRUE), 
@@ -349,7 +349,7 @@ totals <- temp %>%
     stations_completed = sum(stations_completed, na.rm = TRUE), 
     stations_avail = sum(stations_avail, na.rm = TRUE)) %>% 
   dplyr::mutate(area_name = "Total", 
-                SRVY = paste0("Z", text_list(SRVY1))) 
+                srvy = paste0("Z", text_list(srvy1))) 
 
 table_raw <- dplyr::bind_rows(
   temp, 
@@ -358,17 +358,17 @@ table_raw <- dplyr::bind_rows(
   dplyr::mutate(
     density = round(area_km2/stations_completed, 0), 
     area_km2 = round(area_km2, digits = 0)) %>%
-  dplyr::arrange(SRVY, area_name, stratum) %>% 
-  dplyr::relocate(SRVY, area_name, stratum, area_km2, 
+  dplyr::arrange(srvy, area_name, stratum) %>% 
+  dplyr::relocate(srvy, area_name, stratum, area_km2, 
                   stations_avail, stations_completed, density) %>% 
-  dplyr::mutate(SRVY = gsub(replacement = "", x = SRVY, pattern = "Z")) %>% 
+  dplyr::mutate(srvy = gsub(replacement = "", x = srvy, pattern = "Z")) %>% 
   dplyr::left_join(
-    y = data.frame(SRVY = c(SRVY1, "EBS and NBS"), 
-                   SRVY_long = c(stringr::str_to_title(SRVY11), "Eastern and northern Bering Sea combined")))
+    y = data.frame(srvy = c(srvy1, "EBS and NBS"), 
+                   srvy_long = c(stringr::str_to_title(srvy11), "Eastern and northern Bering Sea combined")))
 
 table_print <- table_raw %>%
-  dplyr::select(-SRVY) %>% 
-  flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL)  %>%
+  dplyr::select(-srvy) %>% 
+  flextable::as_grouped_data(groups = c("srvy_long"), columns = NULL)  %>%
   flextable::as_flextable(hide_grouplabel = TRUE) %>%
   flextable::compose(i = 1, j = "area_km2", part = "header",
                      value = as_paragraph("Representative\narea (km", as_sup("2"), ")")) %>%
@@ -390,12 +390,12 @@ table_print <- table_raw %>%
   flextable::width(width = c(1, .5, 1.1, 1.1, 1.1, 1.7)) %>% 
   flextable::align(j = c("stratum", "area_km2", "stations_completed", "density"), 
                    align = "right", part = "all")  %>% 
-  flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>%
-  flextable::padding(j = 1, i = ~ is.na(SRVY_long),
+  flextable::bold(j = 1, i = ~ !is.na(srvy_long) ) %>%
+  flextable::padding(j = 1, i = ~ is.na(srvy_long),
                      padding.left = 7)   %>%
-  flextable::hline(i = ~ !is.na(area_name), #j = SRVY, #border = fp_border(width = 3), 
+  flextable::hline(i = ~ !is.na(area_name), #j = srvy, #border = fp_border(width = 3), 
                    part = "body")  %>%
-  flextable::hline(i = ~ (area_name == "Total"), #j = SRVY, #border = fp_border(width = 3), 
+  flextable::hline(i = ~ (area_name == "Total"), #j = srvy, #border = fp_border(width = 3), 
                    part = "body",
                    border = fp_border(width = 2)) 
 
@@ -404,13 +404,13 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ## tab-oto-collection-scheme
 
-```{r tab-oto-collection-scheme-[SRVY]}
+```{r tab-oto-collection-scheme-[srvy]}
 nickname <- paste0("tab-oto-collection-scheme") 
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-scheme.xlsx"), 
                                 sheet = "Sheet1", 
                                 skip = 1) %>% 
-  dplyr::filter(SRVY %in% SRVY1 &
+  dplyr::filter(srvy %in% srvy1 &
                   year == maxyr & 
                   !is.na(oto_target)) %>% 
   dplyr::mutate(
@@ -423,27 +423,27 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
       dplyr::distinct(), 
     by = "print_name") %>% 
   dplyr::distinct() %>%
-  dplyr::arrange(SRVY, print_name, order) %>% 
-  dplyr::select(SRVY, print_name, oto_target, oto_samp_type) %>% 
+  dplyr::arrange(srvy, print_name, order) %>% 
+  dplyr::select(srvy, print_name, oto_target, oto_samp_type) %>% 
   dplyr::left_join(
-    y = data.frame(SRVY = SRVY1, 
-                   SRVY_long = stringr::str_to_title(SRVY11)))
+    y = data.frame(srvy = srvy1, 
+                   srvy_long = stringr::str_to_title(srvy11)))
 
 header <- paste0("Otolith collection types and target counts during the ", 
                  maxyr, " ", 
-                 text_list(haul_cruises_maxyr$SRVY_long),
-                 " bottom trawl survey", ifelse(length(SRVY1)>1, "s", ""),".")
+                 text_list(haul_cruises_maxyr$srvy_long),
+                 " bottom trawl survey", ifelse(length(srvy1)>1, "s", ""),".")
 
 table_print <- table_raw %>% 
-  dplyr::select(-SRVY) 
-if (length(SRVY1)>1) {
+  dplyr::select(-srvy) 
+if (length(srvy1)>1) {
   table_print <- table_print %>% 
-    flextable::as_grouped_data(groups = c("SRVY_long", "oto_samp_type"), 
+    flextable::as_grouped_data(groups = c("srvy_long", "oto_samp_type"), 
                                columns = NULL) %>% 
-    flextable::bold(j = 1, i = ~ !is.na(SRVY_long) )
+    flextable::bold(j = 1, i = ~ !is.na(srvy_long) )
 } else {
   table_print <- table_print %>% 
-    dplyr::select(-SRVY_long) %>% 
+    dplyr::select(-srvy_long) %>% 
     flextable::as_grouped_data(groups = c("oto_samp_type"), 
                                columns = NULL) 
 }
@@ -477,13 +477,13 @@ nickname <- paste0("tab-stomach-collection-scheme")
 header <- paste0("Stomach collection target size category bins (cm) used to collect each fish species during the ", 
                  maxyr, " ", 
                  text_list(paste0( 
-                   haul_cruises_maxyr$SRVY_long)),
+                   haul_cruises_maxyr$srvy_long)),
                  " bottom trawl survey.")
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-scheme.xlsx"), 
                                 sheet = "Sheet1", 
                                 skip = 1) %>% 
-  dplyr::filter(SRVY %in% SRVY1) %>% 
+  dplyr::filter(srvy %in% srvy1) %>% 
   dplyr::filter(year == maxyr & !is.na(stomach_target)) %>% 
   dplyr::left_join(
     y = report_spp1 %>% 
@@ -491,25 +491,25 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
       dplyr::distinct(), 
     by = "print_name") %>% 
   dplyr::distinct() %>%
-  dplyr::arrange(SRVY, print_name, order) %>% 
-  dplyr::select(SRVY, print_name, stomach_target) %>%
+  dplyr::arrange(srvy, print_name, order) %>% 
+  dplyr::select(srvy, print_name, stomach_target) %>%
   # dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0)))  %>% 
   dplyr::mutate(#stomach_target = paste0(stomach_target, " cm"), 
     print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))  %>%
   dplyr::left_join(
-    y = data.frame(SRVY = SRVY1, 
-                   SRVY_long = stringr::str_to_title(SRVY11))) %>%
+    y = data.frame(srvy = srvy1, 
+                   srvy_long = stringr::str_to_title(srvy11))) %>%
   dplyr::ungroup() %>% 
   tidyr::pivot_wider(data = ., 
                      id_cols = c("print_name"), 
-                     names_from = "SRVY_long", 
+                     names_from = "srvy_long", 
                      values_from = "stomach_target")
 
 table_raw[is.na(table_raw)] <- "-"
 thin_b <- officer::fp_border(width = 0.5, color = "grey10")
 
 
-if (length(SRVY1)==1) {
+if (length(srvy1)==1) {
   names(table_raw)[2] <- "Target collection size categories per haul"
 }
 
@@ -521,16 +521,16 @@ table_print <- table_raw %>%
   theme_flextable_nmfstm(row_lines = TRUE, 
                          pgwidth = full_page_portrait_width)  %>%
   flextable::width(width = c((full_page_portrait_width - 4.5), 
-                             rep_len(length.out = length(SRVY1), (4.5/length(SRVY1))))) %>% 
+                             rep_len(length.out = length(srvy1), (4.5/length(srvy1))))) %>% 
   flextable::hline(border = thin_b, part = "header") %>% 
   flextable::align(i = 1, align = "left", part = "header") 
-if (length(SRVY1)>1) {
+if (length(srvy1)>1) {
   table_print <- table_print%>%
     flextable::add_header_row(
       top = TRUE,
       values = c("",
                  "Target collection size categories per haul"),
-      colwidths = c(1,length(SRVY1)))
+      colwidths = c(1,length(srvy1)))
 }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -549,31 +549,31 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-project
   dplyr::filter(!is.na(`Project title`) & 
                   year == maxyr) 
 
-if (length(SRVY1)==1) {
+if (length(srvy1)==1) {
   table_raw <- table_raw %>% 
-    dplyr::filter(grepl(x = SRVY, pattern = SRVY1)) 
-  table_raw$SRVY <- paste0(SRVY1)
+    dplyr::filter(grepl(x = srvy, pattern = srvy1)) 
+  table_raw$srvy <- paste0(srvy1)
 }
 
 table_raw <- table_raw %>% 
-  dplyr::select(SRVY, `Project title`, `Principal investigator`, Agency) %>% 
+  dplyr::select(srvy, `Project title`, `Principal investigator`, Agency) %>% 
   dplyr::left_join(
-    y = data.frame(SRVY = c(SRVY1, "EBS & NBS"), 
-                   SRVY_long = c(stringr::str_to_title(SRVY11), 
+    y = data.frame(srvy = c(srvy1, "EBS & NBS"), 
+                   srvy_long = c(stringr::str_to_title(srvy11), 
                                  "Eastern and northern Bering Sea"))) %>% # " Combined"
   dplyr::mutate(
-    SRVY = gsub(pattern = "&", x = SRVY, replacement = "and"), 
-    SRVY = factor(x = SRVY, 
+    srvy = gsub(pattern = "&", x = srvy, replacement = "and"), 
+    srvy = factor(x = srvy, 
                   levels = c("EBS and NBS", "EBS", "NBS"), 
                   labels = c("EBS and NBS", "EBS", "NBS"), 
                   ordered = TRUE), 
-    SRVY_long = factor(x = SRVY_long, 
+    srvy_long = factor(x = srvy_long, 
                        levels = c("Eastern and northern Bering Sea", # " Combined"
                                   "Eastern Bering Sea", "Northern Bering Sea"), 
                        labels = c("Eastern and northern Bering Sea", # " Combined"
                                   "Eastern Bering Sea", "Northern Bering Sea"), 
                        ordered = TRUE)) %>%
-  dplyr::arrange(SRVY, Agency, `Principal investigator`, `Project title`)
+  dplyr::arrange(srvy, Agency, `Principal investigator`, `Project title`)
 
 # howmanyitals <- max(stringr::str_count(table_raw$`Project title`, "\\*")/2)
 # if (howmanyitals>0) {
@@ -591,7 +591,7 @@ table_raw <- table_raw %>%
 
 header <- paste0("Non-core scientific collections and research projects undertaken during the ",
                  maxyr, " ", 
-                 text_list(haul_cruises_maxyr$SRVY_long), 
+                 text_list(haul_cruises_maxyr$srvy_long), 
                  " bottom trawl survey, sorted by principal investigator and agency.")
 
 # find places
@@ -606,8 +606,8 @@ footnote0 <- paste(paste(temp1$Agency, " - ", temp1$agency_long, sep = ""), coll
 
 
 # table_print <- table_raw %>%
-#   dplyr::select(-SRVY) %>% 
-#   flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>% 
+#   dplyr::select(-srvy) %>% 
+#   flextable::as_grouped_data(groups = c("srvy_long"), columns = NULL) %>% 
 #   flextable::as_flextable(hide_grouplabel = TRUE)  %>%
 # flextable::compose(
 #   j = "dummy", 
@@ -620,17 +620,17 @@ footnote0 <- paste(paste(temp1$Agency, " - ", temp1$agency_long, sep = ""), coll
 
 if (plural_surveys == "") {
   table_print <- table_raw %>%
-    dplyr::select(-SRVY, -dplyr::starts_with("ital"), -SRVY_long) %>% 
+    dplyr::select(-srvy, -dplyr::starts_with("ital"), -srvy_long) %>% 
     flextable::flextable()
 } else {
   table_print <- table_raw %>%
-    dplyr::select(-SRVY, -dplyr::starts_with("ital")) %>%
-    flextable::as_grouped_data(groups = c("SRVY_long"), columns = NULL) %>%
+    dplyr::select(-srvy, -dplyr::starts_with("ital")) %>%
+    flextable::as_grouped_data(groups = c("srvy_long"), columns = NULL) %>%
     flextable::as_flextable(., hide_grouplabel = TRUE) %>%
-    flextable::bold(j = 1, i = ~ !is.na(SRVY_long) ) %>% 
-  flextable::padding(j = 1, i = ~ is.na(SRVY_long),
+    flextable::bold(j = 1, i = ~ !is.na(srvy_long) ) %>% 
+  flextable::padding(j = 1, i = ~ is.na(srvy_long),
                      padding.left = 7) %>% 
-  flextable::hline(i = ~ !is.na(SRVY_long), 
+  flextable::hline(i = ~ !is.na(srvy_long), 
                    border = fp_border(color = "white"), 
                    part = "body")
 }
@@ -654,7 +654,7 @@ nickname <- "tab-special-projects-pres"
 
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
-                 text_list(haul_cruises_maxyr$SRVY_long), 
+                 text_list(haul_cruises_maxyr$srvy_long), 
                  " bottom trawl survey, sorted by principal investigator and agency.")
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
@@ -662,16 +662,16 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-project
                                 skip = 1)  %>% 
   dplyr::filter(!is.na(`Project title`) & 
                   year == maxyr) %>% 
-  dplyr::select(SRVY, #`Project Title`, `Principal investigator`, Agency, 
+  dplyr::select(srvy, #`Project Title`, `Principal investigator`, Agency, 
                 nickname, group) %>% 
   dplyr::mutate(nickname = 
-                  if_else((tolower(SRVY) == "EBS & NBS" | is.na(SRVY)), 
+                  if_else((tolower(srvy) == "EBS & NBS" | is.na(srvy)), 
                           paste0(nickname), 
-                          paste0(SRVY, " ", nickname))) %>% 
+                          paste0(srvy, " ", nickname))) %>% 
   dplyr::select(group, nickname) %>%
   dplyr::arrange(nickname) %>%
   dplyr::ungroup() %>%
-  dplyr::arrange(group, #SRVY, 
+  dplyr::arrange(group, #srvy, 
                  nickname) %>% 
   dplyr::rename("Special Projects" = nickname)
 
@@ -711,11 +711,11 @@ table_raw <- lengths %>%
   dplyr::filter(year %in% c(maxyr, compareyr) &
                   !(species_code %in% c(68560, 68580, 68590, 69322, 
                                         69323, 69400, 69310, 68577, 68781) ))  %>%  # no crab!
-  dplyr::group_by(SRVY, year, common_name, order) %>%
+  dplyr::group_by(srvy, year, common_name, order) %>%
   dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) %>%
   tidyr::pivot_wider(data = ., 
                      id_cols = c("common_name", "order"), 
-                     names_from = c("SRVY", "year"), 
+                     names_from = c("srvy", "year"), 
                      values_from = "frequency") %>% 
   dplyr::ungroup() %>% 
   dplyr::arrange(order) %>%
@@ -764,7 +764,7 @@ table_print <- table_print0 %>%
   flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") %>% 
   flextable::hline(border = std_b, part = "header")  
 
-if (SRVY == "NEBS" & 
+if (srvy == "NEBS" & 
     paste0("EBS_", compareyr) %in% names(table_raw)) {
   table_print <- table_print %>% 
     flextable::vline(j = paste0("EBS_", compareyr))
@@ -778,7 +778,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r tab-age-samples-pres}
 nickname <- paste0("tab-age-samples-pres") 
 header <- paste0("Otoliths collected during the ", maxyr, " ", 
-                 text_list(haul_cruises_maxyr$SRVY_long), 
+                 text_list(haul_cruises_maxyr$srvy_long), 
                  " bottom trawl survey.")
 
 a <- report_spp1 %>% 
@@ -793,7 +793,7 @@ table_raw <- specimen %>%
   dplyr::filter(year %in% c(maxyr, compareyr) &
                   specimen_subsample_method %in% c(19, 6, 1) & 
                   specimen_sample_type == 1) %>%
-  dplyr::select(SRVY, specimen_subsample_method, species_code, year) %>% 
+  dplyr::select(srvy, specimen_subsample_method, species_code, year) %>% 
   dplyr::mutate(specimen_subsample_method = dplyr::case_when(
     specimen_subsample_method %in% c(1, 19) ~ "random-by-haul",
     specimen_subsample_method == 6 ~ "length/region-stratified (cm/sex/southeast and northwest regions)" )) %>%
@@ -806,12 +806,12 @@ table_raw <- specimen %>%
       dplyr::select(order, species_code) %>%
       distinct(),
     by = "species_code") %>%
-  dplyr::group_by(common_name, SRVY, order, year, specimen_subsample_method) %>% 
+  dplyr::group_by(common_name, srvy, order, year, specimen_subsample_method) %>% 
   dplyr::summarise(ages = n()) %>% 
   dplyr::ungroup() %>% 
   tidyr::pivot_wider(id_cols = c("common_name", "order", "specimen_subsample_method"), 
                      values_from = "ages", 
-                     names_from = c("SRVY", "year")) %>%
+                     names_from = c("srvy", "year")) %>%
   dplyr::arrange(order) %>%
   dplyr::select(-order) %>%
   dplyr::arrange(specimen_subsample_method) %>% 
@@ -858,7 +858,7 @@ table_print <- table_print0 %>%
                      padding.left = 20) %>%   
   flextable::hline(border = std_b, part = "header") 
 
-if (SRVY == "NEBS") {
+if (srvy == "NEBS") {
   table_print <- table_print %>% 
     flextable::vline(j = paste0("EBS_", compareyr))
 }
@@ -872,14 +872,14 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 # code orig from sean rohan's coldpool package! Jan 23 2021 
 nickname <- "fig-mean-temperature"
 header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea bottom trawl survey from 1982–",maxyr,
-                 ifelse(SRVY == "NEBS", 
+                 ifelse(srvy == "NEBS", 
                         paste0(" (left), and northern Bering Sea based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
                  ". ")
 
 height <- 3.25
 width <- full_page_portrait_width # 6.5
 
-a <- plot_mean_temperatures(maxyr, SRVY)
+a <- plot_mean_temperatures(maxyr, srvy)
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -889,7 +889,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r fig-cold-pool-area}
 header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea, based on observations from the eastern Bering Sea bottom trawl survey. The extent of the cold pool is shown as a percentage of the total survey area.",
-                 ifelse(SRVY == "NEBS", 
+                 ifelse(srvy == "NEBS", 
                         paste0(" Note that northern Bering Sea areas are not included in this figure.") , ""),
                  " Shading denotes near-bottom temperatures \u2264 2°C, \u2264 1°C, \u2264 0°C, and \u2264 -1°C.")
 
@@ -927,7 +927,7 @@ temp <- function(yrs,
   header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
                    range_text(yrs), " ", 
                    SURVEY, " bottom trawl survey",
-                   ifelse(SRVY=="NEBS", "s", ""),
+                   ifelse(srvy=="NEBS", "s", ""),
                    ". ") 
   if (temperature_zscore) {
     header <- paste0(header, "Years in which the mean ", case,
@@ -941,7 +941,7 @@ temp <- function(yrs,
                       expression(bold("Surface temperature (°C)")))
   
   if (is.null(title0)) {
-    title0 <- paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""),
+    title0 <- paste0("Eastern", ifelse(srvy == "NEBS", " and northern", ""),
                      " Bering Sea\n",
                      case, " temperature (", range_text(yrs), ")")
   }
@@ -1037,7 +1037,7 @@ reg_dat0 <- report_types$NEBS$reg_dat
 
 for (case in c("bottom", "surface")) {
   nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr), "-pres")
-  title0 = paste0("Eastern", ifelse(SRVY == "NEBS", " and northern", ""), " ",  
+  title0 = paste0("Eastern", ifelse(srvy == "NEBS", " and northern", ""), " ",  
                   case, " temperature (", range_text(yrs), ")")
   a <- temp(yrs = yrs, 
             row0 = row0, 
@@ -1058,16 +1058,16 @@ nickname0 <- paste0("tab-specimen-samples-")
 # length data - from oracle
 l <- lengths_maxyr %>% 
   dplyr::filter(!(species_code %in% c(68580, 68590, 68560))) %>%
-  dplyr::select(SRVY, species_code, frequency) %>% 
-  dplyr::group_by(SRVY, species_code) %>% 
+  dplyr::select(srvy, species_code, frequency) %>% 
+  dplyr::group_by(srvy, species_code) %>% 
   dplyr::summarise(length = sum(frequency, na.rm = TRUE)) %>% 
   dplyr::ungroup() 
 
 # age oto data - from oracle
 a <- specimen_maxyr %>% 
   dplyr::filter(!is.na(species_code) & specimen_sample_type == 1) %>%
-  dplyr::select("SRVY", species_code) %>% 
-  dplyr::group_by("SRVY" = SRVY, species_code) %>% 
+  dplyr::select("srvy", species_code) %>% 
+  dplyr::group_by("srvy" = srvy, species_code) %>% 
   dplyr::summarise(age = as.numeric(n())) %>% 
   dplyr::ungroup()
 
@@ -1076,14 +1076,14 @@ temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/other-field-collecti
                            sheet = "Sheet1", 
                            skip = 1) %>%
   dplyr::filter(year == maxyr) %>% 
-  dplyr::select(SRVY, print_name, dplyr::starts_with("count_")) %>% 
+  dplyr::select(srvy, print_name, dplyr::starts_with("count_")) %>% 
   dplyr::select(where(~sum(!is.na(.x)) > 0)) 
 names(temp) <- gsub(pattern = "count_", replacement = "", x = names(temp))
 
 # Combine
 table_raw0 <- 
   dplyr::full_join(x = l, y = a, 
-                   by = c("SRVY", "species_code")) %>% 
+                   by = c("srvy", "species_code")) %>% 
   dplyr::left_join(y = spp_info %>% 
                      dplyr::mutate(
                        common_name = gsub(pattern = " (juvenile)", 
@@ -1095,11 +1095,11 @@ table_raw0 <-
                          TRUE ~ common_name)) %>% 
                      dplyr::select(species_code, common_name), 
                    by = "species_code") %>% 
-  dplyr::group_by(SRVY, common_name) %>% 
+  dplyr::group_by(srvy, common_name) %>% 
   dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
   dplyr::ungroup() %>% 
   dplyr::full_join(y = temp, 
-                   by = c("SRVY", "common_name" = "print_name")) %>% 
+                   by = c("srvy", "common_name" = "print_name")) %>% 
   dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0)), 
                 common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name)))
   ) %>%
@@ -1112,10 +1112,10 @@ table_raw0 <-
 table_raw0 <- 
   dplyr::bind_rows(table_raw0, 
                    table_raw0 %>% 
-                     dplyr::group_by(SRVY) %>% 
+                     dplyr::group_by(srvy) %>% 
                      dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
                      dplyr::mutate(common_name = "ZZZTotal") ) %>% 
-  dplyr::relocate(SRVY, common_name, length, age) %>% 
+  dplyr::relocate(srvy, common_name, length, age) %>% 
   dplyr::rename("length_measurements" = length,
                 "otolith_age_structure_samples" = age) %>% 
   dplyr::ungroup() %>%
@@ -1126,23 +1126,23 @@ table_raw0 <- table_raw0[order(table_raw0$common_name),]
 table_raw0$common_name[table_raw0$common_name == "ZZZTotal"] <- "Total"
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
-  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+  nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
-                   haul_cruises_maxyr$SRVY_long[i],
+                   haul_cruises_maxyr$srvy_long[i],
                    " bottom trawl survey. ") # See \\@SAPcrab", maxyr, " for crab collection summaries. 
   
   table_raw <- table_raw0 %>% 
-    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
+    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) %>% 
     dplyr::select(where(~ any(. != 0)))
   
-  names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <-
-    stringr::str_to_sentence(names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))])
+  names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name"))] <-
+    stringr::str_to_sentence(names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name"))])
   
-  names(table_raw)[!(names(table_raw) %in% c("SRVY", "common_name"))] <- 
+  names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name"))] <- 
     (gsub(pattern = "_",
           replacement = "\n", 
           x = names(table_raw)[!(names(table_raw) %in% 
-                                   c("SRVY", "common_name"))], 
+                                   c("srvy", "common_name"))], 
           fixed = TRUE))
   names(table_raw)[names(table_raw) == "Otolith\nage\nstructure\nsamples"] <- 
     "Otolith age\nstructure samples"
@@ -1155,15 +1155,15 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     dplyr::mutate(across(where(is.numeric), 
                          formatC, big.mark=",", digits = 0, format = "f")) %>% 
     dplyr::ungroup() %>% 
-    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-    dplyr::select(-"SRVY") 
+    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) %>% 
+    dplyr::select(-"srvy") 
   
   table_print[is.na(table_print) | table_print == "0"] <- "-"
   
   table_print <- table_print %>% 
     flextable::flextable(data = .) %>%
     flextable::set_header_labels(
-      common_name = stringr::str_to_title(haul_cruises_maxyr$SRVY_long[i])) %>% 
+      common_name = stringr::str_to_title(haul_cruises_maxyr$srvy_long[i])) %>% 
     flextable::bold(i = which(table_print$common_name == "Total")) %>%
     flextable::valign(valign = "top") %>%
     theme_flextable_nmfstm(pgwidth = full_page_portrait_width) %>%
@@ -1178,21 +1178,21 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
 
 ## tab-species-composition
 
-```{r tab-species-composition, eval = (SRVY == "NEBS")}
+```{r tab-species-composition, eval = (srvy == "NEBS")}
 nickname <- "tab-species-composition" 
 height <- full_page_portrait_height # 7
 width <- full_page_portrait_width # 6.5
 header <- paste0("List of fish taxa encountered in the ",
-                 text_list(paste0(haul_cruises_maxyr$SRVY_long, " (", 
-                                  paste0(haul_cruises_maxyr$SRVY, ")")))," survey catches. ")
+                 text_list(paste0(haul_cruises_maxyr$srvy_long, " (", 
+                                  paste0(haul_cruises_maxyr$srvy, ")")))," survey catches. ")
 
 # Select data and make plot
 table_raw <- catch_haul_cruises_maxyr %>% 
-  dplyr::select(species_code, SRVY) %>% 
+  dplyr::select(species_code, srvy) %>% 
   dplyr::mutate(occured = TRUE) %>%
   dplyr::distinct() %>%
   tidyr::pivot_wider(id_cols = species_code,
-                     names_from = SRVY, 
+                     names_from = srvy, 
                      values_from = occured, 
                      values_fill = FALSE) %>% 
   dplyr::mutate(where = dplyr::case_when(
@@ -1289,9 +1289,9 @@ table_print <- flextable::flextable(
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-## tab-biomass-est-[SRVY]-[taxon]
+## tab-biomass-est-[srvy]-[taxon]
 
-```{r tab-biomass-est-[SRVY]-[taxon]}
+```{r tab-biomass-est-[srvy]-[taxon]}
 nickname0 <- "tab-biomass-est-"
 
 table_raw0 <- biomass  %>% 
@@ -1309,9 +1309,9 @@ table_raw0 <- biomass  %>%
     into = c("group", "taxon"), 
     sep = "_", 
     remove = FALSE) %>% 
-  dplyr::select(SRVY, stratum, year, biomass_mt, ci, 
+  dplyr::select(srvy, stratum, year, biomass_mt, ci, 
                 group, taxon, taxon0, total)  %>%
-  tidyr::pivot_wider(id_cols = c("group", "taxon", "taxon0", "SRVY", "total"), 
+  tidyr::pivot_wider(id_cols = c("group", "taxon", "taxon0", "srvy", "total"), 
                      names_from = c("stratum"), 
                      values_from = c("biomass_mt", "ci"))  %>% 
   dplyr::arrange(taxon)
@@ -1326,29 +1326,29 @@ table_raw0$order[grepl(pattern = "total", x = table_raw0$group, ignore.case = TR
 
 table_raw0 <- table_raw0  %>% 
   dplyr::arrange(taxon) %>%
-  dplyr::arrange(SRVY, taxon0, order) %>%
+  dplyr::arrange(srvy, taxon0, order) %>%
   dplyr::mutate(
     CL95 = ci_999, 
     a = "±",
     prop = biomass_mt_999/total, 
     prop0 = prop) %>% 
-  dplyr::relocate(SRVY, group, taxon, biomass_mt_999, a, CL95, prop) %>% 
+  dplyr::relocate(srvy, group, taxon, biomass_mt_999, a, CL95, prop) %>% 
   dplyr::select(-order, -total, -dplyr::starts_with("ci_"))
 
 names(table_raw0) <- gsub(pattern = "biomass_mt_", replacement = "", x = names(table_raw0))
 
 comb <- tidyr::crossing(taxon = c("fish", "invert"), 
-                        data.frame(SRVY = SRVY1, 
-                                   SRVY_long = SRVY11))
+                        data.frame(srvy = srvy1, 
+                                   srvy_long = srvy11))
 
 for (i in 1:nrow(comb)) {
   
-  nickname <- paste0(nickname0, comb$SRVY[i], "-", comb$taxon[i]) 
+  nickname <- paste0(nickname0, comb$srvy[i], "-", comb$taxon[i]) 
   
   total <- total_biomass %>%
     dplyr::filter(year == maxyr &
                     taxon == comb$taxon[i] &
-                    SRVY == comb$SRVY[i]) %>% 
+                    srvy == comb$srvy[i]) %>% 
     dplyr::left_join(y = data.frame(taxon = c("fish", "invert"), 
                                     taxon_long = c("fish", "invertebrate")))  
   
@@ -1356,7 +1356,7 @@ for (i in 1:nrow(comb)) {
                    ifelse(comb$taxon[i] =="invert", "invertebrate", "fish") ,
                    " taxa collected during the ", 
                    maxyr, " ", 
-                   comb$SRVY_long[i],
+                   comb$srvy_long[i],
                    ' bottom trawl survey. The "proportion" column represents the total estimated taxon biomass divided by the total estimated ', 
                    ifelse(comb$taxon[i] =="invert", "invertebrate", "fish") ,
                    " biomass (", text_list(formatC(x = total$total, digits = 0, format = "f", big.mark = ",")),
@@ -1365,7 +1365,7 @@ for (i in 1:nrow(comb)) {
   # Select data and make plot --------------------------------------------------
   table_raw <- table_raw0  %>% 
     dplyr::filter(taxon0 == comb$taxon[i] &
-                    SRVY == comb$SRVY[i]) %>% 
+                    srvy == comb$srvy[i]) %>% 
     janitor::remove_empty(which = "cols") 
   
   table_raw1 <- table_raw %>% 
@@ -1376,13 +1376,13 @@ for (i in 1:nrow(comb)) {
                             format = "f", big.mark = ",")), 
       dplyr::across(where(is.numeric), 
                     formatC, big.mark=",", digits = 0, format = "f")) %>% 
-    dplyr::select(-taxon0, -SRVY) %>%
+    dplyr::select(-taxon0, -srvy) %>%
     dplyr::select(-prop0)
   
   strat <- names(table_raw1)[7:ncol(table_raw1)]
   
   # Make table_print -------------------------------------------------------------
-  pgwidth <- ifelse(comb$SRVY[i] == "EBS", 
+  pgwidth <- ifelse(comb$srvy[i] == "EBS", 
                     full_page_landscape_width+1, full_page_portrait_width)
   
   table_print <- table_raw1 %>% 
@@ -1459,9 +1459,9 @@ for (i in 1:nrow(comb)) {
 ```
 
 
-## tab-majortaxa-pchange-[SRVY]
+## tab-majortaxa-pchange-[srvy]
 
-```{r tab-majortaxa-pchange-[SRVY]}
+```{r tab-majortaxa-pchange-[srvy]}
 
 nickname0 <- "tab-majortaxa-pchange-" 
 yrs <- analysisyrs[(length(analysisyrs)-3):length(analysisyrs)]
@@ -1470,9 +1470,9 @@ table_raw0 <-
   dplyr::left_join(
     y = biomass %>% 
       dplyr::filter(stratum == 999 & 
-                      SRVY %in% SRVY1 &
+                      srvy %in% srvy1 &
                       year %in% yrs) %>% 
-      dplyr::select(species_code, year, SRVY, biomass_mt), 
+      dplyr::select(species_code, year, srvy, biomass_mt), 
     x = report_spp1 %>% 
       dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_spp), 
     relationship = "many-to-many",
@@ -1480,10 +1480,10 @@ table_raw0 <-
   dplyr::filter(table_bio_spp & 
                   !is.na(print_name) & 
                   !is.na(year)) %>%
-  dplyr::group_by(print_name, SRVY, year, taxon) %>% 
+  dplyr::group_by(print_name, srvy, year, taxon) %>% 
   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
   dplyr::ungroup() %>%
-  tidyr::pivot_wider(id_cols = c(SRVY, print_name, taxon), 
+  tidyr::pivot_wider(id_cols = c(srvy, print_name, taxon), 
                      names_from = year, 
                      values_from = biomass_mt) %>% 
   dplyr::mutate(
@@ -1520,18 +1520,18 @@ table_print0 <- table_raw %>%
   dplyr::relocate(print_name, as.character(yrs))
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
-  nickname <- paste0(nickname0, haul_cruises_maxyr$SRVY[i]) 
+  nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0(
     "Total estimated biomass (t) and the percent change between the ",
     compareyr," and ",maxyr," ", 
-    haul_cruises_maxyr$SRVY_long[i], 
+    haul_cruises_maxyr$srvy_long[i], 
     ' bottom trawl surveys for predominant fish and invertebrate taxa. Taxa are listed in descending order of percent change from ',compareyr,' to ',maxyr,'. ') 
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
   
   table_raw  <- table_raw0
   table_print <- table_print0  %>% 
-    dplyr::filter(SRVY == haul_cruises_maxyr$SRVY[i]) %>% 
-    dplyr::select(-SRVY, -change0) %>%
+    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) %>% 
+    dplyr::select(-srvy, -change0) %>%
     flextable::flextable(data = ., 
                          col_keys = c("print_name",
                                       yrs, 
@@ -1553,16 +1553,16 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
 }
 ```
 
-## tab-est-spp-[SRVY]
+## tab-est-spp-[srvy]
 
-```{r tab-est-spp-[SRVY]}
+```{r tab-est-spp-[srvy]}
 nickname0 <- paste0("tab-est-spp-") 
 
 temp <- biomass %>% 
   dplyr::filter(year == maxyr &
                   stratum == 999) %>% 
-  dplyr::filter(SRVY %in% SRVY1) %>% 
-  dplyr::select(species_code, SRVY, 
+  dplyr::filter(srvy %in% srvy1) %>% 
+  dplyr::select(species_code, srvy, 
                 cpue_kgkm2_mean, cpue_kgkm2_sd, 
                 biomass_mt, biomass_sd, 
                 biomass_up, biomass_dw, 
@@ -1598,7 +1598,7 @@ for (i in 1:length(type)) {
     header <- paste0("Total mean weight CPUE (kg/km²) with standard deviation (SD; kg/km²), estimated biomass (t) with SD (t), 95% lower (LCL; t) and upper (UCL; t) confidence limits, and number of hauls where weights ")
     
     table_raw <- temp %>% 
-      dplyr::select(print_name, SRVY, 
+      dplyr::select(print_name, srvy, 
                     cpue_kgkm2_mean, cpue_kgkm2_sd, 
                     biomass_mt, biomass_sd, 
                     biomass_dw, biomass_up, 
@@ -1624,16 +1624,16 @@ for (i in 1:length(type)) {
                                          digits = 0, 
                                          format = "f", big.mark = ","))
     
-    if (SRVY != "NEBS") {
+    if (srvy != "NEBS") {
       table_print <- table_print %>%
-        dplyr::select(-"SRVY")
+        dplyr::select(-"srvy")
     }
     
     table_print <- table_print %>% 
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(
         print_name = "Species", 
-        # SRVY = "Shelf area", 
+        # srvy = "Shelf area", 
         cpue_kgkm2_mean = paste0("CPUE mean (kg/km²)"), 
         cpue_kgkm2_sd = paste0("CPUE SD (kg/km²)"), 
         biomass_mt = paste0("Biomass (t)"), 
@@ -1647,7 +1647,7 @@ for (i in 1:length(type)) {
     header <- paste0("Total mean count CPUE (no/km²) with standard deviation (SD; no/km²), estimated population (count) with SD (t), 95% lower (LCL) and upper (UCL) confidence limits, and number of hauls where species counts ")
     
     table_raw <- temp %>% 
-      dplyr::select(print_name, SRVY, 
+      dplyr::select(print_name, srvy, 
                     cpue_nokm2_mean, cpue_nokm2_sd, 
                     population_count, population_sd, 
                     population_dw,population_up,  
@@ -1676,12 +1676,12 @@ for (i in 1:length(type)) {
                                             digits = 0, 
                                             format = "f", big.mark = ","))
     
-    if (SRVY != "NEBS") {
+    if (srvy != "NEBS") {
       table_print <- table_print %>%
-        dplyr::select(-"SRVY")
+        dplyr::select(-"srvy")
     }
     table_print <- table_print %>% 
-      # dplyr::select(-SRVY) %>%
+      # dplyr::select(-srvy) %>%
       flextable::flextable(data = .) %>% 
       flextable::set_header_labels(
         print_name = "Species", 
@@ -1701,23 +1701,23 @@ for (i in 1:length(type)) {
     theme_flextable_nmfstm(row_lines = TRUE, 
                            pgwidth = full_page_portrait_width)  
   
-  if (SRVY == "NEBS") {
+  if (srvy == "NEBS") {
     table_print <- table_print %>% 
-      flextable::width(j = "SRVY", width = .25) %>%
+      flextable::width(j = "srvy", width = .25) %>%
       flextable::set_header_labels(
-        SRVY = "Shelf area") 
+        srvy = "Shelf area") 
   }
   
   header <- paste0(header, "were collected for common groundfish species by survey region during the ",
-                   maxyr," ", text_list(paste0(haul_cruises_maxyr$SRVY_long, 
-                                               " (", haul_cruises_maxyr$SRVY, "; ", 
+                   maxyr," ", text_list(paste0(haul_cruises_maxyr$srvy_long, 
+                                               " (", haul_cruises_maxyr$srvy, "; ", 
                                                haul_cruises_maxyr$stations_completed, " stations completed)")), 
                    " bottom trawl survey",plural_surveys,". ")
   
   table_print <- table_print %>% 
     flextable::width(j = "print_name", width = .8) %>%
-    flextable::width(j = ifelse(SRVY == "NEBS", 3, 2):(length(dim(table_print)$widths)), 
-                     width = (full_page_portrait_width-.8-ifelse(SRVY == "NEBS", .25, 0))/(length(dim(table_print)$widths)-ifelse(SRVY == "NEBS", 2, 1))) %>%
+    flextable::width(j = ifelse(srvy == "NEBS", 3, 2):(length(dim(table_print)$widths)), 
+                     width = (full_page_portrait_width-.8-ifelse(srvy == "NEBS", .25, 0))/(length(dim(table_print)$widths)-ifelse(srvy == "NEBS", 2, 1))) %>%
     flextable::align(align = "right", 
                      part = "all") %>%
     flextable::align(j = "print_name", 
@@ -1750,12 +1750,12 @@ table_raw <- biomass %>%
                   !is.na(order) &
                   !is.na(common_name)
   ) %>% 
-  dplyr::group_by(common_name, year, SRVY, order) %>% 
+  dplyr::group_by(common_name, year, srvy, order) %>% 
   dplyr::summarise(biomass = sum(biomass_mt, na.rm = TRUE), 
                    population = sum(population_count, na.rm = TRUE)) %>% 
   # calculate pchange
   dplyr::mutate(year0 = ifelse(year == maxyr, "maxyr", "compareyr")) %>% 
-  tidyr::pivot_wider(id_cols = c("order", "common_name", "SRVY"), 
+  tidyr::pivot_wider(id_cols = c("order", "common_name", "srvy"), 
                      names_from = "year0", 
                      values_from = c("biomass", "population")) %>% 
   dplyr::mutate(
@@ -1776,7 +1776,7 @@ table_raw <- biomass %>%
     biomass = paste0(biomass_compareyr, "\n", biomass_maxyr), 
     population = paste0(population_compareyr, "\n", population_maxyr), 
     year = paste0(compareyr, "\n", maxyr)) %>% 
-  dplyr::select(order, common_name, SRVY, year, biomass, population) %>%
+  dplyr::select(order, common_name, srvy, year, biomass, population) %>%
   # tidyr::pivot_longer(names_to = "var", 
   #                     values_to = "val", 
   #                     cols = c("biomass_compareyr", "population_compareyr", "biomass_maxyr", "population_maxyr")) %>% 
@@ -1787,7 +1787,7 @@ table_raw <- biomass %>%
   #   var = sapply((strsplit(x = var, split = "_")),"[[",1)) %>% 
   # # final format
   tidyr::pivot_wider(id_cols = c("order", "common_name", "year"),
-                     names_from = c("SRVY"),
+                     names_from = c("srvy"),
                      values_from = c("biomass", "population")) %>%
   dplyr::arrange((order)) %>%
   dplyr::select(-order) %>%
@@ -1853,7 +1853,7 @@ table_print <- table_raw %>%
   flextable::hline_bottom(part = "body",
                           border = fp_border(color = "transparent", style = "solid", width = 1))
 
-if (SRVY == "NEBS") {
+if (srvy == "NEBS") {
   table_print <- table_print  %>% 
     # NBS biomass
     flextable::bg(bg = negative,
@@ -1925,13 +1925,13 @@ tab_taxa_found_ <- function(temp,
     cnt_tables <- cnt_tables + 1
     newobj <- TRUE
     nickname <- paste0(nickname0, 
-                       temp$SRVY[i], 
+                       temp$srvy[i], 
                        "-",  
                        temp$taxon[i])
     
     header <- paste0(stringr::str_to_sentence(temp$taxon[i]), 
                      " taxa encountered during the ", 
-                     maxyr, " ", temp$SRVY_long[i], 
+                     maxyr, " ", temp$srvy_long[i], 
                      " bottom trawl survey listed alphabetically by ", 
                      ifelse(temp$taxon[i] == "fish", "family", "phylum"), ".")
     
@@ -1939,7 +1939,7 @@ tab_taxa_found_ <- function(temp,
       dplyr::left_join(
         x = catch_haul_cruises_maxyr %>% 
           dplyr::filter(year == maxyr &
-                          SRVY == temp$SRVY[i]) %>% 
+                          srvy == temp$srvy[i]) %>% 
           dplyr::select(station, latitude_dd_start, longitude_dd_start, depth_gear_m, species_code), 
         y = spp_info %>% 
           dplyr::rename(taxon0 = ifelse(temp$taxon[i] == "fish", "family", "phylum")) %>%
@@ -2077,8 +2077,8 @@ tab_taxa_found_ <- function(temp,
 temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
                                    taxon0 = c("invert", "fish")), 
                         haul_cruises_maxyr %>% 
-                          dplyr::select(SRVY_long, SRVY) %>% 
-                          dplyr::filter(SRVY == "EBS"))
+                          dplyr::select(srvy_long, srvy) %>% 
+                          dplyr::filter(srvy == "EBS"))
 
 # cnt_pre0 <- cnt_pre0 + 1; cnt_pre1 <- LETTERS[cnt_pre0]
 list_tables0 <- tab_taxa_found_(temp = temp, 
@@ -2105,12 +2105,12 @@ for (i in 1:length(list_tables0)) {
 ## Appendix B (NBS)
 
 ```{r tab-app-taxa-found-NBS}
-if (SRVY == "NEBS") {
+if (srvy == "NEBS") {
   temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
                                      taxon0 = c("invert", "fish")), 
                           haul_cruises_maxyr %>% 
-                            dplyr::select(SRVY_long, SRVY) %>% 
-                            dplyr::filter(SRVY == "NBS"))
+                            dplyr::select(srvy_long, srvy) %>% 
+                            dplyr::filter(srvy == "NBS"))
   if (nrow(temp) != 0) {   
     list_tables0 <- tab_taxa_found_(temp = temp, 
                                     # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
@@ -2163,7 +2163,7 @@ tab_app_fish_ <- function(temp,
     print(temp$file_name[i])
     
     nickname <- paste0(nickname0, 
-                       temp$SRVY[i], 
+                       temp$srvy[i], 
                        "-",  
                        temp$file_name[i])
     
@@ -2172,12 +2172,12 @@ tab_app_fish_ <- function(temp,
     header <- paste0("Population estimates by sex and size for ",
                      temp$print_name[i], " (", temp$species_name[i], ")", 
                      " from the ", 
-                     maxyr, " ", temp$SRVY_long[i], 
+                     maxyr, " ", temp$srvy_long[i], 
                      " bottom trawl survey.")
     
     table_raw <- sizecomp_maxyr %>% 
       dplyr::filter(species_code %in% spp_code &
-                      SRVY == temp$SRVY[i]) %>% 
+                      srvy == temp$srvy[i]) %>% 
       dplyr::distinct() %>%
       dplyr::ungroup()
     
@@ -2256,8 +2256,8 @@ tab_app_fish_ <- function(temp,
 
 ```{r tab-app-fish-EBS}
 temp <- tidyr::crossing(haul_cruises_maxyr %>% 
-                          dplyr::select(SRVY_long, SRVY) %>% 
-                          dplyr::filter(SRVY == "EBS"), 
+                          dplyr::select(srvy_long, srvy) %>% 
+                          dplyr::filter(srvy == "EBS"), 
                         report_spp1 %>% 
                           dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
                           dplyr::select(file_name, print_name, common_name1, species_name)  %>% 
@@ -2288,10 +2288,10 @@ for (i in 1:length(list_tables0)) {
 ## Appendix D (NBS)
 
 ```{r tab-app-fish-NBS}
-if (SRVY == "NEBS") {
+if (srvy == "NEBS") {
   temp <- tidyr::crossing(haul_cruises_maxyr %>% 
-                            dplyr::select(SRVY_long, SRVY) %>% 
-                            dplyr::filter(SRVY == "NBS"), 
+                            dplyr::select(srvy_long, srvy) %>% 
+                            dplyr::filter(srvy == "NBS"), 
                           report_spp1 %>% 
                             dplyr::filter(taxon == "fish" & text_spp == TRUE) %>% 
                             dplyr::select(file_name, print_name, common_name1, species_name) %>% 

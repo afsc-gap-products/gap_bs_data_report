@@ -8,10 +8,10 @@ report_types <- list(
     sectname = "EBS-BTS-Report", 
     SURVEY = "eastern Bering Sea", 
     map.area = "bs.south", 
-    SRVY11 = c("eastern Bering Sea"), 
-    SRVY1 = "EBS", 
-    SRVY0 = "BS", # in Oracle
-    SRVY00 = 98, # EBS
+    srvy11 = c("eastern Bering Sea"), 
+    srvy1 = "EBS", 
+    srvy0 = "BS", # in Oracle
+    srvy00 = 98, # EBS
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.south"),
     extrap.box = c(xmin = -180, xmax = -156, ymin = 54, ymax = 62), 
@@ -25,10 +25,10 @@ report_types <- list(
     sectname = "NBS-BTS-Report", 
     SURVEY = "northern Bering Sea", 
     map.area = "bs.north", 
-    SRVY11 = "northern Bering Sea", 
-    SRVY1 = "NBS", 
-    SRVY0 = "BS", # in Oracle
-    SRVY00 = 143,
+    srvy11 = "northern Bering Sea", 
+    srvy1 = "NBS", 
+    srvy0 = "BS", # in Oracle
+    srvy00 = 143,
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.north"),
     extrap.box = c(xmin = -179.5, xmax = -157, ymin = 54, ymax = 68),
@@ -42,10 +42,10 @@ report_types <- list(
     sectname = "NEBS-BTS-Report", 
     SURVEY = "eastern and northern Bering Sea",
     map.area = "bs.all", 
-    SRVY11 = c("eastern Bering Sea", "northern Bering Sea"), 
-    SRVY1 = c("EBS", "NBS"), 
-    SRVY0 = "BS", # in Oracle
-    SRVY00 = c(98, #NBS
+    srvy11 = c("eastern Bering Sea", "northern Bering Sea"), 
+    srvy1 = c("EBS", "NBS"), 
+    srvy0 = "BS", # in Oracle
+    srvy00 = c(98, #NBS
                143), # EBS
     station_id = akgfmaps::get_survey_stations(
       select.region = "bs.all"),
@@ -67,18 +67,26 @@ for (ii in 1:length(report_types)) {
   survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
   reg_dat$survey.area <- reg_dat$survey.area %>%
     dplyr::mutate(
-      SRVY = dplyr::case_when(
+      srvy = dplyr::case_when(
         SURVEY_DEFINITION_ID == 98 ~ "EBS", 
         SURVEY_DEFINITION_ID == 143 ~ "NBS"), 
       color = alpha(colour = survey_reg_col, 0.7), 
-      SRVY_long = dplyr::case_when(
-        SRVY == "EBS" ~ "Eastern Bering Sea", 
-        SRVY == "NBS" ~ "Northern Bering Sea") )
+      srvy_long = dplyr::case_when(
+        srvy == "EBS" ~ "Eastern Bering Sea", 
+        srvy == "NBS" ~ "Northern Bering Sea") )
   report_types[[ii]]$reg_dat <- reg_dat
 }
 
-a <- report_types[names(report_types) == SRVY][[1]]
+a <- report_types[names(report_types) == srvy][[1]]
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+
+  names(reg_dat$akland) <- tolower(names(reg_dat$akland))
+  names(reg_dat$survey.area) <- tolower(names(reg_dat$survey.area))
+  names(reg_dat$survey.strata) <- tolower(names(reg_dat$survey.strata))
+  names(reg_dat$survey.grid) <- tolower(names(reg_dat$survey.grid))
+  names(reg_dat$bathymetry) <- tolower(names(reg_dat$bathymetry))
+  names(reg_dat$graticule) <- tolower(names(reg_dat$graticule))
+
 
 temp <- sf::st_point(c(-169.69, 64.5)) %>% # -169.698826, 64.599971
   sf::st_sfc(crs = in.crs) %>% 
@@ -93,7 +101,7 @@ reg_dat$place.labels <- dplyr::bind_rows(
              lab = "Chirikov Basin", 
              x = temp$X, 
              y = temp$Y))
-plural_surveys <- ifelse(length(SRVY1) > 1, "s", "")
+plural_surveys <- ifelse(length(srvy1) > 1, "s", "")
 
 # Load data --------------------------------------------------------------------
 
@@ -422,24 +430,24 @@ cruises <- gap_products_akfin_cruise0 %>%
   dplyr::filter(year != 2020 & # no surveys happened this year that we care about
                   year >= 1982 &
                   year <= maxyr &
-                  survey_definition_id %in% SRVY00) %>% 
+                  survey_definition_id %in% srvy00) %>% 
   dplyr::mutate(vess_shape = substr(x = vessel_name, 1,1), 
                 vessel_ital = paste0("FV *", stringr::str_to_title(vessel_name), "*"), 
                 vessel_name = paste0("FV ", stringr::str_to_title(vessel_name))) %>%
   dplyr::left_join(
     y = data.frame(survey_definition_id = c(143, 98, 47), 
-                   SRVY = c("NBS", "EBS", "GOA"), 
-                   SRVY_long = c("northern Bering Sea", 
+                   srvy = c("NBS", "EBS", "GOA"), 
+                   srvy_long = c("northern Bering Sea", 
                                  "eastern Bering Sea", 
                                  "Gulf of Alaska"), 
-                   SRVY_start = c(2010, 1982, NA)), 
+                   srvy_start = c(2010, 1982, NA)), 
     by  = "survey_definition_id") %>% 
   dplyr::rename(start_date_cruise = date_start, 
                 end_date_cruise = date_end)
 
 cruises_maxyr <- cruises %>%
   dplyr::filter(year == maxyr & 
-                  survey_definition_id %in% SRVY00)
+                  survey_definition_id %in% srvy00)
 
 ## haul and station ------------------------------------------------------------------------
 
@@ -452,26 +460,26 @@ haul <- dplyr::left_join(
   by = "cruisejoin") %>%  
   dplyr::mutate(year = as.numeric(format(as.Date(date_time_start, 
                                                  format="%m/%d/%Y"),"%Y")), 
-                SRVY = dplyr::case_when(
+                srvy = dplyr::case_when(
                   survey_definition_id %in% 143 ~ "NBS",
                   survey_definition_id %in% 98 ~ "EBS" )) %>%
   dplyr::filter(year <= maxyr &
                   year > 1981 & # abundance_haul == "Y" & 
                   performance >= 0 &
                   !(is.null(station)) &
-                  survey_definition_id %in% SRVY00 & 
+                  survey_definition_id %in% srvy00 & 
                   haul_type == 3) 
 
 station <- gap_products_old_station0 %>%
-  dplyr::filter(srvy %in% SRVY1 &
+  dplyr::filter(srvy %in% srvy1 &
                   grepl(x = station, pattern = "[A-Z]") &
                   design_year == max(design_year, na.rm = TRUE)) %>%
-  dplyr::select(station, stratum, SRVY = srvy) %>%
+  dplyr::select(station, stratum, srvy = srvy) %>%
   dplyr::mutate(
     stratum = as.numeric(stratum), 
     survey_definition_id = dplyr::case_when(
-      SRVY == "NBS" ~ 143, 
-      SRVY == "EBS" ~ 98 ) )
+      srvy == "NBS" ~ 143, 
+      srvy == "EBS" ~ 98 ) )
 
 if (maxyr >= 2024) { # remove corner stations
   station <- station %>% 
@@ -482,12 +490,12 @@ if (maxyr >= 2024) { # remove corner stations
 
 cruises_race <- race_data_cruises0 %>% 
   dplyr::mutate(year = as.numeric(substr(x = cruise, 1, 4)), 
-                SRVY = dplyr::case_when(
+                srvy = dplyr::case_when(
                   substr(cruise, 6, 6) == 1 ~ "EBS", 
                   substr(cruise, 6, 6) == 2 ~ "NBS"), 
                 survey_definition_id = dplyr::case_when(
-                  SRVY == "EBS" ~ 98, 
-                  SRVY == "NBS" ~ 143) )%>% 
+                  srvy == "EBS" ~ 98, 
+                  srvy == "NBS" ~ 143) )%>% 
   dplyr::filter(
     year == maxyr &
       vessel_id %in% unique(haul$vessel_id[haul$year == maxyr]) ) 
@@ -501,7 +509,7 @@ if (length(cruises_race$data_in_final == "N")>0 | nrow(cruises_race) == 0) {
                     abundance_haul == "Y" &
                     haul_type %in% 3 & 
                     data_in_final == "N") %>%
-    dplyr::select(cruise, year, haul, station, vessel_id, haul_id) %>% # , stratum, SRVY, survey_definition_id
+    dplyr::select(cruise, year, haul, station, vessel_id, haul_id) %>% # , stratum, srvy, survey_definition_id
     dplyr::left_join(y = race_data_edit_events0 %>% 
                        dplyr::select(haul_id, latitude_dd_start = edit_latitude, longitude_dd_start = edit_longitude), 
                      by = c("haul_id")) %>%
@@ -542,7 +550,7 @@ temp <- cruises_race %>%
   dplyr::left_join(y = race_data_hauls0) %>%
   # dplyr::left_join(y = cruises_race) %>%
   dplyr::filter(#year == maxyr &
-    survey_definition_id %in% SRVY00 &
+    survey_definition_id %in% srvy00 &
       # stationid %in% reg_dat$survey.grid$station &
       haul_type %in% c(17, 20, 4))
 
@@ -555,7 +563,7 @@ if (length(cruises_race$data_in_final == "N")>0) {
                     # abundance_haul == "Y" &
                     haul_type %in% c(17, 20, 4) & 
                     data_in_final == "N") %>%
-    dplyr::select(cruise, year, haul, station) %>% # , stratum, SRVY, survey_definition_id
+    dplyr::select(cruise, year, haul, station) %>% # , stratum, srvy, survey_definition_id
     dplyr::left_join(y = station)
   
   temp <- dplyr::bind_rows(temp, haul_missing)
@@ -571,7 +579,7 @@ if (length(cruises_race$data_in_final == "N")>0) {
 # temp <- haul %>% 
 #   # dplyr::left_join(y = cruises_race) %>% 
 #   dplyr::filter(year == maxyr & 
-#                   survey_definition_id %in% SRVY00 &
+#                   survey_definition_id %in% srvy00 &
 #                   stationid %in% reg_dat$survey.grid$station &
 #                   haul_type %in% c(17, 20)) 
 
@@ -600,7 +608,7 @@ nbsyr <- gap_products_akfin_cruise0 %>%
   unlist() %>% 
   sort(decreasing = FALSE)
 
-if (SRVY1 %in% c("NBS")) {
+if (srvy1 %in% c("NBS")) {
   analysisyrs <- nbsyr
 } else {
   analysisyrs <- gap_products_akfin_cruise0 %>% 
@@ -633,7 +641,7 @@ cpue <- dplyr::bind_rows(
                      dplyr::mutate(group = species_code, 
                                    species_code = NA)) %>% 
   dplyr::right_join(y = haul %>% 
-                      dplyr::select(hauljoin, station, stratum, survey_definition_id, SRVY, 
+                      dplyr::select(hauljoin, station, stratum, survey_definition_id, srvy, 
                                     year, cruisejoin, longitude_dd_start, latitude_dd_start), 
                     by = "hauljoin") %>% 
   dplyr::left_join(y = spp_info %>% 
@@ -646,11 +654,11 @@ print("stratum")
 
 stratum <- gap_products_akfin_area0 %>% 
   dplyr::filter(
-    survey_definition_id %in% SRVY00 &
+    survey_definition_id %in% srvy00 &
       area_type == "STRATUM" &
       design_year == strat_yr) %>%  
   dplyr::mutate(
-    SRVY = dplyr::case_when(
+    srvy = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS",
       survey_definition_id == 98 ~ "EBS"),
     area_nmi2 = area_km2/3.429904, 
@@ -737,8 +745,8 @@ print("haul_cruises + _maxyr + _compareyr")
 haul_cruises <- 
   dplyr::left_join(
     x = haul_cruises_vess %>% 
-      dplyr::select(year, survey_name, cruise, SRVY_start, 
-                    survey_definition_id, SRVY, SRVY_long, 
+      dplyr::select(year, survey_name, cruise, srvy_start, 
+                    survey_definition_id, srvy, srvy_long, 
                     cruisejoin) %>%
       unique(), 
     y = haul_cruises_vess %>% 
@@ -763,22 +771,22 @@ haul_cruises <-
   dplyr::left_join(
     x = ., 
     y = cruises %>% 
-      dplyr::select(year, SRVY) %>%
+      dplyr::select(year, srvy) %>%
       unique() %>%
-      dplyr::count(vars = SRVY) %>%
+      dplyr::count(vars = srvy) %>%
       dplyr::rename(yrofsurvey = n, 
-                    SRVY = vars), 
-    by = "SRVY") %>% 
+                    srvy = vars), 
+    by = "srvy") %>% 
   dplyr::select(-cruisejoin, -cruise) %>%
   dplyr::mutate(stndth = stndth(yrofsurvey))  %>% 
-  dplyr::arrange(SRVY) %>% 
+  dplyr::arrange(srvy) %>% 
   dplyr::mutate(compareyr = compareyr[1]) %>%
   dplyr::left_join(
     x = ., 
     y = data.frame(
-      SRVY = SRVY1,
+      srvy = srvy1,
       compareyr_ref = ref_compareyr), 
-    by = "SRVY") %>%
+    by = "srvy") %>%
   unique()
 
 haul_cruises_maxyr <- haul_cruises %>% 
@@ -803,7 +811,7 @@ catch_haul_cruises <-
                     performance, 
                     duration_hr, distance_fished_km, net_width_m, net_measured, net_height_m), 
     y = cruises %>% 
-      dplyr::select(cruisejoin, survey_name, SRVY, year, cruise),  
+      dplyr::select(cruisejoin, survey_name, srvy, year, cruise),  
     by = c("cruisejoin")) %>% 
   dplyr::left_join(
     y = catch %>% 
@@ -845,9 +853,9 @@ print("lengths")
 lengths_sap <- dplyr::bind_rows(
   crab_ebscrab0 %>%
     dplyr::filter(!(cruise %in% unique(crab_ebscrab_nbs0$cruise))) %>% # there may be some nbs data in the ebs (201002)
-    dplyr::mutate(SRVY = "EBS"),
+    dplyr::mutate(srvy = "EBS"),
   crab_ebscrab_nbs0 %>%
-    dplyr::mutate(SRVY = "NBS") ) %>% 
+    dplyr::mutate(srvy = "NBS") ) %>% 
   dplyr::group_by(cruise, species_code)  %>% 
   dplyr::summarise(frequency = n()) %>% 
   dplyr::ungroup() %>% 
@@ -874,7 +882,7 @@ lengths_gap <- race_data_cruises0 %>%
                    by = "haul_id") %>% 
   dplyr::filter(region == "BS" & 
                   !is.na(species_code) &
-                  survey_definition_id %in% SRVY00 & 
+                  survey_definition_id %in% srvy00 & 
                   performance >= 0 &
                   haul_type == 3) %>%
   dplyr::mutate(species_code = dplyr::case_when(
@@ -887,7 +895,7 @@ lengths_gap <- race_data_cruises0 %>%
 
 lengths <- dplyr::bind_rows(lengths_gap, lengths_sap) %>% 
   dplyr::left_join(cruises %>% 
-                     dplyr::select(SRVY, survey_definition_id) %>% 
+                     dplyr::select(srvy, survey_definition_id) %>% 
                      dplyr::distinct() ) %>% 
   dplyr::left_join(length_type, 
                    by = c("length_type" = "length_type_id"))
@@ -908,7 +916,7 @@ specimen <- gap_products_akfin_specimen0 %>%
     by = c("hauljoin")) %>% 
   dplyr::left_join(
     y = cruises %>% 
-      dplyr::select(cruisejoin, survey_name, SRVY, survey_definition_id, year),  
+      dplyr::select(cruisejoin, survey_name, srvy, survey_definition_id, year),  
     by = c("cruisejoin"))  %>% 
   dplyr::filter(!is.na(year)) %>% 
   dplyr::arrange(desc(year))
@@ -932,7 +940,7 @@ temps_avg_yr <- coldpool::cold_pool_index %>%
   dplyr::arrange(desc(bt)) %>%
   dplyr::mutate(warmest_rank = 1:nrow(.), bt_mean = mean(bt, na.rm = TRUE), 
                 st_mean = mean(st, na.rm = TRUE), 
-                SRVY = "EBS", 
+                srvy = "EBS", 
                 bt_zscore = (bt-bt_mean)/sd(bt, na.rm = TRUE), 
                 st_zscore = (st-st_mean)/sd(st, na.rm = TRUE), 
                 bt_notsig = (bt_zscore > -1 & bt_zscore < 1), 
@@ -950,13 +958,13 @@ temps_avg_yr <- coldpool::cold_pool_index %>%
                 case = ifelse(bt_case == st_case, 
                               paste0("both ", bt_case), 
                               paste0("bt ", bt_case, ", st ", st_case)) ) %>% 
-  dplyr::arrange(SRVY, year) 
+  dplyr::arrange(srvy, year) 
 
 # calculate the nth year of case
 nthyr <- c()
-for (ii in 1:length(unique(temps_avg_yr$SRVY))){
+for (ii in 1:length(unique(temps_avg_yr$srvy))){
   temp <- temps_avg_yr %>% 
-    dplyr::filter(SRVY == unique(temps_avg_yr$SRVY)[ii])
+    dplyr::filter(srvy == unique(temps_avg_yr$srvy)[ii])
   for (i in 1:nrow(temp)) {
     if (i == 1) {
       nthyr0 <- 1
@@ -978,7 +986,7 @@ temps_avg_yr_maxyr <- temps_avg_yr %>%
 temps_avg_yr_abovebelow <- list(
   "above" = 
     temps_avg_yr %>% 
-    dplyr::filter(SRVY == "EBS" & 
+    dplyr::filter(srvy == "EBS" & 
                     bt_above_mean == TRUE &
                     year >= 2006) %>% # the begining of the last cold stanza
     dplyr::ungroup() %>%
@@ -987,7 +995,7 @@ temps_avg_yr_abovebelow <- list(
     unlist(),
   "below" = 
     temps_avg_yr %>% 
-    dplyr::filter(SRVY == "EBS" & 
+    dplyr::filter(srvy == "EBS" & 
                     bt_above_mean == FALSE &
                     year >= 2006) %>%  # the begining of the last cold stanza
     dplyr::ungroup() %>%
@@ -1032,16 +1040,16 @@ print("sizecomp")
 
 # Crab 
 sizecomp_sap <- crab_nbs_size1mm_all_species0 %>% 
-  dplyr::rename(SRVY = survey_definition_id) %>%
+  dplyr::rename(srvy = survey_definition_id) %>%
   tidyr::pivot_longer(cols = c(number_unsexed, number_males, number_mature_females, number_immature_females),
                       names_to = "sex", values_to = "population_count")  %>%
-  dplyr::group_by(sex, length_mm, year, species_code, SRVY) %>% 
+  dplyr::group_by(sex, length_mm, year, species_code, srvy) %>% 
   dplyr::summarise(population_count = sum(population_count, na.rm = TRUE)) %>%
   dplyr::ungroup() %>%
   dplyr::mutate(
     survey_definition_id = dplyr::case_when(
-      SRVY == "NBS" ~ 143, 
-      SRVY == "EBS" ~ 98), 
+      srvy == "NBS" ~ 143, 
+      srvy == "EBS" ~ 98), 
     sex = dplyr::case_when(
       sex == "number_unsexed" ~ "unsexed",
       sex == "number_males" ~ "males",
@@ -1055,7 +1063,7 @@ sizecomp_gap <- gap_products_akfin_sizecomp0 %>% # GAP data
   #                                  species_code = NA)) %>% 
   dplyr::filter(
     area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
-      survey_definition_id %in% SRVY00 &
+      survey_definition_id %in% srvy00 &
       year <= maxyr &
       # area_id > 99900 & 
       length_mm > 0) %>% 
@@ -1068,7 +1076,7 @@ sizecomp_gap <- gap_products_akfin_sizecomp0 %>% # GAP data
 sizecomp <- dplyr::bind_rows(sizecomp_sap, sizecomp_gap) %>% 
   dplyr::filter(
     year <= maxyr &
-      survey_definition_id %in% SRVY00 & 
+      survey_definition_id %in% srvy00 & 
       year > 1981 & 
       !is.na(length_mm) & 
       !is.na(population_count) & 
@@ -1077,7 +1085,7 @@ sizecomp <- dplyr::bind_rows(sizecomp_sap, sizecomp_gap) %>%
                      dplyr::select(species_code, taxon),
                    by  = "species_code") %>% 
   dplyr::mutate(
-    SRVY = dplyr::case_when(
+    srvy = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS", 
       survey_definition_id == 98 ~ "EBS")) %>% 
   dplyr::select(-area_id)
@@ -1095,7 +1103,7 @@ print("agecomps")
 agecomp <- gap_products_akfin_agecomp0 %>% # GAP data
   dplyr::filter(
     area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
-      survey_definition_id %in% SRVY00 & 
+      survey_definition_id %in% srvy00 & 
       !is.na(population_count) & 
       population_count > 0 & 
       age > 0) %>% 
@@ -1104,7 +1112,7 @@ agecomp <- gap_products_akfin_agecomp0 %>% # GAP data
       sex == 1 ~ "males", 
       sex == 2 ~ "females", 
       sex == 3 ~ "unsexed"),
-    SRVY = dplyr::case_when(
+    srvy = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS", 
       survey_definition_id == 98 ~ "EBS")) %>% 
   dplyr::left_join(y = spp_info %>% 
@@ -1133,13 +1141,13 @@ biomass_gap <- dplyr::bind_rows(
                   species_code = NA)) %>%
   dplyr::filter(
     area_id %in% as.numeric(strat0) &
-      survey_definition_id %in% SRVY00 &
+      survey_definition_id %in% srvy00 &
       n_weight > 0 & 
       year <= maxyr &
       !(species_code %in% c(69323, 69322, 68580, 68560)) ) %>%  
   unique() %>%
   dplyr::mutate(
-    SRVY = dplyr::case_when(
+    srvy = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS", 
       survey_definition_id == 98 ~ "EBS"),
     stratum = ifelse(area_id %in% c(99900, 99902), 999, area_id)) %>% 
@@ -1154,8 +1162,8 @@ biomass_gap <- dplyr::bind_rows(
     population_dw = population_count - (2*population_sd))
 
 biomass_sap <- crab_gap_ebs_nbs_abundance_biomass0 %>% 
-  dplyr::filter(survey_region %in% SRVY) %>%
-  dplyr::select(SRVY = survey_region, 
+  dplyr::filter(survey_region %in% srvy) %>%
+  dplyr::select(srvy = survey_region, 
                 year = survey_year, 
                 species_code, 
                 biomass_mt = biomass_total, 
@@ -1165,11 +1173,11 @@ biomass_sap <- crab_gap_ebs_nbs_abundance_biomass0 %>%
                 population_up = abundance_upper_ci, 
                 population_dw = abundance_lower_ci) %>%
   dplyr::mutate(survey_definition_id = dplyr::case_when(
-    SRVY == "NBS" ~ 143, 
-    SRVY == "EBS" ~ 98), 
+    srvy == "NBS" ~ 143, 
+    srvy == "EBS" ~ 98), 
     area_id = dplyr::case_when(
-      SRVY == "NBS" ~ 99902, 
-      SRVY == "EBS" ~ 99900), 
+      srvy == "NBS" ~ 99902, 
+      srvy == "EBS" ~ 99900), 
     stratum = 999, 
     taxon = "invert") 
 
@@ -1222,19 +1230,19 @@ total_biomass <- complex_biomass0 %>%
   dplyr::ungroup() %>% 
   dplyr::arrange(desc(year), desc(taxon)) %>% 
   dplyr::left_join(
-    y = data.frame(survey_definition_id = SRVY00, 
-                   SRVY = SRVY1, 
-                   SRVY_long = SRVY11))
+    y = data.frame(survey_definition_id = srvy00, 
+                   srvy = srvy1, 
+                   srvy_long = srvy11))
 
 
 # total_biomass <- biomass %>% 
 #   dplyr::filter(stratum == 999 & 
 #                   !(is.na(species_code)) & 
 #                   !(species_code %in% temp)) %>%
-#   dplyr::group_by(SRVY, year, taxon) %>% 
+#   dplyr::group_by(srvy, year, taxon) %>% 
 #   dplyr::summarise(total = sum(biomass_mt, na.rm = T)) %>% 
 #   dplyr::ungroup() %>% 
 #   dplyr::arrange(desc(year), desc(taxon)) %>% 
 #   dplyr::left_join(
-#     y = data.frame(SRVY = SRVY1, 
-#                    SRVY_long = SRVY11))
+#     y = data.frame(srvy = srvy1, 
+#                    srvy_long = srvy11))

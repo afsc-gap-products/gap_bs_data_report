@@ -143,27 +143,37 @@ str0 <- ""
 str0 <- paste0("Between ", compareyr," and ", maxyr,", the ", spp_print, " biomass estimate ")
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw
-cite_bio <- paste0(" (Tables ", tab_stat," and ", tab_wt, "; Figs. ", fig_biopop, 
+cite_bio <- paste0(" (Tables ", tab_stat," and ", tab_wt, "; Figs. ", fig_dist, " and ", fig_biopop, 
                    ifelse(spp_plot_idw, paste0(" and ", fig_dist), ""), ")")
-cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no, "; Figs. ", fig_biopop,")")
+cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no, "; Fig. ", fig_biopop,")")
 
-  if ("Eastern Bering Sea" %in% temp$SRVY_long) {
-  temp0 <- temp[temp$SRVY_long == "Eastern Bering Sea", ]
+  if ("Eastern Bering Sea" %in% temp$srvy_long) {
+  temp0 <- temp[temp$srvy_long == "Eastern Bering Sea", ]
   case <- dplyr::case_when(
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "Not caught") ~ 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ 
       paste0("was ", temp0$`Biomass\n(t)`, " t"), 
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ 
-      paste0("decreased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"), 
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ 
-      paste0("increased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"),
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ 
+      paste0("decreased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]), 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ 
+      paste0("increased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]),
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ 
       "did not notably change"
   )
+  
+  if ("Survey catch totals" %in% names(temp0)) {
+  case <- paste0(case, 
+                 ", which was a", 
+                 ifelse(c("a", "e", "i", "o", "u") %in% tolower(substr(x = temp0$`Survey catch totals`, start = 1, stop = 1)), 
+                        "n", ""), 
+                 substr(x = temp0$`Survey catch totals`, start = 2, stop = nchar(temp0$`Survey catch totals`)) )
+                 
+  }
+  
   case_transition_ebs <- dplyr::case_when(
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "Not caught") ~ paste0(""), 
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ paste0("decrease"), 
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ paste0("increase"),
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ "no change"
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ paste0("decrease"), 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ "no change"
   )
     
   str0 <- paste0(str0, 
@@ -173,27 +183,36 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no, "; Figs. ", fig_biopop
                  temp0$Population," individuals",cite_pop,". ")
   }
   
-  if ("Northern Bering Sea" %in% temp$SRVY_long) {
-  temp0 <- temp[temp$SRVY_long == "Northern Bering Sea", ]
+  if ("Northern Bering Sea" %in% temp$srvy_long) {
+  temp0 <- temp[temp$srvy_long == "Northern Bering Sea", ]
   case <- dplyr::case_when(
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "Not caught") ~ 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ 
       paste0("was ", temp0$`Biomass\n(t)`, " t"), 
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ 
-      paste0("decreased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"), 
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ 
-      paste0("increased by ", as.numeric(gsub("([0-9]+).*$", "\\1", temp0$`Biomass\n% Change`)), "%"),
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ 
+      paste0("decreased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]), 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ 
+      paste0("increased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]),
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ 
       "did not notably change"
   )
   
+    if ("Survey catch totals" %in% names(temp0)) {
+  case <- paste0(case, 
+                 ", which was a", 
+                 ifelse(c("a", "e", "i", "o", "u") %in% tolower(substr(x = temp0$`Survey catch totals`, start = 1, stop = 1)), 
+                        "n", ""), 
+                 substr(x = temp0$`Survey catch totals`, start = 2, stop = nchar(temp0$`Survey catch totals`)) )
+                 
+  }
+  
   case_transition_nbs <- dplyr::case_when(
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "Not caught") ~ paste0(""), 
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "decrease") ~ paste0("decrease"), 
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "increase") ~ paste0("increase"),
-    grepl(x = temp0$`Biomass\n% Change`, pattern = "no change") ~ "no change"
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ paste0("decrease"), 
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
+    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ "no change"
   )
   
-  if (!("Eastern Bering Sea" %in% temp$SRVY_long)) { # if there is no EBS data and therefore nothing to 'transition' to, = ""
+  if (!("Eastern Bering Sea" %in% temp$srvy_long)) { # if there is no EBS data and therefore nothing to 'transition' to, = ""
   str0_transition <- ""
   } else if (case_transition_nbs == case_transition_ebs) {
   str0_transition <- "Similarly, the "
@@ -212,10 +231,10 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no, "; Figs. ", fig_biopop
                  temp0$Population," individuals",cite_pop,". ")
   }
 
-if (nrow(temp) == 1 & length(SRVY11)==2) { # temp$SRVY_long %in% stringr::str_to_title(SRVY11)
+if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to_title(srvy11)
   str0 <- paste0(str0, 
                  "No ", spp_print, " were observed in the ", 
-                 SRVY11[!(stringr::str_to_title(SRVY11) %in% temp$SRVY_long)], 
+                 srvy11[!(stringr::str_to_title(srvy11) %in% temp$srvy_long)], 
                  " in ",maxyr,"  (Fig. ", fig_dist,"). ")
 }
 ```

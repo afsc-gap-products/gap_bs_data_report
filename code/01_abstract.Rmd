@@ -7,12 +7,12 @@
 # Surveys ----------------------------------------------------------------------
 str0_srvys <- gsub(pattern = " ,", replacement = ",", 
              x = text_list(paste0(haul_cruises_maxyr$yrofsurvey, 
-                                  haul_cruises_maxyr$stndth, " ", haul_cruises_maxyr$SRVY_long, 
+                                  haul_cruises_maxyr$stndth, " ", haul_cruises_maxyr$srvy_long, 
                                   " groundfish and shellfish bottom trawl survey"), 
                            sep_last = ", as well as the "))
 
 # Survey coverage --------------------------------------------------------------
-str0_coverage <- ifelse(SRVY == "NEBS", 
+str0_coverage <- ifelse(srvy == "NEBS", 
                    # NBS + EBS
                    paste0("The survey covered the eastern Bering Sea continental shelf (bottom depths between 20 and 200 meters) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait. "), 
                    # EBS
@@ -28,7 +28,7 @@ str0_stations <- paste0(
   text_list(paste0(vessels0$length_m, "-m ",  vessels0$vessel_ital)), ", across ", 
   text_list(paste0(haul_cruises_maxyr$stations_completed, 
                    ifelse(haul_cruises_maxyr$stations_completed == haul_cruises_maxyr$stations_avail, "", paste0(" (of ",  haul_cruises_maxyr$stations_avail, ")")), 
-                   " stations in the ", haul_cruises_maxyr$SRVY_long)), ". ")
+                   " stations in the ", haul_cruises_maxyr$srvy_long)), ". ")
 
 # Temperature ------------------------------------------------------------------
 temp0 <- temps_avg_yr %>% 
@@ -99,7 +99,7 @@ str0_temperature <- str0
 # count fish spp
 temp <- dplyr::left_join(
   x = catch_haul_cruises_maxyr %>% 
-    dplyr::select(SRVY, species_code) %>% 
+    dplyr::select(srvy, species_code) %>% 
     dplyr::distinct(), 
   y = spp_info %>% 
     dplyr::filter(used_in_counts) %>%
@@ -107,41 +107,41 @@ temp <- dplyr::left_join(
     dplyr::distinct(), 
   by = "species_code") %>% 
   dplyr::filter(taxon == "fish") %>% 
-  dplyr::select(species_code, taxon, family, genus, taxon, SRVY) %>% 
+  dplyr::select(species_code, taxon, family, genus, taxon, srvy) %>% 
   dplyr::distinct()
 
 temp0 <- dplyr::full_join(
   x = temp %>% 
     dplyr::filter(!is.na(taxon)) %>% 
-    dplyr::select(SRVY, taxon) %>% 
+    dplyr::select(srvy, taxon) %>% 
     dplyr::distinct() %>% 
-    dplyr::group_by(SRVY) %>% 
+    dplyr::group_by(srvy) %>% 
     dplyr::summarise(taxon = n()),
   y = temp %>% 
     dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(SRVY, species_code) %>% 
+    dplyr::select(srvy, species_code) %>% 
     dplyr::distinct() %>% 
-    dplyr::group_by(SRVY) %>%
+    dplyr::group_by(srvy) %>%
     dplyr::summarise(species_code = n()),
-  by = "SRVY") %>% 
+  by = "srvy") %>% 
   dplyr::left_join(
     x = ., 
     y = temp %>% 
       dplyr::filter(!is.na(family)) %>% 
-      dplyr::select(SRVY, family) %>% 
+      dplyr::select(srvy, family) %>% 
       dplyr::distinct() %>% 
-      dplyr::group_by(SRVY) %>%
+      dplyr::group_by(srvy) %>%
       dplyr::summarise(family = n()),
-    by = "SRVY")  %>% 
+    by = "srvy")  %>% 
   dplyr::left_join(
     x = ., 
     y = temp %>% 
       dplyr::filter(!is.na(genus)) %>% 
-      dplyr::select(SRVY, genus) %>% 
+      dplyr::select(srvy, genus) %>% 
       dplyr::distinct() %>% 
-      dplyr::group_by(SRVY) %>%
+      dplyr::group_by(srvy) %>%
       dplyr::summarise(genus = n()),
-    by = "SRVY") #%>%
+    by = "srvy") #%>%
 # dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
 
 temp1 <- dplyr::bind_cols(
@@ -173,7 +173,7 @@ fish_family <- xunits(temp1$family)
 # count invert spp
 temp <- dplyr::left_join(
   x = catch_haul_cruises_maxyr %>% 
-    dplyr::select(SRVY, species_code) %>% 
+    dplyr::select(srvy, species_code) %>% 
     dplyr::distinct(), 
   y = spp_info %>% 
     dplyr::filter(used_in_counts) %>%
@@ -181,41 +181,41 @@ temp <- dplyr::left_join(
     dplyr::distinct(), 
   by = "species_code") %>% 
   dplyr::filter(taxon == "invert") %>% 
-  dplyr::select(species_code, taxon, phylum, genus, taxon, SRVY) %>% 
+  dplyr::select(species_code, taxon, phylum, genus, taxon, srvy) %>% 
   dplyr::distinct()
 
 temp0 <- dplyr::full_join(
   x = temp %>% 
     dplyr::filter(!is.na(taxon)) %>% 
-    dplyr::select(SRVY, taxon) %>% 
+    dplyr::select(srvy, taxon) %>% 
     dplyr::distinct() %>% 
-    dplyr::group_by(SRVY) %>% 
+    dplyr::group_by(srvy) %>% 
     dplyr::summarise(taxon = n()),
   y = temp %>% 
     dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(SRVY, species_code) %>% 
+    dplyr::select(srvy, species_code) %>% 
     dplyr::distinct() %>% 
-    dplyr::group_by(SRVY) %>%
+    dplyr::group_by(srvy) %>%
     dplyr::summarise(species_code = n()),
-  by = "SRVY") %>% 
+  by = "srvy") %>% 
   dplyr::left_join(
     x = ., 
     y = temp %>% 
       dplyr::filter(!is.na(phylum)) %>% 
-      dplyr::select(SRVY, phylum) %>% 
+      dplyr::select(srvy, phylum) %>% 
       dplyr::distinct() %>% 
-      dplyr::group_by(SRVY) %>%
+      dplyr::group_by(srvy) %>%
       dplyr::summarise(phylum = n()),
-    by = "SRVY")  %>% 
+    by = "srvy")  %>% 
   dplyr::left_join(
     x = ., 
     y = temp %>% 
       dplyr::filter(!is.na(genus)) %>% 
-      dplyr::select(SRVY, genus) %>% 
+      dplyr::select(srvy, genus) %>% 
       dplyr::distinct() %>% 
-      dplyr::group_by(SRVY) %>%
+      dplyr::group_by(srvy) %>%
       dplyr::summarise(genus = n()),
-    by = "SRVY") #%>%
+    by = "srvy") #%>%
 # dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
 
 temp1 <- dplyr::bind_cols(
@@ -244,24 +244,24 @@ invert_spp <- xunits(temp1$species_code)
 invert_phyla <- xunits(temp1$phylum) 
 
 str00 <- ""
-for (i in 1:length(SRVY1)){
+for (i in 1:length(srvy1)){
   
-  srvy <- SRVY1[i]
-  srvy1 <- SRVY11[i]
+  srvy <- srvy1[i]
+  srvy1 <- srvy11[i]
 
-  temp_max <- sum(total_biomass$total[total_biomass$SRVY == srvy & total_biomass$year == maxyr], na.rm = TRUE)
-  temp_compare <- sum(total_biomass$total[total_biomass$SRVY == srvy & total_biomass$year == compareyr], na.rm = TRUE)
+  temp_max <- sum(total_biomass$total[total_biomass$srvy == srvy & total_biomass$year == maxyr], na.rm = TRUE)
+  temp_compare <- sum(total_biomass$total[total_biomass$srvy == srvy & total_biomass$year == compareyr], na.rm = TRUE)
   total_biomass_new <- total_biomass  # copy of total_biomass that can be updated
   # Filter for last five years for EBS
   if(srvy == "EBS") {
     total_biomass_new <- total_biomass_new %>% filter(year >= maxyr - 5)
   }
   temp_mean <- total_biomass_new %>% 
-    dplyr::group_by(SRVY, year) %>% 
+    dplyr::group_by(srvy, year) %>% 
     dplyr::mutate(biomass = sum(total)) %>%  # sum over inverts & fish
-    dplyr::group_by(SRVY) %>%
+    dplyr::group_by(srvy) %>%
     dplyr::summarise(total_mean = mean(biomass, na.rm = TRUE)) %>% 
-    dplyr::filter(SRVY == srvy) 
+    dplyr::filter(srvy == srvy) 
   
   # Text for period being averaged
   if(srvy == "EBS") {

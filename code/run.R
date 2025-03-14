@@ -9,7 +9,7 @@ maxyr <- 2024
 compareyr <- 2023
 compareyr0 <- 2023
 strat_yr <- 2022
-SRVY <- "EBS"
+srvy <- "EBS"
 ref_compareyr <- ref_compareyr_ebs <- "@2023NEBS" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/1uLrsMoJsmGRe8vB0-QSS_6NT8AuWAKsp"
 dl_change_start <- "22-APR-02 11.00.00 PM"
@@ -29,7 +29,7 @@ report_title <- "data"
 # devtools::install_github("afsc-gap-products/coldpool")
 # devtools::install_github("afsc-gap-products/gapindex")
 source(here::here("code","functions.R"))
-source(here::here("code","data_dl.R"))  # Run when there is new data!
+# source(here::here("code","data_dl.R"))  # Run when there is new data!
 source(here::here("code","data.R"))
 
 ## Figures and Tables ----------------------------------------------------------

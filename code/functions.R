@@ -1197,11 +1197,11 @@ plot_pa_facet <- function(
     # ggplot2::scale_color_manual(
     #   name = " ", 
     #   values = reg_dat$survey.area$color,
-  #   breaks = reg_dat$survey.area$SURVEY,
-  #   labels = reg_dat$survey.area$SRVY) 
+  #   breaks = reg_dat$survey.areasrvy_long,
+  #   labels = reg_dat$survey.area$srvy) 
   ggplot2::geom_sf(
     data = reg_dat$survey.area, 
-    mapping = aes(color = SURVEY, 
+    mapping = aes(color = srvy_long, 
                   geometry = geometry), 
     fill = "transparent", 
     # shape = NA, 
@@ -1210,8 +1210,8 @@ plot_pa_facet <- function(
     ggplot2::scale_color_manual(
       name = " ", 
       values = reg_dat$survey.area$color,
-      breaks = reg_dat$survey.area$SURVEY,
-      labels = reg_dat$survey.area$SRVY) 
+      breaks = reg_dat$survey.area$srvy_long,
+      labels = reg_dat$survey.area$srvy) 
   
   # figure <- ggplot() +
   #   geom_sf(data = reg_dat$akland,
@@ -1251,7 +1251,7 @@ plot_pa_facet <- function(
   
   # figure <- figure  +
   #   geom_sf(data = reg_dat$survey.area, # %>% 
-  #           # dplyr::filter(SRVY %in% SRVY1), 
+  #           # dplyr::filter(srvy %in% srvy1), 
   #           mapping = aes(color = SURVEY), 
   #           fill = NA, 
   #           shape = NA, 
@@ -1260,8 +1260,8 @@ plot_pa_facet <- function(
   #   scale_color_manual(
   #     name = "", # key.title,
   #     values = reg_dat$survey.area$color,
-  #     breaks = rev(reg_dat$survey.area$SURVEY), 
-  #     labels = rev((reg_dat$survey.area$SRVY)))
+  #     breaks = rev(reg_dat$survey.areasrvy_long), 
+  #     labels = rev((reg_dat$survey.area$srvy)))
   # } else {
   #   figure <- figure   + 
   #     geom_point(data = dd, 
@@ -1278,9 +1278,9 @@ plot_pa_facet <- function(
   # if (plot_coldpool) {
   #   temp_break <- 2 # 2*C
   #   
-  #   if (unique(dat$SRVY) %in% "EBS") {
+  #   if (unique(dat$srvy) %in% "EBS") {
   #     cp <- coldpool::ebs_bottom_temperature
-  #   } else if (unique(dat$SRVY) %in% "NBS") {
+  #   } else if (unique(dat$srvy) %in% "NBS") {
   #     cp <- coldpool::nbs_ebs_bottom_temperature
   #   }
   #   
@@ -1316,9 +1316,9 @@ plot_pa_facet <- function(
   if (plot_coldpool) {
     temp_break <- 2 # 2*C
     
-    if (sum(dat$SRVY %in% "EBS")>0) {
+    if (sum(dat$srvy %in% "EBS")>0) {
       cp <- coldpool::ebs_bottom_temperature
-    } else if (unique(dat$SRVY) %in% "NBS") {
+    } else if (unique(dat$srvy) %in% "NBS") {
       cp <- coldpool::nbs_ebs_bottom_temperature
     }
     
@@ -1478,7 +1478,7 @@ plot_temperature_map <- function(raster_nebs,
         mask_layer <- report_types$NEBS$reg_dat$survey.area
       } else {
         sel_raster_layer <- raster_ebs[[which(names(raster_ebs) == yrs[ii])]]
-        mask_layer <- dplyr::filter(report_types$NEBS$reg_dat$survey.area, SURVEY == "EBS_SHELF")
+        mask_layer <- dplyr::filter(report_types$NEBS$reg_dat$survey.area, srvy == "EBS")
       }
       
       temp_sf <- sel_raster_layer |>
@@ -1672,7 +1672,7 @@ plot_temperature_map <- function(raster_nebs,
 
 #' plot_size_comp
 #'
-#' @param sizecomp0 data.frame with these columns: "year", "taxon", "SRVY", "species_code", "sex", "pop", "length"   
+#' @param sizecomp0 data.frame with these columns: "year", "taxon", "srvy", "species_code", "sex", "pop", "length"   
 #' @param lengths0 data.frame of sampled lengths
 #' @param spp_code numeric. 
 #' @param spp_print string. 
@@ -1694,7 +1694,7 @@ plot_sizecomp <- function(sizecomp0,
                           legend_font_size = 8){
   
   table_raw <- sizecomp0 %>%
-    dplyr::arrange(year, SRVY, sex, length_mm) 
+    dplyr::arrange(year, srvy, sex, length_mm) 
   
   # find appropriate units
   a <- find_units(unit = "", unt = "", dat = max(table_raw$population_count, na.rm = TRUE))
@@ -1718,7 +1718,7 @@ plot_sizecomp <- function(sizecomp0,
                           ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>45, 10, 5))
   
   dat_text <- lengths0 %>% 
-    dplyr::group_by(SRVY, year) %>% 
+    dplyr::group_by(srvy, year) %>% 
     dplyr::summarise(frequency = formatC(x = sum(frequency, na.rm = TRUE), 
                                          digits = 0, big.mark = ",", format = "f")) %>% 
     dplyr::ungroup() %>% 
@@ -1737,7 +1737,7 @@ plot_sizecomp <- function(sizecomp0,
     figure <- ggplot(data = table_raw,
                      mapping = aes(x = length_mm,
                                    y = population_count,
-                                   # group = SRVY_long,
+                                   # group = srvy_long,
                                    fill = sex)) +
       ggplot2::geom_bar(position="stack", stat="identity", na.rm = TRUE) +
       ggplot2::scale_fill_viridis_d(direction = -1, 
@@ -1749,7 +1749,7 @@ plot_sizecomp <- function(sizecomp0,
                          labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ",")) +
       ggplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
                          labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ",")) +
-      ggplot2::facet_grid(year ~ SRVY_long,
+      ggplot2::facet_grid(year ~ srvy_long,
                  scales = "free_x")  +
       ggplot2::labs(fill = spp_print) +
       ggplot2::guides(
@@ -1773,11 +1773,11 @@ plot_sizecomp <- function(sizecomp0,
       figure <- figure + 
         # ggplot2::labs(caption = "+ None of this species was lengthed. ") +
         # ggplot2::theme(plot.caption = element_text(hjust=0, size = 10)) +
-        ggplot2::geom_text(data = table(year = table_raw$year, SRVY_long = table_raw$SRVY_long) %>% 
+        ggplot2::geom_text(data = table(year = table_raw$year, srvy_long = table_raw$srvy_long) %>% 
                              data.frame() %>% 
                              dplyr::mutate(sex  = "Males", # had to pick something and this is the most generalizable across species
                                            sign = ifelse(Freq == 0, "* No specimens lengthed", NA), 
-                                           SRVY_long = stringr::str_to_title(SRVY_long)), 
+                                           srvy_long = stringr::str_to_title(srvy_long)), 
                             mapping = aes(label = sign), 
                             fontface = "italic", 
                            size = 2.5, 
@@ -1791,7 +1791,7 @@ plot_sizecomp <- function(sizecomp0,
   } else {
     table_raw1 <- table_raw %>% 
       dplyr::ungroup() %>% 
-      dplyr::group_by(year, length_mm, SRVY_long) %>% 
+      dplyr::group_by(year, length_mm, srvy_long) %>% 
       dplyr::summarise(population_count = sum(population_count, na.rm = TRUE))
     
     temp <- setdiff(min(table_raw1$year, na.rm = TRUE):max(table_raw1$year, na.rm = TRUE), 
@@ -1801,7 +1801,7 @@ plot_sizecomp <- function(sizecomp0,
         data.frame(year = temp,
                    length_mm = 0, 
                    population_count = 0, 
-                   SRVY_long = unique(table_raw1$SRVY_long)), 
+                   srvy_long = unique(table_raw1$srvy_long)), 
         table_raw1)
     }
     
@@ -1836,7 +1836,7 @@ plot_sizecomp <- function(sizecomp0,
                        breaks = every_nth(n = 2, true1 = ((max(table1$year, na.rm = TRUE) %% 2) == 1))) + 
       theme(legend.position = "none", 
             panel.grid.major.x = element_line(colour = "grey80")) +
-      facet_wrap(vars(SRVY_long))
+      facet_wrap(vars(srvy_long))
   }
   
   figure <- figure + 
@@ -1938,15 +1938,15 @@ plot_survey_stations <- function(reg_dat,
   if (survey_outline) { 
     figure <- figure +
       ggplot2::geom_sf(data = reg_dat$survey.area, 
-                       aes(color = SURVEY), 
+                       aes(color = srvy_long), 
                        fill = NA, 
                        linewidth = 2, 
                        show.legend = TRUE) +
       ggplot2::scale_color_manual(
         name = "",
         values = reg_dat$survey.area$color,
-        breaks = reg_dat$survey.area$SURVEY,
-        labels = stringr::str_to_title(reg_dat$survey.area$SRVY_long))
+        breaks = reg_dat$survey.area$srvy_long,
+        labels = stringr::str_to_title(reg_dat$survey.area$srvy_long))
   }
   
   if (station_pts == "names") {
@@ -1956,7 +1956,7 @@ plot_survey_stations <- function(reg_dat,
               fill = NA) +
       geom_sf_text(data = reg_dat$survey.grid, 
                    lineheight = 0.7,
-                   mapping = aes(label = gsub(x = STATIONID, 
+                   mapping = aes(label = gsub(x = station, 
                                               replacement = "\n", 
                                               pattern = "-")),
                    color = "black", 
@@ -1981,14 +1981,15 @@ plot_survey_stations <- function(reg_dat,
   } else if (station_pts == "vess") {
     figure <- figure  +
       geom_sf(data = reg_dat$survey.area, 
-              aes(color = reg_dat$survey.area$SURVEY, 
-                  shape = reg_dat$survey.area$SURVEY ), 
+              aes(color = reg_dat$survey.area$srvy_long, 
+                  shape = reg_dat$survey.area$srvy_long ), 
               fill = NA, 
               linewidth = 2, # size = 2,
               show.legend = TRUE) +
       stat_sf_coordinates(data = reg_dat$survey.grid,
                           mapping = aes(color = vess_col, 
-                                        shape = vess_shape),
+                                        shape = vess_shape, 
+                                        geometry = geometry),
                           size = 2, 
                           show.legend = TRUE, 
                           na.rm = TRUE) + 
@@ -1996,18 +1997,18 @@ plot_survey_stations <- function(reg_dat,
         name = " ", #"Survey Region",
         values = c(reg_dat$survey.area$color, 
                    unique(reg_dat$survey.grid$vess_col)),
-        breaks = c(rev(unique(reg_dat$survey.area$SURVEY)), 
+        breaks = c(rev(unique(reg_dat$survey.area$srvy_long)), 
                    unique(reg_dat$survey.grid$vess_col)), 
-        labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$SRVY_long))), 
+        labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$srvy_long))), 
                    unique(reg_dat$survey.grid$vessel_name)), 
         na.value = "transparent")  +
       scale_shape_manual(
         name = " ", #"Survey Vessels",
-        values = c(rep_len(x = "", length.out = length(unique(reg_dat$survey.area$SURVEY))),
+        values = c(rep_len(x = "", length.out = length(unique(reg_dat$survey.area$srvy_long))),
                    unique(reg_dat$survey.grid$vess_shape)),
-        breaks = c(unique(reg_dat$survey.area$SURVEY),
+        breaks = c(unique(reg_dat$survey.area$srvy_long),
                    unique(reg_dat$survey.grid$vess_shape)),
-        labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$SRVY_long))), 
+        labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$srvy_long))), 
                    unique(reg_dat$survey.grid$vessel_name))) +
       ggplot2::guides(
         colour = guide_legend(
@@ -2016,7 +2017,7 @@ plot_survey_stations <- function(reg_dat,
             fill = NA,
             linetype = c(
               rep_len(x = 1, 
-                      length.out = length(unique(reg_dat$survey.area$SRVY))), 
+                      length.out = length(unique(reg_dat$survey.area$srvy))), 
               rep_len(x = 0, 
                       length.out = length(unique(reg_dat$survey.grid$vessel_id)))), 
             size = 6)),
@@ -2033,7 +2034,7 @@ plot_survey_stations <- function(reg_dat,
     figure <- figure +
       geom_sf_text(data = reg_dat$survey.strata, 
                    lineheight = 0.7,
-                   mapping = aes(label = reg_dat$survey.strata$Stratum),
+                   mapping = aes(label = reg_dat$survey.strata$stratum),
                    color = "black",
                    size = 5,
                    show.legend = FALSE)
@@ -2155,10 +2156,10 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
   return(figure)
 }
 
-plot_mean_temperatures <- function(maxyr, SRVY){
+plot_mean_temperatures <- function(maxyr, srvy){
   
   # EBS
-  sebs_temperatures <- coldpool:::cold_pool_index %>%
+  sebs_temperatures <- coldpool::cold_pool_index %>%
     dplyr::filter(YEAR <= maxyr) %>%
     dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
     dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
@@ -2182,7 +2183,7 @@ plot_mean_temperatures <- function(maxyr, SRVY){
   sebs_temperatures <- dplyr::bind_rows(sebs_temperatures, temp)
   
   # NBS
-  nbs_temperatures <- coldpool:::nbs_mean_temperature %>%
+  nbs_temperatures <- coldpool::nbs_mean_temperature %>%
     dplyr::filter(YEAR <= maxyr) %>%
     dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) %>%
     dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
@@ -2218,13 +2219,13 @@ plot_mean_temperatures <- function(maxyr, SRVY){
                                     mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"], 
                                          na.rm = TRUE)))
   
-  if (SRVY == "NEBS") {
+  if (srvy == "NEBS") {
     all_temperatures <- dplyr::bind_rows(sebs_temperatures,
                                          nbs_temperatures)
-  } else if (SRVY == "EBS") {
+  } else if (srvy == "EBS") {
     all_temperatures <- dplyr::bind_rows(sebs_temperatures)
     mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
-  } else if (SRVY == "NBS") {
+  } else if (srvy == "NBS") {
     all_temperatures <- dplyr::bind_rows(nbs_temperatures)
     mean_temp <- mean_temp[mean_temp$region == "Northern Bering Sea",]
   }

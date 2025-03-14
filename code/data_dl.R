@@ -297,10 +297,10 @@ diff_notmaxyr <- diff %>%
 
 changes_since_string <- function(diff0, str_year, maxyr) {
   str0 <- c()
-  for (ii in unique(diff0$SURVEY_DEFINITION_ID)) {
+  for (ii in unique(diff0srvy_long_DEFINITION_ID)) {
     temp1 <- diff0 %>% 
       dplyr::filter(SURVEY_DEFINITION_ID == ii)
-    str0 <- paste0(str0, ifelse(ii == unique(diff0$SURVEY_DEFINITION_ID)[1], 
+    str0 <- paste0(str0, ifelse(ii == unique(diff0srvy_long_DEFINITION_ID)[1], 
                                 paste0("In ", str_year), "Similarly"), 
                    ", the ", ii, " ")
     

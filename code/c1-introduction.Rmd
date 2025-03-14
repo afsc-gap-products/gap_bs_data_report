@@ -5,18 +5,18 @@
 # use haul_cruises_maxyr TOLEDO 
 
 temp <- haul_cruises_maxyr %>%
-  dplyr::filter(SRVY == "EBS") #%>% 
+  dplyr::filter(srvy == "EBS") #%>% 
   # dplyr::mutate(start_mo_long = format(x = as.POSIXlt(x = start_date_haul ), format="%B")) %>%
   # dplyr::mutate(end_mo_long = format(x = as.POSIXlt(x = end_date_haul ), format="%B")) #%>%
   # dplyr::select(start_mo_long, end_mo_long)
 
-str0_nbs <- ifelse(SRVY == "NEBS", 
+str0_nbs <- ifelse(srvy == "NEBS", 
                       #NBS
                       paste0("In addition, the ", maxyr, 
                              " survey coverage was expanded to include the northern Bering Sea. This is only the ", 
                              numbers2words_th(
                                haul_cruises_maxyr %>% 
-                                 dplyr::filter(SRVY == "NBS") %>%
+                                 dplyr::filter(srvy == "NBS") %>%
                                  dplyr::select(yrofsurvey )),
                              " time since 2010 that the northern Bering Sea survey was done. The expanded study area covered the entire Bering Sea continental shelf from 20 m (",
                              round(20/divmforft, 1),
@@ -32,30 +32,30 @@ if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_complet
     paste0(ifelse(haul_cruises_maxyr$stations_avail ==
                     haul_cruises_maxyr$stations_completed, "all", "most"), 
            " survey stations in the ", 
-           haul_cruises_maxyr$SRVY, 
+           haul_cruises_maxyr$srvy, 
            " were sampled successfully")))
 } else { # answers both "Most" or "All"
   str0 <- paste0(unique(ifelse(haul_cruises_maxyr$stations_avail ==
                     haul_cruises_maxyr$stations_completed, "All", "Most")), 
            " survey stations in the ",
-           text_list(haul_cruises_maxyr$SRVY), 
+           text_list(haul_cruises_maxyr$srvy), 
            " were sampled successfully")
 } 
 
 nth_yr <- data.frame()
 for (i in 1:nrow(haul_cruises_maxyr)){
-  srvy <- haul_cruises_maxyr$SRVY[i]
+  srvy <- haul_cruises_maxyr$srvy[i]
   nth_yr <- nth_yr %>% dplyr::bind_rows(
-    data.frame(SRVY = srvy, 
-               val = ifelse(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == srvy]<=20, 
-                            numbers2words_th(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == srvy]), 
-                                             paste0(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$SRVY == srvy], 
-                                                    haul_cruises_maxyr$stndth[haul_cruises_maxyr$SRVY == srvy])) ) )
+    data.frame(srvy = srvy, 
+               val = ifelse(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$srvy == srvy]<=20, 
+                            numbers2words_th(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$srvy == srvy]), 
+                                             paste0(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$srvy == srvy], 
+                                                    haul_cruises_maxyr$stndth[haul_cruises_maxyr$srvy == srvy])) ) )
 }
 
 ```
 
-In `r maxyr`, NOAA Fisheries' Alaska Fisheries Science Center conducted two surveys within U.S. territorial waters of the Bering Sea: the eastern Bering Sea Shelf bottom trawl survey and the northern Bering Sea bottom trawl survey. This is the `r nth_yr$val[nth_yr$SRVY == "EBS"] ` year of the eastern Bering Sea survey and the `r nth_yr$val[nth_yr$SRVY == "NBS"]` year of the northern Bering Sea survey using consistent sampling methods and protocols. A rapid response survey for the northern Bering Sea region was also conducted in 2018 and will not be covered here. The northern Bering Sea survey region contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$SRVY == "NBS"] ` stations in an area bounded by the Bering Strait, Norton Sound, and the U.S.–Russia Maritime Boundary (Fig. \@ref(fig:fig-survey-points)). While the northern Bering Sea region has been surveyed occasionally in the past, 2010 is considered the start of the modern series because it was the first year the region was sampled using the same standardized sampling methods as the eastern Bering Sea shelf survey.
+In `r maxyr`, NOAA Fisheries' Alaska Fisheries Science Center conducted two surveys within U.S. territorial waters of the Bering Sea: the eastern Bering Sea Shelf bottom trawl survey and the northern Bering Sea bottom trawl survey. This is the `r nth_yr$val[nth_yr$srvy == "EBS"] ` year of the eastern Bering Sea survey and the `r nth_yr$val[nth_yr$srvy == "NBS"]` year of the northern Bering Sea survey using consistent sampling methods and protocols. A rapid response survey for the northern Bering Sea region was also conducted in 2018 and will not be covered here. The northern Bering Sea survey region contains `r haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$srvy == "NBS"] ` stations in an area bounded by the Bering Strait, Norton Sound, and the U.S.–Russia Maritime Boundary (Fig. \@ref(fig:fig-survey-points)). While the northern Bering Sea region has been surveyed occasionally in the past, 2010 is considered the start of the modern series because it was the first year the region was sampled using the same standardized sampling methods as the eastern Bering Sea shelf survey.
 
 NOAA has identified the northern Bering Sea area as a region of critical importance for increased scientific monitoring because this marine ecosystem may be rapidly altered by climate change. This survey represents one part of an extensive research plan to design a long-term time series that identifies and tracks the environmental and ecological change throughout the Bering Sea. Beyond the potential impacts of climate change, the scale and extent of fish and crab movements may also vary from year to year in response to many biological or environmental processes. These movements cause changes in distribution and abundance that extend beyond the traditional survey boundaries (e.g., eastern Bering Sea) and ultimately create an additional need for survey data that provide comprehensive coverage of the entire Bering Sea. 
 

@@ -4,7 +4,7 @@
 ## Survey Area and Sampling Design 
 
 ```{r, nbs_area}
-nbs_str0 <- ifelse(SRVY == "NEBS", 
+nbs_str0 <- ifelse(srvy == "NEBS", 
                    # NBS sampled
                    paste0(" The standardized northern Bering Sea survey consists of a systematic design with 144 fixed sations."), 
                    # EBS only
@@ -46,28 +46,28 @@ temp <-
     x = vessels %>% 
       dplyr::select(vessel_id, vessel_ital), 
     y = haul_maxyr %>%
-      dplyr::select(SRVY, haul, vessel_id, net_measured) %>% 
+      dplyr::select(srvy, haul, vessel_id, net_measured) %>% 
       dplyr::distinct() %>% 
-      dplyr::group_by(SRVY, vessel_id, net_measured) %>% 
+      dplyr::group_by(srvy, vessel_id, net_measured) %>% 
       dplyr::summarize(n = n()) %>% 
-      tidyr::pivot_wider(id_cols = c("vessel_id", "SRVY"),
+      tidyr::pivot_wider(id_cols = c("vessel_id", "srvy"),
                          names_from = "net_measured", 
                          values_from = "n"), 
     by = c("vessel_id")) %>% 
   dplyr::arrange(vessel_ital) %>% 
   dplyr::rename("N" = `0`, "Y" = `1`) %>% 
-  dplyr::left_join(y = data.frame(SRVY = SRVY1, SRVY_long = SRVY11)) %>% 
+  dplyr::left_join(y = data.frame(srvy = srvy1, srvy_long = srvy11)) %>% 
   dplyr::filter(!is.na(vessel_id))
 
 str0 <- c()
 if (sum(temp$N, na.rm = TRUE)>0) {
   # if (sum(!is.na(temp$vessel_id)) == nrow(temp)) { # if equations were estimated
-  for (i in 1:length(unique(temp$SRVY))){
+  for (i in 1:length(unique(temp$srvy))){
     temp0 <- temp %>% 
       dplyr::filter(!is.na(N) & 
-                      SRVY == unique(temp$SRVY)[i])
+                      srvy == unique(temp$srvy)[i])
     str0 <- paste0(str0, 
-                   ifelse(plural_surveys == "", "T", paste0("In the ",unique(temp$SRVY_long)[i], ", t")),
+                   ifelse(plural_surveys == "", "T", paste0("In the ",unique(temp$srvy_long)[i], ", t")),
                    "he net mensuration system failed to record data for ", 
                    text_list(paste0(xunits(temp0$N), " tow", ifelse(temp0$N>1, "s", "")," on the ", temp0$vessel_ital)), ". ")
   }
@@ -88,19 +88,19 @@ $$ \\epsilon \\sim N(0,\\sigma^{2})  . $$
 ```{r methods-ebs-survey-plan}
 str0 <- c()
 
-for (i in 1:length(unique(haul_cruises_maxyr$SRVY_long))){
+for (i in 1:length(unique(haul_cruises_maxyr$srvy_long))){
   
-  srvy <- unique(haul_cruises_vess_maxyr$SRVY)[i]
+  srvy <- unique(haul_cruises_vess_maxyr$srvy)[i]
   cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
-    dplyr::filter(SRVY %in% srvy &
+    dplyr::filter(srvy %in% srvy &
                     year %in% maxyr) %>% 
     dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
-                  "vessel_ital", "SRVY", "SRVY_long", 
+                  "vessel_ital", "srvy", "srvy_long", 
                   "start_date_cruise", "end_date_cruise", 
                   "start_date_haul", "end_date_haul") %>% 
     unique() %>% 
     group_by(year, survey_name, vessel_id, vessel_name, 
-             vessel_ital, SRVY, SRVY_long) %>% 
+             vessel_ital, srvy, srvy_long) %>% 
     dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
                      end_date_cruise = as.Date(max(end_date_cruise)), 
                      start_date_haul = as.Date(min(start_date_haul), 
@@ -162,21 +162,21 @@ for (i in 1:length(unique(haul_cruises_maxyr$SRVY_long))){
 }
 
 str0 <- data.frame(str = str0, 
-                   SRVY = unique(cruises_maxyr$SRVY))
+                   srvy = unique(cruises_maxyr$srvy))
 ```
 
-Scientists boarded the chartered vessels in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward, completing north-south columns of grid cells to the shelf edge (Fig. \@ref(fig:fig-survey-sample-stations)). The east-to-west survey progression is based on an understanding of historical trends in fish movement and intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. `r str0$str[str0$SRVY == "EBS"]`.
+Scientists boarded the chartered vessels in Dutch Harbor, Alaska, and transited to eastern Bristol Bay to begin sampling. From Bristol Bay, the survey proceeded westward, completing north-south columns of grid cells to the shelf edge (Fig. \@ref(fig:fig-survey-sample-stations)). The east-to-west survey progression is based on an understanding of historical trends in fish movement and intended to ensure the survey moves in the opposite direction of the seasonal on-shelf (eastward) migration patterns typical of yellowfin sole and other species. This strategy reduces the likelihood of encountering a portion of these populations multiple times [@RN928; @RN913]. `r str0$str[str0$srvy == "EBS"]`.
 
 ```{r methods-ebs-survey-area}
 load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
 temp0 <- obj$raw %>% 
-  dplyr::mutate(Region = paste0(SRVY, " ", area_name))
+  dplyr::mutate(Region = paste0(srvy, " ", area_name))
 
 temp <- temp0 %>% 
   dplyr::filter(!grepl(pattern = "Total", x = Region) & 
                   grepl(pattern = "EBS", x = Region))
 
-temp1 <- ifelse(SRVY == "NEBS", "EBS Total", "Total")
+temp1 <- ifelse(srvy == "NEBS", "EBS Total", "Total")
 
 temp_tot <- temp0 %>% 
   dplyr::filter(grepl(pattern = temp1, x = Region) & 
@@ -189,12 +189,12 @@ The survey footprint covered bathymetric depths ranging from 20 m to 200 m. For 
 ```{r methods-nbs-survey-plan}
 str00 <- ""
 
-if ("NBS" %in% haul_cruises_maxyr$SRVY) {
+if ("NBS" %in% haul_cruises_maxyr$srvy) {
   
   load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
   
   temp0 <- obj$raw %>% 
-    dplyr::mutate(Region = paste0(SRVY, " ", area_name))
+    dplyr::mutate(Region = paste0(srvy, " ", area_name))
   
   temp <- temp0 %>% 
     dplyr::filter(!grepl(pattern = "Total", x = Region) & 
@@ -207,7 +207,7 @@ if ("NBS" %in% haul_cruises_maxyr$SRVY) {
   
   str00 <- paste0(
     "After the completion of the eastern Bering Sea survey, both vessels began sampling survey stations in the northern Bering Sea survey region. In the northern Bering Sea, ", 
-    str0$str[str0$SRVY == "NBS"], # from 2 chunks above! 
+    str0$str[str0$srvy == "NBS"], # from 2 chunks above! 
     ". After the northern Bering Sea survey was completed, both vessels returned to Dutch Harbor. The northern Bering Sea is divided into three strata: one including the area north of St. Lawrence Island and Norton Sound, and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-survey-sample-stations)). Sampling density was ", 
     # Sampling density was 1,367 km2 /station for Stratum 70, 1,475 km2 /station for Stratum 71, 1,370 km2 /station for Stratum 81, 
     text_list(paste0(xunits(temp$density), " km^2^/station for stratum ", temp$stratum)), 
@@ -215,7 +215,7 @@ if ("NBS" %in% haul_cruises_maxyr$SRVY) {
 }
 ```
 
-`r ifelse(SRVY == "NEBS", "## Northern Bering Sea Sampling Logistics and Stratification Scheme", "") `
+`r ifelse(srvy == "NEBS", "## Northern Bering Sea Sampling Logistics and Stratification Scheme", "") `
 
 `r str00 `
 
@@ -237,7 +237,7 @@ All commercial crab species were typically sorted from the entire catch and weig
 ```{r tab-oto-collection-scheme-data}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
 obj$raw <- obj$raw %>% # creates object called 'obj'
-  dplyr::filter(SRVY == "EBS")
+  dplyr::filter(srvy == "EBS")
 ```
 
 Subsampling for length measurements depended on the size range of the fish species in the haul, with a representative number of lengths collected for each species, up to a maximum target of 100 specimens. For each fish in a length subsample, sex was determined and then the length (generally fork or total, depending on the species) was measured to the nearest 1.0 cm. For Pacific halibut on the FV *Northwest Explorer*, the first 10 fish were retained for biological sampling and all others were measured to fork length upon capture`r ifelse(maxyr > 2020, "", " and 50% were randomly selected to receive a preopercle tag")`, then immediately returned to the sea in an effort to reduce mortality. The weights of all Pacific halibut were estimated using an International Pacific Halibut Commission (IPHC) length-weight regression [@IPHC2023].
@@ -245,46 +245,46 @@ Subsampling for length measurements depended on the size range of the fish speci
 ```{r methods-collection-scheme}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
 temp <- obj$raw %>% 
-  dplyr::select(SRVY, SRVY_long, print_name) %>% 
+  dplyr::select(srvy, srvy_long, print_name) %>% 
   dplyr::distinct() %>%
-  dplyr::group_by(SRVY, SRVY_long) %>% 
-  dplyr::summarise(n = length((SRVY))) %>% 
-  dplyr::mutate(SRVY_long = paste(tolower(substr(SRVY_long, 1, 1)), substr(SRVY_long, 2, nchar(SRVY_long)), sep=""))
+  dplyr::group_by(srvy, srvy_long) %>% 
+  dplyr::summarise(n = length((srvy))) %>% 
+  dplyr::mutate(srvy_long = paste(tolower(substr(srvy_long, 1, 1)), substr(srvy_long, 2, nchar(srvy_long)), sep=""))
 
 temp$n <- xunits(temp$n)
 
 str0 <- text_list(paste0(temp$n, " fish species", 
-                         ifelse(plural_surveys == "", "", paste0(" in the ", temp$SRVY_long)) ))
-if (SRVY == "NEBS") {
+                         ifelse(plural_surveys == "", "", paste0(" in the ", temp$srvy_long)) ))
+if (srvy == "NEBS") {
   if (temp$n[1]==temp$n[2]) {
     str0 <- paste0(temp$n[1], " fish species in the ", 
-                   text_list(paste0(temp$SRVY_long)))
+                   text_list(paste0(temp$srvy_long)))
   } 
 }
 
 # describing types of oto samples  
 temp <- obj$raw %>% 
-  dplyr::select(oto_samp_type, SRVY, SRVY_long) %>% 
+  dplyr::select(oto_samp_type, srvy, srvy_long) %>% 
   dplyr::distinct()  %>% 
-  dplyr::mutate(SRVY_long = paste(tolower(substr(SRVY_long, 1, 1)), substr(SRVY_long, 2, nchar(SRVY_long)), sep="")) 
+  dplyr::mutate(srvy_long = paste(tolower(substr(srvy_long, 1, 1)), substr(srvy_long, 2, nchar(srvy_long)), sep="")) 
 
 str2 <- c()
-for (i in 1:length(unique(temp$SRVY))) {
-  srvy <- (unique(temp$SRVY))[i]
+for (i in 1:length(unique(temp$srvy))) {
+  srvy <- (unique(temp$srvy))[i]
   str2 <- c(str2, 
-            paste0(text_list(sort(temp$oto_samp_type[temp$SRVY == srvy]))))
+            paste0(text_list(sort(temp$oto_samp_type[temp$srvy == srvy]))))
 }
 
 if (length(str2)>1 & # if there is more than one region
     length(unique(str2))==1) { # and the regions have the same samp types
   str2 <- paste0(str2[1], " sampling method", plural_surveys, 
-                 " in both the ", text_list(unique(temp$SRVY_long)))
+                 " in both the ", text_list(unique(temp$srvy_long)))
 } else {
   temp0 <- temp %>% 
-    dplyr::group_by(SRVY, SRVY_long) %>% 
+    dplyr::group_by(srvy, srvy_long) %>% 
     dplyr::summarise(freq = n())
   str2 <- text_list(paste0("a ", str2, " sampling method", ifelse(temp0$freq>1,"s", ""),
-                         ifelse(plural_surveys == "", "", paste0(" in the ", temp0$SRVY_long))))
+                         ifelse(plural_surveys == "", "", paste0(" in the ", temp0$srvy_long))))
 }
 ```
 
@@ -325,16 +325,16 @@ Age estimates were obtained from otolith samples by the AFSC's Age and Growth Pr
 ```{r methods-additional-research}
 load(file = paste0(dir_out_figtab, "tab-special-projects.Rdata"))
 temp <- obj$raw %>% 
-  dplyr::group_by(SRVY, SRVY_long) %>% 
-  dplyr::summarise(n = length((SRVY))) %>% 
-  dplyr::mutate(SRVY = dplyr::case_when(
-    SRVY == "EBS and NBS" ~ "both the EBS and NBS", 
-    SRVY == "EBS" ~ "only the EBS",
-    SRVY == "NBS" ~ "only the NBS" ), 
-    SRVY_long = dplyr::case_when(
-      SRVY_long == "Eastern and northern Bering Sea" ~ "eastern and northern Bering Sea", 
-      SRVY_long == "Northern Bering Sea" ~ "the northern Bering Sea",
-      SRVY_long == "Eastern Bering Sea" ~ "the eastern Bering Sea" ), 
+  dplyr::group_by(srvy, srvy_long) %>% 
+  dplyr::summarise(n = length((srvy))) %>% 
+  dplyr::mutate(srvy = dplyr::case_when(
+    srvy == "EBS and NBS" ~ "both the EBS and NBS", 
+    srvy == "EBS" ~ "only the EBS",
+    srvy == "NBS" ~ "only the NBS" ), 
+    srvy_long = dplyr::case_when(
+      srvy_long == "Eastern and northern Bering Sea" ~ "eastern and northern Bering Sea", 
+      srvy_long == "Northern Bering Sea" ~ "the northern Bering Sea",
+      srvy_long == "Eastern Bering Sea" ~ "the eastern Bering Sea" ), 
     frag = paste0("project", ifelse(n>1, "s", ""))) %>% 
   dplyr::arrange(-n)
 
@@ -356,7 +356,7 @@ temp$frag[1] <- paste0("scientific collection", ifelse(temp$n[1]>1, "s", "")," a
 #                                        temp$frag, 
 #                                        ifelse(temp$n>1, " were", " was"), 
 #                                        " conducted", 
-#                                        ifelse(plural_surveys == "", "", paste0(" in ", temp$SRVY_long)))), 
+#                                        ifelse(plural_surveys == "", "", paste0(" in ", temp$srvy_long)))), 
 #                     pattern = " ,", replacement = ","))
 ```
 
