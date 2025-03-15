@@ -143,9 +143,14 @@ str0 <- ""
 str0 <- paste0("Between ", compareyr," and ", maxyr,", the ", spp_print, " biomass estimate ")
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw
-cite_bio <- paste0(" (Tables ", tab_stat," and ", tab_wt, "; Figs. ", fig_dist, " and ", fig_biopop, 
+cite_bio <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "), tab_stat,
+                   ifelse(spp_table_cpue, paste0(" and ", tab_wt), ""),
+                   "; Figs. ", fig_biopop, 
                    ifelse(spp_plot_idw, paste0(" and ", fig_dist), ""), ")")
-cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no, "; Fig. ", fig_biopop,")")
+cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "), 
+                   tab_stat,
+                   ifelse(spp_table_cpue, paste0(" and ", tab_no), ""),# " and ", tab_no, 
+                   "; Fig. ", fig_biopop,")")
 
   if ("Eastern Bering Sea" %in% temp$srvy_long) {
   temp0 <- temp[temp$srvy_long == "Eastern Bering Sea", ]
@@ -161,12 +166,7 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no, "; Fig. ", fig_biopop,
   )
   
   if ("Survey catch totals" %in% names(temp0)) {
-  case <- paste0(case, 
-                 ", which was a", 
-                 ifelse(c("a", "e", "i", "o", "u") %in% tolower(substr(x = temp0$`Survey catch totals`, start = 1, stop = 1)), 
-                        "n", ""), 
-                 substr(x = temp0$`Survey catch totals`, start = 2, stop = nchar(temp0$`Survey catch totals`)) )
-                 
+    case <- paste0(case, " (which ", gsub(x = tolower(temp0$`Survey catch totals`), pattern = "\n", replacement = ""), ")")
   }
   
   case_transition_ebs <- dplyr::case_when(
@@ -196,13 +196,8 @@ cite_pop <- paste0(" (Tables ", tab_stat," and ", tab_no, "; Fig. ", fig_biopop,
       "did not notably change"
   )
   
-    if ("Survey catch totals" %in% names(temp0)) {
-  case <- paste0(case, 
-                 ", which was a", 
-                 ifelse(c("a", "e", "i", "o", "u") %in% tolower(substr(x = temp0$`Survey catch totals`, start = 1, stop = 1)), 
-                        "n", ""), 
-                 substr(x = temp0$`Survey catch totals`, start = 2, stop = nchar(temp0$`Survey catch totals`)) )
-                 
+  if ("Survey catch totals" %in% names(temp0)) {
+    case <- paste0(case, " (which ", gsub(x = tolower(temp0$`Survey catch totals`), pattern = "\n", replacement = ""), ")")
   }
   
   case_transition_nbs <- dplyr::case_when(

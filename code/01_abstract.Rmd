@@ -246,14 +246,14 @@ invert_phyla <- xunits(temp1$phylum)
 str00 <- ""
 for (i in 1:length(srvy1)){
   
-  srvy <- srvy1[i]
-  srvy1 <- srvy11[i]
+  srvy2 <- srvy1[i]
+  srvy22 <- srvy11[i]
 
-  temp_max <- sum(total_biomass$total[total_biomass$srvy == srvy & total_biomass$year == maxyr], na.rm = TRUE)
-  temp_compare <- sum(total_biomass$total[total_biomass$srvy == srvy & total_biomass$year == compareyr], na.rm = TRUE)
+  temp_max <- sum(total_biomass$total[total_biomass$srvy == srvy2 & total_biomass$year == maxyr], na.rm = TRUE)
+  temp_compare <- sum(total_biomass$total[total_biomass$srvy == srvy2 & total_biomass$year == compareyr], na.rm = TRUE)
   total_biomass_new <- total_biomass  # copy of total_biomass that can be updated
   # Filter for last five years for EBS
-  if(srvy == "EBS") {
+  if(srvy2 == "EBS") {
     total_biomass_new <- total_biomass_new %>% filter(year >= maxyr - 5)
   }
   temp_mean <- total_biomass_new %>% 
@@ -261,19 +261,19 @@ for (i in 1:length(srvy1)){
     dplyr::mutate(biomass = sum(total)) %>%  # sum over inverts & fish
     dplyr::group_by(srvy) %>%
     dplyr::summarise(total_mean = mean(biomass, na.rm = TRUE)) %>% 
-    dplyr::filter(srvy == srvy) 
+    dplyr::filter(srvy == srvy2) 
   
   # Text for period being averaged
-  if(srvy == "EBS") {
+  if(srvy2 == "EBS") {
     period <- " than the five-year average of "
   }
-  if(srvy == "NBS") {
+  if(srvy2 == "NBS") {
     period <- " than the time series average of "
   }
 
   str00 <- paste0(str00, 
     "The estimated total biomass", 
-    ifelse(plural_surveys == "", "", paste0(" in the ", srvy1)),
+    ifelse(plural_surveys == "", "", paste0(" in the ", srvy22)),
     " was ",
     xunits(temp_max), " ",
     ifelse(i == 1, "metric tons (t)", "t"),
