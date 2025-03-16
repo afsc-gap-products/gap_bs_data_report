@@ -62,31 +62,30 @@ report_types <- list(
 
 for (ii in 1:length(report_types)) {
   reg_dat <- report_types[[ii]]$reg_dat
-  # add color to survey.area
-  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id))+2)
-  survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
-  reg_dat$survey.area <- reg_dat$survey.area %>%
-    dplyr::mutate(
-      srvy = dplyr::case_when(
-        SURVEY_DEFINITION_ID == 98 ~ "EBS", 
-        SURVEY_DEFINITION_ID == 143 ~ "NBS"), 
-      color = alpha(colour = survey_reg_col, 0.7), 
-      srvy_long = dplyr::case_when(
-        srvy == "EBS" ~ "Eastern Bering Sea", 
-        srvy == "NBS" ~ "Northern Bering Sea") )
-  report_types[[ii]]$reg_dat <- reg_dat
-}
-
-a <- report_types[names(report_types) == srvy][[1]]
-for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-
   names(reg_dat$akland) <- tolower(names(reg_dat$akland))
   names(reg_dat$survey.area) <- tolower(names(reg_dat$survey.area))
   names(reg_dat$survey.strata) <- tolower(names(reg_dat$survey.strata))
   names(reg_dat$survey.grid) <- tolower(names(reg_dat$survey.grid))
   names(reg_dat$bathymetry) <- tolower(names(reg_dat$bathymetry))
   names(reg_dat$graticule) <- tolower(names(reg_dat$graticule))
+  
+  # add color to survey.area
+  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id))+2)
+  survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+  reg_dat$survey.area <- reg_dat$survey.area %>%
+    dplyr::mutate(
+      srvy = dplyr::case_when(
+        survey_definition_id == 98 ~ "EBS", 
+        survey_definition_id == 143 ~ "NBS"), 
+      color = alpha(colour = survey_reg_col, 0.7), 
+      srvy_long = dplyr::case_when(
+        srvy == "EBS" ~ "Eastern Bering Sea Shelf", 
+        srvy == "NBS" ~ "Northern Bering Sea Shelf") )
+  report_types[[ii]]$reg_dat <- reg_dat
+}
 
+a <- report_types[names(report_types) == srvy][[1]]
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
 temp <- sf::st_point(c(-169.69, 64.5)) %>% # -169.698826, 64.599971
   sf::st_sfc(crs = in.crs) %>% 
@@ -1021,7 +1020,7 @@ coldpool_ebs_bin_area <- coldpool::cold_pool_index %>%
                                   levels = c( "lte2", "lte1", "lte0", "lteminus1"),
                                   labels = c("\u2264 2\u00b0C", "\u2264 1\u00b0C", "\u2264 0\u00b0C", "\u2264 -1\u00b0C")),
                 label = variable, 
-                proportion = value/(sebs_layers$survey.area$AREA_M2/1000), 
+                proportion = value/(sebs_layers$survey.area$AREA_M2/1000000), 
                 perc = proportion*100)  
 
 coldpool_ebs_total_area <- coldpool_ebs_bin_area %>%

@@ -30,7 +30,7 @@ land_start <- "" #felse(spp_table_cpue & report_title == "data", "<!---BLOCK_LAN
 land_end <- "" # ifelse(spp_table_cpue & report_title == "data", "<!---BLOCK_LANDSCAPE_STOP--->", "")
 show <- FALSE
 pagebreak <- ifelse(report_title == "community" & !spp_table_cpue, "", "\\pagebreak")
-lang <- ""
+str0_lang <- ""
 ```
 
 ```{r prep-cite-{{jj}}}
@@ -114,7 +114,7 @@ temp <- temp[which(!is.na(temp))]
 
 if (report_title == "data") {
   # in data reports, only publish prev sci and common names
-  which0 <- which(names(temp) %in% c("lang_scientific_name_prev", "lang_common_name_prev"))
+  which0 <- which(names(temp) %in% c("lang_scientific_name_prev", "lang_common_name_prev", "lang_common_name_alt"))
 } else {
   which0 <- which(grepl(pattern = "lang_", x = names(temp)))
 }
@@ -122,16 +122,16 @@ if (report_title == "data") {
 temp <- temp[,which0]
 names(temp) <- unlist(names(temp0[,which0]))
 
-  lang <- ""
+  str0_lang <- ""
 if (ncol(temp)>0) {
-  lang <- paste0("**", names(temp), "**: ", 
+  str0_lang <- paste0("**", names(temp), "**: ", 
                  ifelse(names(temp) == "Previous scientific name", paste0("*", temp, "*"), temp), 
                  collapse = "\n\n")
-  # lang <- paste0(names(temp), ": ", temp, collapse = "\n\n")
+  # str0_lang <- paste0(names(temp), ": ", temp, collapse = "\n\n")
 }
 ```
 
-`r lang `
+`r str0_lang `
 
 ```{r bio-pop-txt-1-{{jj}}, eval = FALSE}
 str0 <- ""
@@ -140,7 +140,11 @@ str0 <- ""
 ```{r bio-pop-txt-{{jj}}}
 # , eval = (spp_text & (report_title == "data"))
 
-str0 <- paste0("Between ", compareyr," and ", maxyr,", the ", spp_print, " biomass estimate ")
+str0 <- paste0("Between ", compareyr," and ", maxyr, 
+               ifelse(grepl(pattern = "*", x = spp_sci, fixed = TRUE), # is this a group of fishes/organisms?
+                      paste0(", the biomass of ", spp_print), # true, e.g., 'snailfishes'
+                      paste0(", the ", spp_print, " biomass")), # false
+               " estimate ")
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw
 cite_bio <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "), tab_stat,
@@ -165,8 +169,13 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
       "did not notably change"
   )
   
-  if ("Survey catch totals" %in% names(temp0)) {
-    case <- paste0(case, " (which ", gsub(x = tolower(temp0$`Survey catch totals`), pattern = "\n", replacement = ""), ")")
+  if (temp0$catch_min < 100) {
+    aa <- temp0$`Survey catch totals`
+    aa <- gsub(x = aa, pattern = "\n", replacement = "")
+    aa <- gsub(x = aa, pattern = "Increased ", replacement = "")
+    aa <- gsub(x = aa, pattern = "Decreased ", replacement = "")
+    aa <- gsub(x = aa, pattern = paste0("in ", maxyr), replacement = "caught on survey")
+    case <- paste0(case, " (", aa, ")")
   }
   
   case_transition_ebs <- dplyr::case_when(
@@ -196,8 +205,13 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
       "did not notably change"
   )
   
-  if ("Survey catch totals" %in% names(temp0)) {
-    case <- paste0(case, " (which ", gsub(x = tolower(temp0$`Survey catch totals`), pattern = "\n", replacement = ""), ")")
+  if (temp0$catch_min < 100) {
+    aa <- temp0$`Survey catch totals`
+    aa <- gsub(x = aa, pattern = "\n", replacement = "")
+    aa <- gsub(x = aa, pattern = "Increased ", replacement = "")
+    aa <- gsub(x = aa, pattern = "Decreased ", replacement = "")
+    aa <- gsub(x = aa, pattern = paste0("in ", maxyr), replacement = "caught on survey")
+    case <- paste0(case, " (", aa, ")")
   }
   
   case_transition_nbs <- dplyr::case_when(
