@@ -1940,7 +1940,7 @@ plot_survey_stations <- function(reg_dat,
       ggplot2::geom_sf(data = reg_dat$survey.area, 
                        aes(color = srvy_long), 
                        fill = NA, 
-                       linewidth = 2, 
+                       linewidth = 1.5, 
                        show.legend = TRUE) +
       ggplot2::scale_color_manual(
         name = "",
