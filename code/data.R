@@ -6,9 +6,9 @@ in.crs = "+proj=longlat"
 report_types <- list(
   "EBS" = list(
     sectname = "EBS-BTS-Report", 
-    SURVEY = "eastern Bering Sea", 
+    SURVEY = "eastern Bering Sea shelf", 
     map.area = "bs.south", 
-    srvy11 = c("eastern Bering Sea"), 
+    srvy11 = c("eastern Bering Sea shelf"), 
     srvy1 = "EBS", 
     srvy0 = "BS", # in Oracle
     srvy00 = 98, # EBS
@@ -23,9 +23,9 @@ report_types <- list(
   ), 
   "NBS" = list(
     sectname = "NBS-BTS-Report", 
-    SURVEY = "northern Bering Sea", 
+    SURVEY = "northern Bering Sea shelf", 
     map.area = "bs.north", 
-    srvy11 = "northern Bering Sea", 
+    srvy11 = "northern Bering Sea shelf", 
     srvy1 = "NBS", 
     srvy0 = "BS", # in Oracle
     srvy00 = 143,
@@ -40,7 +40,7 @@ report_types <- list(
   ), 
   "NEBS" = list(
     sectname = "NEBS-BTS-Report", 
-    SURVEY = "eastern and northern Bering Sea",
+    SURVEY = "eastern and northern Bering Sea shelves",
     map.area = "bs.all", 
     srvy11 = c("eastern Bering Sea", "northern Bering Sea"), 
     srvy1 = c("EBS", "NBS"), 

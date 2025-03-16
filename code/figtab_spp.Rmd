@@ -156,7 +156,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
                    " from the ",
                    range_text(yrs), " ", 
                    SURVEY, 
-                   " bottom trawl survey", 
+                   " survey", 
                    ifelse(length(unique(table_raw$srvy))>1, "s", ""), ". ", 
                    missing_from_one_but_not_both_surveys
   )
@@ -237,7 +237,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
     figure_print <- ggplot() +
       ggplot2::geom_sf(data = reg_dat0$akland,
                        color = NA,
-                       fill = "grey50")  +
+                       fill = "grey90")  +
       ggplot2::geom_sf(data = reg_dat0$graticule,
                        color = "grey80",
                        alpha = 0.2) +
@@ -271,7 +271,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
         mapping = aes(color = SURVEY, 
                       geometry = geometry), 
         fill = "transparent", 
-        linewidth = ifelse(row0 > 2, 1.5, 1), 
+        linewidth = 1, # ifelse(row0 > 2, 1.5, 1), 
         show.legend = FALSE) +
       ggplot2::scale_color_manual(
         name = " ", 
@@ -1315,12 +1315,12 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                      ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
                      " were encountered and weighed during the ",
                      maxyr," ", SURVEY, 
-                     " bottom trawl survey",plural_surveys,". ", 
+                     " survey",plural_surveys,". ", 
                      ifelse(length(setdiff(srvy1, unique(table_raw$srvy)))>0, 
                             paste0("This taxon was not encountered in the ", 
                                    maxyr, " ",
                                    haul_cruises_maxyr$srvy_long[haul_cruises_maxyr$srvy != unique(table_raw$srvy)],
-                                   " trawl survey. "), 
+                                   " shelf survey. "), 
                             ""))# ifelse(!include_n_length, "No lengths were collected for this taxon. ", ""))
     
     table_print <- table_print %>% 
@@ -1645,7 +1645,7 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
                    ifelse(length(unique(table_raw$srvy_long0)) > 1, 
                           SURVEY, 
                           unique(table_raw$srvy_long0)), 
-                   " bottom trawl survey", 
+                   " survey", 
                    ifelse(length(unique(table_raw$srvy_long0)) > 1, plural_surveys, "")," (points and solid lines). Dashed lines represent time-series average and error bars represent estimated 95% confidence intervals. ")
   
   return(list("figure_print" = figure_print, 
