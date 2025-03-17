@@ -158,9 +158,14 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
 
   if ("Eastern Bering Sea Shelf" %in% temp$srvy_long) {
   temp0 <- temp[temp$srvy_long == "Eastern Bering Sea Shelf", ]
+  
   case <- dplyr::case_when(
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ 
       paste0("was ", temp0$`Biomass\n(t)`, " t"), 
+    temp0$catch_min < 100 ~ 
+      paste0(tolower(strsplit(x = temp0$`Survey catch totals`, split = " ", fixed = TRUE)[[1]][1]), 
+             " to ", temp0$`Biomass\n(t)`, " t, extrapolated from ", 
+             gsub(pattern = " in ", replacement = " caught on survey in ", x = strsplit(x = temp0$`Survey catch totals`, split = " to ", TRUE)[[1]][2])              ), 
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ 
       paste0("decreased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]), 
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ 
@@ -168,15 +173,6 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ 
       "did not notably change"
   )
-  
-  if (temp0$catch_min < 100) {
-    aa <- temp0$`Survey catch totals`
-    aa <- gsub(x = aa, pattern = "\n", replacement = "")
-    aa <- gsub(x = aa, pattern = "Increased ", replacement = "")
-    aa <- gsub(x = aa, pattern = "Decreased ", replacement = "")
-    aa <- gsub(x = aa, pattern = paste0("in ", maxyr), replacement = "caught on survey")
-    case <- paste0(case, " (", aa, ")")
-  }
   
   case_transition_ebs <- dplyr::case_when(
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
@@ -194,9 +190,14 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
   
   if ("Northern Bering Sea Shelf" %in% temp$srvy_long) {
   temp0 <- temp[temp$srvy_long == "Northern Bering Sea Shelf", ]
+  
   case <- dplyr::case_when(
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ 
       paste0("was ", temp0$`Biomass\n(t)`, " t"), 
+    temp0$catch_min < 100 ~ 
+      paste0(tolower(strsplit(x = temp0$`Survey catch totals`, split = " ", fixed = TRUE)[[1]][1]), 
+             " to ", temp0$`Biomass\n(t)`, "estimated t, extrapolated from ", 
+             gsub(pattern = " in ", replacement = " caught on survey in ", x = strsplit(x = temp0$`Survey catch totals`, split = " to ", TRUE)[[1]][2])              ), 
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ 
       paste0("decreased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]), 
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ 
@@ -204,15 +205,6 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ 
       "did not notably change"
   )
-  
-  if (temp0$catch_min < 100) {
-    aa <- temp0$`Survey catch totals`
-    aa <- gsub(x = aa, pattern = "\n", replacement = "")
-    aa <- gsub(x = aa, pattern = "Increased ", replacement = "")
-    aa <- gsub(x = aa, pattern = "Decreased ", replacement = "")
-    aa <- gsub(x = aa, pattern = paste0("in ", maxyr), replacement = "caught on survey")
-    case <- paste0(case, " (", aa, ")")
-  }
   
   case_transition_nbs <- dplyr::case_when(
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 

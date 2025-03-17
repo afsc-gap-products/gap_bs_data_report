@@ -144,7 +144,7 @@ str0 <- paste0(
                temp0$phylum[temp0$taxon == "invert"],
   " phyla were identified on the ",maxyr," survey, ",
   temp0$species[temp0$taxon == "invert"],
-  " taxa were identified to species level (Appendix Table", plural_surveys,
+  " taxa identified to species level (Appendix Table", plural_surveys,
   " A \\@ref(tab:tab-app-taxa-found-EBS-invertebrate)", 
   ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)", ""),
   "). ")
@@ -316,11 +316,10 @@ if (srvy == "NEBS") {
                         "") ) 
 }
 
-str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
+str1 <- str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 
 ```
 
-`r str0`
 
 ```{r results-tot-biomass2}
 
@@ -439,9 +438,10 @@ if (srvy == "NEBS" & "NBS" %in% haul_cruises_maxyr$srvy) {
     " of the total fish biomass; Tables \\@ref(tab:tab-biomass-est-EBS-fish) and \\@ref(tab:tab-biomass-est-NBS-fish)). ", 
     temp3)
 }
+
+str2 <- str0
 ```
 
-`r str0`
 
 ```{r results-benthic-community}
 
@@ -455,6 +455,7 @@ for (i in 1:length(srvy1)) {
   temp <- 
     temp0 %>% 
     dplyr::filter(!is.na(change0) &
+                    (count_min > 100) &
                     srvy == srvy1[i]) %>%
     dplyr::mutate(case = case_when(
       change0 > 0 ~ "increased", 
@@ -506,10 +507,9 @@ for (i in 1:length(srvy1)) {
 }
 
 str0 <- gsub(x = str0, pattern = ") (", replacement = "; ", fixed = TRUE)
-
+str3 <- str0
 ```
 
-`r str0`While exhaustive efforts are made to standardize catch processing and data collection, variation in catchability may cause some differences in these results between years [@KotwickiOno2019].
 
 ```{r results-top-10-taxon}
 temp <- data.frame()
@@ -553,9 +553,12 @@ str0 <- text_list(paste0(
   " accounted for ", temp$perc_topfish,
   " of total mean fish and invertebrate CPUE and ",
   temp$perc_topfishoffish," of total mean fish CPUE. "), sep = "", sep_last = "", sep_last2 = "") # ; Tables \\@ref(tab:tab-est-spp-wt) and \\@ref(tab:tab-est-spp-num)
+
+str4 <- str0
 ```
 
-`r str0`
+`r str1``r str2``r str3`While exhaustive efforts are made to standardize catch processing and data collection, variation in catchability may cause some differences in these results between years [@KotwickiOno2019].
+`r str4`
 
 <!---BLOCK_LANDSCAPE_START--->
 

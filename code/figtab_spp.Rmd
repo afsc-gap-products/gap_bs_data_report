@@ -573,6 +573,7 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
       geom_text(mapping = aes(label = label))
   }
   
+  }
   return(list("figure_print" = figure_print, 
               "header" = header, 
               "height" = height, 
@@ -1057,6 +1058,8 @@ if (ncol(table_print0) > 2) {
 
 if (table_raw$catch_min > 99) {
   table_print0 <- table_print0[table_print0$var != "Survey catch totals", ]
+} else {
+  table_print0 <- table_print0[table_print0$var != "Percent Change in Biomass", ]
 }
   table_print0 <- table_print0[table_print0$var != "catch_min", ]
 
@@ -1197,7 +1200,10 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          " with SD", biomass_sd0$unit_word, 
                          ", 95% lower (LCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
-                         ") confidence limits, and number of hauls, by stratum, where ")
+                         ") confidence limits, and number of hauls in which ", 
+                         spp_print, 
+                     ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
+                     " were weighed")
         
         table_print0 <- table_raw %>% 
           dplyr::mutate(
@@ -1266,7 +1272,10 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          " with SD", population_sd0$unit_word, 
                          ", 95% lower (LCL;", gsub("[()]", "", population_count0$unit_word),
                          ") and upper (UCL;", gsub("[()]", "", population_count0$unit_word),
-                         ") confidence limits, and number of hauls where species were counted for ")
+                         ") confidence limits, and number of hauls in which ", 
+                         spp_print, 
+                     ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
+                     " were encountered")
         
         table_print0 <- table_raw %>% 
           dplyr::mutate(
@@ -1311,9 +1320,10 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
     }
     
     header <- paste0(header,
-                     spp_print, 
-                     ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
-                     " were encountered and weighed during the ",
+                     # spp_print, 
+                     # ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")), 
+                     # " were encountered and weighed ", 
+                     " during the ",
                      maxyr," ", SURVEY, 
                      " survey",plural_surveys,". ", 
                      ifelse(length(setdiff(srvy1, unique(table_raw$srvy)))>0, 
@@ -1648,6 +1658,12 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
                    " shelf survey", 
                    ifelse(length(unique(table_raw$srvy_long0)) > 1, plural_surveys, "")," (points and solid lines). Dashed lines represent time-series average and error bars represent estimated 95% confidence intervals. ")
   
+    temp <- lengths %>%
+    dplyr::filter(species_code %in% spp_code &
+                    srvy %in% srvy)
+  if (min(table_raw$year) > 1987) {
+  header <- paste0(header, "The survey program adopted methods to reliably distinguish ",spp_print," in ", min(table_raw$year),", truncating the displayed time series. ")
+  }
   return(list("figure_print" = figure_print, 
               "table_raw" = table_raw, 
               "header" = header, 

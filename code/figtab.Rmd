@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 ```{r fig-survey-points}
 nickname <- "fig-survey-points"
 
-header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
+header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
 
 height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
@@ -88,7 +88,7 @@ if (sum(vessels0$vess_shape == "X")>0) {
 }
 header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
                  text_list(haul_cruises_maxyr$srvy_long),
-                 " bottom trawl survey", ifelse(srvy == "NEBS", "s", ""), 
+                 " shelf survey", plural_surveys, 
                  ". The map also depicts the stations sampled by the ",
                  text_list(paste0(vessels0$vessel_ital, " (",
                                   vessels0$vess_shape, ")")), 
@@ -146,7 +146,7 @@ if (sum(vessels0$vess_shape == "X")>0) {
 }
 header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
                  text_list(haul_cruises_maxyr$srvy_long),
-                 " bottom trawl survey", ifelse(srvy == "NEBS", "s", ""), 
+                 " shelf survey", plural_surveys, 
                  ". The map also depicts the stations sampled by the ",
                  text_list(paste0(vessels0$vessel_ital, " (",
                                   vessels0$vess_shape, ")")), 
@@ -224,8 +224,7 @@ nickname <- "fig-survey-grid"
 
 header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
                  text_list(haul_cruises_maxyr$srvy_long),
-                 " bottom trawl survey", 
-                 ifelse(srvy == "NEBS", "s", ""), 
+                 " shelf survey", plural_surveys, 
                  ". ") # , ifelse(srvy == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. ")
 
 height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
@@ -432,7 +431,7 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
 header <- paste0("Otolith collection types and target counts during the ", 
                  maxyr, " ", 
                  text_list(haul_cruises_maxyr$srvy_long),
-                 " bottom trawl survey", ifelse(length(srvy1)>1, "s", ""),".")
+                 " shelf survey", ifelse(length(srvy1)>1, "s", ""),".")
 
 table_print <- table_raw %>% 
   dplyr::select(-srvy) 
@@ -478,7 +477,7 @@ header <- paste0("Stomach collection target size category bins (cm) used to coll
                  maxyr, " ", 
                  text_list(paste0( 
                    haul_cruises_maxyr$srvy_long)),
-                 " bottom trawl survey.")
+                 " shelf survey.")
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-scheme.xlsx"), 
                                 sheet = "Sheet1", 
@@ -592,7 +591,7 @@ table_raw <- table_raw %>%
 header <- paste0("Non-core scientific collections and research projects undertaken during the ",
                  maxyr, " ", 
                  text_list(haul_cruises_maxyr$srvy_long), 
-                 " bottom trawl survey, sorted by principal investigator and agency.")
+                 " shelf survey, sorted by principal investigator and agency.")
 
 # find places
 temp0 <- unlist(strsplit(x = table_raw$Agency, split = " & ", fixed = TRUE))
@@ -655,7 +654,7 @@ nickname <- "tab-special-projects-pres"
 header <- paste0("Special projects and collections undertaken during the ",
                  maxyr, " ", 
                  text_list(haul_cruises_maxyr$srvy_long), 
-                 " bottom trawl survey, sorted by principal investigator and agency.")
+                 " shelf survey, sorted by principal investigator and agency.")
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                                 sheet = "projects", 
@@ -779,7 +778,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 nickname <- paste0("tab-age-samples-pres") 
 header <- paste0("Otoliths collected during the ", maxyr, " ", 
                  text_list(haul_cruises_maxyr$srvy_long), 
-                 " bottom trawl survey.")
+                 " shelf survey.")
 
 a <- report_spp1 %>% 
   dplyr::filter(!is.na(order)) %>% 
@@ -871,9 +870,9 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-mean-temperature}
 # code orig from sean rohan's coldpool package! Jan 23 2021 
 nickname <- "fig-mean-temperature"
-header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea bottom trawl survey from 1982–",maxyr,
+header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",maxyr,
                  ifelse(srvy == "NEBS", 
-                        paste0(" (left), and northern Bering Sea based on data collected during standardized summer bottom trawl surveys (right)"), ""), 
+                        paste0(" (left), and northern Bering Sea shelf based on data collected during standardized summer surveys (right)"), ""), 
                  ". ")
 
 height <- 3.25
@@ -1017,7 +1016,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ## fig-cold-pool-area
 
 ```{r fig-cold-pool-area}
-header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea, based on observations from the eastern Bering Sea bottom trawl survey. The extent of the cold pool is shown as a percentage of the total survey area.",
+header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea, based on observations from the eastern Bering Sea shelf survey. The extent of the cold pool is shown as a percentage of the total survey area.",
                  ifelse(srvy == "NEBS", 
                         paste0(" Note that northern Bering Sea areas are not included in this figure.") , ""),
                  " Shading denotes near-bottom temperatures \u2264 2°C, \u2264 1°C, \u2264 0°C, and \u2264 -1°C.")
@@ -1155,8 +1154,8 @@ temp <- function(yrs,
                    ". ") 
   if (temperature_zscore) {
     header <- paste0(header, "Years in which the mean ", case,
-                     " temperature is one or more standard deviations above or below the time-series mean ", case,
-                     " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot, respectively. ")
+                     " temperature is one or more standard deviations above or below the time series mean ", case,
+                     " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot. ")
   }
   
   # Create figure_print
@@ -1353,7 +1352,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
                    haul_cruises_maxyr$srvy_long[i],
-                   " bottom trawl survey. ") # See \\@SAPcrab", maxyr, " for crab collection summaries. 
+                   " shelf survey. ") # See \\@SAPcrab", maxyr, " for crab collection summaries. 
   
   table_raw <- table_raw0 %>% 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) %>% 
@@ -1581,9 +1580,9 @@ for (i in 1:nrow(comb)) {
                    " taxa collected during the ", 
                    maxyr, " ", 
                    comb$srvy_long[i],
-                   " bottom trawl survey. The 'proportion' column represents the total estimated taxon biomass divided by the total estimated ", 
-                   ifelse(comb$taxon[i] =="invert", "invertebrate", "fish") ,
-                   " biomass (", text_list(formatC(x = total$total, digits = 0, format = "f", big.mark = ",")),
+                   " shelf survey. The 'proportion' column represents the total estimated biomass divided by the total estimated ", 
+                   # ifelse(comb$taxon[i] =="invert", "invertebrate", "fish") ,
+                   "total estimated biomass (", text_list(formatC(x = total$total, digits = 0, format = "f", big.mark = ",")),
                    " t).")
   
   # Select data and make plot --------------------------------------------------
@@ -1730,6 +1729,22 @@ table_raw0 <- table_raw0 %>%
   dplyr::ungroup()  %>%
   dplyr::arrange(desc(change0)) 
 
+# identify which species complexes you need
+temp <- dplyr::left_join(
+  report_spp1 %>% 
+      dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_spp), 
+  catch_haul_cruises %>% 
+    dplyr::select(srvy, year, species_code, count) %>% 
+    dplyr::filter(srvy %in% srvy1) %>% 
+    dplyr::filter(year %in% c(maxyr, compareyr))) %>% 
+  dplyr::group_by(print_name, srvy, year) %>% 
+  dplyr::summarise(count = sum(count, na.rm = TRUE)) %>% 
+  dplyr::group_by(print_name, srvy) %>% 
+  dplyr::summarise(count_min = min(count, na.rm = TRUE)) %>% 
+    dplyr::filter(!is.na(srvy)) %>% 
+  dplyr::rename(print_name1 = print_name)
+
+table_raw0 <- dplyr::left_join(table_raw0, temp)
 table_raw  <- table_raw0
 
 table_print0 <- table_raw %>% 
@@ -1741,7 +1756,15 @@ table_print0 <- table_raw %>%
     dplyr::across(dplyr::ends_with("yr"), gsub, pattern = "NA%", replacement = "") , 
     dplyr::across(dplyr::everything(), gsub, pattern = "NA", replacement = "-") )  %>%
   dplyr::filter(!is.na(change0)) %>% 
-  dplyr::relocate(print_name, as.character(yrs))
+  dplyr::relocate(print_name, as.character(yrs)) %>% 
+  dplyr::mutate(change = ifelse(as.numeric(count_min) < 100, "-", change))
+
+# reorder table to accommodate "-" %'s
+table_print0 <- dplyr::bind_rows(
+  table_print0 %>% dplyr::filter(change0 > 0 & change != "-"), 
+  table_print0 %>% dplyr::filter(change == "-"), 
+  table_print0 %>% dplyr::filter(change0 <= 0 & change != "-")
+)
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
@@ -1749,7 +1772,8 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     "Total estimated biomass (t) and the percent change between the ",
     compareyr," and ",maxyr," ", 
     haul_cruises_maxyr$srvy_long[i], 
-    ' bottom trawl surveys for predominant fish and invertebrate taxa. Taxa are listed in descending order of percent change from ',compareyr,' to ',maxyr,'. ') 
+    ' shelf surveys for predominant fish and invertebrate taxa. Taxa are listed in descending order of percent change from ',compareyr,' to ',maxyr,'. ', 
+    ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that less than 100 individuals were caught on the survey",plural_surveys," in ", compareyr," or ",maxyr, ". "), "")) 
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
   
   table_raw  <- table_raw0
@@ -1936,7 +1960,7 @@ for (i in 1:length(type)) {
                    maxyr," ", text_list(paste0(haul_cruises_maxyr$srvy_long, 
                                                " (", haul_cruises_maxyr$srvy, "; ", 
                                                haul_cruises_maxyr$stations_completed, " stations completed)")), 
-                   " bottom trawl survey",plural_surveys,". ")
+                   " shelf survey",plural_surveys,". ")
   
   table_print <- table_print %>% 
     flextable::width(j = "print_name", width = .8) %>%
@@ -2156,7 +2180,7 @@ tab_taxa_found_ <- function(temp,
     header <- paste0(stringr::str_to_sentence(temp$taxon[i]), 
                      " taxa encountered during the ", 
                      maxyr, " ", temp$srvy_long[i], 
-                     " shelf bottom trawl survey listed alphabetically by ", 
+                     " shelf shelf survey listed alphabetically by ", 
                      ifelse(temp$taxon[i] == "fish", "family", "phylum"), ".")
     
     table_raw <- 
@@ -2397,7 +2421,7 @@ tab_app_fish_ <- function(temp,
                      temp$print_name[i], " (", temp$species_name[i], ")", 
                      " from the ", 
                      maxyr, " ", temp$srvy_long[i], 
-                     " shelf bottom trawl survey.")
+                     " shelf survey.")
     
     table_raw <- sizecomp_maxyr %>% 
       dplyr::filter(species_code %in% spp_code &
