@@ -59,18 +59,18 @@ fig_bt <- paste0("\\@ref(fig:fig-temperature-bt-1-",
                  ")")
 fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
 
-  if (report_title == "community") {
-    tab_majorspp_bio <- tab_majortaxa_pchange <- c("\\@ref(tab-majortaxa-pchange-NBS)")
-  } else if (report_title == "data") {
-    tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
-    tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
-  }
+if (report_title == "community") {
+  tab_majorspp_bio <- tab_majortaxa_pchange <- c("\\@ref(tab-majortaxa-pchange-NBS)")
+} else if (report_title == "data") {
+  tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
+  tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
+}
 
 # if (report_title == "community") {
-  tab_stat <- paste0("\\@ref(tab:tab-stats-", spp_file, ")")
-  # fig_bio <- paste0("\\@ref(fig:fig-biomass-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
-  # fig_pop <- paste0("\\@ref(fig:fig-population-", spp_file, ")")
-  fig_biopop <- fig_timeseries <- paste0("\\@ref(fig:fig-timeseries-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
+tab_stat <- paste0("\\@ref(tab:tab-stats-", spp_file, ")")
+# fig_bio <- paste0("\\@ref(fig:fig-biomass-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
+# fig_pop <- paste0("\\@ref(fig:fig-population-", spp_file, ")")
+fig_biopop <- fig_timeseries <- paste0("\\@ref(fig:fig-timeseries-", spp_file, ifelse((report_title %in% c("community")), "-comm", "-data"), ")")
 # }
 
 str0 <- ""
@@ -101,12 +101,12 @@ temp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv
                         skip = 1, 
                         show_col_types = FALSE) %>%
   dplyr::filter(print_name == spp_print) #%>%
-  # dplyr::select(dplyr::starts_with("lang_")) %>%
-  # dplyr::select_if(~sum(!is.na(.)) > 0)
+# dplyr::select(dplyr::starts_with("lang_")) %>%
+# dplyr::select_if(~sum(!is.na(.)) > 0)
 
 temp0 <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
-                        show_col_types = FALSE) %>%
-    # dplyr::select_if(~sum(!is.na(.)) > 0) %>%
+                         show_col_types = FALSE) %>%
+  # dplyr::select_if(~sum(!is.na(.)) > 0) %>%
   head(1)
 
 temp0 <- temp0[which(!is.na(temp))]
@@ -122,11 +122,11 @@ if (report_title == "data") {
 temp <- temp[,which0]
 names(temp) <- unlist(names(temp0[,which0]))
 
-  str0_lang <- ""
+str0_lang <- ""
 if (ncol(temp)>0) {
   str0_lang <- paste0("**", names(temp), "**: ", 
-                 ifelse(names(temp) == "Previous scientific name", paste0("*", temp, "*"), temp), 
-                 collapse = "\n\n")
+                      ifelse(names(temp) == "Previous scientific name", paste0("*", temp, "*"), temp), 
+                      collapse = "\n\n")
   # str0_lang <- paste0(names(temp), ": ", temp, collapse = "\n\n")
 }
 ```
@@ -155,7 +155,7 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
                    ifelse(spp_table_cpue, paste0(" and ", tab_no), ""),# " and ", tab_no, 
                    "; Fig. ", fig_biopop,")")
 
-  if ("Eastern Bering Sea Shelf" %in% temp$srvy_long) {
+if ("Eastern Bering Sea Shelf" %in% temp$srvy_long) {
   temp0 <- temp[temp$srvy_long == "Eastern Bering Sea Shelf", ]
   
   case <- dplyr::case_when(
@@ -164,7 +164,9 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
     temp0$catch_min < 100 ~ 
       paste0(tolower(strsplit(x = temp0$`Survey catch totals`, split = " ", fixed = TRUE)[[1]][1]), 
              " to ", temp0$`Biomass\n(t)`, " t, extrapolated from ", 
-             gsub(pattern = " in ", replacement = " caught on survey in ", x = strsplit(x = temp0$`Survey catch totals`, split = " to ", TRUE)[[1]][2])              ), 
+             gsub(pattern = paste0(" in ", maxyr), 
+                  replacement = " caught", 
+                  x = strsplit(x = temp0$`Survey catch totals`, split = " to ", TRUE)[[1]][2]) ), 
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ 
       paste0("decreased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]), 
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ 
@@ -179,15 +181,15 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ "no change"
   )
-    
+  
   str0 <- paste0(str0, 
                  case, 
-                 " in the eastern Bering Sea", cite_bio, 
+                 " on the ", maxyr, " eastern Bering Sea Shelf survey in ", cite_bio, 
                  " and the population was estimated at ",
                  temp0$Population," individuals",cite_pop,". ")
-  }
-  
-  if ("Northern Bering Sea Shelf" %in% temp$srvy_long) {
+}
+
+if ("Northern Bering Sea Shelf" %in% temp$srvy_long) {
   temp0 <- temp[temp$srvy_long == "Northern Bering Sea Shelf", ]
   
   case <- dplyr::case_when(
@@ -195,8 +197,10 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
       paste0("was ", temp0$`Biomass\n(t)`, " t"), 
     temp0$catch_min < 100 ~ 
       paste0(tolower(strsplit(x = temp0$`Survey catch totals`, split = " ", fixed = TRUE)[[1]][1]), 
-             " to ", temp0$`Biomass\n(t)`, "estimated t, extrapolated from ", 
-             gsub(pattern = " in ", replacement = " caught on survey in ", x = strsplit(x = temp0$`Survey catch totals`, split = " to ", TRUE)[[1]][2])              ), 
+             " to ", temp0$`Biomass\n(t)`, " t, extrapolated from ", 
+             gsub(pattern = paste0(" in ", maxyr), 
+                  replacement = " caught", 
+                  x = strsplit(x = temp0$`Survey catch totals`, split = " to ", TRUE)[[1]][2]) ), 
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ 
       paste0("decreased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]), 
     grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ 
@@ -213,23 +217,23 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
   )
   
   if (!("Eastern Bering Sea" %in% temp$srvy_long)) { # if there is no EBS data and therefore nothing to 'transition' to, = ""
-  str0_transition <- ""
+    str0_transition <- ""
   } else if (case_transition_nbs == case_transition_ebs) {
-  str0_transition <- "Similarly, the "
-  cite_bio <- ""
-  cite_pop <- ""
+    str0_transition <- "Similarly, the "
+    cite_bio <- ""
+    cite_pop <- ""
   } else {
-  str0_transition <- "The " # "However, "
-  cite_bio <- ""
-  cite_pop <- ""
+    str0_transition <- "The " # "However, "
+    cite_bio <- ""
+    cite_pop <- ""
   }
   
   str0 <- paste0(str0, str0_transition, 
-                 " biomass estimate ", case, 
-                 " in the northern Bering Sea", cite_bio, 
+                 " biomass estimate ", case,  
+                 " on the ", maxyr, " northern Bering Sea Shelf survey in ", cite_bio, 
                  " and the population was estimated at ",
                  temp0$Population," individuals",cite_pop,". ")
-  }
+}
 
 if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to_title(srvy11)
   str0 <- paste0(str0, 

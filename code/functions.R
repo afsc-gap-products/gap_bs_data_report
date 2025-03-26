@@ -1234,7 +1234,7 @@ plot_pa_facet <- function(
                  show.legend = TRUE,
                  na.rm = TRUE) +
       scale_size_continuous(
-        name = paste0(key.title, "weight CPUE (kg/ha)"), 
+        name = paste0(key.title, "CPUE (kg/ha)"), 
         range = c(1,4))
   } else {
     figure <- figure   + 
