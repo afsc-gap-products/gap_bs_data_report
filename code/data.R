@@ -494,7 +494,7 @@ cruises_race <- race_data_cruises0|>
                   substr(cruise, 6, 6) == 2 ~ "NBS"), 
                 survey_definition_id = dplyr::case_when(
                   srvy == "EBS" ~ 98, 
-                  srvy == "NBS" ~ 143) )%>% 
+                  srvy == "NBS" ~ 143) )|> 
   dplyr::filter(
     year == maxyr &
       vessel_id %in% unique(haul$vessel_id[haul$year == maxyr]) ) 

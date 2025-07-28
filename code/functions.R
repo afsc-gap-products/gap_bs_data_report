@@ -807,7 +807,7 @@ find_codes <- function(x, col = "common_name", str = NULL,
   }
   
   # 1. remove codes that we defintly dont want 
-  out <- out %>% 
+  out <- out |> 
     dplyr::filter(
       !(grepl(pattern = " egg", 
               x = unlist(out[,col]),
@@ -821,7 +821,7 @@ find_codes <- function(x, col = "common_name", str = NULL,
     
     for (i in 1:length(str)){
       
-      out <- out %>% 
+      out <- out |> 
         dplyr::filter(
           grepl(pattern = str[i], 
                 x = as.character(unlist(out[,col])),
@@ -836,7 +836,7 @@ find_codes <- function(x, col = "common_name", str = NULL,
     str_not <- unique(str_not)
     
     for (i in 1:length(str_not)){
-      out <- out  %>%
+      out <- out  |>
         dplyr::filter(!(grepl(pattern = str_not[i], 
                               x = unlist(out[,col_str_not]),
                               ignore.case = TRUE))) 
@@ -844,9 +844,9 @@ find_codes <- function(x, col = "common_name", str = NULL,
   }
   
   # clean codes
-  out <- out  %>%
-    dplyr::select(all_of(col_out)) %>% 
-    unique() %>% 
+  out <- out  |>
+    dplyr::select(all_of(col_out)) |> 
+    unique() |> 
     unlist() 
   
   names(out) <- NULL
@@ -977,12 +977,12 @@ add_report_spp <- function(spp_info,
                            lang = TRUE, 
                            expand = TRUE){
   
-  temp <- report_spp %>% 
-    dplyr::select(-questions) %>% 
+  temp <- report_spp |> 
+    dplyr::select(-questions) |> 
     dplyr::arrange((order))
   
   if (!lang) {
-    temp <- temp %>%
+    temp <- temp |>
       dplyr::select(-dplyr::starts_with("lang_"))
   }
   
@@ -994,10 +994,10 @@ add_report_spp <- function(spp_info,
     
   }
   
-  temp <- temp %>% 
-    dplyr::rename(col = all_of(report_spp_col)) %>% 
+  temp <- temp |> 
+    dplyr::rename(col = all_of(report_spp_col)) |> 
     dplyr::filter(col == TRUE & 
-                    !is.na(species_code)) %>% 
+                    !is.na(species_code)) |> 
     dplyr::arrange((order)) 
   
   # expand google spreadsheet
@@ -1044,51 +1044,51 @@ add_report_spp <- function(spp_info,
   if (sum(temp1$species_code[(duplicated(temp1$species_code))])>0) warning("There are still duplicates in the species split ups!")
   
   temp0 <-  
-    dplyr::left_join(x = temp1 %>% 
+    dplyr::left_join(x = temp1 |> 
                        dplyr::select(-col), 
-                     y = spp_info %>% 
+                     y = spp_info |> 
                        dplyr::select(species_code, 
-                                     genus, species) %>% 
+                                     genus, species) |> 
                        unique(), 
-                     by = "species_code")  %>% 
+                     by = "species_code")  |> 
     dplyr::mutate(taxon = dplyr::case_when(
       species_code <= 31550 ~ "fish", 
-      species_code >= 40001 ~ "invert")) %>% 
+      species_code >= 40001 ~ "invert")) |> 
     dplyr::mutate(temp = trimws(gsub(pattern = "NA", 
                                      replacement = "", 
-                                     paste0(genus, " ", species)))) %>% 
-    dplyr::mutate(temp = ifelse(temp == " ", "", temp)) %>%
+                                     paste0(genus, " ", species)))) |> 
+    dplyr::mutate(temp = ifelse(temp == " ", "", temp)) |>
     dplyr::mutate(species_name = dplyr::case_when(
       group_sci == "BLANK" ~ "",
       !is.na(group_sci) ~ group_sci, 
       is.na(group_sci) ~ temp, 
       TRUE ~ "other"
-    )) %>%
-    dplyr::mutate(temp = trimws(paste0(group_sci, " (", print_name, ")"))) %>%
-    dplyr::mutate(temp = ifelse(temp == "NA ", "", temp)) %>%
+    )) |>
+    dplyr::mutate(temp = trimws(paste0(group_sci, " (", print_name, ")"))) |>
+    dplyr::mutate(temp = ifelse(temp == "NA ", "", temp)) |>
     dplyr::mutate(group = dplyr::case_when(
       is.na(group_sci) ~ temp, 
       TRUE ~ "other"
-    )) %>%
+    )) |>
     # dplyr::select(file_name, print_name, species_name, 
     #   # report_name_scientific, 
     #   taxon, group, species_code, 
     #   scientific_name_prev, 
-    #   dplyr::starts_with("lang_"), dplyr::starts_with("plot_")) %>%
+    #   dplyr::starts_with("lang_"), dplyr::starts_with("plot_")) |>
     # dplyr::filter(!grepl(pattern = "other ", x = group) & 
-    #                 !grepl(pattern = "egg ", x = group)) %>% 
-    dplyr::distinct() %>% 
+    #                 !grepl(pattern = "egg ", x = group)) |> 
+    dplyr::distinct() |> 
     dplyr::mutate(type = ifelse(
       grepl(pattern = " ", x = species_name, fixed = TRUE),
       # species_name == paste0(genus, " ", species),
-      "ital", NA)) %>%
-    dplyr::ungroup() %>% 
+      "ital", NA)) |>
+    dplyr::ungroup() |> 
     dplyr::mutate(species_name0 = species_name, 
                   species_name1 = species_name, 
                   species_name0 = dplyr::if_else(is.na(type == "ital"), species_name0, paste0("*", species_name0, "*")), 
                   species_name0 = gsub(pattern = " spp.*", replacement = "* spp.", x = species_name0, fixed = TRUE), 
                   species_name0 = gsub(pattern = " sp.*", replacement = "* sp.", x = species_name0, fixed = TRUE), 
-                  species_name = species_name0) %>% 
+                  species_name = species_name0) |> 
     dplyr::select(-type, -temp, -species_name0, -genus, -species)
   
   return(temp0)
@@ -1144,22 +1144,22 @@ plot_pa_facet <- function(
   yrs <- as.numeric(sort(x = yrs, decreasing = T))
   
   if (plot_bubble){
-    dat0 <- dat %>%
+    dat0 <- dat |>
       dplyr::rename(year = as.character(year), 
                     lat = as.character(lat), 
-                    lon = as.character(lon)) %>% 
-      dplyr::select(year, lat, lon, cpue_kgha) %>% 
+                    lon = as.character(lon)) |> 
+      dplyr::select(year, lat, lon, cpue_kgha) |> 
       dplyr::mutate(year = as.numeric(year), 
                     latdd = as.numeric(lat), 
                     londd = as.numeric(lon), 
                     cpue_kgha = as.numeric(cpue_kgha))
     d <- dat0[,c("londd", "latdd", "year", "cpue_kgha")]
   } else {
-    dat0 <- dat %>%
+    dat0 <- dat |>
       dplyr::rename(year = as.character(year), 
                     lat = as.character(lat), 
-                    lon = as.character(lon)) %>% 
-      dplyr::select(year, lat, lon) %>% 
+                    lon = as.character(lon)) |> 
+      dplyr::select(year, lat, lon) |> 
       dplyr::mutate(year = as.numeric(year), 
                     latdd = as.numeric(lat), 
                     londd = as.numeric(lon))
@@ -1250,7 +1250,7 @@ plot_pa_facet <- function(
   }
   
   # figure <- figure  +
-  #   geom_sf(data = reg_dat$survey.area, # %>% 
+  #   geom_sf(data = reg_dat$survey.area, # |> 
   #           # dplyr::filter(srvy %in% srvy1), 
   #           mapping = aes(color = SURVEY), 
   #           fill = NA, 
@@ -1301,8 +1301,8 @@ plot_pa_facet <- function(
   #   }
   #   
   #   figure <- figure +
-  #     ggplot2::geom_tile(data = bt_year_df %>%
-  #                          dplyr::filter(temperature <= temp_break), #%>% 
+  #     ggplot2::geom_tile(data = bt_year_df |>
+  #                          dplyr::filter(temperature <= temp_break), #|> 
   #                          # dplyr::rename(new_dim = year),
   #                        aes(x = x,
   #                            y = y, 
@@ -1335,15 +1335,15 @@ plot_pa_facet <- function(
       pp <- rasterToPolygons(x = cp0, na.rm = TRUE, dissolve=TRUE)
       
       outline <- rbind(outline, 
-                       pp %>% 
-                         sp::geometry(obj = .) %>% 
-                         sf::st_as_sf(x = .) %>% 
+                       pp |> 
+                         sp::geometry(obj = .) |> 
+                         sf::st_as_sf(x = .) |> 
                          dplyr::mutate(new_dim  = yrs[i]))
       
     }
     
     figure <- figure +
-      geom_sf(data = outline %>%
+      geom_sf(data = outline |>
                 sf::st_cast(x = ., to = "MULTIPOLYGON"), 
               size = 1, 
               fill = NA, # alpha(colour = "red", alpha = 0.3),
@@ -1512,18 +1512,18 @@ plot_temperature_map <- function(raster_nebs,
   }
   
   if (2020 %in% yrs) {
-    temperature_sf <- dplyr::bind_rows(temperature_sf %>% 
-                                         head(n = 1) %>% 
+    temperature_sf <- dplyr::bind_rows(temperature_sf |> 
+                                         head(n = 1) |> 
                                          dplyr::mutate(bt = NA, year = 2020) , 
                                        temperature_sf)
   }
   
-  temperature_zscore1 <- coldpool::cold_pool_index %>% 
+  temperature_zscore1 <- coldpool::cold_pool_index |> 
     dplyr::rename(var = dplyr::all_of(ifelse(case == "bottom", "MEAN_GEAR_TEMPERATURE", "MEAN_SURFACE_TEMPERATURE")), 
-                  year = YEAR) %>%
-    dplyr::select(year, var) %>% 
-    dplyr::filter(year <= maxyr) %>%
-    dplyr::arrange(var) %>% 
+                  year = YEAR) |>
+    dplyr::select(year, var) |> 
+    dplyr::filter(year <= maxyr) |>
+    dplyr::arrange(var) |> 
     dplyr::mutate(
       sd = sd(var, na.rm = TRUE), 
       mean = mean(var, na.rm = TRUE), 
@@ -1533,8 +1533,8 @@ plot_temperature_map <- function(raster_nebs,
         zscore >= 1 ~ "+"), 
       color = dplyr::case_when(
         sign == "+" ~ negative, 
-        sign == "-" ~ positive)) %>% 
-    dplyr::arrange(year) %>% 
+        sign == "-" ~ positive)) |> 
+    dplyr::arrange(year) |> 
     dplyr::filter(year %in% yrs) 
   
   # Setup data.frame for 2020 year with no survey
@@ -1693,7 +1693,7 @@ plot_sizecomp <- function(sizecomp0,
                           unit0 = NULL, 
                           legend_font_size = 8){
   
-  table_raw <- sizecomp0 %>%
+  table_raw <- sizecomp0 |>
     dplyr::arrange(year, srvy, sex, length_mm) 
   
   # find appropriate units
@@ -1708,26 +1708,26 @@ plot_sizecomp <- function(sizecomp0,
     len_unit_word0 <- unit0
   }
   
-  table_raw <- table_raw %>%
+  table_raw <- table_raw |>
     dplyr::mutate(population_count = population_count/pop_unit, 
                   length_mm = round(
-                    x = length_mm/ifelse(len_unit_word0 == "mm", 1, 10), digits = 0)) %>%
+                    x = length_mm/ifelse(len_unit_word0 == "mm", 1, 10), digits = 0)) |>
     dplyr::ungroup()
   
   len_unit_axis <- ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>150, 50, 
                           ifelse(max(table_raw$length_mm)-min(table_raw$length_mm)>45, 10, 5))
   
-  dat_text <- lengths0 %>% 
-    dplyr::group_by(srvy, year) %>% 
+  dat_text <- lengths0 |> 
+    dplyr::group_by(srvy, year) |> 
     dplyr::summarise(frequency = formatC(x = sum(frequency, na.rm = TRUE), 
-                                         digits = 0, big.mark = ",", format = "f")) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::filter(year %in% unique(as.numeric(paste(table_raw$year)))) %>% 
+                                         digits = 0, big.mark = ",", format = "f")) |> 
+    dplyr::ungroup() |> 
+    dplyr::filter(year %in% unique(as.numeric(paste(table_raw$year)))) |> 
     dplyr::mutate(
       label = paste0(c("# measured: ", rep_len(x = "", length.out = (nrow(.)-1))), 
                      frequency), 
-      label = gsub("\\s", " ", formatC(x = label))) %>% 
-    dplyr::select(-frequency) %>% 
+      label = gsub("\\s", " ", formatC(x = label))) |> 
+    dplyr::select(-frequency) |> 
     dplyr::ungroup()
   
   table_raw <- dplyr::left_join(table_raw, dat_text)
@@ -1773,8 +1773,8 @@ plot_sizecomp <- function(sizecomp0,
       figure <- figure + 
         # ggplot2::labs(caption = "+ None of this species was lengthed. ") +
         # ggplot2::theme(plot.caption = element_text(hjust=0, size = 10)) +
-        ggplot2::geom_text(data = table(year = table_raw$year, srvy_long = table_raw$srvy_long) %>% 
-                             data.frame() %>% 
+        ggplot2::geom_text(data = table(year = table_raw$year, srvy_long = table_raw$srvy_long) |> 
+                             data.frame() |> 
                              dplyr::mutate(sex  = "Males", # had to pick something and this is the most generalizable across species
                                            sign = ifelse(Freq == 0, "* No specimens lengthed", NA), 
                                            srvy_long = stringr::str_to_title(srvy_long)), 
@@ -1789,9 +1789,9 @@ plot_sizecomp <- function(sizecomp0,
                             vjust = -.5)
     
   } else {
-    table_raw1 <- table_raw %>% 
-      dplyr::ungroup() %>% 
-      dplyr::group_by(year, length_mm, srvy_long) %>% 
+    table_raw1 <- table_raw |> 
+      dplyr::ungroup() |> 
+      dplyr::group_by(year, length_mm, srvy_long) |> 
       dplyr::summarise(population_count = sum(population_count, na.rm = TRUE))
     
     temp <- setdiff(min(table_raw1$year, na.rm = TRUE):max(table_raw1$year, na.rm = TRUE), 
@@ -1805,7 +1805,7 @@ plot_sizecomp <- function(sizecomp0,
         table_raw1)
     }
     
-    table_raw1 <- table_raw1 %>% 
+    table_raw1 <- table_raw1 |> 
       dplyr::arrange(desc(year)) 
     
     table_raw1$year <- as.numeric(paste(table_raw1$year))
@@ -1903,10 +1903,10 @@ plot_survey_stations <- function(reg_dat,
   
   if (study) {
     
-    study <- reg_dat$survey.grid %>% dplyr::filter(!is.na(study))
+    study <- reg_dat$survey.grid |> dplyr::filter(!is.na(study))
     
     figure <- figure  +
-      geom_sf(data = reg_dat$survey.grid %>% dplyr::filter(!is.na(study)),
+      geom_sf(data = reg_dat$survey.grid |> dplyr::filter(!is.na(study)),
               mapping = aes(fill = study),
               show.legend = TRUE,
               color = "black",
@@ -2109,7 +2109,7 @@ theme_flextable_nmfstm <- function(x,
   
   FitFlextableToPage <- function(x, pgwidth = 6){
     # https://stackoverflow.com/questions/57175351/flextable-autofit-in-a-rmarkdown-to-word-doc-causes-table-to-go-outside-page-mar
-    ft_out <- x %>% flextable::autofit()
+    ft_out <- x |> flextable::autofit()
     
     ft_out <- flextable::width(ft_out, width = dim(ft_out)$widths*pgwidth /(flextable::flextable_dim(ft_out)$widths))
     return(ft_out)
@@ -2249,7 +2249,7 @@ save_figures<-function(figure,
 #' @param filename_desc Additional description text for the filename that will be added at the name of file before the filename extention, before the "_raw" or "_print". Default = "". Can be use to add a species name, location, or anything else that would make it easier to know what that file shows.
 #' @param nickname A unique name that can be used to identify the figure so it can be referenced later in the report.
 #' @param message TRUE/FALSE. Default = FALSE. If TRUE, it will print information about where your plot has been saved to.
-#' @importFrom magrittr %>%
+#' @importFrom magrittr |>
 #' @export
 #' @examples
 #' # Select data and make plot
