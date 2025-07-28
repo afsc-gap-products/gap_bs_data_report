@@ -15,16 +15,16 @@ str0 <- c()
 for (i in 1:length(srvy11)){
   
     srvy <- srvy11[i]
-  cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
+  cruises_maxyr0  <- haul_cruises_vess_maxyr|> 
     dplyr::filter(srvy %in% srvy1[i] &
-                    year %in% maxyr) %>% 
+                    year %in% maxyr)|> 
     dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
                   "vessel_ital", "srvy", "srvy_long", 
                   "start_date_cruise", "end_date_cruise", 
-                  "start_date_haul", "end_date_haul") %>% 
-    unique() %>% 
+                  "start_date_haul", "end_date_haul")|> 
+    unique()|> 
     group_by(year, survey_name, vessel_id, vessel_name, 
-             vessel_ital, srvy, srvy_long) %>% 
+             vessel_ital, srvy, srvy_long)|> 
     dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
                      end_date_cruise = as.Date(max(end_date_cruise)), 
                      start_date_haul = as.Date(min(start_date_haul), 

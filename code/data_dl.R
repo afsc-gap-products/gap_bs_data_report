@@ -131,7 +131,7 @@ googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LX
 # identify which species complexes you need
 report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
                               skip = 1, 
-                              show_col_types = FALSE) %>%  
+                              show_col_types = FALSE)|>  
   dplyr::filter(grepl(x = species_code, pattern = "c(", fixed = TRUE)) 
 
 temp1 <- data.frame()
@@ -143,7 +143,7 @@ for (i in 1:nrow(report_spp)){
 }
 
 # testing: 
-# temp2 <- temp1 %>%
+# temp2 <- temp1|>
 #   dplyr::filter(grepl(x = temp1$GROUP, "gad", ignore.case = TRUE))
 
 library(gapindex)
@@ -215,19 +215,19 @@ production_biomass <- rbind(production_biomass_stratum,
 #   rbind(production_sizecomp_subarea,
 #         production_sizecomp_stratum[, names(production_sizecomp_subarea)])
 
-production_cpue <- production_cpue %>% 
+production_cpue <- production_cpue|> 
   dplyr::left_join(
-    y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
+    y = report_spp|> dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
     relationship = "many-to-many")
 
-production_biomass <- production_biomass %>% 
+production_biomass <- production_biomass|> 
   dplyr::left_join(
-    y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
+    y = report_spp|> dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
     relationship = "many-to-many")
 
-# production_sizecomp <- production_sizecomp %>% 
+# production_sizecomp <- production_sizecomp|> 
 #   dplyr::left_join(
-#     y = report_spp %>% dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
+#     y = report_spp|> dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
 #     relationship = "many-to-many")
 
 write.csv(x = production_cpue, file = here::here("data/complex_cpue.csv"), row.names = FALSE)
@@ -243,9 +243,9 @@ diff <- summarize_gp_updates(channel = channel_products,
 
 # if (nrow(diff)) {
 # 
-# diff <- diff %>%
-#   dplyr::filter(SURVEY_DEFINITION_ID %in% c(98, 143))  %>% 
-#   dplyr::arrange(SURVEY_DEFINITION_ID) %>%
+# diff <- diff|>
+#   dplyr::filter(SURVEY_DEFINITION_ID %in% c(98, 143)) |> 
+#   dplyr::arrange(SURVEY_DEFINITION_ID)|>
 #   dplyr::mutate(OPERATION_TYPE = dplyr::case_when(
 #     OPERATION_TYPE == "UPDATE" & NUMBER_RECS == 1 ~ "update", 
 #     OPERATION_TYPE == "INSERT" & NUMBER_RECS == 1 ~ "insertion", 
@@ -271,42 +271,42 @@ diff <- summarize_gp_updates(channel = channel_products,
 #     SURVEY_DEFINITION_ID == 143 ~ "northern Bering Sea"
 #   ))
 # 
-# diff_maxyr <- diff %>%
-#   dplyr::filter(YEAR == maxyr) %>%
-#   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID) %>%
-#   dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE))  %>% 
-#   dplyr::ungroup() %>% 
-#   dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order)  %>% 
+# diff_maxyr <- diff|>
+#   dplyr::filter(YEAR == maxyr)|>
+#   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
+#   dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE)) |> 
+#   dplyr::ungroup()|> 
+#   dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order) |> 
 #   dplyr::mutate(year_min = maxyr, 
 #                 year_max = maxyr)
 # 
-# diff_notmaxyr_years <- diff %>%
-#   dplyr::filter(YEAR != maxyr) %>%
-#   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, SURVEY_DEFINITION_ID) %>%
+# diff_notmaxyr_years <- diff|>
+#   dplyr::filter(YEAR != maxyr)|>
+#   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, SURVEY_DEFINITION_ID)|>
 #   dplyr::summarise(year_min = min(YEAR, na.rm = TRUE),
-#                    year_max = max(YEAR, na.rm = TRUE)) %>% 
+#                    year_max = max(YEAR, na.rm = TRUE))|> 
 #   dplyr::ungroup()
 # 
-# diff_notmaxyr <- diff %>%
-#   dplyr::filter(YEAR != maxyr) %>%
-#   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID) %>%
-#   dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE)) %>% 
-#   dplyr::ungroup() %>% 
-#   dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order) %>% 
+# diff_notmaxyr <- diff|>
+#   dplyr::filter(YEAR != maxyr)|>
+#   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
+#   dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE))|> 
+#   dplyr::ungroup()|> 
+#   dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order)|> 
 #   dplyr::full_join(diff_notmaxyr_years)
 # 
 # changes_since_string <- function(diff0, str_year, maxyr) {
 #   str0 <- c()
 #   for (ii in unique(diff0srvy_long_DEFINITION_ID)) {
-#     temp1 <- diff0 %>% 
+#     temp1 <- diff0|> 
 #       dplyr::filter(SURVEY_DEFINITION_ID == ii)
 #     str0 <- paste0(str0, ifelse(ii == unique(diff0srvy_long_DEFINITION_ID)[1], 
 #                                 paste0("In ", str_year), "Similarly"), 
 #                    ", the ", ii, " ")
 #     
 #     for (i in unique(diff0$TABLE_NAME)) {
-#       temp <- temp1 %>% 
-#         dplyr::filter(TABLE_NAME == i) %>% 
+#       temp <- temp1|> 
+#         dplyr::filter(TABLE_NAME == i)|> 
 #         dplyr::arrange(desc(OPERATION_TYPE))
 #       
 #       if (temp$year_max[1] == maxyr){
@@ -339,8 +339,8 @@ diff <- summarize_gp_updates(channel = channel_products,
 # Date production data last updated --------------------------------------------
 
 library(rvest)
-last_production_run <- read_html("https://afsc-gap-products.github.io/gap_products/content/intro-news.html") %>% 
-  html_element("p") %>% 
+last_production_run <- read_html("https://afsc-gap-products.github.io/gap_products/content/intro-news.html")|> 
+  html_element("p")|> 
   paste0() 
 
 last_production_run <- strsplit(x = last_production_run, split = "/", fixed = TRUE)

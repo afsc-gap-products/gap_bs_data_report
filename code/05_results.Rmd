@@ -57,26 +57,26 @@ nickname <- "fig-cold-pool-area"
   temp <- obj$raw
   if (plural_surveys == "s") {
   load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata"))
-    temp <- temp %>% 
+    temp <- temp|> 
       dplyr::bind_rows(obj$raw)
   }
   names(temp) <- gsub(x = names(temp), pattern = "\n", replacement = " ")
-  temp <- temp %>%
-    dplyr::filter(common_name == "Total")  %>% 
-    dplyr::select(-common_name) %>% 
-    dplyr::left_join(cruises_maxyr %>% 
-                       dplyr::select(srvy, srvy_long) %>% 
-                       dplyr::distinct()) %>% 
+  temp <- temp|>
+    dplyr::filter(common_name == "Total") |> 
+    dplyr::select(-common_name)|> 
+    dplyr::left_join(cruises_maxyr|> 
+                       dplyr::select(srvy, srvy_long)|> 
+                       dplyr::distinct())|> 
     dplyr::mutate(across(where(is.numeric), xunits))
   
-  # str00 <- grepl(x = names(temp %>% 
+  # str00 <- grepl(x = names(temp|> 
   #     dplyr::select(-dplyr::starts_with("srvy"))), pattern = " deployed")
   # str00 <- ifelse(str00, "deployed ", "")
   names(temp) <- gsub(x = names(temp), pattern = "Satellite tags deployed", replacement = "fish for satellite tagging")
     
   str0 <- c()
   for (i in 1:nrow(temp)) {
-    temp0 <- t(temp[i, ] %>% 
+    temp0 <- t(temp[i, ]|> 
       dplyr::select(-dplyr::starts_with("srvy")))
   str0 <- paste0(str0, text_list(paste0(temp0, " ", tolower(rownames(temp0)) )), 
                                  " during the ", 
@@ -101,29 +101,29 @@ str0 <- ""
 
 # count taxon
 temp <- dplyr::left_join(
-  x = catch_haul_cruises_maxyr %>% 
-    dplyr::select(srvy, species_code) %>% 
+  x = catch_haul_cruises_maxyr|> 
+    dplyr::select(srvy, species_code)|> 
     dplyr::distinct(), 
-  y = spp_info %>% 
-    dplyr::filter(used_in_counts) %>%
-    dplyr::select(species_code, phylum, family, genus, species, taxon) %>%
+  y = spp_info|> 
+    dplyr::filter(used_in_counts)|>
+    dplyr::select(species_code, phylum, family, genus, species, taxon)|>
     dplyr::distinct(), 
-  by = "species_code") %>% 
-  # dplyr::filter(taxon == "fish") %>%
-  dplyr::select(species_code, phylum, family, genus, species, taxon, srvy) %>% 
-  dplyr::distinct() %>% 
+  by = "species_code")|> 
+  # dplyr::filter(taxon == "fish")|>
+  dplyr::select(species_code, phylum, family, genus, species, taxon, srvy)|> 
+  dplyr::distinct()|> 
   dplyr::filter(!is.na(taxon))
 
-temp1 <- temp %>% 
-    dplyr::group_by(srvy, taxon) %>% 
-    dplyr::summarise_all(dplyr::n_distinct, na.rm = TRUE) %>% 
+temp1 <- temp|> 
+    dplyr::group_by(srvy, taxon)|> 
+    dplyr::summarise_all(dplyr::n_distinct, na.rm = TRUE)|> 
     dplyr::left_join(
       data.frame(srvy = srvy1, 
-                 srvy_long = srvy11)) %>% 
+                 srvy_long = srvy11))|> 
       dplyr::mutate(dplyr::across(where(is.numeric), xunits)) 
 
 for (i in 1:length(unique(temp1$srvy))) {
-  temp0 <- temp1 %>% 
+  temp0 <- temp1|> 
     dplyr::filter(srvy == unique(temp1$srvy)[i])
   
 str0 <- paste0(
@@ -158,9 +158,9 @@ str0 <- ""
 if (srvy == "NEBS" & "NBS" %in% temp0$srvy) {
   # how many species encountered in one survey area but not in the other?
   load(file = paste0(dir_out_figtab, "tab-species-composition.rdata"))
-  temp3 <- obj$raw %>%
+  temp3 <- obj$raw|>
     dplyr::left_join(x = .,
-                     y = spp_info %>%
+                     y = spp_info|>
                        dplyr::select(species_code, order, species_name),
                      by = c("species_code"))
   
@@ -177,10 +177,10 @@ if (srvy == "NEBS" & "NBS" %in% temp0$srvy) {
   
   # flatfish
   temp4 <- temp3[temp3$order %in% c("Pleuronectiformes"), ]
-  temp5 <- temp4 %>% 
-    dplyr::filter(where != "both") %>% 
-    dplyr::group_by(where) %>% 
-    dplyr::summarise(n = n()) %>% 
+  temp5 <- temp4|> 
+    dplyr::filter(where != "both")|> 
+    dplyr::group_by(where)|> 
+    dplyr::summarise(n = n())|> 
     dplyr::mutate(
                   including = NA, 
                   where0 = dplyr::case_when(
@@ -233,43 +233,43 @@ nickname <- "tab-species-composition"
 # example output: 
 # [1] "The total demersal organismal biomass for the eastern Bering Sea was estimated at 12 million t and total demersal organismal biomass for the northern Bering Sea was estimated at 2.9 million t. In the eastern Bering Sea, the proportion of fishes (76%; Table \\@ref(tab:tab-biomass-est-EBS-fish)) was higher than invertebrates (24%; Table \\@ref(tab:tab-biomass-est-EBS-invert)) and in the northern Bering Sea, the proportion of fishes (48%; Table \\@ref(tab:tab-biomass-est-NBS-fish)) was lower than invertebrates (52%; Table \\@ref(tab:tab-biomass-est-NBS-invert)). The lower relative fish biomass in the northern Bering Sea than in the eastern Bering Sea is consistent with results of a broader analysis of all survey years presented by @RN936, which showed decreasing fish biomass with increasing latitude on the eastern Bering Sea continental. "
 
-total_biomass0 <- total_biomass %>% 
-  dplyr::filter(year == maxyr) %>% 
-  dplyr::group_by(srvy, year, srvy_long) %>% 
-  dplyr::summarise(total = sum(total, na.rm = TRUE)) %>% 
+total_biomass0 <- total_biomass|> 
+  dplyr::filter(year == maxyr)|> 
+  dplyr::group_by(srvy, year, srvy_long)|> 
+  dplyr::summarise(total = sum(total, na.rm = TRUE))|> 
   dplyr::ungroup()
 
 temp2 <- dplyr::full_join(
   y = total_biomass0, 
-  x = total_biomass  %>% 
-    dplyr::filter(year == maxyr) %>% 
-    dplyr::rename(total_taxon = total)) %>% 
+  x = total_biomass |> 
+    dplyr::filter(year == maxyr)|> 
+    dplyr::rename(total_taxon = total))|> 
   dplyr::mutate(
     prop = (total_taxon/total), 
     perc = paste0(formatC(x = prop*100, 
                           digits = 0, format = "f", big.mark = ","), 
                   "%"), 
-    group = gsub(pattern = "Total ", replacement = "", x = taxon) ) %>% 
+    group = gsub(pattern = "Total ", replacement = "", x = taxon) )|> 
   tidyr::pivot_wider(id_cols = "srvy", 
                      names_from = "taxon", 
-                     values_from = c(total_taxon, "perc", "prop")) %>%
+                     values_from = c(total_taxon, "perc", "prop"))|>
   dplyr::mutate(case = dplyr::case_when(
     perc_fish == perc_invert ~ "about the same as", 
       prop_fish>prop_invert ~ "higher than",
-      prop_fish<prop_invert ~ "lower than")) %>% 
+      prop_fish<prop_invert ~ "lower than"))|> 
   dplyr::left_join(
     y = data.frame(srvy = srvy1, 
                    srvy_long = srvy11))
 
 temp1 <- left_join(
-  x = total_biomass %>% 
+  x = total_biomass|> 
     dplyr::filter(year == maxyr), 
-  y = stratum %>% 
-    dplyr::group_by(srvy) %>% 
+  y = stratum|> 
+    dplyr::group_by(srvy)|> 
     dplyr::summarise(area_km2 = sum(area_km2, na.rm = TRUE)), 
-  by = "srvy") %>% 
+  by = "srvy")|> 
   dplyr::mutate(prop = total/area_km2, 
-                taxon = gsub(pattern = "Total ", replacement = "", x = taxon)) %>% 
+                taxon = gsub(pattern = "Total ", replacement = "", x = taxon))|> 
   dplyr::filter(taxon == "fish")
 
 str0 <- paste0("The ", 
@@ -333,66 +333,66 @@ if (srvy == "NEBS" & "NBS" %in% haul_cruises_maxyr$srvy) {
   
   for (i in 1:length(srvy1)) {
     load(file = paste0(dir_out_figtab, "tab-biomass-est-", srvy1[i], "-fish.rdata"))
-    temp1 <- obj$raw %>%
-      dplyr::mutate(srvy = srvy1[i]) %>%
+    temp1 <- obj$raw|>
+      dplyr::mutate(srvy = srvy1[i])|>
       dplyr::filter(is.na(taxon) |
-                      grepl(pattern = "Total", x = taxon, ignore.case = TRUE )) %>% 
+                      grepl(pattern = "Total", x = taxon, ignore.case = TRUE ))|> 
       dplyr::filter(!grepl(pattern = "Total", x = group, ignore.case = TRUE ) &
-                      !grepl(pattern = "Other", x = group, ignore.case = TRUE )) %>% 
-      dplyr::select(srvy, group, `999`, prop = prop0) %>% 
-      dplyr::arrange(-prop) %>% 
-      dplyr::mutate(order = 1:nrow(.)) %>% 
+                      !grepl(pattern = "Other", x = group, ignore.case = TRUE ))|> 
+      dplyr::select(srvy, group, `999`, prop = prop0)|> 
+      dplyr::arrange(-prop)|> 
+      dplyr::mutate(order = 1:nrow(.))|> 
       dplyr::bind_rows(temp1, .)
     
-    temp2 <- obj$raw %>%
-      dplyr::mutate(srvy = srvy1[i]) %>%
+    temp2 <- obj$raw|>
+      dplyr::mutate(srvy = srvy1[i])|>
       dplyr::filter(group %in% temp1$group[1:2] & 
-                      !grepl(pattern = "Total ", x = taxon, ignore.case = TRUE )) %>% 
-      dplyr::select(srvy, group, taxon, `999`, prop = prop0) %>% 
-      dplyr::arrange(-prop) %>% 
-      dplyr::mutate(order = 1:nrow(.)) %>% 
+                      !grepl(pattern = "Total ", x = taxon, ignore.case = TRUE ))|> 
+      dplyr::select(srvy, group, taxon, `999`, prop = prop0)|> 
+      dplyr::arrange(-prop)|> 
+      dplyr::mutate(order = 1:nrow(.))|> 
       dplyr::bind_rows(temp2, .)
   }
   
-  temp1 <- temp1 %>% 
+  temp1 <- temp1|> 
     tidyr::pivot_wider(id_cols = c("group"), 
                        names_from = "srvy", 
-                       values_from = c("999", "prop", "order")) %>%
-    dplyr::mutate(same = ifelse(order_EBS == order_NBS, TRUE, FALSE)) %>% 
+                       values_from = c("999", "prop", "order"))|>
+    dplyr::mutate(same = ifelse(order_EBS == order_NBS, TRUE, FALSE))|> 
     dplyr::filter(!(is.na(srvy)))
 
   
-  temp2 <- temp2 %>% 
+  temp2 <- temp2|> 
     tidyr::pivot_wider(id_cols = c("group", "taxon"), 
                        names_from = "srvy", 
-                       values_from = c("999", "prop", "order")) %>%
-    dplyr::mutate(same =ifelse(order_EBS == order_NBS, TRUE, FALSE)) %>% 
+                       values_from = c("999", "prop", "order"))|>
+    dplyr::mutate(same =ifelse(order_EBS == order_NBS, TRUE, FALSE))|> 
     dplyr::left_join(
       x = ., 
-      y = spp_info_maxyr %>% 
+      y = spp_info_maxyr|> 
         dplyr::select(species_name, common_name), 
       by = c("taxon" = "common_name")  )
   
   # temp3: top 3 spp in each group
   temp0 <- tidyr::crossing(group = unique(temp2$group), 
-                           srvy = srvy1) %>% 
-    dplyr::arrange(srvy, group) %>% 
+                           srvy = srvy1)|> 
+    dplyr::arrange(srvy, group)|> 
     dplyr::mutate(str0 = NA)
   
   for (i in 1:nrow(temp0)) {
     
-    temp3 <- temp2 %>% 
+    temp3 <- temp2|> 
       dplyr::rename(prop = paste0("prop_", temp0$srvy[i]),
-                    order = paste0("order_", temp0$srvy[i])) %>%
-      dplyr::arrange(order) %>% 
+                    order = paste0("order_", temp0$srvy[i]))|>
+      dplyr::arrange(order)|> 
       dplyr::filter(
-        group == temp0$group[i]) %>% 
-      head(3) %>%
+        group == temp0$group[i])|> 
+      head(3)|>
       dplyr::mutate(prop = paste0(round(x = prop*100, digits = 1), "%"), 
-                    srvy = temp0$srvy[i]) %>%
-      dplyr::arrange(order) %>% 
-      dplyr::select(srvy, group, taxon, species_name, prop) %>% # 
-      dplyr::filter(prop != "0%") %>% 
+                    srvy = temp0$srvy[i])|>
+      dplyr::arrange(order)|> 
+      dplyr::select(srvy, group, taxon, species_name, prop)|> # 
+      dplyr::filter(prop != "0%")|> 
       dplyr::filter(!grepl(pattern = "Total", x = taxon, ignore.case = TRUE ) &
                       !grepl(pattern = "Other", x = taxon, ignore.case = TRUE )) 
 
@@ -453,25 +453,25 @@ for (i in 1:length(srvy1)) {
   load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-", haul_cruises_maxyr$srvy[i], ".rdata"))
   temp0 <- obj$raw
   temp <- 
-    temp0 %>% 
+    temp0|> 
     dplyr::filter(!is.na(change0) &
                     (count_min > 100) &
-                    srvy == srvy1[i]) %>%
+                    srvy == srvy1[i])|>
     dplyr::mutate(case = case_when(
       change0 > 0 ~ "increased", 
       change0 < 0 ~ "decreased"), 
-      print_name = print_name1 ) %>% 
-    dplyr::arrange(-change0) %>%
+      print_name = print_name1 )|> 
+    dplyr::arrange(-change0)|>
     dplyr::select(print_name, maxyr, compareyr, change, case) 
   
   temp <-  
     dplyr::bind_rows(
-      temp %>% 
-        dplyr::filter(case == "increased") %>% 
+      temp|> 
+        dplyr::filter(case == "increased")|> 
         head(5), 
-      temp %>% 
-        dplyr::filter(case == "decreased") %>% 
-        tail(5) ) %>% 
+      temp|> 
+        dplyr::filter(case == "decreased")|> 
+        tail(5) )|> 
     dplyr::mutate(print_name = gsub(pattern = "include", replacement = ", which", x = print_name))
   
     temp1 <- data.frame(maxyr = sum(total_biomass$total[
@@ -517,33 +517,33 @@ load(file = paste0(dir_out_figtab, "tab-est-spp-wt.rdata"))
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   
-  temp <- obj$raw %>% 
-    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) %>%
-    dplyr::select(cpue_kgkm2_mean, print_name) %>%
-    dplyr::arrange(-cpue_kgkm2_mean) %>% 
-    dplyr::ungroup() %>% 
-    head(10) %>% 
-    dplyr::summarise(cpue_kgkm2_mean = sum(cpue_kgkm2_mean, na.rm = TRUE)) %>% 
+  temp <- obj$raw|> 
+    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i])|>
+    dplyr::select(cpue_kgkm2_mean, print_name)|>
+    dplyr::arrange(-cpue_kgkm2_mean)|> 
+    dplyr::ungroup()|> 
+    head(10)|> 
+    dplyr::summarise(cpue_kgkm2_mean = sum(cpue_kgkm2_mean, na.rm = TRUE))|> 
     dplyr::mutate(srvy = haul_cruises_maxyr$srvy[i], 
-                  taxon = "topfish") %>% 
+                  taxon = "topfish")|> 
     dplyr::bind_rows(temp, .)
 }  
 
-temp <- biomass %>% 
+temp <- biomass|> 
   dplyr::filter(year == maxyr & 
-                  stratum == 999) %>%
-  dplyr::select(cpue_kgkm2_mean, srvy, taxon) %>% 
-  dplyr::group_by(srvy, taxon) %>% 
-  dplyr::summarise(cpue_kgkm2_mean = sum(cpue_kgkm2_mean, na.rm = TRUE)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::bind_rows(temp, .) %>% 
-  pivot_wider(data = ., id_cols = "srvy", names_from = taxon, values_from = cpue_kgkm2_mean ) %>% 
+                  stratum == 999)|>
+  dplyr::select(cpue_kgkm2_mean, srvy, taxon)|> 
+  dplyr::group_by(srvy, taxon)|> 
+  dplyr::summarise(cpue_kgkm2_mean = sum(cpue_kgkm2_mean, na.rm = TRUE))|> 
+  dplyr::ungroup()|> 
+  dplyr::bind_rows(temp, .)|> 
+  pivot_wider(data = ., id_cols = "srvy", names_from = taxon, values_from = cpue_kgkm2_mean )|> 
   dplyr::mutate(all = fish + invert, 
                 perc_topfish = paste0(round(x = (topfish/all)*100, digits = 1), "%"), # the % of the top 10 fish caught out of the survey
                 perc_topfishoffish = paste0(round(x = (topfish/fish)*100, digits = 1), "%"), # the % of the top 10 fish caught out of the survey
                 perc_invert = paste0(round(x = (invert/all)*100, digits = 1), "%"), 
                 perc_fish = paste0(round(x = (fish/all)*100, digits = 1), "%"), 
-                dplyr::across(where(is.numeric), formatC, digits = 1, big.mark = ",", format = "f")) %>% 
+                dplyr::across(where(is.numeric), formatC, digits = 1, big.mark = ",", format = "f"))|> 
   dplyr::left_join(
     y = data.frame(srvy = srvy1, 
                    srvy_long = srvy11))
@@ -594,14 +594,14 @@ sep0 <- "\\pagebreak"
 ## Summary of Results for Selected Fish and Invertebrate Fauna of the `r gsub(pattern = "And", replacement = "and", x = stringr::str_to_title(SURVEY))`
 
 ```{r results-spatial-distribution_fish}
-temp <- report_spp1 %>% 
-  dplyr::filter(plot_idw == TRUE) %>% 
-  dplyr::select(file_name, taxon) %>% 
+temp <- report_spp1|> 
+  dplyr::filter(plot_idw == TRUE)|> 
+  dplyr::select(file_name, taxon)|> 
   dplyr::distinct()
 
-temp2 <- report_spp1 %>% 
-  dplyr::filter(table_cpue == TRUE) %>% 
-  dplyr::select(file_name, taxon) %>% 
+temp2 <- report_spp1|> 
+  dplyr::filter(table_cpue == TRUE)|> 
+  dplyr::select(file_name, taxon)|> 
   dplyr::distinct()
 ```
 

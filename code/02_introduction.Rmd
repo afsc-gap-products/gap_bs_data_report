@@ -11,25 +11,25 @@ if (sum(haul_cruises_maxyr$srvy %in% "EBS")>0) {
 }
 
 if (sum(haul_cruises_maxyr$srvy %in% "NBS")>0) {
-  temp2 <- cruises %>% 
+  temp2 <- cruises|> 
     dplyr::filter(srvy == "NBS" & year >= 2010 & 
-                    year != maxyr) %>% 
-    dplyr::select(year, srvy) %>% 
-    unique() %>% 
-    dplyr::select(year) %>% 
-    dplyr::arrange(year) %>%
+                    year != maxyr)|> 
+    dplyr::select(year, srvy)|> 
+    unique()|> 
+    dplyr::select(year)|> 
+    dplyr::arrange(year)|>
     unlist()
   str00 <- paste0(str00,
                   'The standardized northern Bering Sea shelf survey [@RN909] has only been conducted in ',text_list(temp2),'. ')
 }
 
-temp <- haul_cruises_maxyr %>% 
+temp <- haul_cruises_maxyr|> 
   dplyr::mutate(survey_name = tolower(survey_name), 
                 survey_name = 
                   gsub(pattern = "eastern bering sea crab/groundfish", 
                        replacement = paste0("eastern Bering Sea groundfish and shellfish"), 
                        x = survey_name), 
-                survey_name = 
+                # survey_name = 
                   gsub(pattern = "northern bering sea ", 
                        replacement = paste0("northern Bering Sea "), 
                        x = survey_name))

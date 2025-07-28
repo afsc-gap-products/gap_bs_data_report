@@ -60,7 +60,7 @@ PKG <- c(
   "plyr",
   "dplyr",
   "googledrive",
-  "magrittr",
+  # "magrittr",
   "readr",
   "tidyr",
   "readxl", 

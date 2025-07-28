@@ -8,13 +8,13 @@
 nickname <- "tab-sci-profile"
 
 table_raw <- readr::read_csv(file = paste0(dir_out_rawdata, "/0-survey-team-bios.csv"), 
-                             show_col_types = FALSE) %>% 
+                             show_col_types = FALSE)|> 
   dplyr::mutate(img = here::here("img", image))
 
 
-table_print <- table_raw %>% 
+table_print <- table_raw|> 
   flextable::flextable(
-    col_keys = c("img", "dummy")) %>%
+    col_keys = c("img", "dummy"))|>
   flextable::compose(j = "dummy", part = "body",
                      value = as_paragraph(
                        as_chunk(paste0(name, "\n"),
@@ -22,12 +22,12 @@ table_print <- table_raw %>%
                        # as_chunk(paste0(title, "\n"),
                        #          props = fp_text_default(italic = TRUE, bold = TRUE, font.size = 10)), 
                        as_chunk(bio,
-                                props = fp_text_default(font.size = 10)))) %>%  
+                                props = fp_text_default(font.size = 10))))|>  
   flextable::colformat_image(j = "img" , 
                              width = 2, 
-                             height = 2) %>% 
-  flextable::width(x = ., width = c(2, full_page_portrait_width-2)) %>%
-  flextable::delete_part(x = ., part = "header") %>% 
+                             height = 2)|> 
+  flextable::width(x = ., width = c(2, full_page_portrait_width-2))|>
+  flextable::delete_part(x = ., part = "header")|> 
   flextable::border_remove(x = .)
 
 table_print
@@ -50,8 +50,8 @@ table_print
 ```{r end-orcid}
 # <!-- ## ORCID -->
 
-# insert <- readxl::read_xlsx(path = paste0(dir_out_rawdata, "/0_orcid.xlsx")) %>% 
-#   flextable::flextable(data = .) %>%
+# insert <- readxl::read_xlsx(path = paste0(dir_out_rawdata, "/0_orcid.xlsx"))|> 
+#   flextable::flextable(data = .)|>
 #   NMFSReports::theme_flextable_nmfstm(x = ., row_lines = FALSE, font = font0)
 
 # `r insert `

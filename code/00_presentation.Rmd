@@ -89,16 +89,16 @@ To collect standardized and fishery-independent time series of:
 nickname <- 'fig-vessels'
 no_cap <- TRUE
 
-temp <- haul_cruises_vess %>%
-  dplyr::select(vessel_id, vessel_ital, year) %>% 
+temp <- haul_cruises_vess|>
+  dplyr::select(vessel_id, vessel_ital, year)|> 
   dplyr::distinct()
-temp <- temp %>% 
-  dplyr::filter(vessel_id %in% temp$vessel_id[temp$year == maxyr]) %>% 
-  dplyr::arrange(desc(year)) %>% 
-  dplyr::group_by(vessel_id) %>% 
+temp <- temp|> 
+  dplyr::filter(vessel_id %in% temp$vessel_id[temp$year == maxyr])|> 
+  dplyr::arrange(desc(year))|> 
+  dplyr::group_by(vessel_id)|> 
   dplyr::summarise(n_year = n(), 
                    max_year = max(year, na.rm = TRUE), 
-                   min_year = min(year, na.rm = TRUE)) %>% 
+                   min_year = min(year, na.rm = TRUE))|> 
   dplyr::mutate(nth = stndth(n_year))
 ```
 

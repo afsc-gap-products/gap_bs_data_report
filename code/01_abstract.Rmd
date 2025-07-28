@@ -19,7 +19,7 @@ str0_coverage <- ifelse(srvy == "NEBS",
                    paste0("The survey covers the eastern Bering Sea continental shelf (bottom depths between 20 and 200 m) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62°N. "))
 
 # Station count ----------------------------------------------------------------
-vessels0 <- vessels %>% 
+vessels0 <- vessels|> 
   dplyr::filter(vess_shape != "X")
 
 str0_stations <- paste0(
@@ -31,8 +31,8 @@ str0_stations <- paste0(
                    " stations in the ", haul_cruises_maxyr$srvy_long)), ". ")
 
 # Temperature ------------------------------------------------------------------
-temp0 <- temps_avg_yr %>% 
-  dplyr::filter(year == maxyr) %>% 
+temp0 <- temps_avg_yr|> 
+  dplyr::filter(year == maxyr)|> 
   dplyr::mutate(
     dplyr::across(where(is.numeric), round, digits = 1), 
     bt_case = dplyr::case_when( 
@@ -98,72 +98,72 @@ str0_temperature <- str0
 
 # count fish spp
 temp <- dplyr::left_join(
-  x = catch_haul_cruises_maxyr %>% 
-    dplyr::select(srvy, species_code) %>% 
+  x = catch_haul_cruises_maxyr|> 
+    dplyr::select(srvy, species_code)|> 
     dplyr::distinct(), 
-  y = spp_info %>% 
-    dplyr::filter(used_in_counts) %>%
-    dplyr::select(species_code, taxon, family, genus, taxon) %>%
+  y = spp_info|> 
+    dplyr::filter(used_in_counts)|>
+    dplyr::select(species_code, taxon, family, genus, taxon)|>
     dplyr::distinct(), 
-  by = "species_code") %>% 
-  dplyr::filter(taxon == "fish") %>% 
-  dplyr::select(species_code, taxon, family, genus, taxon, srvy) %>% 
+  by = "species_code")|> 
+  dplyr::filter(taxon == "fish")|> 
+  dplyr::select(species_code, taxon, family, genus, taxon, srvy)|> 
   dplyr::distinct()
 
 temp0 <- dplyr::full_join(
-  x = temp %>% 
-    dplyr::filter(!is.na(taxon)) %>% 
-    dplyr::select(srvy, taxon) %>% 
-    dplyr::distinct() %>% 
-    dplyr::group_by(srvy) %>% 
+  x = temp|> 
+    dplyr::filter(!is.na(taxon))|> 
+    dplyr::select(srvy, taxon)|> 
+    dplyr::distinct()|> 
+    dplyr::group_by(srvy)|> 
     dplyr::summarise(taxon = n()),
-  y = temp %>% 
-    dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(srvy, species_code) %>% 
-    dplyr::distinct() %>% 
-    dplyr::group_by(srvy) %>%
+  y = temp|> 
+    dplyr::filter(!is.na(species_code))|> 
+    dplyr::select(srvy, species_code)|> 
+    dplyr::distinct()|> 
+    dplyr::group_by(srvy)|>
     dplyr::summarise(species_code = n()),
-  by = "srvy") %>% 
+  by = "srvy")|> 
   dplyr::left_join(
     x = ., 
-    y = temp %>% 
-      dplyr::filter(!is.na(family)) %>% 
-      dplyr::select(srvy, family) %>% 
-      dplyr::distinct() %>% 
-      dplyr::group_by(srvy) %>%
+    y = temp|> 
+      dplyr::filter(!is.na(family))|> 
+      dplyr::select(srvy, family)|> 
+      dplyr::distinct()|> 
+      dplyr::group_by(srvy)|>
       dplyr::summarise(family = n()),
-    by = "srvy")  %>% 
+    by = "srvy") |> 
   dplyr::left_join(
     x = ., 
-    y = temp %>% 
-      dplyr::filter(!is.na(genus)) %>% 
-      dplyr::select(srvy, genus) %>% 
-      dplyr::distinct() %>% 
-      dplyr::group_by(srvy) %>%
+    y = temp|> 
+      dplyr::filter(!is.na(genus))|> 
+      dplyr::select(srvy, genus)|> 
+      dplyr::distinct()|> 
+      dplyr::group_by(srvy)|>
       dplyr::summarise(genus = n()),
     by = "srvy") #%>%
 # dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
 
 temp1 <- dplyr::bind_cols(
-  temp %>% 
-    dplyr::filter(!is.na(taxon)) %>% 
-    dplyr::select(taxon) %>% 
-    dplyr::distinct() %>% 
+  temp|> 
+    dplyr::filter(!is.na(taxon))|> 
+    dplyr::select(taxon)|> 
+    dplyr::distinct()|> 
     dplyr::summarise(taxon = n()),
-  temp %>% 
-    dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(species_code) %>% 
-    dplyr::distinct() %>% 
+  temp|> 
+    dplyr::filter(!is.na(species_code))|> 
+    dplyr::select(species_code)|> 
+    dplyr::distinct()|> 
     dplyr::summarise(species_code = n()), 
-  temp %>% 
-    dplyr::filter(!is.na(family)) %>% 
-    dplyr::select(family) %>% 
-    dplyr::distinct() %>% 
+  temp|> 
+    dplyr::filter(!is.na(family))|> 
+    dplyr::select(family)|> 
+    dplyr::distinct()|> 
     dplyr::summarise(family = n()),
-  temp %>% 
-    dplyr::filter(!is.na(genus)) %>% 
-    dplyr::select(genus) %>% 
-    dplyr::distinct() %>% 
+  temp|> 
+    dplyr::filter(!is.na(genus))|> 
+    dplyr::select(genus)|> 
+    dplyr::distinct()|> 
     dplyr::summarise(genus = n())) 
 
 fish_sp <- xunits(temp1$species_code) 
@@ -172,72 +172,72 @@ fish_family <- xunits(temp1$family)
 
 # count invert spp
 temp <- dplyr::left_join(
-  x = catch_haul_cruises_maxyr %>% 
-    dplyr::select(srvy, species_code) %>% 
+  x = catch_haul_cruises_maxyr|> 
+    dplyr::select(srvy, species_code)|> 
     dplyr::distinct(), 
-  y = spp_info %>% 
-    dplyr::filter(used_in_counts) %>%
-    dplyr::select(species_code, taxon, phylum, genus, taxon) %>%
+  y = spp_info|> 
+    dplyr::filter(used_in_counts)|>
+    dplyr::select(species_code, taxon, phylum, genus, taxon)|>
     dplyr::distinct(), 
-  by = "species_code") %>% 
-  dplyr::filter(taxon == "invert") %>% 
-  dplyr::select(species_code, taxon, phylum, genus, taxon, srvy) %>% 
+  by = "species_code")|> 
+  dplyr::filter(taxon == "invert")|> 
+  dplyr::select(species_code, taxon, phylum, genus, taxon, srvy)|> 
   dplyr::distinct()
 
 temp0 <- dplyr::full_join(
-  x = temp %>% 
-    dplyr::filter(!is.na(taxon)) %>% 
-    dplyr::select(srvy, taxon) %>% 
-    dplyr::distinct() %>% 
-    dplyr::group_by(srvy) %>% 
+  x = temp|> 
+    dplyr::filter(!is.na(taxon))|> 
+    dplyr::select(srvy, taxon)|> 
+    dplyr::distinct()|> 
+    dplyr::group_by(srvy)|> 
     dplyr::summarise(taxon = n()),
-  y = temp %>% 
-    dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(srvy, species_code) %>% 
-    dplyr::distinct() %>% 
-    dplyr::group_by(srvy) %>%
+  y = temp|> 
+    dplyr::filter(!is.na(species_code))|> 
+    dplyr::select(srvy, species_code)|> 
+    dplyr::distinct()|> 
+    dplyr::group_by(srvy)|>
     dplyr::summarise(species_code = n()),
-  by = "srvy") %>% 
+  by = "srvy")|> 
   dplyr::left_join(
     x = ., 
-    y = temp %>% 
-      dplyr::filter(!is.na(phylum)) %>% 
-      dplyr::select(srvy, phylum) %>% 
-      dplyr::distinct() %>% 
-      dplyr::group_by(srvy) %>%
+    y = temp|> 
+      dplyr::filter(!is.na(phylum))|> 
+      dplyr::select(srvy, phylum)|> 
+      dplyr::distinct()|> 
+      dplyr::group_by(srvy)|>
       dplyr::summarise(phylum = n()),
-    by = "srvy")  %>% 
+    by = "srvy") |> 
   dplyr::left_join(
     x = ., 
-    y = temp %>% 
-      dplyr::filter(!is.na(genus)) %>% 
-      dplyr::select(srvy, genus) %>% 
-      dplyr::distinct() %>% 
-      dplyr::group_by(srvy) %>%
+    y = temp|> 
+      dplyr::filter(!is.na(genus))|> 
+      dplyr::select(srvy, genus)|> 
+      dplyr::distinct()|> 
+      dplyr::group_by(srvy)|>
       dplyr::summarise(genus = n()),
     by = "srvy") #%>%
 # dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
 
 temp1 <- dplyr::bind_cols(
-  temp %>% 
-    dplyr::filter(!is.na(taxon)) %>% 
-    dplyr::select(taxon) %>% 
-    dplyr::distinct() %>% 
+  temp|> 
+    dplyr::filter(!is.na(taxon))|> 
+    dplyr::select(taxon)|> 
+    dplyr::distinct()|> 
     dplyr::summarise(taxon = n()),
-  temp %>% 
-    dplyr::filter(!is.na(species_code)) %>% 
-    dplyr::select(species_code) %>% 
-    dplyr::distinct() %>% 
+  temp|> 
+    dplyr::filter(!is.na(species_code))|> 
+    dplyr::select(species_code)|> 
+    dplyr::distinct()|> 
     dplyr::summarise(species_code = n()), 
-  temp %>% 
-    dplyr::filter(!is.na(phylum)) %>% 
-    dplyr::select(phylum) %>% 
-    dplyr::distinct() %>% 
+  temp|> 
+    dplyr::filter(!is.na(phylum))|> 
+    dplyr::select(phylum)|> 
+    dplyr::distinct()|> 
     dplyr::summarise(phylum = n()),
-  temp %>% 
-    dplyr::filter(!is.na(genus)) %>% 
-    dplyr::select(genus) %>% 
-    dplyr::distinct() %>% 
+  temp|> 
+    dplyr::filter(!is.na(genus))|> 
+    dplyr::select(genus)|> 
+    dplyr::distinct()|> 
     dplyr::summarise(genus = n())) 
 
 invert_spp <- xunits(temp1$species_code) 
@@ -254,13 +254,13 @@ for (i in 1:length(srvy1)){
   total_biomass_new <- total_biomass  # copy of total_biomass that can be updated
   # Filter for last five years for EBS
   if(srvy2 == "EBS") {
-    total_biomass_new <- total_biomass_new %>% filter(year >= maxyr - 5)
+    total_biomass_new <- total_biomass_new|> filter(year >= maxyr - 5)
   }
-  temp_mean <- total_biomass_new %>% 
-    dplyr::group_by(srvy, year) %>% 
-    dplyr::mutate(biomass = sum(total)) %>%  # sum over inverts & fish
-    dplyr::group_by(srvy) %>%
-    dplyr::summarise(total_mean = mean(biomass, na.rm = TRUE)) %>% 
+  temp_mean <- total_biomass_new|> 
+    dplyr::group_by(srvy, year)|> 
+    dplyr::mutate(biomass = sum(total))|>  # sum over inverts & fish
+    dplyr::group_by(srvy)|>
+    dplyr::summarise(total_mean = mean(biomass, na.rm = TRUE))|> 
     dplyr::filter(srvy == srvy2) 
   
   # Text for period being averaged

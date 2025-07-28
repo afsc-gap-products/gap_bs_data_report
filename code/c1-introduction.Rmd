@@ -4,9 +4,9 @@
 ```{r intro-text}
 # use haul_cruises_maxyr TOLEDO 
 
-temp <- haul_cruises_maxyr %>%
+temp <- haul_cruises_maxyr|>
   dplyr::filter(srvy == "EBS") #%>% 
-  # dplyr::mutate(start_mo_long = format(x = as.POSIXlt(x = start_date_haul ), format="%B")) %>%
+  # dplyr::mutate(start_mo_long = format(x = as.POSIXlt(x = start_date_haul ), format="%B"))|>
   # dplyr::mutate(end_mo_long = format(x = as.POSIXlt(x = end_date_haul ), format="%B")) #%>%
   # dplyr::select(start_mo_long, end_mo_long)
 
@@ -15,8 +15,8 @@ str0_nbs <- ifelse(srvy == "NEBS",
                       paste0("In addition, the ", maxyr, 
                              " survey coverage was expanded to include the northern Bering Sea. This is only the ", 
                              numbers2words_th(
-                               haul_cruises_maxyr %>% 
-                                 dplyr::filter(srvy == "NBS") %>%
+                               haul_cruises_maxyr|> 
+                                 dplyr::filter(srvy == "NBS")|>
                                  dplyr::select(yrofsurvey )),
                              " time since 2010 that the northern Bering Sea shelf survey was done. The expanded study area covered the entire Bering Sea continental shelf from 20 m (",
                              round(20/divmforft, 1),
@@ -45,7 +45,7 @@ if (sum(haul_cruises_maxyr$stations_avail == haul_cruises_maxyr$stations_complet
 nth_yr <- data.frame()
 for (i in 1:nrow(haul_cruises_maxyr)){
   srvy <- haul_cruises_maxyr$srvy[i]
-  nth_yr <- nth_yr %>% dplyr::bind_rows(
+  nth_yr <- nth_yr|> dplyr::bind_rows(
     data.frame(srvy = srvy, 
                val = ifelse(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$srvy == srvy]<=20, 
                             numbers2words_th(haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$srvy == srvy]), 

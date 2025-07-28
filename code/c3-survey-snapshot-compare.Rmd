@@ -75,28 +75,28 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
   load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))
   obj1 <- obj
   
-    temp1 <- obj1$raw %>% 
+    temp1 <- obj1$raw|> 
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE)))
   
   if (srvy == "NEBS") {
   load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata")) # obj
-      temp1 <- temp1 %>% dplyr::bind_rows(
-    obj$raw %>% 
+      temp1 <- temp1|> dplyr::bind_rows(
+    obj$raw|> 
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) )    
   }
 
   temp1 <- dplyr::bind_rows(
-    obj1$raw %>% 
+    obj1$raw|> 
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))), 
-    obj$raw %>% 
+    obj$raw|> 
       dplyr::filter(common_name != "Total" &
-                      !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) ) %>% 
-    dplyr::select(-srvy) %>% 
-    dplyr::group_by(common_name) %>% 
-    dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE))) %>% 
+                      !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) )|> 
+    dplyr::select(-srvy)|> 
+    dplyr::group_by(common_name)|> 
+    dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE)))|> 
     dplyr::ungroup()
   
   # list taxon used in each sample
@@ -114,24 +114,24 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
   }
   
   # count taxon used in each sample
-  temp1 <- temp1 %>% 
-    dplyr::select(-common_name) %>%
-    tidyr::pivot_longer(cols = names(.), names_to = "var", values_to = "val") %>% 
-    dplyr::filter(val != 0) %>% 
-    dplyr::group_by(var) %>% 
-    dplyr::summarise(n = n()) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::mutate(var = paste0("n_", var)) %>% 
+  temp1 <- temp1|> 
+    dplyr::select(-common_name)|>
+    tidyr::pivot_longer(cols = names(.), names_to = "var", values_to = "val")|> 
+    dplyr::filter(val != 0)|> 
+    dplyr::group_by(var)|> 
+    dplyr::summarise(n = n())|> 
+    dplyr::ungroup()|> 
+    dplyr::mutate(var = paste0("n_", var))|> 
     tidyr::pivot_wider(names_from = var, values_from = n)
   
   temp <- dplyr::bind_rows(
-    obj$raw %>% 
+    obj$raw|> 
       dplyr::filter(common_name == "Total") , 
-    obj1$raw %>% 
-      dplyr::filter(common_name == "Total") ) %>%
-    # dplyr::filter(!(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) %>% 
-    dplyr::select(-srvy, -common_name) %>%
-    dplyr::ungroup() %>% 
+    obj1$raw|> 
+      dplyr::filter(common_name == "Total") )|>
+    # dplyr::filter(!(grepl(x = common_name, pattern = "crab", ignore.case = TRUE)))|> 
+    dplyr::select(-srvy, -common_name)|>
+    dplyr::ungroup()|> 
     dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE)))
 
   temp <- data.frame(t(temp))
@@ -144,16 +144,16 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
   names(temp3) <- "text_taxa"
   temp3$var <- gsub(pattern = "spp_", replacement = "", x = rownames(temp3))
   
-  temp0 <- dplyr::left_join(temp, temp1, by = "var") %>% 
-    dplyr::left_join(temp3, by = "var") %>% 
+  temp0 <- dplyr::left_join(temp, temp1, by = "var")|> 
+    dplyr::left_join(temp3, by = "var")|> 
     dplyr::mutate(var0 = tolower(gsub(pattern = "\n", x = var, replacement = " ")), 
-                  taxa_type = "fish") %>% 
+                  taxa_type = "fish")|> 
     dplyr::arrange(desc(n_samples))
 
-  temp000 <- temp0 %>%
+  temp000 <- temp0|>
     dplyr::filter(var == "Length\nmeasurements")
     
-  temp00 <- temp0 %>%
+  temp00 <- temp0|>
     dplyr::filter(var != "Length\nmeasurements")
   
     str0 <- text_list(
@@ -176,11 +176,11 @@ From the `r SURVEY` survey`r plural_surveys`, length measurements were collected
 ```{r biomass-inc-dec-tot}
 
 # million metric tons of biomass collected in each region in each year
-temp <- total_biomass %>% 
-  dplyr::group_by(year, srvy, srvy_long) %>% 
-  dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::arrange(desc(year)) %>% 
+temp <- total_biomass|> 
+  dplyr::group_by(year, srvy, srvy_long)|> 
+  dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1))|> 
+  dplyr::ungroup()|> 
+  dplyr::arrange(desc(year))|> 
   dplyr::filter(year %in% c(maxyr, compareyr))
 ```
 
@@ -190,9 +190,9 @@ In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea
 
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
 
-temp1 <- obj$raw %>%
-      # dplyr::filter(srvy == "NBS") %>%
-      dplyr::select(print_name, change, change0, maxyr, taxon, srvy) %>%
+temp1 <- obj$raw|>
+      # dplyr::filter(srvy == "NBS")|>
+      dplyr::select(print_name, change, change0, maxyr, taxon, srvy)|>
  # I defined "no marked change" in < 25 and > -25% change to get me through the code. What number should it be?
   dplyr::mutate(
     change_case = dplyr::case_when(
@@ -203,22 +203,22 @@ temp1 <- obj$raw %>%
     change0 < -25 ~ "decreases",
     change0 > 25 ~ "increases",
     TRUE ~ NA
-  ))  %>%
+  )) |>
   dplyr::arrange(desc(change0))
 
-temp44 <- temp1  %>% 
-  dplyr::group_by(taxon, change_case, srvy) %>%
-  dplyr::summarise(n = n()) %>%
-  dplyr::ungroup() %>%
+temp44 <- temp1 |> 
+  dplyr::group_by(taxon, change_case, srvy)|>
+  dplyr::summarise(n = n())|>
+  dplyr::ungroup()|>
   tidyr::pivot_wider(id_cols = c(change_case, srvy), 
-                     names_from = taxon, values_from = n) %>%
+                     names_from = taxon, values_from = n)|>
   dplyr::mutate(
     str0_fish = ifelse(is.na(fish), "", paste0(xunits(fish), " fish", ifelse(fish>1, "es", ""))),
     str0_invert = ifelse(is.na(invert), "", paste0(xunits(invert), " invertebrate", ifelse(invert>1, "s", ""))),
     str0 = paste0(str0_fish, ifelse(str0_invert == "", "", " and "), str0_invert))
 
-temp3 <- temp1  %>%
-  dplyr::arrange(desc(change0)) %>%
+temp3 <- temp1 |>
+  dplyr::arrange(desc(change0))|>
   dplyr::filter(#taxon == "fish"  &
                   # !grepl(x = print_name, pattern = "other ") &
                   !is.na(change_case1))
@@ -227,19 +227,19 @@ temp33 <- dplyr::bind_rows(
   head(temp3[which(temp3$srvy == "EBS"),]), 
                           tail(temp3[which(temp3$srvy == "EBS"),]), 
                           head(temp3[which(temp3$srvy == "NBS"),]), 
-                          tail(temp3[which(temp3$srvy == "NBS"),])) %>%
-  dplyr::arrange(desc(abs(change0))) %>% 
-  dplyr::group_by(change_case1, srvy) %>%
-  dplyr::summarise(spp_list = text_list(paste0(print_name, " (", change, ")"))) %>%
-  dplyr::ungroup() %>%
+                          tail(temp3[which(temp3$srvy == "NBS"),]))|>
+  dplyr::arrange(desc(abs(change0)))|> 
+  dplyr::group_by(change_case1, srvy)|>
+  dplyr::summarise(spp_list = text_list(paste0(print_name, " (", change, ")")))|>
+  dplyr::ungroup()|>
   dplyr::arrange(change_case1)
 
 str0 <- ""
 
 for (i in 2:2) {
 
-  temp3 <- temp33 %>% dplyr::filter(srvy == srvy1[i])
-  temp4 <- temp44 %>% dplyr::filter(srvy == srvy1[i])
+  temp3 <- temp33|> dplyr::filter(srvy == srvy1[i])
+  temp4 <- temp44|> dplyr::filter(srvy == srvy1[i])
     
 str0 <- paste0(str0, 
 paste0(
@@ -260,22 +260,22 @@ str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 `r str0`The biomasses of predominant species are listed in Table \@ref(tab:tab-majortaxa-pchange-NBS) in order of largest increase to largest decrease. 
 
 ```{r ebs-vs-nbs}
-temp5 <- biomass %>% 
+temp5 <- biomass|> 
   dplyr::filter(stratum == 999 & 
                   species_code %in% report_spp1$species_code[(report_spp1$plot_idw)] & 
-                  year == maxyr) %>% 
-  dplyr::select(srvy, biomass_mt, species_code, common_name) %>% 
-  dplyr::left_join(report_spp1 %>% 
-                     dplyr::select(print_name, species_code, order))  %>% 
+                  year == maxyr)|> 
+  dplyr::select(srvy, biomass_mt, species_code, common_name)|> 
+  dplyr::left_join(report_spp1|> 
+                     dplyr::select(print_name, species_code, order)) |> 
   # dplyr::arrange(desc(NBS)) 
-  dplyr::arrange(desc(order)) %>% 
-  dplyr::group_by(print_name, srvy) %>% 
+  dplyr::arrange(desc(order))|> 
+  dplyr::group_by(print_name, srvy)|> 
   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE))%>% 
-  tidyr::pivot_wider(names_from = srvy, values_from = biomass_mt) %>% 
-  dplyr::ungroup() %>% 
+  tidyr::pivot_wider(names_from = srvy, values_from = biomass_mt)|> 
+  dplyr::ungroup()|> 
   dplyr::mutate(NBS_greater = (NBS > EBS), 
-                NBS_only = (NBS > 0 & is.na(EBS))) %>% 
-  dplyr::filter(NBS_greater) %>% 
+                NBS_only = (NBS > 0 & is.na(EBS)))|> 
+  dplyr::filter(NBS_greater)|> 
   dplyr::mutate(print_name = sub(" \\(.*", "", x = print_name))
 ```
 
@@ -287,11 +287,11 @@ load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
 temp1 <- obj$raw
 
 # total biomass
-temp2 <- total_biomass  %>% 
-  dplyr::ungroup() %>% 
-  dplyr::filter(srvy == "NBS") %>%
-  dplyr::group_by(year) %>% 
-  dplyr::summarise(total = sum(total, na.rm = TRUE)) %>% 
+temp2 <- total_biomass |> 
+  dplyr::ungroup()|> 
+  dplyr::filter(srvy == "NBS")|>
+  dplyr::group_by(year)|> 
+  dplyr::summarise(total = sum(total, na.rm = TRUE))|> 
   dplyr::ungroup()
 
 # calculate top 50% of haul
@@ -305,17 +305,17 @@ for (i in 1:length(yrs)) {
   yr <- as.numeric(sort(yrs, decreasing = TRUE)[i])
   temp <- temp2$total[temp2$year == yr]
   
-  temp5 <- temp1  %>% 
-  dplyr::filter(srvy == "NBS") %>% 
-    dplyr::rename("x" = all_of(as.character(yr))) %>% 
-    dplyr::arrange(desc(x)) %>% 
-    dplyr::select(print_name, x, taxon) %>% # species_name, 
-    dplyr::mutate(prop = x/temp) %>% 
-    dplyr::mutate(cumsum = cumsum(prop))  %>% 
+  temp5 <- temp1 |> 
+  dplyr::filter(srvy == "NBS")|> 
+    dplyr::rename("x" = all_of(as.character(yr)))|> 
+    dplyr::arrange(desc(x))|> 
+    dplyr::select(print_name, x, taxon)|> # species_name, 
+    dplyr::mutate(prop = x/temp)|> 
+    dplyr::mutate(cumsum = cumsum(prop)) |> 
     dplyr::mutate(year = yr)
   
   # Top 50% spp
-  temp4 <- temp5 %>% 
+  temp4 <- temp5|> 
     dplyr::filter(dplyr::between(x = cumsum, left = 0, right = .55))
   
   temp3 <- rbind.data.frame(temp3, temp5)
@@ -340,29 +340,29 @@ for (i in 1:length(yrs)) {
   
   # Other cods: saffron cod and Arctic cod
   temp0 <- rbind.data.frame(temp0, 
-                            temp5 %>% 
+                            temp5|> 
                               dplyr::filter(print_name %in% c("saffron cod","Arctic cod")) )
 }
 
-temp0 <- temp0 %>% 
-  dplyr::filter(year %in% c(maxyr, compareyr)) %>%
-  dplyr::group_by(year) %>% 
-  dplyr::summarise(prop = sum(prop, na.rm = TRUE)) %>% 
-  dplyr::arrange(desc(year)) %>% 
+temp0 <- temp0|> 
+  dplyr::filter(year %in% c(maxyr, compareyr))|>
+  dplyr::group_by(year)|> 
+  dplyr::summarise(prop = sum(prop, na.rm = TRUE))|> 
+  dplyr::arrange(desc(year))|> 
   dplyr::mutate("perc" = paste0(round(x = prop*100, digits = 1), "%"))
 
-temp3 <- temp3  %>% 
+temp3 <- temp3 |> 
   # dplyr::mutate(case = dplyr::case_when(
   #   prop*100>0 ~ "increasing", 
-  #   TRUE ~ "decreasing")) %>% 
-  dplyr::filter(year %in% c(maxyr, compareyr)) %>%
-  dplyr::select(taxon, year, x,) %>%
-  dplyr::group_by(taxon, year) %>% 
-  dplyr::summarise(biomass_mt = sum(x, na.rm = TRUE)) %>% 
-  tidyr::pivot_wider(names_from = taxon, values_from = biomass_mt, id_cols = year) %>% 
+  #   TRUE ~ "decreasing"))|> 
+  dplyr::filter(year %in% c(maxyr, compareyr))|>
+  dplyr::select(taxon, year, x,)|>
+  dplyr::group_by(taxon, year)|> 
+  dplyr::summarise(biomass_mt = sum(x, na.rm = TRUE))|> 
+  tidyr::pivot_wider(names_from = taxon, values_from = biomass_mt, id_cols = year)|> 
   dplyr::mutate(total = (fish + invert), 
                 invert_perc = invert/total, 
-                invert_perc = formatC(x = invert_perc*100, digits = 0, big.mark = ",", format = "f")) %>% 
+                invert_perc = formatC(x = invert_perc*100, digits = 0, big.mark = ",", format = "f"))|> 
   dplyr::arrange(desc(year))
 
 ```

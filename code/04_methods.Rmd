@@ -16,7 +16,7 @@ The standardized eastern Bering Sea shelf survey consists of a systematic design
 ## Survey Vessels and Sampling Gear
 
 ```{r, vessel_method}
-vessels0 <- vessels %>% 
+vessels0 <- vessels|> 
   dplyr::filter(vess_shape != "X")
 ```
 
@@ -43,27 +43,27 @@ Temperature and depth profiles were recorded using a Sea-Bird SBE-39 temperature
 ```{r methods-net-width}
 temp <- 
   dplyr::left_join(
-    x = vessels %>% 
+    x = vessels|> 
       dplyr::select(vessel_id, vessel_ital), 
-    y = haul_maxyr %>%
-      dplyr::select(srvy, haul, vessel_id, net_measured) %>% 
-      dplyr::distinct() %>% 
-      dplyr::group_by(srvy, vessel_id, net_measured) %>% 
-      dplyr::summarize(n = n()) %>% 
+    y = haul_maxyr|>
+      dplyr::select(srvy, haul, vessel_id, net_measured)|> 
+      dplyr::distinct()|> 
+      dplyr::group_by(srvy, vessel_id, net_measured)|> 
+      dplyr::summarize(n = n())|> 
       tidyr::pivot_wider(id_cols = c("vessel_id", "srvy"),
                          names_from = "net_measured", 
                          values_from = "n"), 
-    by = c("vessel_id")) %>% 
-  dplyr::arrange(vessel_ital) %>% 
-  dplyr::rename("N" = `0`, "Y" = `1`) %>% 
-  dplyr::left_join(y = data.frame(srvy = srvy1, srvy_long = srvy11)) %>% 
+    by = c("vessel_id"))|> 
+  dplyr::arrange(vessel_ital)|> 
+  dplyr::rename("N" = `0`, "Y" = `1`)|> 
+  dplyr::left_join(y = data.frame(srvy = srvy1, srvy_long = srvy11))|> 
   dplyr::filter(!is.na(vessel_id))
 
 str0 <- c()
 if (sum(temp$N, na.rm = TRUE)>0) {
   # if (sum(!is.na(temp$vessel_id)) == nrow(temp)) { # if equations were estimated
   for (i in 1:length(unique(temp$srvy))){
-    temp0 <- temp %>% 
+    temp0 <- temp|> 
       dplyr::filter(!is.na(N) & 
                       srvy == unique(temp$srvy)[i])
     str0 <- paste0(str0, 
@@ -91,16 +91,16 @@ str0 <- c()
 for (i in 1:length(unique(haul_cruises_maxyr$srvy_long))){
   
   srvy <- unique(haul_cruises_vess_maxyr$srvy)[i]
-  cruises_maxyr0  <- haul_cruises_vess_maxyr %>% 
+  cruises_maxyr0  <- haul_cruises_vess_maxyr|> 
     dplyr::filter(srvy %in% srvy &
-                    year %in% maxyr) %>% 
+                    year %in% maxyr)|> 
     dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
                   "vessel_ital", "srvy", "srvy_long", 
                   "start_date_cruise", "end_date_cruise", 
-                  "start_date_haul", "end_date_haul") %>% 
-    unique() %>% 
+                  "start_date_haul", "end_date_haul")|> 
+    unique()|> 
     group_by(year, survey_name, vessel_id, vessel_name, 
-             vessel_ital, srvy, srvy_long) %>% 
+             vessel_ital, srvy, srvy_long)|> 
     dplyr::summarise(start_date_cruise = as.Date(min(start_date_cruise)), 
                      end_date_cruise = as.Date(max(end_date_cruise)), 
                      start_date_haul = as.Date(min(start_date_haul), 
@@ -169,18 +169,18 @@ Scientists boarded the chartered vessels in Dutch Harbor, Alaska, and transited 
 
 ```{r methods-ebs-survey-area}
 load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
-temp0 <- obj$raw %>% 
+temp0 <- obj$raw|> 
   dplyr::mutate(Region = paste0(srvy, " ", area_name))
 
-temp <- temp0 %>% 
+temp <- temp0|> 
   dplyr::filter(!grepl(pattern = "Total", x = Region) & 
                   grepl(pattern = "EBS", x = Region))
 
 temp1 <- ifelse(srvy == "NEBS", "EBS Total", "Total")
 
-temp_tot <- temp0 %>% 
+temp_tot <- temp0|> 
   dplyr::filter(grepl(pattern = temp1, x = Region) & 
-                  grepl(pattern = "EBS", x = Region)) %>% 
+                  grepl(pattern = "EBS", x = Region))|> 
   dplyr::select(density)
 ```
 
@@ -193,14 +193,14 @@ if ("NBS" %in% haul_cruises_maxyr$srvy) {
   
   load(file = paste0(dir_out_figtab, "tab-stratum-areas.Rdata"))
   
-  temp0 <- obj$raw %>% 
+  temp0 <- obj$raw|> 
     dplyr::mutate(Region = paste0(srvy, " ", area_name))
   
-  temp <- temp0 %>% 
+  temp <- temp0|> 
     dplyr::filter(!grepl(pattern = "Total", x = Region) & 
                     grepl(pattern = "NBS", x = Region))
   
-  temp_tot <- temp0 %>% 
+  temp_tot <- temp0|> 
     dplyr::filter(grepl(pattern = "NBS Total", x = Region) & 
                     !grepl(pattern = " NBS Total", x = Region) & 
                     grepl(pattern = "NBS", x = Region))
@@ -236,7 +236,7 @@ All commercial crab species were typically sorted from the entire catch and weig
 
 ```{r tab-oto-collection-scheme-data}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
-obj$raw <- obj$raw %>% # creates object called 'obj'
+obj$raw <- obj$raw|> # creates object called 'obj'
   dplyr::filter(srvy == "EBS")
 ```
 
@@ -244,11 +244,11 @@ For all hauls, subsampling for length measurements was based on the fish species
 
 ```{r methods-collection-scheme}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
-temp <- obj$raw %>% 
-  dplyr::select(srvy, srvy_long, print_name) %>% 
-  dplyr::distinct() %>%
-  dplyr::group_by(srvy, srvy_long) %>% 
-  dplyr::summarise(n = length((srvy))) %>% 
+temp <- obj$raw|> 
+  dplyr::select(srvy, srvy_long, print_name)|> 
+  dplyr::distinct()|>
+  dplyr::group_by(srvy, srvy_long)|> 
+  dplyr::summarise(n = length((srvy)))|> 
   dplyr::mutate(srvy_long = paste(tolower(substr(srvy_long, 1, 1)), substr(srvy_long, 2, nchar(srvy_long)), sep=""))
 
 temp$n <- xunits(temp$n)
@@ -263,9 +263,9 @@ if (srvy == "NEBS") {
 }
 
 # describing types of oto samples  
-temp <- obj$raw %>% 
-  dplyr::select(oto_samp_type, srvy, srvy_long) %>% 
-  dplyr::distinct()  %>% 
+temp <- obj$raw|> 
+  dplyr::select(oto_samp_type, srvy, srvy_long)|> 
+  dplyr::distinct() |> 
   dplyr::mutate(srvy_long = paste(tolower(substr(srvy_long, 1, 1)), substr(srvy_long, 2, nchar(srvy_long)), sep="")) 
 
 str2 <- c()
@@ -280,8 +280,8 @@ if (length(str2)>1 & # if there is more than one region
   str2 <- paste0(str2[1], " sampling method", plural_surveys, 
                  " in both the ", text_list(unique(temp$srvy_long)))
 } else {
-  temp0 <- temp %>% 
-    dplyr::group_by(srvy, srvy_long) %>% 
+  temp0 <- temp|> 
+    dplyr::group_by(srvy, srvy_long)|> 
     dplyr::summarise(freq = n())
   str2 <- text_list(paste0("a ", str2, " sampling method", ifelse(temp0$freq>1,"s", ""),
                          ifelse(plural_surveys == "", "", paste0(" in the ", temp0$srvy_long))))
@@ -324,9 +324,9 @@ Age estimates were obtained from otolith samples by the AFSC's Age and Growth Pr
 
 ```{r methods-additional-research}
 load(file = paste0(dir_out_figtab, "tab-special-projects.Rdata"))
-temp <- obj$raw %>% 
-  dplyr::group_by(srvy, srvy_long) %>% 
-  dplyr::summarise(n = length((srvy))) %>% 
+temp <- obj$raw|> 
+  dplyr::group_by(srvy, srvy_long)|> 
+  dplyr::summarise(n = length((srvy)))|> 
   dplyr::mutate(srvy = dplyr::case_when(
     srvy == "EBS and NBS" ~ "both the EBS and NBS", 
     srvy == "EBS" ~ "only the EBS",
@@ -335,7 +335,7 @@ temp <- obj$raw %>%
       srvy_long == "Eastern and northern Bering Sea" ~ "eastern and northern Bering Sea", 
       srvy_long == "Northern Bering Sea" ~ "the northern Bering Sea",
       srvy_long == "Eastern Bering Sea" ~ "the eastern Bering Sea" ), 
-    frag = paste0("project", ifelse(n>1, "s", ""))) %>% 
+    frag = paste0("project", ifelse(n>1, "s", "")))|> 
   dplyr::arrange(-n)
 
 temp$frag[1] <- paste0("scientific collection", ifelse(temp$n[1]>1, "s", "")," and research project", 
@@ -344,10 +344,10 @@ temp$frag[1] <- paste0("scientific collection", ifelse(temp$n[1]>1, "s", "")," a
 # temp1 no longer needed in text?
 # temp1 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
 #                             sheet = "solicitation_date", 
-#                             skip = 1) %>% 
-#   dplyr::filter(year == maxyr) %>% 
-#   dplyr::select(solicitation_date) %>% 
-#   dplyr::mutate(solicitation_date = date_formatter(solicitation_date)) %>% 
+#                             skip = 1)|> 
+#   dplyr::filter(year == maxyr)|> 
+#   dplyr::select(solicitation_date)|> 
+#   dplyr::mutate(solicitation_date = date_formatter(solicitation_date))|> 
 #   unlist()
 # 
 # str0 ammendment also no longer needed?
