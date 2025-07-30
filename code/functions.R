@@ -1722,9 +1722,11 @@ plot_sizecomp <- function(sizecomp0,
     dplyr::summarise(frequency = formatC(x = sum(frequency, na.rm = TRUE), 
                                          digits = 0, big.mark = ",", format = "f")) |> 
     dplyr::ungroup() |> 
-    dplyr::filter(year %in% unique(as.numeric(paste(table_raw$year)))) |> 
+    dplyr::filter(year %in% unique(as.numeric(paste(table_raw$year)))) 
+  
+  dat_text <- dat_text |> 
     dplyr::mutate(
-      label = paste0(c("# measured: ", rep_len(x = "", length.out = (nrow(.)-1))), 
+      label = paste0(c("# measured: ", rep_len(x = "", length.out = (nrow(dat_text)-1))), 
                      frequency), 
       label = gsub("\\s", " ", formatC(x = label))) |> 
     dplyr::select(-frequency) |> 

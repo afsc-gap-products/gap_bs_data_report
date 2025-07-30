@@ -433,13 +433,14 @@ header <- paste0("Otolith collection types and target counts during the ",
                  text_list(haul_cruises_maxyr$srvy_long),
                  " shelf survey", ifelse(length(srvy1)>1, "s", ""),".")
 
-table_print <- table_raw|> 
+table_print <- table_raw |> 
   dplyr::select(-srvy) 
-if (length(srvy1)>1) {
-  table_print <- table_print|> 
-    flextable::as_grouped_data(groups = c("srvy_long", "oto_samp_type"), 
-                               columns = NULL)|> 
-    flextable::bold(j = 1, i = ~ !is.na(srvy_long) )
+
+if (length(srvy1) > 1) {
+  table_print <- table_print |> 
+    flextable::as_grouped_data(
+      groups = c("srvy_long", "oto_samp_type"), 
+                               columns = NULL) 
 } else {
   table_print <- table_print|> 
     dplyr::select(-srvy_long)|> 
@@ -447,7 +448,9 @@ if (length(srvy1)>1) {
                                columns = NULL) 
 }
 table_print <- table_print|> 
-  flextable::as_flextable(hide_grouplabel = TRUE)|> 
+  flextable::as_flextable(hide_grouplabel = TRUE) |>
+    flextable::bold(j = 1, 
+                    i = ~ !is.na(srvy_long) ) |> 
   flextable::bold(j = 1, i = ~ !is.na(oto_samp_type) )|> 
   flextable::set_header_labels(print_name = "Common name", 
                                oto_target = "Target collection number per haul")|>
@@ -481,12 +484,12 @@ header <- paste0("Stomach collection target size category bins (cm) used to coll
 
 table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-scheme.xlsx"), 
                                 sheet = "Sheet1", 
-                                skip = 1)|> 
-  dplyr::filter(srvy %in% srvy1)|> 
-  dplyr::filter(year == maxyr & !is.na(stomach_target))|> 
+                                skip = 1) |> 
+  dplyr::filter(srvy %in% srvy1) |> 
+  dplyr::filter(year == maxyr & !is.na(stomach_target)) |> 
   dplyr::left_join(
-    y = report_spp1|> 
-      dplyr::select(print_name, order)|> 
+    y = report_spp1 |> 
+      dplyr::select(print_name, order) |> 
       dplyr::distinct(), 
     by = "print_name") |> 
   dplyr::distinct() |>
@@ -494,19 +497,18 @@ table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-sche
   dplyr::select(srvy, print_name, stomach_target) |>
   # dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0)))  |> 
   dplyr::mutate(#stomach_target = paste0(stomach_target, " cm"), 
-    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))  |>
+    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name)))) |>
   dplyr::left_join(
     y = data.frame(srvy = srvy1, 
                    srvy_long = stringr::str_to_title(srvy11))) |>
   dplyr::ungroup() |> 
-  tidyr::pivot_wider(data = ., 
+  tidyr::pivot_wider(
                      id_cols = c("print_name"), 
                      names_from = "srvy_long", 
                      values_from = "stomach_target")
 
 table_raw[is.na(table_raw)] <- "-"
 thin_b <- officer::fp_border(width = 0.5, color = "grey10")
-
 
 if (length(srvy1)==1) {
   names(table_raw)[2] <- "Target collection size categories per haul"
@@ -523,14 +525,16 @@ table_print <- table_raw |>
                              rep_len(length.out = length(srvy1), (4.5/length(srvy1))))) |> 
   flextable::hline(border = thin_b, part = "header") |> 
   flextable::align(i = 1, align = "left", part = "header") 
+
 if (length(srvy1)>1) {
-  table_print <- table_print|>
+  table_print <- table_print |>
     flextable::add_header_row(
       top = TRUE,
       values = c("",
                  "Target collection size categories per haul"),
       colwidths = c(1,length(srvy1)))
 }
+
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
@@ -625,7 +629,7 @@ if (plural_surveys == "") {
   table_print <- table_raw |>
     dplyr::select(-srvy, -dplyr::starts_with("ital")) |>
     flextable::as_grouped_data(groups = c("srvy_long"), columns = NULL) |>
-    flextable::as_flextable(., hide_grouplabel = TRUE) |>
+    flextable::as_flextable(hide_grouplabel = TRUE) |>
     flextable::bold(j = 1, i = ~ !is.na(srvy_long) ) |> 
     flextable::padding(j = 1, i = ~ is.na(srvy_long),
                        padding.left = 7) |> 
@@ -706,14 +710,15 @@ table_raw <- lengths |>
                      dplyr::distinct() |> 
                      dplyr::filter(!duplicated(species_code)))  |>
   dplyr::left_join(
-    y = spp_info |> dplyr::select(species_code,  common_name), 
+    y = spp_info |> 
+      dplyr::select(species_code, common_name), 
     by = "species_code") |>
   dplyr::filter(year %in% c(maxyr, compareyr) &
                   !(species_code %in% c(68560, 68580, 68590, 69322, 
                                         69323, 69400, 69310, 68577, 68781) ))  |>  # no crab!
   dplyr::group_by(srvy, year, common_name, order) |>
   dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) |>
-  tidyr::pivot_wider(data = ., 
+  tidyr::pivot_wider(
                      id_cols = c("common_name", "order"), 
                      names_from = c("srvy", "year"), 
                      values_from = "frequency") |> 
@@ -746,12 +751,11 @@ std_b <- officer::fp_border(width = 2, color = "grey10")
 table_print <- table_print0 |> 
   flextable::flextable() |>
   flextable::add_header(
-    x = .,
     values = eval(parse(text = paste0("list(",
                                       text_list(paste0(names(table_print0), " = '", h_r1, "'"),
                                                 sep_last = ", ", sep_last2 = ", "), ") " ) ) ),
     top = TRUE) |>
-  flextable::set_header_labels(x = .,
+  flextable::set_header_labels(
                                values = eval(parse(text = paste0("list(",
                                                                  text_list(paste0(names(table_print0), " = '", h_r2, "'"),
                                                                            sep_last = ", ", sep_last2 = ", "), ") " ) ) )
@@ -843,7 +847,7 @@ table_print <- table_print0 |>
                                       text_list(paste0(names(table_print0)[-1], " = '", h_r1, "'"),
                                                 sep_last = ", ", sep_last2 = ", "), ") " ) ) ),
     top = TRUE) |>
-  flextable::set_header_labels(x = .,
+  flextable::set_header_labels(
                                values = eval(parse(text = paste0("list(",
                                                                  text_list(paste0(names(table_print0)[-1], " = '", h_r2, "'"),
                                                                            sep_last = ", ", sep_last2 = ", "), ") " ) ) )
@@ -1385,7 +1389,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   table_print[is.na(table_print) | table_print == "0"] <- "-"
   
   table_print <- table_print |> 
-    flextable::flextable(data = .) |>
+    flextable::flextable() |>
     flextable::set_header_labels(
       common_name = stringr::str_to_title(haul_cruises_maxyr$srvy_long[i])) |> 
     flextable::bold(i = which(table_print$common_name == "Total")) |>
@@ -1780,7 +1784,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
   table_print <- table_print0  |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select(-srvy, -change0) |>
-    flextable::flextable(data = ., 
+    flextable::flextable(
                          col_keys = c("print_name",
                                       yrs, 
                                       "change")) |>
@@ -1878,7 +1882,7 @@ for (i in 1:length(type)) {
     }
     
     table_print <- table_print |> 
-      flextable::flextable(data = .) |> 
+      flextable::flextable() |> 
       flextable::set_header_labels(
         print_name = "Species", 
         # srvy = "Shelf area", 
@@ -1930,7 +1934,7 @@ for (i in 1:length(type)) {
     }
     table_print <- table_print |> 
       # dplyr::select(-srvy) |>
-      flextable::flextable(data = .) |> 
+      flextable::flextable() |> 
       flextable::set_header_labels(
         print_name = "Species", 
         cpue_nokm2_mean = paste0("CPUE mean (no/km²)"), 
@@ -2255,7 +2259,7 @@ tab_taxa_found_ <- function(temp,
     std_b <- officer::fp_border(width = 2, color = "grey10")
     
     table_print <- table_print |>
-      flextable::flextable(data = ., 
+      flextable::flextable(
                            col_keys = c("taxon" ,
                                         "species_name",
                                         "common_name", "stations_n", 
@@ -2433,7 +2437,7 @@ tab_app_fish_ <- function(temp,
       
       table_raw <- table_raw |> 
         dplyr::select(length_mm, population_count, sex) |>
-        tidyr::pivot_wider(data = ., 
+        tidyr::pivot_wider(
                            id_cols = length_mm, 
                            names_from = sex, 
                            values_from = population_count, 
@@ -2471,7 +2475,7 @@ tab_app_fish_ <- function(temp,
                              formatC, big.mark=",", digits = 0, format = "f"))
       
       table_print <- table_raw |>
-        flextable::flextable(data = .) |> 
+        flextable::flextable() |> 
         flextable::set_header_labels(
           length_mm = "Length (cm)",
           males = "Males",

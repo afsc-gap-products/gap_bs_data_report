@@ -162,7 +162,7 @@ temp1 <- subset(x = temp1,
 ## Pull data. Note the format of the `spp_codes` argument with the GROUP column
 production_data <- gapindex::get_data(
   year_set = c(1982:maxyr),
-  survey_set = c("EBS"), #, "NBS"),
+  survey_set = c("EBS", "NBS"),
   spp_codes = temp1,
   pull_lengths = FALSE, 
   haul_type = 3, 
@@ -181,7 +181,7 @@ production_biomass_stratum <-
 ## Aggregate Biomass to subareas and region
 production_biomass_subarea <- 
   calc_biomass_subarea(gapdata = production_data, 
-                       biomass_strata = production_biomass_stratum)
+                       biomass_stratum = production_biomass_stratum)
 
 # ## Calculate size composition by stratum. Note fill_NA_method == "BS" because
 # ## our region is EBS, NBS, or BSS. If the survey region of interest is AI or 

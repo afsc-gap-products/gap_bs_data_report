@@ -265,17 +265,22 @@ spp_info <- spp_info0 |>
                      stringr::str_replace(pattern = paste0(genus, " "), 
                                           string = species_name, 
                                           replacement = ""), 
-                     ""),
+                     ""))
     # report_name_scientific_ital = paste0(genus, ifelse(is.na(species), "", paste0(" ", species))), 
     # report_name_scientific_notital = ifelse(species_name != report_name_scientific_ital, species_name, ""), 
-    used_in_counts = 
-      dplyr::if_else(
-        species_code %in% #10:99988, 
-          find_codes(x = .,  
+spp_info$used_in_counts <- 
+      # dplyr::if_else(
+  # ifelse(
+    spp_info$species_code %in% #10:99988, 
+          find_codes(x = spp_info,  
+                     col = "species_code", 
                      str_not = c(" shells", "empty", "unsorted", "shab"), #, " egg", "unid.", "compound"
                      col_str_not = "common_name",
-                     col_out = "species_code"), 
-        TRUE, FALSE)) |> # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
+                     col_out = "species_code")#, 
+        #TRUE, FALSE#
+    # ) # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
+
+spp_info <- spp_info |>
   dplyr::distinct()
 
 spp_info <- spp_info |>
@@ -760,32 +765,29 @@ haul_cruises <-
                        end_date_cruise = max(end_date_cruise))|> 
       dplyr::mutate(start_mo_long = format(start_date_haul, "%B"), 
                     end_mo_long = format(end_date_haul, "%B")),
-    by = "cruise")|> 
+    by = "cruise") |> 
   dplyr::left_join(
-    x = ., 
     y = station|> 
       dplyr::group_by(survey_definition_id)|> 
       dplyr::summarise(stations_avail = length(unique(station))),
-    by = "survey_definition_id")|> 
+    by = "survey_definition_id") |> 
   dplyr::left_join(
-    x = ., 
     y = cruises|> 
-      dplyr::select(year, srvy)|>
+      dplyr::select(year, srvy) |>
       unique()|>
-      dplyr::count(vars = srvy)|>
+      dplyr::count(vars = srvy) |>
       dplyr::rename(yrofsurvey = n, 
                     srvy = vars), 
-    by = "srvy")|> 
+    by = "srvy") |> 
   dplyr::select(-cruisejoin, -cruise)|>
   dplyr::mutate(stndth = stndth(yrofsurvey)) |> 
-  dplyr::arrange(srvy)|> 
-  dplyr::mutate(compareyr = compareyr[1])|>
+  dplyr::arrange(srvy) |> 
+  dplyr::mutate(compareyr = compareyr[1]) |>
   dplyr::left_join(
-    x = ., 
     y = data.frame(
       srvy = srvy1,
       compareyr_ref = ref_compareyr), 
-    by = "srvy")|>
+    by = "srvy") |>
   unique()
 
 haul_cruises_maxyr <- haul_cruises|> 
@@ -930,14 +932,15 @@ specimen_maxyr <- specimen|>
 
 print("tempertures")
 
-temps_avg_yr <- coldpool::cold_pool_index|> 
+temps_avg_yr <- coldpool::cold_pool_index |> 
   dplyr::select(YEAR, 
                 bt = MEAN_GEAR_TEMPERATURE, 
                 st = MEAN_SURFACE_TEMPERATURE)|> 
   dplyr::filter(YEAR <= maxyr)|> 
   janitor::clean_names()|> 
-  dplyr::arrange(desc(bt))|>
-  dplyr::mutate(warmest_rank = 1:nrow(.), bt_mean = mean(bt, na.rm = TRUE), 
+  dplyr::arrange(desc(bt)) |>
+  dplyr::mutate(warmest_rank = row_number(), # 1:nrow(.), 
+                bt_mean = mean(bt, na.rm = TRUE), 
                 st_mean = mean(st, na.rm = TRUE), 
                 srvy = "EBS", 
                 bt_zscore = (bt-bt_mean)/sd(bt, na.rm = TRUE), 
@@ -956,7 +959,7 @@ temps_avg_yr <- coldpool::cold_pool_index|>
                   (!st_notsig & !st_above_mean) ~ "colder"),                   
                 case = ifelse(bt_case == st_case, 
                               paste0("both ", bt_case), 
-                              paste0("bt ", bt_case, ", st ", st_case)) )|> 
+                              paste0("bt ", bt_case, ", st ", st_case)) ) |> 
   dplyr::arrange(srvy, year) 
 
 # calculate the nth year of case
@@ -1007,14 +1010,14 @@ sebs_layers <- akgfmaps::get_base_layers(select.region = "sebs",
                                          set.crs = out.crs)
 
 coldpool_ebs_bin_area <- coldpool::cold_pool_index|>
-  dplyr::rename(year = YEAR)|>
-  dplyr::filter(year <= maxyr)|>
+  dplyr::rename(year = YEAR) |>
+  dplyr::filter(year <= maxyr) |>
   dplyr::mutate(lteminus1 = AREA_LTEMINUS1_KM2,
                 lte0 = AREA_LTE0_KM2 - AREA_LTEMINUS1_KM2,
                 lte1 = AREA_LTE1_KM2 - AREA_LTE0_KM2,
-                lte2 = AREA_LTE2_KM2 - AREA_LTE1_KM2)|>
-  dplyr::select(year, lteminus1, lte0, lte1, lte2)|>
-  reshape2::melt(id.vars = "year")|>
+                lte2 = AREA_LTE2_KM2 - AREA_LTE1_KM2) |>
+  dplyr::select(year, lteminus1, lte0, lte1, lte2) |> 
+  reshape2::melt(id.vars = "year") |>
   dplyr::mutate(area_km2 = value, 
                 variable = factor(variable, 
                                   levels = c( "lte2", "lte1", "lte0", "lteminus1"),
@@ -1023,14 +1026,14 @@ coldpool_ebs_bin_area <- coldpool::cold_pool_index|>
                 proportion = value/(sebs_layers$survey.area$AREA_M2/1000000), 
                 perc = proportion*100)  
 
-coldpool_ebs_total_area <- coldpool_ebs_bin_area|>
-  dplyr::group_by(year)|> 
+coldpool_ebs_total_area <- coldpool_ebs_bin_area |>
+  dplyr::group_by(year) |> 
   dplyr::summarise(proportion = sum(proportion, na.rm = TRUE), 
                    perc = sum(perc, na.rm = TRUE), 
                    value = sum(value, na.rm = TRUE), 
-                   area_km2 = sum(area_km2, na.rm = TRUE))|>
-  dplyr::arrange(desc(perc))|> 
-  dplyr::mutate(rank = 1:nrow(.))|> 
+                   area_km2 = sum(area_km2, na.rm = TRUE)) |>
+  dplyr::arrange(desc(perc)) |> 
+  dplyr::mutate(rank = row_number()) |> 
   dplyr::arrange(desc(year))
 
 ## sizecomps -------------------------------------------------------------------

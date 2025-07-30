@@ -128,7 +128,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   # only if both species are only found in prt of the region, change the extrp.box
   map.area0 <- map.area
   reg_dat0 <- reg_dat
-  if (length(unique(table_raw$srvy))==1 & srvy == "NEBS") { # is this species in only 1 of the 2 survey areas (when srvy == NEBS)?
+  if (length(unique(table_raw$srvy))==1 & SRVY == "NEBS") { # is this species in only 1 of the 2 survey areas (when srvy == NEBS)?
     map.area0 <- ifelse(unique(table_raw$srvy) == "EBS", "ebs", "nbs")
     reg_dat0 <- report_types[[unique(table_raw$srvy)]]$reg_dat
     if (report_title0 != "pres") {
@@ -139,7 +139,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   
   # Write header for figure_print ------------------------------------------------------
   missing_from_one_but_not_both_surveys <- ""
-  if (srvy == "NEBS") {
+  if (SRVY == "NEBS") {
     if (length(unique(table_raw$srvy)) > 1) {
       missing_from_one_but_not_both_surveys <- paste0("This species was not encountered in the ", 
                                                       range_text(yrs), " ",
@@ -399,7 +399,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-dist-[spp]-pres}
 nickname <- paste0("fig-dist-", spp_file, "-pres")
 yrs <- c(maxyr-1, maxyr)
-height <- ifelse(srvy == "NEBS", 5, 4)
+height <- ifelse(SRVY == "NEBS", 5, 4)
 width <- 5
 row0 <- 2
 width <- 5
@@ -408,6 +408,7 @@ report_title0 <- "pres"
 
 temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code) 
 pres_dist <- temp$figure_print
+pres_dist_txt <- temp$header
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -468,7 +469,8 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
         
       } else if (report_title0 == "data") {
         
-        if (srvy == "NEBS" & length(unique(table_raw$srvy))>1) {
+        if (srvy0 == "BS" & length(unique(table_raw$srvy))>1) {
+          
           table_raw <- dplyr::bind_rows(
             table_raw, 
             table_raw |>
@@ -476,9 +478,9 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
                               srvy %in% srvy &
                               year %in% yrs) |> 
               dplyr::group_by(year, taxon, species_code, sex, population_count) |> 
-              dplyr::summarise(length_mm) |> 
+              dplyr::summarise(length_mm = sum(length_mm, na.rm = TRUE)) |> 
               dplyr::mutate(
-                srvy = factor(x = srvy, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE), 
+                # srvy = factor(x = srvy, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE), 
                 srvy = "EBS and NBS", 
                 srvy_long = paste0("combined ", SURVEY)))
         }
@@ -629,6 +631,7 @@ report_title0 <- "pres"
 
 temp <- size_plot(srvy, yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
 pres_size <- temp$figure_print
+pres_size_txt <- temp$header
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -795,17 +798,17 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
 ## fig-agecomp-[spp]-data
 
 ```{r fig-agecomp-[spp]-data, eval = spp_plot_agecomp}
-yrs <- analysisyrs
-height <- full_page_portrait_height-1
-print_n <- FALSE
-srvy <- srvy1
-nickname <- paste0("fig-agecomp-", spp_file, "-data")
-legend_font_size <- 10
-report_title0 <- "data"
-
-temp <- age_plot(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0) 
-for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+# yrs <- analysisyrs
+# height <- full_page_portrait_height-1
+# print_n <- FALSE
+# srvy <- srvy1
+# nickname <- paste0("fig-agecomp-", spp_file, "-data")
+# legend_font_size <- 10
+# report_title0 <- "data"
+# 
+# temp <- age_plot(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0) 
+# for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ## fig-agecomp-[spp]-comm
@@ -1002,14 +1005,31 @@ temp_catch <- catch_haul_cruises |>
   dplyr::group_by(srvy, year) |> 
   dplyr::summarise(count = sum(count, na.rm = TRUE)) |> 
   tidyr::pivot_wider(id_cols = srvy, names_from = year, values_from = count, names_prefix = "yr_") 
-temp_catch$catch_min <- min(c(unlist(temp_catch[paste0("yr_", compareyr)]), unlist(temp_catch[,paste0("yr_", maxyr)])), na.rm = TRUE)
+# temp_catch$catch_min <- min(c(unlist(temp_catch[paste0("yr_", compareyr)]), unlist(temp_catch[,paste0("yr_", maxyr)])), na.rm = TRUE)
+# temp_catch <- temp_catch |> 
+#   dplyr::mutate(catch_min = min())
+
+catch_min <- c()
+for (i in 1:nrow(temp_catch)){
+  catch_min[i] <- (min(temp_catch[i,2], temp_catch[i,3]))
+}
+temp_catch$catch_min <- catch_min
+
+# temp_catch$str <- paste0(
+#   ifelse(temp_catch[paste0("yr_", compareyr)] < temp_catch[,paste0("yr_", maxyr)], "Increased", "Decreased"), 
+#   " from ", 
+#   temp_catch[,paste0("yr_", compareyr)], 
+#   " to ", 
+#   temp_catch[,paste0("yr_", maxyr)], 
+#   " individuals in ", 
+#   maxyr)
 
 temp_catch$str <- paste0(
-  ifelse(temp_catch[paste0("yr_", compareyr)] < temp_catch[,paste0("yr_", maxyr)], "Increased", "Decreased"), 
+  ifelse(temp_catch[,paste0("yr_", compareyr)] < temp_catch[,paste0("yr_", maxyr)], "Increased", "Decreased"), 
   " from ", 
-  temp_catch[,paste0("yr_", compareyr)], 
+  unlist(temp_catch[,paste0("yr_", compareyr)]), 
   " to ", 
-  temp_catch[,paste0("yr_", maxyr)], 
+  unlist(temp_catch[,paste0("yr_", maxyr)]), 
   " individuals in ", 
   maxyr)
 
@@ -1055,11 +1075,22 @@ if (ncol(table_print0) > 2) {
   table_print0[,3] <- gsub(x = table_print0[,3], pattern = "\n", replacement = " ")
 }
 
-if (table_raw$catch_min > 99) {
-  table_print0 <- table_print0[table_print0$var != "Survey catch totals", ]
-} else {
-  table_print0 <- table_print0[table_print0$var != "Percent Change in Biomass", ]
-}
+# remove rows if there are less than 99 individuals 
+  if (sum(table_raw$catch_min > 99) == length(srvy)) {
+    table_print0 <- table_print0[table_print0$var != "Survey catch totals",]
+  } else {
+    table_print0 <- table_print0[table_print0$var != "Percent Change in Biomass",]
+  }
+
+# # null cells if there are less than 99 individuals
+# for (i in 1:length(srvy)) {
+#   if (table_raw$catch_min > 99) {
+#     # table_print0[table_print0$var != "Survey catch totals", i] <- ""
+#   } else {
+#     table_print0[table_print0$var != "Percent Change in Biomass", i] <- "Catch was too low to assess"
+#   }
+# }
+
   table_print0 <- table_print0[table_print0$var != "catch_min", ]
 
 table_print <- table_print0 |> 
@@ -1364,7 +1395,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
       flextable::bold(j = 1, i = ~ !is.na(srvy_long) ) |>
       flextable::padding(j = 1, i = ~ is.na(srvy_long),
                          padding.left = 7) |> 
-      flextable::hline(x = .,i = ~ (stratum == "Total"), part = "body")
+      flextable::hline(i = ~ (stratum == "Total"), part = "body")
     # }
     
     res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -1715,6 +1746,7 @@ temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height
 pres_timeseries <- temp$figure_print
 pres_timeseries_mean <- temp$table_raw_mean
 pres_timeseries_unit_wrd <- temp$unit_wrd
+pres_timeseries_txt <- temp$header
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1774,7 +1806,11 @@ figure_print <- ggdraw(add_sub(plot = figure_print,
                                # y = 3, x = 5, hjust = 0)
 ))
 
-header = ""
+header = paste0(
+  "Figure A: ", pres_dist_txt, 
+  "Figure B: ", pres_size_txt, 
+  # "Figure C: ", pres_timeseries_txt, 
+  "Figure C: ", pres_timeseries_txt)
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
