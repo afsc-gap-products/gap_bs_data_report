@@ -102,10 +102,10 @@ reg_dat0 <- reg_dat
 #   reg_dat0 <- report_types$NEBS$reg_dat
 # }
 
-reg_dat0$survey.grid <- reg_dat0$survey.grid|> 
-  # dplyr::mutate(station = station)|> 
-  dplyr::left_join(y = haul_maxyr)|> 
-  dplyr::left_join(y = vessels)|>
+reg_dat0$survey.grid <- reg_dat0$survey.grid |> 
+  dplyr::left_join(haul_maxyr |> 
+                     dplyr::select(survey_definition_id, year, stratum, vessel_id, longitude_dd_start, longitude_dd_end, station, srvy)) |> # 
+  dplyr::left_join(vessels) |>
   dplyr::ungroup() 
 
 if (crab_resample){
@@ -436,18 +436,18 @@ header <- paste0("Otolith collection types and target counts during the ",
 table_print <- table_raw |> 
   dplyr::select(-srvy) 
 
-if (length(srvy1) > 1) {
+# if (length(srvy1) > 1) {
   table_print <- table_print |> 
     flextable::as_grouped_data(
       groups = c("srvy_long", "oto_samp_type"), 
                                columns = NULL) 
-} else {
-  table_print <- table_print|> 
-    dplyr::select(-srvy_long)|> 
-    flextable::as_grouped_data(groups = c("oto_samp_type"), 
-                               columns = NULL) 
-}
-table_print <- table_print|> 
+# } else {
+#   table_print <- table_print|> 
+#     dplyr::select(-srvy_long)|> 
+#     flextable::as_grouped_data(groups = c("oto_samp_type"), 
+#                                columns = NULL) 
+# }
+table_print <- table_print |> 
   flextable::as_flextable(hide_grouplabel = TRUE) |>
     flextable::bold(j = 1, 
                     i = ~ !is.na(srvy_long) ) |> 

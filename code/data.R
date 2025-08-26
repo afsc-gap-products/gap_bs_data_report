@@ -100,6 +100,9 @@ reg_dat$place.labels <- dplyr::bind_rows(
              lab = "Chirikov Basin", 
              x = temp$X, 
              y = temp$Y))
+
+reg_dat$survey.grid$stratum <- NULL
+
 plural_surveys <- ifelse(length(srvy1) > 1, "s", "")
 
 # Load data --------------------------------------------------------------------
@@ -546,6 +549,10 @@ station <- station |>
                                  "BB-09", "BB-10", "AA-04", "AA-05", "AA-06", "AA-07", 
                                  "AA-08", "AA-10", "ZZ-04", "ZZ-05", "Y-04") ~ "Norton Sound")) 
 
+reg_dat$survey.grid <- reg_dat$survey.grid |> 
+  dplyr::left_join(station |> 
+                     dplyr::select(station, stratum, srvy, survey_definition_id, in_maxyr) )
+
 ## other var (survey additions, *yrs, etc. -------------------------------------
 
 print("define other vars")
@@ -679,7 +686,7 @@ stratum <- gap_products_akfin_area0|>
       dplyr::select(stratum, stations_completed), 
     by = "stratum")|> 
   dplyr::left_join(
-    y = station|> 
+    y = station |> 
       dplyr::select(stratum, station)|> 
       dplyr::group_by(stratum)|> 
       dplyr::summarise(stations_avail = length(unique(station)))|> 

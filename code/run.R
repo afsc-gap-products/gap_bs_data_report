@@ -9,7 +9,7 @@ maxyr <- 2025
 compareyr <- 2023
 # compareyr0 <- 2023
 strat_yr <- 2022
-srvy <- "NEBS"
+srvy <- "EBS" # "NEBS"
 ref_compareyr <- "@2023NEBS" # CHANGE
 ref_compareyr_ebs <- "@2024EBS" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
@@ -17,19 +17,19 @@ dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGD
 dl_change_start <- "24-APR-02 11.00.00 PM"
 dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
 
-# testing before data is finalized
-maxyr <- 2023
-compareyr <- 2022
-compareyr0 <- 2021
-strat_yr <- 2022
-SRVY <- "NEBS"
-ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
-# dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
-# dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
-dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
-dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
-dl_change_start <- "24-APR-02 11.00.00 PM"
-dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
+# # testing before data is finalized
+# maxyr <- 2023
+# compareyr <- 2022
+# compareyr0 <- 2021
+# strat_yr <- 2022
+# SRVY <- "NEBS"
+# ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
+# # dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
+# # dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
+# dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
+# dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
+# dl_change_start <- "24-APR-02 11.00.00 PM"
+# dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
 
 googledrive::drive_deauth()
 googledrive::drive_auth(); 
@@ -68,6 +68,7 @@ for (i in 1:nrow(comb)){
                                              species_code1 = eval(expr = parse(text = comb$species_code[i]))))
 }
 comb <- unique(sort(comb$file_name))
+comb <- comb[!grepl(pattern = "-crab", x = comb)] # temp
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp3[which(report_spp3$file_name == comb[jj]), ]

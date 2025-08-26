@@ -1988,14 +1988,14 @@ plot_survey_stations <- function(reg_dat,
               fill = NA, 
               linewidth = 2, # size = 2,
               show.legend = TRUE) +
-      stat_sf_coordinates(data = reg_dat$survey.grid,
+      ggplot2::stat_sf_coordinates(data = reg_dat$survey.grid,
                           mapping = aes(color = vess_col, 
                                         shape = vess_shape, 
                                         geometry = geometry),
                           size = 2, 
                           show.legend = TRUE, 
                           na.rm = TRUE) + 
-      scale_color_manual(
+      ggplot2::scale_color_manual(
         name = " ", #"Survey Region",
         values = c(reg_dat$survey.area$color, 
                    unique(reg_dat$survey.grid$vess_col)),
@@ -2004,7 +2004,7 @@ plot_survey_stations <- function(reg_dat,
         labels = c(rev(unique(stringr::str_to_title(reg_dat$survey.area$srvy_long))), 
                    unique(reg_dat$survey.grid$vessel_name)), 
         na.value = "transparent")  +
-      scale_shape_manual(
+      ggplot2::scale_shape_manual(
         name = " ", #"Survey Vessels",
         values = c(rep_len(x = "", length.out = length(unique(reg_dat$survey.area$srvy_long))),
                    unique(reg_dat$survey.grid$vess_shape)),
