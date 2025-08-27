@@ -239,16 +239,8 @@ for (i in 1:length(a)){
 print("catch")
 
 catch <- gap_products_akfin_catch0|> 
-  dplyr::filter(hauljoin %in% unique(gap_products_akfin_haul0$hauljoin))|>
+  dplyr::filter(hauljoin %in% unique(gap_products_akfin_haul0$hauljoin)) |>
   dplyr::ungroup()
-
-# Manual fixes - TOLEDO!!
-# Thaddaeus: This is a placeholder taxon for a fish that wasn't ID'd to species in the field, I'd consider removing it since it doesn't really say much. I think a manual fix would be the simplest solution. I'm not sure when the ID will get updated in Oracle.
-catch$species_code[catch$cruisejoin == -764 & # Longfin Irish lord (Hemilepidotus zapus)
-                     catch$species_code == 21345] <- 21375 # Myoxocephalus sp.
-
-catch$species_code[catch$cruisejoin == -764 & # Irish lord (Hemilepidotus sp.) 
-                     catch$species_code == 21342] <- 3 # fish unid.
 
 ## spp_info --------------------------------------------------------------------
 
@@ -552,6 +544,39 @@ station <- station |>
 reg_dat$survey.grid <- reg_dat$survey.grid |> 
   dplyr::left_join(station |> 
                      dplyr::select(station, stratum, srvy, survey_definition_id, in_maxyr) )
+
+
+
+## Diversity indices ------------------------------------------------------------
+
+# https://entnemdept.ufl.edu/hodges/protectus/lp_webfolder/9_12_grade/student_handout_1a.pdf 
+# Key ecology diversity index formulas include the Shannon Diversity Index (H), which measures uncertainty and considers both richness and evenness, 
+# and Simpson's Diversity Index (D or 1-D), which quantifies the probability that two individuals are of the same or different species, respectively. 
+# The Shannon index formula is H = -Σ pᵢ ln(pᵢ), while 
+# Simpson's index can be calculated as D = Σ (pᵢ)² or often expressed as 1-D for greater intuitive interpretation. 
+
+diversity <- catch |> 
+  dplyr::ungroup() |> 
+  dplyr::group_by(hauljoin) |> 
+  dplyr::summarise(N = sum(count, na.rm = TRUE)) |># total number of individuals
+  dplyr::ungroup() 
+
+diversity <- catch |> 
+  dplyr::left_join(diversity) |> 
+  dplyr::mutate(n = count, 
+                pi = n/N, 
+                pi2 = pi^2, 
+                lnpi = log(pi), 
+                pilnpi = pi*lnpi) 
+
+diversity <- diversity |> 
+  dplyr::group_by(hauljoin) |> 
+  dplyr::summarise(diversity_H = -sum((pilnpi), na.rm = TRUE), # Shannon Diversity Index  
+                   diversity_D = 1/sum(pi2, na.rm = TRUE) # Simpson Diversity Index 
+  ) |>
+  dplyr::ungroup() |> 
+  dplyr::right_join(haul |> 
+                     dplyr::select(survey_definition_id, year, hauljoin, station, latitude_dd_start, longitude_dd_start) )
 
 ## other var (survey additions, *yrs, etc. -------------------------------------
 
