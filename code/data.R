@@ -242,6 +242,15 @@ catch <- gap_products_akfin_catch0|>
   dplyr::filter(hauljoin %in% unique(gap_products_akfin_haul0$hauljoin)) |>
   dplyr::ungroup()
 
+# TOLEDO August 2025 (and probably through 2023?): manual fixes from Thaddaeus - 
+# hings that were going to be fixed but had not yet been fixed. 
+# I think the first fix has been made, but the second one may not have. 
+catch$species_code[catch$cruisejoin == -764 & # Longfin Irish lord (Hemilepidotus zapus)
+                     catch$species_code == 21345] <- 21375 # Myoxocephalus sp.
+
+catch$species_code[catch$cruisejoin == -764 & # Irish lord (Hemilepidotus sp.)
+                     catch$species_code == 21342] <- 3 # fish unid.
+
 ## spp_info --------------------------------------------------------------------
 
 print("report_spp and spp_info")
@@ -547,7 +556,7 @@ reg_dat$survey.grid <- reg_dat$survey.grid |>
 
 
 
-## Diversity indices ------------------------------------------------------------
+## diversity indices ------------------------------------------------------------
 
 # https://entnemdept.ufl.edu/hodges/protectus/lp_webfolder/9_12_grade/student_handout_1a.pdf 
 # Key ecology diversity index formulas include the Shannon Diversity Index (H), which measures uncertainty and considers both richness and evenness, 
@@ -576,7 +585,8 @@ diversity <- diversity |>
   ) |>
   dplyr::ungroup() |> 
   dplyr::right_join(haul |> 
-                     dplyr::select(survey_definition_id, year, hauljoin, station, latitude_dd_start, longitude_dd_start) )
+                     dplyr::select(survey_definition_id, year, hauljoin, 
+                                   station, latitude_dd_start, longitude_dd_start) )
 
 ## other var (survey additions, *yrs, etc. -------------------------------------
 

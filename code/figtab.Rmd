@@ -2656,6 +2656,7 @@ dist_plot <- function(yrs, height, nickname, report_title0, col, key_title) {
       YEAR = year, 
       LATITUDE = latitude_dd_start,
       LONGITUDE = longitude_dd_start, 
+      # CPUE_KGHA = ifelse(is.na(CPUE_KGHA), 0, CPUE_KGHA), 
       COMMON_NAME = "Diversity") |> 
     dplyr::select(srvy, YEAR, LATITUDE, LONGITUDE, COMMON_NAME, CPUE_KGHA) |> 
     dplyr::ungroup() |> 
@@ -2670,6 +2671,10 @@ dist_plot <- function(yrs, height, nickname, report_title0, col, key_title) {
   # Create shapefile of species IDW ----------------------------------------------
   idw <- make_idw_stack(
     x = table_raw,
+    # COMMON_NAME = table_raw$COMMON_NAME,
+    #                        LATITUDE = table_raw$LATITUDE,
+    #                        LONGITUDE = table_raw$LONGITUDE,
+    #                        CPUE_KGHA = table_raw$CPUE_KGHA,
     region = reg_dat$region, 
     grouping.vars = "YEAR", 
     set.breaks = set.breaks,
@@ -2805,7 +2810,7 @@ return(list("figure_print" = figure_print,
 ```
 
 ```{r fig-diversity-H-gif}
-yrs <- 1982:maxyr
+yrs <- sort(unique(diversity$year))
 
 width <- full_page_portrait_width # 6.5  
 height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
@@ -2820,7 +2825,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```
 
 ```{r fig-diversity-D-gif}
-yrs <- 1982:maxyr
+yrs <- sort(unique(diversity$year))
 
 width <- full_page_portrait_width # 6.5  
 height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
