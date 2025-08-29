@@ -270,19 +270,19 @@ spp_info <- spp_info0 |>
                                           string = species_name, 
                                           replacement = ""), 
                      ""))
-    # report_name_scientific_ital = paste0(genus, ifelse(is.na(species), "", paste0(" ", species))), 
-    # report_name_scientific_notital = ifelse(species_name != report_name_scientific_ital, species_name, ""), 
+# report_name_scientific_ital = paste0(genus, ifelse(is.na(species), "", paste0(" ", species))), 
+# report_name_scientific_notital = ifelse(species_name != report_name_scientific_ital, species_name, ""), 
 spp_info$used_in_counts <- 
-      # dplyr::if_else(
+  # dplyr::if_else(
   # ifelse(
-    spp_info$species_code %in% #10:99988, 
-          find_codes(x = spp_info,  
-                     col = "species_code", 
-                     str_not = c(" shells", "empty", "unsorted", "shab"), #, " egg", "unid.", "compound"
-                     col_str_not = "common_name",
-                     col_out = "species_code")#, 
-        #TRUE, FALSE#
-    # ) # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
+  spp_info$species_code %in% #10:99988, 
+  find_codes(x = spp_info,  
+             col = "species_code", 
+             str_not = c(" shells", "empty", "unsorted", "shab"), #, " egg", "unid.", "compound"
+             col_str_not = "common_name",
+             col_out = "species_code")#, 
+#TRUE, FALSE#
+# ) # remove " shells", "empty", "unsorted", "shab". May also consider removing " egg", "unid.", "compound"
 
 spp_info <- spp_info |>
   dplyr::distinct()
@@ -580,13 +580,22 @@ diversity <- catch |>
 
 diversity <- diversity |> 
   dplyr::group_by(hauljoin) |> 
-  dplyr::summarise(diversity_H = -sum((pilnpi), na.rm = TRUE), # Shannon Diversity Index  
-                   diversity_D = 1/sum(pi2, na.rm = TRUE) # Simpson Diversity Index 
+  dplyr::summarise(
+    # Shannon Diversity Index 
+    shannon = -sum((pilnpi), na.rm = TRUE),  
+    # Simpson Diversity Index                
+    simpson = 1/sum(pi2, na.rm = TRUE)
   ) |>
   dplyr::ungroup() |> 
+  dplyr::mutate(
+    shannon_z = ((shannon - mean(shannon, na.rm = TRUE))/sd(shannon, na.rm = TRUE)), 
+    simpson_z = ((simpson - mean(simpson, na.rm = TRUE))/sd(simpson, na.rm = TRUE)) 
+  ) |> 
   dplyr::right_join(haul |> 
-                     dplyr::select(survey_definition_id, year, hauljoin, 
-                                   station, latitude_dd_start, longitude_dd_start) )
+                      dplyr::filter(haul_type ==3) |> 
+                      dplyr::select(survey_definition_id, year, hauljoin, 
+                                    station, latitude_dd_start, longitude_dd_start) ) |> 
+  dplyr::distinct()
 
 ## other var (survey additions, *yrs, etc. -------------------------------------
 

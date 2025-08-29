@@ -7,1237 +7,6 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
-# Introduction
-
-
-```{r fig-survey-points}
-# (for community highlights)
-nickname <- "fig-survey-points"
-
-header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
-
-height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
-width <- full_page_portrait_width
-
-reg_dat0 <- reg_dat
-# if (length(cruises_race$data_in_final == "N")>0) {
-#   reg_dat0 <- report_types$NEBS$reg_dat
-# }
-reg_dat0$survey.grid <- reg_dat0$survey.grid|> 
-  # dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station))|> 
-  dplyr::left_join(station)|> 
-  dplyr::mutate(in_maxyr = ifelse(is.na(in_maxyr), FALSE, in_maxyr))
-# reg_dat0$place.labels <- reg_dat0$place.labels|> 
-#   dplyr::filter(type %in% c("mainland", "peninsula"))
-
-figure_print <- plot_survey_stations(reg_dat = reg_dat0, 
-                                     survey_outline = TRUE, 
-                                     stratum_grid = FALSE, 
-                                     stratum_no = FALSE, 
-                                     station_pts = "pts", 
-                                     place_labels = TRUE, 
-                                     bathymetry = TRUE)
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r fig-survey-points-strat}
-# (for community highlights)
-nickname <- "fig-survey-points-strata"
-
-header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
-
-height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
-width <- full_page_portrait_width
-
-reg_dat0 <- reg_dat
-# if (length(cruises_race$data_in_final == "N")>0) {
-#   reg_dat0 <- report_types$NEBS$reg_dat
-# }
-reg_dat0$survey.grid <- reg_dat0$survey.grid|> 
-  # dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station))|> 
-  dplyr::left_join(station)|> 
-  dplyr::mutate(in_maxyr = ifelse(is.na(in_maxyr), FALSE, in_maxyr))
-# reg_dat0$place.labels <- reg_dat0$place.labels|> 
-#   dplyr::filter(type %in% c("mainland", "peninsula"))
-
-figure_print <- plot_survey_stations(reg_dat = reg_dat0, 
-                                     survey_outline = ifelse(plural_surveys == "s", TRUE, FALSE), 
-                                     stratum_grid = TRUE, 
-                                     stratum_no = TRUE, 
-                                     station_pts = "pts", 
-                                     place_labels = TRUE, 
-                                     bathymetry = FALSE)
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-
-```{r fig-survey-sample-stations}
-nickname <- "fig-survey-sample-stations"
-
-vessels0 <- vessels 
-if (sum(vessels0$vess_shape == "X")>0) {
-  vessels0 <- vessels0|> 
-    dplyr::mutate(vessel_ital = ifelse(vess_shape == "X", "stations that were not surveyed", vessel_ital))
-}
-header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
-                 text_list(haul_cruises_maxyr$srvy_long),
-                 " shelf survey", plural_surveys, 
-                 ". The map also depicts the stations sampled by the ",
-                 text_list(paste0(vessels0$vessel_ital, " (",
-                                  vessels0$vess_shape, ")")), 
-                 ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
-
-height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6) 
-width <- full_page_portrait_width
-
-reg_dat0 <- reg_dat
-# if (length(cruises_race$data_in_final == "N")>0) {
-#   reg_dat0 <- report_types$NEBS$reg_dat
-# }
-
-reg_dat0$survey.grid <- reg_dat0$survey.grid |> 
-  dplyr::left_join(haul_maxyr |> 
-                     dplyr::select(survey_definition_id, year, stratum, vessel_id, longitude_dd_start, longitude_dd_end, station, srvy)) |> # 
-  dplyr::left_join(vessels) |>
-  dplyr::ungroup() 
-
-if (crab_resample){
-  reg_dat0$survey.grid <- dplyr::left_join(
-    x = reg_dat0$survey.grid, 
-    y = haul_maxyr_crabretow|> 
-      dplyr::mutate(study = "crab_resample", 
-                    study_col = nmfspalette::nmfs_cols("medgray"),
-                    study_long = "Red King Crab\nResample")|> 
-      dplyr::select(station, study, study_col, study_long)|>
-      dplyr::rename(station = station)|> 
-      unique(), 
-    by = ("station")) 
-}
-
-figure_print <- plot_survey_stations(
-  reg_dat = reg_dat0, 
-  survey_outline = ifelse(plural_surveys == "s", TRUE, FALSE), 
-  stratum_grid = TRUE, 
-  stratum_no = TRUE, 
-  place_labels = TRUE, 
-  bathymetry = FALSE, 
-  station_pts = "vess", 
-  study = crab_resample) # defined in data.r
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-
-```{r fig-survey-station-simple}
-nickname <- "fig-survey-stations-simple"
-
-vessels0 <- vessels 
-if (sum(vessels0$vess_shape == "X")>0) {
-  vessels0 <- vessels0|> 
-    dplyr::mutate(vessel_ital = ifelse(vess_shape == "X", "stations that were not surveyed", vessel_ital))
-}
-header <- paste0("Stratification scheme used for data analysis of the ", maxyr," ",
-                 text_list(haul_cruises_maxyr$srvy_long),
-                 " shelf survey", plural_surveys, 
-                 ". The map also depicts the stations sampled by the ",
-                 text_list(paste0(vessels0$vessel_ital, " (",
-                                  vessels0$vess_shape, ")")), 
-                 ifelse(crab_resample == TRUE, " and where Bristol Bay crab resampling was conducted", ""), ". ")
-
-height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6) 
-width <- full_page_portrait_width
-
-reg_dat0 <- reg_dat
-
-reg_dat0$survey.grid <- reg_dat0$survey.grid|> 
-  dplyr::mutate(station = station)|> 
-  dplyr::left_join(y = haul_maxyr)|> 
-  dplyr::left_join(y = vessels)|>
-  dplyr::ungroup() 
-
-figure_print <- plot_survey_stations(
-  reg_dat = reg_dat0, 
-  survey_outline = ifelse(plural_surveys == "s", TRUE, FALSE), 
-  stratum_grid = FALSE, 
-  stratum_no = FALSE, 
-  place_labels = TRUE, 
-  bathymetry = TRUE, 
-  station_pts = "vess") # defined in data.r
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-
-```{r fig-survey-sample-stations-1530, eval = FALSE}
-# eval = tow1530
-nickname <- "fig-survey-sample-stations-1530"
-header <- ""
-
-width <- full_page_portrait_width
-
-reg_dat0 <- reg_dat
-if (sum(cruises_race$data_in_final == "N")>0) {
-  reg_dat0 <- report_types$NEBS$reg_dat
-}
-reg_dat0$survey.grid <-
-  dplyr::left_join(x = reg_dat0$survey.grid,
-                   y = dplyr::left_join(x = haul_maxyr,
-                                        y = vessels)|>
-                     dplyr::select(station, vessel_name, vess_shape))
-
-reg_dat0$survey.grid <- dplyr::left_join(
-  x = reg_dat0$survey.grid, 
-  y = haul_maxyr_crabretow|> 
-    dplyr::mutate(study = "15_30_minute_tows", 
-                  study_col = nmfspalette::nmfs_cols("medgray"),
-                  study_long = "15/30 minute tows")|> 
-    dplyr::select(station, study, study_col, study_long)|>
-    dplyr::rename(station = station)|> 
-    unique(), 
-  by = ("station")) 
-
-figure_print <- plot_survey_stations(
-  reg_dat = reg_dat0, 
-  stratum_grid = FALSE, 
-  stratum_no = TRUE, 
-  bathymetry = FALSE, 
-  station_pts = "vess", 
-  place_labels = TRUE, 
-  study = tow1530) # defined in data.r
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-
-```{r fig-survey-grid}
-nickname <- "fig-survey-grid"
-
-header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
-                 text_list(haul_cruises_maxyr$srvy_long),
-                 " shelf survey", plural_surveys, 
-                 ". ") # , ifelse(srvy == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. ")
-
-height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
-width <- full_page_portrait_width
-
-reg_dat0 <- reg_dat
-# if (length(cruises_race$data_in_final == "N")>0) {
-#   reg_dat0 <- report_types$NEBS$reg_dat
-# }
-reg_dat0$survey.grid <- reg_dat0$survey.grid|> 
-  dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station))
-reg_dat0$place.labels <- reg_dat0$place.labels|> 
-  dplyr::filter(type %in% c("mainland", "peninsula"))
-
-figure_print <- plot_survey_stations(reg_dat = reg_dat0, 
-                                     stratum_grid = FALSE, 
-                                     stratum_no = FALSE, 
-                                     station_pts = "names", 
-                                     bathymetry = FALSE,
-                                     place_labels = TRUE)
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-# Methods
-
-```{r fig-vessels}
-header <- paste0("Fishing vessels ",
-                 text_list(paste0(vessels$vessel_ital[vessels$vessel_ital != "Not Surveyed"], 
-                                  " (", c("left", "right"), ")")),
-                 " contracted to conduct the ",maxyr," ",
-                 SURVEY,
-                 " survey.")
-
-nickname <- "fig-vessels"
-
-height <- 2.5
-width <- full_page_portrait_width
-
-figure_print <- cowplot::plot_grid(
-  cowplot::ggdraw() +
-    cowplot::draw_image(readPNG(paste0(dir_img, vessels$img[1])), 
-                        scale = 0.9 ), 
-  cowplot::ggdraw() +
-    cowplot::draw_image(readPNG(paste0(dir_img, vessels$img[2])), 
-                        scale = 0.9 ),  
-  ncol = 2, rel_heights = c(0.1, 1))
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r fig-trawl-gear}
-header <- paste0("Schematic diagram of the 83-112 eastern otter trawl gear used during the ", 
-                 maxyr ," ", SURVEY ," survey", 
-                 ifelse(length(srvy1)>1, "s", ""), ".")
-footnote<- NA
-nickname <- "fig-trawl-gear-diagram"
-alttext <- paste0(header)
-height = 8
-width <- full_page_portrait_width
-
-# Select data and make plot
-figure_print <- 
-  cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "EASTERN83-112.png")) )
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r fig-trawl-gear-alt}
-# (for community highlights)
-header <- paste0("Diagram of the 83-112 Eastern trawl net.")
-nickname <- "fig-trawl-gear-alt"
-height <- 4
-width <- 6
-bg <- 'transparent'
-
-# Select data and make plot
-figure_print <- 
-  cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "bottom_trawl_net.png")), scale = 0.9 )
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-
-```{r tab-stratum-areas}
-header <- paste0("Stratum areas and sampling densities used during the ", maxyr,
-                 " ", SURVEY ," survey", 
-                 ifelse(length(srvy1)>1, "s", ""),". Stratum area calculations were updated in ", 
-                 strat_yr , ". ")
-
-nickname <- "tab-stratum-areas" 
-
-temp <- stratum|> 
-  dplyr::mutate(depth_min_m = ifelse(depth_min_m  == 1, 0, depth_min_m ), 
-                area_name = paste0(gsub(replacement = "Shelf", x = area_name, pattern = "Domain") , 
-                                   "\n(",depth_min_m, "-", depth_max_m, " m)"))|> 
-  dplyr::select(area_km2, stations_avail, stations_completed, stratum, area_name, srvy)
-
-if (length(unique(station$srvy))>1) {
-  totals_sub <- temp|>
-    dplyr::group_by(srvy)|>
-    dplyr::summarise(
-      area_km2 = sum(area_km2, na.rm = TRUE),
-      stations_completed = sum(stations_completed, na.rm = TRUE), 
-      stations_avail = sum(stations_avail, na.rm = TRUE))|>
-    dplyr::mutate(area_name = "Total") 
-}
-
-totals <- temp|> 
-  dplyr::summarise(
-    area_km2 = sum(area_km2, na.rm = TRUE), 
-    stations_completed = sum(stations_completed, na.rm = TRUE), 
-    stations_avail = sum(stations_avail, na.rm = TRUE))|> 
-  dplyr::mutate(area_name = "Total", 
-                srvy = paste0("Z", text_list(srvy1))) 
-
-table_raw <- dplyr::bind_rows(
-  temp, 
-  if(exists("totals_sub")){totals_sub}, 
-  totals)|> 
-  dplyr::mutate(
-    density = round(area_km2/stations_completed, 0), 
-    area_km2 = round(area_km2, digits = 0))|>
-  dplyr::arrange(srvy, area_name, stratum)|> 
-  dplyr::relocate(srvy, area_name, stratum, area_km2, 
-                  stations_avail, stations_completed, density)|> 
-  dplyr::mutate(srvy = gsub(replacement = "", x = srvy, pattern = "Z"))|> 
-  dplyr::left_join(
-    y = data.frame(srvy = c(srvy1, "EBS and NBS"), 
-                   srvy_long = c(stringr::str_to_title(srvy11), "Eastern and northern Bering Sea combined")))
-
-table_print <- table_raw|>
-  dplyr::select(-srvy)|> 
-  flextable::as_grouped_data(groups = c("srvy_long"), columns = NULL) |>
-  flextable::as_flextable(hide_grouplabel = TRUE)|>
-  flextable::compose(i = 1, j = "area_km2", part = "header",
-                     value = as_paragraph("Representative\narea (km", as_sup("2"), ")"))|>
-  flextable::compose(i = 1, j = "density", part = "header",
-                     value = as_paragraph("Sampling density\n(km", as_sup("2"), "/stations successfully sampled)"))|>  
-  flextable::set_header_labels(area_name = "Stratum",
-                               stratum = "Stratum",
-                               stations_avail = "Stations\nin stratum",
-                               stations_completed = "Stations\nsuccessfully sampled")|> 
-  flextable::merge_h(i = 1, part = "header")|> 
-  flextable::merge_v(j = "area_name")|>
-  flextable::merge_h_range(i = ~ stratum == "", 
-                           j1 = "area_name", 
-                           j2 = "stratum", 
-                           part = "body")|>
-  flextable::valign(valign = "top")|>
-  theme_flextable_nmfstm(row_lines = FALSE, 
-                         pgwidth = full_page_portrait_width) |>
-  flextable::width(width = c(1, .5, 1.1, 1.1, 1.1, 1.7))|> 
-  flextable::align(j = c("stratum", "area_km2", "stations_completed", "density"), 
-                   align = "right", part = "all") |> 
-  flextable::bold(j = 1, i = ~ !is.na(srvy_long) )|>
-  flextable::padding(j = 1, i = ~ is.na(srvy_long),
-                     padding.left = 7)  |>
-  flextable::hline(i = ~ !is.na(area_name), #j = srvy, #border = fp_border(width = 3), 
-                   part = "body") |>
-  flextable::hline(i = ~ (area_name == "Total"), #j = srvy, #border = fp_border(width = 3), 
-                   part = "body",
-                   border = fp_border(width = 2)) 
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r tab-oto-collection-scheme-[srvy]}
-nickname <- paste0("tab-oto-collection-scheme") 
-
-table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-scheme.xlsx"), 
-                                sheet = "Sheet1", 
-                                skip = 1)|> 
-  dplyr::filter(srvy %in% srvy1 &
-                  year == maxyr & 
-                  !is.na(oto_target))|> 
-  dplyr::mutate(
-    oto_target = oto_target1, 
-    # oto_target = paste0(oto_target, ifelse(oto_rules != 1, paste0("; collect when \u2265", oto_rules, " individuals caught in each haul"), "")), 
-    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))|> 
-  dplyr::left_join(
-    y = report_spp1|> 
-      dplyr::select(print_name, order)|> 
-      dplyr::distinct(), 
-    by = "print_name")|> 
-  dplyr::distinct()|>
-  dplyr::arrange(srvy, print_name, order)|> 
-  dplyr::select(srvy, print_name, oto_target, oto_samp_type)|> 
-  dplyr::left_join(
-    y = data.frame(srvy = srvy1, 
-                   srvy_long = stringr::str_to_title(srvy11)))
-
-header <- paste0("Otolith collection types and target counts during the ", 
-                 maxyr, " ", 
-                 text_list(haul_cruises_maxyr$srvy_long),
-                 " shelf survey", ifelse(length(srvy1)>1, "s", ""),".")
-
-table_print <- table_raw |> 
-  dplyr::select(-srvy) 
-
-# if (length(srvy1) > 1) {
-table_print <- table_print |> 
-  flextable::as_grouped_data(
-    groups = c("srvy_long", "oto_samp_type"), 
-    columns = NULL) 
-# } else {
-#   table_print <- table_print|> 
-#     dplyr::select(-srvy_long)|> 
-#     flextable::as_grouped_data(groups = c("oto_samp_type"), 
-#                                columns = NULL) 
-# }
-table_print <- table_print |> 
-  flextable::as_flextable(hide_grouplabel = TRUE) |>
-  flextable::bold(j = 1, 
-                  i = ~ !is.na(srvy_long) ) |> 
-  flextable::bold(j = 1, i = ~ !is.na(oto_samp_type) )|> 
-  flextable::set_header_labels(print_name = "Common name", 
-                               oto_target = "Target collection number per haul")|>
-  theme_flextable_nmfstm(row_lines = TRUE, 
-                         pgwidth = full_page_portrait_width) |>
-  flextable::padding(j = 1, 
-                     i = ~ !is.na(oto_samp_type),
-                     padding.left = 7)|>
-  flextable::padding(j = 1, 
-                     i = ~ !(is.na(print_name)),
-                     padding.left = 10)|>
-  flextable::width(j = "oto_target", width = 4.5, unit = "in")|>
-  flextable::width(j = c("print_name"), width = 2)|> 
-  flextable::hline(i = ~ !is.na(oto_samp_type), 
-                   border = fp_border(color = "white"), 
-                   part = "body") 
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r tab-stomach-collection-scheme}
-nickname <- paste0("tab-stomach-collection-scheme") 
-
-header <- paste0("Stomach collection target size category bins (cm) used to collect each fish species during the ", 
-                 maxyr, " ", 
-                 text_list(paste0( 
-                   haul_cruises_maxyr$srvy_long)),
-                 " shelf survey.")
-
-table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/collection-scheme.xlsx"), 
-                                sheet = "Sheet1", 
-                                skip = 1) |> 
-  dplyr::filter(srvy %in% srvy1) |> 
-  dplyr::filter(year == maxyr & !is.na(stomach_target)) |> 
-  dplyr::left_join(
-    y = report_spp1 |> 
-      dplyr::select(print_name, order) |> 
-      dplyr::distinct(), 
-    by = "print_name") |> 
-  dplyr::distinct() |>
-  dplyr::arrange(srvy, print_name, order) |> 
-  dplyr::select(srvy, print_name, stomach_target) |>
-  # dplyr::mutate(stomach_target = as.character(round(as.numeric(stomach_target), digits = 0)))  |> 
-  dplyr::mutate(#stomach_target = paste0(stomach_target, " cm"), 
-    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name)))) |>
-  dplyr::left_join(
-    y = data.frame(srvy = srvy1, 
-                   srvy_long = stringr::str_to_title(srvy11))) |>
-  dplyr::ungroup() |> 
-  tidyr::pivot_wider(
-    id_cols = c("print_name"), 
-    names_from = "srvy_long", 
-    values_from = "stomach_target")
-
-table_raw[is.na(table_raw)] <- "-"
-thin_b <- officer::fp_border(width = 0.5, color = "grey10")
-
-if (length(srvy1)==1) {
-  names(table_raw)[2] <- "Target collection size categories per haul"
-}
-
-table_print <- table_raw |> 
-  flextable::flextable() |> 
-  flextable::set_header_labels(print_name = "Common name", 
-                               stomach_target = "Target collection number per survey")  |>
-  flextable::merge_at(j = "print_name", part = "header") |> 
-  theme_flextable_nmfstm(row_lines = TRUE, 
-                         pgwidth = full_page_portrait_width)  |>
-  flextable::width(width = c((full_page_portrait_width - 4.5), 
-                             rep_len(length.out = length(srvy1), (4.5/length(srvy1))))) |> 
-  flextable::hline(border = thin_b, part = "header") |> 
-  flextable::align(i = 1, align = "left", part = "header") 
-
-if (length(srvy1)>1) {
-  table_print <- table_print |>
-    flextable::add_header_row(
-      top = TRUE,
-      values = c("",
-                 "Target collection size categories per haul"),
-      colwidths = c(1,length(srvy1)))
-}
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r tab-special-projects}
-nickname <- "tab-special-projects" 
-places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
-                             sheet = "affiliations", 
-                             skip = 1)
-
-table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
-                                sheet = "projects", 
-                                skip = 1)  |> 
-  dplyr::filter(!is.na(`Project title`) & 
-                  year == maxyr) 
-
-if (length(srvy1)==1) {
-  table_raw <- table_raw |> 
-    dplyr::filter(grepl(x = srvy, pattern = srvy1)) 
-  table_raw$srvy <- paste0(srvy1)
-}
-
-table_raw <- table_raw |> 
-  dplyr::select(srvy, `Project title`, `Principal investigator`, Agency) |> 
-  dplyr::left_join(
-    y = data.frame(srvy = c(srvy1, "EBS & NBS"), 
-                   srvy_long = c(stringr::str_to_title(srvy11), 
-                                 "Eastern and northern Bering Sea"))) |> # " Combined"
-  dplyr::mutate(
-    srvy = gsub(pattern = "&", x = srvy, replacement = "and"), 
-    srvy = factor(x = srvy, 
-                  levels = c("EBS and NBS", "EBS", "NBS"), 
-                  labels = c("EBS and NBS", "EBS", "NBS"), 
-                  ordered = TRUE), 
-    srvy_long = factor(x = srvy_long, 
-                       levels = c("Eastern and northern Bering Sea", # " Combined"
-                                  "Eastern Bering Sea", "Northern Bering Sea"), 
-                       labels = c("Eastern and northern Bering Sea", # " Combined"
-                                  "Eastern Bering Sea", "Northern Bering Sea"), 
-                       ordered = TRUE)) |>
-  dplyr::arrange(srvy, Agency, `Principal investigator`, `Project title`)
-
-# howmanyitals <- max(stringr::str_count(table_raw$`Project title`, "\\*")/2)
-# if (howmanyitals>0) {
-#   temp <- tidyr::crossing(
-#        temp2 = rep_len(length.out = howmanyitals, x = 1:howmanyitals), 
-#        temp1 = c("italno", "ital")) |> 
-#     data.frame() |>
-#     dplyr::mutate(cols = paste0(temp1, temp2)) 
-#   
-# table_raw <- table_raw |> 
-#   tidyr::separate(col = `Project title`, sep = "//*", 
-#                   into = temp$cols, 
-#                   remove = FALSE)
-# }
-
-header <- paste0("Non-core scientific collections and research projects undertaken during the ",
-                 maxyr, " ", 
-                 text_list(haul_cruises_maxyr$srvy_long), 
-                 " shelf survey, sorted by principal investigator and agency.")
-
-# find places
-temp0 <- unlist(strsplit(x = table_raw$Agency, split = " & ", fixed = TRUE))
-temp0 <- unlist(strsplit(x = temp0, split = ", ", fixed = TRUE))
-temp1 <- places[places$Agency %in% unique(temp0), ]
-
-footnote0 <- paste(paste(temp1$Agency, " - ", temp1$agency_long, sep = ""), collapse = "; ")
-
-# eval(parse(text=paste0('flextable::compose(
-#     j = "dummy", part = "body",', paste0(''))))
-
-
-# table_print <- table_raw |>
-#   dplyr::select(-srvy) |> 
-#   flextable::as_grouped_data(groups = c("srvy_long"), columns = NULL) |> 
-#   flextable::as_flextable(hide_grouplabel = TRUE)  |>
-# flextable::compose(
-#   j = "dummy", 
-#   part = "body",
-#   value = as_paragraph(
-#     as_chunk(ifelse(is.na(italno1), "", italno1)),
-#              props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)), 
-#     as_chunk(ifelse(is.na(ital1), "", ital1),
-#              props = fp_text_default(italic = TRUE, font.size = font_size0, font.family = font0))) |> 
-
-if (plural_surveys == "") {
-  table_print <- table_raw |>
-    dplyr::select(-srvy, -dplyr::starts_with("ital"), -srvy_long) |> 
-    flextable::flextable()
-} else {
-  table_print <- table_raw |>
-    dplyr::select(-srvy, -dplyr::starts_with("ital")) |>
-    flextable::as_grouped_data(groups = c("srvy_long"), columns = NULL) |>
-    flextable::as_flextable(hide_grouplabel = TRUE) |>
-    flextable::bold(j = 1, i = ~ !is.na(srvy_long) ) |> 
-    flextable::padding(j = 1, i = ~ is.na(srvy_long),
-                       padding.left = 7) |> 
-    flextable::hline(i = ~ !is.na(srvy_long), 
-                     border = fp_border(color = "white"), 
-                     part = "body")
-}
-
-table_print <- table_print |>
-  flextable::footnote(value = as_paragraph(footnote0), 
-                      ref_symbols = "1",
-                      part = "header", 
-                      j = "Agency", 
-                      i = 1)  |>
-  theme_flextable_nmfstm(row_lines = TRUE, 
-                         pgwidth = full_page_portrait_width) |> 
-  flextable::width(width = c(full_page_portrait_width-2.5, 1.5, 1), unit = "in")
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r tab-special-projects-pres, eval = FALSE}
-nickname <- "tab-special-projects-pres" 
-
-header <- paste0("Special projects and collections undertaken during the ",
-                 maxyr, " ", 
-                 text_list(haul_cruises_maxyr$srvy_long), 
-                 " shelf survey, sorted by principal investigator and agency.")
-
-table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
-                                sheet = "projects", 
-                                skip = 1)  |> 
-  dplyr::filter(!is.na(`Project title`) & 
-                  year == maxyr) |> 
-  dplyr::select(srvy, #`Project Title`, `Principal investigator`, Agency, 
-                nickname, group) |> 
-  dplyr::mutate(nickname = 
-                  if_else((tolower(srvy) == "EBS & NBS" | is.na(srvy)), 
-                          paste0(nickname), 
-                          paste0(srvy, " ", nickname))) |> 
-  dplyr::select(group, nickname) |>
-  dplyr::arrange(nickname) |>
-  dplyr::ungroup() |>
-  dplyr::arrange(group, #srvy, 
-                 nickname) |> 
-  dplyr::rename("Special Projects" = nickname)
-
-table_print <- table_raw |> 
-  flextable::as_grouped_data(groups = c("group"), columns = NULL) |> 
-  flextable::as_flextable(hide_grouplabel = TRUE) |> 
-  flextable::bold(j = 1, 
-                  i = ~ !is.na(group) ) |>
-  theme_flextable_nmfstm(row_lines = FALSE)  |>
-  flextable::padding(j = 1, 
-                     i = ~ is.na(group), 
-                     padding.left = 20)
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-# Results
-
-```{r tab-length-samples-pres}
-
-nickname <- paste0("tab-length-samples-pres") 
-header <- paste0("Lengths collected during the ", maxyr, " ",
-                 SURVEY, 
-                 " survey.")
-
-table_raw <- lengths |> 
-  dplyr::left_join(report_spp1 |> 
-                     dplyr::select(species_code, order) |> 
-                     dplyr::arrange(order) |>
-                     dplyr::distinct() |> 
-                     dplyr::filter(!duplicated(species_code)))  |>
-  dplyr::left_join(
-    y = spp_info |> 
-      dplyr::select(species_code, common_name), 
-    by = "species_code") |>
-  dplyr::filter(year %in% c(maxyr, compareyr) &
-                  !(species_code %in% c(68560, 68580, 68590, 69322, 
-                                        69323, 69400, 69310, 68577, 68781) ))  |>  # no crab!
-  dplyr::group_by(srvy, year, common_name, order) |>
-  dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) |>
-  tidyr::pivot_wider(
-    id_cols = c("common_name", "order"), 
-    names_from = c("srvy", "year"), 
-    values_from = "frequency") |> 
-  dplyr::ungroup() |> 
-  dplyr::arrange(order) |>
-  dplyr::select(-order) 
-
-table_print0 <- 
-  dplyr::bind_rows(
-    table_raw[1:16,], # first 16
-    table_raw[17:nrow(table_raw),] |>    # summed others
-      dplyr::mutate(common_name = paste0("other taxa (", nrow(table_raw[21:nrow(table_raw),]), ")")) |>
-      dplyr::group_by(common_name) |> 
-      dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE)) |> 
-      dplyr::ungroup(),
-    table_raw |>    # total
-      dplyr::mutate(common_name = "TOTAL") |>
-      dplyr::group_by(common_name) |> 
-      dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE)) |>
-      dplyr::ungroup())  |> 
-  dplyr::mutate(dplyr::across(dplyr::where(is.numeric), xunits, val_under_x_words = -1), 
-                common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
-
-table_print0[is.na(table_print0)]<- "-"
-
-h_r1 <- c("Common name", sapply(strsplit(x = names(table_print0)[-1], split = "_"), "[[", 1))
-h_r2 <- c("Common name", sapply(strsplit(x = names(table_print0)[-1], split = "_"), "[[", 2))
-std_b <- officer::fp_border(width = 2, color = "grey10")
-
-table_print <- table_print0 |> 
-  flextable::flextable() |>
-  flextable::add_header(
-    values = eval(parse(text = paste0("list(",
-                                      text_list(paste0(names(table_print0), " = '", h_r1, "'"),
-                                                sep_last = ", ", sep_last2 = ", "), ") " ) ) ),
-    top = TRUE) |>
-  flextable::set_header_labels(
-    values = eval(parse(text = paste0("list(",
-                                      text_list(paste0(names(table_print0), " = '", h_r2, "'"),
-                                                sep_last = ", ", sep_last2 = ", "), ") " ) ) )
-  ) |> 
-  theme_flextable_nmfstm() |>
-  flextable::merge_h(i = 1, part = "header") |> 
-  flextable::merge_v(j = "common_name", part = "header") |>
-  flextable::valign(valign = "top") |>
-  flextable::bold(i = ~(common_name == "TOTAL") ) |>
-  flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") |> 
-  flextable::hline(border = std_b, part = "header")  
-
-if (srvy == "NEBS" & 
-    paste0("EBS_", compareyr) %in% names(table_raw)) {
-  table_print <- table_print |> 
-    flextable::vline(j = paste0("EBS_", compareyr))
-}
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r tab-age-samples-pres}
-nickname <- paste0("tab-age-samples-pres") 
-header <- paste0("Otoliths collected during the ", maxyr, " ", 
-                 text_list(haul_cruises_maxyr$srvy_long), 
-                 " shelf survey.")
-
-a <- report_spp1 |> 
-  dplyr::filter(!is.na(order)) |> 
-  dplyr::select(print_name, species_code, species_name1, plot_sizecomp, order) |> 
-  dplyr::distinct() |> 
-  dplyr::mutate(include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
-                                  FALSE, TRUE)) |> 
-  dplyr::filter(include == TRUE) 
-
-table_raw <- specimen |> 
-  dplyr::filter(year %in% c(maxyr, compareyr) &
-                  specimen_subsample_method %in% c(19, 6, 1) & 
-                  specimen_sample_type == 1) |>
-  dplyr::select(srvy, specimen_subsample_method, species_code, year) |> 
-  dplyr::mutate(specimen_subsample_method = dplyr::case_when(
-    specimen_subsample_method %in% c(1, 19) ~ "random-by-haul",
-    specimen_subsample_method == 6 ~ "length/region-stratified (cm/sex/southeast and northwest regions)" )) |>
-  dplyr::left_join(
-    y = spp_info |> 
-      dplyr::select(species_code, common_name), 
-    by = "species_code") |> 
-  dplyr::left_join(
-    y = a |>
-      dplyr::select(order, species_code) |>
-      distinct(),
-    by = "species_code") |>
-  dplyr::group_by(common_name, srvy, order, year, specimen_subsample_method) |> 
-  dplyr::summarise(ages = n()) |> 
-  dplyr::ungroup() |> 
-  tidyr::pivot_wider(id_cols = c("common_name", "order", "specimen_subsample_method"), 
-                     values_from = "ages", 
-                     names_from = c("srvy", "year")) |>
-  dplyr::arrange(order) |>
-  dplyr::select(-order) |>
-  dplyr::arrange(specimen_subsample_method) |> 
-  dplyr::relocate(specimen_subsample_method) |> 
-  dplyr::ungroup() |> 
-  dplyr::mutate(common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
-
-table_print0 <- dplyr::bind_rows(
-  table_raw, 
-  # summed total
-  table_raw |> 
-    dplyr::mutate(common_name = "TOTAL") |> 
-    dplyr::group_by(specimen_subsample_method , common_name) |> 
-    dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE))) |>
-  dplyr::mutate(dplyr::across(dplyr::where(is.numeric), xunits, val_under_x_words = -1))
-table_print0[is.na(table_print0)] <- "-"
-
-h_r1 <- c("Common name", sapply(strsplit(x = names(table_print0)[-(1:2)], split = "_"), "[[", 1))
-h_r2 <- c("Common name", sapply(strsplit(x = names(table_print0)[-(1:2)], split = "_"), "[[", 2))
-std_b <- officer::fp_border(width = 2, color = "grey10")
-
-table_print <- table_print0 |> 
-  flextable::as_grouped_data(groups = c("specimen_subsample_method")) |> 
-  flextable::as_flextable(hide_grouplabel = TRUE) |> 
-  flextable::bold(j = 1, i = ~ !is.na(specimen_subsample_method) ) |>
-  flextable::bold(i = ~(common_name == "TOTAL") ) |>
-  flextable::add_header(
-    values = eval(parse(text = paste0("list(",
-                                      text_list(paste0(names(table_print0)[-1], " = '", h_r1, "'"),
-                                                sep_last = ", ", sep_last2 = ", "), ") " ) ) ),
-    top = TRUE) |>
-  flextable::set_header_labels(
-    values = eval(parse(text = paste0("list(",
-                                      text_list(paste0(names(table_print0)[-1], " = '", h_r2, "'"),
-                                                sep_last = ", ", sep_last2 = ", "), ") " ) ) )
-  ) |> 
-  theme_flextable_nmfstm() |>
-  flextable::merge_h(i = 1, part = "header") |> 
-  flextable::merge_v(j = "common_name", part = "header") |>
-  flextable::valign(valign = "top") |>
-  flextable::align(i = 1, j = 2:(ncol(table_print0)-1), align = "center", part = "header") |> 
-  flextable::padding(j = 1, 
-                     i = ~ is.na(specimen_subsample_method), 
-                     padding.left = 20) |>   
-  flextable::hline(border = std_b, part = "header") 
-
-if (srvy == "NEBS") {
-  table_print <- table_print |> 
-    flextable::vline(j = paste0("EBS_", compareyr))
-}
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r fig-mean-temperature}
-# code orig from sean rohan's coldpool package! Jan 23 2021 
-nickname <- "fig-mean-temperature"
-header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",maxyr,
-                 ifelse(srvy == "NEBS", 
-                        paste0(" (left), and northern Bering Sea shelf based on data collected during standardized summer surveys (right)"), ""), 
-                 ". ")
-
-height <- 3.25
-width <- full_page_portrait_width # 6.5
-
-plot_mean_temperatures <- function(maxyr, srvy){
-  
-  # EBS
-  sebs_temperatures <- coldpool::cold_pool_index |>
-    dplyr::filter(YEAR <= maxyr) |>
-    dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) |>
-    dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
-                  Surface = MEAN_SURFACE_TEMPERATURE) |>
-    dplyr::mutate(region = "Eastern Bering Sea") |> 
-    tidyr::pivot_longer(cols = c("Bottom", "Surface"), 
-                        names_to = "variable", 
-                        values_to = "value")
-  
-  temp0 <- setdiff(min(sebs_temperatures$YEAR):max(sebs_temperatures$YEAR), unique(sebs_temperatures$YEAR))
-  temp <- data.frame(matrix(data = NA, 
-                            ncol = ncol(sebs_temperatures), 
-                            nrow = length(temp0)*2 )) 
-  names(temp) <- names(sebs_temperatures)
-  temp <- temp |> 
-    dplyr::mutate(YEAR = c(temp0, temp0), 
-                  region = "Eastern Bering Sea", 
-                  variable = c(rep_len(x = "Bottom", length.out = length(temp0)), 
-                               rep_len(x = "Surface", length.out = length(temp0))))
-  
-  sebs_temperatures <- dplyr::bind_rows(sebs_temperatures, temp)
-  
-  # NBS
-  nbs_temperatures <- coldpool::nbs_mean_temperature |>
-    dplyr::filter(YEAR <= maxyr) |>
-    dplyr::select(YEAR, MEAN_GEAR_TEMPERATURE, MEAN_SURFACE_TEMPERATURE) |>
-    dplyr::rename(Bottom = MEAN_GEAR_TEMPERATURE, 
-                  Surface = MEAN_SURFACE_TEMPERATURE) |>
-    dplyr::mutate(region = "Northern Bering Sea") |> 
-    tidyr::pivot_longer(cols = c("Bottom", "Surface"), 
-                        names_to = "variable", 
-                        values_to = "value")  
-  
-  temp0 <- setdiff(min(nbs_temperatures$YEAR):max(nbs_temperatures$YEAR), unique(nbs_temperatures$YEAR))
-  temp <- data.frame(matrix(data = NA, 
-                            ncol = ncol(nbs_temperatures), 
-                            nrow = length(temp0)*2 )) 
-  names(temp) <- names(nbs_temperatures)
-  temp <- temp |> 
-    dplyr::mutate(YEAR = c(temp0, temp0), 
-                  region = "Northern Bering Sea", 
-                  variable = c(rep_len(x = "Bottom", length.out = length(temp0)), 
-                               rep_len(x = "Surface", length.out = length(temp0))))
-  
-  nbs_temperatures <- dplyr::bind_rows(nbs_temperatures, temp)
-  
-  # mean temp
-  mean_temp <- data.frame(region = c(rep("Eastern Bering Sea", 2),
-                                     rep("Northern Bering Sea", 2)),
-                          variable = rep(c("Bottom", "Surface"), 2),
-                          value = c(mean(sebs_temperatures$value[sebs_temperatures$variable == "Bottom"], 
-                                         na.rm = TRUE),
-                                    mean(sebs_temperatures$value[sebs_temperatures$variable == "Surface"],
-                                         na.rm = TRUE),
-                                    mean(nbs_temperatures$value[nbs_temperatures$variable == "Bottom"], 
-                                         na.rm = TRUE),
-                                    mean(nbs_temperatures$value[nbs_temperatures$variable == "Surface"], 
-                                         na.rm = TRUE)))
-  
-  if (srvy == "NEBS") {
-    all_temperatures <- dplyr::bind_rows(sebs_temperatures,
-                                         nbs_temperatures)
-  } else if (srvy == "EBS") {
-    all_temperatures <- dplyr::bind_rows(sebs_temperatures)
-    mean_temp <- mean_temp[mean_temp$region == "Eastern Bering Sea",]
-  } else if (srvy == "NBS") {
-    all_temperatures <- dplyr::bind_rows(nbs_temperatures)
-    mean_temp <- mean_temp[mean_temp$region == "Northern Bering Sea",]
-  }
-  
-  all_temperatures$variable <- factor(all_temperatures$variable, 
-                                      levels=c('Surface','Bottom'))
-  
-  col <- viridis::mako(2, direction = -1, begin = .3, end = .5)
-  color_sst <- col[2] 
-  color_bt <- col[1] 
-  
-  figure <- ggplot(data = all_temperatures,
-                   mapping = aes(x = YEAR,
-                                 y = value,
-                                 color = variable,
-                                 shape = variable, 
-                                 group = paste0(variable))) +
-    facet_wrap(~region, scales = "free") +
-    geom_point(size = rel(2)) +
-    geom_line() +
-    geom_hline(data = mean_temp,
-               aes(yintercept = value,
-                   color = variable),
-               linetype = 2) +
-    scale_color_manual(values = c(color_bt, color_sst)) +
-    scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
-                       limits = c(0,11.2),
-                       breaks = seq(0,12,2),
-                       expand = c(0,0))  + 
-    scale_x_continuous(breaks = scales::pretty_breaks(), 
-                       name = "Year") +
-    guides(
-      fill = guide_legend(title.position = "top", 
-                          label.position = "bottom",
-                          title.hjust = 0.25,
-                          nrow = 1)) +
-    theme_bw() +
-    theme(
-      panel.background = element_rect(fill = "white", 
-                                      colour = NA), 
-      panel.border = element_rect(fill = NA, 
-                                  colour = "grey20"), 
-      panel.grid.minor = element_blank(),
-      strip.background = element_blank(), 
-      strip.text = element_text(size = 12), 
-      legend.title = element_blank(), 
-      legend.text = element_text(size = 10),
-      legend.background = element_rect(colour = "transparent", 
-                                       fill = "transparent"),
-      legend.key = element_rect(colour = "transparent", 
-                                fill = "transparent"),
-      legend.position = "bottom",
-      legend.box = "horizontal")
-  
-  return(list("figure_print" = figure, 
-              "table_raw" = all_temperatures))
-}
-
-
-a <- plot_mean_temperatures(maxyr, srvy)
-for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r fig-cold-pool-area}
-header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea, based on observations from the eastern Bering Sea shelf survey. The extent of the cold pool is shown as a percentage of the total survey area.",
-                 ifelse(srvy == "NEBS", 
-                        paste0(" Note that northern Bering Sea areas are not included in this figure.") , ""),
-                 " Shading denotes near-bottom temperatures \u2264 2°C, \u2264 1°C, \u2264 0°C, and \u2264 -1°C.")
-
-footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
-nickname <- "fig-cold-pool-area"
-
-height <- 3.5
-width <- full_page_portrait_width
-
-plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
-  
-  # maxyr <- 2021
-  # 
-  # > coldpool_ebs_bin_area
-  # year variable  value area_km2  label   proportion        perc
-  # 1   1982   ≤ -1°C    425      425 ≤ -1°C 0.0008611844  0.08611844
-  # 2   1983   ≤ -1°C    750      750 ≤ -1°C 0.0015197372  0.15197372
-  # 3   1984   ≤ -1°C  17650    17650 ≤ -1°C 0.0357644815  3.57644815
-  
-  table_raw <- coldpool_ebs_bin_area #[!(coldpool_ebs_bin_area$year %in% 1990:1992),]
-  
-  yr_missing <- setdiff((min(table_raw$year):max(table_raw$year)), unique(table_raw$year))
-  
-  if (length(yr_missing)>0) {
-    temp <- unique(table_raw[,c("variable", "label")])
-    
-    temp1 <- data.frame(matrix(data = NaN, nrow = nrow(temp)*length(yr_missing), ncol = ncol(table_raw)))
-    names(temp1) <- names(table_raw)
-    temp1$variable <- temp$variable
-    temp1$label <- temp$label
-    temp1 <- dplyr::arrange(temp1, label)
-    temp1$year <- yr_missing
-    
-    table_raw <- dplyr::bind_rows(temp1, table_raw)
-  }
-  
-  table_raw$ymax <-table_raw$proportion
-  table_raw$ymin <- 0
-  zl <- rev(levels(table_raw$variable))
-  
-  for (i in 2:length(zl)) {
-    zi <- table_raw$variable==zl[i]
-    zi_1 <- table_raw$variable==zl[i-1]
-    table_raw$ymin[zi] <- table_raw$ymax[zi_1]
-    table_raw$ymax[zi] <- table_raw$ymin[zi] + table_raw$ymax[zi]
-  }
-  
-  if (is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])) {
-    table_raw <- dplyr::bind_rows( 
-      table_raw[table_raw$year == (maxyr),] |> 
-        dplyr::mutate(year = maxyr+.5), 
-      table_raw)
-  }
-  
-  # table_raw1 <- table_raw |> 
-  #   dplyr::arrange(desc(variable)) |>
-  #   dplyr::mutate(
-  #        variable =  factor(x = as.character(variable), 
-  #        levels = unique(as.character(variable)), 
-  #        labels = unique(as.character(variable)), ordered = TRUE))
-  
-  
-  # ggplot(table_raw, aes(x=x,ymax=ymax,ymin=ymin, fill=z)) + geom_ribbon()
-  
-  figure <- ggplot2::ggplot(data = table_raw, 
-                            mapping = aes(x = year,
-                                          ymax = ymax, 
-                                          ymin = ymin, 
-                                          fill = variable)) + 
-    geom_ribbon() + 
-    scale_fill_manual(name = "", # "Temperature", 
-                      values = viridis::mako(4, direction = -1, begin = 0.2, end = .8)) +  
-    scale_y_continuous(name = "Proportion of Survey Area",
-                       limits = c(0, 1),
-                       expand = c(0, 0),
-                       breaks = seq(0,1,0.1)) +
-    scale_x_continuous(name = "Year", 
-                       limits = c(min(table_raw$year)-0.5,
-                                  maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
-                       expand = c(0, 0),
-                       breaks = c(seq(1980, maxyr, 5))) +
-    # ggplot2::guides(
-    #   fill = guide_legend(title.position = "top",
-    #                       title.hjust = 0.5,
-    #                       title.vjust = -0.5)) +
-    theme_bw() +
-    theme(
-      panel.background = element_rect(fill = "white", colour = NA), 
-      panel.border = element_rect(fill = NA, colour = "grey20"), 
-      panel.grid.minor = element_blank(),
-      plot.title = element_text(hjust = 0.5, size = 12), 
-      legend.text = element_text(size = 10),
-      legend.background = element_rect(colour = "transparent", 
-                                       fill = "transparent"),
-      legend.key = element_rect(colour = "transparent",
-                                fill = "transparent"),
-      legend.position = "bottom",
-      legend.box = "horizontal", 
-      legend.box.spacing = unit(0, "pt")) +
-    ggtitle("Eastern Bering Sea")
-  
-  return(figure)
-}
-
-figure_print <- plot_coldpool_area(coldpool_ebs_bin_area = coldpool_ebs_bin_area, maxyr = maxyr)
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r fig-temperature-[st/bt]-prep}
-temp <- function(yrs, 
-                 row0, 
-                 case, 
-                 title0 = NULL, 
-                 temperature_zscore = FALSE) {
-  
-  if (case == "surface") {
-    raster_nebs <- terra::rast(coldpool::nbs_ebs_surface_temperature)
-    raster_ebs <- terra::rast(coldpool::ebs_surface_temperature)
-    colorbar_breaks <- c(-Inf, seq(2, 14, 2), Inf)
-  } else if (case == "bottom") {
-    raster_nebs <- terra::rast(coldpool::nbs_ebs_bottom_temperature)
-    raster_ebs <- terra::rast(coldpool::ebs_bottom_temperature)
-    # colorbar_breaks <- c(-Inf, -1, 0, 1, seq(2, 8, 2), Inf)
-    colorbar_breaks <- c(-Inf, seq(-1, 8, 1), Inf)
-  }
-  
-  header <- paste0(stringr::str_to_title(case)," temperatures (°C) during the ", 
-                   range_text(yrs), " ", 
-                   SURVEY, " survey",
-                   ifelse(srvy=="NEBS", "s", ""),
-                   ". ") 
-  if (temperature_zscore) {
-    header <- paste0(header, "Years in which the mean ", case,
-                     " temperature is one or more standard deviations above or below the time series mean ", case,
-                     " temperature are denoted with '+' and '-' in the upper right-hand corner of each subplot. ")
-  }
-  
-  # Create figure_print
-  key.title <- ifelse(case == "bottom", 
-                      expression(bold("Bottom temperature (°C)")), 
-                      expression(bold("Surface temperature (°C)")))
-  
-  if (is.null(title0)) {
-    title0 <- paste0("Eastern", ifelse(srvy == "NEBS", " and northern", ""),
-                     " Bering Sea\n",
-                     case, " temperature (", range_text(yrs), ")")
-  }
-  
-  figure_print <- plot_temperature_map(
-    raster_nebs = raster_nebs, 
-    raster_ebs = raster_ebs, 
-    colorbar_breaks = colorbar_breaks, 
-    yrs = yrs, 
-    yrs_nbs = nbsyr[nbsyr %in% names(raster_nebs)], # in case data isn't ready yet at time of run 
-    key.title = key.title, 
-    reg_dat = report_types$NEBS$reg_dat,  
-    row0 = row0, 
-    title0 = title0, 
-    temperature_zscore = temperature_zscore) 
-  
-  return(list("figure_print" = figure_print, 
-              "header" = header))
-}
-```
-
-```{r fig-temperature-[st/bt]}
-height <- full_page_portrait_height+0.25
-width <- full_page_portrait_width
-yrs0 <- (maxyr-17):maxyr
-row0 <- 3
-case_yr0 <- 1:2
-
-for (case in c("bottom", "surface")) {
-  for (case_yr in case_yr0) {
-    
-    if (case_yr == 1) {
-      yrs <- yrs0[1:(length(yrs0)/2)]
-    } else if (case_yr == 2) {
-      yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
-    }
-    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr), "-data")
-    a <- temp(yrs = yrs, 
-              row0 = row0, 
-              title0 = "", 
-              case = case)
-    figure_print <- a$figure_print
-    header <- a$header
-    
-    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  }
-}
-```
-
-```{r fig-temperature-[st/bt]-comm}
-temperature_zscore <- FALSE
-height <- full_page_portrait_height+0.5
-width <- full_page_portrait_width
-yrs0 <- (maxyr-17):maxyr
-row0 <- 3
-case_yr0 <- 1:2
-
-for (case in c("bottom", "surface")) {
-  for (case_yr in case_yr0) {
-    
-    if (case_yr == 1) {
-      yrs <- yrs0[1:(length(yrs0)/2)]
-    } else if (case_yr == 2) {
-      yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
-    }
-    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr), "-comm")
-    a <- temp(yrs = yrs, 
-              row0 = row0, 
-              case = case, 
-              temperature_zscore = temperature_zscore, 
-              title0 = "")
-    figure_print <- a$figure_print
-    header <- a$header
-    
-    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  }
-}
-```
-
-```{r fig-temperature-[st/bt]-pres}
-height <- 8
-width <- 8
-yrs <- sort(unique(haul$year), decreasing = TRUE)
-yrs <- yrs[yrs != 2020][1:8]
-row0 <- 2
-reg_dat0 <- report_types$NEBS$reg_dat
-
-for (case in c("bottom", "surface")) {
-  nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr), "-pres")
-  title0 = paste0("Eastern", ifelse(srvy == "NEBS", " and northern", ""), " ",  
-                  case, " temperature (", range_text(yrs), ")")
-  a <- temp(yrs = yrs, 
-            row0 = row0, 
-            case = case, 
-            title0 = title0)
-  figure_print <- a$figure_print
-  header <- a$header
-  
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-}
-```
 
 ```{r tab-specimen-samples-}
 nickname0 <- paste0("tab-specimen-samples-") 
@@ -2633,9 +1402,10 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```
 
 ```{r fig-diversity-[type]-prep}
-dist_plot <- function(yrs, height, nickname, report_title0, col, key_title) {
+dist_plot <- function(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add = 0) {
+  
   viridis_palette_option <- "cividis"
-  yrs0 <- sort(yrs, decreasing = TRUE)
+  yrs <- sort(yrs, decreasing = TRUE)
   header <- paste0(key_title, " from the ",
                    range_text(yrs), " ", 
                    SURVEY, 
@@ -2648,7 +1418,7 @@ dist_plot <- function(yrs, height, nickname, report_title0, col, key_title) {
   table_raw <- table_raw  |>
     dplyr::filter(
       srvy %in% srvy1 &
-        year %in% yrs0) |> 
+        year %in% yrs) |> 
     dplyr::arrange(desc(year)) |>
     dplyr::mutate(srvy = dplyr::case_when(
       survey_definition_id == 98 ~ "EBS",
@@ -2662,15 +1432,13 @@ dist_plot <- function(yrs, height, nickname, report_title0, col, key_title) {
     dplyr::ungroup() |> 
     data.frame()
   
-  if (col == "diversity_H") {
-    set.breaks <- c(0,1,2,3,4)
-  } else if (col == "diversity_D") {
-    set.breaks <- c(0,2.5,5,7.5,10, 12.5, 15, 18.5)
-  }
-  
-  # Create shapefile of species IDW ----------------------------------------------
-  idw <- make_idw_stack(
-    x = table_raw,
+  for (ii in 1:length(unique(table_raw$YEAR))) {
+     # Create shapefile of species IDW ----------------------------------------------
+    yr0 <- unique(table_raw$YEAR)[ii]
+    
+  idw0 <- make_idw_stack(
+    x = table_raw |> 
+      dplyr::filter(YEAR == yr0),
     # COMMON_NAME = table_raw$COMMON_NAME,
     #                        LATITUDE = table_raw$LATITUDE,
     #                        LONGITUDE = table_raw$LONGITUDE,
@@ -2680,48 +1448,34 @@ dist_plot <- function(yrs, height, nickname, report_title0, col, key_title) {
     set.breaks = set.breaks,
     extrapolation.grid.type = "sf")
   
-  idw$extrapolation.stack$var1.pred <-
-    factor(x = idw$extrapolation.stack$var1.pred, 
-           levels = levels(idw$extrapolation.stack$var1.pred), 
-           labels = set.breaks_pretty,
+  idw0$extrapolation.stack$var1.pred <-
+    factor(x = idw0$extrapolation.stack$var1.pred, 
+           levels = levels(idw0$extrapolation.stack$var1.pred), 
+           labels = set.breaks-set.breaks_add,
            ordered = TRUE)
   
-  for (ii in 1:length(unique(idw$extrapolation.stack$YEAR))) {
-    
-    yr0 <- unique(idw$extrapolation.stack$YEAR)[ii]
     
     gg <- ggplot() +
-      ggplot2::geom_sf(data = reg_dat0$akland,
+      ggplot2::geom_sf(data = reg_dat$akland,
                        color = NA,
                        fill = "grey90")  +
-      ggplot2::geom_sf(data = reg_dat0$graticule,
+      ggplot2::geom_sf(data = reg_dat$graticule,
                        color = "grey80",
                        alpha = 0.2) +
       ggplot2::scale_y_continuous(name = "", #"Latitude",
-                                  limits = reg_dat0$plot.boundary$y,
-                                  breaks = reg_dat0$lat.breaks) +
+                                  limits = reg_dat$plot.boundary$y,
+                                  breaks = reg_dat$lat.breaks) +
       ggplot2::scale_x_continuous(name = "", #"Longitude",
-                                  limits = reg_dat0$plot.boundary$x,
-                                  breaks = reg_dat0$lon.breaks) + 
-      ggplot2::geom_sf(data = idw$extrapolation.stack[idw$extrapolation.stack$YEAR == yr0,],
+                                  limits = reg_dat$plot.boundary$x,
+                                  breaks = reg_dat$lon.breaks) + 
+      ggplot2::geom_sf(data = idw0$extrapolation.stack[idw0$extrapolation.stack$YEAR == yr0,],
                        mapping = aes(fill = var1.pred),
                        na.rm = FALSE,
                        show.legend = TRUE, 
                        color = NA) +
       # ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
-      ggplot2::scale_fill_manual(
-        name = key_title,
-        values =  c("gray90",
-                    viridis::viridis(
-                      option = viridis_palette_option,
-                      direction = -1,
-                      n = length(set.breaks)-1,
-                      begin = 0.20,
-                      end = 0.80)),
-        na.translate = FALSE, # Don't use NA
-        drop = FALSE) + 
       ggplot2::geom_sf(
-        data = reg_dat0$survey.area, 
+        data = reg_dat$survey.area, 
         mapping = aes(color = SURVEY, 
                       geometry = geometry), 
         fill = "transparent", 
@@ -2729,9 +1483,9 @@ dist_plot <- function(yrs, height, nickname, report_title0, col, key_title) {
         show.legend = FALSE) +
       ggplot2::scale_color_manual(
         name = " ", 
-        values = reg_dat0$survey.area$color,
-        breaks = reg_dat0$survey.areasrvy_long,
-        labels = reg_dat0$survey.area$srvy) + 
+        values = reg_dat$survey.area$color,
+        breaks = reg_dat$survey.areasrvy_long,
+        labels = reg_dat$survey.area$srvy) + 
       ggplot2::guides(
         fill = guide_legend(
           order = 1,
@@ -2761,6 +1515,34 @@ dist_plot <- function(yrs, height, nickname, report_title0, col, key_title) {
         legend.margin=margin(0, 0, 0, 0) ) # +
     # ggtitle(#label = spp_print, 
     #   subtitle = yr0)
+    
+    if (set.breaks[1]+set.breaks_add == 0) {
+         gg <- gg +
+           ggplot2::scale_fill_manual(
+        name = paste0(yr0, " ", key_title),
+        values =  c("gray90",
+                    viridis::viridis(
+                      option = viridis_palette_option,
+                      direction = -1,
+                      n = length(set.breaks)-1,
+                      begin = 0.20,
+                      end = 0.80)),
+        na.translate = FALSE, # Don't use NA
+        drop = FALSE) 
+    } else {
+               gg <- gg +
+           ggplot2::scale_fill_manual(
+        name = paste0(yr0, " ", key_title),
+        values =  c(#"gray90",
+                    viridis::viridis(
+                      option = viridis_palette_option,
+                      direction = -1,
+                      n = length(set.breaks), # -1,
+                      begin = 0.20,
+                      end = 0.80)),
+        na.translate = FALSE, # Don't use NA
+        drop = FALSE) 
+    }
     
     ggsave(filename = paste0(nickname, "-", yr0, '.png'), 
            path = paste0(dir_out_figtab, "gif/"),
@@ -2809,36 +1591,76 @@ return(list("figure_print" = figure_print,
 }
 ```
 
-```{r fig-diversity-H-gif}
+```{r fig-diversity-shannon-gif}
 yrs <- sort(unique(diversity$year))
 
 width <- full_page_portrait_width # 6.5  
 height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
-nickname <- paste0("fig-diversity-H-gif")
+nickname <- paste0("fig-diversity-shannon-gif")
 report_title0 <- "gif"
-col <- "diversity_H"
+col <- "shannon"
 key_title <- 'Shannon Diversity Index'
+# set.breaks <- c(0,1,2,3,4)
+set.breaks <- c(0,.5,1,1.5,2,2.5,3,3.5) # c(0,1,2,3,4)
 
-temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title)
+temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-diversity-D-gif}
+```{r fig-diversity-simpson-gif}
 yrs <- sort(unique(diversity$year))
 
 width <- full_page_portrait_width # 6.5  
 height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
-nickname <- paste0("fig-diversity-D-gif")
+nickname <- paste0("fig-diversity-simpson-gif")
 report_title0 <- "gif"
-col <- "diversity_D"
+col <- "simpson"
 key_title <- "Simpson's Diversity Index"
+# set.breaks <- c(0,5,10, 15, 20) 
+set.breaks <- c(0,2.5,5,7.5,10, 12.5, 15, 18.5)
 
-temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title)
+temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
+
+```{r fig-diversity-shannon-z-gif}
+yrs <- sort(unique(diversity$year))
+
+width <- full_page_portrait_width # 6.5  
+height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
+nickname <- paste0("fig-diversity-shannon-z-gif")
+report_title0 <- "gif"
+col <- "shannon_z"
+key_title <- 'Shannon Diversity Index (z-score)'
+set.breaks <- c(floor(min(diversity$shannon_z, na.rm = TRUE)):ceiling(max(diversity$shannon_z, na.rm = TRUE)))
+set.breaks_add <- (min(set.breaks)*-1)+.1
+set.breaks <- set.breaks + set.breaks_add
+
+temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r fig-diversity-simpson-z-gif}
+yrs <- sort(unique(diversity$year))
+
+width <- full_page_portrait_width # 6.5  
+height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
+nickname <- paste0("fig-diversity-simpson-z-gif")
+report_title0 <- "gif"
+col <- "simpson_z"
+key_title <- "Simpson's Diversity Index (z-score)"
+set.breaks <- c(floor(min(diversity$simpson_z, na.rm = TRUE)):ceiling(max(diversity$simpson_z, na.rm = TRUE)))
+set.breaks_add <- (min(set.breaks)*-1).1
+set.breaks <- set.breaks + set.breaks_add
+
+temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
 
 ```{r tab-participants}
 nickname <- "tab-participants" 

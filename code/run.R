@@ -6,11 +6,12 @@ quarto <- FALSE
 options(scipen=999)
 
 maxyr <- 2025
-compareyr <- 2023
+compareyr <- 2024
 # compareyr0 <- 2023
 strat_yr <- 2022
 srvy <- "EBS" # "NEBS"
-ref_compareyr <- "@2023NEBS" # CHANGE
+ref_compareyr <- "@2024EBS" # CHANGE
+# ref_compareyr <- "@2023NEBS" # CHANGE
 ref_compareyr_ebs <- "@2024EBS" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
 dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
@@ -56,8 +57,8 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_file = paste0("figtab.docx"))
 
 # Species figures
-comb <- report_spp0 %>% 
-  dplyr::filter(!is.na(community_order) |	!is.na(datar_order)) %>% 
+comb <- report_spp0 |> 
+  dplyr::filter(!is.na(community_order) |	!is.na(datar_order)) |> 
   dplyr::select(file_name, species_code) 
 
 report_spp3 <- data.frame()
@@ -73,7 +74,7 @@ for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp3[which(report_spp3$file_name == comb[jj]), ]
   spp_code <- a$species_code1
-  aa <- catch_haul_cruises %>% 
+  aa <- catch_haul_cruises |> 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
   rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
@@ -98,11 +99,11 @@ source(here::here("code","data.R"))
 
 ## Figures and Tables ----------------------------------------------------------
 
-comb <- report_spp1 %>% dplyr::filter(!is.na(order)) %>% dplyr::select(file_name) %>% unlist() %>% unique()
+comb <- report_spp1 |> dplyr::filter(!is.na(order)) |> dplyr::select(file_name) |> unlist() |> unique()
 for (jj in 1:length(comb)) {
   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
   spp_code <- a$species_code
-  aa <- catch_haul_cruises %>% 
+  aa <- catch_haul_cruises |> 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))

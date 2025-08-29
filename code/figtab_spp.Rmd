@@ -145,7 +145,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
                    ifelse(is.na(spp_sci), "", 
                           paste0(" (",spp_sci,")")), 
                    " from the ",
-                   range_text(yrs), " ", 
+                   range_text(yrs0), " ", 
                    SURVEY, 
                    " survey", 
                    ifelse(length(unique(table_raw$srvy))>1, "s", ""), ". ", 
@@ -329,139 +329,145 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
       #       size = 2, group = 99)
       # }  
     }
-      if (report_title0 %in% c("community")) {
-        figure_print <-
-          cowplot::ggdraw(figure_print +
-                            ggplot2::theme( plot.margin = margin(1.8, 0, 0, 0, "cm") ) ) +
-          cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                              x = .77, y = .42, # top right
-                              # x = 0.09, y = -.35, # lower left
-                              hjust = 0, vjust = 0,
-                              width = .18)
-      }
-    } else {
-      # file.create(paste0(dir_out_figtab, "/gif", spp_print, "/"))
-      for (ii in 1:length(unique(idw$extrapolation.stack$YEAR))) {
-        
-        yr0 <- unique(idw$extrapolation.stack$YEAR)[ii]
-        
-        gg <- ggplot() +
-          ggplot2::geom_sf(data = reg_dat0$akland,
-                           color = NA,
-                           fill = "grey90")  +
-          ggplot2::geom_sf(data = reg_dat0$graticule,
-                           color = "grey80",
-                           alpha = 0.2) +
-          ggplot2::scale_y_continuous(name = "", #"Latitude",
-                                      limits = reg_dat0$plot.boundary$y,
-                                      breaks = reg_dat0$lat.breaks) +
-          ggplot2::scale_x_continuous(name = "", #"Longitude",
-                                      limits = reg_dat0$plot.boundary$x,
-                                      breaks = reg_dat0$lon.breaks) + 
-          ggplot2::geom_sf(data = idw$extrapolation.stack[idw$extrapolation.stack$YEAR == yr0,],
-                           mapping = aes(fill = var1.pred),
-                           na.rm = FALSE,
-                           show.legend = TRUE, 
-                           color = NA) +
-          # ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
-          ggplot2::scale_fill_manual(
-            name = c,
-            values =  c("gray90",
-                        viridis::viridis(
-                          option = viridis_palette_option,
-                          direction = -1,
-                          n = length(set.breaks)-1,
-                          begin = 0.20,
-                          end = 0.80)),
-            na.translate = FALSE, # Don't use NA
-            drop = FALSE) + 
-          ggplot2::geom_sf(
-            data = reg_dat0$survey.area, 
-            mapping = aes(color = SURVEY, 
-                          geometry = geometry), 
-            fill = "transparent", 
-            linewidth = 1, # ifelse(row0 > 2, 1.5, 1), 
-            show.legend = FALSE) +
-          ggplot2::scale_color_manual(
-            name = " ", 
-            values = reg_dat0$survey.area$color,
-            breaks = reg_dat0$survey.areasrvy_long,
-            labels = reg_dat0$survey.area$srvy) + 
-          ggplot2::guides(
-            fill = guide_legend(
-              order = 1,
-              title.position = "top",
-              label.position = "bottom",
-              title.hjust = 0.5,
-              override.aes = list(color = NA),
-              nrow = 1),
-            color = "none")  +
-          ggplot2::coord_sf(expand = FALSE) + # coord_sf() + 
-          ggplot2::theme( 
-            legend.text = element_text(size = 12),
-            legend.title = element_text(size = 16, face = "bold"),
-            panel.background = element_rect(fill = "white", colour = NA), 
-            panel.border = element_rect(fill = NA, colour = "grey20"), 
-            axis.text = element_text(size = 12),
-            
-            strip.background = element_blank(), 
-            # strip.text = element_text(size = 20, face = "bold"),
-            legend.background = element_rect(colour = "transparent", 
-                                             fill = "transparent"),
-            legend.key = element_rect(colour = "transparent", 
-                                      fill = "transparent"),
-            legend.position = "bottom", 
-            legend.box = "horizontal",
-            legend.box.spacing = unit(0, "pt"), # reduce space between legend & plot
-            legend.margin=margin(0, 0, 0, 0) ) # +
-        # ggtitle(#label = spp_print, 
-        #   subtitle = yr0)
-        
-        ggsave(filename = paste0(nickname, "-", yr0, '.png'), 
-               path = paste0(dir_out_figtab, "gif/"),
-               height = height, 
-               width = width,
-               plot = gg, 
-               dpi = 300,
-               bg = "white", 
-               device = "png") 
-        
-      }
+    if (report_title0 %in% c("community")) {
+      figure_print <-
+        cowplot::ggdraw(figure_print +
+                          ggplot2::theme( plot.margin = margin(1.8, 0, 0, 0, "cm") ) ) +
+        cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+                            x = .77, y = .42, # top right
+                            # x = 0.09, y = -.35, # lower left
+                            hjust = 0, vjust = 0,
+                            width = .18)
+    }
+  } else {
+    # file.create(paste0(dir_out_figtab, "/gif", spp_print, "/"))
+    for (ii in 1:length(unique(idw$extrapolation.stack$YEAR))) {
       
-      # prepare animation ----------------------------------------------------------
-      img_gif <- sort(list.files(path = paste0(dir_out_figtab, "gif/"), 
-                                   pattern = paste0(nickname, "-"), 
-                                 full.names = TRUE) )
+      yr0 <- unique(idw$extrapolation.stack$YEAR)[ii]
       
-      img_gif <- lapply(img_gif, 
-                        magick::image_read)
+      gg <- ggplot() +
+        ggplot2::geom_sf(data = reg_dat0$akland,
+                         color = NA,
+                         fill = "grey90")  +
+        ggplot2::geom_sf(data = reg_dat0$graticule,
+                         color = "grey80",
+                         alpha = 0.2) +
+        ggplot2::scale_y_continuous(name = "", #"Latitude",
+                                    limits = reg_dat0$plot.boundary$y,
+                                    breaks = reg_dat0$lat.breaks) +
+        ggplot2::scale_x_continuous(name = "", #"Longitude",
+                                    limits = reg_dat0$plot.boundary$x,
+                                    breaks = reg_dat0$lon.breaks) + 
+        ggplot2::geom_sf(data = idw$extrapolation.stack[idw$extrapolation.stack$YEAR == yr0,],
+                         mapping = aes(fill = var1.pred),
+                         na.rm = FALSE,
+                         show.legend = TRUE, 
+                         color = NA) +
+        # ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
+        ggplot2::scale_fill_manual(
+          name = key.title,
+          values =  c("gray90",
+                      viridis::viridis(
+                        option = viridis_palette_option,
+                        direction = -1,
+                        n = length(set.breaks)-1,
+                        begin = 0.20,
+                        end = 0.80)),
+          na.translate = FALSE, # Don't use NA
+          drop = FALSE) + 
+        ggplot2::geom_sf(
+          data = reg_dat0$survey.area, 
+          mapping = aes(color = SURVEY, 
+                        geometry = geometry), 
+          fill = "transparent", 
+          linewidth = 1, # ifelse(row0 > 2, 1.5, 1), 
+          show.legend = FALSE) +
+        ggplot2::scale_color_manual(
+          name = " ", 
+          values = reg_dat0$survey.area$color,
+          breaks = reg_dat0$survey.areasrvy_long,
+          labels = reg_dat0$survey.area$srvy) + 
+        ggplot2::guides(
+          fill = guide_legend(
+            order = 1,
+            title.position = "top",
+            label.position = "bottom",
+            title.hjust = 0.5,
+            override.aes = list(color = NA),
+            nrow = 1),
+          color = "none")  +
+        ggplot2::coord_sf(expand = FALSE) + # coord_sf() + 
+        ggplot2::theme( 
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 16, face = "bold"),
+          panel.background = element_rect(fill = "white", colour = NA), 
+          panel.border = element_rect(fill = NA, colour = "grey20"), 
+          axis.text = element_text(size = 12),
+          
+          strip.background = element_blank(), 
+          # strip.text = element_text(size = 20, face = "bold"),
+          legend.background = element_rect(colour = "transparent", 
+                                           fill = "transparent"),
+          legend.key = element_rect(colour = "transparent", 
+                                    fill = "transparent"),
+          legend.position = "bottom", 
+          legend.box = "horizontal",
+          legend.box.spacing = unit(0, "pt"), # reduce space between legend & plot
+          legend.margin=margin(0, 0, 0, 0) ) # +
+      # ggtitle(#label = spp_print, 
+      #   subtitle = yr0)
       
-      img_gif <- lapply(img_gif, 
-                        image_resize, 
-                        geometry = "1280")
+      ggsave(filename = paste0(nickname, "-", yr0, '.png'), 
+             path = paste0(dir_out_figtab, "gif/"),
+             height = height, 
+             width = width,
+             plot = gg, 
+             dpi = 300,
+             bg = "white", 
+             device = "png") 
       
-      ## join the images together
-      img_gif <- magick::image_join(img_gif)
-      
-      ## animate at 2 frames per second
-      figure_print <- magick::image_animate(img_gif, 
-                                            fps = 2)
-      
-      ## view animated image
-      # figure_print
-      
-      ## save to disk
-      magick::image_write(
-        image = figure_print, 
-        path = paste0(paste0(dir_out_figtab, "gif/"), nickname, ".gif") )
     }
     
-    return(list("figure_print" = figure_print, 
-                "header" = header, 
-                "height" = height, 
-                "width" = width, 
-                "nickname" = nickname))
-    # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+    # prepare animation ----------------------------------------------------------
+    img_gif <- sort(list.files(path = paste0(dir_out_figtab, "gif/"), 
+                               pattern = paste0(nickname, "-"), 
+                               full.names = TRUE) )
+    
+    img_gif <- lapply(img_gif, 
+                      magick::image_read)
+    
+    img_gif <- lapply(img_gif, 
+                      image_resize, 
+                      geometry = "1280")
+    
+    ## join the images together
+    img_gif <- magick::image_join(img_gif)
+    
+    ## animate at 2 frames per second
+    figure_print <- magick::image_animate(img_gif, 
+                                          fps = 2)
+    
+    ## view animated image
+    # figure_print
+    
+    ## save to disk
+    magick::image_write(
+      image = figure_print, 
+      path = paste0(paste0(dir_out_figtab, "gif/"), nickname, ".gif") )
+    
+    # magick::image_write(
+    #   image = figure_print,
+    #   path = paste0(paste0(dir_out_figtab, "gif/"), nickname, ".mp4"),
+    #   format = "mp4")
+    
+  }
+  
+  return(list("figure_print" = figure_print, 
+              "header" = header, 
+              "height" = height, 
+              "width" = width, 
+              "nickname" = nickname))
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
   
 }
 
@@ -514,10 +520,10 @@ temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_cod
 pres_dist <- temp$figure_print
 pres_dist_txt <- temp$header
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-dist-[spp]-gif, eval = FALSE}
+```{r fig-dist-[spp]-gif}
 yrs <- unique(cpue$year[cpue$species_code %in% unlist(a$species_code)]) # 1982:maxyr
 
 width <- full_page_portrait_width # 6.5  
@@ -527,8 +533,8 @@ nickname <- paste0("fig-dist-", spp_file, "-gif")
 report_title0 <- "gif"
 
 temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code)
-for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+# for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ```{r fig-sizecomp-[spp]-prep, eval = spp_plot_sizecomp}
@@ -553,13 +559,19 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
     dplyr::filter(species_code %in% spp_code)
   # }
   
+  if (grepl(x = spp_print, pattern = "crab")) { # c("Unsexed", "Males", "Females", "Immature females", "Mature females")
+     factor0 <- c("Males", "Immature females", "Mature females") # check
+  } else {
+     factor0 <- c("Unsexed", "Males", "Females")
+  }
+  
   table_raw <- table_raw  |>
     dplyr::filter(srvy %in% srvy &
                     year %in% yrs) |> 
     dplyr::mutate(sex = str_to_sentence(sex), 
                   sex = factor(sex, 
-                               levels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"), 
-                               labels = c("Unsexed", "Males", "Females", "Immature females", "Mature females"),
+                               levels = factor0, 
+                               labels = factor0,
                                ordered = TRUE), 
                   srvy_long = dplyr::case_when(
                     srvy == "EBS" ~ "eastern Bering Sea", 
@@ -635,11 +647,27 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
       
       if (report_title0 == "gif") {
         
+        table_raw0 <- dat0 |>
+          dplyr::arrange(year, srvy, sex, length_mm) 
+        
+        # find appropriate units
+        a <- find_units(unit = "", unt = "", dat = max(table_raw0$population_count, na.rm = TRUE))
+        for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+        pop_unit <- divby
+        pop_unit_word <- unit_word        
+        len_unit_word0 <- ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE),  "cm", "mm")
+        
+        table_raw0 <- table_raw0 |>
+          dplyr::mutate(population_count = population_count/pop_unit) |> # , 
+                        # length_mm = round(
+                        #   x = length_mm/ifelse(len_unit_word0 == "mm", 1, 10), digits = 0)) |>
+          dplyr::ungroup()
+        
         for (ii in 1:length(unique(dat0$year))) {
-          yr0<- unique(dat0$year)[ii]
+          yr0<- sort(unique(dat0$year))[ii]
           
           gg <- plot_sizecomp(
-            sizecomp0 = dat0 |> 
+            sizecomp0 = table_raw0 |> 
               dplyr::filter(year == yr0),
             lengths0 = lengths0[1:3,] |> 
               dplyr::mutate(year = yr0, 
@@ -649,7 +677,28 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
             spp_print = paste0(yr0, " ", stringr::str_to_title(spp_print)),
             type = type,
             print_n = print_n, 
-            ridgeline = FALSE)
+            unit0 = , 
+            ridgeline = FALSE, 
+            divscale = FALSE)  +
+            ggplot2::scale_y_continuous(name = paste0("Population", pop_unit_word),
+                                        limits = c(0, max(table_raw0$population_count)),
+                                        # labels = scales::label_number(
+                                        #   accuracy = ifelse(max(table_raw0$population_count) < 9, 1, 10), big.mark = ",")
+                                        ) +
+            ggplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
+                                        limits = c(0, max(table_raw0$length_mm)/ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE),  10, 1)), 
+                                        labels = scales::label_number(
+                                          accuracy = ifelse(max(table_raw0$length_mm) < 9, 1, 10), big.mark = ",")) +
+            ggplot2::scale_fill_manual(
+              values = viridis::mako(n = length(levels(table_raw0$sex)), begin = .2, end = .6, direction = -1),
+              breaks = levels(table_raw0$sex),
+              labels = levels(table_raw0$sex),
+              drop = FALSE)   #+
+      # ggplot2::labs(fill = spp_print) +
+      # ggplot2::guides(
+      #   fill = guide_legend(title.position = "top",
+      #                       title.hjust = 0.5,
+      #                       title.vjust = -0.5))
           
           ggsave(filename = paste0(nickname, "-", yr0, '.png'), 
                  path = paste0(dir_out_figtab, "gif/"),
@@ -688,78 +737,78 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
         magick::image_write(
           image = figure_print, 
           path = paste0(paste0(dir_out_figtab, "gif/"), nickname, ".gif") )
+        
+        
+      } else {
+        figure_print <- plot_sizecomp(
+          sizecomp0 = dat0,
+          lengths0 = lengths0,
+          spp_code = spp_code,
+          spp_print = stringr::str_to_title(spp_print),
+          type = type,
+          print_n = print_n, 
+          ridgeline = FALSE)
+      }
       
       
-    } else {
-      figure_print <- plot_sizecomp(
-        sizecomp0 = dat0,
-        lengths0 = lengths0,
-        spp_code = spp_code,
-        spp_print = stringr::str_to_title(spp_print),
-        type = type,
-        print_n = print_n, 
-        ridgeline = FALSE)
+      
+    } else if (report_title0 == "pres") {
+      header <- ""
+      if ("EBS" %in% table_raw$srvy) {
+        figure1 <- figure_print <- plot_sizecomp(
+          sizecomp0 = table_raw |> 
+            dplyr::filter(srvy == "EBS") |> 
+            dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long)),
+          lengths0 = lengths0,
+          spp_code = spp_code,
+          spp_print = stringr::str_to_sentence(spp_print),
+          type = type,
+          print_n = print_n, 
+          ridgeline = FALSE)
+      }
+      if ("NBS" %in% table_raw$srvy) {
+        figure2 <- figure_print <- plot_sizecomp(
+          sizecomp0 = table_raw |> 
+            dplyr::filter(srvy == "NBS") |> 
+            dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long)),
+          lengths0 = lengths0,
+          spp_code = spp_code,
+          spp_print = stringr::str_to_sentence(spp_print),
+          type = type,
+          print_n = print_n, 
+          ridgeline = FALSE)
+      }
+      if (sum(unique(table_raw$srvy) %in% c("NBS", "EBS")) == 2) {
+        figure_print <- cowplot::plot_grid(figure1, figure2)
+      }
     }
     
+    figure_print <- figure_print +
+      ggplot2::theme(strip.text = element_text(size = legend_font_size, face = "bold"))
     
+    if (report_title0 %in% c("community")) { 
+      figure_print <-
+        cowplot::ggdraw(figure_print + 
+                          ggplot2::theme( plot.margin = margin(1.2, 0, 0, 0, "cm") ) ) +
+        cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+                            x = .78, y = .44, # top right
+                            # x = 0.07, y = -.42, # lower left
+                            hjust = 0, vjust = 0,
+                            width = .18)
+    }
     
-  } else if (report_title0 == "pres") {
+  } else {
     header <- ""
-    if ("EBS" %in% table_raw$srvy) {
-      figure1 <- figure_print <- plot_sizecomp(
-        sizecomp0 = table_raw |> 
-          dplyr::filter(srvy == "EBS") |> 
-          dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long)),
-        lengths0 = lengths0,
-        spp_code = spp_code,
-        spp_print = stringr::str_to_sentence(spp_print),
-        type = type,
-        print_n = print_n, 
-        ridgeline = FALSE)
-    }
-    if ("NBS" %in% table_raw$srvy) {
-      figure2 <- figure_print <- plot_sizecomp(
-        sizecomp0 = table_raw |> 
-          dplyr::filter(srvy == "NBS") |> 
-          dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long)),
-        lengths0 = lengths0,
-        spp_code = spp_code,
-        spp_print = stringr::str_to_sentence(spp_print),
-        type = type,
-        print_n = print_n, 
-        ridgeline = FALSE)
-    }
-    if (sum(unique(table_raw$srvy) %in% c("NBS", "EBS")) == 2) {
-      figure_print <- cowplot::plot_grid(figure1, figure2)
-    }
+    figure_print <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
+      geom_text(mapping = aes(label = label))
   }
   
-  figure_print <- figure_print +
-    ggplot2::theme(strip.text = element_text(size = legend_font_size, face = "bold"))
-  
-  if (report_title0 %in% c("community")) { 
-    figure_print <-
-      cowplot::ggdraw(figure_print + 
-                        ggplot2::theme( plot.margin = margin(1.2, 0, 0, 0, "cm") ) ) +
-      cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                          x = .78, y = .44, # top right
-                          # x = 0.07, y = -.42, # lower left
-                          hjust = 0, vjust = 0,
-                          width = .18)
-  }
-  
-} else {
-  header <- ""
-  figure_print <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
-    geom_text(mapping = aes(label = label))
-}
-
-return(list("figure_print" = figure_print, 
-            "header" = header, 
-            "height" = height, 
-            "width" = width, 
-            "nickname" = nickname))
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  return(list("figure_print" = figure_print, 
+              "header" = header, 
+              "height" = height, 
+              "width" = width, 
+              "nickname" = nickname))
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1190,6 +1239,12 @@ temp_catch <- catch_haul_cruises |>
 # temp_catch$catch_min <- min(c(unlist(temp_catch[paste0("yr_", compareyr)]), unlist(temp_catch[,paste0("yr_", maxyr)])), na.rm = TRUE)
 # temp_catch <- temp_catch |> 
 #   dplyr::mutate(catch_min = min())
+
+aaa <- setdiff(paste0("yr_", c(compareyr, maxyr)), names(temp_catch) )
+if (length(aaa)>0) {
+  temp_catch$temp <- 0
+  names(temp_catch)[3] <- aaa
+}
 
 catch_min <- c()
 for (i in 1:nrow(temp_catch)){
@@ -1971,7 +2026,7 @@ figure_print <- ggdraw(add_sub(plot = figure_print,
                                               round(x = pres_timeseries_mean$y_mean, digits = 1),
                                               " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
                                               pres_stats$`Biomass\n(t)`," (",
-                                              gsub(pattern = "\n", replace = " ", x = pres_stats$`Biomass\n% Change`, fixed = TRUE), ")", collapse = "\n")#, 
+                                              gsub(pattern = "\n", replace = " ", x = pres_stats$`Percent Change\nin Biomass`, fixed = TRUE), ")", collapse = "\n")#, 
                                # vpadding = grid::unit(0, "lines"),
                                # y = 3, x = 5, hjust = 0)
 ))

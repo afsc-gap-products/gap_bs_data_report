@@ -1691,13 +1691,20 @@ plot_sizecomp <- function(sizecomp0,
                           print_n = FALSE, 
                           ridgeline = FALSE, 
                           unit0 = NULL, 
-                          legend_font_size = 8){
+                          legend_font_size = 8, 
+                          divscale = TRUE){
   
   table_raw <- sizecomp0 |>
     dplyr::arrange(year, srvy, sex, length_mm) 
   
   # find appropriate units
+  if (divscale) {
   a <- find_units(unit = "", unt = "", dat = max(table_raw$population_count, na.rm = TRUE))
+  } else {
+    a <- list("divby" = 1, 
+              "unit_word" = "", 
+              "unit_wrd" = "")
+  }
   for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
   pop_unit <- divby
   pop_unit_word <- unit_word
@@ -1746,13 +1753,12 @@ plot_sizecomp <- function(sizecomp0,
                            option = "mako",
                            begin = .2,
                            end = .6,
-                           na.value = "transparent") +
+                           na.value = "transparent", 
+                           drop = FALSE) +
       ggplot2::scale_y_continuous(name = paste0("Population", pop_unit_word), 
                          labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ",")) +
       ggplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
-                         labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ",")) +
-      ggplot2::facet_grid(year ~ srvy_long,
-                 scales = "free_x")  +
+                         labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ","))  +
       ggplot2::labs(fill = spp_print) +
       ggplot2::guides(
         fill = guide_legend(title.position = "top",
@@ -1770,6 +1776,12 @@ plot_sizecomp <- function(sizecomp0,
         legend.position = "bottom",
         legend.box = "horizontal",
         legend.box.spacing = unit(0, "pt"))
+    
+    if (length(unique(table_raw$year)) > 1) {
+      figure <- figure +
+        ggplot2::facet_grid(year ~ srvy_long,
+                            scales = "free_x")
+    }
     
     # are there any plots with no data?
       figure <- figure + 

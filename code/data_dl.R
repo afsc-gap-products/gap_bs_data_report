@@ -134,11 +134,14 @@ report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-nam
                               show_col_types = FALSE)|>  
   dplyr::filter(grepl(x = species_code, pattern = "c(", fixed = TRUE)) 
 
+##
+report_spp$print_name_code <- 1:nrow(x = report_spp)
+
 temp1 <- data.frame()
 for (i in 1:nrow(report_spp)){
   temp2 <- eval(expr = parse(text = report_spp$species_code[i]))
   temp1 <- dplyr::bind_rows(temp1, 
-                            dplyr::bind_cols(GROUP_CODE = report_spp$print_name[i], 
+                            dplyr::bind_cols(GROUP_CODE = report_spp$print_name_code[i], ##
                                              SPECIES_CODE = eval(expr = parse(text = report_spp$species_code[i]))))
 }
 
@@ -147,6 +150,7 @@ for (i in 1:nrow(report_spp)){
 #   dplyr::filter(grepl(x = temp1$GROUP, "gad", ignore.case = TRUE))
 
 library(gapindex)
+channel <- gapindex::get_connected(check_access = F)
 
 # filter temp1 for exisiting species codes in GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION
 # note. maybe gp_taxa is already called somewhere but directly pulling here.
@@ -159,9 +163,9 @@ temp1 <- subset(x = temp1,
                 subset = SPECIES_CODE %in% gp_taxa$SPECIES_CODE)
 
 # follow instructions from https://afsc-gap-products.github.io/gapindex/articles/ex_species_complex.html
-## Pull data. Note the format of the `spp_codes` argument with the GROUP column
+## Pull data. Note the format of the spp_codes argument with the GROUP column
 production_data <- gapindex::get_data(
-  year_set = c(1982:maxyr),
+  year_set = 1982:2025,
   survey_set = c("EBS", "NBS"),
   spp_codes = temp1,
   pull_lengths = FALSE, 
@@ -170,18 +174,92 @@ production_data <- gapindex::get_data(
   taxonomic_source = "GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION", # "RACEBASE.SPECIES", 
   channel = channel)
 
-## Zero-fill and calculate CPUE
-production_cpue <- calc_cpue(gapdata = production_data)
+production_cpue <- gapindex::calc_cpue(gapdata = production_data)
 
-## Calculate Biomass, abundance, mean CPUE, and associated variances by stratum
-production_biomass_stratum <- 
-  gapindex::calc_biomass_stratum(gapdata = production_data,
+production_biomass <- 
+  gapindex::calc_biomass_stratum(gapdata = production_data, 
                                  cpue = production_cpue)
+production_biomass <- 
+  gapindex::calc_biomass_subarea(gapdata = production_data, 
+                                 biomass_stratum = production_biomass)
 
-## Aggregate Biomass to subareas and region
-production_biomass_subarea <- 
-  calc_biomass_subarea(gapdata = production_data, 
-                       biomass_stratum = production_biomass_stratum)
+
+##
+merge(x = subset(x = production_biomass,
+                 subset = AREA_ID == 99900), 
+      by.x = "SPECIES_CODE",
+      y = subset(x = report_spp, 
+                 select = c(print_name_code, print_name)), 
+      by.y = "print_name_code")
+
+# # Species Covered
+# # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
+# googledrive::drive_download(file = googledrive::as_id("10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M"),
+#                             type = "csv",
+#                             overwrite = TRUE,
+#                             path = paste0(dir_out_rawdata, "/species-local-names"))
+# 
+# # identify which species complexes you need
+# report_spp <- readr::read_csv(file = paste0(dir_out_rawdata, "/species-local-names.csv"), 
+#                               skip = 1, 
+#                               show_col_types = FALSE)|>  
+#   dplyr::filter(grepl(x = species_code, pattern = "c(", fixed = TRUE)) 
+# 
+# report_spp$print_name_code <- 1:nrow(x = report_spp)
+# 
+# temp1 <- data.frame()
+# for (i in 1:nrow(report_spp)){
+#   temp2 <- eval(expr = parse(text = report_spp$species_code[i]))
+#   temp1 <- dplyr::bind_rows(temp1, 
+#                             dplyr::bind_cols(GROUP_CODE = report_spp$print_name_code[i], 
+#                                              SPECIES_CODE = eval(expr = parse(text = report_spp$species_code[i]))))
+# }
+# 
+# # testing: 
+# # temp2 <- temp1|>
+# #   dplyr::filter(grepl(x = temp1$GROUP, "gad", ignore.case = TRUE))
+# 
+# library(gapindex)
+# 
+# # filter temp1 for exisiting species codes in GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION
+# # note. maybe gp_taxa is already called somewhere but directly pulling here.
+# # following advice from Z Oyafuso in https://github.com/afsc-gap-products/gapindex/issues/63#issuecomment-2499660803
+# gp_taxa <- 
+#   RODBC::sqlQuery(channel = channel, 
+#                   query = "SELECT * FROM GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION 
+#                            WHERE SURVEY_SPECIES = 1 ORDER BY SPECIES_CODE")
+# temp1 <- subset(x = temp1,
+#                 subset = SPECIES_CODE %in% gp_taxa$SPECIES_CODE)
+# 
+# # follow instructions from https://afsc-gap-products.github.io/gapindex/articles/ex_species_complex.html
+# ## Pull data. Note the format of the `spp_codes` argument with the GROUP column
+# production_data <- gapindex::get_data(
+#   year_set = c(1982:maxyr),
+#   survey_set = c("EBS", "NBS"),
+#   spp_codes = temp1,
+#   pull_lengths = FALSE, 
+#   haul_type = 3, 
+#   abundance_haul = "Y", 
+#   taxonomic_source = "GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION", # "RACEBASE.SPECIES", 
+#   channel = channel)
+# 
+# ## Zero-fill and calculate CPUE
+# production_cpue <- calc_cpue(gapdata = production_data)
+# 
+# ## Calculate Biomass, abundance, mean CPUE, and associated variances by stratum
+# production_biomass_stratum <- 
+#   gapindex::calc_biomass_stratum(gapdata = production_data,
+#                                  cpue = production_cpue)
+# 
+# ## Aggregate Biomass to subareas and region
+# production_biomass_subarea <- 
+#   calc_biomass_subarea(gapdata = production_data, 
+#                        biomass_stratum = production_biomass_stratum)
+
+
+
+
+
 
 # ## Calculate size composition by stratum. Note fill_NA_method == "BS" because
 # ## our region is EBS, NBS, or BSS. If the survey region of interest is AI or 
@@ -220,6 +298,13 @@ production_cpue <- production_cpue|>
     y = report_spp|> dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
     relationship = "many-to-many")
 
+merge(x = subset(x = production_cpue,
+                 subset = AREA_ID == 99900), 
+      by.x = "SPECIES_CODE",
+      y = subset(x = report_spp, 
+                 select = c(print_name_code, print_name)), 
+      by.y = "print_name_code")
+
 production_biomass <- production_biomass|> 
   dplyr::left_join(
     y = report_spp|> dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
@@ -229,6 +314,13 @@ production_biomass <- production_biomass|>
 #   dplyr::left_join(
 #     y = report_spp|> dplyr::select(SPECIES_CODE = print_name, TAXON = taxon ), 
 #     relationship = "many-to-many")
+
+merge(x = subset(x = production_biomass,
+                 subset = AREA_ID == 99900), 
+      by.x = "SPECIES_CODE",
+      y = subset(x = report_spp, 
+                 select = c(print_name_code, print_name)), 
+      by.y = "print_name_code")
 
 write.csv(x = production_cpue, file = here::here("data/complex_cpue.csv"), row.names = FALSE)
 write.csv(x = production_biomass, file = here::here("data/complex_biomass.csv"), row.names = FALSE)
