@@ -69,7 +69,7 @@ for (i in 1:nrow(comb)){
                                              species_code1 = eval(expr = parse(text = comb$species_code[i]))))
 }
 comb <- unique(sort(comb$file_name))
-comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
+# comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp3[which(report_spp3$file_name == comb[jj]), ]

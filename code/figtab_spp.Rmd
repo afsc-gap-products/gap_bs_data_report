@@ -50,7 +50,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   place_labels <- FALSE
   viridis_palette_option <- "mako"
   
-  yrs0 <- sort(yrs, decreasing = TRUE)
+  yrs <- sort(yrs, decreasing = TRUE)
   key.title <- paste0(stringr::str_to_title(spp_print),
                       ifelse(report_title0 == "pres", " ", '\n'), 
                       'CPUE (kg/km²)')
@@ -58,7 +58,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   # Select data ------------------------------------------------------------------
   if (length(spp_code) > 1) {
     table_raw <- cpue |>
-      dplyr::filter(group %in% spp_print)
+      dplyr::filter(common_name %in% spp_print)
   } else {
     table_raw <- cpue |>
       dplyr::filter(species_code %in% spp_code)
@@ -86,6 +86,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   temp <- table_raw |> 
     dplyr::group_by(srvy) |> 
     dplyr::summarise(maxcpue = max(CPUE_KGHA, na.rm = TRUE))
+  
   if (0 %in% temp$maxcpue) {
     table_raw <- table_raw |> 
       dplyr::filter(!(srvy %in% temp$srvy[temp$maxcpue == 0]))
@@ -145,7 +146,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
                    ifelse(is.na(spp_sci), "", 
                           paste0(" (",spp_sci,")")), 
                    " from the ",
-                   range_text(yrs0), " ", 
+                   range_text(yrs), " ", 
                    SURVEY, 
                    " survey", 
                    ifelse(length(unique(table_raw$srvy))>1, "s", ""), ". ", 
@@ -217,13 +218,13 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   if (report_title0 != "gif") {
     # Plot -------------------------------------------------------------------------
     for (case_yr in case_yr0) {
-      if (length(case_yr0)>1) {
+      # if (length(case_yr0)>1) {
         if (case_yr == 1) {
-          yrs <- yrs0[1:(length(yrs0)/2)]
+          yrs0 <- yrs[1:(length(yrs)/2)]
         } else if (case_yr == 2) {
-          yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
+          yrs0 <- yrs[((length(yrs)/2)+1):length(yrs)]
         }
-      }
+      # }
       
       figure_print <- ggplot() +
         ggplot2::geom_sf(data = reg_dat0$akland,
@@ -282,7 +283,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
         ggplot2::theme( 
           panel.background = element_rect(fill = "white", colour = NA), 
           panel.border = element_rect(fill = NA, colour = "grey20"), 
-          axis.text = element_text(size = ifelse(length(yrs)>4 & row0 == 1, 6, 8)),
+          axis.text = element_text(size = ifelse(length(yrs0)>4 & row0 == 1, 6, 8)),
           
           strip.background = element_blank(), 
           strip.text = element_text(size = 10, face = "bold"), 
@@ -365,7 +366,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
                          color = NA) +
         # ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
         ggplot2::scale_fill_manual(
-          name = key.title,
+          name = paste0(yr0, " ", key.title),
           values =  c("gray90",
                       viridis::viridis(
                         option = viridis_palette_option,

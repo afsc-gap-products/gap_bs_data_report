@@ -682,26 +682,19 @@ lastyr <- max(haul$year[haul$year != maxyr])
 
 print("CPUE Design Based Estimates")
 
-cpue <- dplyr::bind_rows(
-  gap_products_akfin_cpue0|> # groundfish data (sans crab)
-    dplyr::filter(!(species_code %in% c(69322, 69323, 68580, 68560)))|>
-    dplyr::select(species_code, hauljoin, cpue_kgkm2, cpue_nokm2), 
-  crab_gap_ebs_nbs_crab_cpue0|>  # crab data
-    dplyr::filter(survey_year > 1981)|>
-    dplyr::select(species_code, hauljoin, 
-                  cpue_kgkm2 = cpuewgt_total, 
-                  cpue_nokm2 = cpuenum_total) ) |> 
-  dplyr::bind_rows(complex_cpue0|> 
-                     dplyr::select(species_code, hauljoin, cpue_kgkm2, cpue_nokm2)|> 
-                     dplyr::mutate(group = species_code, 
-                                   species_code = NA))|> 
-  dplyr::right_join(y = haul|> 
+cpue <- 
+  gap_products_akfin_cpue0 |> 
+    dplyr::select(species_code, hauljoin, cpue_kgkm2, cpue_nokm2)  |> 
+  dplyr::left_join(y = spp_info |> 
+                     dplyr::select(species_code, common_name, species_name, taxon), 
+                   by = "species_code") |> 
+  dplyr::bind_rows(complex_cpue0 |> 
+                     dplyr::select(species_code, hauljoin, cpue_kgkm2, 
+                                   cpue_nokm2, common_name, species_name, taxon) ) |>
+  dplyr::left_join(haul |> 
                       dplyr::select(hauljoin, station, stratum, survey_definition_id, srvy, 
                                     year, cruisejoin, longitude_dd_start, latitude_dd_start), 
-                    by = "hauljoin")|> 
-  dplyr::left_join(y = spp_info|> 
-                     dplyr::select(species_code, common_name, species_name, taxon), 
-                   by = "species_code") 
+                    by = "hauljoin")
 
 ## stratum (survey area) -------------------------------------------------------
 
@@ -1091,52 +1084,36 @@ coldpool_ebs_total_area <- coldpool_ebs_bin_area |>
 
 print("sizecomp")
 
-# Crab 
-sizecomp_sap <- crab_nbs_size1mm_all_species0|> 
-  dplyr::rename(srvy = survey_definition_id)|>
-  tidyr::pivot_longer(cols = c(number_unsexed, number_males, number_mature_females, number_immature_females),
-                      names_to = "sex", values_to = "population_count") |>
-  dplyr::group_by(sex, length_mm, year, species_code, srvy)|> 
-  dplyr::summarise(population_count = sum(population_count, na.rm = TRUE))|>
-  dplyr::ungroup()|>
-  dplyr::mutate(
-    survey_definition_id = dplyr::case_when(
-      srvy == "NBS" ~ 143, 
-      srvy == "EBS" ~ 98), 
-    sex = dplyr::case_when(
-      sex == "number_unsexed" ~ "unsexed",
-      sex == "number_males" ~ "males",
-      sex == "number_immature_females" ~ "immature females",
-      sex == "number_mature_females" ~ "mature females"))
-
-sizecomp_gap <- gap_products_akfin_sizecomp0|> # GAP data
-  # dplyr::bind_rows(complex_sizecomp0|> 
-  #                    dplyr::select(names(gap_products_akfin_sizecomp0))|> 
-  #                    dplyr::mutate(group = species_code, 
-  #                                  species_code = NA))|> 
-  dplyr::filter(
-    area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
-      survey_definition_id %in% srvy00 &
-      year <= maxyr &
-      # area_id > 99900 & 
-      length_mm > 0)|> 
+sizecomp <- gap_products_akfin_sizecomp0 |> 
   dplyr::mutate(
     sex = dplyr::case_when(
       sex == 1 ~ "males", 
       sex == 2 ~ "females", 
-      sex == 3 ~ "unsexed"))
-
-sizecomp <- dplyr::bind_rows(sizecomp_sap, sizecomp_gap)|> 
+      sex == 3 ~ "unsexed")) |>
+  dplyr::left_join(spp_info|> 
+                     dplyr::select(species_code, taxon, species_name, common_name),
+                   by  = "species_code") |> 
+  dplyr::bind_rows(
+    crab_sizecomp0 |> 
+      dplyr::mutate(
+        area_id = dplyr::case_when(
+          survey_definition_id == 143 ~ 99902, 
+          survey_definition_id == 98 ~ 99900), 
+        sex = dplyr::case_when(
+          sex == 3 ~ "unsexed",
+          sex == 1 ~ "males",
+          sex == 5 ~ "immature females",
+          sex == 2 ~ "mature females") )
+  )  |> 
   dplyr::filter(
-    year <= maxyr &
-      survey_definition_id %in% srvy00 & 
+    area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
+      survey_definition_id %in% srvy00 &
+      year <= maxyr &
+      length_mm > 0 & 
       year > 1981 & 
       !is.na(length_mm) & 
       !is.na(population_count) & 
-      population_count!= 0)|>
-  dplyr::left_join(y = spp_info|> 
-                     dplyr::select(species_code, taxon),
-                   by  = "species_code")|> 
+      population_count!= 0) |> 
   dplyr::mutate(
     srvy = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS", 
@@ -1183,22 +1160,17 @@ agecomp_compareyr <- agecomp|>
 
 print("biomass")
 
-biomass_gap <- dplyr::bind_rows(
-  gap_products_akfin_biomass0|>
-    dplyr::left_join(
-      y = spp_info|> 
+biomass <- gap_products_akfin_biomass0 |>
+    dplyr::left_join(spp_info|> 
         dplyr::select(species_code, common_name, species_name, taxon), 
-      by = "species_code"), 
-  complex_biomass0|> 
-    dplyr::mutate(group = species_code, 
-                  species_code = NA))|>
+      by = "species_code") |>  
+dplyr::bind_rows(complex_biomass0) |> 
   dplyr::filter(
     area_id %in% as.numeric(strat0) &
       survey_definition_id %in% srvy00 &
-      n_weight > 0 & 
-      year <= maxyr &
-      !(species_code %in% c(69323, 69322, 68580, 68560)) )|>  
-  unique()|>
+      n_weight > 0 &
+      year <= maxyr) |>  
+  unique() |>
   dplyr::mutate(
     srvy = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS", 
@@ -1212,41 +1184,19 @@ biomass_gap <- dplyr::bind_rows(
     biomass_dw = biomass_mt - (2*biomass_sd), 
     population_sd = sqrt(population_var), 
     population_up = population_count + (2*population_sd), 
-    population_dw = population_count - (2*population_sd))
-
-biomass_sap <- crab_gap_ebs_nbs_abundance_biomass0|> 
-  dplyr::filter(survey_region %in% srvy)|>
-  dplyr::select(srvy = survey_region, 
-                year = survey_year, 
-                species_code, 
-                biomass_mt = biomass_total, 
-                biomass_up = biomass_upper_ci, 
-                biomass_dw = biomass_lower_ci, 
-                population_count = abundance, 
-                population_up = abundance_upper_ci, 
-                population_dw = abundance_lower_ci)|>
-  dplyr::mutate(survey_definition_id = dplyr::case_when(
-    srvy == "NBS" ~ 143, 
-    srvy == "EBS" ~ 98), 
-    area_id = dplyr::case_when(
-      srvy == "NBS" ~ 99902, 
-      srvy == "EBS" ~ 99900), 
-    stratum = 999, 
-    taxon = "invert") 
-
-biomass <- dplyr::bind_rows(biomass_gap, biomass_sap)|>
+    population_dw = population_count - (2*population_sd)) |> 
   dplyr::filter(year > 1981 & 
                   stratum %in% c(strat0))|> 
   dplyr::mutate(
     biomass_dw = ifelse(biomass_dw < 0, 0, biomass_dw), 
     population_dw = ifelse(population_dw < 0, 0, population_dw) )
 
-biomass_maxyr <- biomass|>
-  dplyr::filter(stratum == 999)|>
+biomass_maxyr <- biomass |>
+  # dplyr::filter(stratum == 999)|>
   dplyr::filter(year == maxyr)
 
 biomass_compareyr <- biomass|>
-  dplyr::filter(stratum == 999)|>
+  # dplyr::filter(stratum == 999)|>
   dplyr::filter(year == compareyr[1])
 
 temp <- spp_info|> 
@@ -1274,8 +1224,8 @@ temp <- spp_info|>   # dplyr::filter(species_code %in% c(99991, 99993, 99994, 99
                   !grepl(x = common_name, pattern = "egg"))|> 
   dplyr::select(species_code, common_name, species_name) 
 
-total_biomass <- complex_biomass0|> 
-  dplyr::filter(species_code %in% c("Total fish", "Total invertebrates") &
+total_biomass <- complex_biomass0 |> 
+  dplyr::filter(group %in% c("Total fish", "Total invertebrates") &
                   area_id %in% c(99900, 99902) )|>
   dplyr::mutate(taxon = ifelse(grepl(x = species_code, pattern = "invertebrates"), "invert", "fish"))|> 
   dplyr::group_by(survey_definition_id, year, taxon)|> 
@@ -1283,9 +1233,9 @@ total_biomass <- complex_biomass0|>
   dplyr::ungroup()|> 
   dplyr::arrange(desc(year), desc(taxon))|> 
   dplyr::left_join(
-    y = data.frame(survey_definition_id = srvy00, 
-                   srvy = srvy1, 
-                   srvy_long = srvy11))
+    y = data.frame(survey_definition_id = report_types$NEBS$srvy00, 
+                   srvy = report_types$NEBS$srvy1, 
+                   srvy_long = report_types$NEBS$srvy11))
 
 
 # total_biomass <- biomass|> 
