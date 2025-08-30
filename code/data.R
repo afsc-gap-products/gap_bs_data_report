@@ -430,15 +430,16 @@ report_spp1 <- report_spp1|>
                 species_name_noital = trimws(species_name_noital))
 
 ## cruises + maxyr + compareyr -------------------------------------------------
+
 print("cruises + maxyr  + compareyr")
 
-cruises <- gap_products_akfin_cruise0|> 
+cruises <- gap_products_akfin_cruise0 |> 
   dplyr::select(cruise, year, survey_name, vessel_id, survey_definition_id, 
                 vessel_name, date_start, date_end, cruisejoin)|> 
   dplyr::filter(year != 2020 & # no surveys happened this year that we care about
                   year >= 1982 &
                   year <= maxyr &
-                  survey_definition_id %in% srvy00)|> 
+                  survey_definition_id %in% srvy00) |> 
   dplyr::mutate(vess_shape = substr(x = vessel_name, 1,1), 
                 vessel_ital = paste0("FV *", stringr::str_to_title(vessel_name), "*"), 
                 vessel_name = paste0("FV ", stringr::str_to_title(vessel_name)))|>
@@ -462,10 +463,10 @@ cruises_maxyr <- cruises|>
 print("haul and station")
 
 haul <- dplyr::left_join(
-  y = gap_products_akfin_haul0, 
-  x = cruises|> 
+  x = cruises |> 
     dplyr::select(cruisejoin, survey_definition_id, year, vessel_id), 
-  by = "cruisejoin")|>  
+  y = gap_products_akfin_haul0, 
+  by = "cruisejoin") |>  
   dplyr::mutate(year = as.numeric(format(as.Date(date_time_start, 
                                                  format="%m/%d/%Y"),"%Y")), 
                 srvy = dplyr::case_when(
@@ -684,17 +685,22 @@ print("CPUE Design Based Estimates")
 
 cpue <- 
   gap_products_akfin_cpue0 |> 
-    dplyr::select(species_code, hauljoin, cpue_kgkm2, cpue_nokm2)  |> 
+  dplyr::select(species_code, hauljoin, cpue_kgkm2, cpue_nokm2)  |> 
+  dplyr::filter() |>
   dplyr::left_join(y = spp_info |> 
                      dplyr::select(species_code, common_name, species_name, taxon), 
                    by = "species_code") |> 
   dplyr::bind_rows(complex_cpue0 |> 
                      dplyr::select(species_code, hauljoin, cpue_kgkm2, 
                                    cpue_nokm2, common_name, species_name, taxon) ) |>
-  dplyr::left_join(haul |> 
-                      dplyr::select(hauljoin, station, stratum, survey_definition_id, srvy, 
-                                    year, cruisejoin, longitude_dd_start, latitude_dd_start), 
-                    by = "hauljoin")
+  dplyr::left_join(haul) |> 
+dplyr::filter(
+    survey_definition_id %in% srvy00 &
+    year <= maxyr)  
+  # dplyr::left_join(haul |> 
+  #                     dplyr::select(hauljoin, station, stratum, survey_definition_id, srvy, 
+  #                                   year, cruisejoin, longitude_dd_start, latitude_dd_start), 
+  #                   by = "hauljoin")
 
 ## stratum (survey area) -------------------------------------------------------
 
@@ -1174,8 +1180,9 @@ dplyr::bind_rows(complex_biomass0) |>
   dplyr::mutate(
     srvy = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS", 
-      survey_definition_id == 98 ~ "EBS"),
-    stratum = ifelse(area_id %in% c(99900, 99902), 999, area_id))|> 
+      survey_definition_id == 98 ~ "EBS")#,
+    # stratum = ifelse(area_id %in% c(99900, 99902), 999, area_id)
+    )|> 
   dplyr::mutate(
     cpue_kgkm2_sd = sqrt(cpue_kgkm2_var), 
     cpue_nokm2_sd = sqrt(cpue_nokm2_var), 
@@ -1199,34 +1206,34 @@ biomass_compareyr <- biomass|>
   # dplyr::filter(stratum == 999)|>
   dplyr::filter(year == compareyr[1])
 
-temp <- spp_info|> 
-  dplyr::filter((species_code >= 40000 &
-                   species_code < 99991) |
-                  (species_code > 1 &
-                     species_code < 35000))|> 
-  dplyr::select(species_code)|> 
-  dplyr::distinct()|>
-  unlist()
-
+# temp <- spp_info|> 
+#   dplyr::filter((species_code >= 40000 &
+#                    species_code < 99991) |
+#                   (species_code > 1 &
+#                      species_code < 35000))|> 
+#   dplyr::select(species_code)|> 
+#   dplyr::distinct()|>
+#   unlist()
+# 
 # TOLEDO -- Shouldn't have to do this:
-biomass <- biomass|> 
-  dplyr::mutate(
-    taxon = dplyr::case_when(
-      !is.na(taxon) ~ taxon,
-      species_code <= 31550 ~ "fish", 
-      species_code >= 40001 ~ "invert") ) 
+# biomass <- biomass|> 
+#   dplyr::mutate(
+#     taxon = dplyr::case_when(
+#       !is.na(taxon) ~ taxon,
+#       species_code <= 31550 ~ "fish", 
+#       species_code >= 40001 ~ "invert") ) 
+# 
+# temp <- spp_info|>   # dplyr::filter(species_code %in% c(99991, 99993, 99994, 99997, 99998, 99999, 1)|> 
+#   dplyr::filter(!((species_code >= 40000 &
+#                      species_code < 99991) |
+#                     (species_code > 1 & 
+#                        species_code < 35000)) & 
+#                   !grepl(x = common_name, pattern = "egg"))|> 
+#   dplyr::select(species_code, common_name, species_name) 
 
-temp <- spp_info|>   # dplyr::filter(species_code %in% c(99991, 99993, 99994, 99997, 99998, 99999, 1)|> 
-  dplyr::filter(!((species_code >= 40000 &
-                     species_code < 99991) |
-                    (species_code > 1 & 
-                       species_code < 35000)) & 
-                  !grepl(x = common_name, pattern = "egg"))|> 
-  dplyr::select(species_code, common_name, species_name) 
-
-total_biomass <- complex_biomass0 |> 
-  dplyr::filter(group %in% c("Total fish", "Total invertebrates") &
-                  area_id %in% c(99900, 99902) )|>
+total_biomass <- biomass |> 
+  dplyr::filter(common_name %in% c("Total fish", "Total invertebrates") &
+                  area_id %in% c(99900, 99902) ) |>
   dplyr::mutate(taxon = ifelse(grepl(x = species_code, pattern = "invertebrates"), "invert", "fish"))|> 
   dplyr::group_by(survey_definition_id, year, taxon)|> 
   dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE))|> 
@@ -1236,16 +1243,3 @@ total_biomass <- complex_biomass0 |>
     y = data.frame(survey_definition_id = report_types$NEBS$srvy00, 
                    srvy = report_types$NEBS$srvy1, 
                    srvy_long = report_types$NEBS$srvy11))
-
-
-# total_biomass <- biomass|> 
-#   dplyr::filter(stratum == 999 & 
-#                   !(is.na(species_code)) & 
-#                   !(species_code %in% temp))|>
-#   dplyr::group_by(srvy, year, taxon)|> 
-#   dplyr::summarise(total = sum(biomass_mt, na.rm = T))|> 
-#   dplyr::ungroup()|> 
-#   dplyr::arrange(desc(year), desc(taxon))|> 
-#   dplyr::left_join(
-#     y = data.frame(srvy = srvy1, 
-#                    srvy_long = srvy11))

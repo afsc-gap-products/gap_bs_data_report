@@ -23,9 +23,9 @@ locations <- c(
   "GAP_PRODUCTS.AKFIN_AREA",
   "GAP_PRODUCTS.AKFIN_BIOMASS",
   "GAP_PRODUCTS.AKFIN_CATCH",
-  "GAP_PRODUCTS.AKFIN_CPUE",
   "GAP_PRODUCTS.AKFIN_CRUISE",
   "GAP_PRODUCTS.AKFIN_HAUL",
+  "GAP_PRODUCTS.AKFIN_CPUE",
   "GAP_PRODUCTS.AKFIN_METADATA_COLUMN",
   "GAP_PRODUCTS.AKFIN_SIZECOMP",
   "GAP_PRODUCTS.AKFIN_SPECIMEN",
@@ -56,12 +56,20 @@ for (i in 1:length(locations)){
                                  "GAP_PRODUCTS.AKFIN_BIOMASS", 
                                  "GAP_PRODUCTS.AKFIN_CRUISE", "GAP_PRODUCTS.AKFIN_CPUE",
                                  "GAP_PRODUCTS.AKFIN_HAUL")) ) {
-    end0 <- c(end0, paste0("YEAR IN (",paste0(maxyr:compareyr0, collapse = ","), ")"))
+    end0 <- c(end0, paste0("YEAR IN (",paste0(maxyr:compareyr, collapse = ","), ")"))
   }
-  
-  if ("YEAR" %in% names(a) & locations[i] %in% c("GAP_PRODUCTS.AKFIN_CPUE")) {
-    end0 <- c(end0, paste0("YEAR IN (",text_list(x = maxyr:(maxyr-9), sep = ", ", sep_last2 = ", ", sep_last = ", "), ")"))
-  }
+
+  # if (locations[i] %in% c("GAP_PRODUCTS.AKFIN_CRUISE")) {
+  #   cruises0 <- a
+  # }
+  # 
+  # if (locations[i] %in% c("GAP_PRODUCTS.AKFIN_HAUL")) {
+  #   end0 <- c(end0, paste0("YEAR IN (",text_list(x = maxyr:(maxyr-9), sep = ", ", sep_last2 = ", ", sep_last = ", "), ")"))
+  # }
+  # 
+  # if ("YEAR" %in% names(a) & locations[i] %in% c("GAP_PRODUCTS.AKFIN_CPUE")) {
+  #   end0 <- c(end0, paste0("YEAR IN (",text_list(x = maxyr:(maxyr-9), sep = ", ", sep_last2 = ", ", sep_last = ", "), ")"))
+  # }
   
   end0 <- ifelse(is.null(end0), "", paste0(" WHERE ", paste0(end0, collapse = " AND ")))
   
