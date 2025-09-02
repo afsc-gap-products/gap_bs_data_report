@@ -694,13 +694,13 @@ cpue <-
                      dplyr::select(species_code, hauljoin, cpue_kgkm2, 
                                    cpue_nokm2, common_name, species_name, taxon) ) |>
   dplyr::left_join(haul) |> 
-dplyr::filter(
+  dplyr::filter(
     survey_definition_id %in% srvy00 &
-    year <= maxyr)  
-  # dplyr::left_join(haul |> 
-  #                     dplyr::select(hauljoin, station, stratum, survey_definition_id, srvy, 
-  #                                   year, cruisejoin, longitude_dd_start, latitude_dd_start), 
-  #                   by = "hauljoin")
+      year <= maxyr)  
+# dplyr::left_join(haul |> 
+#                     dplyr::select(hauljoin, station, stratum, survey_definition_id, srvy, 
+#                                   year, cruisejoin, longitude_dd_start, latitude_dd_start), 
+#                   by = "hauljoin")
 
 ## stratum (survey area) -------------------------------------------------------
 
@@ -1167,23 +1167,25 @@ agecomp_compareyr <- agecomp|>
 print("biomass")
 
 biomass <- gap_products_akfin_biomass0 |>
-    dplyr::left_join(spp_info|> 
-        dplyr::select(species_code, common_name, species_name, taxon), 
-      by = "species_code") |>  
-dplyr::bind_rows(complex_biomass0) |> 
+  dplyr::left_join(
+    spp_info |> 
+      dplyr::select(species_code, common_name, species_name, taxon), 
+    by = "species_code") |>  
+  dplyr::bind_rows(complex_biomass0) |> 
   dplyr::filter(
     area_id %in% as.numeric(strat0) &
       survey_definition_id %in% srvy00 &
       n_weight > 0 &
+      year > 1981 & 
       year <= maxyr) |>  
   unique() |>
   dplyr::mutate(
     srvy = dplyr::case_when(
       survey_definition_id == 143 ~ "NBS", 
-      survey_definition_id == 98 ~ "EBS")#,
+      survey_definition_id == 98 ~ "EBS"),
     # stratum = ifelse(area_id %in% c(99900, 99902), 999, area_id)
-    )|> 
-  dplyr::mutate(
+    stratum = area_id, 
+    stratum = ifelse(stratum > 900, 999, stratum),
     cpue_kgkm2_sd = sqrt(cpue_kgkm2_var), 
     cpue_nokm2_sd = sqrt(cpue_nokm2_var), 
     biomass_sd = sqrt(biomass_var), 
@@ -1191,10 +1193,7 @@ dplyr::bind_rows(complex_biomass0) |>
     biomass_dw = biomass_mt - (2*biomass_sd), 
     population_sd = sqrt(population_var), 
     population_up = population_count + (2*population_sd), 
-    population_dw = population_count - (2*population_sd)) |> 
-  dplyr::filter(year > 1981 & 
-                  stratum %in% c(strat0))|> 
-  dplyr::mutate(
+    population_dw = population_count - (2*population_sd), 
     biomass_dw = ifelse(biomass_dw < 0, 0, biomass_dw), 
     population_dw = ifelse(population_dw < 0, 0, population_dw) )
 

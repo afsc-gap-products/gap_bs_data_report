@@ -1476,7 +1476,7 @@ nickname0 <- "tab-biomass-est-"
 table_raw0 <- biomass  |> 
   dplyr::filter(year == maxyr &
                   # place species codes into groups and major species
-                  group %in% unlist(report_spp |> 
+                  common_name %in% unlist(report_spp |> 
                                       dplyr::filter(table_est) |> 
                                       dplyr::select(print_name)) )  |> 
   dplyr::left_join(total_biomass) |> 
@@ -1484,7 +1484,7 @@ table_raw0 <- biomass  |>
                 # dplyr::mutate(ci = biomass_mt - biomass_dw) # NO, DO NOT DO! - biomass_dw can be 0 if negative! 
                 ci = biomass_up - biomass_mt) |> 
   tidyr::separate(
-    col = group, 
+    col = common_name, 
     into = c("group", "taxon"), 
     sep = "_", 
     remove = FALSE) |> 
@@ -1544,8 +1544,8 @@ for (i in 1:nrow(comb)) {
   # Select data and make plot --------------------------------------------------
   table_raw <- table_raw0  |> 
     dplyr::filter(taxon0 == comb$taxon[i] &
-                    srvy == comb$srvy[i]) |> 
-    janitor::remove_empty(which = "cols") 
+                    srvy == comb$srvy[i]) # |> 
+    # janitor::remove_empty(which = "cols") 
   
   table_raw1 <- table_raw |> 
     dplyr::mutate_if(is.numeric, replace_na, replace = 0) |> 
@@ -2828,8 +2828,8 @@ nickname <- paste0("fig-diversity-shannon-gif")
 report_title0 <- "gif"
 col <- "shannon"
 key_title <- 'Shannon Diversity Index'
-# set.breaks <- c(0,1,2,3,4)
-set.breaks <- c(0,.5,1,1.5,2,2.5,3,3.5) # c(0,1,2,3,4)
+set.breaks <- c(0,1,2,3,4)
+# set.breaks <- c(0,.5,1,1.5,2,2.5,3,3.5) # c(0,1,2,3,4)
 
 temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
@@ -2845,8 +2845,8 @@ nickname <- paste0("fig-diversity-simpson-gif")
 report_title0 <- "gif"
 col <- "simpson"
 key_title <- "Simpson's Diversity Index"
-# set.breaks <- c(0,5,10, 15, 20) 
-set.breaks <- c(0,2.5,5,7.5,10, 12.5, 15, 18.5)
+set.breaks <- c(0,5,10, 15, 20)
+# set.breaks <- c(0,2.5,5,7.5,10, 12.5, 15, 18.5)
 
 temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
