@@ -1,8 +1,7 @@
 
 # Abstract{#abstract}
 
-```{r survey_summary}
-#| label: abstract-text
+```{r abstract-text}
 
 # Surveys ----------------------------------------------------------------------
 str0_srvys <- gsub(pattern = " ,", replacement = ",", 
@@ -125,7 +124,6 @@ temp0 <- dplyr::full_join(
     dplyr::summarise(species_code = n()),
   by = "srvy")|> 
   dplyr::left_join(
-    x = ., 
     y = temp|> 
       dplyr::filter(!is.na(family))|> 
       dplyr::select(srvy, family)|> 
@@ -134,7 +132,6 @@ temp0 <- dplyr::full_join(
       dplyr::summarise(family = n()),
     by = "srvy") |> 
   dplyr::left_join(
-    x = ., 
     y = temp|> 
       dplyr::filter(!is.na(genus))|> 
       dplyr::select(srvy, genus)|> 
@@ -199,7 +196,6 @@ temp0 <- dplyr::full_join(
     dplyr::summarise(species_code = n()),
   by = "srvy")|> 
   dplyr::left_join(
-    x = ., 
     y = temp|> 
       dplyr::filter(!is.na(phylum))|> 
       dplyr::select(srvy, phylum)|> 
@@ -208,7 +204,6 @@ temp0 <- dplyr::full_join(
       dplyr::summarise(phylum = n()),
     by = "srvy") |> 
   dplyr::left_join(
-    x = ., 
     y = temp|> 
       dplyr::filter(!is.na(genus))|> 
       dplyr::select(srvy, genus)|> 
@@ -219,7 +214,7 @@ temp0 <- dplyr::full_join(
 # dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
 
 temp1 <- dplyr::bind_cols(
-  temp|> 
+  temp |> 
     dplyr::filter(!is.na(taxon))|> 
     dplyr::select(taxon)|> 
     dplyr::distinct()|> 

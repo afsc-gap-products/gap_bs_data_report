@@ -1233,7 +1233,7 @@ biomass_compareyr <- biomass|>
 total_biomass <- biomass |> 
   dplyr::filter(common_name %in% c("Total fish", "Total invertebrates") &
                   area_id %in% c(99900, 99902) ) |>
-  dplyr::mutate(taxon = ifelse(grepl(x = species_code, pattern = "invertebrates"), "invert", "fish"))|> 
+  dplyr::mutate(taxon = ifelse(grepl(x = common_name, pattern = "invertebrates"), "invert", "fish")) |> 
   dplyr::group_by(survey_definition_id, year, taxon)|> 
   dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE))|> 
   dplyr::ungroup()|> 

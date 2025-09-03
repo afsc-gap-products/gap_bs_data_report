@@ -48,6 +48,7 @@ knitr::opts_chunk$set(
 src <- c()
 comb <- sort(report_spp1|> dplyr::filter(!is.na(order))|> dplyr::select(file_name)|> unlist()|> unique())
 
+comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary
 for (jj in comb) {
   a <- report_spp1[which(report_spp1$file_name == jj), ]
   spp_code <- a$species_code
@@ -68,7 +69,7 @@ cat(res, sep = '\n')
 
 \pagebreak
 
-```{r, include=FALSE}
+```{r list-app, include=FALSE}
 str0 <- ""
 
 list_app <- function(nickname, dir_out_figtab, abcd, descr_short, descr_frag) {

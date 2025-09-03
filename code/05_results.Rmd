@@ -159,8 +159,7 @@ if (srvy == "NEBS" & "NBS" %in% temp0$srvy) {
   # how many species encountered in one survey area but not in the other?
   load(file = paste0(dir_out_figtab, "tab-species-composition.rdata"))
   temp3 <- obj$raw|>
-    dplyr::left_join(x = .,
-                     y = spp_info|>
+    dplyr::left_join(spp_info|>
                        dplyr::select(species_code, order, species_name),
                      by = c("species_code"))
   
@@ -243,20 +242,20 @@ temp2 <- dplyr::full_join(
   y = total_biomass0, 
   x = total_biomass |> 
     dplyr::filter(year == maxyr)|> 
-    dplyr::rename(total_taxon = total))|> 
+    dplyr::rename(total_taxon = total)) |> 
   dplyr::mutate(
     prop = (total_taxon/total), 
     perc = paste0(formatC(x = prop*100, 
                           digits = 0, format = "f", big.mark = ","), 
                   "%"), 
-    group = gsub(pattern = "Total ", replacement = "", x = taxon) )|> 
+    group = gsub(pattern = "Total ", replacement = "", x = taxon) ) |> 
   tidyr::pivot_wider(id_cols = "srvy", 
                      names_from = "taxon", 
                      values_from = c(total_taxon, "perc", "prop"))|>
   dplyr::mutate(case = dplyr::case_when(
     perc_fish == perc_invert ~ "about the same as", 
-      prop_fish>prop_invert ~ "higher than",
-      prop_fish<prop_invert ~ "lower than"))|> 
+      prop_fish > prop_invert ~ "higher than",
+      prop_fish < prop_invert ~ "lower than")) |> 
   dplyr::left_join(
     y = data.frame(srvy = srvy1, 
                    srvy_long = srvy11))
@@ -367,9 +366,7 @@ if (srvy == "NEBS" & "NBS" %in% haul_cruises_maxyr$srvy) {
                        names_from = "srvy", 
                        values_from = c("999", "prop", "order"))|>
     dplyr::mutate(same =ifelse(order_EBS == order_NBS, TRUE, FALSE))|> 
-    dplyr::left_join(
-      x = ., 
-      y = spp_info_maxyr|> 
+    dplyr::left_join(spp_info_maxyr|> 
         dplyr::select(species_name, common_name), 
       by = c("taxon" = "common_name")  )
   
@@ -526,18 +523,18 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     dplyr::summarise(cpue_kgkm2_mean = sum(cpue_kgkm2_mean, na.rm = TRUE))|> 
     dplyr::mutate(srvy = haul_cruises_maxyr$srvy[i], 
                   taxon = "topfish")|> 
-    dplyr::bind_rows(temp, .)
+    dplyr::bind_rows(temp)
 }  
 
-temp <- biomass|> 
+temp <- biomass |> 
   dplyr::filter(year == maxyr & 
                   stratum == 999)|>
   dplyr::select(cpue_kgkm2_mean, srvy, taxon)|> 
   dplyr::group_by(srvy, taxon)|> 
   dplyr::summarise(cpue_kgkm2_mean = sum(cpue_kgkm2_mean, na.rm = TRUE))|> 
   dplyr::ungroup()|> 
-  dplyr::bind_rows(temp, .)|> 
-  pivot_wider(data = ., id_cols = "srvy", names_from = taxon, values_from = cpue_kgkm2_mean )|> 
+  dplyr::bind_rows(temp)|> 
+  pivot_wider(id_cols = "srvy", names_from = taxon, values_from = cpue_kgkm2_mean )|> 
   dplyr::mutate(all = fish + invert, 
                 perc_topfish = paste0(round(x = (topfish/all)*100, digits = 1), "%"), # the % of the top 10 fish caught out of the survey
                 perc_topfishoffish = paste0(round(x = (topfish/fish)*100, digits = 1), "%"), # the % of the top 10 fish caught out of the survey
@@ -545,7 +542,7 @@ temp <- biomass|>
                 perc_fish = paste0(round(x = (fish/all)*100, digits = 1), "%"), 
                 dplyr::across(where(is.numeric), formatC, digits = 1, big.mark = ",", format = "f"))|> 
   dplyr::left_join(
-    y = data.frame(srvy = srvy1, 
+    data.frame(srvy = srvy1, 
                    srvy_long = srvy11))
 
 str0 <- text_list(paste0(

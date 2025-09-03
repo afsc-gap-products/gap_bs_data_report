@@ -1345,7 +1345,7 @@ plot_pa_facet <- function(
     
     figure <- figure +
       geom_sf(data = outline |>
-                sf::st_cast(x = ., to = "MULTIPOLYGON"), 
+                sf::st_cast(to = "MULTIPOLYGON"), 
               size = 1, 
               fill = NA, # alpha(colour = "red", alpha = 0.3),
               color = alpha(colour = "red", alpha = 0.3))
