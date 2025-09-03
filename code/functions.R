@@ -475,15 +475,15 @@ numbers2words <- function(x){
       teens <- c("ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
                  "sixteen", " seventeen", "eighteen", "nineteen")
       names(teens) <- 0:9
-      tens <- c("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty",
-                "ninety")
+      tens <- c("twenty-", "thirty-", "forty-", "fifty-", "sixty-", "seventy-", "eighty-",
+                "ninety-")
       names(tens) <- 2:9
       x <- round(x)
       suffixes <- c("thousand", "million", "billion", "trillion")
       if (length(x) > 1) return(trim(sapply(x, helper)))
       
       
-      out <- c(out, helper(x))
+      out <- c(out, gsub(pattern = "- ", replacement = "-", x = helper(x)))
     }
   }
   return(out)
@@ -1747,7 +1747,6 @@ plot_sizecomp <- function(sizecomp0,
     figure <- ggplot(data = table_raw,
                      mapping = aes(x = length_mm,
                                    y = population_count,
-                                   # group = srvy_long,
                                    fill = sex)) +
       ggplot2::geom_bar(position="stack", stat="identity", na.rm = TRUE) +
       ggplot2::scale_fill_viridis_d(direction = -1, 
@@ -1757,9 +1756,10 @@ plot_sizecomp <- function(sizecomp0,
                            na.value = "transparent", 
                            drop = FALSE) +
       ggplot2::scale_y_continuous(name = paste0("Population", pop_unit_word), 
-                         labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ",")) +
+                                  limits = c(0, max(table_raw$population_count)),
+                                  labels = scales::label_comma(accuracy = 1)) +
       ggplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
-                         labels = scales::label_number(accuracy = ifelse(max(table_raw$population_count) < 9, 1, 10), big.mark = ","))  +
+                                  labels = scales::label_comma(accuracy = 1))  +
       ggplot2::labs(fill = spp_print) +
       ggplot2::guides(
         fill = guide_legend(title.position = "top",

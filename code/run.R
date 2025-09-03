@@ -95,24 +95,9 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
 # Community Highlights ---------------------------------------------------------
 
 report_title <- "community"
+dir_googledrive <- dir_googledrive_comm
 source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
-
-## Figures and Tables ----------------------------------------------------------
-
-comb <- report_spp1 |> dplyr::filter(!is.na(order)) |> dplyr::select(file_name) |> unlist() |> unique()
-for (jj in 1:length(comb)) {
-  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
-  spp_code <- a$species_code
-  aa <- catch_haul_cruises |> 
-    dplyr::filter(species_code %in% spp_code & year == maxyr)
-  if (nrow(aa)>0) {
-  print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
-  rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                    output_dir = dir_out_rawdata,
-                    output_file = paste0("figtab_spp_", comb[jj],".docx"))
-  }
-}
 
 ## Write report ----------------------------------------------------------------
 
