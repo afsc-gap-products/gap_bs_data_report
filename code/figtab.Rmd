@@ -2854,7 +2854,7 @@ for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 ```
 
 
-```{r fig-diversity-shannon-z-gif}
+```{r fig-diversity-shannon-z-gif, eval = FALSE}
 yrs <- sort(unique(diversity$year))
 
 width <- full_page_portrait_width # 6.5  
@@ -2872,7 +2872,7 @@ for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-diversity-simpson-z-gif}
+```{r fig-diversity-simpson-z-gif, eval = FALSE}
 yrs <- sort(unique(diversity$year))
 
 width <- full_page_portrait_width # 6.5  
@@ -2882,7 +2882,7 @@ report_title0 <- "gif"
 col <- "simpson_z"
 key_title <- "Simpson's Diversity Index (z-score)"
 set.breaks <- c(floor(min(diversity$simpson_z, na.rm = TRUE)):ceiling(max(diversity$simpson_z, na.rm = TRUE)))
-set.breaks_add <- (min(set.breaks)*-1).1
+set.breaks_add <- (min(set.breaks)*-1)+.1
 set.breaks <- set.breaks + set.breaks_add
 
 temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add)
@@ -2961,13 +2961,11 @@ table_print <- table_raw |>
   flextable::add_header_row(top = FALSE, values = c("", aa$col_title)) |>
   flextable::bold(j = 1) |>
   theme_flextable_nmfstm(row_lines = TRUE, 
-                         pgwidth = full_page_portrait_width)  |>
+                         pgwidth = full_page_landscape_width)  |>
   flextable::italic(i = 2, part = "header") |>
   flextable::bold(i = 2, part = "header", bold = FALSE) |>
   flextable::vline(j = 5, part = "all") |> 
-  flextable::width(width = rep_len(x = full_page_landscape_width/ncol(table_raw), length.out = ncol(table_raw)))  |>
-  theme_flextable_nmfstm(row_lines = TRUE, 
-                         pgwidth = full_page_portrait_width)
+  flextable::width(width = rep_len(x = full_page_landscape_width/ncol(table_raw), length.out = ncol(table_raw)))
 
 for (i in sort(unique(table_raw0$footorder[table_raw0$affiliation != "-"]))) {
   

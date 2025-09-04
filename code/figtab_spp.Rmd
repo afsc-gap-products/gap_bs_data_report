@@ -1393,17 +1393,17 @@ temp <- table_raw |>
                 cpue_nokm2_mean, cpue_nokm2_sd,
                 population_count, population_sd, population_dw, population_up,
                 n_weight, n_count, n_length)  |>
-  dplyr::right_join(y = biomass |>
+  dplyr::right_join(biomass |>
                       dplyr::filter(year == maxyr &
                                       stratum %in% strat0) |>
                       dplyr::select(srvy, stratum) |>
                       dplyr::distinct()) |>
-  dplyr::left_join(y = data.frame(srvy = srvy1,
+  dplyr::left_join(data.frame(srvy = srvy1,
                                   srvy_long = stringr::str_to_title(srvy11))) |>
   dplyr::mutate(stratum = as.character(stratum)) |>
   dplyr::arrange(stratum) |>
   dplyr::arrange(srvy) |>
-  dplyr::mutate(stratum = ifelse(stratum > 999, "Total", stratum))
+  dplyr::mutate(stratum = ifelse(stratum == 999, "Total", stratum))
 
 if (sum(is.na(temp$cpue_kgkm2_mean[temp$srvy == "NBS"])) ==
     nrow(temp[temp$srvy == "NBS",])) {
