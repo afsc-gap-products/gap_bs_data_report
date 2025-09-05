@@ -41,10 +41,13 @@ googledrive::drive_auth();
 ## Source Scripts --------------------------------------------------------------
 
 report_title <- "data" 
+
+# Install GAP-specific packages, if not already installed
 # devtools::install_github("afsc-gap-products/akgfmaps@shp2025", build_vignettes = TRUE)
-# devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
-# devtools::install_github("afsc-gap-products/coldpool")
-# devtools::install_github("afsc-gap-products/gapindex")
+if (!requireNamespace("akgfmaps", quietly = TRUE)) devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
+if (!requireNamespace("coldpool", quietly = TRUE)) devtools::install_github("afsc-gap-products/coldpool")
+if (!requireNamespace("gapindex", quietly = TRUE)) devtools::install_github("afsc-gap-products/gapindex")
+
 source(here::here("code","functions.R"))
 # source(here::here("code","data_dl.R"))  # Run when there is new data!
 source(here::here("code","data.R"))
