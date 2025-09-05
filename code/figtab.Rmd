@@ -839,13 +839,11 @@ if (srvy == "NEBS") {
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-mean-temperature}
+```{r fig-mean-temperature-prep}
 # code orig from sean rohan's coldpool package! Jan 23 2021 
 nickname <- "fig-mean-temperature"
-header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",maxyr,
-                 ifelse(srvy == "NEBS", 
-                        paste0(" (left), and northern Bering Sea shelf based on data collected during standardized summer surveys (right)"), ""), 
-                 ". ")
+header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",
+                 maxyr, " (left), and northern Bering Sea shelf based on data collected during standardized summer surveys (right). ")
 
 height <- 3.25
 width <- full_page_portrait_width # 6.5
@@ -974,12 +972,28 @@ plot_mean_temperatures <- function(maxyr, srvy){
       legend.position = "bottom",
       legend.box = "horizontal")
   
+  header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",maxyr,
+                 ifelse(srvy == "NEBS", 
+                        paste0(" (left), and northern Bering Sea shelf based on data collected during standardized summer surveys (right)"), ""), 
+                 ". ")
+  
   return(list("figure_print" = figure, 
-              "table_raw" = all_temperatures))
+              "table_raw" = all_temperatures, 
+              "header" = header))
 }
+```
 
+```{r fig-mean-temperature-ebs}
+nickname <- "fig-mean-temperatur-ebs"
+a <- plot_mean_temperatures(maxyr, srvy = "EBS")
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
-a <- plot_mean_temperatures(maxyr, srvy)
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r fig-mean-temperature-nebs}
+nickname <- "fig-mean-temperature"
+a <- plot_mean_temperatures(maxyr, srvy = c("NEBS"))
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -1253,6 +1267,25 @@ a <- specimen_maxyr |>
   dplyr::group_by("srvy" = srvy, species_code) |> 
   dplyr::summarise(age = as.numeric(n())) |> 
   dplyr::ungroup()
+
+# s <- foodlab_predprey0 |>
+#   dplyr::left_join(foodlab_haul_woc0) |>
+#   dplyr::select(year, cruise, haul, type, hauljoin)
+# 
+#   dplyr::select(year, type, hauljoin, sta_id_let, sta_id_num, haul) |>
+#   dplyr::filter(sta_id_num != 0) |>
+#   dplyr::left_join(haul |>
+#                      dplyr::select(hauljoin, survey_definition_id, srvy, year)) |>
+#   dplyr::filter(!is.na(survey_definition_id)) |>
+#   dplyr::mutate(
+#     type_desc = dplyr::case_when(
+#       type == 1 ~ "Unknown",
+#       type == 2 ~ "REEM personnel shipboard scans",
+#       type == 3 ~ "representing laboratory scans",
+#       type == 4 ~ "representing non-REEM personnel shipboard scans and all shipboard scans performed prior to 2004",
+#       type == 6 ~ "representing quantitative laboratory analysis (pred-prey form or all prey weighed)",
+#       type == 9 ~ "representing plant collected (observer) data"
+#       ))
 
 # other collections not in oracle
 temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/other-field-collections.xlsx"), 
