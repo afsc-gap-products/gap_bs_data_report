@@ -98,6 +98,7 @@ error_loading
 # Pull data from RACE_DATA and CRAB --------------------------------------------
 
 locations <- c(
+  "foodlab.predprey", 
   # "crab.gap_ebs_nbs_abundance_biomass", # Biomass
   # "crab.gap_ebs_nbs_crab_cpue", # CPUE
   # "crab.ebscrab", # length data
@@ -207,7 +208,7 @@ source("Z:/Projects/ConnectToOracle.R")
 channel <- channel_akfin
 
 spp_list <- tidyr::crossing(
-  spp = c("RKC"), #, "BKC", "TANNER", "SNOW", "HYBRID", "HAIR"), 
+  spp = c("RKC", "BKC", "TANNER", "SNOW", "HYBRID", "HAIR"), 
   reg = c("EBS", "NBS"))
 
 # Pull crab data from `crabpack`
