@@ -1772,7 +1772,6 @@ plot_sizecomp <- function(sizecomp0,
                            na.value = "transparent", 
                            drop = FALSE) +
       ggplot2::scale_y_continuous(name = paste0("Population", pop_unit_word), 
-                                  limits = c(0, max(table_raw$population_count)),
                                   labels = scales::label_comma(accuracy = 1)) +
       ggplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
                                   labels = scales::label_comma(accuracy = 1))  +

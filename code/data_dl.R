@@ -160,14 +160,14 @@ for (i in 1:nrow(report_spp)){
                      SPECIES_CODE = eval(expr = parse(text = report_spp$species_code[i]))))
 }
 
-temp1 <- temp1 |> 
-  dplyr::bind_rows(
-    data.frame(
-      GROUP_CODE = c(69322, 69323, 68560, 68580, 68590, 69400), 
-      SPECIES_CODE = c(69322, 69323, 68560, 68580, 68590, 69400), 
-      TAXON = "invert", 
-      SPECIES_NAME = c("Paralithodes camtschaticus", "Paralithodes platypus", "Chionoecetes bairdi", "Chionoecetes opilio", "Chionoecetes hybrid", "Erimacrus isenbeckii"), 
-      GROUP_NAME = c("red king crab", "blue king crab", "Tanner crab", "snow crab", "hybrid Tanner crab", "horsehair crab") ))
+# temp1 <- temp1 |> 
+#   dplyr::bind_rows(
+#     data.frame(
+#       GROUP_CODE = c(69322, 69323, 68560, 68580, 68590, 69400), 
+#       SPECIES_CODE = c(69322, 69323, 68560, 68580, 68590, 69400), 
+#       TAXON = "invert", 
+#       SPECIES_NAME = c("Paralithodes camtschaticus", "Paralithodes platypus", "Chionoecetes bairdi", "Chionoecetes opilio", "Chionoecetes hybrid", "Erimacrus isenbeckii"), 
+#       GROUP_NAME = c("red king crab", "blue king crab", "Tanner crab", "snow crab", "hybrid Tanner crab", "horsehair crab") ))
 
 # filter temp1 for exisiting species codes in GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION
 # note. maybe gp_taxa is already called somewhere but directly pulling here.
@@ -186,7 +186,7 @@ library(gapindex)
 
 # follow instructions from https://afsc-gap-products.github.io/gapindex/articles/ex_species_complex.html
 ## Pull data. Note the format of the spp_codes argument with the GROUP column
-complex_data <- gapindex::get_data(
+complex_data <- complex_data0 <- gapindex::get_data(
   year_set = 1982:maxyr,
   survey_set = c("EBS", "NBS"),
   spp_codes = temp1[,c("GROUP_CODE", "SPECIES_CODE")],
@@ -232,9 +232,10 @@ for (i in 1:nrow(spp_list)) {
                                      reg = reg))
 }
 
-specimen_crabpack <- specimen_crabpack |> 
-  dplyr::filter(SEX != 4) |> # unisex
-  dplyr::mutate(SEX = ifelse(SEX == 2 & CLUTCH_SIZE == 0, 5, SEX)) # "immature females"
+specimen_crabpack0 <- specimen_crabpack
+
+write.csv(x = specimen_crabpack0, 
+          file = here::here("data/crabpack_specimen.csv"))
 
 # NOTES
 # sex = dplyr::case_when(
@@ -243,56 +244,27 @@ specimen_crabpack <- specimen_crabpack |>
 #   (clutch_size == 0 & sex == 2) ~ "immature females", 
 #   (clutch_size >= 1 & sex == 2) ~ "mature females"), 
 
-# pull oracle data to bind to so we can add hauljoin
-source("Z:/Projects/ConnectToOracle.R")
-haul <- RODBC::sqlQuery(channel_products, paste0(
-  "SELECT
-CRUISEJOIN,
-HAULJOIN,
-STRATUM,
-STATION,
-LATITUDE_DD_START AS START_LATITUDE,
-LATITUDE_DD_END AS END_LATITUDE,
-LONGITUDE_DD_START AS START_LONGITUDE,
-LONGITUDE_DD_END AS END_LONGITUDE
-FROM GAP_PRODUCTS.AKFIN_HAUL;"))
-
-cruise <- RODBC::sqlQuery(channel_products, paste0(
-  "SELECT
-CRUISEJOIN,
-SURVEY_DEFINITION_ID,
-YEAR
-FROM GAP_PRODUCTS.AKFIN_CRUISE
-WHERE SURVEY_DEFINITION_ID IN (98, 143)"))
-
-hauljoin <- dplyr::left_join(cruise, haul) #|>
-# dplyr::select(-CRUISEJOIN)
-
 # find which hauls need to be replaced with retow data
-retow_hauljoin <- specimen_crabpack |> 
-  dplyr::filter(HAUL_TYPE == 17) |> 
-  dplyr::select(HAULJOIN, STATION_ID, YEAR) |> 
+crabpack_specimen <- crabpack_specimen0
+crabpack_specimen <- dplyr::bind_rows(
+  # data from retow stations - female RKC
+  crabpack_specimen |> 
+    dplyr::filter(HAUL_TYPE == 17) |> 
+    dplyr::filter(SEX == 2 & SPECIES_CODE == 69322), 
+  # data from not retow stations - male and unsexed RKC, and everything else
+  crabpack_specimen |> 
+    dplyr::filter(HAUL_TYPE == 3) |> 
+    dplyr::filter(!(SEX == 2 & SPECIES_CODE == 69322))  )  |> 
+  dplyr::mutate(SEX = ifelse(SEX == 2 & CLUTCH_SIZE == 0, 5, SEX), # "immature females" 
+                SEX = ifelse(SEX == 2 & CLUTCH_SIZE != 0, 6, SEX)) |> # "mature females" 
+  dplyr::filter(SEX != 4) |> # unisex
+  dplyr::select(HAULJOIN, YEAR, STATION = STATION_ID, HAUL_TYPE, STRATUM, 
+                SPECIES_CODE, SEX, 
+                SIZE, SIZE_1MM, WEIGHT, CALCULATED_WEIGHT_1MM, SAMPLING_FACTOR) |> 
   dplyr::distinct()
 
-catch_retow <- dplyr::bind_rows(
-  # data from retow stations - female RKC
-  specimen_crabpack |> 
-    dplyr::filter(HAULJOIN %in% retow_hauljoin$HAULJOIN) |> 
-    dplyr::filter(SEX == 2 & SPECIES_CODE == 69322), 
-  # data from not retow stations - male and unsexed RKC
-  specimen_crabpack |> 
-    dplyr::right_join(retow_hauljoin |> 
-                        dplyr::select(STATION_ID, YEAR)) |> 
-    dplyr::filter(HAUL_TYPE == 3) |> 
-    dplyr::filter(!(SEX == 2 & SPECIES_CODE == 69322))  ) |> 
-  # data that have no retow replacement - everything else
-  dplyr::bind_rows(
-    specimen_crabpack |> 
-      dplyr::filter(!(STATION_ID %in% retow_hauljoin$STATION_ID & 
-                        YEAR %in% retow_hauljoin$YEAR)))
-
-complex_data$catch <- catch_retow |> 
-  dplyr::mutate(WEIGHT = (CALCULATED_WEIGHT_1MM * SAMPLING_FACTOR)/1000) |>  
+complex_data$catch <- crabpack_specimen |> 
+  dplyr::mutate(WEIGHT = (CALCULATED_WEIGHT_1MM * SAMPLING_FACTOR)/1000) |>  # convert from grams to kg
   dplyr::group_by(HAULJOIN, SPECIES_CODE) |> 
   dplyr::summarise(WEIGHT = sum(WEIGHT, na.rm = TRUE), 
                    NUMBER_FISH = sum(SAMPLING_FACTOR, na.rm = TRUE)) |> 
@@ -300,12 +272,11 @@ complex_data$catch <- catch_retow |>
   data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE")) |> 
   dplyr::bind_rows(complex_data$catch)
 
-complex_data$specimen <- catch_retow |> 
-  dplyr::select(WEIGHT, SEX, SPECIES_CODE, HAULJOIN, LENGTH = SIZE)  |>  
-  dplyr::mutate(WEIGHT = WEIGHT / 1000) |>  
-  dplyr::group_by(HAULJOIN, SPECIES_CODE, SEX) |> 
-  dplyr::summarise(LENGTH = sum(LENGTH, na.rm = TRUE), 
-                   WEIGHT = sum(WEIGHT, na.rm = TRUE)) |> 
+complex_data$specimen <- crabpack_specimen |> 
+  dplyr::select(WEIGHT, SEX, SPECIES_CODE, HAULJOIN, LENGTH = SIZE_1MM)  |>  
+  dplyr::mutate(WEIGHT = WEIGHT / 1000) |>   # convert from grams to kg
+  dplyr::group_by(HAULJOIN, SPECIES_CODE, SEX, LENGTH) |> 
+  dplyr::summarise(WEIGHT = sum(WEIGHT, na.rm = TRUE)) |> 
   dplyr::ungroup() |>
   dplyr::mutate(AGE = NA)  |> 
   dplyr::left_join(hauljoin |> 
@@ -313,10 +284,10 @@ complex_data$specimen <- catch_retow |>
   data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE", "SEX", "AGE", "LENGTH")) |> 
   dplyr::bind_rows(complex_data$specimen)
 
-complex_data$size <- catch_retow |> 
+complex_data$size <- crabpack_specimen |> 
   dplyr::select(SEX, SPECIES_CODE, HAULJOIN, LENGTH = SIZE_1MM, FREQUENCY = SAMPLING_FACTOR)  |>  
-  dplyr::group_by(HAULJOIN, SPECIES_CODE, SEX) |> 
-  dplyr::summarise(LENGTH = sum(LENGTH, na.rm = TRUE), 
+  dplyr::group_by(HAULJOIN, SPECIES_CODE, SEX, LENGTH) |> 
+  dplyr::summarise(#LENGTH = sum(LENGTH, na.rm = TRUE), 
                    FREQUENCY = sum(FREQUENCY, na.rm = TRUE)) |> 
   dplyr::ungroup()|> 
   dplyr::left_join(hauljoin |> 
