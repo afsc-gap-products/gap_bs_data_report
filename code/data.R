@@ -555,49 +555,6 @@ reg_dat$survey.grid <- reg_dat$survey.grid |>
   dplyr::left_join(station |> 
                      dplyr::select(station, stratum, srvy, survey_definition_id, in_maxyr) )
 
-
-
-## diversity indices ------------------------------------------------------------
-
-# https://entnemdept.ufl.edu/hodges/protectus/lp_webfolder/9_12_grade/student_handout_1a.pdf 
-# Key ecology diversity index formulas include the Shannon Diversity Index (H), which measures uncertainty and considers both richness and evenness, 
-# and Simpson's Diversity Index (D or 1-D), which quantifies the probability that two individuals are of the same or different species, respectively. 
-# The Shannon index formula is H = -Σ pᵢ ln(pᵢ), while 
-# Simpson's index can be calculated as D = Σ (pᵢ)² or often expressed as 1-D for greater intuitive interpretation. 
-
-diversity <- catch |> 
-  dplyr::ungroup() |> 
-  dplyr::group_by(hauljoin) |> 
-  dplyr::summarise(N = sum(count, na.rm = TRUE)) |># total number of individuals
-  dplyr::ungroup() 
-
-diversity <- catch |> 
-  dplyr::left_join(diversity) |> 
-  dplyr::mutate(n = count, 
-                pi = n/N, 
-                pi2 = pi^2, 
-                lnpi = log(pi), 
-                pilnpi = pi*lnpi) 
-
-diversity <- diversity |> 
-  dplyr::group_by(hauljoin) |> 
-  dplyr::summarise(
-    # Shannon Diversity Index 
-    shannon = -sum((pilnpi), na.rm = TRUE),  
-    # Simpson Diversity Index                
-    simpson = 1/sum(pi2, na.rm = TRUE)
-  ) |>
-  dplyr::ungroup() |> 
-  dplyr::mutate(
-    shannon_z = ((shannon - mean(shannon, na.rm = TRUE))/sd(shannon, na.rm = TRUE)), 
-    simpson_z = ((simpson - mean(simpson, na.rm = TRUE))/sd(simpson, na.rm = TRUE)) 
-  ) |> 
-  dplyr::right_join(haul |> 
-                      dplyr::filter(haul_type ==3) |> 
-                      dplyr::select(survey_definition_id, year, hauljoin, 
-                                    station, latitude_dd_start, longitude_dd_start) ) |> 
-  dplyr::distinct()
-
 ## other var (survey additions, *yrs, etc. -------------------------------------
 
 print("define other vars")
@@ -701,6 +658,48 @@ cpue <-
 #                     dplyr::select(hauljoin, station, stratum, survey_definition_id, srvy, 
 #                                   year, cruisejoin, longitude_dd_start, latitude_dd_start), 
 #                   by = "hauljoin")
+
+## diversity indices ------------------------------------------------------------
+
+# https://entnemdept.ufl.edu/hodges/protectus/lp_webfolder/9_12_grade/student_handout_1a.pdf 
+# Key ecology diversity index formulas include the Shannon Diversity Index (H), which measures uncertainty and considers both richness and evenness, 
+# and Simpson's Diversity Index (D or 1-D), which quantifies the probability that two individuals are of the same or different species, respectively. 
+# The Shannon index formula is H = -Σ pᵢ ln(pᵢ), while 
+# Simpson's index can be calculated as D = Σ (pᵢ)² or often expressed as 1-D for greater intuitive interpretation. 
+
+diversity <- cpue |> 
+  dplyr::ungroup() |> 
+  dplyr::group_by(hauljoin) |> 
+  dplyr::summarise(N = sum(cpue_nokm2, na.rm = TRUE)) |># total number of individuals
+  dplyr::ungroup() 
+
+diversity <- cpue |> 
+  dplyr::left_join(diversity) |> 
+  dplyr::mutate(n = cpue_nokm2, 
+                pi = n/N, 
+                pi2 = pi^2, 
+                lnpi = log(pi), 
+                pilnpi = pi*lnpi) 
+
+diversity <- diversity |> 
+  dplyr::group_by(hauljoin) |> 
+  dplyr::summarise(
+    # Shannon Diversity Index 
+    shannon = -sum((pilnpi), na.rm = TRUE),  
+    # Simpson Diversity Index                
+    simpson = 1/sum(pi2, na.rm = TRUE)
+  ) |>
+  dplyr::ungroup() |> 
+  dplyr::mutate(
+    shannon_z = ((shannon - mean(shannon, na.rm = TRUE))/sd(shannon, na.rm = TRUE)), 
+    simpson_z = ((simpson - mean(simpson, na.rm = TRUE))/sd(simpson, na.rm = TRUE)) 
+  ) |> 
+  dplyr::right_join(haul |> 
+                      dplyr::filter(haul_type ==3) |> 
+                      dplyr::select(survey_definition_id, year, hauljoin, 
+                                    station, latitude_dd_start, longitude_dd_start) ) |> 
+  dplyr::distinct()
+
 
 ## stratum (survey area) -------------------------------------------------------
 
@@ -945,7 +944,7 @@ lengths_gap <- race_data_cruises0|>
   dplyr::ungroup()
 
 lengths <- dplyr::bind_rows(lengths_gap, lengths_sap)|> 
-  dplyr::left_join(cruises|> 
+  dplyr::left_join(cruises |> 
                      dplyr::select(srvy, survey_definition_id)|> 
                      dplyr::distinct() )|> 
   dplyr::left_join(length_type, 

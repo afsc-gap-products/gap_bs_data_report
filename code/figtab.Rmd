@@ -675,36 +675,43 @@ header <- paste0("Lengths collected during the ", maxyr, " ",
                  " survey.")
 
 table_raw <- lengths |> 
-  dplyr::left_join(report_spp1 |> 
-                     dplyr::select(species_code, order) |> 
-                     dplyr::arrange(order) |>
-                     dplyr::distinct() |> 
-                     dplyr::filter(!duplicated(species_code)))  |>
   dplyr::left_join(
     y = spp_info |> 
       dplyr::select(species_code, common_name), 
     by = "species_code") |>
-  dplyr::filter(year %in% c(maxyr, compareyr) &
+  dplyr::filter(year %in% c(maxyr) &
                   !(species_code %in% c(68560, 68580, 68590, 69322, 
                                         69323, 69400, 69310, 68577, 68781) ))  |>  # no crab!
-  dplyr::group_by(srvy, year, common_name, order) |>
+  dplyr::group_by(srvy, common_name) |>  
   dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) |>
   tidyr::pivot_wider(
-                     id_cols = c("common_name", "order"), 
-                     names_from = c("srvy", "year"), 
+                     id_cols = c("common_name"), 
+                     names_from = c("srvy"),
                      values_from = "frequency") |> 
   dplyr::ungroup() |> 
-  dplyr::arrange(order) |>
-  dplyr::select(-order) 
+  dplyr::arrange(common_name) |>
+  dplyr::mutate(NBS = ifelse(is.na(NBS), 0, NBS),
+                EBS = ifelse(is.na(EBS), 0, EBS),
+                keep = ifelse((EBS>=1000 | NBS >=1000), T, F) )
 
-table_print0 <- 
-  dplyr::bind_rows(
-    table_raw[1:16,], # first 16
-    table_raw[17:nrow(table_raw),] |>    # summed others
-      dplyr::mutate(common_name = paste0("other taxa (", nrow(table_raw[21:nrow(table_raw),]), ")")) |>
-      dplyr::group_by(common_name) |> 
-      dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE)) |> 
-      dplyr::ungroup(),
+table_raw0 <- table_raw |>
+  dplyr::filter(keep == F) |>
+  dplyr::select(-keep) |>
+  dplyr::summarise(EBS = sum(EBS != 0, is.na = TRUE),
+                   NBS = sum(NBS != 0, is.na = TRUE))
+
+table_print0 <- dplyr::bind_rows(
+    table_raw |>
+      dplyr::filter(keep == TRUE) |>
+      dplyr::select(-keep) |>
+      dplyr::mutate(common_name = stringr::str_to_sentence(common_name)) |> 
+      dplyr::arrange(common_name),
+    table_raw |>
+      dplyr::filter(keep == FALSE) |>
+      dplyr::select(-keep) |>
+      dplyr::summarise(EBS = sum(EBS, na.rm = TRUE),
+                       NBS = sum(NBS, na.rm = TRUE)) |>
+      dplyr::mutate(common_name = paste0("Other taxa (EBS: ", table_raw0$EBS, ", NBS: ", table_raw0$NBS, ")")),
     table_raw |>    # total
       dplyr::mutate(common_name = "TOTAL") |>
       dplyr::group_by(common_name) |> 
@@ -713,24 +720,16 @@ table_print0 <-
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric), xunits, val_under_x_words = -1), 
                 common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
 
-table_print0[is.na(table_print0)]<- "-"
+table_print0[table_print0==0]<- "-"
 
-h_r1 <- c("Common name", sapply(strsplit(x = names(table_print0)[-1], split = "_"), "[[", 1))
-h_r2 <- c("Common name", sapply(strsplit(x = names(table_print0)[-1], split = "_"), "[[", 2))
+# h_r1 <- c("Common name", sapply(strsplit(x = names(table_print0)[-1], split = "_"), "[[", 1))
+# h_r2 <- c("Common name", sapply(strsplit(x = names(table_print0)[-1], split = "_"), "[[", 2))
 std_b <- officer::fp_border(width = 2, color = "grey10")
 
 table_print <- table_print0 |> 
   flextable::flextable() |>
-  flextable::add_header(
-    values = eval(parse(text = paste0("list(",
-                                      text_list(paste0(names(table_print0), " = '", h_r1, "'"),
-                                                sep_last = ", ", sep_last2 = ", "), ") " ) ) ),
-    top = TRUE) |>
   flextable::set_header_labels(
-                               values = eval(parse(text = paste0("list(",
-                                                                 text_list(paste0(names(table_print0), " = '", h_r2, "'"),
-                                                                           sep_last = ", ", sep_last2 = ", "), ") " ) ) )
-  ) |> 
+    values = c("Common name", names(table_print0)[-1]) ) |>
   theme_flextable_nmfstm() |>
   flextable::merge_h(i = 1, part = "header") |> 
   flextable::merge_v(j = "common_name", part = "header") |>
@@ -738,12 +737,6 @@ table_print <- table_print0 |>
   flextable::bold(i = ~(common_name == "TOTAL") ) |>
   flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") |> 
   flextable::hline(border = std_b, part = "header")  
-
-if (srvy == "NEBS" & 
-    paste0("EBS_", compareyr) %in% names(table_raw)) {
-  table_print <- table_print |> 
-    flextable::vline(j = paste0("EBS_", compareyr))
-}
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1268,24 +1261,24 @@ a <- specimen_maxyr |>
   dplyr::summarise(age = as.numeric(n())) |> 
   dplyr::ungroup()
 
-# s <- foodlab_predprey0 |>
-#   dplyr::left_join(foodlab_haul_woc0) |>
-#   dplyr::select(year, cruise, haul, type, hauljoin)
-# 
-#   dplyr::select(year, type, hauljoin, sta_id_let, sta_id_num, haul) |>
-#   dplyr::filter(sta_id_num != 0) |>
-#   dplyr::left_join(haul |>
-#                      dplyr::select(hauljoin, survey_definition_id, srvy, year)) |>
-#   dplyr::filter(!is.na(survey_definition_id)) |>
-#   dplyr::mutate(
-#     type_desc = dplyr::case_when(
-#       type == 1 ~ "Unknown",
-#       type == 2 ~ "REEM personnel shipboard scans",
-#       type == 3 ~ "representing laboratory scans",
-#       type == 4 ~ "representing non-REEM personnel shipboard scans and all shipboard scans performed prior to 2004",
-#       type == 6 ~ "representing quantitative laboratory analysis (pred-prey form or all prey weighed)",
-#       type == 9 ~ "representing plant collected (observer) data"
-#       ))
+s <- foodlab_predprey0 |>
+  dplyr::left_join(foodlab_haul0) |>
+  dplyr::select(year, cruise, haul, type, hauljoin)
+
+  dplyr::select(year, type, hauljoin, sta_id_let, sta_id_num, haul) |>
+  dplyr::filter(sta_id_num != 0) |>
+  dplyr::left_join(haul |>
+                     dplyr::select(hauljoin, survey_definition_id, srvy, year)) |>
+  dplyr::filter(!is.na(survey_definition_id)) |>
+  dplyr::mutate(
+    type_desc = dplyr::case_when(
+      type == 1 ~ "Unknown",
+      type == 2 ~ "REEM personnel shipboard scans",
+      type == 3 ~ "representing laboratory scans",
+      type == 4 ~ "representing non-REEM personnel shipboard scans and all shipboard scans performed prior to 2004",
+      type == 6 ~ "representing quantitative laboratory analysis (pred-prey form or all prey weighed)",
+      type == 9 ~ "representing plant collected (observer) data"
+      ))
 
 # other collections not in oracle
 temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/other-field-collections.xlsx"), 

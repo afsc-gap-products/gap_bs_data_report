@@ -99,7 +99,7 @@ error_loading
 
 locations <- c(
   "foodlab.predprey",
-  "foodlab.haul_woc",
+  "foodlab.haul",
   # "crab.gap_ebs_nbs_abundance_biomass", # Biomass
   # "crab.gap_ebs_nbs_crab_cpue", # CPUE
   # "crab.ebscrab", # length data
@@ -119,7 +119,7 @@ for (i in 1:length(locations)) {
   print(locations[i])
   a <- RODBC::sqlQuery(channel = channel, # NOT RACEBASE.HAUL
                        query = paste0("SELECT *
-FROM ",locations[i],"; ")) 
+FROM ",locations[i],"; "))
   write.csv(x = a, 
             here::here("data",
                        paste0(tolower(gsub(pattern = '.', 
@@ -213,7 +213,7 @@ spp_list <- tidyr::crossing(
   reg = c("EBS", "NBS"))
 
 # Pull crab data from `crabpack`
-specimen_crabpack <- c()
+crabpack_specimen <- c()
 for (i in 1:nrow(spp_list)) {
   source("Z:/Projects/ConnectToOracle.R")
   channel <- channel_akfin
@@ -226,15 +226,15 @@ for (i in 1:nrow(spp_list)) {
                                                region = reg,
                                                years = c(1982:2024)) 
   
-  specimen_crabpack <- specimen_crabpack |> 
+  crabpack_specimen <- crabpack_specimen |> 
     dplyr::bind_rows(specimen_data$specimen |> 
                        dplyr::mutate(spp = spp, 
                                      reg = reg))
 }
 
-specimen_crabpack0 <- specimen_crabpack
+crabpack_specimen0 <- crabpack_specimen
 
-write.csv(x = specimen_crabpack0, 
+write.csv(x = crabpack_specimen0, 
           file = here::here("data/crabpack_specimen.csv"))
 
 # NOTES
@@ -279,9 +279,10 @@ complex_data$specimen <- crabpack_specimen |>
   dplyr::summarise(WEIGHT = sum(WEIGHT, na.rm = TRUE)) |> 
   dplyr::ungroup() |>
   dplyr::mutate(AGE = NA)  |> 
-  dplyr::left_join(hauljoin |> 
-                     dplyr::select(HAULJOIN, CRUISEJOIN)) |> 
-  data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE", "SEX", "AGE", "LENGTH")) |> 
+  dplyr::left_join(complex_data$haul |> 
+                     dplyr::select(CRUISEJOIN, HAULJOIN) |> 
+                     dplyr::distinct() ) |> 
+  data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE", "SEX", "AGE", "LENGTH")) |> # "CRUISEJOIN", 
   dplyr::bind_rows(complex_data$specimen)
 
 complex_data$size <- crabpack_specimen |> 
@@ -290,8 +291,9 @@ complex_data$size <- crabpack_specimen |>
   dplyr::summarise(#LENGTH = sum(LENGTH, na.rm = TRUE), 
                    FREQUENCY = sum(FREQUENCY, na.rm = TRUE)) |> 
   dplyr::ungroup()|> 
-  dplyr::left_join(hauljoin |> 
-                     dplyr::select(CRUISEJOIN, HAULJOIN)) |> 
+  dplyr::left_join(complex_data$haul |> 
+                     dplyr::select(CRUISEJOIN, HAULJOIN) |> 
+                     dplyr::distinct() ) |> 
   data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE", "SEX", "LENGTH")) |> 
   dplyr::bind_rows(complex_data$size)
 
