@@ -667,7 +667,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 # Results
 
-```{r tab-length-samples-pres}
+```{r tab-length-samples-pres, eval = FALSE}
 
 nickname <- paste0("tab-length-samples-pres") 
 header <- paste0("Lengths collected during the ", maxyr, " ",
@@ -676,7 +676,7 @@ header <- paste0("Lengths collected during the ", maxyr, " ",
 
 table_raw <- lengths |> 
   dplyr::left_join(
-    y = spp_info |> 
+    spp_info |> 
       dplyr::select(species_code, common_name), 
     by = "species_code") |>
   dplyr::filter(year %in% c(maxyr) &
@@ -1135,8 +1135,8 @@ temp <- function(yrs,
   
   # Create figure_print
   key.title <- ifelse(case == "bottom", 
-                      expression(bold("Bottom temperature (°C)")), 
-                      expression(bold("Surface temperature (°C)")))
+                      "Bottom temperature (°C)", 
+                     "Surface temperature (°C)")
   
   if (is.null(title0)) {
     title0 <- paste0("Eastern", ifelse(srvy == "NEBS", " and northern", ""),
@@ -1263,8 +1263,9 @@ a <- specimen_maxyr |>
 
 s <- foodlab_predprey0 |>
   dplyr::left_join(foodlab_haul0) |>
-  dplyr::select(year, cruise, haul, type, hauljoin)
-
+  dplyr::filter(#region == "BS" & 
+                  cruise_type == "Race_Groundfish") |> 
+  dplyr::select(year, cruise, haul, type, hauljoin) |> 
   dplyr::select(year, type, hauljoin, sta_id_let, sta_id_num, haul) |>
   dplyr::filter(sta_id_num != 0) |>
   dplyr::left_join(haul |>

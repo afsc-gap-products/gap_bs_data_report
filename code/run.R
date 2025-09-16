@@ -33,7 +33,7 @@ dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")
 # dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
 
 googledrive::drive_deauth()
-googledrive::drive_auth(); 
+googledrive::drive_auth()
 2  # Set this to 1 when first running to allow access in subsequent sessions
 
 # Data Report ------------------------------------------------------------------

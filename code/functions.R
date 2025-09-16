@@ -52,7 +52,7 @@ PKG <- c(
   "cowplot",
   "png",
   "magick",
-  "extrafont",
+  # "extrafont",
   "ggpubr",
   "ggridges",
   
@@ -60,7 +60,6 @@ PKG <- c(
   "plyr",
   "dplyr",
   "googledrive",
-  # "magrittr",
   "readr",
   "tidyr",
   "readxl", 
@@ -85,7 +84,6 @@ PKG <- c(
   "ggspatial", 
   "digest", 
   "ps", 
-  "magrittr", 
   "raster",
   "stars",
 
@@ -104,7 +102,9 @@ for (p in PKG) {
       devtools::install_github("afsc-gap-products/coldpool")
     } else if (p == "akgfmapas") {
       devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
-    } else if (p == 'nwfscSurvey') {
+    } else if (p == 'crabpack') {
+      remotes::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
+      } else if (p == 'nwfscSurvey') {
       remotes::install_github("pfmc-assessments/nwfscSurvey")
     } else if (p == "gapctd") {
       devtools::install_github("afsc-gap-products/gapctd")
@@ -120,7 +120,7 @@ for (p in PKG) {
     require(p, character.only = TRUE)}
 }
 
-extrafont::loadfonts(device = "win")
+# extrafont::loadfonts(device = "win")
 
 # Aesthetics -------------------------------------------------------------------
 
@@ -1670,8 +1670,9 @@ plot_temperature_map <- function(raster_nebs,
     ggplot2::annotate("text", 
                       y = mean(colorbar_breaks[c(2:(length(colorbar_breaks)-1))]), # y = 3.5,
              x = 1.15,
+             fontface = "bold", 
              label =  key.title,
-             size = rel(3.2))
+             size = rel(3.2)) 
   
   if (legend_seperate) { 
     figure_and_legend <- list("figure" = figure, 
@@ -2279,7 +2280,6 @@ save_figures<-function(figure,
 #' @param filename_desc Additional description text for the filename that will be added at the name of file before the filename extention, before the "_raw" or "_print". Default = "". Can be use to add a species name, location, or anything else that would make it easier to know what that file shows.
 #' @param nickname A unique name that can be used to identify the figure so it can be referenced later in the report.
 #' @param message TRUE/FALSE. Default = FALSE. If TRUE, it will print information about where your plot has been saved to.
-#' @importFrom magrittr |>
 #' @export
 #' @examples
 #' # Select data and make plot
