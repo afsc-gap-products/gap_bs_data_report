@@ -160,14 +160,14 @@ for (i in 1:nrow(report_spp)){
                      SPECIES_CODE = eval(expr = parse(text = report_spp$species_code[i]))))
 }
 
-# temp1 <- temp1 |> 
-#   dplyr::bind_rows(
-#     data.frame(
-#       GROUP_CODE = c(69322, 69323, 68560, 68580, 68590, 69400), 
-#       SPECIES_CODE = c(69322, 69323, 68560, 68580, 68590, 69400), 
-#       TAXON = "invert", 
-#       SPECIES_NAME = c("Paralithodes camtschaticus", "Paralithodes platypus", "Chionoecetes bairdi", "Chionoecetes opilio", "Chionoecetes hybrid", "Erimacrus isenbeckii"), 
-#       GROUP_NAME = c("red king crab", "blue king crab", "Tanner crab", "snow crab", "hybrid Tanner crab", "horsehair crab") ))
+temp1 <- temp1 |>
+  dplyr::bind_rows(
+    data.frame(
+      GROUP_CODE = c(69322, 69323, 68560, 68580, 68590, 69400),
+      SPECIES_CODE = c(69322, 69323, 68560, 68580, 68590, 69400),
+      TAXON = "invert",
+      SPECIES_NAME = c("Paralithodes camtschaticus", "Paralithodes platypus", "Chionoecetes bairdi", "Chionoecetes opilio", "Chionoecetes hybrid", "Erimacrus isenbeckii"),
+      GROUP_NAME = c("red king crab", "blue king crab", "Tanner crab", "snow crab", "hybrid Tanner crab", "horsehair crab") ))
 
 # filter temp1 for exisiting species codes in GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION
 # note. maybe gp_taxa is already called somewhere but directly pulling here.
@@ -329,7 +329,8 @@ complex_biomass <- complex_biomass_stratum |>
 dplyr::left_join(temp1 |> 
                    dplyr::select(SPECIES_CODE = GROUP_CODE, 
                                  COMMON_NAME = GROUP_NAME, 
-                                 TAXON, SPECIES_NAME) |> 
+                                 TAXON, 
+                                 SPECIES_NAME) |> 
                    dplyr::distinct())
 
 write.csv(x = complex_biomass, 

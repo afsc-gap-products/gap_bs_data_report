@@ -6,12 +6,12 @@ quarto <- FALSE
 options(scipen=999)
 
 maxyr <- 2025
-compareyr <- 2024
+compareyr <- c(2024, 2023)
 # compareyr0 <- 2023
 strat_yr <- 2022
-srvy <- "EBS" # "NEBS"
-ref_compareyr <- "@2024EBS" # CHANGE
-# ref_compareyr <- "@2023NEBS" # CHANGE
+srvy <- "NEBS" # "EBS"
+# ref_compareyr <- "@2024EBS" # CHANGE
+ref_compareyr <- "@2023NEBS" # CHANGE
 ref_compareyr_ebs <- "@2024EBS" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
 dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
@@ -41,7 +41,6 @@ googledrive::drive_auth()
 ## Source Scripts --------------------------------------------------------------
 
 report_title <- "data" 
-# devtools::install_github("afsc-gap-products/akgfmaps@shp2025", build_vignettes = TRUE)
 # devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
 # devtools::install_github("afsc-gap-products/coldpool")
 # devtools::install_github("afsc-gap-products/gapindex")

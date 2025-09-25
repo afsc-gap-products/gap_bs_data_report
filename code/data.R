@@ -1170,7 +1170,8 @@ biomass <- gap_products_akfin_biomass0 |>
     spp_info |> 
       dplyr::select(species_code, common_name, species_name, taxon), 
     by = "species_code") |>  
-  dplyr::bind_rows(complex_biomass0) |> 
+  dplyr::bind_rows(complex_biomass0 |> 
+                     dplyr::mutate(taxon = ifelse(is.na(taxon), "invert", taxon))) |> 
   dplyr::filter(
     area_id %in% as.numeric(strat0) &
       survey_definition_id %in% srvy00 &
