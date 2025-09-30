@@ -347,10 +347,11 @@ crab_data$catch <- crab_data$catch |>
 crab_data$size <- crab_data$size |> 
   dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
 
-crab_data$specimen <- crab_data$specimen |> 
-  dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
+write.csv(x = crab_data$size, 
+          file = here::here("data/sap_lengths.csv"), 
+          row.names = FALSE)
 
-crab_data$size <- crab_data$size |>
+crab_data$specimen <- crab_data$specimen |> 
   dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
 
 # Calculate size composition by stratum. See ?gapindex::calc_sizecomp_stratum

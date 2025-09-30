@@ -1198,6 +1198,7 @@ plot_pa_facet <- function(
                      color = "grey80",
                      alpha = 0.2)  +
     ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                expand = c(0, 0), 
                                 limits = reg_dat$plot.boundary$y,
                                 breaks = reg_dat$lat.breaks) +
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
@@ -1586,6 +1587,7 @@ plot_temperature_map <- function(raster_nebs,
                      fill = NA,
                      size = rel(0.2)) + 
     ggplot2::scale_y_continuous(name = "", #"Latitude", 
+                                expand = c(0, 0), 
                                 limits = reg_dat$plot.boundary$y, 
                                 breaks = reg_dat$lat.breaks) +
     ggplot2::scale_x_continuous(name = "", #"Longitude", 
@@ -1773,6 +1775,7 @@ plot_sizecomp <- function(sizecomp0,
                            na.value = "transparent", 
                            drop = FALSE) +
       ggplot2::scale_y_continuous(name = paste0("Population", pop_unit_word), 
+                                  expand = c(0, 0), 
                                   labels = scales::label_comma(accuracy = 1)) +
       ggplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
                                   labels = scales::label_comma(accuracy = 1))  +
@@ -1915,6 +1918,7 @@ plot_survey_stations <- function(reg_dat,
                      color = "grey80",
                      alpha = 0.2)  +
     ggplot2::scale_y_continuous(name = "Latitude", 
+                                expand = c(0, 0), 
                                 limits = reg_dat$plot.boundary$y,
                                 breaks = reg_dat$lat.breaks) +
     ggplot2::scale_x_continuous(name = "Longitude", 

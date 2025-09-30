@@ -52,11 +52,11 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   
   yrs <- sort(yrs, decreasing = TRUE)
   if (report_title0 == "pres") {
-  key.title <- 'CPUE (kg/km²)'
+    key.title <- 'CPUE (kg/km²)'
   } else {
-      key.title <- paste0(stringr::str_to_title(spp_print),
-                      '\n', 
-                      'CPUE (kg/km²)')
+    key.title <- paste0(stringr::str_to_title(spp_print),
+                        '\n', 
+                        'CPUE (kg/km²)')
   }
   # Select data ------------------------------------------------------------------
   if (length(spp_code) > 1) {
@@ -238,6 +238,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
                          color = "grey80",
                          alpha = 0.2) +
         ggplot2::scale_y_continuous(name = "", #"Latitude",
+                                    expand = c(0, 0),
                                     limits = reg_dat0$plot.boundary$y,
                                     breaks = reg_dat0$lat.breaks) +
         ggplot2::scale_x_continuous(name = "", #"Longitude",
@@ -358,6 +359,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
                          color = "grey80",
                          alpha = 0.2) +
         ggplot2::scale_y_continuous(name = "", #"Latitude",
+                                    expand = c(0, 0),
                                     limits = reg_dat0$plot.boundary$y,
                                     breaks = reg_dat0$lat.breaks) +
         ggplot2::scale_x_continuous(name = "", #"Longitude",
@@ -478,7 +480,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
 
 ```
 
-```{r fig-dist-[spp]-data}
+```{r fig-dist-[spp]-data, eval =  FALSE}
 yrs <- analysisyrs
 # if (spp_file == "greenland-turbot") {
 #   yrs <- c(2022, 2023, 2024)
@@ -561,7 +563,12 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
   #     dplyr::filter(group %in% spp_print)
   # } else {
   table_raw <- sizecomp |>
-    dplyr::filter(species_code %in% spp_code)
+    dplyr::filter(species_code %in% spp_code) 
+  
+  if (srvy != "NEBS") {
+    table_raw <- table_raw |> 
+      dplyr::filter(srvy == srvy)
+  }
   # }
   
   if (grepl(x = spp_print, pattern = "crab")) { # c("Unsexed", "Males", "Females", "Immature females", "Mature females")
@@ -687,6 +694,7 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
             divscale = FALSE)  +
             ggplot2::scale_y_continuous(
               name = paste0("Population", pop_unit_word),
+              expand = c(0, 0),
               limits = c(0, max(table_raw0$population_count)+max(table_raw0$population_count)*.1)) +
             ggplot2::scale_x_continuous(
               name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
@@ -757,8 +765,11 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
       
       
     } else if (report_title0 == "pres") {
+      
+      
+      
       header <- ""
-      if ("EBS" %in% table_raw$srvy) {
+      if ("EBS" %in% table_raw$srvy & srvy %in% c("NEBS", "EBS")) {
         figure1 <- figure_print <- plot_sizecomp(
           sizecomp0 = table_raw |> 
             dplyr::filter(srvy == "EBS") |> 
@@ -768,9 +779,10 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
           spp_print = stringr::str_to_sentence(spp_print),
           type = type,
           print_n = print_n, 
-          ridgeline = FALSE)
+          ridgeline = FALSE) + 
+          ggplot2::ggtitle("EBS")
       }
-      if ("NBS" %in% table_raw$srvy) {
+      if ("NBS" %in% table_raw$srvy & srvy %in% c("NEBS", "NBS")) {
         figure2 <- figure_print <- plot_sizecomp(
           sizecomp0 = table_raw |> 
             dplyr::filter(srvy == "NBS") |> 
@@ -780,9 +792,10 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
           spp_print = stringr::str_to_sentence(spp_print),
           type = type,
           print_n = print_n, 
-          ridgeline = FALSE)
+          ridgeline = FALSE) + 
+          ggplot2::ggtitle("NBS")
       }
-      if (sum(unique(table_raw$srvy) %in% c("NBS", "EBS")) == 2) {
+      if (sum(unique(table_raw$srvy) %in% c("NBS", "EBS")) == 2 & srvy %in% c("NEBS")) {
         figure_print <- cowplot::plot_grid(figure1, figure2)
       }
     }
@@ -849,23 +862,47 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 
 ```{r fig-sizecomp-[spp]-pres, eval = spp_plot_sizecomp}
-# srvy <- srvy1
 nickname <- paste0("fig-sizecomp-", spp_file, "-pres")
-yrs <- c(maxyr, compareyr)
 print_n <- FALSE
 height <- 4.5
 width <- 5
-legend_font_size <- 12
 report_title0 <- "pres"
+legend_font_size <- 12
 
-temp <- size_plot(srvy, yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
-pres_size <- temp$figure_print
-pres_size_txt <- temp$header
-for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+if (srvy == "EBS") {
+  yrs <- c(maxyr, compareyr)
+  temp <- size_plot(srvy, yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
+  pres_size <- temp$figure_print
+  pres_size_txt <- temp$header
+  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+} else {
+  yrs <- maxyr
+  # EBS 
+  temp <- size_plot(srvy = "EBS", yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
+  pres_size_ebs <- temp$figure_print
+  
+  # NBS 
+  temp <- size_plot(srvy = "NBS", yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
+  pres_size_nbs <- temp$figure_print
+  
+  # combine
+  pres_size <- cowplot::plot_grid(pres_size_ebs + 
+                                    ggplot2::theme(axis.title.x = element_blank(), 
+                                                   legend.position = "none"), 
+                                  pres_size_nbs + 
+                                    ggplot2::theme(axis.title.y = element_blank(), 
+                                                   legend.title.position = "none", 
+                                                   legend.title = element_blank()), 
+                                  nrow = 2, 
+                                  ncol = 1, 
+                                  rel_heights = .3, .7)
+}
+
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-sizecomp-[spp]-gif, eval = spp_plot_sizecomp}
+```{r fig-sizecomp-[spp]-gif, eval = FALSE}
+# eval - spp_plot_sizecomp
 yrs <- unique(cpue$year[cpue$species_code %in% unlist(a$species_code)]) # 1982:maxyr
 
 width <- full_page_landscape_width # 6.5  
@@ -974,6 +1011,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
     scale_x_continuous(name = "Age bin", 
                        breaks = function(age) unique(floor(pretty(seq(0, (max(age) + 1) * 1.1))))) +
     scale_y_continuous(name = paste0(spp_print, " population across years", unit_word),
+                       expand = c(0, 0),
                        labels = abs) + 
     ggplot2::facet_grid(rows = vars(year), cols = vars(srvy_long)) +
     ggplot2::theme(
@@ -1304,7 +1342,7 @@ header <- paste0("Summary of ",maxyr," catch presence, temperature ranges, and e
                  " survey area", plural_surveys, ". ")
 
 table_raw0 <- table_raw |> 
-    dplyr::select(-srvy) |> 
+  dplyr::select(-srvy) |> 
   dplyr::select(-srvy_long)
 table_print0 <- data.frame("var" = rownames(t(table_raw0))[-1], 
                            data.frame(t(table_raw0)[-1,]))  
@@ -1405,7 +1443,7 @@ temp <- table_raw |>
                       dplyr::select(srvy, stratum) |>
                       dplyr::distinct()) |>
   dplyr::left_join(data.frame(srvy = srvy1,
-                                  srvy_long = stringr::str_to_title(srvy11))) |>
+                              srvy_long = stringr::str_to_title(srvy11))) |>
   dplyr::mutate(stratum = as.character(stratum)) |>
   dplyr::arrange(stratum) |>
   dplyr::arrange(srvy) |>
@@ -1841,6 +1879,7 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
       labels = scales::label_number(accuracy = 1, big.mark = ""))  +
     ggplot2::scale_y_continuous(
       name = "", # spp_print, 
+      expand = c(0, 0),
       breaks = breaks_pretty(), 
       labels = scales::label_number(big.mark = ","), # accuracy = 1, 
       limits = c(0, NA)) +
@@ -1986,11 +2025,11 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r fig-combined-[spp]-pres, eval = TRUE}
 nickname <- paste0("fig-combined-", spp_file, "-pres")
-height <-8
+height <- 8
 width <- 10
 pres_dist1 <- pres_dist + 
   ggplot2::ggtitle("") #+ 
-  # ggplot2::guides(fill=guide_legend(title="CPUE (kg/km2)")) 
+# ggplot2::guides(fill=guide_legend(title="CPUE (kg/km2)")) 
 if (exists("pres_size")) {
   temp1 <- cowplot::plot_grid(pres_dist1, 
                               pres_size + 
@@ -2028,18 +2067,19 @@ temp2 <- cowplot::plot_grid(pres_timeseries +
 
 # then combine with the top row for final plot
 figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1,.7))
-figure_print <- ggdraw(add_sub(
-  plot = figure_print, 
-  label = paste0(pres_stats$srvy, " ", spp_print, " Biomass Mean: ", 
-                 round(x = pres_timeseries_mean$y_mean, digits = 1),
-                 " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
-                 pres_stats$`Biomass\n(t)`," (",
-                 gsub(pattern = "\n", replace = " ", 
-                      x = pres_stats$`Percent Change\nin Biomass`, fixed = TRUE), ")", 
-                 ". ", pres_stats$`Survey catch totals`, ". ", 
-                 collapse = "\n")
-))
-
+if (FALSE) { # TOLEDO
+  figure_print <- ggdraw(add_sub(
+    plot = figure_print, 
+    label = paste0(pres_stats$srvy, " ", spp_print, " Biomass Mean: ", 
+                   round(x = pres_timeseries_mean$y_mean, digits = 1),
+                   " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
+                   pres_stats$`Biomass\n(t)`," (",
+                   gsub(pattern = "\n", replace = " ", 
+                        x = pres_stats$`Percent Change\nin Biomass`, fixed = TRUE), ")", 
+                   ". ", pres_stats$`Survey catch totals`, ". ", 
+                   collapse = "\n")
+  ))
+}
 header = paste0(
   "Figure A: ", pres_dist_txt, 
   "Figure B: ", pres_size_txt, 

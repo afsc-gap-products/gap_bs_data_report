@@ -896,23 +896,36 @@ length_type$sentancefrag <- c("fork lengths",
                               "modal lengths",
                               "frequency of lengths estimated using size composition proportions from adjacent hauls with similar catch composition")
 
-## length ----------------------------------------------------------------------
+## lengths ---------------------------------------------------------------------
 
 print("lengths")
 
-lengths_sap <- dplyr::bind_rows(
-  crab_ebscrab0|>
-    dplyr::filter(!(cruise %in% unique(crab_ebscrab_nbs0$cruise)))|> # there may be some nbs data in the ebs (201002)
-    dplyr::mutate(srvy = "EBS"),
-  crab_ebscrab_nbs0|>
-    dplyr::mutate(srvy = "NBS") )|> 
-  dplyr::group_by(cruise, species_code) |> 
-  dplyr::summarise(frequency = n())|> 
-  dplyr::ungroup()|> 
-  dplyr::right_join(y = cruises|> 
-                      dplyr::select(survey_definition_id, year, cruise)|> 
+# lengths_sap <- dplyr::bind_rows(
+#   crab_ebscrab0|>
+#     dplyr::filter(!(cruise %in% unique(crab_ebscrab_nbs0$cruise)))|> # there may be some nbs data in the ebs (201002)
+#     dplyr::mutate(srvy = "EBS"),
+#   crab_ebscrab_nbs0|>
+#     dplyr::mutate(srvy = "NBS") )|> 
+#   dplyr::group_by(cruise, species_code) |> 
+#   dplyr::summarise(frequency = n())|> 
+#   dplyr::ungroup()|> 
+#   dplyr::right_join(y = cruises|> 
+#                       dplyr::select(survey_definition_id, year, cruise)|> 
+#                       dplyr::distinct())|> 
+#   dplyr::select(-cruise)|> 
+#   dplyr::mutate(length_type = dplyr::case_when(
+#     species_code %in% c(68541, 68550, 68560) ~ 8,
+#     TRUE ~ 7) )
+
+lengths_sap <- 
+  sap_lengths0 |>
+    dplyr::rename_all(tolower) |> 
+  dplyr::group_by(cruisejoin, species_code) |> 
+  dplyr::summarise(frequency = sum(frequency, na.rm = TRUE))|> 
+  dplyr::ungroup() |> 
+  dplyr::right_join(cruises|> 
+                      dplyr::select(survey_definition_id, year, cruisejoin)|> 
                       dplyr::distinct())|> 
-  dplyr::select(-cruise)|> 
   dplyr::mutate(length_type = dplyr::case_when(
     species_code %in% c(68541, 68550, 68560) ~ 8,
     TRUE ~ 7) )
@@ -1100,6 +1113,7 @@ sizecomp <- gap_products_akfin_sizecomp0 |>
                    by  = "species_code") |> 
   dplyr::bind_rows(
     crab_sizecomp0 |> 
+      dplyr::rename_all(tolower) |> 
       dplyr::mutate(
         area_id = dplyr::case_when(
           survey_definition_id == 143 ~ 99902, 
@@ -1242,3 +1256,4 @@ total_biomass <- biomass |>
     y = data.frame(survey_definition_id = report_types$NEBS$srvy00, 
                    srvy = report_types$NEBS$srvy1, 
                    srvy_long = report_types$NEBS$srvy11))
+
