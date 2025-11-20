@@ -6,7 +6,7 @@ quarto <- FALSE
 options(scipen=999)
 
 maxyr <- 2025
-compareyr <- c(2024, 2023)
+compareyr <- c("EBS" = 2024, "NBS" = 2023)
 # compareyr0 <- 2023
 strat_yr <- 2022
 srvy <- "NEBS" # "EBS"
@@ -32,10 +32,11 @@ dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")
 # dl_change_start <- "24-APR-02 11.00.00 PM"
 # dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
 
+if (access_to_internet) {
 googledrive::drive_deauth()
 googledrive::drive_auth()
 2  # Set this to 1 when first running to allow access in subsequent sessions
-
+}
 # Data Report ------------------------------------------------------------------
 
 ## Source Scripts --------------------------------------------------------------

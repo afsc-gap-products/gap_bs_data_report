@@ -111,9 +111,10 @@ plural_surveys <- ifelse(length(srvy1) > 1, "s", "")
 
 print("Load google drive data")
 
-id_googledrive <- googledrive::as_id(dir_googledrive)
 
 if (access_to_internet ) {
+  
+  id_googledrive <- googledrive::as_id(dir_googledrive)
   
   # Species Covered
   # https://docs.google.com/spreadsheets/d/10Pn3fWkB-Jjcsz4iG7UlR-LXbIVYofy1yHhKkYZhv2M/edit?usp=sharing
@@ -531,7 +532,8 @@ haul_maxyr <- haul|>
   dplyr::filter(year == maxyr)
 
 haul_compareyr <- haul|> 
-  dplyr::filter(year == compareyr[1])
+  dplyr::right_join(data.frame(srvy = names(compareyr), 
+                               year = compareyr))
 
 station <- station |> 
   dplyr::full_join(
@@ -621,9 +623,9 @@ nbsyr <- gap_products_akfin_cruise0|>
   unlist()|> 
   sort(decreasing = FALSE)
 
-if ("NBS" %in% srvy1) {
-  analysisyrs <- nbsyr
-} else {
+# if ("NBS" %in% srvy1) {
+#   analysisyrs <- nbsyr
+# } else {
   analysisyrs <- gap_products_akfin_cruise0|> 
     dplyr::filter(#survey_definition_id == 143 & 
       year <= maxyr)|> 
@@ -632,7 +634,7 @@ if ("NBS" %in% srvy1) {
     unlist()|> 
     sort(decreasing = FALSE)
   analysisyrs <- analysisyrs[(length(analysisyrs)-5):length(analysisyrs)]
-}
+# }
 
 lastyr <- max(haul$year[haul$year != maxyr])
 
@@ -843,7 +845,8 @@ haul_cruises_maxyr <- haul_cruises|>
   dplyr::filter(year == maxyr)
 
 haul_cruises_compareyr <- haul_cruises|> 
-  dplyr::filter(year == compareyr)
+  dplyr::right_join(data.frame(srvy = names(compareyr), 
+                               year = compareyr))
 
 ## catch_haul_cruises_maxyr + maxyr-1-------------------------------------------
 
@@ -872,7 +875,8 @@ catch_haul_cruises_maxyr <- catch_haul_cruises |>
   dplyr::filter(year == maxyr)
 
 catch_haul_cruises_compareyr <- catch_haul_cruises |> 
-  dplyr::filter(year == compareyr)
+  dplyr::right_join(data.frame(srvy = names(compareyr), 
+                               year = compareyr))
 
 ## length_type -----------------------------------------------------------------
 
@@ -985,7 +989,8 @@ specimen <- gap_products_akfin_specimen0|>
   dplyr::arrange(desc(year))
 
 specimen_compareyr <- specimen|> 
-  dplyr::filter(year == compareyr)
+  dplyr::right_join(data.frame(srvy = names(compareyr), 
+                               year = compareyr))
 
 specimen_maxyr <- specimen|> 
   dplyr::filter(year == maxyr)
@@ -1142,8 +1147,9 @@ sizecomp <- gap_products_akfin_sizecomp0 |>
 sizecomp_maxyr <- sizecomp|>
   dplyr::filter(year == maxyr)
 
-sizecomp_compareyr <- sizecomp|>
-  dplyr::filter(year == compareyr[1])
+sizecomp_compareyr <- sizecomp |>
+  dplyr::right_join(data.frame(srvy = names(compareyr), 
+                               year = compareyr))
 
 ## agecomps -------------------------------------------------------------------
 
@@ -1173,8 +1179,8 @@ agecomp_maxyr <- agecomp|>
   dplyr::filter(year == maxyr)
 
 agecomp_compareyr <- agecomp|>
-  dplyr::filter(year == compareyr[1])
-
+  dplyr::right_join(data.frame(srvy = names(compareyr), 
+                               year = compareyr))
 ## biomass ---------------------------------------------------------------------
 
 print("biomass")
@@ -1217,8 +1223,8 @@ biomass_maxyr <- biomass |>
 
 biomass_compareyr <- biomass|>
   # dplyr::filter(stratum == 999)|>
-  dplyr::filter(year == compareyr[1])
-
+  dplyr::right_join(data.frame(srvy = names(compareyr), 
+                               year = compareyr))
 # temp <- spp_info|> 
 #   dplyr::filter((species_code >= 40000 &
 #                    species_code < 99991) |

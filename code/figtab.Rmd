@@ -42,7 +42,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```
 
 
-```{r fig-survey-points-strat}
+```{r fig-survey-points-strata}
 # for community highlights
 nickname <- "fig-survey-points-strata"
 
@@ -65,7 +65,7 @@ reg_dat0$survey.grid <- reg_dat0$survey.grid|>
 figure_print <- plot_survey_stations(reg_dat = reg_dat0, 
                                      survey_outline = ifelse(plural_surveys == "s", TRUE, FALSE), 
                                      stratum_grid = TRUE, 
-                                     stratum_no = TRUE, 
+                                     stratum_no = FALSE, 
                                      station_pts = "pts", 
                                      place_labels = TRUE, 
                                      bathymetry = FALSE)
@@ -922,7 +922,7 @@ plot_mean_temperatures <- function(maxyr, srvy){
   color_sst <- col[2] 
   color_bt <- col[1] 
   
-  figure <- ggplot(data = all_temperatures,
+  figure <- ggplot2::ggplot(data = all_temperatures,
                    mapping = aes(x = YEAR,
                                  y = value,
                                  color = variable,
@@ -939,8 +939,9 @@ plot_mean_temperatures <- function(maxyr, srvy){
     scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
                        expand = c(0, 0),
                        limits = c(0,11.2),
-                       breaks = seq(0,12,2),
-                       expand = c(0,0))  + 
+                       breaks = seq(0,12,2)#,
+                       # expand = c(0,0)
+                       )  + 
     scale_x_continuous(breaks = scales::pretty_breaks(), 
                        name = "Year") +
     guides(
@@ -1060,30 +1061,30 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
   
   # ggplot(table_raw, aes(x=x,ymax=ymax,ymin=ymin, fill=z)) + geom_ribbon()
   
-  figure <- ggplot2::ggplot(data = table_raw, 
+  figure_plot <- ggplot2::ggplot(data = table_raw, 
                             mapping = aes(x = year,
                                           ymax = ymax, 
                                           ymin = ymin, 
                                           fill = variable)) + 
-    geom_ribbon() + 
-    scale_fill_manual(name = "", # "Temperature", 
+    ggplot2::geom_ribbon() + 
+    ggplot2::scale_fill_manual(name = "", # "Temperature", 
                       values = viridis::mako(4, direction = -1, begin = 0.2, end = .8)) +  
-    scale_y_continuous(name = "Proportion of Survey Area",
+    ggplot2::scale_y_continuous(name = "Proportion of Survey Area",
                        expand = c(0, 0),
                        limits = c(0, 1),
-                       expand = c(0, 0),
+                       # expand = c(0, 0),
                        breaks = seq(0,1,0.1)) +
-    scale_x_continuous(name = "Year", 
+    ggplot2::scale_x_continuous(name = "Year", 
                        limits = c(min(table_raw$year)-0.5,
                                   maxyr + ifelse((is.na(table_raw$proportion[table_raw$year == (maxyr-1)][1])), 1, .5)), 
-                       expand = c(0, 0),
+                       # expand = c(0, 0),
                        breaks = c(seq(1980, maxyr, 5))) +
     # ggplot2::guides(
     #   fill = guide_legend(title.position = "top",
     #                       title.hjust = 0.5,
     #                       title.vjust = -0.5)) +
-    theme_bw() +
-    theme(
+    ggplot2::theme_bw() +
+    ggplot2::theme(
       panel.background = element_rect(fill = "white", colour = NA), 
       panel.border = element_rect(fill = NA, colour = "grey20"), 
       panel.grid.minor = element_blank(),
@@ -1096,9 +1097,9 @@ plot_coldpool_area <- function(coldpool_ebs_bin_area, maxyr, minyr = 1982) {
       legend.position = "bottom",
       legend.box = "horizontal", 
       legend.box.spacing = unit(0, "pt")) +
-    ggtitle("Eastern Bering Sea")
+    ggplot2::ggtitle("Eastern Bering Sea")
   
-  return(figure)
+  return(figure_plot)
 }
 
 figure_print <- plot_coldpool_area(coldpool_ebs_bin_area = coldpool_ebs_bin_area, maxyr = maxyr)
@@ -1244,7 +1245,7 @@ for (case in c("bottom", "surface")) {
 }
 ```
 
-```{r tab-specimen-samples-}
+```{r tab-specimen-samples-, eval = FALSE}
 nickname0 <- paste0("tab-specimen-samples-") 
 
 # length data - from oracle
@@ -1696,11 +1697,14 @@ table_raw0 <-
                       replacement = "smelts",
                       x = print_name, fixed = TRUE), 
     print_name1 = print_name, 
-    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))
+    print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), 
+                        substr(print_name, start = 2, stop = nchar(print_name))))
 
 table_raw0$maxyr <- unlist(table_raw0[names(table_raw0) %in% maxyr])
-table_raw0$compareyr <- unlist(table_raw0[names(table_raw0) %in% compareyr])
+table_raw0$compareyr <- unlist(table_raw0[names(table_raw0) %in% max(compareyr)])
+table_raw0$compareyr1 <- unlist(table_raw0[names(table_raw0) %in% min(compareyr)])
 
+for (i in 1:nrow(haul_cruises_maxyr)) {
 table_raw0 <- table_raw0 |> 
   dplyr::mutate(
     change = pchange(start = compareyr, end = maxyr, value_only = TRUE), 
@@ -1709,7 +1713,25 @@ table_raw0 <- table_raw0 |>
     change0 = change,
     change = paste0(formatC(x = change, big.mark=",", digits = 1, format = "f"), "%") ) |> 
   dplyr::ungroup()  |>
-  dplyr::arrange(desc(change0)) 
+  dplyr::arrange(desc(change0))
+} else {
+  table_raw0 <- table_raw0 |> 
+  dplyr::mutate(
+    change = pchange(start = compareyr, end = maxyr, value_only = TRUE), 
+    # change = pchange(start = maxyr, end = compareyr, value_only = TRUE), 
+    dplyr::across(where(is.character), gsub, pattern = "NA", replacement = ""), 
+    change0 = change,
+    change = paste0(formatC(x = change, big.mark=",", digits = 1, format = "f"), "%") ) |> 
+  dplyr::ungroup()  |>
+      dplyr::mutate(
+    change2 = pchange(start = compareyr1, end = maxyr, value_only = TRUE), 
+    # change = pchange(start = maxyr, end = compareyr, value_only = TRUE), 
+    dplyr::across(where(is.character), gsub, pattern = "NA", replacement = ""), 
+    change11 = change1,
+    change = paste0(formatC(x = change1, big.mark=",", digits = 1, format = "f"), "%") ) |> 
+  dplyr::ungroup()  |>
+  dplyr::arrange(desc(change1))
+}
 
 # identify which species complexes you need
 temp <- dplyr::left_join(
@@ -1748,7 +1770,7 @@ table_print0 <- dplyr::bind_rows(
   table_print0 |> dplyr::filter(change == "-"),
 )
 
-for (i in 1:c(nrow(haul_cruises_maxyr))) {
+for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0(
     "Total estimated biomass (t) and the percent change between the ",
@@ -1759,7 +1781,9 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
   
   table_raw  <- table_raw0
-  table_print <- table_print0  |> 
+  
+  if (length(compareyr) == 1) {
+      table_print <- table_print0  |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select(-srvy, -change0) |>
     flextable::flextable(
@@ -1769,11 +1793,40 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
                      i = ~ grepl(pattern = "-[0-9]+", x = change), 
                      j = "change") |> 
-    flextable::width(j = "change", width = 1) |> 
+    flextable::width(j = "change", width = 1) 
+      
+  table_print <- table_print |> 
     flextable::set_header_labels(.,
                                  print_name = "Common name", 
                                  dummy = "Scientific name", 
-                                 change = paste0("Change (", maxyr, ", ", compareyr, ")" )) |> 
+                                 change = paste0("Change (", maxyr, ", ", max(compareyr), ")" ))
+  } else {
+      table_print <- table_print0  |> 
+    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
+    dplyr::select(-srvy, -change0) |>
+    flextable::flextable(
+      col_keys = c("print_name",
+                   yrs, 
+                   "change1", 
+                   "change2")) |>
+    flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
+                     i = ~ grepl(pattern = "-[0-9]+", x = change), 
+                     j = "change1") |> 
+        flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
+                     i = ~ grepl(pattern = "-[0-9]+", x = change), 
+                     j = "change2") |> 
+    flextable::width(j = "change1", width = 1)  |> 
+    flextable::width(j = "change2", width = 1) 
+      
+  table_print <- table_print |> 
+    flextable::set_header_labels(.,
+                                 print_name = "Common name", 
+                                 dummy = "Scientific name", 
+                                 change1 = paste0("Change (", maxyr, ", ", min(compareyr), ")" ), 
+                                 change2 = paste0("Change (", maxyr, ", ", max(compareyr), ")" ))
+  }
+  
+  table_print <- table_print |> 
     theme_flextable_nmfstm(row_lines = TRUE, 
                            pgwidth = full_page_portrait_width) |> 
     flextable::align(part = "all", align = "right") |>
