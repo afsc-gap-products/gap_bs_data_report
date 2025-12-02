@@ -46,7 +46,7 @@ temp0 <- temps_avg_yr|>
 if (temp0$bt_case == temp0$st_case) {
 
 str0 <- paste0("The ", maxyr, " mean bottom and surface temperatures ",
-               ifelse(plural_surveys == "", "in the eastern Bering Sea"), ", ",
+               ifelse(plural_surveys == "", "", "in the eastern Bering Sea"), ", ",
                 temp0$bt, "°C and ", temp0$st, "°C, were ",
                 temp0$bt_case, # only need to list one
                 " the time-series averages of ",
@@ -245,11 +245,12 @@ for (i in 1:length(srvy1)){
   srvy22 <- srvy11[i]
 
   temp_max <- sum(total_biomass$total[total_biomass$srvy == srvy2 & total_biomass$year == maxyr], na.rm = TRUE)
-  temp_compare <- sum(total_biomass$total[total_biomass$srvy == srvy2 & total_biomass$year == compareyr], na.rm = TRUE)
+  temp_compare <- sum(total_biomass$total[total_biomass$srvy == srvy2 & total_biomass$year == compareyr[names(compareyr) == srvy2]], na.rm = TRUE)
   total_biomass_new <- total_biomass  # copy of total_biomass that can be updated
   # Filter for last five years for EBS
   if(srvy2 == "EBS") {
-    total_biomass_new <- total_biomass_new|> filter(year >= maxyr - 5)
+    total_biomass_new <- total_biomass_new|> 
+      dplyr::filter(year >= maxyr - 5)
   }
   temp_mean <- total_biomass_new|> 
     dplyr::group_by(srvy, year)|> 
@@ -276,7 +277,7 @@ for (i in 1:length(srvy1)){
     ifelse(temp_compare < temp_max, "an increase", "a decrease"),
     " from ", 
     xunits(temp_compare),
-    " t in ", compareyr, ", and ",
+    " t in ", compareyr[names(compareyr) == srvy2], ", and ",
     ifelse(temp_mean$total_mean < temp_max, "greater", "less"),
     period, 
     xunits(temp_mean$total_mean), " t. ")
@@ -288,7 +289,7 @@ str0_biomass <- paste0(
   str00, 
   "A total of ", fish_sp ," fish taxa and ", invert_spp, 
   " invertebrate taxa were identified", 
-  ifelse(plural_surveys == "", "", paste0(" on the", SURVEY, "survey")), plural_surveys, ". ")
+  ifelse(plural_surveys == "", "", paste0(" on the", SURVEY)), plural_surveys, ". ")
 
 # Conclusion -------------------------------------------------------------------
 str0_conclusion <-  paste0(readLines(con = paste0(dir_out_rawdata, "/0-abstract-conclusion.Rmd"), skipNul = TRUE), collapse = "")

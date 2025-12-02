@@ -76,6 +76,8 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
   obj1 <- obj
   
     temp1 <- obj1$raw|> 
+      dplyr::select(common_name = common_name0) |> 
+      dplyr::mutate(-common_name0) |> 
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE)))
   
@@ -116,7 +118,8 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
   # count taxon used in each sample
   temp1 <- temp1|> 
     dplyr::select(-common_name)|>
-    tidyr::pivot_longer(cols = names(.), names_to = "var", values_to = "val")|> 
+    tidyr::pivot_longer(cols = names(temp1|> dplyr::select(-common_name)), 
+                        names_to = "var", values_to = "val") |> 
     dplyr::filter(val != 0)|> 
     dplyr::group_by(var)|> 
     dplyr::summarise(n = n())|> 

@@ -1241,11 +1241,11 @@ for (case in c("bottom", "surface")) {
   figure_print <- a$figure_print
   header <- a$header
   
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
-```{r tab-specimen-samples-, eval = FALSE}
+```{r tab-specimen-samples-}
 nickname0 <- paste0("tab-specimen-samples-") 
 
 # length data - from oracle
@@ -1264,25 +1264,30 @@ a <- specimen_maxyr |>
   dplyr::summarise(age = as.numeric(n())) |> 
   dplyr::ungroup()
 
-s <- foodlab_predprey0 |>
-  dplyr::left_join(foodlab_haul0) |>
-  dplyr::filter(#region == "BS" & 
-                  cruise_type == "Race_Groundfish") |> 
-  dplyr::select(year, cruise, haul, type, hauljoin) |> 
-  dplyr::select(year, type, hauljoin, sta_id_let, sta_id_num, haul) |>
-  dplyr::filter(sta_id_num != 0) |>
-  dplyr::left_join(haul |>
-                     dplyr::select(hauljoin, survey_definition_id, srvy, year)) |>
-  dplyr::filter(!is.na(survey_definition_id)) |>
-  dplyr::mutate(
-    type_desc = dplyr::case_when(
-      type == 1 ~ "Unknown",
-      type == 2 ~ "REEM personnel shipboard scans",
-      type == 3 ~ "representing laboratory scans",
-      type == 4 ~ "representing non-REEM personnel shipboard scans and all shipboard scans performed prior to 2004",
-      type == 6 ~ "representing quantitative laboratory analysis (pred-prey form or all prey weighed)",
-      type == 9 ~ "representing plant collected (observer) data"
-      ))
+# s <- foodlab_predprey0 |>
+#   dplyr::left_join(foodlab_haul0, 
+#                    by = c("year", "vessel", "cruise", "haul")) |> # , "hauljoin"
+#   # dplyr::filter(region == "BS" & 
+#   #                 cruise_type == "Race_Groundfish") |> 
+#   dplyr::select(year, vessel, cruise, haul, predjoin, nodc = pred_nodc, region, cruise_type) |> # , hauljoin
+# dplyr::left_join(foodlab_nodc0 |> dplyr::select(nodc, race, name)) |>
+# dplyr::left_join(haul |> dplyr::select(haul, cruise, year, vessel = vessel_id, hauljoin, srvy)) |>
+#   dplyr::filter()
+#  |> 
+#   # dplyr::select(year, type, hauljoin, sta_id_let, sta_id_num, haul) |>
+#   dplyr::filter(sta_id_num != 0) |>
+#   dplyr::left_join(haul |>
+#                      dplyr::select(hauljoin, survey_definition_id, srvy, year)) |>
+#   dplyr::filter(!is.na(survey_definition_id)) |>
+#   dplyr::mutate(
+#     type_desc = dplyr::case_when(
+#       type == 1 ~ "Unknown",
+#       type == 2 ~ "REEM personnel shipboard scans",
+#       type == 3 ~ "representing laboratory scans",
+#       type == 4 ~ "representing non-REEM personnel shipboard scans and all shipboard scans performed prior to 2004",
+#       type == 6 ~ "representing quantitative laboratory analysis (pred-prey form or all prey weighed)",
+#       type == 9 ~ "representing plant collected (observer) data"
+#       ))
 
 # other collections not in oracle
 temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/other-field-collections.xlsx"), 
@@ -1314,6 +1319,7 @@ table_raw0 <-
   dplyr::full_join(y = temp, 
                    by = c("srvy", "common_name" = "print_name")) |> 
   dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0)), 
+                common_name0 = common_name, 
                 common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name)))
   ) |>
   dplyr::select(-species_code) |> 
@@ -1337,6 +1343,7 @@ table_raw0 <-
 # Shouldn't have to do this but idk how else to solve this alphabetization issue
 table_raw0 <- table_raw0[order(table_raw0$common_name),]
 table_raw0$common_name[table_raw0$common_name == "ZZZTotal"] <- "Total"
+table_raw0 <- table_raw0[!grepl(x = table_raw0$common_name, pattern = "NA"),]
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
@@ -1348,14 +1355,14 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select(where(~ any(. != 0)))
   
-  names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name"))] <-
-    stringr::str_to_sentence(names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name"))])
+  names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name", "common_name0"))] <-
+    stringr::str_to_sentence(names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name", "common_name0"))])
   
-  names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name"))] <- 
+  names(table_raw)[!(names(table_raw) %in% c("srvy", "common_name", "common_name0"))] <- 
     (gsub(pattern = "_",
           replacement = "\n", 
           x = names(table_raw)[!(names(table_raw) %in% 
-                                   c("srvy", "common_name"))], 
+                                   c("srvy", "common_name", "common_name0"))], 
           fixed = TRUE))
   names(table_raw)[names(table_raw) == "Otolith\nage\nstructure\nsamples"] <- 
     "Otolith age\nstructure samples"
@@ -1365,6 +1372,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     "Genetic\nfin clip\nsamples"
   
   table_print <- table_raw |> 
+    dplyr::select(-common_name0) |>
     dplyr::mutate(across(where(is.numeric), 
                          formatC, big.mark=",", digits = 0, format = "f")) |> 
     dplyr::ungroup() |> 
@@ -1385,7 +1393,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::width(width = (5/(ncol(table_raw)-2)), unit = "in") |>
     flextable::width(j = "common_name", width = 1.5, unit = "in")
   
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1969,7 +1977,7 @@ header <- paste0("Biomass and abundance change for species in ",
                  maxyr, " and ", compareyr," ", SURVEY, 
                  " survey.")
 
-table_raw <- biomass |>
+table_raw <- dplyr::bind_rows(biomass_maxyr, biomass_compareyr) |>
   dplyr::left_join(
     #   x = biomass, 
     y = report_spp1 |>
@@ -2007,7 +2015,9 @@ table_raw <- biomass |>
     order = as.numeric(order), 
     biomass = paste0(biomass_compareyr, "\n", biomass_maxyr), 
     population = paste0(population_compareyr, "\n", population_maxyr), 
-    year = paste0(compareyr, "\n", maxyr)) |> 
+    year = dplyr::case_when(
+      srvy == "EBS" ~ paste0(compareyr[names(compareyr) == "EBS"], "\n", maxyr), 
+      srvy == "NBS" ~ paste0(compareyr[names(compareyr) == "NBS"], "\n", maxyr))) |> 
   dplyr::select(order, common_name, srvy, year, biomass, population) |>
   # tidyr::pivot_longer(names_to = "var", 
   #                     values_to = "val", 
@@ -2018,13 +2028,14 @@ table_raw <- biomass |>
   #   grepl(x = var, pattern = "compareyr") ~ compareyr), 
   #   var = sapply((strsplit(x = var, split = "_")),"[[",1)) |> 
   # # final format
-  tidyr::pivot_wider(id_cols = c("order", "common_name", "year"),
-                     names_from = c("srvy"),
-                     values_from = c("biomass", "population")) |>
+  tidyr::pivot_wider(id_cols = c("order", "common_name"),
+                     names_from = c("srvy"), # , "year"
+                     values_from = c("biomass", "population", "year")) |>
   dplyr::arrange((order)) |>
   dplyr::select(-order) |>
   dplyr::ungroup() |> 
-  dplyr::relocate(common_name, year, dplyr::ends_with("_EBS"), dplyr::ends_with("_NBS"))
+  dplyr::relocate(common_name, dplyr::starts_with("year")) |>  # year, 
+  dplyr::relocate(common_name, dplyr::ends_with("_EBS"), dplyr::ends_with("_NBS")) # year, 
 
 h_r1 <- rep_len(x = " ", length.out = ncol(table_raw))
 h_r1[grepl(pattern = "EBS", x = names(table_raw))] <- "EBS"
@@ -2034,6 +2045,7 @@ h_r2 <- stringr::str_to_sentence(names(table_raw))
 h_r2 <- gsub(pattern = "_", replacement = " ", x = h_r2)
 h_r2[grepl(pattern = "Biomass", x = h_r2)] <- "Biomass (mt)"
 h_r2[grepl(pattern = "Population", x = h_r2)] <- "Population (x1,000)"
+h_r2[grepl(pattern = "Year", x = h_r2)] <- "Years"
 
 table_print <- table_raw |> 
   flextable::flextable()  |>  
@@ -2855,7 +2867,7 @@ return(list("figure_print" = figure_print,
 }
 ```
 
-```{r fig-diversity-shannon-gif}
+```{r fig-diversity-shannon-gif, eval = FALSE}
 yrs <- sort(unique(diversity$year))
 
 width <- full_page_portrait_width # 6.5  
@@ -2872,7 +2884,7 @@ for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-diversity-simpson-gif}
+```{r fig-diversity-simpson-gif, eval = FALSE}
 yrs <- sort(unique(diversity$year))
 
 width <- full_page_portrait_width # 6.5  
