@@ -28,13 +28,13 @@ spp_table_cpue <- a$table_cpue[1]
 spp_bin <- eval(expr = parse(text = a$dist_bin))
 ```
 
-```{r fig-spp, eval = (report_title == "pres")}
+```{r fig-spp}
 
 header <- spp_file
 nickname <- paste0("fig-", jj, "-", spp_file, "-0-pres")
 height <- width <- 5
 
-figure_print <- 
+pres_spp <- figure_print <- 
   cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
 
@@ -505,7 +505,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
 
 ```
 
-```{r fig-dist-[spp]-data, eval =  FALSE}
+```{r fig-dist-[spp]-data, eval =  TRUE}
 yrs <- analysisyrs
 # if (spp_file == "greenland-turbot") {
 #   yrs <- c(2022, 2023, 2024)
@@ -2173,6 +2173,60 @@ header = paste0(
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+```{r fig-combined-[spp]-comm}
+nickname <- paste0("fig-combined-", spp_file, "-comm")
+height <- full_page_portrait_height-3
+width <- full_page_portrait_width
+
+pres_timeseries <- pres_timeseries + 
+                              ggplot2::ggtitle("") + 
+                              ggplot2::guides(fill = "none") +
+                              ggplot2::labs(color = "") + 
+                              ggplot2::labs(shape = "") +
+                              ggplot2::theme(legend.position = "none")
+
+if (exists("pres_size")) {
+  figure_print <- cowplot::plot_grid(pres_dist, 
+                              cowplot::plot_grid(pres_size, pres_spp, ncol = 2, rel_widths = c(1.5, .5)), 
+                              pres_timeseries,
+                              nrow = 3, 
+                              rel_heights = c(1,1,.7))
+} else {
+  pres_size_txt <- "There are no sizecomps for this species. "
+  figure_print <- cowplot::plot_grid(pres_dist, 
+                                     pres_spp,
+                              pres_timeseries,
+                              nrow = 3, 
+                              rel_heights = c(1,1,.7))
+  height <- height-3
+
+}
+
+temp <- dplyr::left_join(pres_timeseries_mean, pres_stats)
+
+figure_print <- ggdraw(add_sub(
+  plot = figure_print, 
+  size = 10, 
+  label = paste0(paste0(spp_print, "\n"), 
+                paste0(temp$srvy, " Bio Mean: ", 
+                 round(x = temp$y_mean, digits = 1),
+                 " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
+                 temp$`Biomass\n(t)`," (",
+                 gsub(pattern = "\n", replace = " ", 
+                      x = temp$`Percent Change\nin Biomass`, fixed = TRUE), ")", 
+                 ". \n  ", temp$`Survey Catch Totals`, ". ", 
+                 collapse = "\n") )
+))
+# }
+header = paste0(
+  "Figure A: ", pres_dist_txt, 
+  "Figure B: ", pres_size_txt, 
+  "Figure C: ", pres_timeseries_txt)
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
 
 ```{r remove-odds-ends, eval = TRUE}
 remove("pres_dist")
