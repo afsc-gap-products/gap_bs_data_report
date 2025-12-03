@@ -73,11 +73,14 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
 ```{r specimen-collections}
   # obtain data
   load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))
+
+  obj$raw <- obj$raw |> 
+      dplyr::mutate(common_name = common_name0) |> 
+      dplyr::select(-common_name0)
+  
   obj1 <- obj
   
-    temp1 <- obj1$raw|> 
-      dplyr::select(common_name = common_name0) |> 
-      dplyr::mutate(-common_name0) |> 
+    temp1 <- obj1$raw |> 
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE)))
   
@@ -90,13 +93,13 @@ In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stat
   }
 
   temp1 <- dplyr::bind_rows(
-    obj1$raw|> 
+    obj1$raw |> 
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))), 
     obj$raw|> 
       dplyr::filter(common_name != "Total" &
                       !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) )|> 
-    dplyr::select(-srvy)|> 
+    dplyr::select(-srvy) |> 
     dplyr::group_by(common_name)|> 
     dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE)))|> 
     dplyr::ungroup()
@@ -183,8 +186,11 @@ temp <- total_biomass|>
   dplyr::group_by(year, srvy, srvy_long)|> 
   dplyr::summarise(biomass_mmt = round(sum(total, na.rm = TRUE)/1e6, digits = 1))|> 
   dplyr::ungroup()|> 
-  dplyr::arrange(desc(year))|> 
-  dplyr::filter(year %in% c(maxyr, compareyr))
+  dplyr::arrange(desc(year)) |>
+  dplyr::right_join(data.frame(srvy = c(names(compareyr), names(compareyr)), 
+                               year = c(compareyr, 
+                                        rep_len(x = maxyr, length.out = length(compareyr))))) # |> 
+  # dplyr::filter(year %in% c(maxyr, compareyr))
 ```
 
 In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$srvy == "EBS"] ` million metric tons (t) and the northern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$srvy == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$srvy_long[temp$year != maxyr], " shelf was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. 
@@ -301,7 +307,7 @@ temp2 <- total_biomass |>
 temp0 <- temp3 <- data.frame()
 str0 <- str00 <- c()
 
-yrs <- c(maxyr, compareyr)
+yrs <- c(maxyr, compareyr[names(compareyr) == "NBS"])
   
 for (i in 1:length(yrs)) {
   

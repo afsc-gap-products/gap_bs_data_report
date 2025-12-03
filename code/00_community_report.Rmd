@@ -44,9 +44,15 @@ knitr::opts_chunk$set(
 
 ```{r results-spp, echo=FALSE, results='asis'}
 src <- c()
-comb <- report_spp1|> dplyr::filter(!is.na(order))|> dplyr::select(file_name)|> unlist()|> unique()
-for (jj in 1:length(comb)) {
-  a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+comb <- sort(report_spp1|> dplyr::filter(!is.na(order))|> dplyr::select(file_name)|> unlist()|> unique())
+
+comb <- comb[!grepl(pattern = "octopuses", x = comb)] # temporary
+comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary
+comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
+# comb <- comb[!grepl(pattern = "eulachon", x = comb)] # temporary
+# comb <- comb[!grepl(pattern = "flathead", x = comb)] # temporary
+for (jj in comb[1]) { # [c(1:9, 11:16, 18:29, 31:length(comb))]
+  a <- report_spp1[which(report_spp1$file_name == jj), ]
   spp_code <- a$species_code
   aa <- catch_haul_cruises|> 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
@@ -56,6 +62,27 @@ for (jj in 1:length(comb)) {
 }
 res = knitr::knit_child(text = unlist(src), quiet = TRUE)
 cat(res, sep = '\n')
+```
+
+```{r results-spp0, echo=FALSE, results='asis'}
+# src <- c()
+# comb <- report_spp1|> dplyr::filter(!is.na(order))|> dplyr::select(file_name)|> unlist()|> unique()
+# 
+# comb <- comb[!grepl(pattern = "octopuses", x = comb)] # temporary
+# comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary
+# comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
+# 
+# for (jj in 1:length(comb)) {
+#   a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
+#   spp_code <- a$species_code
+#   aa <- catch_haul_cruises|> 
+#     dplyr::filter(species_code %in% spp_code & year == maxyr)
+#   if (nrow(aa)>0) {
+#   src[[jj]] <- knitr::knit_expand(paste0(dir_code, '06_results_spp.Rmd'))
+#   }
+# }
+# res = knitr::knit_child(text = unlist(src), quiet = TRUE)
+# cat(res, sep = '\n')
 ```
 
 ```{r endmatter, child = paste0(dir_code, "10_endmatter.Rmd"), results='asis'}
