@@ -25,13 +25,16 @@ if (sum(haul_cruises_maxyr$srvy %in% "NBS")>0) {
 
 temp <-  haul_cruises_maxyr |> 
   dplyr::mutate(survey_name = tolower(survey_name), 
-                survey_name = 
-                  gsub(pattern = "eastern bering sea crab/groundfish", 
-                       replacement = paste0("eastern Bering Sea groundfish and shellfish"), 
-                       x = survey_name), 
-                  gsub(pattern = "northern bering sea crab/groundfish survey", 
-                       replacement = paste0("northern Bering Sea groundfish and shellfish"), 
-                       x = survey_name))
+                survey_name = gsub(x = survey_name, pattern = "bering sea", replacement = "Bering Sea"), 
+                survey_name = gsub(x = survey_name, pattern = "shelf", replacement = "Shelf"), 
+                survey_name = gsub(x = survey_name, pattern = "crab/groundfish", replacement = "groundfish and shellfish"))
+                # survey_name = 
+                #   gsub(pattern = "eastern bering sea crab/groundfish", 
+                #        replacement = paste0("eastern Bering Sea groundfish and shellfish"), 
+                #        x = survey_name), 
+                #   gsub(pattern = "northern bering sea crab/groundfish", 
+                #        replacement = paste0("northern Bering Sea groundfish and shellfish"), 
+                #        x = survey_name))
 
 str0 <- gsub(pattern = " ,", replacement = ",", 
              x = text_list(paste0(temp$yrofsurvey, 
