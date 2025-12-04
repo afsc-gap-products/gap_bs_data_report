@@ -36,7 +36,7 @@ height <- width <- 5
 
 pres_spp <- figure_print <- 
   cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, ".png")) )
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -2127,7 +2127,7 @@ if (exists("pres_size")) {
                               NULL, 
                               pres_size, 
                               ncol = 3, 
-                              rel_widths = c(1,.1,.9))
+                              rel_widths = c(1,.2,.8)) # 1, .1., .9 worked for presentations
 } else {
   pres_size_txt <- "There are no sizecomps for this species. "
   temp1 <- cowplot::plot_grid(pres_dist, 
@@ -2178,7 +2178,19 @@ nickname <- paste0("fig-combined-", spp_file, "-comm")
 height <- full_page_portrait_height-2.5
 width <- full_page_portrait_width
 
-figure_print <- figure_print0
+temp2 <- cowplot::plot_grid(pres_timeseries + 
+                              ggplot2::ggtitle("") + 
+                              ggplot2::guides(fill = "none") +
+                              ggplot2::labs(color = "") + 
+                              ggplot2::labs(shape = "") +
+                              ggplot2::theme(legend.position = "none"), 
+                            pres_spp,
+                            ncol = 2, 
+                            rel_widths = c(1.4, .6)) 
+
+figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1.2,.8))
+
+
 header <- header0
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)

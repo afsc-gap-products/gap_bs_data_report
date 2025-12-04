@@ -1,7 +1,7 @@
 
 # Report knowns ----------------------------------------------------------------
 
-access_to_internet  <- FALSE # TRUE = redownload google drive tables and docs
+access_to_internet  <- TRUE # TRUE = redownload google drive tables and docs
 quarto <- FALSE
 options(scipen=999)
 
@@ -29,6 +29,7 @@ report_title <- "data"
 source(here::here("code","functions.R"))
 # source(here::here("code","data_dl.R"))  # Run when there is new data!
 source(here::here("code","data.R"))
+2 # no touchy! - Needed for Google Drive authentication
 
 ## Figures and Tables ----------------------------------------------------------
 
@@ -80,6 +81,7 @@ report_title <- "community"
 dir_googledrive <- dir_googledrive_comm
 source(here::here("code","functions.R"))
 source(here::here("code","data.R"))
+2 # no touchy! - Needed for Google Drive authentication
 
 ## Write report ----------------------------------------------------------------
 

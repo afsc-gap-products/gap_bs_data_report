@@ -35,10 +35,6 @@ str0_lang <- ""
 
 ```{r prep-cite-{{jj}}}
 
-if (report_title == "community") {
-  fig_comb <- paste0("\\@ref(fig:", "fig-combined-", spp_file, "-comm)")
-}
-
 if (spp_plot_idw) {
   fig_dist <- paste0("\\@ref(fig:", "fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
 }
@@ -56,15 +52,13 @@ if (spp_table_cpue) {
   tab_no <- paste0("\\@ref(tab:tab-est-", spp_file, "-num)")
 }
 
-fig_bt <- paste0("\\@ref(fig:fig-temperature-bt-1-", 
-                 ifelse(report_title == "data", "data", "comm"),
-                 ") and \\@ref(fig:fig-temperature-bt-2-", 
-                 ifelse(report_title == "data", "data", "comm"),
-                 ")")
-fig_st <- "\\@ref(fig:fig-temperature-st-1) and \\@ref(fig:fig-temperature-st-2)"
+fig_bt <- "\\@ref(fig:fig-temperature-bt-data)"
+fig_st <- "\\@ref(fig:fig-temperature-st-data)"
 
 if (report_title == "community") {
   tab_majorspp_bio <- tab_majortaxa_pchange <- c("\\@ref(tab-majortaxa-pchange-NBS)")
+  fig_comb <- paste0("\\@ref(fig:", "fig-combined-", spp_file, "-comm)")
+
 } else if (report_title == "data") {
   tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
   tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
@@ -85,18 +79,18 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 ### `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `{#`r spp_file`}
 
 ```{r spp-text-0-{{jj}}}
-img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
-fig_width <- 4
-fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
+# img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
+# fig_width <- 4
+# fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
 ```
 
 ```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
-if (fig_height > 4) {
-  fig_height <- 3
-  fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
-}
-cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
+# if (fig_height > 4) {
+#   fig_height <- 3
+#   fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
+# }
+# cowplot::ggdraw() +
+#   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
 
 ```{r res-spp-lang-{{jj}}}
@@ -256,8 +250,7 @@ if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to
 
 `r str0`
 
-```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
-```
+
 
 ```{r tab-stats-{{jj}}}
 nickname <- paste0("tab-stats-", spp_file)

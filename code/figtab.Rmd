@@ -1250,6 +1250,7 @@ yrs <- sort(unique(haul$year), decreasing = TRUE)
 yrs <- yrs[yrs != 2020][1:8]
 row0 <- 2
 reg_dat0 <- report_types$NEBS$reg_dat
+case_yr <- 1#:2
 
 for (case in c("bottom", "surface")) {
   nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr), "-pres")
@@ -1700,7 +1701,7 @@ for (i in 1:nrow(comb)) {
 ```{r tab-majortaxa-pchange-[srvy]}
 
 nickname0 <- "tab-majortaxa-pchange-" 
-yrs <- analysisyrs[(length(analysisyrs)-3):length(analysisyrs)]
+yrs <- analysisyrs[(length(analysisyrs)-2):length(analysisyrs)]
 
 table_raw0 <- 
   dplyr::left_join(
@@ -1800,8 +1801,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     dplyr::select_if(~ !all(is.na(.)))
   
   table_print <- table_print0  |>
-    flextable::flextable(data = ., 
-                         col_keys = c("print_name",
+    flextable::flextable(col_keys = c("print_name",
                                       yrs, 
                                       "change")) |>
     flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
@@ -1817,7 +1817,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     flextable::align(part = "all", align = "right") |>
     flextable::align(part = "all", align = "left", j = c("print_name"))
   
-  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
