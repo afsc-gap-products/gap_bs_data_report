@@ -1165,6 +1165,27 @@ temp <- function(yrs,
 ```
 
 ```{r fig-temperature-[st/bt]}
+height <- 3.5 # full_page_portrait_height
+width <- full_page_portrait_width
+yrs <- c(maxyr-2):maxyr
+row0 <- 1
+case_yr0 <- 1
+
+for (case in c("bottom", "surface")) {
+    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), 
+                       "-data")
+    a <- temp(yrs = yrs, 
+              row0 = row0, 
+              title0 = "", 
+              case = case)
+    figure_print <- a$figure_print
+    header <- a$header
+    
+    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+}
+```
+
+```{r fig-temperature-[st/bt]-old, eval = FALSE}
 height <- full_page_portrait_height+0.25
 width <- full_page_portrait_width
 yrs0 <- (maxyr-17):maxyr
@@ -1192,7 +1213,7 @@ for (case in c("bottom", "surface")) {
 }
 ```
 
-```{r fig-temperature-[st/bt]-comm}
+```{r fig-temperature-[st/bt]-comm, eval = FALSE}
 temperature_zscore <- FALSE
 height <- full_page_portrait_height+0.5
 width <- full_page_portrait_width
@@ -1241,7 +1262,7 @@ for (case in c("bottom", "surface")) {
   figure_print <- a$figure_print
   header <- a$header
   
-  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1393,7 +1414,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
     flextable::width(width = (5/(ncol(table_raw)-2)), unit = "in") |>
     flextable::width(j = "common_name", width = 1.5, unit = "in")
   
-  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1441,6 +1462,7 @@ temp_ebs <- table_raw |>
 
 temp_nbs <- table_raw |> 
   dplyr::filter(where == "nbs")
+
 names(temp_nbs) <- paste0(names(temp_nbs), "_")
 
 # make the same length so they can be bound together

@@ -8,32 +8,18 @@
 
 <!-- \newpage -->
 
-```{r fig-temperature-10}
-nickname <- "fig-temperature-bt-1-data"
+```{r fig-temperature-bt}
+nickname <- "fig-temperature-bt-data"
 ```
 
-```{r temperature-1-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r temperature-bt-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-```{r fig-temperature-20}
-nickname <- "fig-temperature-bt-2-data"
+```{r fig-temperature-st}
+nickname <- "fig-temperature-st-data"
 ```
 
-```{r temperature-2-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
-```
-
-```{r fig-temperature-30}
-nickname <- "fig-temperature-st-1-data"
-```
-
-```{r temperature-3-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
-```
-
-```{r fig-temperature-40}
-nickname <- "fig-temperature-st-2-data"
-```
-
-```{r temperature-4-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
+```{r temperature-st-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 ```{r fig-mean-temperature0}
@@ -53,33 +39,40 @@ nickname <- "fig-cold-pool-area"
 ## Survey Data and Specimen Collections
 
 ```{r tab-specimen-samples-howmany}
-  load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))
-  temp <- obj$raw
-  if (plural_surveys == "s") {
+load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))
+temp <- obj$raw
+if (plural_surveys == "s") {
   load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata"))
-    temp <- temp|> 
-      dplyr::bind_rows(obj$raw)
-  }
-  names(temp) <- gsub(x = names(temp), pattern = "\n", replacement = " ")
-  temp <- temp|>
-    dplyr::filter(common_name == "Total") |> 
-    dplyr::select(-common_name)|> 
-    dplyr::left_join(cruises_maxyr|> 
-                       dplyr::select(srvy, srvy_long)|> 
-                       dplyr::distinct())|> 
-    dplyr::mutate(across(where(is.numeric), xunits))
-  
-  # str00 <- grepl(x = names(temp|> 
-  #     dplyr::select(-dplyr::starts_with("srvy"))), pattern = " deployed")
-  # str00 <- ifelse(str00, "deployed ", "")
-  names(temp) <- gsub(x = names(temp), pattern = "Satellite tags deployed", replacement = "fish for satellite tagging")
-    
-  str0 <- c()
-  for (i in 1:nrow(temp)) {
-    temp0 <- t(temp[i, ]|> 
-      dplyr::select(-dplyr::starts_with("srvy")))
+  temp <- temp|> 
+    dplyr::bind_rows(obj$raw)
+}
+
+temp <- temp |> 
+  dplyr::mutate(common_name = common_name0, 
+                common_name = ifelse(is.na(common_name), "Total", common_name)) |> 
+  dplyr::select(-common_name0)
+
+names(temp) <- gsub(x = names(temp), pattern = "\n", replacement = " ")
+
+temp <- temp |>
+  dplyr::filter(common_name == "Total") |> 
+  dplyr::select(-common_name)|> 
+  dplyr::left_join(cruises_maxyr|> 
+                     dplyr::select(srvy, srvy_long)|> 
+                     dplyr::distinct()) |> 
+  dplyr::mutate(across(where(is.numeric), xunits))
+
+# str00 <- grepl(x = names(temp|> 
+#     dplyr::select(-dplyr::starts_with("srvy"))), pattern = " deployed")
+# str00 <- ifelse(str00, "deployed ", "")
+names(temp) <- gsub(x = names(temp), pattern = "Satellite tags deployed", replacement = "fish for satellite tagging")
+
+str0 <- c()
+for (i in 1:nrow(temp)) {
+  temp0 <- t(temp[i, ]|> 
+               dplyr::select(-dplyr::starts_with("srvy")))
   str0 <- paste0(str0, text_list(paste0(temp0, " ", tolower(rownames(temp0)) )), 
-                                 " during the ", 
+                 " during the ", 
                  ifelse(i == 1, paste0(maxyr, " "), ""), 
                  temp[i, "srvy_long"])
 }
@@ -115,39 +108,39 @@ temp <- dplyr::left_join(
   dplyr::filter(!is.na(taxon))
 
 temp1 <- temp|> 
-    dplyr::group_by(srvy, taxon)|> 
-    dplyr::summarise_all(dplyr::n_distinct, na.rm = TRUE)|> 
-    dplyr::left_join(
-      data.frame(srvy = srvy1, 
-                 srvy_long = srvy11))|> 
-      dplyr::mutate(dplyr::across(where(is.numeric), xunits)) 
+  dplyr::group_by(srvy, taxon)|> 
+  dplyr::summarise_all(dplyr::n_distinct, na.rm = TRUE)|> 
+  dplyr::left_join(
+    data.frame(srvy = srvy1, 
+               srvy_long = srvy11))|> 
+  dplyr::mutate(dplyr::across(where(is.numeric), xunits)) 
 
 for (i in 1:length(unique(temp1$srvy))) {
   temp0 <- temp1|> 
     dplyr::filter(srvy == unique(temp1$srvy)[i])
   
-str0 <- paste0(
-  "A total of ",temp0$species_code[temp0$taxon == "fish"],
-  " fish taxa representing ",temp0$family[temp0$taxon == "fish"],
-  " families and ",temp0$genus[temp0$taxon == "fish"],
-  " genera were identified during the ",
-  maxyr," ",SURVEY," survey",plural_surveys," (Appendix Table", plural_surveys,
-  " A \\@ref(tab:tab-app-taxa-found-EBS-fish)", 
-  ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", ""),
-  "). Of these ",
-  temp0$species_code[temp0$taxon == "fish"]," taxa, ",
-  temp0$species[temp0$taxon == "fish"]," were identified to species level, while the remaining taxa were identified to the lowest taxonomic level (most often genus) by field scientists. ",
-               
-  "Similarly, ",
-  temp0$species_code[temp0$taxon == "invert"],
-  " different invertebrate taxa representing ",
-               temp0$phylum[temp0$taxon == "invert"],
-  " phyla were identified on the ",maxyr," survey; ",
-  temp0$species[temp0$taxon == "invert"],
-  " taxa were identified to species level (Appendix Table", plural_surveys,
-  " A \\@ref(tab:tab-app-taxa-found-EBS-invertebrate)", 
-  ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)", ""),
-  "). ")
+  str0 <- paste0(
+    "A total of ",temp0$species_code[temp0$taxon == "fish"],
+    " fish taxa representing ",temp0$family[temp0$taxon == "fish"],
+    " families and ",temp0$genus[temp0$taxon == "fish"],
+    " genera were identified during the ",
+    maxyr," ",SURVEY," survey",plural_surveys," (Appendix Table", plural_surveys,
+    " A \\@ref(tab:tab-app-taxa-found-EBS-fish)", 
+    ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", ""),
+    "). Of these ",
+    temp0$species_code[temp0$taxon == "fish"]," taxa, ",
+    temp0$species[temp0$taxon == "fish"]," were identified to species level, while the remaining taxa were identified to the lowest taxonomic level (most often genus) by field scientists. ",
+    
+    "Similarly, ",
+    temp0$species_code[temp0$taxon == "invert"],
+    " different invertebrate taxa representing ",
+    temp0$phylum[temp0$taxon == "invert"],
+    " phyla were identified on the ",maxyr," survey; ",
+    temp0$species[temp0$taxon == "invert"],
+    " taxa were identified to species level (Appendix Table", plural_surveys,
+    " A \\@ref(tab:tab-app-taxa-found-EBS-invertebrate)", 
+    ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)", ""),
+    "). ")
 }
 ```
 
@@ -181,11 +174,11 @@ if (srvy == "NEBS" & "NBS" %in% temp0$srvy) {
     dplyr::group_by(where)|> 
     dplyr::summarise(n = n())|> 
     dplyr::mutate(
-                  including = NA, 
-                  where0 = dplyr::case_when(
-                    where == "nbs" ~ "encountered in the northern Bering Sea but not in the eastern Bering Sea",
-                    where == "ebs" ~ "encountered in the eastern Bering Sea but not in the northern Bering Sea"
-                  ))
+      including = NA, 
+      where0 = dplyr::case_when(
+        where == "nbs" ~ "encountered in the northern Bering Sea but not in the eastern Bering Sea",
+        where == "ebs" ~ "encountered in the eastern Bering Sea but not in the northern Bering Sea"
+      ))
   for (i in 1:nrow(temp5)) {
     temp5$including[i] <- 
       text_list(
@@ -201,16 +194,16 @@ if (srvy == "NEBS" & "NBS" %in% temp0$srvy) {
   }
   
   str0 <- paste0(str0, "In ", maxyr, ", ", 
-                   
-                   text_list(
-                     paste0(xunits(temp5$n), 
-                            " flatfish species ", ifelse(temp5$n>1, "were", "was"), " ", 
-                            temp5$where0, " (",
-                            temp5$including, ")"), 
-                     sep = "; "),
-                   " (Table \\@ref(tab:tab-species-composition)).")
+                 
+                 text_list(
+                   paste0(xunits(temp5$n), 
+                          " flatfish species ", ifelse(temp5$n>1, "were", "was"), " ", 
+                          temp5$where0, " (",
+                          temp5$including, ")"), 
+                   sep = "; "),
+                 " (Table \\@ref(tab:tab-species-composition)).")
   
-str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
+  str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 }
 ```
 
@@ -254,8 +247,8 @@ temp2 <- dplyr::full_join(
                      values_from = c(total_taxon, "perc", "prop"))|>
   dplyr::mutate(case = dplyr::case_when(
     perc_fish == perc_invert ~ "about the same as", 
-      prop_fish > prop_invert ~ "higher than",
-      prop_fish < prop_invert ~ "lower than")) |> 
+    prop_fish > prop_invert ~ "higher than",
+    prop_fish < prop_invert ~ "lower than")) |> 
   dplyr::left_join(
     y = data.frame(srvy = srvy1, 
                    srvy_long = srvy11))
@@ -284,11 +277,11 @@ for (ii in 1:length(temp2$srvy)) {
   
   # sentence transitions
   if (ii == 2) { # second of 2 surveys being assessed
-  str00 <- paste0(str00, " and in the ")
+    str00 <- paste0(str00, " and in the ")
   } else if (plural_surveys == "") { # only one survey being assessed
-  str00 <- paste0(str00, " and")
+    str00 <- paste0(str00, " and")
   } else { # first of 2 surveys being assessed
-  str00 <- paste0(str00, "In the ")
+    str00 <- paste0(str00, "In the ")
   }
   
   str00 <- paste0(str00, 
@@ -359,7 +352,7 @@ if (srvy == "NEBS" & "NBS" %in% haul_cruises_maxyr$srvy) {
                        values_from = c("999", "prop", "order"))|>
     dplyr::mutate(same = ifelse(order_EBS == order_NBS, TRUE, FALSE))|> 
     dplyr::filter(!(is.na(srvy)))
-
+  
   
   temp2 <- temp2|> 
     tidyr::pivot_wider(id_cols = c("group", "taxon"), 
@@ -367,8 +360,8 @@ if (srvy == "NEBS" & "NBS" %in% haul_cruises_maxyr$srvy) {
                        values_from = c("999", "prop", "order"))|>
     dplyr::mutate(same =ifelse(order_EBS == order_NBS, TRUE, FALSE))|> 
     dplyr::left_join(spp_info_maxyr|> 
-        dplyr::select(species_name, common_name), 
-      by = c("taxon" = "common_name")  )
+                       dplyr::select(species_name, common_name), 
+                     by = c("taxon" = "common_name")  )
   
   # temp3: top 3 spp in each group
   temp0 <- tidyr::crossing(group = unique(temp2$group), 
@@ -392,7 +385,7 @@ if (srvy == "NEBS" & "NBS" %in% haul_cruises_maxyr$srvy) {
       dplyr::filter(prop != "0%")|> 
       dplyr::filter(!grepl(pattern = "Total", x = taxon, ignore.case = TRUE ) &
                       !grepl(pattern = "Other", x = taxon, ignore.case = TRUE )) 
-
+    
     
     if (nrow(temp3)>1) {
       temp0$str0[temp0$srvy == temp0$srvy[i] & 
@@ -443,8 +436,8 @@ str2 <- str0
 ```{r results-benthic-community}
 
 str0 <- c()
-  # paste0("Changes were observed in the ", SURVEY," benthic communities between ",
-  #              compareyr," and ", maxyr,". ")
+# paste0("Changes were observed in the ", SURVEY," benthic communities between ",
+#              compareyr," and ", maxyr,". ")
 
 for (i in 1:length(srvy1)) {
   load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-", haul_cruises_maxyr$srvy[i], ".rdata"))
@@ -471,7 +464,7 @@ for (i in 1:length(srvy1)) {
         tail(5) )|> 
     dplyr::mutate(print_name = gsub(pattern = "include", replacement = ", which", x = print_name))
   
-    temp1 <- data.frame(maxyr = sum(total_biomass$total[
+  temp1 <- data.frame(maxyr = sum(total_biomass$total[
     total_biomass$srvy == srvy1[i] & 
       total_biomass$year == maxyr], na.rm = TRUE), 
     compareyr = sum(total_biomass$total[
@@ -495,7 +488,7 @@ for (i in 1:length(srvy1)) {
                  " (Table \\@ref(tab:tab-majortaxa-pchange-", srvy1[i], ")). ",
                  # taxa decreased
                  "Large decreases in ", 
-                                  ifelse(plural_surveys == "", "", paste0(srvy11[i], " ")),
+                 ifelse(plural_surveys == "", "", paste0(srvy11[i], " ")),
                  " biomass were observed for ", 
                  text_list(paste0(rev(temp$print_name[temp$case == "decreased"]),
                                   " (", rev(temp$change[temp$case == "decreased"]), ")")), 
@@ -543,7 +536,7 @@ temp <- biomass |>
                 dplyr::across(where(is.numeric), formatC, digits = 1, big.mark = ",", format = "f"))|> 
   dplyr::left_join(
     data.frame(srvy = srvy1, 
-                   srvy_long = srvy11))
+               srvy_long = srvy11))
 
 str0 <- text_list(paste0(
   "The ten most-abundant fish taxa in the ",temp$srvy_long,
