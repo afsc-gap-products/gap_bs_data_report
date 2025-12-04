@@ -1701,7 +1701,7 @@ for (i in 1:nrow(comb)) {
 ```{r tab-majortaxa-pchange-[srvy]}
 
 nickname0 <- "tab-majortaxa-pchange-" 
-yrs <- analysisyrs[(length(analysisyrs)-2):length(analysisyrs)]
+yrs <- analysisyrs[(length(analysisyrs)-3):length(analysisyrs)]
 
 table_raw0 <- 
   dplyr::left_join(
@@ -1764,9 +1764,9 @@ temp <- dplyr::left_join(
   dplyr::rename(print_name1 = print_name)
 
 table_raw0 <- dplyr::left_join(table_raw0, temp)
-table_raw  <- table_raw0
+# table_raw  <- table_raw0
 
-table_print0 <- table_raw |> 
+table_print0 <- table_raw0 |> 
   dplyr::select(-print_name1) |> 
   dplyr::mutate(
     dplyr::across(dplyr::starts_with("20"), formatC, big.mark=",", digits = 0, format = "f"), 
@@ -1797,10 +1797,10 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
   
   table_raw  <- table_raw0 |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
-    dplyr::select(-srvy, -change0) |>  
     dplyr::select_if(~ !all(is.na(.)))
   
   table_print <- table_print0  |>
+    dplyr::select(-srvy, -change0) |>  
     flextable::flextable(col_keys = c("print_name",
                                       yrs, 
                                       "change")) |>
