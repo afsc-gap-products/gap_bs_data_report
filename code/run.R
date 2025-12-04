@@ -71,6 +71,7 @@ for (i in 1:nrow(comb)){
 comb <- unique(sort(comb$file_name))
 # comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
 comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary
+comb <- comb[!grepl(pattern = "octopuses", x = comb)] # temporary
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp3[which(report_spp3$file_name == comb[jj]), ]

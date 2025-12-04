@@ -100,6 +100,7 @@ error_loading
 locations <- c(
   "foodlab.predprey",
   "foodlab.haul",
+  "foodlab.nodc", 
   # "crab.gap_ebs_nbs_abundance_biomass", # Biomass
   # "crab.gap_ebs_nbs_crab_cpue", # CPUE
   # "crab.ebscrab", # length data

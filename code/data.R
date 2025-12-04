@@ -776,11 +776,16 @@ vessels <- haul_cruises_vess_maxyr|>
   dplyr::select(vessel_name, vessel_ital, vessel_id, tonnage,
                 length_m, length_ft, vess_shape)|> 
   unique()|> 
-  dplyr::mutate(img = dplyr::case_when(
+  dplyr::mutate(
+    img = dplyr::case_when(
     vessel_id == 94 ~ "94_vesteraalen.png", 
     vessel_id == 134 ~ "134_northwestexplorer.png", 
     vessel_id == 162 ~ "163_alaskaknight.png"), 
-    vess_col = c("grey20", "grey30"))|> 
+    company = dplyr::case_when(
+      vessel_id == 94 ~ "Vesteraalen LLC", 
+      vessel_id == 134 ~ "B&N Fisheries Company", 
+      vessel_id == 162 ~ "United States Seafoods"),     
+    vess_col = c("grey20", "grey30")) |> 
   dplyr::arrange(vessel_name) 
 
 # if we did not complete all stations: 
