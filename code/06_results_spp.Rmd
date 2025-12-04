@@ -35,6 +35,10 @@ str0_lang <- ""
 
 ```{r prep-cite-{{jj}}}
 
+if (report_title == "community") {
+  fig_comb <- paste0("\\@ref(fig:", "fig-combined-", spp_file, "-comm)")
+}
+
 if (spp_plot_idw) {
   fig_dist <- paste0("\\@ref(fig:", "fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
 }
@@ -139,7 +143,7 @@ str0 <- ""
 
 ```{r bio-pop-txt-{{jj}}}
 # , eval = (spp_text & (report_title == "data"))
-
+if (report_title == "data") {
 cite_bio <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "), tab_stat,
                    ifelse(spp_table_cpue, paste0(" and ", tab_wt), ""),
                    "; Figs. ", fig_biopop, 
@@ -148,6 +152,11 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
                    tab_stat,
                    ifelse(spp_table_cpue, paste0(" and ", tab_no), ""),# " and ", tab_no, 
                    "; Fig. ", fig_biopop,")")
+} else if (report_title == "community") {
+  cite_bio <- paste0(" (Table ", tab_stat, "; Fig. ", fig_comb, ")")
+  cite_pop <- paste0(" (Table ", tab_stat, "; Fig. ", fig_comb, ")")
+}
+
 
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw

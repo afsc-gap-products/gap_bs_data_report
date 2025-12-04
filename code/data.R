@@ -114,6 +114,12 @@ print("Load google drive data")
 
 if (access_to_internet ) {
   
+  # if (access_to_internet) {
+    googledrive::drive_deauth()
+    googledrive::drive_auth()
+    2  # Set this to 1 when first running to allow access in subsequent sessions
+  # }
+  
   id_googledrive <- googledrive::as_id(dir_googledrive)
   
   # Species Covered

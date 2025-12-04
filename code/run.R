@@ -1,7 +1,7 @@
 
 # Report knowns ----------------------------------------------------------------
 
-access_to_internet  <- FALSE # redownload google drive tables and docs?
+access_to_internet  <- FALSE # TRUE = redownload google drive tables and docs
 quarto <- FALSE
 options(scipen=999)
 
@@ -18,25 +18,6 @@ dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGD
 dl_change_start <- "24-APR-02 11.00.00 PM"
 dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
 
-# # testing before data is finalized
-# maxyr <- 2023
-# compareyr <- 2022
-# compareyr0 <- 2021
-# strat_yr <- 2022
-# SRVY <- "NEBS"
-# ref_compareyr <- ref_compareyr_ebs <- "@2022NEBS2023" # CHANGE
-# # dir_googledrive <- "https://drive.google.com/drive/folders/19ttU1_VAlos_3KKjiRqfcMF-k1cpaENN" 
-# # dir_googledrive_comm <- "https://drive.google.com/drive/folders/1gJYWYWzU8Iwi7gQmoSpCFVfxsoV20P2v"
-# dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
-# dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
-# dl_change_start <- "24-APR-02 11.00.00 PM"
-# dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
-
-if (access_to_internet) {
-googledrive::drive_deauth()
-googledrive::drive_auth()
-2  # Set this to 1 when first running to allow access in subsequent sessions
-}
 # Data Report ------------------------------------------------------------------
 
 ## Source Scripts --------------------------------------------------------------

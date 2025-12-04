@@ -1,5 +1,5 @@
 
-# `r maxyr` Survey Results in Comparisons to `r compareyr`
+# `r maxyr` Survey Results in Comparisons to `r ifelse(length(compareyr) == 1, compareyr, "Previous years")`
 
 ## Bottom and Surface Temperatures
 
@@ -185,9 +185,9 @@ In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea
 
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
 
-temp1 <- obj$raw|>
+temp1 <- obj$raw |>
       # dplyr::filter(srvy == "NBS")|>
-      dplyr::select(print_name, change, change0, maxyr, taxon, srvy)|>
+      dplyr::select(print_name = print_name1, change, change0, maxyr, taxon, srvy)|>
  # I defined "no marked change" in < 25 and > -25% change to get me through the code. What number should it be?
   dplyr::mutate(
     change_case = dplyr::case_when(
@@ -249,13 +249,14 @@ paste0(
 }
 
 str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
+str0 <- gsub(pattern = ". . ", replacement = ". ", x = str0, fixed = TRUE)
 
 ```
 
 `r str0`The biomasses of predominant species are listed in Table \@ref(tab:tab-majortaxa-pchange-NBS) in order of largest increase to largest decrease. 
 
 ```{r ebs-vs-nbs}
-temp5 <- biomass|> 
+temp5 <- biomass |> 
   dplyr::filter(stratum == 999 & 
                   species_code %in% report_spp1$species_code[(report_spp1$plot_idw)] & 
                   year == maxyr)|> 
@@ -279,7 +280,8 @@ Survey catches in the northern Bering Sea were generally smaller than in the eas
 ```{r biomass-inc-dec}
 
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
-temp1 <- obj$raw
+temp1 <- obj$raw |> 
+  dplyr::select(-print_name, print_name = print_name1) 
 
 # total biomass
 temp2 <- total_biomass |> 

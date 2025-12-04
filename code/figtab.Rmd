@@ -9,10 +9,10 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 # Introduction
 
-```{r fig-survey-points}
+```{r fig-survey-points-nostrata}
 # for community highlights
 
-nickname <- "fig-survey-points"
+nickname <- "fig-survey-points-nostrata"
 
 header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
 
@@ -65,7 +65,7 @@ reg_dat0$survey.grid <- reg_dat0$survey.grid|>
 figure_print <- plot_survey_stations(reg_dat = reg_dat0, 
                                      survey_outline = ifelse(plural_surveys == "s", TRUE, FALSE), 
                                      stratum_grid = TRUE, 
-                                     stratum_no = FALSE, 
+                                     stratum_no = TRUE, 
                                      station_pts = "pts", 
                                      place_labels = TRUE, 
                                      bathymetry = FALSE)
@@ -1704,24 +1704,24 @@ yrs <- analysisyrs[(length(analysisyrs)-3):length(analysisyrs)]
 
 table_raw0 <- 
   dplyr::left_join(
-    y = biomass %>% 
+    y = biomass |> 
       dplyr::filter(stratum == 999 & 
                       srvy %in% srvy1 &
-                      year %in% yrs) %>% 
+                      year %in% yrs) |> 
       dplyr::select(species_code, year, srvy, biomass_mt), 
-    x = report_spp1 %>% 
+    x = report_spp1 |> 
       dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_spp), 
     relationship = "many-to-many",
-    by = c("species_code")) %>%
+    by = c("species_code")) |>
   dplyr::filter(table_bio_spp & 
                   !is.na(print_name) & 
-                  !is.na(year)) %>%
-  dplyr::group_by(print_name, srvy, year, taxon) %>% 
-  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) %>% 
-  dplyr::ungroup() %>%
+                  !is.na(year)) |>
+  dplyr::group_by(print_name, srvy, year, taxon) |> 
+  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE)) |> 
+  dplyr::ungroup() |>
   tidyr::pivot_wider(id_cols = c(srvy, print_name, taxon), 
                      names_from = year, 
-                     values_from = biomass_mt) %>% 
+                     values_from = biomass_mt) |> 
   dplyr::mutate(
     print_name = gsub(pattern = "smelts (*Osmeridae*) include eulachon, capelin, and rainbow smelt",
                       replacement = "smelts",
@@ -1729,7 +1729,7 @@ table_raw0 <-
     print_name1 = print_name, 
     print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))
 
-table_raw0 <- table_raw0 %>%   
+table_raw0 <- table_raw0 |>   
   dplyr::mutate(
     maxyr = !!sym(paste0(maxyr)), 
     compareyr = dplyr::case_when(
@@ -1743,45 +1743,45 @@ table_raw0 <- table_raw0 %>%
             dplyr::across(dplyr::starts_with("change"), # where(is.character), 
                       ~ifelse(grepl(x = .x, pattern = "NA"), "", .x))
     # dplyr::across(where(is.character), gsub, pattern = "NA", replacement = "") 
-    ) %>%
-  dplyr::ungroup()  %>%
+    ) |>
+  dplyr::ungroup()  |>
   dplyr::arrange(desc(change0))
 
 # identify which species complexes you need
 temp <- dplyr::left_join(
-  report_spp1 %>% 
+  report_spp1 |> 
       dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_spp), 
-  catch_haul_cruises %>% 
-    dplyr::select(srvy, year, species_code, count) %>% 
-    dplyr::filter(srvy %in% srvy1) %>% 
-    dplyr::filter(year %in% c(maxyr, compareyr))) %>% 
-  dplyr::group_by(print_name, srvy, year) %>% 
-  dplyr::summarise(count = sum(count, na.rm = TRUE)) %>% 
-  dplyr::group_by(print_name, srvy) %>% 
-  dplyr::summarise(count_min = min(count, na.rm = TRUE)) %>% 
-    dplyr::filter(!is.na(srvy)) %>% 
+  catch_haul_cruises |> 
+    dplyr::select(srvy, year, species_code, count) |> 
+    dplyr::filter(srvy %in% srvy1) |> 
+    dplyr::filter(year %in% c(maxyr, compareyr))) |> 
+  dplyr::group_by(print_name, srvy, year) |> 
+  dplyr::summarise(count = sum(count, na.rm = TRUE)) |> 
+  dplyr::group_by(print_name, srvy) |> 
+  dplyr::summarise(count_min = min(count, na.rm = TRUE)) |> 
+    dplyr::filter(!is.na(srvy)) |> 
   dplyr::rename(print_name1 = print_name)
 
 table_raw0 <- dplyr::left_join(table_raw0, temp)
 table_raw  <- table_raw0
 
-table_print0 <- table_raw %>% 
-  dplyr::select(-print_name1) %>% 
+table_print0 <- table_raw |> 
+  dplyr::select(-print_name1) |> 
   dplyr::mutate(
     dplyr::across(dplyr::starts_with("20"), formatC, big.mark=",", digits = 0, format = "f"), 
     dplyr::across(dplyr::starts_with("20"), gsub, pattern = "NA%", replacement = ""), 
     dplyr::across(dplyr::ends_with("yr"), formatC, big.mark=",", digits = 0, format = "f"), 
     dplyr::across(dplyr::ends_with("yr"), gsub, pattern = "NA%", replacement = "") , 
-    dplyr::across(dplyr::everything(), gsub, pattern = "NA", replacement = "-") )  %>%
-  dplyr::filter(!is.na(`change0`)) %>%
-  dplyr::relocate(print_name, as.character(yrs)) %>% 
+    dplyr::across(dplyr::everything(), gsub, pattern = "NA", replacement = "-") )  |>
+  dplyr::filter(!is.na(`change0`)) |>
+  dplyr::relocate(print_name, as.character(yrs)) |> 
   dplyr::mutate(change = ifelse(as.numeric(count_min) < 100, "-", change))
 
 # reorder table to accommodate "-" %'s
 table_print0 <- dplyr::bind_rows(
-  table_print0 %>% dplyr::filter(change0 > 0 & change != "-"),
-  table_print0 %>% dplyr::filter(change0 <= 0 & change != "-"), 
-  table_print0 %>% dplyr::filter(change == "-"),
+  table_print0 |> dplyr::filter(change0 > 0 & change != "-"),
+  table_print0 |> dplyr::filter(change0 <= 0 & change != "-"), 
+  table_print0 |> dplyr::filter(change == "-"),
 )
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
@@ -1794,28 +1794,30 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught on the survey",plural_surveys," in ", compareyr," or ",maxyr, ". "), "")) 
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
   
-  table_raw  <- table_raw0
-  table_print <- table_print0  %>% 
-    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) %>% 
-    dplyr::select(-srvy, -change0) %>%
+  table_raw  <- table_raw0 |> 
+    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
+    dplyr::select(-srvy, -change0) |>  
+    dplyr::select_if(~ !all(is.na(.)))
+  
+  table_print <- table_print0  |>
     flextable::flextable(data = ., 
                          col_keys = c("print_name",
                                       yrs, 
-                                      "change")) %>%
+                                      "change")) |>
     flextable::color(color = "red", # https://stackoverflow.com/questions/57474647/italic-and-color-in-an-r-flextable
                      i = ~ grepl(pattern = "-[0-9]+", x = change), 
-                     j = "change") %>% 
-    flextable::width(j = "change", width = 1) %>% 
+                     j = "change") |> 
+    flextable::width(j = "change", width = 1) |> 
     flextable::set_header_labels(.,
                                  print_name = "Common name", 
                                  dummy = "Scientific name", 
-                                 change = paste0("Change (", maxyr, ", ", compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]], ")" )) %>% 
+                                 change = paste0("Change (", maxyr, ", ", compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]], ")" )) |> 
     theme_flextable_nmfstm(row_lines = TRUE, 
-                           pgwidth = full_page_portrait_width) %>% 
-    flextable::align(part = "all", align = "right") %>%
+                           pgwidth = full_page_portrait_width) |> 
+    flextable::align(part = "all", align = "right") |>
     flextable::align(part = "all", align = "left", j = c("print_name"))
   
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
