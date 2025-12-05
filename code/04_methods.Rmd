@@ -92,9 +92,8 @@ str0 <- c()
 
 for (i in 1:length(unique(haul_cruises_maxyr$srvy_long))){
   
-  srvy <- unique(haul_cruises_vess_maxyr$srvy)[i]
   cruises_maxyr0  <- haul_cruises_vess_maxyr|> 
-    dplyr::filter(srvy %in% srvy &
+    dplyr::filter(srvy %in% unique(haul_cruises_vess_maxyr$srvy)[i] &
                     year %in% maxyr)|> 
     dplyr::select("year", "survey_name", "vessel_id", "vessel_name", 
                   "vessel_ital", "srvy", "srvy_long", 
@@ -272,9 +271,8 @@ temp <- obj$raw|>
 
 str2 <- c()
 for (i in 1:length(unique(temp$srvy))) {
-  srvy <- (unique(temp$srvy))[i]
   str2 <- c(str2, 
-            paste0(text_list(sort(temp$oto_samp_type[temp$srvy == srvy]))))
+            paste0(text_list(sort(temp$oto_samp_type[temp$srvy == (unique(temp$srvy))[i]]))))
 }
 
 if (length(str2)>1 & # if there is more than one region
