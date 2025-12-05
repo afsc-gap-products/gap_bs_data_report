@@ -464,19 +464,20 @@ for (i in 1:length(srvy1)) {
         tail(5) )|> 
     dplyr::mutate(print_name = gsub(pattern = "include", replacement = ", which", x = print_name))
   
-  temp1 <- data.frame(maxyr = sum(total_biomass$total[
+  temp1 <- data.frame(
+    maxyr = sum(total_biomass$total[
     total_biomass$srvy == srvy1[i] & 
       total_biomass$year == maxyr], na.rm = TRUE), 
     compareyr = sum(total_biomass$total[
       total_biomass$srvy == srvy1[i] & 
-        total_biomass$year == compareyr], na.rm = TRUE))
+        total_biomass$year %in% compareyr], na.rm = TRUE))
   
   str0 <- paste0(str0, 
                  "The total estimated biomass ", 
                  ifelse(plural_surveys == "", "", paste0("in the ",srvy11[i], " ")),
                  ifelse(temp1$compareyr<temp1$maxyr, "increased", "decreased"),
                  " from ",
-                 xunits(temp1$compareyr)," t in ", compareyr," to ",
+                 xunits(temp1$compareyr)," t in ", compareyr[names(compareyr) == srvy1[i]]," to ",
                  xunits(temp1$maxyr)," t in ", maxyr, ". ", 
                  
                  # taxa increased
@@ -489,7 +490,7 @@ for (i in 1:length(srvy1)) {
                  # taxa decreased
                  "Large decreases in ", 
                  ifelse(plural_surveys == "", "", paste0(srvy11[i], " ")),
-                 " biomass were observed for ", 
+                 "biomass were observed for ", 
                  text_list(paste0(rev(temp$print_name[temp$case == "decreased"]),
                                   " (", rev(temp$change[temp$case == "decreased"]), ")")), 
                  " (Table \\@ref(tab:tab-majortaxa-pchange-", srvy1[i], ")). "
@@ -547,7 +548,10 @@ str0 <- text_list(paste0(
 str4 <- str0
 ```
 
-`r str1``r str2``r str3`While exhaustive efforts are made to standardize catch processing and data collection, variation in catchability may cause some differences in these results between years [@KotwickiOno2019].
+`r str1``r str2`
+
+`r str3`While exhaustive efforts are made to standardize catch processing and data collection, variation in catchability may cause some differences in these results between years [@KotwickiOno2019].
+
 `r str4`
 
 <!---BLOCK_LANDSCAPE_START--->

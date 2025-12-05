@@ -14,6 +14,7 @@ spp_sci <- text_list(unique(a$species_name))
 spp_print <- a$print_name[1]
 spp_file <- a$file_name[1]
 spp_taxon <- a$taxon[1]
+spp_code <- a$species_code[1]
 
 # report_title == "community"
 spp_plot_sizecomp <- (nrow(sizecomp |> 
@@ -31,7 +32,7 @@ spp_bin <- eval(expr = parse(text = a$dist_bin))
 ```{r fig-spp}
 
 header <- spp_file
-nickname <- paste0("fig-", jj, "-", spp_file, "-0-pres")
+nickname <- paste0("fig-icon-", spp_file, "-pres")
 height <- width <- 5
 
 pres_spp <- figure_print <- 
@@ -509,7 +510,7 @@ yrs <- c(maxyr, compareyr) # analysisyrs
 #   yrs <- c(2022, 2023, 2024)
 # }
 width <- full_page_portrait_width # 6.5  
-height <- 5 # full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
+height <- 3 # full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
 row0 <- 1 # 3
 nickname <- paste0("fig-dist-", spp_file, "-data")
 report_title0 <- "data"
@@ -566,8 +567,8 @@ nickname <- paste0("fig-dist-", spp_file, "-gif")
 report_title0 <- "gif"
 
 temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code)
-# for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ```{r fig-sizecomp-[spp]-prep, eval = spp_plot_sizecomp}
@@ -593,7 +594,7 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
   
   if (srvy != "NEBS") {
     table_raw <- table_raw |> 
-      dplyr::filter(srvy == srvy)
+      dplyr::filter(srvy == srvy1)
   }
   # }
   
@@ -603,9 +604,9 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
     factor0 <- c("Unsexed", "Males", "Females")
   }
   
-  srvy_ <- srvy
+  # srvy_ <- srvy
   table_raw <- table_raw  |>
-    dplyr::filter(srvy %in% srvy_) |>
+    dplyr::filter(srvy %in% srvy1) |>
     dplyr::filter(year %in% yrs) |> 
     dplyr::mutate(sex = str_to_sentence(sex), 
                   sex = factor(sex, 
@@ -642,10 +643,10 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
             table_raw, 
             table_raw |>
               dplyr::filter(species_code %in% spp_code &
-                              srvy %in% srvy &
+                              # srvy %in% srvy1 &
                               year %in% yrs) |> 
-              dplyr::group_by(year, taxon, species_code, sex, population_count) |> 
-              dplyr::summarise(length_mm = sum(length_mm, na.rm = TRUE)) |> 
+              dplyr::group_by(year, taxon, species_code, sex, length_mm) |> 
+              dplyr::summarise(population_count = sum(population_count, na.rm = TRUE)) |> 
               dplyr::mutate(
                 # srvy = factor(x = srvy, levels = c("EBS", "NBS", "EBS and NBS"), ordered = TRUE), 
                 srvy = "EBS and NBS", 
@@ -946,17 +947,21 @@ if (srvy == "EBS") {
   figure_print <- pres_size <- 
     cowplot::plot_grid(
       pres_size_nbs + 
-    ggplot2::ggtitle(paste0(maxyr, " NBS")) +
+    ggplot2::ggtitle(paste0(maxyr, " northern Bering Sea")) +
         # ggplot2::ggtitle(label = NULL) +
         # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +
-        ggplot2::theme(axis.title.x = element_blank(), 
+        ggplot2::theme(
+                    plot.title = element_text(size = 10, face = "bold"), 
+
+                    axis.title.x = element_blank(), 
                        legend.position = "none", 
                        plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ), 
   pres_size_ebs +
-    ggplot2::ggtitle(paste0(maxyr, " EBS")) +
+    ggplot2::ggtitle(paste0(maxyr, " eastern Bering Sea")) +
         # ggplot2::ggtitle(label = NULL) +
         # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +   
     ggplot2::theme(#axis.title.y = element_blank(),
+                    plot.title = element_text(size = 10, face = "bold"), 
       legend.title = element_blank(), 
       legend.title.position = "none",
       legend.position = "none", 
@@ -2167,8 +2172,10 @@ figure_print <- ggdraw(add_sub(
 # }
 header <- header0 <- paste0(
   "Top right: ", pres_dist_txt, 
-  "Top left: ", pres_size_txt, 
-  "Bottom: ", pres_timeseries_txt)
+  "Top left: ", 
+  "Total abundance-at-length estimates by sex encountered during the ", maxyr, " eastern and northern Bering Sea shelf surveys. Length distributions are scaled to the total estimated population size.
+", # pres_size_txt, 
+  "Bottom right: ", pres_timeseries_txt)
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -2178,12 +2185,27 @@ nickname <- paste0("fig-combined-", spp_file, "-comm")
 height <- full_page_portrait_height-2.5
 width <- full_page_portrait_width
 
+if (exists("pres_size")) {
+  temp1 <- cowplot::plot_grid(pres_dist, 
+                              NULL, 
+                              pres_size, 
+                              ncol = 3, 
+                              rel_widths = c(1.3,.1,.6)) # 1, .1., .9 worked for presentations
+} else {
+  pres_size_txt <- "There are no sizecomps for this species. "
+  temp1 <- cowplot::plot_grid(pres_dist, 
+                              NULL, 
+                              ncol = 2, 
+                              rel_widths = c(1,1))
+}
+
 temp2 <- cowplot::plot_grid(pres_timeseries + 
                               ggplot2::ggtitle("") + 
                               ggplot2::guides(fill = "none") +
                               ggplot2::labs(color = "") + 
                               ggplot2::labs(shape = "") +
-                              ggplot2::theme(legend.position = "none"), 
+                              ggplot2::theme(legend.position = "none"),
+                            NULL, 
                             pres_spp,
                             ncol = 3, 
                             rel_widths = c(1.3, .1, .6)) 
@@ -2191,7 +2213,7 @@ temp2 <- cowplot::plot_grid(pres_timeseries +
 figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1.2,.8))
 
 
-header <- header0
+header <- paste0(header0, " Bottom left: Icon of ", spp_print, ". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```

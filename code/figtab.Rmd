@@ -1165,7 +1165,7 @@ temp <- function(yrs,
 ```
 
 ```{r fig-temperature-[st/bt]}
-height <- 3.5 # full_page_portrait_height
+height <- 3 # full_page_portrait_height
 width <- full_page_portrait_width
 yrs <- c(maxyr-2):maxyr
 row0 <- 1
@@ -1616,7 +1616,8 @@ for (i in 1:nrow(comb)) {
       dplyr::across(where(is.numeric), 
                     formatC, big.mark=",", digits = 0, format = "f")) |> 
     dplyr::select(-taxon0, -srvy) |>
-    dplyr::select(-prop0)
+    dplyr::select(-prop0) |>  
+    dplyr::select_if(~ !all(. == 0))
   
   strat <- names(table_raw1)[7:ncol(table_raw1)]
   
@@ -1693,7 +1694,7 @@ for (i in 1:nrow(comb)) {
     flextable::align(align = "left", j = "CL95", i = 2, part = "header") |>
     flextable::padding(padding.left = 3, padding.right = 3, j = "a", part = "body")
   
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1798,8 +1799,10 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select_if(~ !all(is.na(.)))
   
-  table_print <- table_raw  |>
+  table_print <- table_print0  |> 
+    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select(-srvy, -change0) |>  
+    dplyr::select_if(~ !all(. == "-")) |>
     flextable::flextable(col_keys = c("print_name",
                                       yrs, 
                                       "change")) |>
@@ -3053,7 +3056,8 @@ for (i in sort(unique(table_raw0$footorder[table_raw0$affiliation != "-"]))) {
       j = temp$col,  # Columns where the footnote applies
       value = as_paragraph(temp1$affiliation),
       ref_symbols = as.character(i),
-      part = "body")
+      part = "body") |> 
+    flextable::fontsize(size = 8, part = "footnote")
 }
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
