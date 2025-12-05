@@ -1138,8 +1138,8 @@ temp <- function(yrs,
   
   # Create figure_print
   key.title <- ifelse(case == "bottom", 
-                      "Bottom temperature (°C)", 
-                     "Surface temperature (°C)")
+                      "Bottom temperature (°C)\n", 
+                     "Surface temperature (°C)\n")
   
   if (is.null(title0)) {
     title0 <- paste0("Eastern", ifelse(srvy == "NEBS", " and northern", ""),
@@ -1172,8 +1172,7 @@ row0 <- 1
 case_yr0 <- 1
 
 for (case in c("bottom", "surface")) {
-    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), 
-                       "-data")
+    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-data")
     a <- temp(yrs = yrs, 
               row0 = row0, 
               title0 = "", 
@@ -1788,18 +1787,18 @@ table_print0 <- dplyr::bind_rows(
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0(
-    "Total estimated biomass (t) and the percent change between the ",
+    "Total estimated biomasses (t) in ", range_text(yrs)," and the percent change between the ",
     compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]]," and ",maxyr," ", 
     haul_cruises_maxyr$srvy_long[i], 
-    ' shelf surveys for predominant fish and invertebrate taxa. Taxa are listed in descending order of percent change from ',compareyr,' to ',maxyr,'. ', 
-    ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught on the survey",plural_surveys," in ", compareyr," or ",maxyr, ". "), "")) 
+    ' shelf surveys for predominant fish and invertebrate taxa. Taxa are listed in descending order of percent change from ', compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]],' to ',maxyr,'. ', 
+    ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught on the survey", plural_surveys," in ", compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]]," or ",maxyr, ". "), "")) 
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
   
   table_raw  <- table_raw0 |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select_if(~ !all(is.na(.)))
   
-  table_print <- table_print0  |>
+  table_print <- table_raw  |>
     dplyr::select(-srvy, -change0) |>  
     flextable::flextable(col_keys = c("print_name",
                                       yrs, 

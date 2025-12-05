@@ -84,13 +84,14 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 # fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
 ```
 
-```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
-# if (fig_height > 4) {
-#   fig_height <- 3
-#   fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
-# }
-# cowplot::ggdraw() +
-#   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
+```{r spp-text-1-{{jj}}, eval = FALSE}
+# ```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
+if (fig_height > 4) {
+  fig_height <- 3
+  fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
+}
+cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
 
 ```{r res-spp-lang-{{jj}}}
@@ -250,7 +251,8 @@ if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to
 
 `r str0`
 
-
+```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
+```
 
 ```{r tab-stats-{{jj}}}
 nickname <- paste0("tab-stats-", spp_file)

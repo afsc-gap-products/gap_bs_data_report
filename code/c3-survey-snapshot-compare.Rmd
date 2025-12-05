@@ -259,10 +259,11 @@ str0 <- gsub(pattern = ". . ", replacement = ". ", x = str0, fixed = TRUE)
 temp5 <- biomass |> 
   dplyr::filter(stratum == 999 & 
                   species_code %in% report_spp1$species_code[(report_spp1$plot_idw)] & 
-                  year == maxyr)|> 
-  dplyr::select(srvy, biomass_mt, species_code, common_name)|> 
-  dplyr::left_join(report_spp1|> 
-                     dplyr::select(print_name, species_code, order)) |> 
+                  year == maxyr) |> 
+  dplyr::select(srvy, biomass_mt, species_code, common_name) |> 
+  dplyr::left_join(report_spp1 |> 
+                     dplyr::select(print_name, species_code, order) |> 
+                     dplyr::distinct()) |> 
   # dplyr::arrange(desc(NBS)) 
   dplyr::arrange(desc(order))|> 
   dplyr::group_by(print_name, srvy)|> 
