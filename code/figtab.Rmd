@@ -1354,7 +1354,8 @@ table_raw0 <-
                    table_raw0 |> 
                      dplyr::group_by(srvy) |> 
                      dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) |> 
-                     dplyr::mutate(common_name = "ZZZTotal") ) |> 
+                     dplyr::mutate(common_name = "ZZZTotal", 
+                                   common_name0 = "ZZZTotal") ) |> 
   dplyr::relocate(srvy, common_name, length, age) |> 
   dplyr::rename("length_measurements" = length,
                 "otolith_age_structure_samples" = age) |> 
@@ -1364,6 +1365,7 @@ table_raw0 <-
 # Shouldn't have to do this but idk how else to solve this alphabetization issue
 table_raw0 <- table_raw0[order(table_raw0$common_name),]
 table_raw0$common_name[table_raw0$common_name == "ZZZTotal"] <- "Total"
+table_raw0$common_name0[table_raw0$common_name0 == "ZZZTotal"] <- "Total"
 table_raw0 <- table_raw0[!grepl(x = table_raw0$common_name, pattern = "NA"),]
 
 for (i in 1:nrow(haul_cruises_maxyr)) {
@@ -1694,7 +1696,7 @@ for (i in 1:nrow(comb)) {
     flextable::align(align = "left", j = "CL95", i = 2, part = "header") |>
     flextable::padding(padding.left = 3, padding.right = 3, j = "a", part = "body")
   
-  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 

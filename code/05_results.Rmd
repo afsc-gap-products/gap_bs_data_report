@@ -41,7 +41,7 @@ nickname <- "fig-cold-pool-area"
 ```{r tab-specimen-samples-howmany}
 load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))
 temp <- obj$raw
-if (plural_surveys == "s") {
+if (srvy == "NEBS") {
   load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata"))
   temp <- temp|> 
     dplyr::bind_rows(obj$raw)
@@ -324,26 +324,34 @@ if (srvy == "NEBS" & "NBS" %in% haul_cruises_maxyr$srvy) {
   temp1 <- temp2 <- temp3 <- data.frame()
   
   for (i in 1:length(srvy1)) {
+    
     load(file = paste0(dir_out_figtab, "tab-biomass-est-", srvy1[i], "-fish.rdata"))
-    temp1 <- obj$raw|>
+    temp10 <- obj$raw|>
       dplyr::mutate(srvy = srvy1[i])|>
       dplyr::filter(is.na(taxon) |
                       grepl(pattern = "Total", x = taxon, ignore.case = TRUE ))|> 
       dplyr::filter(!grepl(pattern = "Total", x = group, ignore.case = TRUE ) &
                       !grepl(pattern = "Other", x = group, ignore.case = TRUE ))|> 
       dplyr::select(srvy, group, `999`, prop = prop0)|> 
-      dplyr::arrange(-prop)|> 
-      dplyr::mutate(order = 1:nrow(.))|> 
-      dplyr::bind_rows(temp1, .)
+      dplyr::arrange(-prop)
     
-    temp2 <- obj$raw|>
+    temp10 <- temp10 |> 
+      dplyr::mutate(order = 1:nrow(temp10)) 
+    
+    temp1 <- dplyr::bind_rows(temp1, temp10)
+    
+    temp20 <- obj$raw|>
       dplyr::mutate(srvy = srvy1[i])|>
       dplyr::filter(group %in% temp1$group[1:2] & 
                       !grepl(pattern = "Total ", x = taxon, ignore.case = TRUE ))|> 
       dplyr::select(srvy, group, taxon, `999`, prop = prop0)|> 
-      dplyr::arrange(-prop)|> 
-      dplyr::mutate(order = 1:nrow(.))|> 
-      dplyr::bind_rows(temp2, .)
+      dplyr::arrange(-prop)
+    
+    temp20 <- temp20 |> 
+      dplyr::mutate(order = 1:nrow(temp20))
+    
+    temp2 <- dplyr::bind_rows(temp2, temp20)
+
   }
   
   temp1 <- temp1|> 
