@@ -3,14 +3,7 @@
 
 ```{r survey-design-intro-text}
 
-# 4 options
-# 1. vessels started and ended on different dates
-# 2. vessels started and ended on the same dates
-# 3. vessels started on the same dates and ended on different dates
-# 4. vessels started on different dates and ended on the same dates
-# and this can be different for EBS vs NBS 
-
-str0 <- c()
+str0 <- ""
 
 for (i in 1:length(srvy11)){
   
@@ -31,77 +24,22 @@ for (i in 1:length(srvy11)){
                                                format = "%m/%d/%Y"), 
                      end_date_haul = as.Date(max(end_date_haul), 
                                              format = "%m/%d/%Y")) 
-  
-  temp <- "" # paste0("of the ", srvy, ", which ")
-  
-  if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
-      length(unique(cruises_maxyr0$end_date_haul)) != 1) { 
-    # 1. vessels started and ended on different dates
-    temp <- paste0(temp, 
-                   text_list(paste0("started for the ", cruises_maxyr0$vessel_ital, 
-                                    " ", 
-                                    format((cruises_maxyr0$start_date_haul), format = date_format), 
-                                    " and ended ", 
-                                    format((cruises_maxyr0$end_date_haul), format = date_format) ), sep_last2 = ", while sampling ") )
-    # temp<-gsub(pattern = "and ,", replacement = "and,", x = temp)
-    
-  } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
-             length(unique(cruises_maxyr0$end_date_haul)) == 1) { 
-    # 2. vessels started and ended on the same dates
-    temp <- paste0(temp, 
-                   text_list(cruises_maxyr0$vessel_ital), 
+    str0 <- paste0(str0, 
+                   "Sampling for the ", 
+                   cruises_maxyr0$srvy_long[1], 
+                   # text_list(cruises_maxyr0$vessel_ital), 
                    # ifelse(length(unique(vessels0$vessel)) == 1, 
                    #        "the vessel", "both vessels"), 
-                   " started sampling ",
-                   format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
-                   " and ended sampling ", 
-                   format(unique(cruises_maxyr0$end_date_haul), format = date_format))
+                   " shelf survey started on ",
+                   format(min(cruises_maxyr0$start_date_haul), format = date_format), 
+                   " and ended on ", 
+                   format(min(cruises_maxyr0$end_date_haul), format = date_format), ". ")
     
-  } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
-             length(unique(cruises_maxyr0$end_date_haul)) != 1) {
-    # 3. vessels started on the same dates and ended on different dates
-    temp <- paste0(temp, "started for ", 
-                   ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
-                          "the vessel", "both vessels"), 
-                   " ",
-                   format(unique(cruises_maxyr0$start_date_haul), format = date_format), 
-                   " and ended", 
-                   text_list(paste0(" ", 
-                                                 format(cruises_maxyr0$end_date_haul, 
-                                                        format = date_format) , 
-                                                 " for the ", cruises_maxyr0$vessel_ital) ))
-    
-  } else if (length(unique(cruises_maxyr0$start_date_haul)) != 1 &
-             length(unique(cruises_maxyr0$end_date_haul)) == 1) {
-    # 4. vessels started on different dates and ended on the same dates
-    temp <- paste0(temp, "the sampling started ", 
-                   text_list(paste0(" ", 
-                                                 format(cruises_maxyr0$start_date_haul, 
-                                                        format = date_format) , 
-                                                 " for the ", cruises_maxyr0$vessel_ital) ), 
-                   " and ended for ", 
-                   ifelse(length(unique(cruises_maxyr0$vessel_ital)) == 1, 
-                          "the vessel", "both vessels"), 
-                   " ",
-                   format((unique(cruises_maxyr0$end_date_haul)), 
-                          format = date_format) )
-  }
-  str0 = c(str0, temp)
 }
-
-str0 <- data.frame(str = str0, 
-                  srvy = srvy1)
-
-nbs_insert  <- paste0(
-    "Sampling for the eastern Bering Sea shelf survey ",
-    str0$str[str0$srvy == "EBS"],
-    ". Sampling for the northern Bering Sea shelf survey ", 
-    str0$str[str0$srvy == "NBS"], 
-    ".")
 
 ```
 
-The `r maxyr` eastern Bering Sea and northern Bering Sea bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r nbs_insert `  
+The `r maxyr` `r SURVEY` bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r str0 `  
 
 ```{r fig-vessels0}
 nickname <- "fig-vessels"
@@ -129,7 +67,7 @@ str0 <-
 
 The northern Bering Sea shelf survey was designed as an extension of the systematic 20 × 20 nautical mile (nmi) sampling grid for the annual eastern Bering Sea shelf survey. `r str0 `The addition of the northern Bering Sea shelf survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^). Bottom depths in the northern Bering Sea survey area range from `r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m). 
 
-Both vessels sampled using an 83-112 Eastern otter trawl that has been historically used for eastern Bering Sea, Chukchi Sea, and Beaufort Sea surveys (Fig. \@ref(fig:fig-trawl-gear-alt)). This trawl is significantly smaller and weighs less than trawls typically used for commercial fishing in Alaska. Each trawl tow was conducted for 30 minutes at a speed of 2.8–3.2 knots.
+Both vessels use an 83-112 Eastern otter trawl that has been historically used for eastern Bering Sea, Chukchi Sea, and Beaufort Sea surveys (Fig. \@ref(fig:fig-trawl-gear-alt)). Each trawl tow was conducted for 30 minutes at a speed of 2.8–3.2 knots.
 
 ```{r fig-trawl-gear-alt0}
 nickname <- "fig-trawl-gear-alt"
@@ -138,8 +76,8 @@ nickname <- "fig-trawl-gear-alt"
 ```{r fig-trawl-gear-alt0-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
-Fishes, crabs, and other invertebrates were identified and sorted by species and weighed. A subsample of fishes were sorted by sex and measured to the nearest centimeter (cm). For the predominant crab species, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information on size, weight, sex, age, reproductive state, genetics, body condition, and stomach content/diet.
+Fishes, crabs, and other invertebrates were identified, sorted by species, and weighed. A subsample of fishes were sorted by sex and measured to the nearest centimeter (cm). For the predominant crab species, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information on size, weight, sex, age, reproductive state, genetics, body condition, and stomach contents.
 
-Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), biomass, abundance, and demographic structure (size and age distribution). CPUE is the estimated catch of organisms caught (in kilograms (kg) or number of individuals) per amount of effort (generally, a combination of gear type, gear size, and tow duration), and can be used as a measure of the density of a species. Effort was estimated as the area swept (area sampled in km^2^). Mean CPUE values were calculated for larger survey areas. Biomass and abundance were estimated for each survey area by multiplying the mean CPUE by the total survey area.
+Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), biomass, abundance, and demographic structure (size and age distribution). CPUE is the estimated catch of organisms caught per amount of effort (generally, a combination of gear type, gear size, and tow duration), and can be used as a measure of the density of a species. Effort was estimated as the area swept (area sampled in km^2^). Mean CPUE values were calculated for larger survey areas. Biomass, in kilograms (kg), and abundance, in number of individuals, were estimated for each survey area by multiplying the mean CPUE by the total survey area.
 
-Environmental data, including water temperature in degrees Celsius (°C), depth in meters (m), salinity (parts per thousand), and underwater downwelling light level were also recorded at each sampling station. Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).
+Environmental data, including water temperature in degrees Celsius (°C), depth in meters (m), and underwater light level were also recorded at each sampling station. `r ifelse(maxyr != 2025, "Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).", "")`

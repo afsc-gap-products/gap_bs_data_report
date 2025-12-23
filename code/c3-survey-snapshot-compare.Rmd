@@ -36,26 +36,48 @@ nickname <- "fig-cold-pool-area"
 
 ## Survey Data and Specimen Collections
 
-```{r nbs-trawl-survey-area}
+```{r trawl-survey-areas}
 # area of nbs trawl stations
 # area =  l*w * number of areas
 # temp <- haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$srvy == "NBS"] * # number of stations
 #   (10 / 1852) * # width of trawl net (m/nmi -> nmi)
 #   1.5 # calculate distance nmi = velocity (3 knots) * time (30 min)
 
-temp <- sum((haul_maxyr$net_width_m[haul_maxyr$srvy == "NBS"]/ 1852) * # net width in meters, divided 1852 (m->nmi)
-              ((haul_maxyr$distance_fished_km[haul_maxyr$srvy == "NBS"] * 1000)/ 1852), # distance fished in km converted to m,  divided 1852 (m->nmi)
+str0 <- ""
+
+for (i in 1:length(srvy11)) {
+
+temp <- sum((haul_maxyr$net_width_m[haul_maxyr$srvy == srvy1[i]]/ 1852) * # net width in meters, divided 1852 (m->nmi)
+              ((haul_maxyr$distance_fished_km[haul_maxyr$srvy == srvy1[i]] * 1000)/ 1852), # distance fished in km converted to m,  divided 1852 (m->nmi)
             na.rm = TRUE)
 
-temp1 <- sum((haul_compareyr$net_width_m[haul_compareyr$srvy == "NBS"]/ 1852) * 
-               ((haul_compareyr$distance_fished_km[haul_compareyr$srvy == "NBS"] * 1000)/ 1852),
+temp1 <- sum((haul_compareyr$net_width_m[haul_compareyr$srvy == srvy1[i]]/ 1852) * 
+               ((haul_compareyr$distance_fished_km[haul_compareyr$srvy == srvy1[i]] * 1000)/ 1852),
              na.rm = TRUE)
 
-# In `r maxyr`, the cumulative area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$srvy == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$srvy == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. In `r compareyr`, the cumulative area sampled by trawls at the `r haul_cruises_compareyr$stations_completed[haul_cruises_compareyr$srvy == "NBS"] ` completed stations was approximately `r round(temp1, 2)` nmi^2^ (`r round(temp1/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp1 / sum(stratum$area_nmi2[stratum$srvy == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. 
+stratum1 <- stratum |> 
+  dplyr::filter(srvy == srvy1[i])
+
+haul_cruises_maxyr1 <- haul_cruises_maxyr |> 
+  dplyr::filter(srvy == srvy1[i])
+
+haul_cruises_compareyr1 <- haul_cruises_compareyr |> 
+  dplyr::filter(srvy == srvy1[i])
+
+str0 <- paste0(str0, 
+  
+  "In ", maxyr,", ", srvy11[i], 
+  " survey, the total area sampled by trawls at the ", 
+  haul_cruises_maxyr1$stations_completed,
+  " completed stations was approximately ", 
+  round(temp, 2)," nmi^2^ (", round(temp/divnmi2forkm2, 2),
+  " km^2^), covering ", 
+  formatC(x = ((temp / sum(stratum1$area_nmi2, na.rm=TRUE)) * 100), format = "f", digits = 4),
+  "% of the total area of the ",srvy11[i],". In ", compareyr[names(compareyr) == srvy1[i]],", the total area sampled by trawls at the ", haul_cruises_compareyr1$stations_completed ,
+  " completed stations was approximately ", round(temp1, 2)," nmi^2^ (", round(temp1/divnmi2forkm2, 2)," km^2^), covering ", formatC(x = ((temp1 / sum(stratum1$area_nmi2, na.rm=TRUE)) * 100), format = "f", digits = 4),"% of the total area of the northern Bering Sea. \n\n")
+
+}
 ```
-
-In `r maxyr`, the total area sampled by trawls at the `r haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$srvy == "NBS"] ` completed stations was approximately `r round(temp, 2)` nmi^2^ (`r round(temp/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp / sum(stratum$area_nmi2[stratum$srvy == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. In `r compareyr`, the total area sampled by trawls at the `r haul_cruises_compareyr$stations_completed[haul_cruises_compareyr$srvy == "NBS"] ` completed stations was approximately `r round(temp1, 2)` nmi^2^ (`r round(temp1/divnmi2forkm2, 2)` km^2^), covering `r formatC(x = ((temp1 / sum(stratum$area_nmi2[stratum$srvy == "NBS"], na.rm=TRUE)) * 100), format = "f", digits = 4)`% of the total area of the northern Bering Sea. 
-
 ```{r specimen-collections}
 # obtain data
 load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))

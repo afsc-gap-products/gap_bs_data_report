@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 nickname <- "fig-survey-points-nostrata"
 
-header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
+header <- paste0("Station map of ",maxyr," ",SURVEY," survey", plural_surveys, ". The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
 
 height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
@@ -46,7 +46,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 # for community highlights
 nickname <- "fig-survey-points-strata"
 
-header <- paste0("Map of ",maxyr," ",SURVEY," survey sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
+header <- paste0("Station map of ",maxyr," ",SURVEY," survey", plural_surveys," sampling stations. The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
 
 height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
@@ -212,8 +212,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 nickname <- "fig-survey-grid"
 
 header <- paste0("Sampling grid and station identifiers for the ",maxyr," ",
-                 text_list(haul_cruises_maxyr$srvy_long),
-                 " shelf survey", plural_surveys, 
+                 SURVEY, " survey", plural_surveys, 
                  ". ") # , ifelse(srvy == "NBS", "", "Corner stations (denoted by circles) are not labeled for legibility. ")
 
 height <- ifelse(srvy == "NEBS", full_page_portrait_height, 6)
@@ -246,7 +245,7 @@ header <- paste0("Fishing vessels ",
                                   " (", c("left", "right"), ")")),
                  " contracted to conduct the ",maxyr," ",
                  SURVEY,
-                 " survey.")
+                 " survey", plural_surveys,".")
 
 nickname <- "fig-vessels"
 
@@ -835,7 +834,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-mean-temperature-prep}
 # code orig from sean rohan's coldpool package! Jan 23 2021 
 nickname <- "fig-mean-temperature"
-header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",
+header <- paste0("Average summer (points and solid lines) surface and bottom, and time series average (dashed lines) surface and bottom temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",
                  maxyr, " (left), and northern Bering Sea shelf based on data collected during standardized summer surveys (right). ")
 
 height <- 3.25
@@ -997,7 +996,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-cold-pool-area}
 header <- paste0("Annual extent of the summer cold pool on the eastern Bering Sea, based on observations from the eastern Bering Sea shelf survey. The extent of the cold pool is shown as a percentage of the total survey area.",
                  ifelse(srvy == "NEBS", 
-                        paste0(" Note that northern Bering Sea areas are not included in this figure.") , ""),
+                        paste0(" Note that northern Bering Sea areas are not included here.") , ""),
                  " Shading denotes near-bottom temperatures \u2264 2°C, \u2264 1°C, \u2264 0°C, and \u2264 -1°C.")
 
 footnote <- "Areas were summarized from areas in inverse distance weighted rasters."
@@ -1171,6 +1170,8 @@ yrs <- c(maxyr-2):maxyr
 row0 <- 1
 case_yr0 <- 1
 
+# print0 <- list()
+
 for (case in c("bottom", "surface")) {
     nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), "-data")
     a <- temp(yrs = yrs, 
@@ -1179,10 +1180,11 @@ for (case in c("bottom", "surface")) {
               case = case)
     figure_print <- a$figure_print
     header <- a$header
-    
+    # print0 <- c(print0, figure_print)
     res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
+
 
 ```{r fig-temperature-[st/bt]-old, eval = FALSE}
 height <- full_page_portrait_height+0.25

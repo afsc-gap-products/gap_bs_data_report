@@ -40,7 +40,7 @@ report_types <- list(
   ), 
   "NEBS" = list(
     sectname = "NEBS-BTS-Report", 
-    SURVEY = "eastern and northern Bering Sea shelves",
+    SURVEY = "eastern and northern Bering Sea shelf",
     map.area = "bs.all", 
     srvy11 = c("eastern Bering Sea", "northern Bering Sea"), 
     srvy1 = c("EBS", "NBS"), 
