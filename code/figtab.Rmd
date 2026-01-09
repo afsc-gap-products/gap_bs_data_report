@@ -1790,18 +1790,23 @@ table_print0 <- dplyr::bind_rows(
 )
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
+  
+  table_raw  <- table_raw0 |> 
+    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
+    dplyr::select_if(~ !all(is.na(.)))
+  
+  whoismissing <- setdiff(yrs, as.numeric(names(table_raw)[grepl(pattern = "2", x = names(table_raw))]))
+  
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0(
     "Total estimated biomasses (t) in ", range_text(yrs)," and the percent change between the ",
     compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]]," and ",maxyr," ", 
     haul_cruises_maxyr$srvy_long[i], 
-    ' shelf surveys for predominant fish and invertebrate taxa. Taxa are listed in descending order of percent change from ', compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]],' to ',maxyr,'. ', 
-    ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught on the survey", plural_surveys," in ", compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]]," or ",maxyr, ". "), "")) 
+    ' shelf surveys for predominant fish and invertebrate taxa', 
+    ifelse(whoismissing == "", "", paste0(" (the ",haul_cruises_maxyr$srvy_long[i]," was not surveyed in ", whoismissing, ")")),
+    '. Taxa are listed in descending order of percent change from ', compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]],' to ',maxyr,'. ', 
+    ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught. ", "")))
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
-  
-  table_raw  <- table_raw0 |> 
-    dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
-    dplyr::select_if(~ !all(is.na(.)))
   
   table_print <- table_print0  |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
@@ -1817,7 +1822,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     flextable::set_header_labels(.,
                                  print_name = "Common name", 
                                  dummy = "Scientific name", 
-                                 change = paste0("Change (", maxyr, ", ", compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]], ")" )) |> 
+                                 change = paste0("% Change (", maxyr, ", ", compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]], ")" )) |> 
     theme_flextable_nmfstm(row_lines = TRUE, 
                            pgwidth = full_page_portrait_width) |> 
     flextable::align(part = "all", align = "right") |>

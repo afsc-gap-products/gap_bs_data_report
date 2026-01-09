@@ -544,7 +544,6 @@ nickname <- paste0("fig-dist-", spp_file, "-pres")
 yrs <- c(maxyr-1, maxyr)
 height <- ifelse(srvy == "NEBS", 5, 4)
 width <- 5
-row0 <- 2
 width <- 5
 row0 <- 1
 report_title0 <- "pres"
@@ -558,6 +557,26 @@ pres_dist_txt <- temp$header
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+```{r fig-dist-[spp]-pres}
+nickname <- paste0("fig-dist-", spp_file, "-comms")
+yrs <- c(compareyr, maxyr)
+height <- ifelse(srvy == "NEBS", 5, 4)
+width <- 5
+width <- 5
+row0 <- 1
+report_title0 <- "pres"
+
+temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code) 
+comm_dist <- temp$figure_print  + 
+  ggplot2::ggtitle(NULL) + 
+  ggplot2::theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
+  
+comm_dist_txt <- temp$header
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
 
 ```{r fig-dist-[spp]-gif, eval = FALSE}
 yrs <- unique(cpue$year[cpue$species_code %in% unlist(a$species_code)]) # 1982:maxyr
@@ -872,18 +891,24 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 
 ```{r fig-sizecomp-[spp]-comm, eval = spp_plot_sizecomp}
-# yrs <- nbsyr
-# height <- full_page_portrait_height 
-# print_n <- FALSE
-# srvy <- srvy1
-# nickname <- paste0("fig-sizecomp-", spp_file, "-comm")
-# legend_font_size <- 10
-# report_title0 <- "community"
-# srvy <-"NBS"
-# 
-# temp <- size_plot(srvy, yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
-# for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+nickname <- paste0("fig-sizecomp-", spp_file, "-comm")
+print_n <- FALSE
+height <- 4.5
+width <- 5
+report_title0 <- "pres"
+legend_font_size <- 12
+yrs <- c(maxyr, compareyr) # [names(compareyr) == "NBS"]
+
+temp <- size_plot(srvy, yrs, lengths, sizecomp |> dplyr::filter(srvy == "NBS"), print_n, height, width, nickname, legend_font_size, report_title0) 
+comm_size <- temp$figure_print +
+          ggplot2::theme(
+                    plot.title = element_blank(), 
+                    axis.title.x = element_blank(), 
+                  # legend.position = "none", 
+                       plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") )
+
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 
@@ -2185,10 +2210,10 @@ nickname <- paste0("fig-combined-", spp_file, "-comm")
 height <- full_page_portrait_height-2.5
 width <- full_page_portrait_width
 
-if (exists("pres_size")) {
-  temp1 <- cowplot::plot_grid(pres_dist, 
+if (exists("comm_size")) {
+  temp1 <- cowplot::plot_grid(comm_dist, 
                               NULL, 
-                              pres_size, 
+                              comm_size, 
                               ncol = 3, 
                               rel_widths = c(1.3,.1,.6)) # 1, .1., .9 worked for presentations
 } else {
@@ -2212,14 +2237,21 @@ temp2 <- cowplot::plot_grid(pres_timeseries +
 
 figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1.2,.8))
 
-
-header <- paste0(header0, "Bottom left: Photo of ", spp_print, ". ")
+header <- paste0(
+  "Top left: ", 
+  "Total abundance-at-length estimates by sex encountered during the ", compareyr[names(compareyr) == "NBS"], " and ", maxyr, " northern Bering Sea surveys. Length distributions are scaled to the total estimated population size. ", # pres_size_txt, 
+  "Top right: ", comm_dist_txt, 
+  "Bottom left: Photo of ", spp_print, ". ", 
+  "Bottom right: ", pres_timeseries_txt)
+# header <- paste0(header0, "Bottom left: Photo of ", spp_print, ". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 
 ```{r remove-odds-ends, eval = TRUE}
+remove("comm_dist")
+remove("comm_size")
 remove("pres_dist")
 remove("pres_size")
 remove("pres_timeseries_mean")

@@ -23,9 +23,9 @@ report_types <- list(
   ), 
   "NBS" = list(
     sectname = "NBS-BTS-Report", 
-    SURVEY = "northern Bering Sea shelf", 
+    SURVEY = "northern Bering Sea", 
     map.area = "bs.north", 
-    srvy11 = "northern Bering Sea shelf", 
+    srvy11 = "northern Bering Sea", 
     srvy1 = "NBS", 
     srvy0 = "BS", # in Oracle
     srvy00 = 143,
@@ -42,7 +42,7 @@ report_types <- list(
     sectname = "NEBS-BTS-Report", 
     SURVEY = "eastern and northern Bering Sea shelf",
     map.area = "bs.all", 
-    srvy11 = c("eastern Bering Sea", "northern Bering Sea"), 
+    srvy11 = c("eastern Bering Sea shelf", "northern Bering Sea"), 
     srvy1 = c("EBS", "NBS"), 
     srvy0 = "BS", # in Oracle
     srvy00 = c(98, #NBS
@@ -454,7 +454,7 @@ cruises <- gap_products_akfin_cruise0 |>
     y = data.frame(survey_definition_id = c(143, 98, 47), 
                    srvy = c("NBS", "EBS", "GOA"), 
                    srvy_long = c("northern Bering Sea", 
-                                 "eastern Bering Sea", 
+                                 "eastern Bering Sea shelf", 
                                  "Gulf of Alaska"), 
                    srvy_start = c(2010, 1982, NA)), 
     by  = "survey_definition_id")|> 

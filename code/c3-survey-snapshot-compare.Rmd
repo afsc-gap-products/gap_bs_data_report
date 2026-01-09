@@ -189,6 +189,7 @@ str0 <- text_list(
                 paste0(xunits(temp00$n_taxa), " taxa")) ), sep = "; ")
 
 str0 <- gsub(pattern = "  ", replacement = " ", x = str0)
+str0 <- gsub(pattern = ", and", replacement = "; and", x = str0)
 ```
 
 From the `r SURVEY` survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r str0`. 
@@ -214,16 +215,24 @@ In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea
 ```{r biomass-inc-dec-spp}
 
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
+temp_nbs <- obj$raw
 
-temp1 <- obj$raw |>
+load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-EBS.rdata"))
+temp_ebs <- obj$raw
+
+temp1 <- dplyr::bind_rows(temp_ebs, temp_nbs) |>
   # dplyr::filter(srvy == "NBS")|>
   dplyr::select(print_name = print_name1, change, change0, maxyr, taxon, srvy) |>
   # I defined "no marked change" in < 25 and > -25% change to get me through the code. What number should it be?
   dplyr::mutate(
     change_case = dplyr::case_when(
-      change0 < -25 ~ "decreasing",
-      change0 > 25 ~ "increasing",
-      TRUE ~ "no notable change in" ),
+      change0 < -25 ~ "decreased",
+      change0 > 25 ~ "increased",
+      TRUE ~ "" ),
+    change_case_pre = dplyr::case_when(
+      change0 < -25 ~ "",
+      change0 > 25 ~ "",
+      TRUE ~ "there was no notable change in " ),
     change_case1 = dplyr::case_when(
       change0 < -25 ~ "decreases",
       change0 > 25 ~ "increases",
@@ -232,15 +241,16 @@ temp1 <- obj$raw |>
   dplyr::arrange(desc(change0))
 
 temp44 <- temp1 |> 
-  dplyr::group_by(taxon, change_case, srvy)|>
+  dplyr::group_by(taxon, change_case, change_case_pre, srvy)|>
   dplyr::summarise(n = n())|>
   dplyr::ungroup()|>
-  tidyr::pivot_wider(id_cols = c(change_case, srvy), 
+  tidyr::pivot_wider(id_cols = c(change_case, change_case_pre, srvy), 
                      names_from = taxon, values_from = n)|>
   dplyr::mutate(
-    str0_fish = ifelse(is.na(fish), "", paste0(xunits(fish), " fish", ifelse(fish>1, "es", ""))),
+    str0_fish = ifelse(is.na(fish), "", paste0(xunits(fish), " fish")), # , ifelse(fish>1, "es", "")
     str0_invert = ifelse(is.na(invert), "", paste0(xunits(invert), " invertebrate", ifelse(invert>1, "s", ""))),
-    str0 = paste0(str0_fish, ifelse(str0_invert == "", "", " and "), str0_invert))
+    str0 = paste0(str0_fish, ifelse(str0_invert == "", "", " and "), str0_invert)) |> 
+  dplyr::arrange(desc(change_case))
 
 temp3 <- temp1 |>
   dplyr::arrange(desc(change0))|>
@@ -261,15 +271,15 @@ temp33 <- dplyr::bind_rows(
 
 str0 <- ""
 
-for (i in 2:2) {
+for (i in 1:length(srvy1)) {
   
   temp3 <- temp33|> dplyr::filter(srvy == srvy1[i])
   temp4 <- temp44|> dplyr::filter(srvy == srvy1[i])
   
   str0 <- paste0(str0, 
                  paste0(
-                   "In the ",srvy11[i]," between ", compareyr, " and ", maxyr , ", ",
-                   text_list(paste0(temp4$str0, " experienced ", temp4$change_case, " biomass")),
+                   "In the ", srvy11[i]," between ", compareyr[names(compareyr) == srvy1[i]], " and ", maxyr , ", ",
+                   text_list(paste0(temp4$change_case_pre, "the biomass of ", temp4$str0, " species ", temp4$change_case)),
                    ifelse(i == 1, " (± 25% change from the previous survey year). ", ". "),
                    # paste0("Prominent organisms that exhibited the largest ", 
                    #        temp3$change_case1, " in biomass included ", temp3$spp_list, 
@@ -280,6 +290,8 @@ for (i in 2:2) {
 
 str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)
 str0 <- gsub(pattern = ". . ", replacement = ". ", x = str0, fixed = TRUE)
+str0 <- gsub(pattern = "  ", replacement = " ", x = str0, fixed = TRUE)
+str0 <- gsub(pattern = " .", replacement = ".", x = str0, fixed = TRUE)
 
 ```
 
@@ -291,50 +303,52 @@ temp5 <- biomass |>
                   species_code %in% report_spp1$species_code[(report_spp1$plot_idw)] & 
                   year == maxyr) |> 
   dplyr::select(srvy, biomass_mt, species_code, common_name) |> 
-  dplyr::left_join(report_spp1 |> 
-                     dplyr::select(print_name, species_code, order) |> 
-                     dplyr::distinct()) |> 
+  # dplyr::left_join(report_spp1 |>
+  #                    dplyr::select(print_name, species_code, order) |>
+  #                    dplyr::distinct()) |>
   # dplyr::arrange(desc(NBS)) 
-  dplyr::arrange(desc(order))|> 
-  dplyr::group_by(print_name, srvy)|> 
-  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE))|> 
+  # dplyr::arrange(desc(order))|> 
+  dplyr::group_by(common_name, srvy) |> 
+  # dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE))|> 
   tidyr::pivot_wider(names_from = srvy, values_from = biomass_mt)|> 
   dplyr::ungroup()|> 
   dplyr::mutate(NBS_greater = (NBS > EBS), 
-                NBS_only = (NBS > 0 & is.na(EBS)))|> 
-  dplyr::filter(NBS_greater)|> 
-  dplyr::mutate(print_name = sub(" \\(.*", "", x = print_name))
+                NBS_only = (NBS > 0 & is.na(EBS))) |> 
+  dplyr::filter(NBS_greater) |> 
+  dplyr::mutate(common_name = sub(" \\s*\\([^)]+\\)", "", x = common_name))
+
 ```
 
-Survey catches in the northern Bering Sea were generally smaller than in the eastern Bering Sea. Many predominant species were distributed throughout both survey regions. Several key species were found in the northern Bering Sea in greater biomass than the eastern Bering Sea, including `r text_list(temp5$print_name)`.
+Survey catches in the northern Bering Sea were generally smaller than in the eastern Bering Sea. While many species were distributed throughout both survey regions, several key species were more abundant in the northern Bering Sea than in the eastern Bering Sea, including `r text_list(temp5$common_name)`.
 
 ```{r biomass-inc-dec}
 
 load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-NBS.rdata"))
-temp1 <- obj$raw |> 
-  dplyr::select(-print_name, print_name = print_name1) 
+temp_nbs <- obj$raw
 
-# total biomass
-temp2 <- total_biomass |> 
-  dplyr::ungroup()|> 
-  dplyr::filter(srvy == "NBS")|>
-  dplyr::group_by(year)|> 
-  dplyr::summarise(total = sum(total, na.rm = TRUE))|> 
-  dplyr::ungroup()
+load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-EBS.rdata"))
+temp_ebs <- obj$raw
+
+temp1 <- dplyr::bind_rows(temp_ebs, temp_nbs) |>
+  dplyr::select(-print_name, print_name = print_name1) 
 
 # calculate top 50% of haul
 temp0 <- temp3 <- data.frame()
 str0 <- str00 <- c()
 
-yrs <- c(maxyr, compareyr[names(compareyr) == "NBS"])
+for (ii in 1:length(srvy1)) {
+  
+yrs <- c(maxyr, compareyr[names(compareyr) == srvy1[ii]])
 
 for (i in 1:length(yrs)) {
   
   yr <- as.numeric(sort(yrs, decreasing = TRUE)[i])
-  temp <- temp2$total[temp2$year == yr]
+
+# total biomass
+  temp <- sum(total_biomass$total[total_biomass$year == yr & total_biomass$srvy == srvy1[ii]])
   
   temp5 <- temp1 |> 
-    dplyr::filter(srvy == "NBS")|> 
+    dplyr::filter(srvy == srvy1[ii])|> 
     dplyr::rename("x" = all_of(as.character(yr)))|> 
     dplyr::arrange(desc(x))|> 
     dplyr::select(print_name, x, taxon)|> # species_name, 
@@ -350,19 +364,19 @@ for (i in 1:length(yrs)) {
   
   if (yr == maxyr) {
     str0 <- paste0(str0, 
-                   paste0("In ", yr, ", 50% of the total estimated biomass in the northern Bering Sea was comprised of ", 
+                   paste0("In ", yr, ", the largest contributors of biomass in the ",srvy11[ii]," were ", 
                           text_list(paste0(temp4$print_name, " (", 
                                            round(temp4$prop*100, digits = 0), "%)")), ". "))
   } else if (i==2) {
     str0 <- paste0(str0, 
-                   paste0("Previously in ", yr, ", 50% of the estimated biomass was comprised of ", 
+                   paste0("Previously in ", yr, ", the largest contributors of biomass were ", 
                           text_list(
-                            paste0(temp4$print_name, " (", round(temp4$prop*100, digits = 0), "%)"))))
+                            paste0(temp4$print_name, " (", round(temp4$prop*100, digits = 0), "%)")), ". "))
   } else {
     str0 <- paste0(str0, 
                    paste0(ifelse(i==length(nbsyr), "; and in ", "; in "), yr, ", ", 
                           text_list(
-                            paste0(temp4$print_name, " (", round(temp4$prop*100, digits = 0), "%)"))))
+                            paste0(temp4$print_name, " (", round(temp4$prop*100, digits = 0), "%)")), ". "))
     
   }
   
@@ -370,6 +384,7 @@ for (i in 1:length(yrs)) {
   temp0 <- rbind.data.frame(temp0, 
                             temp5|> 
                               dplyr::filter(print_name %in% c("saffron cod","Arctic cod")) )
+}
 }
 
 temp0 <- temp0|> 
@@ -395,7 +410,7 @@ temp3 <- temp3 |>
 
 ```
 
-`r str0`. 
+`r str0` 
 
 Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`. 
 
@@ -410,7 +425,7 @@ nickname <- "tab-majortaxa-pchange-NBS"
 
 # Summary Results for Select Major Taxa
 
-Survey results for select taxa are presented with a photograph of the taxon, a summary of results, maps of geographic distribution of CPUE (kg/km^2^), and plots showing total population estimates by sex and size. Maps of species distributions include both the eastern and northern Bering Sea shelf survey regions to better illustrate patterns and trends in fish distribution and movement. For comparison among years, distribution maps and abundance-at-size plots show survey data from the `r text_list(nbsyr) ` surveys.
+Survey results for select taxa are summarized below, with CPUE (kg/km^2^) distribution maps, and plots of the population estimate by sex and size. Maps of species distributions include both the eastern and northern Bering Sea survey regions to better illustrate patterns and trends in fish distribution and movement. For comparison among years, distribution maps and abundance-at-size plots show survey data from the `r text_list(c(compareyr, maxyr)) ` surveys.
 
 **You can help us with this document by providing names in local language(s) and cultural or traditional uses for each fish and invertebrate species reviewed in this report by reaching out to [nmfs.afsc.gap.metadata@noaa.gov](nmfs.afsc.gap.metadata@noaa.gov).**
 

@@ -375,6 +375,9 @@ crab_sizecomp_stratum <- gapindex::calc_sizecomp_stratum(
   spatial_level = "stratum",
   fill_NA_method = "BS")
 
+# Error in vecseq(f__, len__, limit) : 
+#   Join results in 1518038 rows; more than 893685 = nrow(x)+nrow(i). Check for duplicate key values in i each of which join to the same group in x over and over again. If that's ok, try by=.EACHI to run j for each group to avoid the large allocation. If you are sure you wish to proceed, rerun with allow.cartesian=TRUE. Otherwise, please search for this error message in the FAQ, Wiki, Stack Overflow and data.table issue tracker for advice.
+
 # Aggregate size composition to subareas/region
 crab_sizecomp_subarea <- gapindex::calc_sizecomp_subarea(
   gapdata = crab_data,
