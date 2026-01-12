@@ -150,8 +150,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   }
   header <- paste0("CPUE (kg/km^2^) distribution of ", 
                    spp_print, 
-                   ifelse(is.na(spp_sci), "", 
-                          paste0(" (",spp_sci,")")), 
+                   # ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                    " from the ",
                    range_text(yrs), " ", 
                    SURVEY, 
@@ -217,27 +216,27 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
     extrapolation.grid.type = "sf")
   
   # remove predictions from areas that were not surveyed
-    if (map.area0 == "bs.all") {
+  if (map.area0 == "bs.all") {
     if ("NBS" %in% a$case) {
-        idw$extrapolation.stack <- dplyr::bind_rows(
-          idw$extrapolation.stack |>
-            dplyr::filter(YEAR %in% a$YEAR[a$case != "NBS"]),
-          idw$extrapolation.stack |> 
-            dplyr::filter(YEAR %in% a$YEAR[a$case == "NBS"]) |> 
-                    sf::st_difference(y = reg_dat$survey.area[reg_dat$survey.area$survey_definition_id == 98,]) )
-      }
+      idw$extrapolation.stack <- dplyr::bind_rows(
+        idw$extrapolation.stack |>
+          dplyr::filter(YEAR %in% a$YEAR[a$case != "NBS"]),
+        idw$extrapolation.stack |> 
+          dplyr::filter(YEAR %in% a$YEAR[a$case == "NBS"]) |> 
+          sf::st_difference(y = reg_dat$survey.area[reg_dat$survey.area$survey_definition_id == 98,]) )
+    }
     
     if ("EBS" %in% a$case) {
-        idw$extrapolation.stack <- dplyr::bind_rows(
-          idw$extrapolation.stack |>
-            dplyr::filter(YEAR %in% a$YEAR[a$case != "EBS"]),
-          idw$extrapolation.stack |> 
-            dplyr::filter(YEAR %in% a$YEAR[a$case == "EBS"]) |> 
-                    sf::st_difference(y = reg_dat$survey.area[reg_dat$survey.area$survey_definition_id == 143,]) )
-      }
+      idw$extrapolation.stack <- dplyr::bind_rows(
+        idw$extrapolation.stack |>
+          dplyr::filter(YEAR %in% a$YEAR[a$case != "EBS"]),
+        idw$extrapolation.stack |> 
+          dplyr::filter(YEAR %in% a$YEAR[a$case == "EBS"]) |> 
+          sf::st_difference(y = reg_dat$survey.area[reg_dat$survey.area$survey_definition_id == 143,]) )
+    }
   }
   
-    idw$extrapolation.stack$var1.pred <- 
+  idw$extrapolation.stack$var1.pred <- 
     factor(x = idw$extrapolation.stack$var1.pred, 
            levels = levels(idw$extrapolation.stack$var1.pred), 
            labels = set.breaks_pretty,
@@ -293,7 +292,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
           mapping = aes(color = SURVEY, 
                         geometry = geometry), 
           fill = "transparent", 
-          linewidth = 1, # ifelse(row0 > 2, 1.5, 1), 
+          linewidth = .75, # ifelse(row0 > 2, 1.5, 1), 
           show.legend = FALSE) +
         ggplot2::scale_color_manual(
           name = " ", 
@@ -523,19 +522,22 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```
 
 ```{r fig-dist-[spp]-comm}
-# yrs <- unique(sort(c(analysisyrs, 2020)))
-# # if (spp_file == "greenland-turbot") {
-# #   yrs <- c(2022, 2023, 2024)
-# # }
-# width <- full_page_portrait_width # 6.5  
-# height <- full_page_portrait_height-1
-# row0 <- 2
-# nickname <- paste0("fig-dist-", spp_file, "-comm")
-# report_title0 <- "community"
-# 
-# temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code) 
-# for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+nickname <- paste0("fig-dist-", spp_file, "-comm")
+yrs <- c(compareyr, maxyr)
+height <- ifelse(srvy == "NEBS", 5, 4)
+width <- 5
+width <- 5
+row0 <- 1
+report_title0 <- "pres"
+
+temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code) 
+comm_dist <- temp$figure_print  + 
+  ggplot2::ggtitle(NULL) + 
+  ggplot2::theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
+
+comm_dist_txt <- temp$header
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 
@@ -552,27 +554,8 @@ temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_cod
 pres_dist <- temp$figure_print  + 
   ggplot2::ggtitle(NULL) + 
   ggplot2::theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
-  
+
 pres_dist_txt <- temp$header
-for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r fig-dist-[spp]-pres}
-nickname <- paste0("fig-dist-", spp_file, "-comms")
-yrs <- c(compareyr, maxyr)
-height <- ifelse(srvy == "NEBS", 5, 4)
-width <- 5
-width <- 5
-row0 <- 1
-report_title0 <- "pres"
-
-temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code) 
-comm_dist <- temp$figure_print  + 
-  ggplot2::ggtitle(NULL) + 
-  ggplot2::theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
-  
-comm_dist_txt <- temp$header
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand(file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -644,9 +627,12 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
     if (report_title0 %in% c("community", "data", "gif")) {
       if (report_title0 == "community") {
         
+        dat0 <- table_raw
+        dat0$srvy_long <- dat0$srvy
+        
         header <- paste0("Total population estimates at length for ",
-                         spp_print, ifelse(is.na(spp_sci), "", 
-                                           paste0(" (",spp_sci,")")), 
+                         spp_print, 
+                         # ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")),
                          " calculated from ",
                          range_text(yrs)," ",
                          text_list(paste0(unique(table_raw$srvy_long))), 
@@ -675,8 +661,8 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
         }
         
         header <- paste0("Total abundance-at-length estimates of ",
-                         spp_print, ifelse(is.na(spp_sci), "", 
-                                           paste0(" (",spp_sci,")")), 
+                         spp_print, 
+                         # ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                          " by sex (",text_list(tolower(unique(table_raw$sex))),
                          ") in ",
                          ifelse(!grepl(pattern = " crab", x = spp_print, ignore.case = TRUE), 
@@ -699,12 +685,14 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
                          "Length distributions are scaled to the total estimated population size. ", 
                          ifelse(print_n, 
                                 "Total number of individuals measured during the survey is indicated in the upper right corner of each plot.", ""))
+        
+        dat0 <- table_raw |> 
+          dplyr::mutate(
+            srvy_long = gsub(replacement = "", x = srvy_long, pattern = SURVEY), 
+            srvy_long = trimws(stringr::str_to_title(srvy_long)))        
+        
       }
       
-      dat0 <- table_raw |> 
-        dplyr::mutate(
-          srvy_long = gsub(replacement = "", x = srvy_long, pattern = SURVEY), 
-          srvy_long = trimws(stringr::str_to_title(srvy_long)))
       
       if (report_title0 == "gif") {
         
@@ -848,16 +836,16 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
     figure_print <- figure_print +
       ggplot2::theme(strip.text = element_text(size = legend_font_size, face = "bold"))
     
-    if (report_title0 %in% c("community")) { 
-      figure_print <-
-        cowplot::ggdraw(figure_print + 
-                          ggplot2::theme( plot.margin = margin(1.2, 0, 0, 0, "cm") ) ) +
-        cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
-                            x = .78, y = .44, # top right
-                            # x = 0.07, y = -.42, # lower left
-                            hjust = 0, vjust = 0,
-                            width = .18)
-    }
+    # if (report_title0 %in% c("community")) { 
+    #   figure_print <-
+    #     cowplot::ggdraw(figure_print + 
+    #                       ggplot2::theme( plot.margin = margin(1.2, 0, 0, 0, "cm") ) ) +
+    #     cowplot::draw_image(image = readPNG(paste0(dir_img, spp_file, ".png")),
+    #                         x = .78, y = .44, # top right
+    #                         # x = 0.07, y = -.42, # lower left
+    #                         hjust = 0, vjust = 0,
+    #                         width = .18)
+    # }
     
   } else {
     header <- ""
@@ -895,18 +883,21 @@ nickname <- paste0("fig-sizecomp-", spp_file, "-comm")
 print_n <- FALSE
 height <- 4.5
 width <- 5
-report_title0 <- "pres"
-legend_font_size <- 12
+report_title0 <- "community"
+legend_font_size <- 8
 yrs <- c(maxyr, compareyr) # [names(compareyr) == "NBS"]
 
-temp <- size_plot(srvy, yrs, lengths, sizecomp |> dplyr::filter(srvy == "NBS"), print_n, height, width, nickname, legend_font_size, report_title0) 
-comm_size <- temp$figure_print +
-          ggplot2::theme(
-                    plot.title = element_blank(), 
-                    axis.title.x = element_blank(), 
-                  # legend.position = "none", 
-                       plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") )
-
+temp <- size_plot(srvy, yrs, lengths, sizecomp, # |> dplyr::filter(srvy == "NBS"), 
+                  print_n, height, width, nickname, legend_font_size, report_title0) 
+comm_size <- figure_print <- 
+  temp$figure_print +
+  ggplot2::labs(fill = NULL) +
+  ggplot2::theme(
+    plot.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    # legend.title = element_blank(), 
+    plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") )
+header <- ""
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -936,16 +927,16 @@ if (srvy == "EBS") {
   
   # EBS 
   if (sizecomp |> dplyr::filter(srvy == "EBS" & year == maxyr & species_code %in% spp_code) |> nrow() > 0) {
-  temp <- size_plot(srvy = "EBS", yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
-  pres_size_ebs <- temp$figure_print
+    temp <- size_plot(srvy = "EBS", yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
+    pres_size_ebs <- temp$figure_print
   } else {
     pres_size_ebs <- NULL
   }
   
   # NBS 
   if (sizecomp |> dplyr::filter(srvy == "NBS" & year == maxyr & species_code %in% spp_code) |> nrow() > 0) {
-  temp <- size_plot(srvy = "NBS", yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
-  pres_size_nbs <- temp$figure_print
+    temp <- size_plot(srvy = "NBS", yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
+    pres_size_nbs <- temp$figure_print
   } else {
     pres_size_nbs <- NULL
   }
@@ -953,54 +944,54 @@ if (srvy == "EBS") {
   if (is.null(pres_size_nbs) | is.null(pres_size_ebs)) {
     
     if (is.null(pres_size_nbs)) {
-        pres_size <- pres_size_ebs
+      pres_size <- pres_size_ebs
     } else {
-        pres_size <- pres_size_nbs
+      pres_size <- pres_size_nbs
     }
     
-      figure_print <- pres_size <- pres_size + 
-        # ggplot2::ggtitle(label = NULL) +
-        # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +  
-        ggplot2::theme(#axis.title.y = element_blank(),
-      legend.title = element_blank(), 
-      legend.title.position = "none",
-      # legend.position = "none", 
-      plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ) + 
-    ggplot2::labs(fill = NULL)
+    figure_print <- pres_size <- pres_size + 
+      # ggplot2::ggtitle(label = NULL) +
+      # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +  
+      ggplot2::theme(#axis.title.y = element_blank(),
+        legend.title = element_blank(), 
+        legend.title.position = "none",
+        # legend.position = "none", 
+        plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ) + 
+      ggplot2::labs(fill = NULL)
     
-    } else {
-  
-  # combine
-  figure_print <- pres_size <- 
-    cowplot::plot_grid(
-      pres_size_nbs + 
-    ggplot2::ggtitle(paste0(maxyr, " northern Bering Sea")) +
-        # ggplot2::ggtitle(label = NULL) +
-        # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +
-        ggplot2::theme(
-                    plot.title = element_text(size = 10, face = "bold"), 
-
-                    axis.title.x = element_blank(), 
-                       legend.position = "none", 
-                       plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ), 
-  pres_size_ebs +
-    ggplot2::ggtitle(paste0(maxyr, " eastern Bering Sea")) +
-        # ggplot2::ggtitle(label = NULL) +
-        # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +   
-    ggplot2::theme(#axis.title.y = element_blank(),
-                    plot.title = element_text(size = 10, face = "bold"), 
-      legend.title = element_blank(), 
-      legend.title.position = "none",
-      legend.position = "none", 
-      plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ) , 
-    cowplot::get_legend(pres_size_ebs + 
-    ggplot2::labs(fill = NULL)) , 
-nrow = 3, 
-ncol = 1, 
-rel_heights = c(.3, .3, .05))
-# cowplot::plot_grid(cowplot::get_y(pres_size_ebs), 
-#                    pres_size, 
-#                    nrow = 1, ncol = 2, rel_widths = .1, .9)
+  } else {
+    
+    # combine
+    figure_print <- pres_size <- 
+      cowplot::plot_grid(
+        pres_size_nbs + 
+          ggplot2::ggtitle(paste0(maxyr, " northern Bering Sea")) +
+          # ggplot2::ggtitle(label = NULL) +
+          # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +
+          ggplot2::theme(
+            plot.title = element_text(size = 10, face = "bold"), 
+            
+            axis.title.x = element_blank(), 
+            legend.position = "none", 
+            plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ), 
+        pres_size_ebs +
+          ggplot2::ggtitle(paste0(maxyr, " eastern Bering Sea")) +
+          # ggplot2::ggtitle(label = NULL) +
+          # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +   
+          ggplot2::theme(#axis.title.y = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"), 
+            legend.title = element_blank(), 
+            legend.title.position = "none",
+            legend.position = "none", 
+            plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ) , 
+        cowplot::get_legend(pres_size_ebs + 
+                              ggplot2::labs(fill = NULL)) , 
+        nrow = 3, 
+        ncol = 1, 
+        rel_heights = c(.3, .3, .05))
+    # cowplot::plot_grid(cowplot::get_y(pres_size_ebs), 
+    #                    pres_size, 
+    #                    nrow = 1, ncol = 2, rel_widths = .1, .9)
   }
   header = ""
 }
@@ -1079,8 +1070,8 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
   }
   
   header <- paste0("Total abundance-at-age estimates of ",
-                   spp_print, ifelse(is.na(spp_sci), "", 
-                                     paste0(" (",spp_sci,")")), 
+                   spp_print, 
+                   # ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                    " by sex (",text_list(tolower(unique(table_raw$sex))),
                    ") encountered during the ",
                    
@@ -1306,20 +1297,20 @@ if (length(spp_code) == 1) {
 }
 temp_bio <- dplyr::right_join(
   x = total_biomass |>
-  #       dplyr::right_join(data.frame(srvy = c(names(compareyr), names(compareyr)), 
-  #                                year = c(compareyr, maxyr, maxyr))) |>   
+    #       dplyr::right_join(data.frame(srvy = c(names(compareyr), names(compareyr)), 
+    #                                year = c(compareyr, maxyr, maxyr))) |>   
     dplyr::group_by(srvy, year) |> 
     dplyr::summarise(total = sum(total, na.rm = TRUE)), 
   y = temp_bio |> 
     dplyr::filter(#year %in% yrs & 
       area_id > 999) |>
-
+    
     dplyr::select(srvy, year, biomass_mt, population_count, 
                   cpue_kgkm2_mean, cpue_nokm2_mean) |> 
     dplyr::filter((biomass_mt !=0)), 
   by = c("year", "srvy")) |> 
-    dplyr::right_join(data.frame(srvy = c(names(compareyr), names(compareyr)), 
-                                 year = c(compareyr, maxyr, maxyr))) |>     # dplyr::filter(year %in% yrs) |> 
+  dplyr::right_join(data.frame(srvy = c(names(compareyr), names(compareyr)), 
+                               year = c(compareyr, maxyr, maxyr))) |>     # dplyr::filter(year %in% yrs) |> 
   dplyr::group_by(srvy, year, total) |> 
   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE),  
                    population_count = sum(population_count, na.rm = TRUE),  
@@ -1464,7 +1455,9 @@ if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
 ### print table ----------------------------------------------------------------
 
 header <- paste0("Summary of ",maxyr," catch presence, temperature ranges, and extrapolated biomass and population estimates for ", 
-                 spp_print, " (", spp_sci, ") in the ", 
+                 spp_print, 
+                 # ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                 " in the ", 
                  ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea shelf"), SURVEY), 
                  " survey area", plural_surveys, ". ")
 
@@ -1636,7 +1629,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          ") and upper (UCL;", gsub("[()]", "", biomass_mt0$unit_word),
                          ") confidence limits, and number of hauls in which ",
                          spp_print,
-                         ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
+                         # ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
                          " were weighed")
         
         table_print0 <- table_raw |>
@@ -1708,7 +1701,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          ") and upper (UCL;", gsub("[()]", "", population_count0$unit_word),
                          ") confidence limits, and number of hauls in which ",
                          spp_print,
-                         ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
+                         # ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
                          " were encountered")
         
         table_print0 <- table_raw |>
@@ -1939,10 +1932,10 @@ table_raw1 <- table_raw
 
 timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises) {
   
-  if (length(unique(table_raw$var_)) == 1) {
-    table_raw$var_ <- gsub(x = table_raw$var_, replacement = "", pattern = "\n", fixed = TRUE)
-    table_raw$var_ <- gsub(x = table_raw$var_, replacement = " ", pattern = "  ", fixed = TRUE)
-  }
+  # if (length(unique(table_raw$var_)) == 1) {
+  #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = "", pattern = "\n", fixed = TRUE)
+  #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = " ", pattern = "  ", fixed = TRUE)
+  # }
   
   # find mean for mean line
   table_raw_mean <- table_raw |> 
@@ -2078,8 +2071,8 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
   
   header <- paste0("Time series of ", 
                    spp_print,
-                   ifelse(is.na(spp_sci), "",
-                          paste0(" (",spp_sci,")")), " ",
+                   # ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                   " ",
                    text_list(temp$str0), 
                    " from the ", 
                    min(table_raw$year, na.rm = TRUE),"-", 
@@ -2088,7 +2081,7 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
                    ifelse(length(unique(table_raw$srvy_long0)) > 1, 
                           SURVEY, 
                           unique(table_raw$srvy_long0)), 
-                   " shelf survey", 
+                   " survey", 
                    ifelse(length(unique(table_raw$srvy_long0)) > 1, plural_surveys, "")," (points and solid lines). Dashed lines represent time-series average and error bars represent estimated 95% confidence intervals. ")
   
   temp <- lengths |>
@@ -2125,10 +2118,10 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 nickname <- paste0("fig-timeseries-", spp_file, "-comm")
 height <- 3
 width <- full_page_portrait_width
-legend_font_size <- 10
+legend_font_size <- 8
 table_raw0 <- table_raw1 |> dplyr::filter(var == "biomass_mt")
 
-temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = legend_font_size, haul_cruises)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -2137,7 +2130,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 nickname <- paste0("fig-timeseries-", spp_file, "-pres")
 height <- 3
 legend_font_size <- 12
-table_raw0 <- table_raw1 |> dplyr::filter(var == "biomass_mt")
+table_raw0 <- table_raw1 |> dplyr::filter(var == "biomass_mt") |> dplyr::mutate(srvy_long = srvy)
 
 temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
 pres_timeseries <- temp$figure_print + 
@@ -2155,9 +2148,22 @@ height <- 7.5
 width <- 10
 
 if (exists("pres_size")) {
-  temp1 <- cowplot::plot_grid(pres_dist, 
+  temp1 <- cowplot::plot_grid(pres_dist +
+                                ggplot2::guides(
+                                  fill = guide_legend(title.position = "left",
+                                                      title.hjust = 0.5, 
+                                                      nrow = 1)) +
+                                ggplot2::theme(
+                                  legend.title = element_text(size = 8, face = "bold"), 
+                                  legend.key.height = unit(0.3, "cm") # Make them shorter
+                                ),  
                               NULL, 
-                              pres_size, 
+                              pres_size +
+                                ggplot2::theme(
+                                  # legend.key.size = unit(0.5, "cm"),  # Adjust overall key size
+                                  # legend.key.width = unit(0.3, "cm"), # Make them even narrower
+                                  legend.key.height = unit(0.3, "cm") # Make them shorter
+                                ), 
                               ncol = 3, 
                               rel_widths = c(1,.2,.8)) # 1, .1., .9 worked for presentations
 } else {
@@ -2186,14 +2192,14 @@ figure_print <- ggdraw(add_sub(
   plot = figure_print, 
   size = 10, 
   label = paste0(paste0(spp_print, "\n"), 
-                paste0(temp$srvy, " Bio Mean: ", 
-                 round(x = temp$y_mean, digits = 1),
-                 " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
-                 temp$`Biomass\n(t)`," (",
-                 gsub(pattern = "\n", replace = " ", 
-                      x = temp$`Percent Change\nin Biomass`, fixed = TRUE), ")", 
-                 ". \n  ", temp$`Survey Catch Totals`, ". ", 
-                 collapse = "\n") )
+                 paste0(temp$srvy, " Bio Mean: ", 
+                        round(x = temp$y_mean, digits = 1),
+                        " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
+                        temp$`Biomass\n(t)`," (",
+                        gsub(pattern = "\n", replace = " ", 
+                             x = temp$`Percent Change\nin Biomass`, fixed = TRUE), ")", 
+                        ". \n  ", temp$`Survey Catch Totals`, ". ", 
+                        collapse = "\n") )
 ))
 # }
 header <- header0 <- paste0(
@@ -2206,44 +2212,106 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```
 
 ```{r fig-combined-[spp]-comm}
+
 nickname <- paste0("fig-combined-", spp_file, "-comm")
-height <- full_page_portrait_height-2.5
+height <- 3.2 # full_page_portrait_height-2.5
 width <- full_page_portrait_width
 
 if (exists("comm_size")) {
-  temp1 <- cowplot::plot_grid(comm_dist, 
-                              NULL, 
-                              comm_size, 
-                              ncol = 3, 
-                              rel_widths = c(1.3,.1,.6)) # 1, .1., .9 worked for presentations
+  comm_size1 <- comm_size + 
+      ggplot2::theme(
+        plot.title = element_blank(), 
+        legend.text = element_text(size = 8), 
+        axis.text = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.title.x = element_blank(),
+        strip.text = element_text(size = 8, face = "bold"), 
+        plot.margin = grid::unit(c(0,0,0,0), "mm"), 
+        legend.box.background = element_rect(color = "white", fill = "white", linewidth = 1), # Box border and fill
+        # legend.background = element_blank(), # Make inner legend background transparent if needed
+        # legend.key.size = unit(0.5, "cm"),  # Adjust overall key size
+        # legend.key.width = unit(0.3, "cm"), # Make them even narrower
+        legend.key.height = unit(0.15, "cm"),
+        legend.key.width = unit(0.3, "cm"),
+        legend.position = c(.77, 0.5)) # Make them shorter
+      
 } else {
-  pres_size_txt <- "There are no sizecomps for this species. "
-  temp1 <- cowplot::plot_grid(pres_dist, 
-                              NULL, 
-                              ncol = 2, 
-                              rel_widths = c(1,1))
+    pres_size_txt <- "There are no sizecomps for this species. "
+comm_size1 <- NULL
+}
+  temp1 <- cowplot::plot_grid(
+    comm_dist  + 
+      ggplot2::guides(
+        fill = guide_legend(
+          # order = 1,
+          title.position = NULL, # "left",
+          label.position = "bottom",
+          # title.hjust = 0.5,
+          override.aes = list(color = NA),
+          nrow = 2),
+        color = "none")  +
+      ggplot2::theme(
+        plot.title = element_blank(), 
+        legend.title = element_blank(), #element_text(size = 8, face = "bold"),
+        legend.text = element_text(size = 8), 
+        axis.text = element_text(size = 8), 
+        axis.title = element_blank(),
+        strip.text = element_text(size = 8, face = "bold"), 
+        plot.margin = grid::unit(c(0,0,0,0), "mm"), 
+        axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1
+        legend.key.height = unit(0.15, "cm") ), # Make them shorter
+    NULL, 
+    comm_size1, 
+    ncol = 3, 
+    rel_widths = c(1.2,.05,.75)) # 1, .1., .9 worked for presentations
+
+
+temp2 <- cowplot::plot_grid(
+  pres_timeseries + 
+    # ggplot2::ggtitle(NULL) + 
+    ggplot2::guides(fill = "none") +
+    ggplot2::labs(color = "") + 
+    ggplot2::labs(shape = "") +
+    ggplot2::guides(
+      color = guide_legend(title.position = NULL, nrow = 1),
+      shape = guide_legend(title.position = NULL, nrow = 1))  +
+    ggplot2::theme(
+      plot.title = element_blank(), 
+      legend.text = element_text(size = 8), 
+      strip.text = element_text(size = 8, face = "bold"), 
+      axis.title.y = element_text(size = 8), 
+      axis.title.x = element_blank(), 
+      axis.text = element_text(size = 8), 
+      plot.margin = grid::unit(c(0,0,0,0), "mm"),
+      legend.position = c(0.15, 0.2)),
+  # NULL, 
+  pres_spp,
+  ncol = 2, 
+  rel_widths = c(1.5, .5)) 
+
+figure_print <- cowplot::plot_grid(temp1, NULL, temp2, nrow = 3, rel_heights = c(1.25, 0.05, 0.7))
+
+# Then use ggdraw() to add a custom label on top of the combined plot
+figure_print <- cowplot::ggdraw(figure_print) +
+  cowplot::draw_label("A", x = 0.00, y = 0.95, hjust = 0, vjust = 0, size = 16) +
+  cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), x = 0.00, y = 0.32, hjust = 0, vjust = 0, size = 16) +
+  cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
+
+if (exists("comm_size")) {
+figure_print <- cowplot::ggdraw(figure_print) +
+  cowplot::draw_label("B", x = 0.6, y = 0.95, hjust = 0, vjust = 0, size = 16)
 }
 
-temp2 <- cowplot::plot_grid(pres_timeseries + 
-                              ggplot2::ggtitle("") + 
-                              ggplot2::guides(fill = "none") +
-                              ggplot2::labs(color = "") + 
-                              ggplot2::labs(shape = "") +
-                              ggplot2::theme(legend.position = "none"),
-                            NULL, 
-                            pres_spp,
-                            ncol = 3, 
-                            rel_widths = c(1.3, .1, .6)) 
-
-figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1.2,.8))
-
 header <- paste0(
-  "Top left: ", 
-  "Total abundance-at-length estimates by sex encountered during the ", compareyr[names(compareyr) == "NBS"], " and ", maxyr, " northern Bering Sea surveys. Length distributions are scaled to the total estimated population size. ", # pres_size_txt, 
-  "Top right: ", comm_dist_txt, 
-  "Bottom left: Photo of ", spp_print, ". ", 
-  "Bottom right: ", pres_timeseries_txt)
-# header <- paste0(header0, "Bottom left: Photo of ", spp_print, ". ")
+  spp_print, #ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+  " ",
+  "(A) CPUE distribution (kg/km^2^) ",
+  ifelse((exists("comm_size")), "and (B) total abundance-at-length (cm) estimates by sex scaled to the total estimated population ", ""), 
+  "from the ", range_text(c(compareyr, maxyr)), " eastern (EBS) and northern (NBS) Bering Sea shelf survey",plural_surveys,
+  ". (",ifelse((exists("comm_size")), "C", "B"),") Biomass timeseries during the ",
+  substr(x = gsub("[^0-9]", "", pres_timeseries_txt), start = 1, stop = 4),"-2025 ", # SURVEY,
+  "survey",plural_surveys," (points and solid lines, with estimated 95% confidence intervals error bars) and timeseries mean (dashed lines). ",
+  "(",ifelse((exists("comm_size")), "D", "C"),") Photo of ", ifelse(tolower(substr(spp_print, 1, 1)) %in% c("a", "e", "i", "o", "u"), "an ", "a "), spp_print, ". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```

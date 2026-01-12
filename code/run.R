@@ -1,7 +1,7 @@
 
 # Report knowns ----------------------------------------------------------------
 
-access_to_internet  <- FALSE # TRUE = redownload google drive tables and docs
+access_to_internet  <- TRUE # TRUE = redownload google drive tables and docs
 quarto <- FALSE
 options(scipen=999)
 
@@ -50,6 +50,7 @@ for (i in 1:nrow(comb)){
                             dplyr::bind_cols(comb[i,], 
                                              species_code1 = eval(expr = parse(text = comb$species_code[i]))))
 }
+
 comb <- unique(sort(comb$file_name))
 # comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
 comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary

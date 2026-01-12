@@ -30,16 +30,14 @@ for (i in 1:length(srvy11)){
                    # text_list(cruises_maxyr0$vessel_ital), 
                    # ifelse(length(unique(vessels0$vessel)) == 1, 
                    #        "the vessel", "both vessels"), 
-                   " shelf survey started on ",
+                   " survey started on ",
                    format(min(cruises_maxyr0$start_date_haul), format = date_format), 
                    " and ended on ", 
                    format(min(cruises_maxyr0$end_date_haul), format = date_format), ". ")
-    
-}
-
+    }
 ```
 
-The `r maxyr` `r SURVEY` bottom trawl surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r str0 `  
+The `r maxyr` `r SURVEY` surveys were conducted aboard the chartered commercial stern-trawlers `r text_list(cruises_maxyr0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r str0 `  
 
 ```{r fig-vessels0}
 nickname <- "fig-vessels"
@@ -51,23 +49,53 @@ nickname <- "fig-vessels"
 ```{r team-desc-insert-text, child=paste0(dir_out_rawdata, "/0-team-desc.Rmd")}
 ```
 
-```{r survey-area1}
+```{r trawl-survey-areas}
+# area of nbs trawl stations
+# area =  l*w * number of areas
+# temp <- haul_cruises_maxyr$stations_completed[haul_cruises_maxyr$srvy == "NBS"] * # number of stations
+#   (10 / 1852) * # width of trawl net (m/nmi -> nmi)
+#   1.5 # calculate distance nmi = velocity (3 knots) * time (30 min)
+
 str0 <- ""
-for (i in 1:length(srvy1)) {
-str0 <- 
-  paste0(str0, 
-         "The ", haul_cruises_maxyr$srvy_long[haul_cruises_maxyr$srvy == srvy1[i]],
-         " survey area contains ", 
-         haul_cruises_maxyr$stations_avail[haul_cruises_maxyr$srvy == srvy1[i]],
-         " stations distributed over ", 
-         xunits(sum(stratum$area_nmi2[stratum$srvy %in% srvy1[i]], na.rm=TRUE)),
-         " nmi^2^ (", xunits(sum(stratum$area_km2[stratum$srvy %in% srvy1[i]], na.rm=TRUE))," km^2^). " )
+
+for (i in 1:length(srvy11)) {
+
+temp <- sum((haul_maxyr$net_width_m[haul_maxyr$srvy == srvy1[i]]/ 1852) * # net width in meters, divided 1852 (m->nmi)
+              ((haul_maxyr$distance_fished_km[haul_maxyr$srvy == srvy1[i]] * 1000)/ 1852), # distance fished in km converted to m,  divided 1852 (m->nmi)
+            na.rm = TRUE)
+
+temp1 <- sum((haul_compareyr$net_width_m[haul_compareyr$srvy == srvy1[i]]/ 1852) * 
+               ((haul_compareyr$distance_fished_km[haul_compareyr$srvy == srvy1[i]] * 1000)/ 1852),
+             na.rm = TRUE)
+
+stratum1 <- stratum |> 
+  dplyr::filter(srvy == srvy1[i])
+
+haul_cruises_maxyr1 <- haul_cruises_maxyr |> 
+  dplyr::filter(srvy == srvy1[i])
+
+haul_cruises_compareyr1 <- haul_cruises_compareyr |> 
+  dplyr::filter(srvy == srvy1[i])
+
+str0 <- paste0(str0, 
+  
+  "In the ", maxyr," ", srvy11[i], 
+  " survey, the total area sampled by trawls at ", 
+  haul_cruises_maxyr1$stations_completed,
+  " completed stations was approximately ", 
+  round(temp, 2)," nmi^2^ (", round(temp/divnmi2forkm2, 2),
+  " km^2^) and covered ", 
+  formatC(x = ((temp / sum(stratum1$area_nmi2, na.rm=TRUE)) * 100), format = "f", digits = 4),
+  "% of the region. In comparison, the total ", srvy11[i], 
+  " area sampled by trawls in ", compareyr[names(compareyr) == srvy1[i]], " at ", haul_cruises_compareyr1$stations_completed ,
+  " completed stations was approximately ", round(temp1, 2)," nmi^2^ (", round(temp1/divnmi2forkm2, 2)," km^2^) and covered ", formatC(x = ((temp1 / sum(stratum1$area_nmi2, na.rm=TRUE)) * 100), format = "f", digits = 4),"% of the region. ")
+
 }
 ```
 
-The northern Bering Sea shelf survey was designed as an extension of the systematic 20 × 20 nautical mile (nmi) sampling grid for the annual eastern Bering Sea shelf survey. `r str0 `The addition of the northern Bering Sea shelf survey expanded the overall survey coverage in the Bering Sea to `r xunits(sum(stratum$area_nmi2, na.rm=TRUE))` nmi^2^ (`r xunits(sum(stratum$area_km2, na.rm=TRUE))` km^2^). Bottom depths in the northern Bering Sea survey area range from `r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m). 
+The northern Bering Sea survey was designed as an extension of the systematic 20 × 20 nautical mile (nmi) sampling grid for the annual eastern Bering Sea shelf survey. `r str0 `Bottom depths in the northern Bering Sea survey area range from `r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m). 
 
-Both vessels use an 83-112 Eastern otter trawl that has been historically used for eastern Bering Sea, Chukchi Sea, and Beaufort Sea surveys (Fig. \@ref(fig:fig-trawl-gear-alt)). Each trawl tow was conducted for 30 minutes at a speed of 2.8–3.2 knots.
+Both vessels used an 83-112 Eastern otter trawl that has been historically used for eastern Bering Sea, Chukchi Sea, and Beaufort Sea surveys (Fig. \@ref(fig:fig-trawl-gear-alt)). Each trawl tow was conducted for 30 minutes at a speed of 2.8–3.2 knots.
 
 ```{r fig-trawl-gear-alt0}
 nickname <- "fig-trawl-gear-alt"
@@ -78,6 +106,6 @@ nickname <- "fig-trawl-gear-alt"
 
 Fishes, crabs, and other invertebrates were identified, sorted by species, and weighed. A subsample of fishes were sorted by sex and measured to the nearest centimeter (cm). For the predominant crab species, carapace width (snow crab) or length (king crabs) was measured to the nearest millimeter (mm). Samples of some species of fishes, crabs, and other invertebrates were also retained to gather additional information on size, weight, sex, age, reproductive state, genetics, body condition, and stomach contents.
 
-Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), biomass, abundance, and size and age distribution. CPUE is the estimated catch of organisms caught per amount of effort (generally, a combination of gear type, gear size, and tow duration), and can be used as a measure of the density of a species. Effort was estimated as the area swept (area sampled in km^2^). Mean CPUE values were calculated for larger survey areas. Biomass, in kilograms (kg), and abundance, in number of individuals, were estimated for each survey area by multiplying the mean CPUE by the total survey area.
+Trawl survey catch data were used to estimate catch-per-unit-effort (CPUE), biomass, abundance, and size and age composition. CPUE is the estimated catch of organisms caught per amount of effort (generally, a combination of gear type, gear size, and tow duration), and can be used as a measure of the density of a species. Effort was estimated as the area swept (area sampled in km^2^). Mean CPUE values were calculated for larger survey areas of similar biological and environmental features (known as stratums). Biomass, in kilograms (kg), and abundance, in number of individuals, were estimated for each survey area by multiplying the mean CPUE by the total survey area.
 
-Environmental data, including water temperature in degrees Celsius (°C), depth in meters (m), and underwater light level were also recorded at each sampling station. `r ifelse(maxyr != 2025, "Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).", "")`
+Environmental data, including water temperature in degrees Celsius (°C), depth in meters (m), and underwater light level were also recorded at each sampling station. `r ifelse(maxyr != 2025, "Water column profiles of temperature and salinity at each trawl location were measured using a trawl-mounted conductivity, temperature, and depth profiler (CTD).", "")``r paste0(readLines(con = paste0(dir_out_rawdata, "/0-temperature-gear.Rmd")), collapse = "") ` 

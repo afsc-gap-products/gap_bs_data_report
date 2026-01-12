@@ -286,14 +286,14 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 # for community highlights
 header <- paste0("Diagram of the 83-112 Eastern trawl net.")
 nickname <- "fig-trawl-gear-alt"
-height <- 4
+height <- 2
 width <- 6
 bg <- 'transparent'
 
 # Select data and make plot
 figure_print <- 
   cowplot::ggdraw() +
-  cowplot::draw_image(readPNG(paste0(dir_img, "bottom_trawl_net.png")), scale = 0.9 )
+  cowplot::draw_image(readPNG(paste0(dir_img, "bottom_trawl_net_crop.png")), scale = 0.9 )
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -966,7 +966,7 @@ plot_mean_temperatures <- function(maxyr, srvy){
       legend.position = "bottom",
       legend.box = "horizontal")
   
-  header <- paste0("Average summer surface and bottom (points and solid lines), and time series average surface and bottom (dashed lines) temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",maxyr,
+  header <- paste0("Average summer surface and bottom (points and solid lines), and time series average (dashed lines) surface and bottom temperatures (°C) on the eastern Bering Sea shelf, based on data collected during the eastern Bering Sea shelf survey from 1982–",maxyr,
                  ifelse(srvy == "NEBS", 
                         paste0(" (left), and northern Bering Sea shelf based on data collected during standardized summer surveys (right)"), ""), 
                  ". ")
@@ -1164,7 +1164,7 @@ temp <- function(yrs,
 ```
 
 ```{r fig-temperature-[st/bt]}
-height <- 3 # full_page_portrait_height
+height <- 3.25 # full_page_portrait_height
 width <- full_page_portrait_width
 yrs <- c(maxyr-2):maxyr
 row0 <- 1
@@ -1178,93 +1178,12 @@ for (case in c("bottom", "surface")) {
               row0 = row0, 
               title0 = "", 
               case = case)
-    figure_print <- a$figure_print
+    figure_print <- a$figure_print + 
+      ggplot2::theme(
+        plot.margin = grid::unit(c(0,0,0,0), "mm"))
     header <- a$header
     # print0 <- c(print0, figure_print)
     res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-}
-```
-
-
-```{r fig-temperature-[st/bt]-old, eval = FALSE}
-height <- full_page_portrait_height+0.25
-width <- full_page_portrait_width
-yrs0 <- (maxyr-17):maxyr
-row0 <- 3
-case_yr0 <- 1:2
-
-for (case in c("bottom", "surface")) {
-  for (case_yr in case_yr0) {
-    
-    if (case_yr == 1) {
-      yrs <- yrs0[1:(length(yrs0)/2)]
-    } else if (case_yr == 2) {
-      yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
-    }
-    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr), "-data")
-    a <- temp(yrs = yrs, 
-              row0 = row0, 
-              title0 = "", 
-              case = case)
-    figure_print <- a$figure_print
-    header <- a$header
-    
-    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  }
-}
-```
-
-```{r fig-temperature-[st/bt]-comm, eval = FALSE}
-temperature_zscore <- FALSE
-height <- full_page_portrait_height+0.5
-width <- full_page_portrait_width
-yrs0 <- (maxyr-17):maxyr
-row0 <- 3
-case_yr0 <- 1:2
-
-for (case in c("bottom", "surface")) {
-  for (case_yr in case_yr0) {
-    
-    if (case_yr == 1) {
-      yrs <- yrs0[1:(length(yrs0)/2)]
-    } else if (case_yr == 2) {
-      yrs <- yrs0[((length(yrs0)/2)+1):length(yrs0)]
-    }
-    nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr), "-comm")
-    a <- temp(yrs = yrs, 
-              row0 = row0, 
-              case = case, 
-              temperature_zscore = temperature_zscore, 
-              title0 = "")
-    figure_print <- a$figure_print
-    header <- a$header
-    
-    res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  }
-}
-```
-
-```{r fig-temperature-[st/bt]-pres}
-height <- 8
-width <- 8
-yrs <- sort(unique(haul$year), decreasing = TRUE)
-yrs <- yrs[yrs != 2020][1:8]
-row0 <- 2
-reg_dat0 <- report_types$NEBS$reg_dat
-case_yr <- 1#:2
-
-for (case in c("bottom", "surface")) {
-  nickname <- paste0("fig-temperature-", ifelse(case=="bottom", "bt", "st"), paste0("-", case_yr), "-pres")
-  title0 = paste0("Eastern", ifelse(srvy == "NEBS", " and northern", ""), " ",  
-                  case, " temperature (", range_text(yrs), ")")
-  a <- temp(yrs = yrs, 
-            row0 = row0, 
-            case = case, 
-            title0 = title0)
-  figure_print <- a$figure_print
-  header <- a$header
-  
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1705,7 +1624,8 @@ for (i in 1:nrow(comb)) {
 ```{r tab-majortaxa-pchange-[srvy]}
 
 nickname0 <- "tab-majortaxa-pchange-" 
-yrs <- analysisyrs[(length(analysisyrs)-3):length(analysisyrs)]
+yrs <- c(maxyr, compareyr)
+# yrs <- analysisyrs[(length(analysisyrs)-3):length(analysisyrs)]
 
 table_raw0 <- 
   dplyr::left_join(
@@ -1803,7 +1723,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]]," and ",maxyr," ", 
     haul_cruises_maxyr$srvy_long[i], 
     ' shelf surveys for predominant fish and invertebrate taxa', 
-    ifelse(whoismissing == "", "", paste0(" (the ",haul_cruises_maxyr$srvy_long[i]," was not surveyed in ", whoismissing, ")")),
+    ifelse(whoismissing == "", "", paste0(" (note that the ",haul_cruises_maxyr$srvy_long[i]," was not surveyed in ", whoismissing, ")")),
     '. Taxa are listed in descending order of percent change from ', compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]],' to ',maxyr,'. ', 
     ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught. ", "")))
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 

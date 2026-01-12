@@ -86,7 +86,7 @@ PKG <- c(
   "ps", 
   "raster",
   "stars",
-
+  
   "scales", # nicer lables in ggplot2
   "pingr", # check website links
   "httr", # check website links
@@ -104,7 +104,7 @@ for (p in PKG) {
       devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
     } else if (p == 'crabpack') {
       remotes::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
-      } else if (p == 'nwfscSurvey') {
+    } else if (p == 'nwfscSurvey') {
       remotes::install_github("pfmc-assessments/nwfscSurvey")
     } else if (p == "gapctd") {
       devtools::install_github("afsc-gap-products/gapctd")
@@ -134,6 +134,16 @@ neutral <- "#E6E1BC"
 # Functions --------------------------------------------------------------------
 
 ## Modify Numbers --------------------------------------------------------------
+
+
+# Define the function named celsius_to_fahrenheit
+celsius_to_fahrenheit <- function(celsius) {
+  # Perform the conversion using the formula
+  fahrenheit <- (celsius * 9/5) + 32
+  # Return the result
+  return(fahrenheit)
+}
+
 
 #' Calculate the percent change.
 #'
@@ -1215,16 +1225,16 @@ plot_pa_facet <- function(
     # ggplot2::scale_color_manual(
     #   name = " ", 
     #   values = reg_dat$survey.area$color,
-  #   breaks = reg_dat$survey.areasrvy_long,
-  #   labels = reg_dat$survey.area$srvy) 
-  ggplot2::geom_sf(
-    data = reg_dat$survey.area, 
-    mapping = aes(color = srvy_long, 
-                  geometry = geometry), 
-    fill = "transparent", 
-    # shape = NA, 
-    linewidth = ifelse(row0 > 2, 1.5, 1), # size
-    show.legend = legend_srvy_reg) +
+    #   breaks = reg_dat$survey.areasrvy_long,
+    #   labels = reg_dat$survey.area$srvy) 
+    ggplot2::geom_sf(
+      data = reg_dat$survey.area, 
+      mapping = aes(color = srvy_long, 
+                    geometry = geometry), 
+      fill = "transparent", 
+      # shape = NA, 
+      linewidth = ifelse(row0 > 2, 1.5, 1), # size
+      show.legend = legend_srvy_reg) +
     ggplot2::scale_color_manual(
       name = " ", 
       values = reg_dat$survey.area$color,
@@ -1473,19 +1483,19 @@ plot_pa_facet <- function(
 #'
 #' @examples
 plot_temperature_map <- function(raster_nebs, 
-                                   raster_ebs, 
-                                   key.title = "Temperature (°C)", 
-                                   reg_dat, 
-                                   colorbar_breaks = c(-Inf, seq(from = 0, to = 8, by = 2), Inf),
-                                   yrs,
-                                   yrs_nbs, 
-                                   viridis_palette_option = "H", 
-                                   row0 = 2, 
-                                   title0 = NULL, 
-                                   legend_seperate = FALSE, 
-                                   temperature_zscore = FALSE, 
-                                   legend_font_size = 12, 
-                                   out_crs = "EPSG:3338") {
+                                 raster_ebs, 
+                                 key.title = "Temperature (°C)", 
+                                 reg_dat, 
+                                 colorbar_breaks = c(-Inf, seq(from = 0, to = 8, by = 2), Inf),
+                                 yrs,
+                                 yrs_nbs, 
+                                 viridis_palette_option = "H", 
+                                 row0 = 2, 
+                                 title0 = NULL, 
+                                 legend_seperate = FALSE, 
+                                 temperature_zscore = FALSE, 
+                                 legend_font_size = 12, 
+                                 out_crs = "EPSG:3338") {
   
   for (ii in 1:length(yrs)) {
     
@@ -1575,8 +1585,8 @@ plot_temperature_map <- function(raster_nebs,
                      color = "grey80",
                      alpha = 0.2)  +
     ggplot2::geom_sf(data = temperature_sf,
-            mapping = aes(fill = bt),
-            color = NA) +
+                     mapping = aes(fill = bt),
+                     color = NA) +
     ggplot2::facet_wrap( ~ year, 
                          nrow = row0) +
     ggplot2::scale_fill_manual(values = fig_palette, 
@@ -1657,24 +1667,24 @@ plot_temperature_map <- function(raster_nebs,
   }
   
   cbar_legend <- coldpool::legend_discrete_cbar(breaks = colorbar_breaks,
-                                                  colors = fig_palette,
-                                                  legend_direction = "horizontal",
-                                                  font_size = 3,
-                                                  width = 0.1,
-                                                  expand_size.x = 0.3,
-                                                  expand_size.y = 0.3,
-                                                  expand.x = 0.3,
-                                                  expand.y = 0.9,
-                                                  spacing_scaling = 1.2,
-                                                  text.hjust = 0.5,
-                                                  font.family = "sans",
-                                                  neat.labels = FALSE) + 
+                                                colors = fig_palette,
+                                                legend_direction = "horizontal",
+                                                font_size = 3,
+                                                width = 0.1,
+                                                expand_size.x = 0.3,
+                                                expand_size.y = 0.3,
+                                                expand.x = 0.3,
+                                                expand.y = 0.9,
+                                                spacing_scaling = 1.2,
+                                                text.hjust = 0.5,
+                                                font.family = "sans",
+                                                neat.labels = FALSE) + 
     ggplot2::annotate("text", 
                       y = mean(colorbar_breaks[c(2:(length(colorbar_breaks)-1))]), # y = 3.5,
-             x = 1.15,
-             fontface = "bold", 
-             label =  key.title,
-             size = rel(3.2)) 
+                      x = 1.15,
+                      fontface = "bold", 
+                      label =  key.title,
+                      size = rel(3.2)) 
   
   if (legend_seperate) { 
     figure_and_legend <- list("figure" = figure, 
@@ -1684,7 +1694,7 @@ plot_temperature_map <- function(raster_nebs,
     figure_and_legend <- cowplot::plot_grid(figure,
                                             cbar_legend,
                                             nrow = 2,
-                                            rel_heights = c(0.85,0.15))
+                                            rel_heights = c(0.75,0.25))    # rel_heights = c(0.85,0.15)) # for 3 rows?
   }
   return(figure_and_legend)
 }
@@ -1719,7 +1729,7 @@ plot_sizecomp <- function(sizecomp0,
   
   # find appropriate units
   if (divscale) {
-  a <- find_units(unit = "", unt = "", dat = max(table_raw$population_count, na.rm = TRUE))
+    a <- find_units(unit = "", unt = "", dat = max(table_raw$population_count, na.rm = TRUE))
   } else {
     a <- list("divby" = 1, 
               "unit_word" = "", 
@@ -1769,11 +1779,11 @@ plot_sizecomp <- function(sizecomp0,
                                    fill = sex)) +
       ggplot2::geom_bar(position="stack", stat="identity", na.rm = TRUE) +
       ggplot2::scale_fill_viridis_d(direction = -1, 
-                           option = "mako",
-                           begin = .2,
-                           end = .6,
-                           na.value = "transparent", 
-                           drop = FALSE) +
+                                    option = "mako",
+                                    begin = .2,
+                                    end = .6,
+                                    na.value = "transparent", 
+                                    drop = FALSE) +
       ggplot2::scale_y_continuous(name = paste0("Population", pop_unit_word), 
                                   expand = c(0, 0), 
                                   labels = scales::label_comma(accuracy = 1)) +
@@ -1804,23 +1814,23 @@ plot_sizecomp <- function(sizecomp0,
     }
     
     # are there any plots with no data?
-      figure <- figure + 
-        # ggplot2::labs(caption = "+ None of this species was lengthed. ") +
-        # ggplot2::theme(plot.caption = element_text(hjust=0, size = 10)) +
-        ggplot2::geom_text(data = table(year = table_raw$year, srvy_long = table_raw$srvy_long) |> 
-                             data.frame() |> 
-                             dplyr::mutate(sex  = "Males", # had to pick something and this is the most generalizable across species
-                                           sign = ifelse(Freq == 0, "* No specimens lengthed", NA), 
-                                           srvy_long = stringr::str_to_title(srvy_long)), 
-                            mapping = aes(label = sign), 
-                            fontface = "italic", 
-                           size = 2.5, 
-                            color = "grey20",
-                            x = Inf, 
-                            y = -Inf, 
-                            show.legend = FALSE,
-                            hjust = 1.1,
-                            vjust = -.5)
+    figure <- figure + 
+      # ggplot2::labs(caption = "+ None of this species was lengthed. ") +
+      # ggplot2::theme(plot.caption = element_text(hjust=0, size = 10)) +
+      ggplot2::geom_text(data = table(year = table_raw$year, srvy_long = table_raw$srvy_long) |> 
+                           data.frame() |> 
+                           dplyr::mutate(sex  = "Males", # had to pick something and this is the most generalizable across species
+                                         sign = ifelse(Freq == 0, "*No Collection", NA), 
+                                         srvy_long = srvy_long), # stringr::str_to_title(srvy_long)), 
+                         mapping = aes(label = sign), 
+                         fontface = "italic", 
+                         size = 2.5, 
+                         color = "grey20",
+                         x = Inf, 
+                         y = -Inf, 
+                         show.legend = FALSE,
+                         hjust = 1.1,
+                         vjust = -.5)
     
   } else {
     table_raw1 <- table_raw |> 
@@ -1863,40 +1873,42 @@ plot_sizecomp <- function(sizecomp0,
                                    fill = length_mm, 
                                    height = population_count/mean(population_count, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
-      scale_fill_viridis_c(option = "G") +
-      scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
-                         breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
-      scale_y_discrete(name = paste0(spp_print, " population across years"), 
-                       breaks = every_nth(n = 2, true1 = ((max(table1$year, na.rm = TRUE) %% 2) == 1))) + 
-      theme(legend.position = "none", 
-            panel.grid.major.x = element_line(colour = "grey80")) +
-      facet_wrap(vars(srvy_long))
+      gplot2::scale_fill_viridis_c(option = "G") +
+      gplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
+                                 breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
+      gplot2::scale_y_discrete(name = paste0(spp_print, " population across years"), 
+                               breaks = every_nth(n = 2, true1 = ((max(table1$year, na.rm = TRUE) %% 2) == 1))) + 
+      gplot2::theme(
+        legend.position = "none", 
+        panel.grid.major.x = element_line(colour = "grey80")) +
+        gplot2::facet_wrap(vars(srvy_long))      
+    
   }
   
   figure <- figure + 
     ggplot2::theme(panel.background = element_rect(fill = "white"),
-          panel.grid.major.y = element_line(colour = "grey80"),
-          panel.grid.minor.y = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          strip.background = element_blank(),
-          strip.text = element_text(size = legend_font_size, face = "bold"),
-          legend.text = element_text(size = 9),
-          legend.key = element_rect(colour = "transparent",
-                                    fill = "transparent"),
-          axis.title = element_text(size = legend_font_size, face = "bold"),
-          axis.text = element_text(size = legend_font_size))
+                   panel.grid.major.y = element_line(colour = "grey80"),
+                   panel.grid.minor.y = element_blank(),
+                   panel.grid.minor.x = element_blank(),
+                   strip.background = element_blank(),
+                   strip.text = element_text(size = legend_font_size, face = "bold"),
+                   legend.text = element_text(size = 9),
+                   legend.key = element_rect(colour = "transparent",
+                                             fill = "transparent"),
+                   axis.title = element_text(size = legend_font_size, face = "bold"),
+                   axis.text = element_text(size = legend_font_size))
   
   if (print_n & !is.null(lengths0)) {
     
     figure <- figure +
       ggplot2::geom_text(mapping = aes(label = label), 
-                                       x = Inf, 
-                                       y = Inf, 
-                                       hjust = 1.1, 
-                                       vjust = 2,
+                         x = Inf, 
+                         y = Inf, 
+                         hjust = 1.1, 
+                         vjust = 2,
                          check_overlap = TRUE) 
   }
-
+  
   return(figure)
 }
 
@@ -1912,8 +1924,8 @@ plot_survey_stations <- function(reg_dat,
   
   figure <- ggplot()  +
     ggplot2::geom_sf(data = reg_dat$akland,
-            color = NA,
-            fill = "grey90") +
+                     color = NA,
+                     fill = "grey90") +
     ggplot2::geom_sf(data = reg_dat$graticule,
                      color = "grey80",
                      alpha = 0.2)  +
@@ -2022,12 +2034,12 @@ plot_survey_stations <- function(reg_dat,
               linewidth = 2, # size = 2,
               show.legend = TRUE) +
       ggplot2::stat_sf_coordinates(data = reg_dat$survey.grid,
-                          mapping = aes(color = vess_col, 
-                                        shape = vess_shape, 
-                                        geometry = geometry),
-                          size = 2, 
-                          show.legend = TRUE, 
-                          na.rm = TRUE) + 
+                                   mapping = aes(color = vess_col, 
+                                                 shape = vess_shape, 
+                                                 geometry = geometry),
+                                   size = 2, 
+                                   show.legend = TRUE, 
+                                   na.rm = TRUE) + 
       ggplot2::scale_color_manual(
         name = " ", #"Survey Region",
         values = c(reg_dat$survey.area$color, 
@@ -2078,13 +2090,13 @@ plot_survey_stations <- function(reg_dat,
   if (place_labels) {
     figure <- figure +
       ggplot2::geom_text(data = subset(reg_dat$place.labels, 
-                              type == "mainland"), 
-                aes(x = x, y = y, label = lab), 
-                size = 7, group = 99) + 
+                                       type == "mainland"), 
+                         aes(x = x, y = y, label = lab), 
+                         size = 7, group = 99) + 
       shadowtext::geom_shadowtext(data = subset(reg_dat$place.labels, 
-                                    type == "peninsula"), 
-                      aes(x = x, y = y, label = lab), size = 4, angle = 30, 
-                      bg.color = "white", color = "black", group = 99) + 
+                                                type == "peninsula"), 
+                                  aes(x = x, y = y, label = lab), size = 4, angle = 30, 
+                                  bg.color = "white", color = "black", group = 99) + 
       shadowtext::geom_shadowtext(
         data = subset(reg_dat$place.labels, 
                       type %in% c("bathymetry", "islands")),
