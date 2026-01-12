@@ -157,10 +157,12 @@ cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "),
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw
 
-str0 <- paste0(#"Between ", compareyr," and ", maxyr, ", ", 
-               ifelse(grepl(pattern = "*", x = spp_sci, fixed = TRUE), # is this a group of fishes/organisms?
-                      paste0("The estimated biomass of ", spp_print, " "), # true, e.g., 'snailfishes'
-                      paste0("The ", spp_print, " biomass estimate "))) # false
+# str0 <- paste0(#"Between ", compareyr," and ", maxyr, ", ", 
+#                ifelse(grepl(pattern = "*", x = spp_sci, fixed = TRUE), # is this a group of fishes/organisms?
+#                       paste0("The estimated biomass of ", spp_print, " "), # true, e.g., 'snailfishes'
+#                       paste0("The ", spp_print, " biomass estimate "))) # false
+#                       
+str0 <- paste0("The estimated biomass of ", spp_print, " ")
 
 if ("EBS" %in% temp$srvy) {
   temp0 <- temp[temp$srvy == "EBS", ]
@@ -192,8 +194,7 @@ if ("EBS" %in% temp$srvy) {
   str0 <- paste0(str0, 
                  case, 
                  " on the ", maxyr, " eastern Bering Sea shelf survey from ", compareyr[names(compareyr) == "EBS"], cite_bio, 
-                 " and the population was estimated at ",
-                 temp0$Population," individuals",cite_pop,". ")
+                 ifelse(spp_print == "tunicates", ". ", paste0(" and the population was estimated at ", temp0$Population," individuals",cite_pop,". ")))
 }
 
 if ("NBS" %in% temp$srvy) {
@@ -238,19 +239,21 @@ if ("NBS" %in% temp$srvy) {
   str0 <- paste0(str0, str0_transition, 
                  "biomass estimate ", case,  
                  " on the ", maxyr, " northern Bering Sea survey from ", compareyr[names(compareyr) == "NBS"], cite_bio, 
-                 " and the population was estimated at ",
-                 temp0$Population," individuals", cite_pop,". ")
+                 ifelse(spp_print == "tunicates", ". ", paste0(" and the population was estimated at ", temp0$Population," individuals", cite_pop,". ")))
 }
 
 if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to_title(srvy11)
   str0 <- paste0(str0, 
                  "No ", spp_print, " were observed in the ", 
                  srvy11[!(stringr::str_to_title(srvy11) %in% temp$srvy_long)], 
-                 " in ",maxyr,"  (Fig. ", fig_dist,"). ")
+                 " in ", maxyr," (Fig. ", ifelse(report_title == "data", fig_dist, fig_comb),"). ")
 }
 ```
 
-`r str0``r ifelse((spp_text & report_title == "community"), "", "\n\n")``r readLines(con = paste0(dir_out_rawdata, "/",spp_file,".Rmd"))`
+`r str0` 
+
+```{r spp-text-{{jj}}, child = paste0(dir_out_rawdata, spp_file,".Rmd"), eval=(spp_text), results='asis'}
+```
 
 ```{r tab-stats-{{jj}}}
 nickname <- paste0("tab-stats-", spp_file)

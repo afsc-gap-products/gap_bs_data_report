@@ -136,6 +136,12 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
     }
   }
   
+  # The figure is too small for too many details like this
+  if (report_title0 == "pres") {
+# reg_dat0$lon.breaks <- as.character(reg_dat0$lon.breaks)
+reg_dat0$lon.breaks <- reg_dat0$lon.breaks[which(reg_dat0$lon.breaks %% 10 != 5)] 
+}
+  
   # Write header for figure_print ------------------------------------------------------
   missing_from_one_but_not_both_surveys <- ""
   if (srvy == "NEBS") {
@@ -504,7 +510,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
 
 ```
 
-```{r fig-dist-[spp]-data, eval = TRUE}
+```{r fig-dist-[spp]-data, eval = FALSE}
 yrs <- c(maxyr, compareyr) # analysisyrs
 
 # if (spp_file == "greenland-turbot") {
@@ -1353,7 +1359,7 @@ for (i in 1:nrow(temp_bio)) {
                               "-", 
                               paste0(xunits(temp_bio$biomass_mt[i], 
                                             val_under_x_words = NULL))), 
-      "Percent of Total\nCatch Biomass" = dplyr::case_when(
+      "% Total\nCatch Biomass" = dplyr::case_when(
         is.na(temp_bio$biomass_mt[i]) ~ "-", 
         paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
                        digits = 1, format = "f", big.mark = ","), "%") == "0.0%" ~ "<0.01%", 
@@ -1376,12 +1382,17 @@ for (i in 1:nrow(temp_bio)) {
 ### Catch ----------------------------------------------------------------------
 
 temp_catch <- catch_haul_cruises |> 
-  dplyr::filter(species_code %in% spp_code # & 
-                # year %in% c(compareyr, maxyr)
-  ) |> 
+  dplyr::filter(species_code %in% spp_code) |> 
   dplyr::right_join(data.frame(srvy = c(names(compareyr), names(compareyr)), 
                                year = c(compareyr, maxyr, maxyr))) |> 
-  dplyr::select(species_code, srvy, year, count) |> 
+  dplyr::select(species_code, srvy, year, weight_kg, count) 
+
+if (spp_print == "tunicates") {
+temp_catch <- temp_catch |> 
+  dplyr::mutate(count = weight_kg)
+}
+
+temp_catch <- temp_catch |> 
   dplyr::group_by(srvy, year) |> 
   dplyr::mutate(year = ifelse(year %in% compareyr, 1111, year)) |> 
   dplyr::summarise(count = sum(count, na.rm = TRUE)) |> 
@@ -1407,12 +1418,12 @@ for (i in 1:nrow(temp_catch)){
 temp_catch$catch_min <- catch_min
 
 # temp_catch$str <- paste0(
-#   ifelse(temp_catch[paste0("yr_", compareyr)] < temp_catch[,paste0("yr_", maxyr)], "Increased", "Decreased"), 
-#   " from ", 
-#   temp_catch[,paste0("yr_", compareyr)], 
-#   " to ", 
-#   temp_catch[,paste0("yr_", maxyr)], 
-#   " individuals in ", 
+#   ifelse(temp_catch[paste0("yr_1111")] < temp_catch[,paste0("yr_", maxyr)], "Increased", "Decreased"),
+#   " from ",
+#   temp_catch[,paste0("yr_1111")],
+#   " to ",
+#   temp_catch[,paste0("yr_", maxyr)],
+#   " ",ifelse(spp_print == "tunicates", "kg", "individuals")," in ",
 #   maxyr)
 
 temp_catch$str <- paste0(
@@ -1421,18 +1432,22 @@ temp_catch$str <- paste0(
          "Increased", "Decreased"), 
   " from ", 
   formatC(x = unlist(temp_catch[,paste0("yr_1111")]), big.mark = ",", format = "f", digits = 0), 
-  " in ", 
+  ifelse(spp_print == "tunicates", " kg", ""), " in ", 
   temp_catch$compareyr,
   # unlist(temp_catch[,paste0("yr_", compareyr)]), 
   " to ", 
-  formatC(x = unlist(temp_catch[,paste0("yr_", maxyr)]), big.mark = ",", format = "f", digits = 0), 
-  " individuals in ", 
-  maxyr)
+  formatC(x = unlist(temp_catch[,paste0("yr_", maxyr)]), big.mark = ",", format = "f", digits = 0),
+  # " individuals in ", 
+    " ",ifelse(spp_print == "tunicates", "kg", "individuals")," in ",
 
+  maxyr)
+# if (spp_print == "tunicates") { # can't be counted!
+#   temp_catch$str <- ""
+# }
 ### Combine temp tables --------------------------------------------------------
 
 table_raw <- temp_stat |> 
-  dplyr::select(srvy, "Stations\nPresent At" = str) |> 
+  dplyr::select(srvy, "Stations\nPresent" = str) |> 
   dplyr::left_join(temp_env) |> 
   dplyr::left_join(temp_bio1 |> 
                      dplyr::filter(year == maxyr) |> 
@@ -1491,6 +1506,10 @@ if (sum(table_raw$catch_min > 99) == length(srvy)) {
 # }
 
 table_print0 <- table_print0[table_print0$var != "catch_min", ]
+
+if (spp_print == "tunicates") {
+  table_print0 <- table_print0[table_print0$var != "Population",]
+}
 
 table_print <- table_print0 |> 
   flextable::flextable()  |> 
@@ -2107,7 +2126,7 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
 nickname <- paste0("fig-timeseries-", spp_file, "-data")
 height <- 3
 width <- full_page_portrait_width
-legend_fon_printt_size <- 10
+legend_font_size <- 10
 
 temp <- timeseries_plot(table_raw = table_raw1, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
@@ -2214,8 +2233,29 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-combined-[spp]-comm}
 
 nickname <- paste0("fig-combined-", spp_file, "-comm")
-height <- 3.2 # full_page_portrait_height-2.5
+height <- 3 # full_page_portrait_height-2.5
 width <- full_page_portrait_width
+
+comm_dist1 <- comm_dist  + 
+      ggplot2::guides(
+        fill = guide_legend(
+          # order = 1,
+          title.position = NULL, # "left",
+          label.position = "bottom",
+          # nrow = 2,
+          # title.hjust = 0.5,
+          override.aes = list(color = NA)),
+        color = "none")  +
+      ggplot2::theme(
+        plot.title = element_blank(), 
+        legend.title = element_blank(), #element_text(size = 8, face = "bold"),
+        legend.text = element_text(size = 8), 
+        axis.text = element_text(size = 8), 
+        axis.title = element_blank(),
+        strip.text = element_text(size = 8, face = "bold"), 
+        plot.margin = grid::unit(c(0,0,0,0), "mm"), 
+        # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1
+        legend.key.height = unit(0.15, "cm") ) # Make them shorter
 
 if (exists("comm_size")) {
   comm_size1 <- comm_size + 
@@ -2232,39 +2272,22 @@ if (exists("comm_size")) {
         # legend.key.size = unit(0.5, "cm"),  # Adjust overall key size
         # legend.key.width = unit(0.3, "cm"), # Make them even narrower
         legend.key.height = unit(0.15, "cm"),
-        legend.key.width = unit(0.3, "cm"),
+        legend.key.width = unit(0.6, "cm"),
         legend.position = c(.77, 0.5)) # Make them shorter
       
 } else {
     pres_size_txt <- "There are no sizecomps for this species. "
 comm_size1 <- NULL
+
+  # temp1 <- comm_dist1
 }
+
   temp1 <- cowplot::plot_grid(
-    comm_dist  + 
-      ggplot2::guides(
-        fill = guide_legend(
-          # order = 1,
-          title.position = NULL, # "left",
-          label.position = "bottom",
-          # title.hjust = 0.5,
-          override.aes = list(color = NA),
-          nrow = 2),
-        color = "none")  +
-      ggplot2::theme(
-        plot.title = element_blank(), 
-        legend.title = element_blank(), #element_text(size = 8, face = "bold"),
-        legend.text = element_text(size = 8), 
-        axis.text = element_text(size = 8), 
-        axis.title = element_blank(),
-        strip.text = element_text(size = 8, face = "bold"), 
-        plot.margin = grid::unit(c(0,0,0,0), "mm"), 
-        axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1
-        legend.key.height = unit(0.15, "cm") ), # Make them shorter
+    comm_dist1,
     NULL, 
     comm_size1, 
     ncol = 3, 
     rel_widths = c(1.2,.05,.75)) # 1, .1., .9 worked for presentations
-
 
 temp2 <- cowplot::plot_grid(
   pres_timeseries + 
@@ -2283,7 +2306,7 @@ temp2 <- cowplot::plot_grid(
       axis.title.x = element_blank(), 
       axis.text = element_text(size = 8), 
       plot.margin = grid::unit(c(0,0,0,0), "mm"),
-      legend.position = c(0.15, 0.2)),
+      legend.position = c(0.15, 0.98)),
   # NULL, 
   pres_spp,
   ncol = 2, 
@@ -2293,24 +2316,24 @@ figure_print <- cowplot::plot_grid(temp1, NULL, temp2, nrow = 3, rel_heights = c
 
 # Then use ggdraw() to add a custom label on top of the combined plot
 figure_print <- cowplot::ggdraw(figure_print) +
-  cowplot::draw_label("A", x = 0.00, y = 0.95, hjust = 0, vjust = 0, size = 16) +
+  cowplot::draw_label("A", x = 0.00, y = 0.94, hjust = 0, vjust = 0, size = 16) +
   cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), x = 0.00, y = 0.32, hjust = 0, vjust = 0, size = 16) +
   cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
 
 if (exists("comm_size")) {
 figure_print <- cowplot::ggdraw(figure_print) +
-  cowplot::draw_label("B", x = 0.6, y = 0.95, hjust = 0, vjust = 0, size = 16)
+  cowplot::draw_label("B", x = 0.6, y = 0.94, hjust = 0, vjust = 0, size = 16)
 }
 
 header <- paste0(
-  spp_print, #ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+  toupper(substr(x = spp_print, 1, 1)), substr(x = spp_print, 2, nchar(spp_print)), #ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
   " ",
   "(A) CPUE distribution (kg/km^2^) ",
   ifelse((exists("comm_size")), "and (B) total abundance-at-length (cm) estimates by sex scaled to the total estimated population ", ""), 
   "from the ", range_text(c(compareyr, maxyr)), " eastern (EBS) and northern (NBS) Bering Sea shelf survey",plural_surveys,
-  ". (",ifelse((exists("comm_size")), "C", "B"),") Biomass timeseries during the ",
+  ". (",ifelse((exists("comm_size")), "C", "B"),") Biomass time series during the ",
   substr(x = gsub("[^0-9]", "", pres_timeseries_txt), start = 1, stop = 4),"-2025 ", # SURVEY,
-  "survey",plural_surveys," (points and solid lines, with estimated 95% confidence intervals error bars) and timeseries mean (dashed lines). ",
+  "survey",plural_surveys," (points and solid lines, with estimated 95% confidence intervals error bars) and time series mean (dashed lines). ",
   "(",ifelse((exists("comm_size")), "D", "C"),") Photo of ", ifelse(tolower(substr(spp_print, 1, 1)) %in% c("a", "e", "i", "o", "u"), "an ", "a "), spp_print, ". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
