@@ -47,8 +47,8 @@ report_spp3 <- data.frame()
 for (i in 1:nrow(comb)){
   temp2 <- eval(expr = parse(text = comb$species_code[i]))
   report_spp3 <- dplyr::bind_rows(report_spp3, 
-                            dplyr::bind_cols(comb[i,], 
-                                             species_code1 = eval(expr = parse(text = comb$species_code[i]))))
+                                  dplyr::bind_cols(comb[i,], 
+                                                   species_code1 = eval(expr = parse(text = comb$species_code[i]))))
 }
 
 comb <- unique(sort(comb$file_name))
@@ -62,9 +62,9 @@ for (jj in 1:length(comb)) {
   aa <- catch_haul_cruises |> 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
-  rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
-                    output_dir = dir_out_rawdata,
-                    output_file = paste0("figtab_spp_", comb[jj],".docx"))
+    rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
+                      output_dir = dir_out_rawdata,
+                      output_file = paste0("figtab_spp_", comb[jj],".docx"))
   }
 }
 
