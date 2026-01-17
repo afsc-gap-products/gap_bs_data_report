@@ -70,8 +70,9 @@ for (ii in 1:length(report_types)) {
   names(reg_dat$graticule) <- tolower(names(reg_dat$graticule))
   
   # add color to survey.area
-  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id))+2)
-  survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
+  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id)))
+  # survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id))+2)
+  # survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
   reg_dat$survey.area <- reg_dat$survey.area|>
     dplyr::mutate(
       srvy = dplyr::case_when(
@@ -786,7 +787,7 @@ vessels <- haul_cruises_vess_maxyr|>
     img = dplyr::case_when(
     vessel_id == 94 ~ "94_vesteraalen.png", 
     vessel_id == 134 ~ "134_northwestexplorer.png", 
-    vessel_id == 162 ~ "163_alaskaknight.png"), 
+    vessel_id == 162 ~ "162_alaskaknight.png"), 
     company = dplyr::case_when(
       vessel_id == 94 ~ "Vesteraalen LLC", 
       vessel_id == 134 ~ "B&N Fisheries Company", 

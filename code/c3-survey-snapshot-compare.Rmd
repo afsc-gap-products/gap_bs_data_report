@@ -36,119 +36,48 @@ nickname <- "fig-cold-pool-area"
 
 ## Survey Data and Specimen Collections
 
-```{r specimen-collections}
-# obtain data
+```{r tab-specimen-samples-howmany}
 load(file = paste0(dir_out_figtab, "tab-specimen-samples-EBS.rdata"))
-
-obj_ebs <- obj
-obj_ebs$raw <- obj_ebs$raw |> 
-  dplyr::mutate(common_name = common_name0) |> 
-  dplyr::select(-common_name0)
-
-temp1 <- obj_ebs$raw |> 
-  dplyr::filter(common_name != "Total" &
-                  !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE)))
-
+temp <- obj$raw
 if (srvy == "NEBS") {
-  load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata")) # obj
-  obj_nbs <- obj
-obj_nbs$raw <- obj_nbs$raw |> 
-  dplyr::mutate(common_name = common_name0) |> 
+  load(file = paste0(dir_out_figtab, "tab-specimen-samples-NBS.rdata"))
+  temp <- temp|> 
+    dplyr::bind_rows(obj$raw)
+}
+
+temp <- temp |> 
+  dplyr::mutate(common_name = common_name0, 
+                common_name = ifelse(is.na(common_name), "Total", common_name)) |> 
   dplyr::select(-common_name0)
-  
-  temp1 <- temp1 |> 
-    dplyr::bind_rows(
-      obj_nbs$raw  |> 
-        dplyr::filter(common_name != "Total" &
-                        !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) )    
+
+names(temp) <- gsub(x = names(temp), pattern = "\n", replacement = " ")
+
+temp <- temp |>
+  dplyr::filter(common_name == "Total") |> 
+  dplyr::select(-common_name)|> 
+  dplyr::left_join(cruises_maxyr|> 
+                     dplyr::select(srvy, srvy_long)|> 
+                     dplyr::distinct()) |> 
+  dplyr::mutate(across(where(is.numeric), xunits))
+
+# str00 <- grepl(x = names(temp|> 
+#     dplyr::select(-dplyr::starts_with("srvy"))), pattern = " deployed")
+# str00 <- ifelse(str00, "deployed ", "")
+names(temp) <- gsub(x = names(temp), pattern = "Satellite tags deployed", replacement = "fish for satellite tagging")
+
+str0 <- c()
+for (i in 1:nrow(temp)) {
+  temp0 <- t(temp[i, ]|> 
+               dplyr::select(-dplyr::starts_with("srvy")))
+  str0 <- paste0(str0, text_list(paste0(temp0, " ", tolower(rownames(temp0)) )), 
+                 " during the ", 
+                 ifelse(i == 1, paste0(maxyr, " "), ""), 
+                 temp[i, "srvy_long"], " survey", 
+                 ifelse(srvy == "NEBS" & i == 1, " and ", ""))
 }
-
-temp1 <- temp1 |> 
-  # dplyr::bind_rows(
-  # obj1$raw |>
-  #   dplyr::filter(common_name != "Total" &
-  #                   !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))),
-  # obj$raw|>
-  #   dplyr::filter(common_name != "Total" &
-  #                   !(grepl(x = common_name, pattern = "crab", ignore.case = TRUE))) )|>
-  dplyr::select(-srvy) |> 
-  dplyr::group_by(common_name)|> 
-  dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE)))|> 
-  dplyr::ungroup()
-
-# list taxon used in each sample
-temp3 <- c()
-for (i in 2:ncol(temp1)) {
-  temp2 <-  temp1[, c(1, i)]
-  temp2 <- temp2[temp2[,2]>0,]
-  temp2$spp <- text_list(unique(temp2$common_name))
-  temp2$spp <- ifelse(grepl(pattern = "shark", x = temp2$spp), 
-                      gsub(pattern = "shark", replacement = "sharks", x = temp2$spp), 
-                      temp2$spp)
-  temp3 <- dplyr::bind_cols(temp3, 
-                            data.frame(temp = temp2$spp[1]) )
-  names(temp3)[i-1] <- paste0("spp_", names(temp2)[2])
-}
-
-# count taxon used in each sample
-temp1 <- temp1|> 
-  dplyr::select(-common_name)|>
-  tidyr::pivot_longer(cols = names(temp1|> dplyr::select(-common_name)), 
-                      names_to = "var", values_to = "val") |> 
-  dplyr::filter(val != 0)|> 
-  dplyr::group_by(var)|> 
-  dplyr::summarise(n = n())|> 
-  dplyr::ungroup()|> 
-  dplyr::mutate(var = paste0("n_", var))|> 
-  tidyr::pivot_wider(names_from = var, values_from = n)
-
-temp <- dplyr::bind_rows(
-  obj_ebs$raw|> 
-    dplyr::filter(common_name == "Total") , 
-  obj_nbs$raw|> 
-    dplyr::filter(common_name == "Total") )|>
-  # dplyr::filter(!(grepl(x = common_name, pattern = "crab", ignore.case = TRUE)))|> 
-  dplyr::select(-srvy, -common_name)|>
-  dplyr::ungroup()|> 
-  dplyr::summarise(across(everything(), ~ sum(., na.rm = TRUE)))
-
-temp <- data.frame(t(temp))
-names(temp) <- "n_samples"
-temp$var <- rownames(temp)
-temp1 <- data.frame(t(temp1))
-names(temp1) <- "n_taxa"
-temp1$var <- gsub(pattern = "n_", replacement = "", x = rownames(temp1))
-temp3 <- data.frame(t(temp3))
-names(temp3) <- "text_taxa"
-temp3$var <- gsub(pattern = "spp_", replacement = "", x = rownames(temp3))
-
-temp0 <- dplyr::left_join(temp, temp1, by = "var")|> 
-  dplyr::left_join(temp3, by = "var")|> 
-  dplyr::mutate(var0 = tolower(gsub(pattern = "\n", x = var, replacement = " ")), 
-                taxa_type = "fish")|> 
-  dplyr::arrange(desc(n_samples))
-
-temp000 <- temp0|>
-  dplyr::filter(var == "Length\nmeasurements")
-
-temp00 <- temp0|>
-  dplyr::filter(var != "Length\nmeasurements")
-
-str0 <- text_list(
-  paste0(xunits(temp00$n_samples), " ",
-         (temp00$var0), " ",
-         ifelse(temp00$n_samples == 1, "was", "were"),
-         " collected from ",
-         ifelse(temp00$n_samples == 1, "a", ""), # TOLEDO - what if starts with vowel???
-         ifelse(temp00$n_taxa < 4, 
-                temp00$text_taxa,
-                paste0(xunits(temp00$n_taxa), " taxa")) ), sep = "; ")
-
-str0 <- gsub(pattern = "  ", replacement = " ", x = str0)
-str0 <- gsub(pattern = ", and", replacement = "; and", x = str0)
 ```
 
-From the `r SURVEY` survey`r plural_surveys`, length measurements were collected from `r xunits(temp000$n_samples)` individual fish representing `r xunits(temp000$n_taxa)` fish taxa. Additionally, `r str0`. 
+Survey teams collected `r str0 `. 
 
 ## Estimates of Fishes and Invertebrates
 
@@ -166,7 +95,7 @@ temp <- total_biomass|>
 # dplyr::filter(year %in% c(maxyr, compareyr))
 ```
 
-In `r maxyr`, the total bottom-dwelling animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$srvy == "EBS"] ` million metric tons (t) and the northern Bering Sea was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$srvy == "NBS"] ` million t. Previously, the total bottom-dwelling animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$srvy_long[temp$year != maxyr], " was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. 
+In `r maxyr`, the total benthic animal biomass of the eastern Bering Sea shelf was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$srvy == "EBS"] ` million metric tons (t) and the northern Bering Sea was estimated at `r temp$biomass_mmt[temp$year == maxyr & temp$srvy == "NBS"] ` million t. Previously, the total benthic animal biomass of the `r text_list(paste0(temp$year[temp$year != maxyr], " ", temp$srvy_long[temp$year != maxyr], " was estimated at ", temp$biomass_mmt[temp$year != maxyr], " million t"))`. 
 
 ```{r biomass-inc-dec-spp}
 
@@ -366,9 +295,7 @@ temp3 <- temp3 |>
 
 ```
 
-`r str0` 
-
-Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`. 
+`r str0` Saffron cod and Arctic cod accounted for `r text_list(paste0(temp0$perc, " of the total biomass in ", temp0$year)) `. Invertebrates (i.e., shrimps, sea squirts, sea stars, jellyfish, crabs, and urchins) made up `r text_list(paste0(temp3$invert_perc, "% of the biomass in ", temp3$year))`. 
 
 \pagebreak
 

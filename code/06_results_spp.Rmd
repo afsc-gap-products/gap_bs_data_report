@@ -85,12 +85,12 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 # fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
 ```
 
-```{r spp-text-1-{{jj}}, eval = FALSE}
+```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}}
 # ```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
-if (fig_height > 4) {
-  fig_height <- 3
+# if (fig_height > 4) {
+  fig_height <- 1.5
   fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
-}
+# }
 cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
@@ -248,6 +248,10 @@ if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to
                  srvy11[!(stringr::str_to_title(srvy11) %in% temp$srvy_long)], 
                  " in ", maxyr," (Fig. ", ifelse(report_title == "data", fig_dist, fig_comb),"). ")
 }
+
+str0 <- paste0(str0, 
+                 ifelse((spp_print == "tunicates"), "No population estimate is calculated because this organism is colonial and it is not possible to count individuals. ", "") )
+
 ```
 
 `r str0` 

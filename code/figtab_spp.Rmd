@@ -1265,9 +1265,9 @@ temp_env <- haul0 |>
   dplyr::select(srvy, 
                 # "Latitude (°N)" = latitude_dd_start, 
                 # "Longitude (°W)" = longitude_dd_start, 
-                "Bottom\nDepth (m)" = depth_m, 
-                "Bottom Temperature (°C)" = bottom_temperature_c, 
-                "Surface Temperature (°C)" = surface_temperature_c) |> 
+                "Bottom\nDepth" = depth_m, 
+                "Bottom Temperature" = bottom_temperature_c, 
+                "Surface Temperature" = surface_temperature_c) |> 
   dplyr::group_by(srvy) |> 
   dplyr::summarise(across(where(is.numeric), 
                           .fns = 
@@ -1277,20 +1277,24 @@ temp_env <- haul0 |>
   tidyr::pivot_longer(is.numeric,
                       names_sep='_',
                       names_to=c('variable', '.value')) |>
-  dplyr::mutate(across(dplyr::ends_with("C)"), 
+  dplyr::mutate(
+    dplyr::across(dplyr::ends_with("Temperature"), 
                        formatC, big.mark = ",", digits = 1, format = "f"), 
-                val = ifelse(Min == Max, Min, paste0(Min, " — ", Max))) |>
-  dplyr::mutate(across(dplyr::ends_with("m)"), 
+                val = ifelse(Min == Max, Min, paste0(Min, " — ", Max)), 
+                dplyr::across(dplyr::ends_with("Depth"), 
                        formatC, big.mark = ",", digits = 0, format = "f"), 
-                val = ifelse(Min == Max, Min, paste0(Min, " — ", Max))) |>
+                val = ifelse(Min == Max, Min, paste0(Min, " — ", Max)))  |>
   dplyr::relocate(variable, dplyr::ends_with(srvy1[1])) |> 
   dplyr::select(-Min, -Max) |> 
   tidyr::pivot_wider(id_cols = "srvy",
                      names_from = "variable",
-                     values_from = "val")
-# tidyr::pivot_wider(id_cols = "variable",
-#                    names_from = "srvy",
-#                    values_from = c("val"))
+                     values_from = "val") |> 
+  dplyr::mutate(
+                    dplyr::across(dplyr::ends_with("Temperature"),
+                    ~paste0(.x, " (°C)")), 
+                    dplyr::across(dplyr::ends_with("Depth"),
+                    ~paste0(.x, " (m)")), 
+  )
 
 ### Biomass table --------------------------------------------------------------
 
@@ -1352,20 +1356,30 @@ for (i in 1:nrow(temp_bio)) {
     c(
       srvy = temp_bio$srvy[i], 
       year = temp_bio$year[i], 
-      "Population" = ifelse(is.na(temp_bio$population_count[i]), 
+      "Population" = ifelse(is.na(temp_bio$population_count[i]),
+                            "-",
+                            xunits(temp_bio$population_count[i])),
+      "Biomass" = ifelse(is.na(temp_bio$biomass_mt[i]),
+                              "-",
+                              paste0(xunits(temp_bio$biomass_mt[i],
+                                            val_under_x_words = NULL), " t")),
+            "Population; Biomass" = paste0(
+                              ifelse(is.na(temp_bio$population_count[i]), 
                             "-", 
                             xunits(temp_bio$population_count[i])), 
-      "Biomass\n(t)" = ifelse(is.na(temp_bio$biomass_mt[i]), 
+                              "; ", 
+                            ifelse(is.na(temp_bio$biomass_mt[i]), 
                               "-", 
                               paste0(xunits(temp_bio$biomass_mt[i], 
                                             val_under_x_words = NULL))), 
-      "% Total\nCatch Biomass" = dplyr::case_when(
+                            " t" ), 
+      "% of Total Biomass" = dplyr::case_when(
         is.na(temp_bio$biomass_mt[i]) ~ "-", 
         paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
                        digits = 1, format = "f", big.mark = ","), "%") == "0.0%" ~ "<0.01%", 
         TRUE ~ paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
                               digits = 1, format = "f", big.mark = ","), "%") ), 
-      "Percent Change\nin Biomass" = unique(dplyr::case_when(
+      "% Change\nin Biomass" = unique(dplyr::case_when(
         temp_bio$year[i] == min(temp$year) ~ "-",
         is.na(temp_bio$biomass_mt[i]) ~ "-", #paste0("none caught in ", temp_bio$year[i]), 
         is.na(temp_bio0) ~ "-", #paste0("none caught in ", compareyr0), 
@@ -1456,7 +1470,7 @@ table_raw <- temp_stat |>
                               srvy_long = stringr::str_to_title(srvy11), 
                               Survey = gsub(" .*$", "", stringr::str_to_title(srvy11)))) |> 
   dplyr::left_join(temp_catch |> 
-                     dplyr::select(srvy, `Survey Catch Totals` = str, catch_min)) |>
+                     dplyr::select(srvy, `Observed Catch Totals` = str, catch_min)) |>
   # dplyr::select(-srvy) |> 
   dplyr::relocate(Survey) |> 
   dplyr::arrange(Survey) |> 
@@ -1467,7 +1481,7 @@ if (sum(table_raw$`Biomass\n% of Total` == "0.0%") == nrow(table_raw)) {
     dplyr::select(-`Biomass\n% of Total`)
 }
 
-### print table ----------------------------------------------------------------
+### Print table ----------------------------------------------------------------
 
 header <- paste0("Summary of ",maxyr," catch presence, temperature ranges, and extrapolated biomass and population estimates for ", 
                  spp_print, 
@@ -1490,16 +1504,19 @@ if (ncol(table_print0) > 2) {
 }
 
 # remove rows if there are less than 99 individuals 
-if (sum(table_raw$catch_min > 99) == length(srvy)) {
-  table_print0 <- table_print0[table_print0$var != "Survey Catch Totals",]
+if (sum(table_raw$catch_min > 99) == length(srvy1)) {
+  table_print0 <- table_print0[table_print0$var != "Observed Catch Totals",]
 } else {
-  table_print0 <- table_print0[table_print0$var != "Percent Change in Biomass",]
+  table_print0 <- table_print0[table_print0$var != "% Change in Biomass",]
+  table_print0 <- table_print0[table_print0$var != "% of Total Biomass",]
+  header <- paste0(header, 
+                   "Too few organisms were observed on the survey to share meaningful percent change to percent of total biomass values, so observed values are shared instead. ")
 }
 
 # # null cells if there are less than 99 individuals
 # for (i in 1:length(srvy)) {
 #   if (table_raw$catch_min > 99) {
-#     # table_print0[table_print0$var != "Survey Catch Totals", i] <- ""
+#     # table_print0[table_print0$var != "Observed Catch Totals", i] <- ""
 #   } else {
 #     table_print0[table_print0$var != "Percent Change in Biomass", i] <- "Catch was too low to assess"
 #   }
@@ -1509,6 +1526,10 @@ table_print0 <- table_print0[table_print0$var != "catch_min", ]
 
 if (spp_print == "tunicates") {
   table_print0 <- table_print0[table_print0$var != "Population",]
+  table_print0 <- table_print0[table_print0$var != "Population; Biomass",]
+} else {
+  table_print0 <- table_print0[table_print0$var != "Population",]
+  table_print0 <- table_print0[table_print0$var != "Biomass",]  
 }
 
 table_print <- table_print0 |> 
@@ -1532,7 +1553,7 @@ table_print <- table_print0 |>
     bg = negative, 
     j = names(table_print0)[2]) |> 
   flextable::bg(
-    i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "no change")), 
+    i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "o change")), 
     bg = neutral, 
     j = names(table_print0)[2]) 
 
@@ -1552,7 +1573,7 @@ if (ncol(table_print0) > 2) {
       j = names(table_print0)[3]) 
 }
 pres_stats <- table_raw
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ```{r tab-est-[spp]-[wt or num], eval = ((report_title == "data") & spp_table_cpue)}
@@ -2217,7 +2238,7 @@ figure_print <- ggdraw(add_sub(
                         temp$`Biomass\n(t)`," (",
                         gsub(pattern = "\n", replace = " ", 
                              x = temp$`Percent Change\nin Biomass`, fixed = TRUE), ")", 
-                        ". \n  ", temp$`Survey Catch Totals`, ". ", 
+                        ". \n  ", temp$`Observed Catch Totals`, ". ", 
                         collapse = "\n") )
 ))
 # }
@@ -2373,7 +2394,7 @@ header <- paste0(
   ". (",ifelse((exists("comm_size")), "C", "B"),") Biomass time series during the ",
   substr(x = gsub("[^0-9]", "", pres_timeseries_txt), start = 1, stop = 4),"-2025 ", # SURVEY,
   "survey", plural_surveys," (points and solid lines, with estimated 95% confidence intervals error bars) and time series mean (dashed lines). ",
-  "(",ifelse((exists("comm_size")), "D", "C"),") Photo of ", ifelse(tolower(substr(spp_print, 1, 1)) %in% c("a", "e", "i", "o", "u") | substr(x = spp_print, nchar(spp_print), nchar(spp_print)) == "s", "an ", "a "), spp_print, ". ")
+  "(",ifelse((exists("comm_size")), "D", "C"),") Photo of ", ifelse(substr(x = spp_print, nchar(spp_print), nchar(spp_print)) == "s", "", ifelse(tolower(substr(spp_print, 1, 1)) %in% c("a", "e", "i", "o", "u"), "an ", "a ")), spp_print, ". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -2481,19 +2502,25 @@ comm_dist1 <- comm_dist  +
 #   align = "v",   # Align vertically
 #   axis = "l")     # Align by the left axis
 #   
+if (exists("comm_size")) {
 figure_print <- cowplot::plot_grid(
   temp1, 
   NULL,
   comm_size1, 
   ncol = 3, 
-  rel_widths = c(.6,.025,.375),
+  rel_widths = c(.6,.025,.4),
   align = "v",   # Align vertically
   axis = "l")     # Align by the left axis
-
+} else {
+  figure_print <- temp1
+}
+  
 # Then use ggdraw() to add a custom label on top of the combined plot
 figure_print <- cowplot::ggdraw(figure_print) +
-  cowplot::draw_label("A", x = 0.10, y = 0.94, hjust = 0, vjust = 0, size = 16) +
-  cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), x = 0.10, y = 0.32, hjust = 0, vjust = 0, size = 16) #+
+  cowplot::draw_label("A", 
+                      x = ifelse(exists("comm_size"), 0.10, 0.01), y = 0.94, hjust = 0, vjust = 0, size = 16) +
+  cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), 
+                      x = ifelse(exists("comm_size"), 0.10, 0.01), y = 0.32, hjust = 0, vjust = 0, size = 16) #+
   # cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
 
 if (exists("comm_size")) {

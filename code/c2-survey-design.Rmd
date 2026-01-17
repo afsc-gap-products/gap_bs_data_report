@@ -80,20 +80,33 @@ haul_cruises_compareyr1 <- haul_cruises_compareyr |>
 str0 <- paste0(str0, 
   
   "In the ", maxyr," ", srvy11[i], 
-  " survey, the total area sampled by trawls at ", 
+  " survey, a total of ", 
   haul_cruises_maxyr1$stations_completed,
-  " completed stations was approximately ", 
+  " stations were completed (out of ",
+  haul_cruises_maxyr1$stations_available,
+  "), covering approximately ", 
   round(temp, 2)," nmi^2^ (", round(temp/divnmi2forkm2, 2),
-  " km^2^) and covered ", 
+  " km^2^) or ", 
   formatC(x = ((temp / sum(stratum1$area_nmi2, na.rm=TRUE)) * 100), format = "f", digits = 4),
-  "% of the region. In comparison, the total ", srvy11[i], 
-  " area sampled by trawls in ", compareyr[names(compareyr) == srvy1[i]], " at ", haul_cruises_compareyr1$stations_completed ,
-  " completed stations was approximately ", round(temp1, 2)," nmi^2^ (", round(temp1/divnmi2forkm2, 2)," km^2^) and covered ", formatC(x = ((temp1 / sum(stratum1$area_nmi2, na.rm=TRUE)) * 100), format = "f", digits = 4),"% of the region. ")
+  "% of the region. ",
+  
+  "Bottom depths in the this survey area range from ",
+  round(min(haul_maxyr$depth_m[haul_maxyr$srvy == srvy1[i]])/divmforft, digits = 1)," ft (", 
+  round(min(haul_maxyr$depth_m[haul_maxyr$srvy == srvy1[i]]), digits = 1)," m) to ",
+  round(max(haul_maxyr$depth_m[haul_maxyr$srvy == srvy1[i]])/divmforft, digits = 1)," ft (",
+  round(max(haul_maxyr$depth_m[haul_maxyr$srvy == srvy1[i]]), digits = 1) , " m). "
+  
+  # "In comparison, the total ", srvy11[i], 
+  # " area sampled by trawls in ", compareyr[names(compareyr) == srvy1[i]], " at ", haul_cruises_compareyr1$stations_completed ,
+  # " completed stations was approximately ", round(temp1, 2)," nmi^2^ (", round(temp1/divnmi2forkm2, 2)," km^2^) and covered ", formatC(x = ((temp1 / sum(stratum1$area_nmi2, na.rm=TRUE)) * 100), format = "f", digits = 4),"% of the region. "
+  )
 
 }
 ```
 
-The northern Bering Sea survey was designed as an extension of the systematic 20 × 20 nautical mile (nmi) sampling grid for the annual eastern Bering Sea shelf survey. `r str0 `Bottom depths in the northern Bering Sea survey area range from `r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(min(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m) to `r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"])/divmforft, digits = 1) ` ft (`r round(max(haul_maxyr$depth_m[haul_maxyr$srvy == "NBS"]), digits = 1) ` m). 
+The northern Bering Sea survey region is bounded by the Bering Strait, Norton Sound, and the U.S.–Russia Maritime Boundary (Fig. \@ref(fig:fig-survey-points-nostrata)). The northern Bering Sea region has used the same standardized sampling methods as it was designed as an extension of the systematic 20 × 20 nautical mile (nmi) sampling grid for the annual eastern Bering Sea shelf survey in 2010. 
+
+`r str0 ` 
 
 Both vessels used an 83-112 Eastern otter trawl that has been historically used for eastern Bering Sea, Chukchi Sea, and Beaufort Sea surveys (Fig. \@ref(fig:fig-trawl-gear-diagram-nolabel)). Each trawl tow was conducted for 30 minutes at a speed of 2.8 - 3.2 knots.
 
