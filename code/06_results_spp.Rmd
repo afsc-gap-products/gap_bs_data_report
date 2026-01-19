@@ -3,6 +3,7 @@
 
 ```{r res-spp-vars-{{jj}} }
 a <- report_spp1[which(report_spp1$file_name == "{{jj}}"), ]
+# a <- report_spp1[which(report_spp1$file_name == jj), ]
 
 spp_file <- a$file_name[1]
 spp_print <- a$print_name[1]
@@ -79,18 +80,17 @@ ref_sap_report <- paste0("[@SAPcrab",maxyr,"]")
 
 ### `r stringr::str_to_title(spp_print)` `r ifelse(is.na(spp_sci), "", paste0("(",spp_sci,")")) `{#`r spp_file`}
 
-```{r spp-text-0-{{jj}}}
-# img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
-# fig_width <- 4
-# fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
+```{r spp-fig-{{jj}}}
+img <- magick::image_read(path = paste0(dir_img, spp_file, "-crop.png")) # read the image using the magic library
+  fig_height <- 1
+  fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
+  if (fig_width > 3) {
+      fig_height <- (image_info(img)$height * fig_width) / image_info(img)$width
+      fig_width <- 3
+  }
 ```
 
-```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}}
-# ```{r spp-text-1-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
-# if (fig_height > 4) {
-  fig_height <- 1.5
-  fig_width <- (image_info(img)$width * fig_height) / image_info(img)$height
-# }
+```{r spp-fig0-{{jj}}, eval = (report_title %in% "community"), fig.width = fig_width, fig.height = fig_height}
 cowplot::ggdraw() +
   cowplot::draw_image(readPNG(paste0(dir_img, spp_file, "-crop.png")) )
 ```
@@ -126,7 +126,7 @@ str0_lang <- ""
 if (ncol(temp)>0) {
   str0_lang <- paste0("**", names(temp), "**: ", 
                       ifelse(names(temp) == "Previous scientific name", paste0("*", temp, "*"), temp), 
-                      collapse = "\n\n")
+                      collapse = ifelse(report_title == "data", "\n\n", " | "))
   # str0_lang <- paste0(names(temp), ": ", temp, collapse = "\n\n")
 }
 ```
@@ -168,27 +168,27 @@ if ("EBS" %in% temp$srvy) {
   temp0 <- temp[temp$srvy == "EBS", ]
   
   case <- dplyr::case_when(
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ 
-      paste0("was ", temp0$`Biomass\n(t)`, " t"), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ 
+      paste0("was ", temp0$`Biomass`, " t"), 
     temp0$catch_min < 100 ~ 
-      paste0(tolower(strsplit(x = temp0$`Survey Catch Totals`, split = " ", fixed = TRUE)[[1]][1]), 
-             " to ", temp0$`Biomass\n(t)`, " t, extrapolated from ", 
+      paste0(tolower(strsplit(x = temp0$`Observed Catch Totals`, split = " ", fixed = TRUE)[[1]][1]), 
+             " to ", temp0$`Biomass`, " t, extrapolated from ", 
              gsub(pattern = paste0(" in ", maxyr), 
                   replacement = " caught", 
-                  x = strsplit(x = temp0$`Survey Catch Totals`, split = " to ", TRUE)[[1]][2]) ), 
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ 
-      paste0("decreased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]), 
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ 
-      paste0("increased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]),
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ 
+                  x = strsplit(x = temp0$`Observed Catch Totals`, split = " to ", TRUE)[[1]][2]) ), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "decrease") ~ 
+      paste0("decreased by ", strsplit(split = " ", x = temp0$`% Change\nin Biomass`)[[1]][1]), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "increase") ~ 
+      paste0("increased by ", strsplit(split = " ", x = temp0$`% Change\nin Biomass`)[[1]][1]),
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "no change") ~ 
       "did not notably change"
   )
   
   case_transition_ebs <- dplyr::case_when(
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ paste0("decrease"), 
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ "no change"
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "decrease") ~ paste0("decrease"), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "no change") ~ "no change"
   )
   
   str0 <- paste0(str0, 
@@ -201,27 +201,27 @@ if ("NBS" %in% temp$srvy) {
   temp0 <- temp[temp$srvy == "NBS", ]
   
   case <- dplyr::case_when(
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ 
-      paste0("was ", temp0$`Biomass\n(t)`, " t"), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ 
+      paste0("was ", temp0$`Biomass`, " t"), 
     temp0$catch_min < 100 ~ 
-      paste0(tolower(strsplit(x = temp0$`Survey Catch Totals`, split = " ", fixed = TRUE)[[1]][1]), 
-             " to ", temp0$`Biomass\n(t)`, " t, extrapolated from ", 
+      paste0(tolower(strsplit(x = temp0$`Observed Catch Totals`, split = " ", fixed = TRUE)[[1]][1]), 
+             " to ", temp0$`Biomass`, " t, extrapolated from ", 
              gsub(pattern = paste0(" in ", maxyr), 
                   replacement = " caught", 
-                  x = strsplit(x = temp0$`Survey Catch Totals`, split = " to ", TRUE)[[1]][2]) ), 
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ 
-      paste0("decreased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]), 
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ 
-      paste0("increased by ", strsplit(split = " ", x = temp0$`Percent Change\nin Biomass`)[[1]][1]),
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ 
+                  x = strsplit(x = temp0$`Observed Catch Totals`, split = " to ", TRUE)[[1]][2]) ), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "decrease") ~ 
+      paste0("decreased by ", strsplit(split = " ", x = temp0$`% Change\nin Biomass`)[[1]][1]), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "increase") ~ 
+      paste0("increased by ", strsplit(split = " ", x = temp0$`% Change\nin Biomass`)[[1]][1]),
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "no change") ~ 
       "did not notably change"
   )
   
   case_transition_nbs <- dplyr::case_when(
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "decrease") ~ paste0("decrease"), 
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
-    grepl(x = temp0$`Percent Change\nin Biomass`, pattern = "no change") ~ "no change"
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "decrease") ~ paste0("decrease"), 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "no change") ~ "no change"
   )
   
   if (!("EBS" %in% temp$srvy)) { # if there is no EBS data and therefore nothing to 'transition' to, = ""

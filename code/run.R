@@ -86,7 +86,7 @@ source(here::here("code","data.R"))
 
 ## Write report ----------------------------------------------------------------
 
-rmarkdown::render(input = paste0(dir_code, "00_community_report.Rmd"), 
+rmarkdown::render(input = paste0(dir_code, "c0_community_report.Rmd"), 
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_todaysrun, 
                   output_file = paste0("00_community_report_", maxyr, ".docx"))

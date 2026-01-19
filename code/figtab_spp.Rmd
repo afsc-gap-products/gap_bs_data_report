@@ -138,9 +138,9 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
   
   # The figure is too small for too many details like this
   if (report_title0 == "pres") {
-# reg_dat0$lon.breaks <- as.character(reg_dat0$lon.breaks)
-reg_dat0$lon.breaks <- reg_dat0$lon.breaks[which(reg_dat0$lon.breaks %% 10 != 5)] 
-}
+    # reg_dat0$lon.breaks <- as.character(reg_dat0$lon.breaks)
+    reg_dat0$lon.breaks <- reg_dat0$lon.breaks[which(reg_dat0$lon.breaks %% 10 != 5)] 
+  }
   
   # Write header for figure_print ------------------------------------------------------
   missing_from_one_but_not_both_surveys <- ""
@@ -1279,21 +1279,21 @@ temp_env <- haul0 |>
                       names_to=c('variable', '.value')) |>
   dplyr::mutate(
     dplyr::across(dplyr::ends_with("Temperature"), 
-                       formatC, big.mark = ",", digits = 1, format = "f"), 
-                val = ifelse(Min == Max, Min, paste0(Min, " — ", Max)), 
-                dplyr::across(dplyr::ends_with("Depth"), 
-                       formatC, big.mark = ",", digits = 0, format = "f"), 
-                val = ifelse(Min == Max, Min, paste0(Min, " — ", Max)))  |>
+                  formatC, big.mark = ",", digits = 1, format = "f"), 
+    val = ifelse(Min == Max, Min, paste0(Min, " — ", Max)), 
+    dplyr::across(dplyr::ends_with("Depth"), 
+                  formatC, big.mark = ",", digits = 0, format = "f"), 
+    val = ifelse(Min == Max, Min, paste0(Min, " — ", Max)))  |>
   dplyr::relocate(variable, dplyr::ends_with(srvy1[1])) |> 
   dplyr::select(-Min, -Max) |> 
   tidyr::pivot_wider(id_cols = "srvy",
                      names_from = "variable",
                      values_from = "val") |> 
   dplyr::mutate(
-                    dplyr::across(dplyr::ends_with("Temperature"),
-                    ~paste0(.x, " (°C)")), 
-                    dplyr::across(dplyr::ends_with("Depth"),
-                    ~paste0(.x, " (m)")), 
+    dplyr::across(dplyr::ends_with("Temperature"),
+                  ~paste0(.x, " (°C)")), 
+    dplyr::across(dplyr::ends_with("Depth"),
+                  ~paste0(.x, " (m)")), 
   )
 
 ### Biomass table --------------------------------------------------------------
@@ -1360,19 +1360,19 @@ for (i in 1:nrow(temp_bio)) {
                             "-",
                             xunits(temp_bio$population_count[i])),
       "Biomass" = ifelse(is.na(temp_bio$biomass_mt[i]),
-                              "-",
-                              paste0(xunits(temp_bio$biomass_mt[i],
-                                            val_under_x_words = NULL), " t")),
-            "Population; Biomass" = paste0(
-                              ifelse(is.na(temp_bio$population_count[i]), 
-                            "-", 
-                            xunits(temp_bio$population_count[i])), 
-                              "; ", 
-                            ifelse(is.na(temp_bio$biomass_mt[i]), 
-                              "-", 
-                              paste0(xunits(temp_bio$biomass_mt[i], 
-                                            val_under_x_words = NULL))), 
-                            " t" ), 
+                         "-",
+                         paste0(xunits(temp_bio$biomass_mt[i],
+                                       val_under_x_words = NULL), " t")),
+      "Population; Biomass" = paste0(
+        ifelse(is.na(temp_bio$population_count[i]), 
+               "-", 
+               xunits(temp_bio$population_count[i])), 
+        "; ", 
+        ifelse(is.na(temp_bio$biomass_mt[i]), 
+               "-", 
+               paste0(xunits(temp_bio$biomass_mt[i], 
+                             val_under_x_words = NULL))), 
+        " t" ), 
       "% of Total Biomass" = dplyr::case_when(
         is.na(temp_bio$biomass_mt[i]) ~ "-", 
         paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
@@ -1402,8 +1402,8 @@ temp_catch <- catch_haul_cruises |>
   dplyr::select(species_code, srvy, year, weight_kg, count) 
 
 if (spp_print == "tunicates") {
-temp_catch <- temp_catch |> 
-  dplyr::mutate(count = weight_kg)
+  temp_catch <- temp_catch |> 
+    dplyr::mutate(count = weight_kg)
 }
 
 temp_catch <- temp_catch |> 
@@ -1452,8 +1452,8 @@ temp_catch$str <- paste0(
   " to ", 
   formatC(x = unlist(temp_catch[,paste0("yr_", maxyr)]), big.mark = ",", format = "f", digits = 0),
   # " individuals in ", 
-    " ",ifelse(spp_print == "tunicates", "kg", "individuals")," in ",
-
+  " ",ifelse(spp_print == "tunicates", "kg", "individuals")," in ",
+  
   maxyr)
 # if (spp_print == "tunicates") { # can't be counted!
 #   temp_catch$str <- ""
@@ -1532,6 +1532,26 @@ if (spp_print == "tunicates") {
   table_print0 <- table_print0[table_print0$var != "Biomass",]  
 }
 
+flextable_color_range <- function(ft, dat0, var0, rnge = -9:9) {
+  
+  if (grepl(pattern = "o change", x = dat0[nrow(dat0), var0]) | 
+      strsplit(x = dat0[nrow(dat0), var0], split = "%")[[1]][1] %in% rnge ) {
+    color0 <- neutral
+  } else if (grepl(x = dat0[nrow(dat0), var0], pattern = "increase")) {
+    color0 <- positive
+  } else if (grepl(x = dat0[nrow(dat0), var0], pattern = "decrease")) {
+    color0 <- negative
+  } else {
+    color0 <- 'white'
+  }
+  
+  flextable::bg(
+        x  = ft,
+        bg = color0,
+                i  = nrow(dat0),
+                j  = var0 )
+}
+
 table_print <- table_print0 |> 
   flextable::flextable()  |> 
   theme_flextable_nmfstm(row_lines = FALSE, 
@@ -1544,36 +1564,16 @@ table_print <- table_print0 |>
   #                        pgwidth = full_page_portrait_width) |>
   flextable::width(width = 2.25) |>
   flextable::width(j = 1, width = 2) |>
-  flextable::bg(
-    i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "increase")), 
-    bg = positive, 
-    j = names(table_print0)[2]) |> 
-  flextable::bg(
-    i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "decrease")), 
-    bg = negative, 
-    j = names(table_print0)[2]) |> 
-  flextable::bg(
-    i = ~ (grepl(x = table_print0[,names(table_print0)[2]], pattern = "o change")), 
-    bg = neutral, 
-    j = names(table_print0)[2]) 
+  flextable_color_range(dat0 = table_print0, var0 = names(table_print0)[2]) 
+# eval(parse(text = flextable_color_range(dat0 = table_print0, var0 = names(table_print0)[2]) ))
 
 if (ncol(table_print0) > 2) {
-  table_print <- table_print |> 
-    flextable::bg(
-      i = ~ (grepl(x = table_print0[,names(table_print0)[3]], pattern = "increase")), 
-      bg = positive, 
-      j = names(table_print0)[3]) |> 
-    flextable::bg(
-      i = ~ (grepl(x = table_print0[,names(table_print0)[3]], pattern = "decrease")), 
-      bg = negative, 
-      j = names(table_print0)[3]) |> 
-    flextable::bg(
-      i = ~ (grepl(x = table_print0[,names(table_print0)[3]], pattern = "no change")), 
-      bg = neutral, 
-      j = names(table_print0)[3]) 
+  table_print <- table_print |>
+  flextable_color_range(dat0 = table_print0, var0 = names(table_print0)[3]) 
 }
+
 pres_stats <- table_raw
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ```{r tab-est-[spp]-[wt or num], eval = ((report_title == "data") & spp_table_cpue)}
@@ -2260,24 +2260,24 @@ height <- 3 # full_page_portrait_height-2.5
 width <- full_page_portrait_width
 
 comm_dist1 <- comm_dist  +
-      ggplot2::guides(
-        fill = guide_legend(
-          title.position = NULL, # "left",
-          label.position = "right",
-          nrow = 1,
-          override.aes = list(color = NA)),
-        color = "none")  +
-      ggplot2::theme(
-        plot.title = element_blank(),
-        legend.title = element_blank(), #element_text(size = 8, face = "bold"),
-        legend.text = element_text(size = 8),
-        axis.text = element_text(size = 8),
-        axis.title = element_blank(),
-        strip.text = element_text(size = 8, face = "bold"),
-        plot.margin = grid::unit(c(0,0,0,0), "mm"),
-        # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
-        legend.key.width = unit(0.3, "cm"),
-        legend.key.height = unit(0.15, "cm") ) # Make them shorter
+  ggplot2::guides(
+    fill = guide_legend(
+      title.position = NULL, # "left",
+      label.position = "right",
+      nrow = 1,
+      override.aes = list(color = NA)),
+    color = "none")  +
+  ggplot2::theme(
+    plot.title = element_blank(),
+    legend.title = element_blank(), #element_text(size = 8, face = "bold"),
+    legend.text = element_text(size = 8),
+    axis.text = element_text(size = 8),
+    axis.title = element_blank(),
+    strip.text = element_text(size = 8, face = "bold"),
+    plot.margin = grid::unit(c(0,0,0,0), "mm"),
+    # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
+    legend.key.width = unit(0.3, "cm"),
+    legend.key.height = unit(0.15, "cm") ) # Make them shorter
 
 # comm_dist1 <- comm_dist  + 
 #       ggplot2::guides(
@@ -2307,37 +2307,37 @@ comm_dist1 <- comm_dist  +
 
 if (exists("comm_size")) {
   comm_size1 <- comm_size + 
-      ggplot2::theme(
-        plot.title = element_blank(), 
-        legend.text = element_text(size = 8), 
-        axis.text = element_text(size = 8),
-        axis.title.y = element_text(size = 8),
-        axis.title.x = element_blank(),
-        strip.text = element_text(size = 8, face = "bold"), 
-        plot.margin = grid::unit(c(0,0,0,0), "mm"), 
-        legend.box.background = element_rect(color = "white", fill = "white", linewidth = 1), # Box border and fill
-        # legend.background = element_blank(), # Make inner legend background transparent if needed
-        # legend.key.size = unit(0.5, "cm"),  # Adjust overall key size
-        # legend.key.width = unit(0.3, "cm"), # Make them even narrower
-        legend.key.height = unit(0.15, "cm"),
-        legend.key.width = unit(0.6, "cm"),
-        legend.position = c(.77, 0.5)) # Make them shorter
-      
+    ggplot2::theme(
+      plot.title = element_blank(), 
+      legend.text = element_text(size = 8), 
+      axis.text = element_text(size = 8),
+      axis.title.y = element_text(size = 8),
+      axis.title.x = element_blank(),
+      strip.text = element_text(size = 8, face = "bold"), 
+      plot.margin = grid::unit(c(0,0,0,0), "mm"), 
+      legend.box.background = element_rect(color = "white", fill = "white", linewidth = 1), # Box border and fill
+      # legend.background = element_blank(), # Make inner legend background transparent if needed
+      # legend.key.size = unit(0.5, "cm"),  # Adjust overall key size
+      # legend.key.width = unit(0.3, "cm"), # Make them even narrower
+      legend.key.height = unit(0.15, "cm"),
+      legend.key.width = unit(0.6, "cm"),
+      legend.position = c(.77, 0.5)) # Make them shorter
+  
 } else {
-    pres_size_txt <- "There are no sizecomps for this species. "
-comm_size1 <- NULL
-
+  pres_size_txt <- "There are no sizecomps for this species. "
+  comm_size1 <- NULL
+  
   # temp1 <- comm_dist1
 }
 
-  temp1 <- cowplot::plot_grid(
-    comm_dist1,
-    NULL, 
-    comm_size1, 
-    ncol = 3, 
-    align = "v",   # Align vertically
-    axis = "l",     # Align by the left axis
-    rel_widths = c(1.2,.05,.75)) # 1, .1., .9 worked for presentations
+temp1 <- cowplot::plot_grid(
+  comm_dist1,
+  NULL, 
+  comm_size1, 
+  ncol = 3, 
+  align = "v",   # Align vertically
+  axis = "l",     # Align by the left axis
+  rel_widths = c(1.2,.05,.75)) # 1, .1., .9 worked for presentations
 
 temp2 <- cowplot::plot_grid(
   pres_timeseries + 
@@ -2360,8 +2360,8 @@ temp2 <- cowplot::plot_grid(
   # NULL, 
   pres_spp,
   ncol = 2, 
-      align = "v",   # Align vertically
-    axis = "l",     # Align by the left axis
+  align = "v",   # Align vertically
+  axis = "l",     # Align by the left axis
   rel_widths = c(1.5, .5)) 
 
 figure_print <- cowplot::plot_grid(
@@ -2372,7 +2372,7 @@ figure_print <- cowplot::plot_grid(
   rel_heights = c(1.25, 0.05, 0.7),
   align = "v",   # Align vertically
   axis = "l"     # Align by the left axis
-  )
+)
 
 # Then use ggdraw() to add a custom label on top of the combined plot
 figure_print <- cowplot::ggdraw(figure_print) +
@@ -2381,8 +2381,8 @@ figure_print <- cowplot::ggdraw(figure_print) +
   cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
 
 if (exists("comm_size")) {
-figure_print <- cowplot::ggdraw(figure_print) +
-  cowplot::draw_label("B", x = 0.6, y = 0.94, hjust = 0, vjust = 0, size = 16)
+  figure_print <- cowplot::ggdraw(figure_print) +
+    cowplot::draw_label("B", x = 0.6, y = 0.94, hjust = 0, vjust = 0, size = 16)
 }
 
 header <- paste0(
@@ -2406,92 +2406,92 @@ height <- 3 # full_page_portrait_height-2.5
 width <- full_page_portrait_width
 
 comm_dist1 <- comm_dist  +
-      ggplot2::guides(
-        fill = guide_legend(
-          title.position = NULL, # "left",
-          label.position = "right",
-          # nrow = 1,
-          override.aes = list(color = NA)),
-        color = "none")  +
-      ggplot2::theme(
-        plot.title = element_blank(),
-        legend.title = element_blank(), #element_text(size = 8, face = "bold"),
-        legend.text = element_text(size = 8),
-        axis.text = element_text(size = 8),
-        axis.title = element_blank(),
-        strip.text = element_text(size = 8, face = "bold"),
-        plot.margin = grid::unit(c(0,0,0,0), "mm"),
-        legend.key.width = unit(0.4, "cm"),
-        legend.key.height = unit(0.15, "cm") ) # Make them shorter
-  
+  ggplot2::guides(
+    fill = guide_legend(
+      title.position = NULL, # "left",
+      label.position = "right",
+      # nrow = 1,
+      override.aes = list(color = NA)),
+    color = "none")  +
+  ggplot2::theme(
+    plot.title = element_blank(),
+    legend.title = element_blank(), #element_text(size = 8, face = "bold"),
+    legend.text = element_text(size = 8),
+    axis.text = element_text(size = 8),
+    axis.title = element_blank(),
+    strip.text = element_text(size = 8, face = "bold"),
+    plot.margin = grid::unit(c(0,0,0,0), "mm"),
+    legend.key.width = unit(0.4, "cm"),
+    legend.key.height = unit(0.15, "cm") ) # Make them shorter
+
 pres_timeseries1 <- pres_timeseries + 
-    ggplot2::guides(fill = "none") +
-    ggplot2::labs(color = "") + 
-    ggplot2::labs(shape = "") +
-    ggplot2::guides(
-      color = guide_legend(title.position = NULL, nrow = 1),
-      shape = guide_legend(title.position = NULL, nrow = 1))  +
-    ggplot2::theme(
-      plot.title = element_blank(), 
-      legend.text = element_text(size = 8), 
-      strip.text = element_text(size = 8, face = "bold"), 
-      axis.title.y = element_text(size = 8), 
-      axis.title.x = element_blank(), 
-      axis.text = element_text(size = 8), 
-      plot.margin = grid::unit(c(0,0,0,0), "mm"),
-      legend.position = c(0.25, 0.98))
+  ggplot2::guides(fill = "none") +
+  ggplot2::labs(color = "") + 
+  ggplot2::labs(shape = "") +
+  ggplot2::guides(
+    color = guide_legend(title.position = NULL, nrow = 1),
+    shape = guide_legend(title.position = NULL, nrow = 1))  +
+  ggplot2::theme(
+    plot.title = element_blank(), 
+    legend.text = element_text(size = 8), 
+    strip.text = element_text(size = 8, face = "bold"), 
+    axis.title.y = element_text(size = 8), 
+    axis.title.x = element_blank(), 
+    axis.text = element_text(size = 8), 
+    plot.margin = grid::unit(c(0,0,0,0), "mm"),
+    legend.position = c(0.25, 0.98))
 
 if (exists("comm_size")) {
   comm_size1 <- comm_size + 
-      ggplot2::theme(
-        plot.title = element_blank(), 
-        legend.text = element_text(size = 8), 
-        axis.text = element_text(size = 8),
-        axis.title.y = element_text(size = 8),
-        axis.title.x = element_blank(),
-        strip.text = element_text(size = 8, face = "bold"), 
-        plot.margin = grid::unit(c(0,0,0,0), "mm"), 
-        legend.box.background = element_rect(color = "white", fill = "white", linewidth = 1), # Box border and fill
-        legend.key.height = unit(0.15, "cm"),
-        legend.key.width = unit(0.4, "cm"),
-        legend.position = c(.77, 0.5)) # Make them shorter
-      
+    ggplot2::theme(
+      plot.title = element_blank(), 
+      legend.text = element_text(size = 8), 
+      axis.text = element_text(size = 8),
+      axis.title.y = element_text(size = 8),
+      axis.title.x = element_blank(),
+      strip.text = element_text(size = 8, face = "bold"), 
+      plot.margin = grid::unit(c(0,0,0,0), "mm"), 
+      legend.box.background = element_rect(color = "white", fill = "white", linewidth = 1), # Box border and fill
+      legend.key.height = unit(0.15, "cm"),
+      legend.key.width = unit(0.4, "cm"),
+      legend.position = c(.77, 0.5)) # Make them shorter
+  
 } else {
-    pres_size_txt <- "There are no sizecomps for this species. "
-comm_size1 <- NULL
-
-comm_dist1 <- comm_dist  +
-      ggplot2::guides(
-        fill = guide_legend(
-          # order = 1,
-          title.position = NULL, # "left",
-          label.position = "right",
-          # nrow = 2,
-          # title.hjust = 0.5,
-          override.aes = list(color = NA)),
-        color = "none")  +
-      ggplot2::theme(
-        legend.position = "right",
-        plot.title = element_blank(),
-        legend.title = element_blank(), #element_text(size = 8, face = "bold"),
-        legend.text = element_text(size = 8),
-        axis.text = element_text(size = 8),
-        axis.title = element_blank(),
-        strip.text = element_text(size = 8, face = "bold"),
-        plot.margin = grid::unit(c(0,0,0,0), "mm"),
-        # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
-        legend.box.spacing = unit(.2, "cm"), # Increase the space to 1 cm
-        legend.key.height = unit(0.15, "cm"),
-        legend.key.width = unit(0.6, "cm") ) # Make them shorter
+  pres_size_txt <- "There are no sizecomps for this species. "
+  comm_size1 <- NULL
+  
+  comm_dist1 <- comm_dist  +
+    ggplot2::guides(
+      fill = guide_legend(
+        # order = 1,
+        title.position = NULL, # "left",
+        label.position = "right",
+        # nrow = 2,
+        # title.hjust = 0.5,
+        override.aes = list(color = NA)),
+      color = "none")  +
+    ggplot2::theme(
+      legend.position = "right",
+      plot.title = element_blank(),
+      legend.title = element_blank(), #element_text(size = 8, face = "bold"),
+      legend.text = element_text(size = 8),
+      axis.text = element_text(size = 8),
+      axis.title = element_blank(),
+      strip.text = element_text(size = 8, face = "bold"),
+      plot.margin = grid::unit(c(0,0,0,0), "mm"),
+      # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
+      legend.box.spacing = unit(.2, "cm"), # Increase the space to 1 cm
+      legend.key.height = unit(0.15, "cm"),
+      legend.key.width = unit(0.6, "cm") ) # Make them shorter
 }
 
-  temp1 <- cowplot::plot_grid(
-    comm_dist1,
-    pres_timeseries1, 
-    nrow = 2, 
-    align = "v",   # Align vertically
-    axis = "l",     # Align by the left axis
-    rel_heights = c(.6,.4)) 
+temp1 <- cowplot::plot_grid(
+  comm_dist1,
+  pres_timeseries1, 
+  nrow = 2, 
+  align = "v",   # Align vertically
+  axis = "l",     # Align by the left axis
+  rel_heights = c(.6,.4)) 
 
 # figure_print <- cowplot::plot_grid(
 #   temp1, 
@@ -2503,29 +2503,29 @@ comm_dist1 <- comm_dist  +
 #   axis = "l")     # Align by the left axis
 #   
 if (exists("comm_size")) {
-figure_print <- cowplot::plot_grid(
-  temp1, 
-  NULL,
-  comm_size1, 
-  ncol = 3, 
-  rel_widths = c(.6,.025,.4),
-  align = "v",   # Align vertically
-  axis = "l")     # Align by the left axis
+  figure_print <- cowplot::plot_grid(
+    temp1, 
+    NULL,
+    comm_size1, 
+    ncol = 3, 
+    rel_widths = c(.6,.025,.4),
+    align = "v",   # Align vertically
+    axis = "l")     # Align by the left axis
 } else {
   figure_print <- temp1
 }
-  
+
 # Then use ggdraw() to add a custom label on top of the combined plot
 figure_print <- cowplot::ggdraw(figure_print) +
   cowplot::draw_label("A", 
-                      x = ifelse(exists("comm_size"), 0.10, 0.01), y = 0.94, hjust = 0, vjust = 0, size = 16) +
+                      x = ifelse(exists("comm_size"), 0.06, 0.01), y = 0.94, hjust = 0, vjust = 0, size = 16) +
   cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), 
-                      x = ifelse(exists("comm_size"), 0.10, 0.01), y = 0.32, hjust = 0, vjust = 0, size = 16) #+
-  # cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
+                      x = ifelse(exists("comm_size"), 0.06, 0.01), y = 0.32, hjust = 0, vjust = 0, size = 16) #+
+# cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
 
 if (exists("comm_size")) {
-figure_print <- cowplot::ggdraw(figure_print) +
-  cowplot::draw_label("B", x = 0.6, y = 0.94, hjust = 0, vjust = 0, size = 16)
+  figure_print <- cowplot::ggdraw(figure_print) +
+    cowplot::draw_label("B", x = 0.6, y = 0.94, hjust = 0, vjust = 0, size = 16)
 }
 
 header <- paste0(
