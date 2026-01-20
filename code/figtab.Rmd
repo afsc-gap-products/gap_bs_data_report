@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FA
 
 nickname <- "fig-survey-points-nostrata"
 
-header <- paste0("Station map of ",maxyr," ",SURVEY," survey", plural_surveys, ". The areas enclosed within the dark and light gray lines contain the eastern and northern Bering Sea shelf stations, respectively. The dots within each area indicate station locations. Filled dots are completed stations; unfilled dots represent planned stations that were not sampled in ", maxyr, ".")
+header <- paste0("Station map of the ",maxyr," ",SURVEY," survey", plural_surveys, ". Dark and light gray outlines denote the eastern and northern shelf areas, respectively. Dots show station locations: filled dots indicate completed stations, and unfilled dots indicate planned stations not sampled in ", maxyr, ".")
 
 height <- 6 # ifelse(srvy == "NEBS", full_page_portrait_height, 6)
 width <- full_page_portrait_width
@@ -23,7 +23,7 @@ reg_dat0 <- reg_dat
 # if (length(cruises_race$data_in_final == "N")>0) {
 #   reg_dat0 <- report_types$NEBS$reg_dat
 # }
-reg_dat0$survey.grid <- reg_dat0$survey.grid|> 
+reg_dat0$survey.grid <- reg_dat0$survey.grid |> 
   # dplyr::mutate(station = ifelse(!grepl(pattern = "-", x = station), "", station))|> 
   dplyr::left_join(station)|> 
   dplyr::mutate(in_maxyr = ifelse(is.na(in_maxyr), FALSE, in_maxyr))
@@ -303,7 +303,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 # for community highlights
 header <- paste0("Diagram of the 83-112 Eastern trawl net.")
 nickname <- "fig-trawl-gear-diagram-nolabel"
-height <- 1.9
+height <- 1.5
 width <- full_page_portrait_width
 bg <- 'transparent'
 
@@ -1310,7 +1310,7 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0("Biological data collected during the ", maxyr, " ", 
                    haul_cruises_maxyr$srvy_long[i],
-                   " shelf survey. ") # See \\@SAPcrab", maxyr, " for crab collection summaries. 
+                   " survey. ") # See \\@SAPcrab", maxyr, " for crab collection summaries. 
   
   table_raw <- table_raw0 |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
@@ -1728,6 +1728,10 @@ table_print0 <- dplyr::bind_rows(
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   
+  if (haul_cruises_maxyr$srvy[i] == "NBS") {
+  yrs0 <- c(maxyr, compareyr[names(compareyr) == "NBS"])
+  }
+  
   table_raw  <- table_raw0 |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select_if(~ !all(is.na(.)))
@@ -1736,10 +1740,10 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0(
-    "Total estimated biomasses (t) in ", range_text(yrs)," and the percent change between the ",
+    "Total estimated biomasses (t) in ", range_text(yrs0)," and the percent change between the ",
     compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]]," and ",maxyr," ", 
     haul_cruises_maxyr$srvy_long[i], 
-    ' shelf surveys for predominant fish and invertebrate taxa', 
+    ' surveys for predominant fish and invertebrate taxa', 
     ifelse(whoismissing == "", "", paste0(" (note that the ",haul_cruises_maxyr$srvy_long[i]," was not surveyed in ", whoismissing, ")")),
     '. Taxa are listed in descending order of percent change from ', compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]],' to ',maxyr,'. ', 
     ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught. ", "")))
@@ -2695,7 +2699,7 @@ table_print <- table_raw |>
       gg <- ggplot() +
         ggplot2::geom_sf(data = reg_dat$akland,
                          color = NA,
-                         fill = "grey90")  +
+                         fill = "grey70")  +
         ggplot2::geom_sf(data = reg_dat$graticule,
                          color = "grey80",
                          alpha = 0.2) +

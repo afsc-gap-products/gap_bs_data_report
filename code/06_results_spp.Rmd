@@ -172,7 +172,7 @@ if ("EBS" %in% temp$srvy) {
       paste0("was ", temp0$`Biomass`, " t"), 
     temp0$catch_min < 100 ~ 
       paste0(tolower(strsplit(x = temp0$`Observed Catch Totals`, split = " ", fixed = TRUE)[[1]][1]), 
-             " to ", temp0$`Biomass`, " t, extrapolated from ", 
+             " to ", temp0$`Biomass`, ", extrapolated from ", 
              gsub(pattern = paste0(" in ", maxyr), 
                   replacement = " caught", 
                   x = strsplit(x = temp0$`Observed Catch Totals`, split = " to ", TRUE)[[1]][2]) ), 
@@ -193,7 +193,7 @@ if ("EBS" %in% temp$srvy) {
   
   str0 <- paste0(str0, 
                  case, 
-                 " on the ", maxyr, " eastern Bering Sea shelf survey from ", compareyr[names(compareyr) == "EBS"], cite_bio, 
+                 " on the ", maxyr, " eastern Bering Sea shelf survey from ", compareyr[names(compareyr) == "EBS"], ifelse(report_title == "data", cite_bio,  ""), 
                  ifelse(spp_print == "tunicates", ". ", paste0(" and the population was estimated at ", temp0$Population," individuals",cite_pop,". ")))
 }
 
@@ -202,10 +202,10 @@ if ("NBS" %in% temp$srvy) {
   
   case <- dplyr::case_when(
     grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ 
-      paste0("was ", temp0$`Biomass`, " t"), 
+      paste0("was ", temp0$`Biomass`), 
     temp0$catch_min < 100 ~ 
       paste0(tolower(strsplit(x = temp0$`Observed Catch Totals`, split = " ", fixed = TRUE)[[1]][1]), 
-             " to ", temp0$`Biomass`, " t, extrapolated from ", 
+             " to ", temp0$`Biomass`, ", extrapolated from ", 
              gsub(pattern = paste0(" in ", maxyr), 
                   replacement = " caught", 
                   x = strsplit(x = temp0$`Observed Catch Totals`, split = " to ", TRUE)[[1]][2]) ), 
@@ -238,8 +238,9 @@ if ("NBS" %in% temp$srvy) {
   
   str0 <- paste0(str0, str0_transition, 
                  "biomass estimate ", case,  
-                 " on the ", maxyr, " northern Bering Sea survey from ", compareyr[names(compareyr) == "NBS"], cite_bio, 
-                 ifelse(spp_print == "tunicates", ". ", paste0(" and the population was estimated at ", temp0$Population," individuals", cite_pop,". ")))
+                 " on the ", maxyr, " northern Bering Sea survey from ", 
+                 compareyr[names(compareyr) == "NBS"], ifelse(report_title == "data", cite_bio,  ""), 
+                 ifelse(spp_print == "tunicates", ". ", paste0(" and the population was estimated at ", temp0$Population," individuals")), cite_pop,". ")
 }
 
 if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to_title(srvy11)

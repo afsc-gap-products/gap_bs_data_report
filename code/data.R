@@ -70,8 +70,9 @@ for (ii in 1:length(report_types)) {
   names(reg_dat$graticule) <- tolower(names(reg_dat$graticule))
   
   # add color to survey.area
-  survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id)))
-  # survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id))+2)
+  # survey_reg_col <- gray.colors(length(unique(reg_dat$survey.area$survey_definition_id)))
+  survey_reg_col <- gray.colors(4)[c(1,3)] # to make sure they are dark and different enough
+  survey_reg_col <- survey_reg_col[1:length(unique(reg_dat$survey.area$survey_definition_id))]
   # survey_reg_col <- survey_reg_col[-((length(survey_reg_col)-1):length(survey_reg_col))]
   reg_dat$survey.area <- reg_dat$survey.area|>
     dplyr::mutate(
@@ -81,7 +82,7 @@ for (ii in 1:length(report_types)) {
       color = alpha(colour = survey_reg_col, 0.7), 
       srvy_long = dplyr::case_when(
         srvy == "EBS" ~ "Eastern Bering Sea Shelf", 
-        srvy == "NBS" ~ "Northern Bering Sea Shelf") )
+        srvy == "NBS" ~ "Northern Bering Sea") )
   report_types[[ii]]$reg_dat <- reg_dat
 }
 

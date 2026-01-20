@@ -1205,7 +1205,7 @@ plot_pa_facet <- function(
   figure <- ggplot() +
     geom_sf(data = reg_dat$akland,
             color = NA,
-            fill = "grey90")  +  
+            fill = "grey70")  +  
     ggplot2::geom_sf(data = reg_dat$graticule,
                      color = "grey80",
                      alpha = 0.2)  +
@@ -1246,7 +1246,7 @@ plot_pa_facet <- function(
   # figure <- ggplot() +
   #   geom_sf(data = reg_dat$akland,
   #           color = NA,
-  #           fill = "grey90") #+
+  #           fill = "grey70") #+
   # # geom_sf(data = reg_dat$graticule,
   # #         color = "grey80",
   # #         alpha = 0.2)
@@ -1582,7 +1582,7 @@ plot_temperature_map <- function(raster_nebs,
   figure <- ggplot() +
     ggplot2::geom_sf(data = reg_dat$akland,
                      color = NA,
-                     fill = "grey90")+  
+                     fill = "grey70")+  
     ggplot2::geom_sf(data = reg_dat$graticule,
                      color = "grey80",
                      alpha = 0.2)  +
@@ -1927,7 +1927,7 @@ plot_survey_stations <- function(reg_dat,
   figure <- ggplot()  +
     ggplot2::geom_sf(data = reg_dat$akland,
                      color = NA,
-                     fill = "grey90") +
+                     fill = "grey70") +
     ggplot2::geom_sf(data = reg_dat$graticule,
                      color = "grey80",
                      alpha = 0.2)  +
