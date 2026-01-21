@@ -1,7 +1,7 @@
 
 # Report knowns ----------------------------------------------------------------
 
-access_to_internet  <- FALSE # TRUE = redownload google drive tables and docs
+access_to_internet  <- TRUE # TRUE = redownload google drive tables and docs
 quarto <- FALSE
 options(scipen=999)
 
