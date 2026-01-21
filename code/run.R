@@ -26,6 +26,7 @@ report_title <- "data"
 # devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
 # devtools::install_github("afsc-gap-products/coldpool")
 # devtools::install_github("afsc-gap-products/gapindex")
+# devtools::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
 source(here::here("code","functions.R"))
 # source(here::here("code","data_dl.R"))  # Run when there is new data!
 source(here::here("code","data.R"))
