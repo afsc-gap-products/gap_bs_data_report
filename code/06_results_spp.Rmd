@@ -193,8 +193,13 @@ if ("EBS" %in% temp$srvy) {
   
   str0 <- paste0(str0, 
                  case, 
-                 " on the ", maxyr, " eastern Bering Sea shelf survey from ", compareyr[names(compareyr) == "EBS"], ifelse(report_title == "data", cite_bio,  ""), 
-                 ifelse(spp_print == "tunicates", ". ", paste0(" and the population was estimated at ", temp0$Population," individuals",cite_pop,". ")))
+                 " in the eastern Bering Sea shelf survey from ", 
+                 compareyr[names(compareyr) == "EBS"], " to ", maxyr, 
+                 ifelse(report_title == "data", paste0(cite_bio),  ""), 
+                 ifelse(spp_print == "tunicates", "", 
+                        paste0(" and the population was estimated at ", 
+                               temp0$Population," individuals")), 
+                 cite_pop, ". ")
 }
 
 if ("NBS" %in% temp$srvy) {
@@ -228,19 +233,22 @@ if ("NBS" %in% temp$srvy) {
     str0_transition <- ""
   } else if (case_transition_nbs == case_transition_ebs) {
     str0_transition <- "Similarly, the "
-    cite_bio <- ""
-    cite_pop <- ""
+    # cite_bio <- ""
+    # cite_pop <- ""
   } else {
     str0_transition <- "The " # "However, "
-    cite_bio <- ""
-    cite_pop <- ""
+    # cite_bio <- ""
+    # cite_pop <- ""
   }
   
   str0 <- paste0(str0, str0_transition, 
-                 "biomass estimate ", case,  
-                 " on the ", maxyr, " northern Bering Sea survey from ", 
-                 compareyr[names(compareyr) == "NBS"], ifelse(report_title == "data", cite_bio,  ""), 
-                 ifelse(spp_print == "tunicates", ". ", paste0(" and the population was estimated at ", temp0$Population," individuals")), cite_pop,". ")
+                 "biomass estimate in the northern Bering Sea survey ", case,  
+                 " from ", compareyr[names(compareyr) == "NBS"], " to ", maxyr, 
+                 ifelse(report_title == "data", cite_bio,  ""), 
+                 ifelse(spp_print == "tunicates", "", 
+                        paste0(" and the population was estimated at ", 
+                               temp0$Population," individuals")), 
+                 cite_pop,". ")
 }
 
 if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to_title(srvy11)

@@ -223,7 +223,7 @@ for (i in 1:length(a)) {
 str_data_changes <- readLines(con = here::here("data", "str_data_changes.txt"))
 last_production_run <- readLines(con = here::here("data", "last_production_run.txt"))
 
-## Load Main Oracle Data -------------------------------------------------------
+# Load Main Oracle Data -------------------------------------------------------
 
 print("Load oracle data")
 
@@ -660,14 +660,13 @@ cpue <-
   dplyr::bind_rows(complex_cpue0 |> 
                      dplyr::select(species_code, hauljoin, cpue_kgkm2, 
                                    cpue_nokm2, common_name, species_name, taxon) ) |>
+  dplyr::bind_rows(crab_cpue0 |> 
+                     dplyr::select(species_code, hauljoin, cpue_kgkm2, 
+                                   cpue_nokm2, common_name, species_name, taxon) ) |>
   dplyr::left_join(haul) |> 
   dplyr::filter(
     survey_definition_id %in% srvy00 &
       year <= maxyr)  
-# dplyr::left_join(haul |> 
-#                     dplyr::select(hauljoin, station, stratum, survey_definition_id, srvy, 
-#                                   year, cruisejoin, longitude_dd_start, latitude_dd_start), 
-#                   by = "hauljoin")
 
 ## diversity indices ------------------------------------------------------------
 
@@ -1126,22 +1125,21 @@ sizecomp <- gap_products_akfin_sizecomp0 |>
       sex == 1 ~ "males", 
       sex == 2 ~ "females", 
       sex == 3 ~ "unsexed")) |>
-  dplyr::left_join(spp_info|> 
+  dplyr::left_join(spp_info |> 
                      dplyr::select(species_code, taxon, species_name, common_name),
                    by  = "species_code") |> 
   dplyr::bind_rows(
     crab_sizecomp0 |> 
-      dplyr::rename_all(tolower) |> 
       dplyr::mutate(
         area_id = dplyr::case_when(
           survey_definition_id == 143 ~ 99902, 
-          survey_definition_id == 98 ~ 99900), 
-        sex = dplyr::case_when(
-          sex == 3 ~ "unsexed",
-          sex == 1 ~ "males",
-          sex == 5 ~ "immature females",
-          sex == 2 ~ "mature females") )
-  )  |> 
+          survey_definition_id == 98 ~ 99900)#, 
+        # sex = dplyr::case_when(
+        #   sex == 3 ~ "unsexed",
+        #   sex == 1 ~ "males",
+        #   sex == 5 ~ "immature females",
+        #   sex == 2 ~ "mature females") 
+        ) )  |> 
   dplyr::filter(
     area_id %in% c(99900, 99902) & # 10, 20, 30, 40, 50, 60, 82, 90, 
       survey_definition_id %in% srvy00 &
@@ -1205,6 +1203,7 @@ biomass <- gap_products_akfin_biomass0 |>
     by = "species_code") |>  
   dplyr::bind_rows(complex_biomass0 |> 
                      dplyr::mutate(taxon = ifelse(is.na(taxon), "invert", taxon))) |> 
+  dplyr::bind_rows(crab_biomass0) |> 
   dplyr::filter(
     area_id %in% as.numeric(strat0) &
       survey_definition_id %in% srvy00 &
