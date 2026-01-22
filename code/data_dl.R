@@ -423,9 +423,9 @@ EBS_pop1mm_out <- c() # NEBS 1mm abundance ("crab.nbs_size1mm_all_species")
 
 
 # Loop through species and combine estimates
-for(i in 1:length(species_lookup$SPECIES_CODE)){
+for(i in 1:length(species_lookup$SPECIES)){
   # Set species
-  species <- species_lookup$SPECIES_CODE[i]
+  species <- species_lookup$SPECIES[i]
   print(species)
   
   ## Specimen data -------------------------------------------------------------
