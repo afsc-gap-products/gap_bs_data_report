@@ -412,8 +412,8 @@ library(tidyr)
 channel <- "API"
 
 # lookup for species codes
-species_lookup <- tibble(SPECIES_CODE = c(68560, 68580, 68590, 69322, 69323),
-                         SPECIES = c("TANNER", "SNOW", "HYBRID", "RKC", "BKC"))
+species_lookup <- tibble(SPECIES_CODE = c(68560, 68580, 68590, 69322, 69323, 69400),
+                         SPECIES = c("TANNER", "SNOW", "HYBRID", "RKC", "BKC", "HAIR"))
 
 # blank dfs
 bioabund_out <- c() # biomass/abundance ("crab.gap_ebs_nbs_abundance_biomass")
@@ -423,11 +423,9 @@ EBS_pop1mm_out <- c() # NEBS 1mm abundance ("crab.nbs_size1mm_all_species")
 
 
 # Loop through species and combine estimates
-species_vec <- c("RKC", "BKC", "TANNER", "SNOW", "HYBRID", "HAIR")
-
-for(i in 1:length(species_vec)){
+for(i in 1:length(species_lookup$SPECIES_CODE)){
   # Set species
-  species <- species_vec[i]
+  species <- species_lookup$SPECIES_CODE[i]
   print(species)
   
   ## Specimen data -------------------------------------------------------------
@@ -443,166 +441,15 @@ for(i in 1:length(species_vec)){
   haul <- bind_rows(dat_EBS$haul, dat_NBS$haul)
   
   ## Biomass/Abundance ---------------------------------------------------------
-  # EBS_bioabund <- crabpack::calc_bioabund(crab_data = dat_EBS,
-  #                                         species = species,
-  #                                         region = "EBS",
-  #                                         years = c(1982:maxyr),
-  #                                         spatial_level = "region")
+  EBS_bioabund <- crabpack::calc_bioabund(crab_data = dat_EBS,
+                                          species = species,
+                                          region = "EBS",
+                                          years = c(1982:maxyr),
+                                          spatial_level = "region")
   ## ^^ this isn't working correctly for BKC because of a bug (see Issue 10) --
   ##    doing some janky coding below to get the estimates to combine correctly for now, 
   ##    but this will be fixed in crabpack eventually and just these few lines 
   ##    will eventually be all you need!
-  
-  cpue <- crabpack::calc_cpue(crab_data = dat_EBS,
-                              species = species,
-                              region = "EBS",
-                              years = c(1982:maxyr),
-                              output = c("bioabund"))
-  
-  station_cpue <- cpue$cpue
-  group_cols <- cpue$group_cols
-  
-  # make a vector of years to re-expand zero-catch years by
-  year_vec <- unique(station_cpue$YEAR)
-  
-  
-  # Identify zero-catch stations for Northern District RKC and Hair Crab, and BKC Unstratified
-  if(TRUE %in% (c("NORTH", "UNSTRAT") %in% unique(station_cpue$DISTRICT))){
-    # Filter out zero-catch stations if District is NORTH or UNSTRAT
-    zero_catch <- station_cpue |>
-      dplyr::group_by(dplyr::across(dplyr::all_of(c('YEAR', 'REGION', 'DISTRICT', 'STRATUM', 'TOTAL_AREA', 'STATION_ID')))) |>
-      dplyr::reframe(TOTAL_CPUE = sum(CPUE)) |>
-      dplyr::mutate(REMOVE = dplyr::case_when((DISTRICT %in% c("NORTH", "UNSTRAT") & TOTAL_CPUE == 0) ~ "remove",
-                                              TRUE ~ "keep"))
-    
-    station_cpue <- station_cpue |>
-      dplyr::left_join(zero_catch,
-                       by = c('YEAR', 'STATION_ID', 'REGION',
-                              'DISTRICT', 'STRATUM', 'TOTAL_AREA')) |>
-      dplyr::filter(REMOVE == "keep") |>
-      dplyr::select(-c('REMOVE', 'TOTAL_CPUE'))
-  }
-  
-  
-  ## Calculate abundance and biomass
-  # Sum across haul, scale abundance, biomass, and variance to strata, then sum across strata and calc CIs
-  bio_abund_stratum <- station_cpue |>
-    # Scale to abundance by strata
-    dplyr::group_by(dplyr::across(dplyr::all_of(c('YEAR', 'REGION', 'DISTRICT', 'STRATUM', 'TOTAL_AREA', group_cols)))) |>
-    dplyr::reframe(MEAN_CPUE = mean(CPUE),
-                   N_CPUE = dplyr::n(),
-                   VAR_CPUE = (stats::var(CPUE)*(TOTAL_AREA^2))/N_CPUE,
-                   SD_CPUE = sqrt(VAR_CPUE),
-                   MEAN_CPUE_MT = mean(CPUE_MT),
-                   N_CPUE_MT = dplyr::n(),
-                   VAR_CPUE_MT = (stats::var(CPUE_MT)*(TOTAL_AREA^2))/N_CPUE_MT,
-                   SD_CPUE_MT = sqrt(VAR_CPUE_MT),
-                   MEAN_CPUE_LBS = mean(CPUE_LBS),
-                   N_CPUE_LBS = dplyr::n(),
-                   VAR_CPUE_LBS = (stats::var(CPUE_LBS)*(TOTAL_AREA^2))/N_CPUE_LBS,
-                   SD_CPUE_LBS = sqrt(VAR_CPUE_LBS),
-                   ABUNDANCE = (MEAN_CPUE * TOTAL_AREA),
-                   ABUNDANCE_CV = (SD_CPUE/ABUNDANCE),
-                   ABUNDANCE_CI = 1.96*(SD_CPUE),
-                   BIOMASS_MT = (MEAN_CPUE_MT * TOTAL_AREA),
-                   BIOMASS_MT_CV = (SD_CPUE_MT/BIOMASS_MT),
-                   BIOMASS_MT_CI = (1.96*SD_CPUE_MT),
-                   BIOMASS_LBS = (MEAN_CPUE_LBS * TOTAL_AREA),
-                   BIOMASS_LBS_CV = (SD_CPUE_LBS/BIOMASS_LBS),
-                   BIOMASS_LBS_CI = 1.96*(SD_CPUE_LBS),
-                   N_STATIONS = length(unique(STATION_ID))) |>
-    dplyr::distinct()
-  
-  
-  # Re-expand by year to add back in 0-catch years for Northern District RKC and Hair Crab, and BKC Unstratified
-  if(TRUE %in% (c("NORTH", "UNSTRAT") %in% unique(station_cpue$DISTRICT))){
-    bio_abund_stratum <- bio_abund_stratum |>
-      dplyr::right_join(tidyr::expand_grid(SEX_TEXT = sex_combos,
-                                           CATEGORY = category_combos,
-                                           SHELL_TEXT = shell_combos,
-                                           EGG_CONDITION_TEXT = egg_combos,
-                                           CLUTCH_TEXT = clutch_combos,
-                                           SIZE_1MM = bin_combos,
-                                           YEAR = year_vec,
-                                           REGION = unique(station_cpue$REGION),
-                                           DISTRICT = unique(station_cpue$DISTRICT)),
-                        by = c('YEAR', 'REGION', 'DISTRICT', group_cols),
-                        relationship = "many-to-many") |>
-      dplyr::select(dplyr::all_of(c("YEAR", "REGION", "DISTRICT", "STRATUM",
-                                    "TOTAL_AREA", "N_STATIONS", group_cols,
-                                    "MEAN_CPUE", "N_CPUE", "VAR_CPUE", "SD_CPUE",
-                                    "MEAN_CPUE_MT", "N_CPUE_MT", "VAR_CPUE_MT", "SD_CPUE_MT",
-                                    "MEAN_CPUE_LBS", "N_CPUE_LBS", "VAR_CPUE_LBS", "SD_CPUE_LBS",
-                                    "ABUNDANCE", "ABUNDANCE_CV", "ABUNDANCE_CI",
-                                    "BIOMASS_MT", "BIOMASS_MT_CV", "BIOMASS_MT_CI",
-                                    "BIOMASS_LBS", "BIOMASS_LBS_CV", "BIOMASS_LBS_CI"))) |>
-      distinct()
-  }
-  
-  
-  # scale up to a regional estimate
-  EBS_bioabund <- bio_abund_stratum |>
-    # Sum across strata
-    dplyr::group_by(dplyr::across(dplyr::all_of(c('YEAR', 'REGION', 'DISTRICT', group_cols)))) |>
-    dplyr::reframe(TOTAL_AREA = sum(TOTAL_AREA),
-                   MEAN_CPUE = sum(MEAN_CPUE),
-                   VAR_CPUE = sum(VAR_CPUE),
-                   SD_CPUE = sqrt(VAR_CPUE),
-                   N_CPUE = sum(N_CPUE),
-                   MEAN_CPUE_MT = sum(MEAN_CPUE_MT),
-                   VAR_CPUE_MT = sum(VAR_CPUE_MT),
-                   SD_CPUE_MT = sqrt(VAR_CPUE_MT),
-                   N_CPUE_MT = sum(N_CPUE_MT),
-                   MEAN_CPUE_LBS = sum(MEAN_CPUE_LBS),
-                   VAR_CPUE_LBS = sum(VAR_CPUE_LBS),
-                   SD_CPUE_LBS = sqrt(VAR_CPUE_LBS),
-                   N_CPUE_LBS = sum(N_CPUE_LBS),
-                   ABUNDANCE = sum(ABUNDANCE),
-                   ABUNDANCE_CV = (SD_CPUE/ABUNDANCE),
-                   ABUNDANCE_CI = 1.96*(SD_CPUE),
-                   BIOMASS_MT = sum(BIOMASS_MT),
-                   BIOMASS_MT_CV = (SD_CPUE_MT/BIOMASS_MT),
-                   BIOMASS_MT_CI = (1.96*SD_CPUE_MT),
-                   BIOMASS_LBS = sum(BIOMASS_LBS),
-                   BIOMASS_LBS_CV = (SD_CPUE_LBS/BIOMASS_LBS),
-                   BIOMASS_LBS_CI = 1.96*(SD_CPUE_LBS),
-                   N_STATIONS = sum(N_STATIONS)) |>
-    dplyr::mutate(N_STATIONS = ifelse((YEAR == 2000 & DISTRICT == "BB"), 135, N_STATIONS)) |>
-    dplyr::ungroup() |>
-    # Sum across districts
-    dplyr::group_by(dplyr::across(dplyr::all_of(c('YEAR', 'REGION', group_cols)))) |>
-    dplyr::reframe(TOTAL_AREA = sum(TOTAL_AREA, na.rm = T),
-                   MEAN_CPUE = sum(MEAN_CPUE, na.rm = T),
-                   VAR_CPUE = sum(VAR_CPUE, na.rm = T),
-                   SD_CPUE = sqrt(VAR_CPUE),
-                   N_CPUE = sum(N_CPUE, na.rm = T),
-                   MEAN_CPUE_MT = sum(MEAN_CPUE_MT, na.rm = T),
-                   VAR_CPUE_MT = sum(VAR_CPUE_MT, na.rm = T),
-                   SD_CPUE_MT = sqrt(VAR_CPUE_MT),
-                   N_CPUE_MT = sum(N_CPUE_MT, na.rm = T),
-                   MEAN_CPUE_LBS = sum(MEAN_CPUE_LBS, na.rm = T),
-                   VAR_CPUE_LBS = sum(VAR_CPUE_LBS, na.rm = T),
-                   SD_CPUE_LBS = sqrt(VAR_CPUE_LBS),
-                   N_CPUE_LBS = sum(N_CPUE_LBS, na.rm = T),
-                   ABUNDANCE = sum(ABUNDANCE, na.rm = T),
-                   ABUNDANCE_CV = (SD_CPUE/ABUNDANCE),
-                   ABUNDANCE_CI = 1.96*(SD_CPUE),
-                   BIOMASS_MT = sum(BIOMASS_MT, na.rm = T),
-                   BIOMASS_MT_CV = (SD_CPUE_MT/BIOMASS_MT),
-                   BIOMASS_MT_CI = (1.96*SD_CPUE_MT),
-                   BIOMASS_LBS = sum(BIOMASS_LBS, na.rm = T),
-                   BIOMASS_LBS_CV = (SD_CPUE_LBS/BIOMASS_LBS),
-                   BIOMASS_LBS_CI = 1.96*(SD_CPUE_LBS),
-                   N_STATIONS = sum(N_STATIONS, na.rm = T)) |>
-    dplyr::ungroup() |>
-    # Format output dataframe
-    dplyr::mutate(SPECIES = species) |>
-    dplyr::select(dplyr::all_of(c('SPECIES', 'YEAR', 'REGION', 'TOTAL_AREA', group_cols,
-                                  'ABUNDANCE', 'ABUNDANCE_CV', 'ABUNDANCE_CI',
-                                  'BIOMASS_MT', 'BIOMASS_MT_CV', 'BIOMASS_MT_CI',
-                                  'BIOMASS_LBS', 'BIOMASS_LBS_CV', 'BIOMASS_LBS_CI')))
-  
-  
   
   NBS_bioabund <- crabpack::calc_bioabund(crab_data = dat_NBS,
                                           species = species,
@@ -733,13 +580,14 @@ crab_cpue <- cpue_out |>
   dplyr::rename_all(tolower)  |> 
   dplyr::left_join(crab_spp) |> 
   dplyr::mutate(
+    cpue_nokm2 = cpue * 3.4299, 
+    cpue_kgkm2 = cpue_mt * 3.4299, 
     srvy = region, 
     weight_kg = NA, 
     survey_definition_id = dplyr::case_when(
       region == "NBS" ~ 143, 
       region == "EBS" ~ 98)) |> 
-  dplyr::select(year, species_code, common_name, hauljoin, count, 
-                cpue_nokm2 = cpue, cpue_kgkm2 = cpue_mt, 
+  dplyr::select(year, species_code, common_name, hauljoin, count, cpue_nokm2, cpue_kgkm2, 
                 taxon, species_name, srvy, survey_definition_id) # does not have weight_kg
 
 write.csv(x = crab_cpue, 
@@ -748,17 +596,25 @@ write.csv(x = crab_cpue,
 
 crab_biomass <- bioabund_out |> 
   dplyr::rename_all(tolower)  |> 
-  dplyr::left_join(crab_spp) |> 
   dplyr::mutate(
+    n_weight = 1, # TOLEDO - doesn't come from crabpack!
+    biomass_up = biomass_mt + biomass_mt_ci, # TOLEDO - still need to check these are calculated the same way
+    biomass_dw = biomass_mt - biomass_mt_ci, 
+    population_up = abundance + abundance_ci,
+    population_dw = abundance - abundance_ci,
     srvy = region, 
-      biomass_var = NA, 
-       population_var = NA, 
    survey_definition_id = dplyr::case_when(
       region == "NBS" ~ 143, 
       region == "EBS" ~ 98)) |> 
+  dplyr::left_join(crab_spp) |> 
   dplyr::select(year, species_code, species, 
                 population_count = abundance, # abundance_cv abundance_ci 
-                biomasss_mt = biomass_mt, # biomass_mt_cv biomass_mt_ci, 
+                biomass_mt = biomass_mt, # biomass_mt_cv biomass_mt_ci, 
+                biomass_up, 
+                biomass_dw, 
+                population_up,
+                population_dw, 
+                n_weight, 
                 taxon, common_name, species_name, 
                 srvy, survey_definition_id) # does not have population_var or biomass_var, cpue_kgkm2_mean cpue_nokm2_mean n_haul n_weight n_count n_length
 

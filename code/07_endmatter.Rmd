@@ -10,7 +10,10 @@ nickname <- "tab-sci-profile"
 
 table_raw <- readr::read_csv(file = paste0(dir_out_rawdata, "/0-survey-team-bios.csv"), 
                              show_col_types = FALSE)|> 
-  dplyr::mutate(img = here::here("img", image))
+  dplyr::mutate(img = here::here("img", image)) |> 
+  dplyr::mutate(order = gsub(pattern = ".jpg", replacement = "", x = gsub(pattern = "bio-", replacement = "", x = image))) |>
+  dplyr::arrange(order) |> 
+  dplyr::select(-order)
 
 table_print <- table_raw|> 
   flextable::flextable(

@@ -6,12 +6,12 @@
 ```{r, nbs_area}
 nbs_str0 <- ifelse(srvy == "NEBS", 
                    # NBS sampled
-                   paste0(" The standardized northern Bering Sea shelf survey consists of a systematic design with 144 fixed stations"), 
+                   paste0(" The standardized northern Bering Sea survey consists of a systematic design with 144 fixed stations"), 
                    # EBS only
-                   paste0(" The northern Bering Sea shelf survey was not conducted in ", maxyr, "."))
+                   paste0(" The northern Bering Sea survey was not conducted in ", maxyr, "."))
 ```
 
-The standardized eastern Bering Sea shelf survey consists of a systematic design with 350 fixed sampling stations arranged on a regularly spaced 37.04 × 37.04 km grid (20 × 20 nmi; Fig. \@ref(fig:fig-survey-grid)). In 2024, following analysis by @defilippo2023evaluating, the 26 previously sampled 'corner stations' were removed from the survey grid (see [History of Bering Sea Shelf Bottom Trawl Surveys](#history) section). `r nbs_str0`
+The standardized eastern Bering Sea survey consists of a systematic design with 350 fixed sampling stations arranged on a regularly spaced 37.04 × 37.04 km grid (20 × 20 nmi; Fig. \@ref(fig:fig-survey-grid)). In 2024, following analysis by @defilippo2023evaluating, the 26 previously sampled 'corner stations' were removed from the survey grid (see [History of Bering Sea Bottom Trawl Surveys](#history) section). `r nbs_str0`
 
 ## Survey Vessels and Sampling Gear
 
@@ -192,7 +192,7 @@ temp_tot <- temp0|>
   dplyr::select(density)
 ```
 
-The survey footprint covered bathymetric depths ranging from 20 m to 200 m. For design-based index catch analysis, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-survey-sample-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains and was designed to reduce the variances of population and biomass estimates [@RN891]. Overall sampling density across the eastern Bering Sea shelf was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), strata were combined by depth-region, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-survey-sample-stations); Table \@ref(tab:tab-stratum-areas)).
+The survey footprint covered bathymetric depths ranging from 20 m to 200 m. For design-based index catch analysis, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-survey-sample-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains and was designed to reduce the variances of population and biomass estimates [@RN891]. Overall sampling density across the eastern Bering Sea was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), strata were combined by depth-region, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-survey-sample-stations); Table \@ref(tab:tab-stratum-areas)).
 
 ```{r methods-nbs-survey-plan}
 str00 <- ""
@@ -214,12 +214,12 @@ if ("NBS" %in% haul_cruises_maxyr$srvy) {
                     grepl(pattern = "NBS", x = Region))
   
   str00 <- paste0(
-    "After the completion of the eastern Bering Sea shelf survey, both vessels began sampling survey stations in the northern Bering Sea shelf survey region. In the northern Bering Sea, ", 
+    "After the completion of the eastern Bering Sea survey, both vessels began sampling survey stations in the northern Bering Sea survey region. In the northern Bering Sea, ", 
     str0$str[str0$srvy == "NBS"], # from 2 chunks above! 
-    ". After the northern Bering Sea shelf survey was completed, both vessels returned to Dutch Harbor. The northern Bering Sea is divided into three strata: one including the area north of St. Lawrence Island and Norton Sound, and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-survey-sample-stations)). Sampling density was ", 
+    ". After the northern Bering Sea survey was completed, both vessels returned to Dutch Harbor. The northern Bering Sea is divided into three strata: one including the area north of St. Lawrence Island and Norton Sound, and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-survey-sample-stations)). Sampling density was ", 
     # Sampling density was 1,367 km2 /station for Stratum 70, 1,475 km2 /station for Stratum 71, 1,370 km2 /station for Stratum 81, 
     text_list(paste0(xunits(temp$density), " km^2^/station for stratum ", temp$stratum)), 
-    ". Overall sampling density for the northern Bering Sea shelf survey area was ", xunits(temp_tot$density), " km^2^/station (Table \\@ref(tab:tab-stratum-areas)).")
+    ". Overall sampling density for the northern Bering Sea survey area was ", xunits(temp_tot$density), " km^2^/station (Table \\@ref(tab:tab-stratum-areas)).")
 }
 ```
 
@@ -236,7 +236,7 @@ nickname <- "tab-stratum-areas"
 
 ## Catch Sampling Procedures
 
-Standard catch sampling procedures used in these Bering Sea shelf surveys are described in detail by @RN939 and @RN933. In summary, samples were collected by trawling near the center of each grid square for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If the center of the grid cell was not considered trawlable due to obstructions visible on the depth sounder or a known history of obstructions, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage contained debris (e.g., derelict crab pots) or had visible changes in net mensuration data during the haul were redeployed to obtain a successful sample.
+Standard catch sampling procedures used in these Bering Sea surveys are described in detail by @RN939 and @RN933. In summary, samples were collected by trawling near the center of each grid square for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If the center of the grid cell was not considered trawlable due to obstructions visible on the depth sounder or a known history of obstructions, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage contained debris (e.g., derelict crab pots) or had visible changes in net mensuration data during the haul were redeployed to obtain a successful sample.
 
 Catches estimated to be less than approximately 1,000 kg were fully sorted and enumerated, while larger catches were weighed in aggregate or volumetrically measured and subsampled before sorting. The goal of subsampling is to obtain a representative sample, which requires some variation in catch processing methods among hauls. After sorting subsampled catches, individual species present in low numbers were weighed and counted in aggregate, while species present in high numbers were weighed in aggregate, and further subsampled to obtain counts. These secondary subsample counts were extrapolated to the subsample weight for the species. All subsample weights and numbers were then expanded proportionally to the total catch. Fish and invertebrate species were sorted and identified to the lowest reliable taxonomic level. 
 

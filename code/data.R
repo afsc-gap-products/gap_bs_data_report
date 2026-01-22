@@ -6,9 +6,9 @@ in.crs = "+proj=longlat"
 report_types <- list(
   "EBS" = list(
     sectname = "EBS-BTS-Report", 
-    SURVEY = "eastern Bering Sea shelf", 
+    SURVEY = "eastern Bering Sea", 
     map.area = "bs.south", 
-    srvy11 = c("eastern Bering Sea shelf"), 
+    srvy11 = c("eastern Bering Sea"), 
     srvy1 = "EBS", 
     srvy0 = "BS", # in Oracle
     srvy00 = 98, # EBS
@@ -40,9 +40,9 @@ report_types <- list(
   ), 
   "NEBS" = list(
     sectname = "NEBS-BTS-Report", 
-    SURVEY = "eastern and northern Bering Sea shelf",
+    SURVEY = "eastern and northern Bering Sea",
     map.area = "bs.all", 
-    srvy11 = c("eastern Bering Sea shelf", "northern Bering Sea"), 
+    srvy11 = c("eastern Bering Sea", "northern Bering Sea"), 
     srvy1 = c("EBS", "NBS"), 
     srvy0 = "BS", # in Oracle
     srvy00 = c(98, #NBS
@@ -946,6 +946,12 @@ lengths_sap <-
     species_code %in% c(68541, 68550, 68560) ~ 8,
     TRUE ~ 7) )
 
+# TOLEDO - lengths are missing for 2025! This is a temporary fix
+a <- data.frame(unique(lengths_sap[,c("species_code", "survey_definition_id", "length_type")])) |> 
+  dplyr::mutate(frequency = 0) |> 
+  dplyr::cross_join(cruises_maxyr[,c("cruisejoin", "year")])
+lengths_sap <- dplyr::bind_rows(lengths_sap, a)
+
 lengths_gap <- race_data_cruises0|> 
   dplyr::select(cruise_id, survey_id, vessel_id, cruise)|>
   dplyr::left_join(race_data_surveys0|> 
@@ -1202,8 +1208,21 @@ biomass <- gap_products_akfin_biomass0 |>
       dplyr::select(species_code, common_name, species_name, taxon), 
     by = "species_code") |>  
   dplyr::bind_rows(complex_biomass0 |> 
-                     dplyr::mutate(taxon = ifelse(is.na(taxon), "invert", taxon))) |> 
-  dplyr::bind_rows(crab_biomass0) |> 
+                     dplyr::mutate(taxon = ifelse(is.na(taxon), "invert", taxon)))  |>
+  dplyr::mutate(
+    cpue_kgkm2_sd = sqrt(cpue_kgkm2_var), 
+    cpue_nokm2_sd = sqrt(cpue_nokm2_var), 
+    biomass_sd = sqrt(biomass_var), 
+    biomass_up = biomass_mt + (2*biomass_sd), 
+    biomass_dw = biomass_mt - (2*biomass_sd), 
+    population_sd = sqrt(population_var), 
+    population_up = population_count + (2*population_sd), 
+    population_dw = population_count - (2*population_sd)) |> 
+  dplyr::bind_rows(crab_biomass0 |>
+                     dplyr::mutate(
+                       area_id = dplyr::case_when(
+                         survey_definition_id == 143 ~ 99902, 
+                         survey_definition_id == 98 ~ 99900)) ) |> 
   dplyr::filter(
     area_id %in% as.numeric(strat0) &
       survey_definition_id %in% srvy00 &
@@ -1217,17 +1236,9 @@ biomass <- gap_products_akfin_biomass0 |>
       survey_definition_id == 98 ~ "EBS"),
     # stratum = ifelse(area_id %in% c(99900, 99902), 999, area_id)
     stratum = area_id, 
-    stratum = ifelse(stratum > 900, 999, stratum),
-    cpue_kgkm2_sd = sqrt(cpue_kgkm2_var), 
-    cpue_nokm2_sd = sqrt(cpue_nokm2_var), 
-    biomass_sd = sqrt(biomass_var), 
-    biomass_up = biomass_mt + (2*biomass_sd), 
-    biomass_dw = biomass_mt - (2*biomass_sd), 
-    population_sd = sqrt(population_var), 
-    population_up = population_count + (2*population_sd), 
-    population_dw = population_count - (2*population_sd), 
+    stratum = ifelse(stratum > 900, 999, stratum), 
     biomass_dw = ifelse(biomass_dw < 0, 0, biomass_dw), 
-    population_dw = ifelse(population_dw < 0, 0, population_dw) )
+    population_dw = ifelse(population_dw < 0, 0, population_dw)  )
 
 biomass_maxyr <- biomass |>
   # dplyr::filter(stratum == 999)|>
