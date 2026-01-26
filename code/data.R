@@ -81,7 +81,7 @@ for (ii in 1:length(report_types)) {
         survey_definition_id == 143 ~ "NBS"), 
       color = alpha(colour = survey_reg_col, 0.7), 
       srvy_long = dplyr::case_when(
-        srvy == "EBS" ~ "Eastern Bering Sea Shelf", 
+        srvy == "EBS" ~ "Eastern Bering Sea", 
         srvy == "NBS" ~ "Northern Bering Sea") )
   report_types[[ii]]$reg_dat <- reg_dat
 }
@@ -140,6 +140,7 @@ if (access_to_internet ) {
                                 type = "xlsx", 
                                 overwrite = TRUE, 
                                 path = paste0(dir_out_rawdata, "/", a$name[i]))
+  }
     
     a <- googledrive::drive_ls(path = googledrive::as_id("1Vbe_mH5tlnE6eheuiSVAFEnsTJvdQGD_"), 
                                type = "document")
@@ -464,7 +465,7 @@ cruises <- gap_products_akfin_cruise0 |>
     y = data.frame(survey_definition_id = c(143, 98, 47), 
                    srvy = c("NBS", "EBS", "GOA"), 
                    srvy_long = c("northern Bering Sea", 
-                                 "eastern Bering Sea shelf", 
+                                 "eastern Bering Sea", 
                                  "Gulf of Alaska"), 
                    srvy_start = c(2010, 1982, NA)), 
     by  = "survey_definition_id")|> 
