@@ -510,7 +510,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
 
 ```
 
-```{r fig-dist-[spp]-data, eval = FALSE}
+```{r fig-dist-[spp]-data}
 yrs <- c(maxyr, compareyr) # analysisyrs
 
 # if (spp_file == "greenland-turbot") {
@@ -819,7 +819,7 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
           type = type,
           print_n = print_n, 
           ridgeline = FALSE) + 
-          ggplot2::ggtitle("EBS")
+          ggplot2::ggtitle(paste0(maxyr," EBS"))
       }
       if ("NBS" %in% table_raw$srvy & srvy %in% c("NEBS", "NBS")) {
         figure2 <- figure_print <- plot_sizecomp(
@@ -832,10 +832,29 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
           type = type,
           print_n = print_n, 
           ridgeline = FALSE) + 
-          ggplot2::ggtitle("NBS")
+          ggplot2::ggtitle(paste0(maxyr," NBS"))
       }
       if (sum(unique(table_raw$srvy) %in% c("NBS", "EBS")) == 2 & srvy %in% c("NEBS")) {
-        figure_print <- cowplot::plot_grid(figure1, figure2)
+        figure_print <- cowplot::plot_grid(
+          figure2 + 
+            ggplot2::theme(#axis.title.y = element_blank(),
+              plot.title = element_text(size = 10, face = "bold"), 
+              legend.title = element_blank(), 
+              legend.title.position = "none",
+              legend.position = "none", 
+              plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ),  
+          figure1 + 
+            ggplot2::theme(#axis.title.y = element_blank(),
+              plot.title = element_text(size = 10, face = "bold"), 
+              legend.title = element_blank(), 
+              legend.title.position = "none",
+              legend.position = "none", 
+              plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ), 
+          cowplot::get_legend(figure1 + 
+                                ggplot2::labs(fill = NULL)) , 
+          nrow = 3, 
+          ncol = 1, 
+          rel_heights = c(.3, .3, .05))
       }
     }
     
@@ -855,7 +874,9 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
     
   } else {
     header <- ""
-    figure_print <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
+    figure_print <- ggplot(data = data.frame(x = 1, y = 1, 
+                                             label = "There are no data for this year and species"), 
+                           mapping = aes(y=y, x=x)) +
       geom_text(mapping = aes(label = label))
   }
   
@@ -916,91 +937,12 @@ height <- 4.5
 width <- 5
 report_title0 <- "pres"
 legend_font_size <- 12
+yrs <- maxyr
 
-# temp <- sizecomp |> 
-#   dplyr::right_join(data.frame(year = c(compareyr, maxyr, maxyr), 
-#                            srvy = c(names(compareyr), names(compareyr)))) |> 
-#   dplyr::distinct(year, srvy)
-
-if (srvy == "EBS") {
-  yrs <- c(maxyr, compareyr)
-  temp <- size_plot(srvy, yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
-  pres_size <- figure_print <- temp$figure_print
-  pres_size_txt <- temp$header
-  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-} else {
-  yrs <- maxyr
-  
-  # EBS 
-  if (sizecomp |> dplyr::filter(srvy == "EBS" & year == maxyr & species_code %in% spp_code) |> nrow() > 0) {
-    temp <- size_plot(srvy = "EBS", yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
-    pres_size_ebs <- temp$figure_print
-  } else {
-    pres_size_ebs <- NULL
-  }
-  
-  # NBS 
-  if (sizecomp |> dplyr::filter(srvy == "NBS" & year == maxyr & species_code %in% spp_code) |> nrow() > 0) {
-    temp <- size_plot(srvy = "NBS", yrs, lengths, sizecomp, print_n, height, width, nickname, legend_font_size, report_title0) 
-    pres_size_nbs <- temp$figure_print
-  } else {
-    pres_size_nbs <- NULL
-  }
-  
-  if (is.null(pres_size_nbs) | is.null(pres_size_ebs)) {
-    
-    if (is.null(pres_size_nbs)) {
-      pres_size <- pres_size_ebs
-    } else {
-      pres_size <- pres_size_nbs
-    }
-    
-    figure_print <- pres_size <- pres_size + 
-      # ggplot2::ggtitle(label = NULL) +
-      # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +  
-      ggplot2::theme(#axis.title.y = element_blank(),
-        legend.title = element_blank(), 
-        legend.title.position = "none",
-        # legend.position = "none", 
-        plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ) + 
-      ggplot2::labs(fill = NULL)
-    
-  } else {
-    
-    # combine
-    figure_print <- pres_size <- 
-      cowplot::plot_grid(
-        pres_size_nbs + 
-          ggplot2::ggtitle(paste0(maxyr, " northern Bering Sea")) +
-          # ggplot2::ggtitle(label = NULL) +
-          # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +
-          ggplot2::theme(
-            plot.title = element_text(size = 10, face = "bold"), 
-            
-            axis.title.x = element_blank(), 
-            legend.position = "none", 
-            plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ), 
-        pres_size_ebs +
-          ggplot2::ggtitle(paste0(maxyr, " eastern Bering Sea")) +
-          # ggplot2::ggtitle(label = NULL) +
-          # ggplot2::annotate("text", label = "NBS", hjust = 0, vjust = 1, size = 4) +   
-          ggplot2::theme(#axis.title.y = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"), 
-            legend.title = element_blank(), 
-            legend.title.position = "none",
-            legend.position = "none", 
-            plot.margin=grid::unit(c(.1,.1,.1,.1), "mm") ) , 
-        cowplot::get_legend(pres_size_ebs + 
-                              ggplot2::labs(fill = NULL)) , 
-        nrow = 3, 
-        ncol = 1, 
-        rel_heights = c(.3, .3, .05))
-    # cowplot::plot_grid(cowplot::get_y(pres_size_ebs), 
-    #                    pres_size, 
-    #                    nrow = 1, ncol = 2, rel_widths = .1, .9)
-  }
-  header = ""
-}
+temp <- size_plot(srvy, yrs, lengths, sizecomp, # |> dplyr::filter(srvy == "NBS"), 
+                  print_n, height, width, nickname, legend_font_size, report_title0) 
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+pres_size <- temp$figure_print
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -1546,10 +1488,10 @@ flextable_color_range <- function(ft, dat0, var0, rnge = -9:9) {
   }
   
   flextable::bg(
-        x  = ft,
-        bg = color0,
-                i  = nrow(dat0),
-                j  = var0 )
+    x  = ft,
+    bg = color0,
+    i  = nrow(dat0),
+    j  = var0 )
 }
 
 table_print <- table_print0 |> 
@@ -1569,7 +1511,7 @@ table_print <- table_print0 |>
 
 if (ncol(table_print0) > 2) {
   table_print <- table_print |>
-  flextable_color_range(dat0 = table_print0, var0 = names(table_print0)[3]) 
+    flextable_color_range(dat0 = table_print0, var0 = names(table_print0)[3]) 
 }
 
 pres_stats <- table_raw
@@ -2143,7 +2085,7 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
 
 ```
 
-```{r fig-timeseries-[spp]-data, eval = TRUE}
+```{r fig-timeseries-[spp]-data}
 nickname <- paste0("fig-timeseries-", spp_file, "-data")
 height <- 3
 width <- full_page_portrait_width
@@ -2154,7 +2096,7 @@ for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-timeseries-[spp]-comm, eval = FALSE}
+```{r fig-timeseries-[spp]-comm}
 nickname <- paste0("fig-timeseries-", spp_file, "-comm")
 height <- 3
 width <- full_page_portrait_width
@@ -2226,7 +2168,10 @@ temp2 <- cowplot::plot_grid(pres_timeseries +
 # then combine with the top row for final plot
 figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1.2,.8))
 
-temp <- dplyr::left_join(pres_timeseries_mean, pres_stats)
+temp <- dplyr::left_join(
+  pres_timeseries_mean |> 
+    dplyr::rename(srvy = srvy_long), 
+  pres_stats)
 
 figure_print <- ggdraw(add_sub(
   plot = figure_print, 
@@ -2235,9 +2180,9 @@ figure_print <- ggdraw(add_sub(
                  paste0(temp$srvy, " Bio Mean: ", 
                         round(x = temp$y_mean, digits = 1),
                         " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
-                        temp$`Biomass\n(t)`," (",
+                        temp$`Biomass`," (",
                         gsub(pattern = "\n", replace = " ", 
-                             x = temp$`Percent Change\nin Biomass`, fixed = TRUE), ")", 
+                             x = temp$`% Change\nin Biomass`, fixed = TRUE), ")", 
                         ". \n  ", temp$`Observed Catch Totals`, ". ", 
                         collapse = "\n") )
 ))
@@ -2545,7 +2490,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```
 
 
-```{r remove-odds-ends, eval = TRUE}
+```{r remove-odds-ends}
 remove("comm_dist")
 remove("comm_size")
 remove("pres_dist")

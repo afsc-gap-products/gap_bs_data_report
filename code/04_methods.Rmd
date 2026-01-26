@@ -11,7 +11,7 @@ nbs_str0 <- ifelse(srvy == "NEBS",
                    paste0(" The northern Bering Sea survey was not conducted in ", maxyr, "."))
 ```
 
-The standardized eastern Bering Sea survey consists of a systematic design with 350 fixed sampling stations arranged on a regularly spaced 37.04 × 37.04 km grid (20 × 20 nmi; Fig. \@ref(fig:fig-survey-grid)). In 2024, following analysis by @defilippo2023evaluating, the 26 previously sampled 'corner stations' were removed from the survey grid (see [History of Bering Sea Bottom Trawl Surveys](#history) section). `r nbs_str0`
+The standardized eastern Bering Sea survey consists of a systematic design with 350 fixed sampling stations arranged on a regularly spaced 37.04 km^2 grid (20 nmi^2; Fig. \@ref(fig:fig-survey-grid)). In 2024, following analysis by @defilippo2023evaluating, the 26 previously sampled 'corner stations' were removed from the survey grid (see [History of Bering Sea Bottom Trawl Surveys](#history) section). `r nbs_str0`
 
 ## Survey Vessels and Sampling Gear
 
@@ -20,7 +20,7 @@ vessels0 <- vessels|>
   dplyr::filter(vess_shape != "X")
 ```
 
-The `r maxyr` `r SURVEY` survey`r plural_surveys` `r ifelse(plural_surveys == "s", "were", "was")` conducted aboard the chartered, commercial stern-trawlers `r text_list(vessels0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r ifelse(nrow(vessels0) == 1, "The vessel", "Both vessels") ` are house-forward trawlers with stern ramps. The overall length of `r text_list(paste0("the ", vessels0$vessel_ital, " is ", vessels0$length_m, " m (", vessels0$length_ft, " ft)") ) `. All fishing operations were conducted in compliance with national and regional protocols detailed in @RN933. Trawl sampling was conducted using 83-112 eastern otter trawls, each with a 25.3 m (83 ft) headrope and 34.1 m (112 ft) footrope (Figs. \@ref(fig:fig-trawl-gear-diagram-label) and \@ref(fig:fig-trawl-gear-blueprint)). The net was attached to tail chains with 54.9 m (180 ft or 30 fm) paired dandylines. Each lower dandyline had a 0.61 m (2 ft) chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg each were used for spreading the net opening while the trawl was fishing on the seafloor.
+The `r maxyr` `r SURVEY` survey`r plural_surveys` `r ifelse(plural_surveys == "s", "were", "was")` conducted aboard the chartered, commercial stern-trawlers `r text_list(vessels0$vessel_ital)` (Fig. \@ref(fig:fig-vessels)). `r ifelse(nrow(vessels0) == 1, "The vessel", "Both vessels") ` are house-forward trawlers with stern ramps. The overall length of `r text_list(paste0("the ", vessels0$vessel_ital, " is ", vessels0$length_m, " m (", vessels0$length_ft, " ft)") ) `. All fishing operations were conducted in compliance with national and regional protocols detailed in @RN933. Trawl sampling was conducted using 83-112 eastern otter trawls, each with a 25.3 m (83 ft) headrope and 34.1 m (112 ft) footrope (Figs. \@ref(fig:fig-trawl-gear-diagram-label) and \@ref(fig:fig-trawl-gear-blueprint)). The net was attached to tail chains with 54.9 m (180 ft or 30 fm) paired dandylines. Each lower dandyline had a 0.61 m (2 ft) chain extension connected to the lower wing edge to improve bottom tending. Steel "V" doors measuring 1.8 × 2.7 m (6 × 9 ft) and weighing 816 kg (1800 lbs) each were used for spreading the net opening while the trawl was fishing on the seafloor.
 
 ```{r fig-vessels0}
 nickname <- "fig-vessels" # Fig. \@ref(fig:fig-vessels)
@@ -77,7 +77,7 @@ if (sum(temp$N, na.rm = TRUE)>0) {
                       srvy == unique(temp$srvy)[i])
     str0 <- paste0(str0, 
                    ifelse(plural_surveys == "", "T", paste0("In the ",unique(temp$srvy_long)[i], ", t")),
-                   "he net mensuration system failed to record data for ", 
+                   "he net mensuration system failed to record [?net and spread?] data for ", 
                    text_list(paste0(xunits(temp0$N), " tow", ifelse(temp0$N>1, "s", "")," on the ", temp0$vessel_ital)), ". ")
   }
   
@@ -136,7 +136,7 @@ for (i in 1:length(unique(haul_cruises_maxyr$srvy_long))){
                    text_list(cruises_maxyr0$vessel_ital), 
                    " started sampling on ",
                    date_formatter(unique(cruises_maxyr0$start_date_haul)), 
-                   ". Sampling ended on ", 
+                   ". Sampling of the ",cruises_maxyr0$srvy_long," ended on ", 
                    date_formatter(unique(cruises_maxyr0$end_date_haul)) )
     
   } else if (length(unique(cruises_maxyr0$start_date_haul)) == 1 &
@@ -192,7 +192,7 @@ temp_tot <- temp0|>
   dplyr::select(density)
 ```
 
-The survey footprint covered bathymetric depths ranging from 20 m to 200 m. For design-based index catch analysis, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-survey-sample-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains and was designed to reduce the variances of population and biomass estimates [@RN891]. Overall sampling density across the eastern Bering Sea was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), strata were combined by depth-region, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-survey-sample-stations); Table \@ref(tab:tab-stratum-areas)).
+The survey footprint covered bathymetric depths ranging from 20 m to 200 m. For design-based indices of abundnace, this footprint was separated into 12 strata by the 50 m and 100 m isobaths and a biogeographic boundary line running from the southwest to the northeast (Fig. \@ref(fig:fig-survey-sample-stations); @1986EBSReport). The stratum boundaries correspond with different oceanographic domains and biological communities [@Coachman1986]. This stratification scheme reflects some differences observed in Bering Sea groundfish distributions across the oceanographic domains and was designed to reduce the variances of population and biomass estimates [@RN891]. Overall sampling density across the eastern Bering Sea was one station per `r xunits(temp_tot$density)` km^2^, and within-stratum sampling density ranged from one station per `r xunits(min(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == min(temp$density)]`) to one per `r xunits(max(temp$density))` km^2^ (stratum `r temp$stratum[temp$density == max(temp$density)]`; Table \@ref(tab:tab-stratum-areas)). For some analyses (e.g., abundance-at-length), strata were combined by depth-region, resulting in eight subareas: 10, 20, 30 (31+32), 40 (41+42+43), 50, 60 (61+62), 82, and 90 (Fig. \@ref(fig:fig-survey-sample-stations); Table \@ref(tab:tab-stratum-areas)).
 
 ```{r methods-nbs-survey-plan}
 str00 <- ""
@@ -214,9 +214,9 @@ if ("NBS" %in% haul_cruises_maxyr$srvy) {
                     grepl(pattern = "NBS", x = Region))
   
   str00 <- paste0(
-    "After the completion of the eastern Bering Sea survey, both vessels began sampling survey stations in the northern Bering Sea survey region. In the northern Bering Sea, ", 
+    "After the completion of the eastern Bering Sea survey, both vessels began sampling survey stations in the northern Bering Sea survey region. In the northern Bering Sea, the ", 
     str0$str[str0$srvy == "NBS"], # from 2 chunks above! 
-    ". After the northern Bering Sea survey was completed, both vessels returned to Dutch Harbor. The northern Bering Sea is divided into three strata: one including the area north of St. Lawrence Island and Norton Sound, and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-survey-sample-stations)). Sampling density was ", 
+    " and both vessels returned to Dutch Harbor. The northern Bering Sea is divided into three strata: one including the area north of St. Lawrence Island and Norton Sound, and two others south of St. Lawrence Island separated by the 50 m isobath (Fig. \\@ref(fig:fig-survey-sample-stations)). Sampling density was ", 
     # Sampling density was 1,367 km2 /station for Stratum 70, 1,475 km2 /station for Stratum 71, 1,370 km2 /station for Stratum 81, 
     text_list(paste0(xunits(temp$density), " km^2^/station for stratum ", temp$stratum)), 
     ". Overall sampling density for the northern Bering Sea survey area was ", xunits(temp_tot$density), " km^2^/station (Table \\@ref(tab:tab-stratum-areas)).")
@@ -236,11 +236,11 @@ nickname <- "tab-stratum-areas"
 
 ## Catch Sampling Procedures
 
-Standard catch sampling procedures used in these Bering Sea surveys are described in detail by @RN939 and @RN933. In summary, samples were collected by trawling near the center of each grid square for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If the center of the grid cell was not considered trawlable due to obstructions visible on the depth sounder or a known history of obstructions, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage contained debris (e.g., derelict crab pots) or had visible changes in net mensuration data during the haul were redeployed to obtain a successful sample.
+Standard catch sampling procedures used in these Bering Sea surveys are described in detail by @RN939 and @RN933. In summary, samples were collected by trawling near the center of each grid square for a target fishing time of 30 minutes at a speed of 1.54 m/sec (3 knots). If the center of the grid cell was not considered trawlable due to obstructions visible on the depth sounder or a known history of obstructions, the nearest trawlable site within the same grid square was used. Hauls that resulted in significant gear damage, contained debris (e.g., derelict crab pots), or had visible changes in reported net mensuration during deployment were repeated to obtain a successful sample.
 
-Catches estimated to be less than approximately 1,000 kg were fully sorted and enumerated, while larger catches were weighed in aggregate or volumetrically measured and subsampled before sorting. The goal of subsampling is to obtain a representative sample, which requires some variation in catch processing methods among hauls. After sorting subsampled catches, individual species present in low numbers were weighed and counted in aggregate, while species present in high numbers were weighed in aggregate, and further subsampled to obtain counts. These secondary subsample counts were extrapolated to the subsample weight for the species. All subsample weights and numbers were then expanded proportionally to the total catch. Fish and invertebrate species were sorted and identified to the lowest reliable taxonomic level. 
+Catches estimated to be less than approximately 1,000 kg were fully sorted and enumerated, while larger catches were weighed in aggregate or volumetrically measured and subsampled before sorting. The goal of subsampling is to obtain a representative sample, which requires some variation in catch processing methods among hauls. After sorting subsampled catches, individual species present in low numbers were weighed and counted in aggregate, while species present in high numbers were weighed in aggregate, and further subsampled to obtain counts. These secondary subsample counts were extrapolated to the subsample weight for the species. All subsample weights and numbers were then expanded proportionally to the total catch. Organisms were sorted and identified to the lowest reliable taxonomic level. 
 
-All commercial crab species were typically sorted from the entire catch and weighed. Other select species, including Pacific halibut (*Hippoglossus stenolepis*), Greenland turbot (*Reinhardtius hippoglossoides*), rockfish (*Sebastes* spp.), Atka mackerel (*Pleurogrammus monopterygius*), prowfish (*Zaprora silenus*), Bering wolffish (*Anarhichas orientalis*), Pacific cod (*Gadus macrocephalus*), large skates, some sculpins, sharks, and any other large, rare species that were not represented in the subsample, were often completely sorted from the catch and weighed.
+All commercial crab species were typically sorted from the entire catch and weighed. Additionally, other select species were often completely sorted from the catch and weighed, including Pacific halibut (*Hippoglossus stenolepis*; not weighed as per IPHC protocol), Greenland turbot (*Reinhardtius hippoglossoides*), rockfish (*Sebastes* spp.), Atka mackerel (*Pleurogrammus monopterygius*), prowfish (*Zaprora silenus*), Bering wolffish (*Anarhichas orientalis*), Pacific cod (*Gadus macrocephalus*), large skates, some sculpins, sharks, and any other large, rare species that were not represented in the subsample.
 
 ```{r tab-oto-collection-scheme-data}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
@@ -248,7 +248,9 @@ obj$raw <- obj$raw|> # creates object called 'obj'
   dplyr::filter(srvy == "EBS")
 ```
 
-For all hauls, subsampling for length measurements was based on the fish species size range, targeting 100 specimens collected per species. For each fish in a length subsample, sex was determined and then the length (generally fork or total, depending on the species) was measured to the nearest 1.0 cm. For Pacific halibut on the FV *Northwest Explorer*, the first 10 fish were retained for biological sampling and all others were measured to fork length upon capture`r ifelse(maxyr > 2020, "", " and 50% were randomly selected to receive a preopercle tag")`, then immediately released in an effort to reduce mortality. Pacific halibut weights were estimated using an International Pacific Halibut Commission (IPHC) length-weight regression [@IPHC2023].
+For all hauls, subsampling for length measurements was based on the fish species size range, targeting 100 specimens collected per species. For each fish in a length subsample, sex was determined and then the length (generally fork or total, depending on the species) was measured to the nearest 1.0 cm. 
+
+Pacific halibut are sampled as per agreement with the International Pacific Halibut Commission (IPHC). Up to 100 Pacific halibut on the FV Alaska Knight were sampled for length, weight, sex, fin clip, and age (otoliths) by an IPHC secretariat. Pacific halibut weights were estimated using an IPHC-established length-weight regression [@IPHC2023].
 
 ```{r methods-collection-scheme}
 load(file = paste0(dir_out_figtab, "tab-oto-collection-scheme.Rdata"))
