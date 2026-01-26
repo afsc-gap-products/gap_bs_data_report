@@ -952,7 +952,7 @@ a <- data.frame(unique(lengths_sap[,c("species_code", "survey_definition_id", "l
   dplyr::cross_join(cruises_maxyr[,c("cruisejoin", "year")])
 lengths_sap <- dplyr::bind_rows(lengths_sap, a)
 
-lengths_gap <- race_data_cruises0|> 
+lengths_gap <- race_data_cruises0 |> 
   dplyr::select(cruise_id, survey_id, vessel_id, cruise)|>
   dplyr::left_join(race_data_surveys0|> 
                      dplyr::select(survey_definition_id, survey_id, year), 
