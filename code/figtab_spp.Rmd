@@ -2107,6 +2107,22 @@ for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
+```{r fig-timeseries-[spp]-data-alt}
+nickname <- paste0("fig-timeseries-", spp_file, "-data-alt")
+height <- 3
+legend_font_size <- 12
+table_raw0 <- table_raw1 |> dplyr::mutate(srvy_long = srvy)
+
+temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+data_timeseries <- temp$figure_print + 
+  ggplot2::theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
+data_timeseries_mean <- temp$table_raw_mean
+data_timeseries_unit_wrd <- temp$unit_wrd
+data_timeseries_txt <- temp$header
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
 ```{r fig-timeseries-[spp]-pres}
 nickname <- paste0("fig-timeseries-", spp_file, "-pres")
 height <- 3
@@ -2123,84 +2139,10 @@ for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-combined-[spp]-pres}
-nickname <- paste0("fig-combined-", spp_file, "-pres")
-height <- 7.5
-width <- 10
+```{r fig-combined-[spp]-data}
 
-if (exists("pres_size")) {
-  temp1 <- cowplot::plot_grid(pres_dist +
-                                ggplot2::guides(
-                                  fill = guide_legend(title.position = "left",
-                                                      title.hjust = 0.5, 
-                                                      nrow = 1)) +
-                                ggplot2::theme(
-                                  legend.title = element_text(size = 8, face = "bold"), 
-                                  legend.key.height = unit(0.3, "cm") # Make them shorter
-                                ),  
-                              NULL, 
-                              pres_size +
-                                ggplot2::theme(
-                                  # legend.key.size = unit(0.5, "cm"),  # Adjust overall key size
-                                  # legend.key.width = unit(0.3, "cm"), # Make them even narrower
-                                  legend.key.height = unit(0.3, "cm") # Make them shorter
-                                ), 
-                              ncol = 3, 
-                              rel_widths = c(1,.2,.8)) # 1, .1., .9 worked for presentations
-} else {
-  pres_size_txt <- "There are no sizecomps for this species. "
-  temp1 <- cowplot::plot_grid(pres_dist, 
-                              NULL, 
-                              ncol = 2, 
-                              rel_widths = c(1,1))
-}
-temp2 <- cowplot::plot_grid(pres_timeseries + 
-                              ggplot2::ggtitle("") + 
-                              ggplot2::guides(fill = "none") +
-                              ggplot2::labs(color = "") + 
-                              ggplot2::labs(shape = "") +
-                              ggplot2::theme(legend.position = "none"), 
-                            NULL,
-                            ncol = 2, 
-                            rel_widths = c(1.4, .6)) 
-
-# then combine with the top row for final plot
-figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1.2,.8))
-
-temp <- dplyr::left_join(
-  pres_timeseries_mean |> 
-    dplyr::rename(srvy = srvy_long), 
-  pres_stats)
-
-figure_print <- ggdraw(add_sub(
-  plot = figure_print, 
-  size = 10, 
-  label = paste0(paste0(spp_print, "\n"), 
-                 paste0(temp$srvy, " Bio Mean: ", 
-                        round(x = temp$y_mean, digits = 1),
-                        " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
-                        temp$`Biomass`," (",
-                        gsub(pattern = "\n", replace = " ", 
-                             x = temp$`% Change\nin Biomass`, fixed = TRUE), ")", 
-                        ". \n  ", temp$`Observed Catch Totals`, ". ", 
-                        collapse = "\n") )
-))
-# }
-header <- header0 <- paste0(
-  "Top right: ", pres_dist_txt, 
-  "Top left: ", 
-  "Total abundance-at-length estimates by sex encountered during the ", maxyr, " eastern and northern Bering Sea surveys. Length distributions are scaled to the total estimated population size. ", # pres_size_txt, 
-  "Bottom right: ", pres_timeseries_txt)
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-```{r fig-combined-[spp]-comm-old, eval = FALSE}
-
-# may be radically updated with next chunk Jan 13, 2026
-
-nickname <- paste0("fig-combined-", spp_file, "-comm")
-height <- 3 # full_page_portrait_height-2.5
+nickname <- paste0("fig-combined-", spp_file, "-data")
+height <- 4.5 # full_page_portrait_height-2.5
 width <- full_page_portrait_width
 
 comm_dist1 <- comm_dist  +
@@ -2208,7 +2150,7 @@ comm_dist1 <- comm_dist  +
     fill = guide_legend(
       title.position = NULL, # "left",
       label.position = "right",
-      nrow = 1,
+      # nrow = 1,
       override.aes = list(color = NA)),
     color = "none")  +
   ggplot2::theme(
@@ -2219,35 +2161,25 @@ comm_dist1 <- comm_dist  +
     axis.title = element_blank(),
     strip.text = element_text(size = 8, face = "bold"),
     plot.margin = grid::unit(c(0,0,0,0), "mm"),
-    # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
-    legend.key.width = unit(0.3, "cm"),
+    legend.key.width = unit(0.4, "cm"),
     legend.key.height = unit(0.15, "cm") ) # Make them shorter
 
-# comm_dist1 <- comm_dist  + 
-#       ggplot2::guides(
-#         fill = guide_legend(
-#           # order = 1,
-#           title.position = NULL, # "left",
-#           label.position = "right",
-#           # nrow = 2,
-#           # title.hjust = 0.5,
-#           override.aes = list(color = NA)),
-#         color = "none")  +
-#       ggplot2::theme(
-#         legend.position = "right",
-#         plot.title = element_blank(), 
-#         legend.title = element_blank(), #element_text(size = 8, face = "bold"),
-#         legend.text = element_text(size = 8), 
-#         axis.text = element_text(size = 8), 
-#         axis.title = element_blank(),
-#         strip.text = element_text(size = 8, face = "bold"), 
-#         plot.margin = grid::unit(c(0,0,0,0), "mm"), 
-#         # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1), 
-#         legend.box.spacing = unit(.2, "cm"), # Increase the space to 1 cm
-#         legend.key.height = unit(0.15, "cm"),
-#         legend.key.width = unit(0.6, "cm") ) # Make them shorter
-
-
+pres_timeseries1 <- data_timeseries + 
+  ggplot2::guides(fill = "none") +
+  ggplot2::labs(color = "") + 
+  ggplot2::labs(shape = "") +
+  ggplot2::guides(
+    color = guide_legend(title.position = NULL, nrow = 1),
+    shape = guide_legend(title.position = NULL, nrow = 1))  +
+  ggplot2::theme(
+    plot.title = element_blank(), 
+    legend.text = element_text(size = 8), 
+    strip.text = element_text(size = 8, face = "bold"), 
+    axis.title.y = element_text(size = 8), 
+    axis.title.x = element_blank(), 
+    axis.text = element_text(size = 8), 
+    plot.margin = grid::unit(c(0,0,0,0), "mm"),
+    legend.position = c(0.25, 0.98))
 
 if (exists("comm_size")) {
   comm_size1 <- comm_size + 
@@ -2260,69 +2192,78 @@ if (exists("comm_size")) {
       strip.text = element_text(size = 8, face = "bold"), 
       plot.margin = grid::unit(c(0,0,0,0), "mm"), 
       legend.box.background = element_rect(color = "white", fill = "white", linewidth = 1), # Box border and fill
-      # legend.background = element_blank(), # Make inner legend background transparent if needed
-      # legend.key.size = unit(0.5, "cm"),  # Adjust overall key size
-      # legend.key.width = unit(0.3, "cm"), # Make them even narrower
       legend.key.height = unit(0.15, "cm"),
-      legend.key.width = unit(0.6, "cm"),
+      legend.key.width = unit(0.4, "cm"),
       legend.position = c(.77, 0.5)) # Make them shorter
   
 } else {
   pres_size_txt <- "There are no sizecomps for this species. "
   comm_size1 <- NULL
   
-  # temp1 <- comm_dist1
+  comm_dist1 <- comm_dist  +
+    ggplot2::guides(
+      fill = guide_legend(
+        # order = 1,
+        title.position = NULL, # "left",
+        label.position = "right",
+        # nrow = 2,
+        # title.hjust = 0.5,
+        override.aes = list(color = NA)),
+      color = "none")  +
+    ggplot2::theme(
+      legend.position = "right",
+      plot.title = element_blank(),
+      legend.title = element_blank(), #element_text(size = 8, face = "bold"),
+      legend.text = element_text(size = 8),
+      axis.text = element_text(size = 8),
+      axis.title = element_blank(),
+      strip.text = element_text(size = 8, face = "bold"),
+      plot.margin = grid::unit(c(0,0,0,0), "mm"),
+      # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
+      legend.box.spacing = unit(.2, "cm"), # Increase the space to 1 cm
+      legend.key.height = unit(0.15, "cm"),
+      legend.key.width = unit(0.6, "cm") ) # Make them shorter
 }
 
 temp1 <- cowplot::plot_grid(
   comm_dist1,
-  NULL, 
-  comm_size1, 
-  ncol = 3, 
+  pres_timeseries1, 
+  nrow = 2, 
   align = "v",   # Align vertically
   axis = "l",     # Align by the left axis
-  rel_widths = c(1.2,.05,.75)) # 1, .1., .9 worked for presentations
+  rel_heights = c(.5,.5)) 
 
-temp2 <- cowplot::plot_grid(
-  pres_timeseries + 
-    # ggplot2::ggtitle(NULL) + 
-    ggplot2::guides(fill = "none") +
-    ggplot2::labs(color = "") + 
-    ggplot2::labs(shape = "") +
-    ggplot2::guides(
-      color = guide_legend(title.position = NULL, nrow = 1),
-      shape = guide_legend(title.position = NULL, nrow = 1))  +
-    ggplot2::theme(
-      plot.title = element_blank(), 
-      legend.text = element_text(size = 8), 
-      strip.text = element_text(size = 8, face = "bold"), 
-      axis.title.y = element_text(size = 8), 
-      axis.title.x = element_blank(), 
-      axis.text = element_text(size = 8), 
-      plot.margin = grid::unit(c(0,0,0,0), "mm"),
-      legend.position = c(0.15, 0.98)),
-  # NULL, 
-  pres_spp,
-  ncol = 2, 
-  align = "v",   # Align vertically
-  axis = "l",     # Align by the left axis
-  rel_widths = c(1.5, .5)) 
-
-figure_print <- cowplot::plot_grid(
-  temp1, 
-  NULL, 
-  temp2, 
-  nrow = 3, 
-  rel_heights = c(1.25, 0.05, 0.7),
-  align = "v",   # Align vertically
-  axis = "l"     # Align by the left axis
-)
+# figure_print <- cowplot::plot_grid(
+#   temp1, 
+#   NULL,
+#   comm_size1, 
+#   ncol = 3, 
+#   rel_widths = c(.55,.05,.4),
+#   align = "v",   # Align vertically
+#   axis = "l")     # Align by the left axis
+#   
+if (exists("comm_size")) {
+  figure_print <- cowplot::plot_grid(
+    temp1, 
+    NULL,
+    comm_size1, 
+    ncol = 3, 
+    rel_widths = c(.6,.025,.4),
+    align = "v",   # Align vertically
+    axis = "l")     # Align by the left axis
+} else {
+  figure_print <- temp1
+}
 
 # Then use ggdraw() to add a custom label on top of the combined plot
 figure_print <- cowplot::ggdraw(figure_print) +
-  cowplot::draw_label("A", x = 0.00, y = 0.94, hjust = 0, vjust = 0, size = 16) +
-  cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), x = 0.00, y = 0.32, hjust = 0, vjust = 0, size = 16) +
-  cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
+  cowplot::draw_label("A", 
+                      x = ifelse(exists("comm_size"), 0.06, 0.01), 
+                      y = 0.94, hjust = 0, vjust = 0, size = 16) +
+  cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), 
+                      x = ifelse(exists("comm_size"), 0.06, 0.01), 
+                      y = 0.4, hjust = 0, vjust = 0, size = 16) #+
+# cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
 
 if (exists("comm_size")) {
   figure_print <- cowplot::ggdraw(figure_print) +
@@ -2336,9 +2277,10 @@ header <- paste0(
   ifelse((exists("comm_size")), "and (B) total abundance-at-length (cm) estimates by sex scaled to the total estimated population ", ""), 
   "from the ", range_text(c(compareyr, maxyr)), " eastern (EBS) and northern (NBS) Bering Sea survey",plural_surveys,
   ". (",ifelse((exists("comm_size")), "C", "B"),") Biomass time series during the ",
-  substr(x = gsub("[^0-9]", "", pres_timeseries_txt), start = 1, stop = 4),"-2025 ", # SURVEY,
-  "survey", plural_surveys," (points and solid lines, with estimated 95% confidence intervals error bars) and time series mean (dashed lines). ",
-  "(",ifelse((exists("comm_size")), "D", "C"),") Photo of ", ifelse(substr(x = spp_print, nchar(spp_print), nchar(spp_print)) == "s", "", ifelse(tolower(substr(spp_print, 1, 1)) %in% c("a", "e", "i", "o", "u"), "an ", "a ")), spp_print, ". ")
+  substr(x = gsub("[^0-9]", "", data_timeseries_txt), start = 1, stop = 4),"-2025 ", # SURVEY,
+  "survey",plural_surveys," (points and solid lines, with estimated 95% confidence intervals error bars) and time series mean (dashed lines). ")
+# ,
+#   "(",ifelse((exists("comm_size")), "D", "C"),") Photo of ", ifelse(tolower(substr(spp_print, 1, 1)) %in% c("a", "e", "i", "o", "u"), "an ", "a "), spp_print, ". ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -2484,6 +2426,78 @@ header <- paste0(
   ", with estimated 95% confidence intervals error bars", ") and time series mean (dashed lines). ")
 # ,
 #   "(",ifelse((exists("comm_size")), "D", "C"),") Photo of ", ifelse(tolower(substr(spp_print, 1, 1)) %in% c("a", "e", "i", "o", "u"), "an ", "a "), spp_print, ". ")
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r fig-combined-[spp]-pres}
+nickname <- paste0("fig-combined-", spp_file, "-pres")
+height <- 7.5
+width <- 10
+
+if (exists("pres_size")) {
+  temp1 <- cowplot::plot_grid(pres_dist +
+                                ggplot2::guides(
+                                  fill = guide_legend(title.position = "left",
+                                                      title.hjust = 0.5, 
+                                                      nrow = 1)) +
+                                ggplot2::theme(
+                                  legend.title = element_text(size = 8, face = "bold"), 
+                                  legend.key.height = unit(0.3, "cm") # Make them shorter
+                                ),  
+                              NULL, 
+                              pres_size +
+                                ggplot2::theme(
+                                  # legend.key.size = unit(0.5, "cm"),  # Adjust overall key size
+                                  # legend.key.width = unit(0.3, "cm"), # Make them even narrower
+                                  legend.key.height = unit(0.3, "cm") # Make them shorter
+                                ), 
+                              ncol = 3, 
+                              rel_widths = c(1,.2,.8)) # 1, .1., .9 worked for presentations
+} else {
+  pres_size_txt <- "There are no sizecomps for this species. "
+  temp1 <- cowplot::plot_grid(pres_dist, 
+                              NULL, 
+                              ncol = 2, 
+                              rel_widths = c(1,1))
+}
+temp2 <- cowplot::plot_grid(pres_timeseries + 
+                              ggplot2::ggtitle("") + 
+                              ggplot2::guides(fill = "none") +
+                              ggplot2::labs(color = "") + 
+                              ggplot2::labs(shape = "") +
+                              ggplot2::theme(legend.position = "none"), 
+                            NULL,
+                            ncol = 2, 
+                            rel_widths = c(1.4, .6)) 
+
+# then combine with the top row for final plot
+figure_print <- cowplot::plot_grid(temp1, temp2, nrow = 2, rel_heights = c(1.2,.8))
+
+temp <- dplyr::left_join(
+  pres_timeseries_mean |> 
+    dplyr::rename(srvy = srvy_long), 
+  pres_stats)
+
+figure_print <- ggdraw(add_sub(
+  plot = figure_print, 
+  size = 10, 
+  label = paste0(paste0(spp_print, "\n"), 
+                 paste0(temp$srvy, " Bio Mean: ", 
+                        round(x = temp$y_mean, digits = 1),
+                        " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
+                        temp$`Biomass`," (",
+                        gsub(pattern = "\n", replace = " ", 
+                             x = temp$`% Change\nin Biomass`, fixed = TRUE), ")", 
+                        ". \n  ", temp$`Observed Catch Totals`, ". ", 
+                        collapse = "\n") )
+))
+# }
+header <- header0 <- paste0(
+  "Top right: ", pres_dist_txt, 
+  "Top left: ", 
+  "Total abundance-at-length estimates by sex encountered during the ", maxyr, " eastern and northern Bering Sea surveys. Length distributions are scaled to the total estimated population size. ", # pres_size_txt, 
+  "Bottom right: ", pres_timeseries_txt)
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```

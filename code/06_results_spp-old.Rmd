@@ -275,14 +275,52 @@ nickname <- paste0("tab-stats-", spp_file)
 ```{r tab-stats-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
+<!-- `r pagebreak` -->
+
+```{r fig-timeseries-{{jj}}}
+nickname <- paste0("fig-timeseries-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
+```
+
+```{r fig-timeseries-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% "data")}
+```
+
+```{r fig-dist-{{jj}}}
+nickname <- paste0("fig-dist-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
+```
+
+```{r fig-dist-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% "data" & spp_plot_idw)}
+```
+
+<!-- `r pagebreak` -->
+
+```{r fig-sizecomp-{{jj}}}
+nickname <- paste0("fig-sizecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
+```
+
+```{r fig-sizecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% "data" & spp_plot_sizecomp) }
+```
+
+```{r}
+# keeping for later if we choose to use the age comp figures
+
+# <!-- `r pagebreak` -->
+#
+# ```{r fig-agecomp-{{jj}}}
+# nickname <- paste0("fig-agecomp-", spp_file, ifelse(report_title == "data", "-data", "-comm"))
+# ```
+# 
+# ```{r fig-agecomp-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_plot_agecomp}
+# ```
+```
+
 ```{r fig-combined-{{jj}}}
-nickname <- paste0("fig-combined-", spp_file, 
-                   ifelse(report_title %in% "community", "-comm", "-data"))
+nickname <- paste0("fig-combined-", spp_file, "-comm")
 ```
 
-```{r fig-combined-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd") }
+```{r fig-combined-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = (report_title %in% "community") }
 ```
 
+<!-- `r land_start ` -->
 
 `r ifelse(spp_table_cpue, "\\pagebreak", "")`
 
@@ -301,3 +339,5 @@ nickname <- paste0("tab-est-",spp_file, "-num")
 
 ```{r tab-est-{{jj}}-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_table_cpue}
 ```
+
+<!-- `r land_end ` -->
