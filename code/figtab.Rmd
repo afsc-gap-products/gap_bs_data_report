@@ -7,6 +7,25 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
+```{r fig-surveyphoto}
+# for community highlights
+
+nickname <- "fig-surveyphoto"
+
+header <- readLines(con = paste0(dir_out_rawdata, "/0-surveyphoto.Rmd"))
+
+height <- 5 # ifelse(srvy == "NEBS", full_page_portrait_height, 6)
+width <- full_page_portrait_width
+
+figure_print <- figure_print <- 
+  cowplot::ggdraw() +
+  cowplot::draw_image(readPNG(paste0(dir_out_rawdata, "0-surveyphoto.png")) )
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+
+
 # Introduction
 
 ```{r fig-survey-points-nostrata}
@@ -1181,7 +1200,7 @@ temp <- function(yrs,
 ```
 
 ```{r fig-temperature-[st/bt]}
-height <- 3.5 # full_page_portrait_height
+height <- 3.25 # full_page_portrait_height
 width <- full_page_portrait_width
 yrs <- c(maxyr-2):maxyr
 row0 <- 1

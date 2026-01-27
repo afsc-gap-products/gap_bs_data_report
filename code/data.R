@@ -142,13 +142,13 @@ if (access_to_internet ) {
                                 path = paste0(dir_out_rawdata, "/", a$name[i]))
   }
     
-    a <- googledrive::drive_ls(path = googledrive::as_id("1Vbe_mH5tlnE6eheuiSVAFEnsTJvdQGD_"), 
-                               type = "document")
+    a <- googledrive::drive_ls(path = id_googledrive,
+                               type = "png")
     for (i in 1:nrow(a)){
-      googledrive::drive_download(file = googledrive::as_id(a$id[i]), 
-                                  type = "txt",
-                                  overwrite = TRUE, 
-                                  path = paste0(dir_out_rawdata, "/", a$name[i], ".txt"))
+      googledrive::drive_download(file = googledrive::as_id(a$id[i]),
+                                  type = "png",
+                                  overwrite = TRUE,
+                                  path = paste0(dir_out_rawdata, "/", a$name[i]))
   }
   
   # Spreadsheets  
