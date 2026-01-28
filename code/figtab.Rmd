@@ -1200,7 +1200,7 @@ temp <- function(yrs,
 ```
 
 ```{r fig-temperature-[st/bt]}
-height <- 3.25 # full_page_portrait_height
+height <- 3 # full_page_portrait_height
 width <- full_page_portrait_width
 yrs <- c(maxyr-2):maxyr
 row0 <- 1
@@ -1344,33 +1344,39 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
           x = names(table_raw)[!(names(table_raw) %in% 
                                    c("srvy", "common_name", "common_name0"))], 
           fixed = TRUE))
+  names(table_raw)[names(table_raw) == "Length\nmeasurements"] <- 
+    "Lengths"
   names(table_raw)[names(table_raw) == "Otolith\nage\nstructure\nsamples"] <- 
-    "Otolith age\nstructure samples"
+    "Otolith age structures"
   names(table_raw)[names(table_raw) == "Pathobiology\nblood\nsamples"] <- 
-    "Pathobiology\nblood samples"
+    "Pathobiology blood samples"
   names(table_raw)[names(table_raw) == "Genetic\nfin\nclip\nsamples"] <- 
-    "Genetic\nfin clip\nsamples"
+    "Genetic fin clips"
+  names(table_raw)[names(table_raw) == "Fecundity\nand\nmaturity\novary\nsamples"] <- 
+    "Maturity samples"
+  names(table_raw) <- gsub(x = names(table_raw), pattern = "\n", replacement = " ")
   
-  table_print <- table_raw |> 
+  table_raw00 <- table_raw |> 
     dplyr::select(-common_name0) |>
     dplyr::mutate(across(where(is.numeric), 
                          formatC, big.mark=",", digits = 0, format = "f")) |> 
     dplyr::ungroup() |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
-    dplyr::select(-"srvy") 
+    dplyr::select(-"srvy") |> 
+    dplyr::select(where(~ !all(. == 0)))
   
-  table_print[is.na(table_print) | table_print == "0"] <- "-"
+  table_raw00[is.na(table_raw00) | table_raw00 == "0"] <- "-"
   
-  table_print <- table_print |> 
+  table_print <- table_raw00 |> 
     flextable::flextable() |>
     flextable::set_header_labels(
       common_name = stringr::str_to_title(haul_cruises_maxyr$srvy_long[i])) |> 
     flextable::bold(i = which(table_print$common_name == "Total")) |>
     flextable::valign(valign = "top") |>
     theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |>
-    flextable::align(j = 2:ncol(table_print), 
+    flextable::align(j = 2:ncol(table_raw00), 
                      align = "right", part = "all")  |>
-    flextable::width(width = (5/(ncol(table_raw)-2)), unit = "in") |>
+    flextable::width(width = ((full_page_portrait_width-1.5)/(ncol(table_raw00)-1)), unit = "in") |>
     flextable::width(j = "common_name", width = 1.5, unit = "in")
   
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)

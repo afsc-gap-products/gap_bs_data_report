@@ -509,7 +509,7 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
 
 ```
 
-```{r fig-dist-[spp]-data}
+```{r fig-dist-[spp]-data, eval = FALSE}
 yrs <- c(maxyr, compareyr) # analysisyrs
 
 # if (spp_file == "greenland-turbot") {
@@ -889,7 +889,8 @@ size_plot <- function(srvy, yrs, lengths, sizecomp, print_n, height, width, nick
 ```
 
 
-```{r fig-sizecomp-[spp]-data, eval = spp_plot_sizecomp}
+```{r fig-sizecomp-[spp]-data, eval = FALSE}
+# eval = spp_plot_sizecomp
 yrs <- c(maxyr, compareyr) # analysisyrs
 height <- 4
 print_n <- FALSE
@@ -2231,7 +2232,7 @@ temp1 <- cowplot::plot_grid(
   nrow = 2, 
   align = "v",   # Align vertically
   axis = "l",     # Align by the left axis
-  rel_heights = c(.5,.5)) 
+  rel_heights = c(.6,.4)) 
 
 # figure_print <- cowplot::plot_grid(
 #   temp1, 
@@ -2270,22 +2271,37 @@ if (exists("comm_size")) {
     cowplot::draw_label("B", x = 0.6, y = 0.94, hjust = 0, vjust = 0, size = 16)
 }
 
+fig_srvy <- paste0(paste0(tolower(pres_stats[,1]), collapse = " and "), 
+                   " Bering Sea ")
+fig_srvy_plural <- ifelse(nrow(pres_stats)>1, "s", "")
+
+temp <- data_timeseries_mean |> 
+  dplyr::mutate(unit = gsub(".*\\(([^)]+)\\).*", "\\1", var_)) |>
+  tidyr::pivot_wider(id_cols = srvy_long, names_from = y_long, values_from = c("y_mean", "unit"))
+
 header <- paste0(
   toupper(substr(x = spp_print, 1, 1)), substr(x = spp_print, 2, nchar(spp_print)), #ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
   " ",
   "(A) CPUE distribution (kg/km^2^) ",
   ifelse((exists("comm_size")), "and (B) total abundance-at-length (cm) estimates by sex scaled to the total estimated population ", ""), 
-  "from the ", range_text(c(compareyr, maxyr)), " eastern (EBS) and northern (NBS) Bering Sea survey",plural_surveys,
-  ". (",ifelse((exists("comm_size")), "C", "B"),") Biomass time series during the ",
-  substr(x = gsub("[^0-9]", "", data_timeseries_txt), start = 1, stop = 4),"-2025 ", # SURVEY,
-  "survey",plural_surveys," (points and solid lines, with estimated 95% confidence intervals error bars) and time series mean (dashed lines). ")
-# ,
-#   "(",ifelse((exists("comm_size")), "D", "C"),") Photo of ", ifelse(tolower(substr(spp_print, 1, 1)) %in% c("a", "e", "i", "o", "u"), "an ", "a "), spp_print, ". ")
+  "from the ", range_text(c(compareyr, maxyr)), " ", fig_srvy, "survey", fig_srvy_plural, 
+  ". (",ifelse(exists("comm_size"), "C", "B"),") Biomass and population time series estimated from the ",
+  substr(x = gsub("[^0-9]", "", data_timeseries_txt), start = 1, stop = 4),"-2025 ", 
+  ifelse(exists("comm_size"), "", fig_srvy), 
+  "survey",fig_srvy_plural," (points and solid lines, with estimated 95% confidence intervals error bars) and time series mean (dashed lines; ",
+  paste0(temp$srvy_long, ": ", 
+       round(temp$y_mean_Biomass, digits = 1), " ", 
+       temp$unit_Biomass, 
+       " in biomass, ", 
+       round(temp$y_mean_Population, digits = 1), " ", 
+       substr(x = temp$unit_Population, start = 1, stop = nchar(temp$unit_Population)-1), " individuals", 
+       collapse = "; ")
+  ,"). ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-combined-[spp]-comm}
+```{r fig-combined-[spp]-comm, eval = FALSE}
 
 nickname <- paste0("fig-combined-", spp_file, "-comm")
 height <- 3 # full_page_portrait_height-2.5
@@ -2430,7 +2446,7 @@ header <- paste0(
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r fig-combined-[spp]-pres}
+```{r fig-combined-[spp]-pres, eval = FALSE}
 nickname <- paste0("fig-combined-", spp_file, "-pres")
 height <- 7.5
 width <- 10

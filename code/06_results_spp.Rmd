@@ -57,10 +57,10 @@ if (spp_table_cpue) {
 fig_bt <- "\\@ref(fig:fig-temperature-bt-data)"
 fig_st <- "\\@ref(fig:fig-temperature-st-data)"
 
+fig_comb <- paste0("\\@ref(fig:", "fig-combined-", spp_file, ifelse(report_title == "data", "-data", "-comm"), ")")
+
 if (report_title == "community") {
   tab_majorspp_bio <- tab_majortaxa_pchange <- c("\\@ref(tab-majortaxa-pchange-NBS)")
-  fig_comb <- paste0("\\@ref(fig:", "fig-combined-", spp_file, "-comm)")
-
 } else if (report_title == "data") {
   tab_majorspp_bio_EBS <- "\\@ref(tab:tab-majortaxa-pchange-EBS)"
   tab_majorspp_bio_NBS <- "\\@ref(tab:tab-majortaxa-pchange-NBS)"
@@ -139,19 +139,21 @@ str0 <- ""
 
 ```{r bio-pop-txt-{{jj}}}
 # , eval = (spp_text & (report_title == "data"))
-# if (report_title == "data") {
-# cite_bio <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "), tab_stat,
-#                    ifelse(spp_table_cpue, paste0(" and ", tab_wt), ""),
-#                    "; Figs. ", fig_biopop, 
-#                    ifelse(spp_plot_idw, paste0(" and ", fig_dist), ""), ")")
-# cite_pop <- paste0(" (Table",ifelse(spp_table_cpue, "s ", " "), 
-#                    tab_stat,
-#                    ifelse(spp_table_cpue, paste0(" and ", tab_no), ""),# " and ", tab_no, 
-#                    "; Fig. ", fig_biopop,")")
-# } else if (report_title == "community") {
+if (report_title == "data") {
+cite_bio <- paste0(" (Table", ifelse(spp_table_cpue, "s ", " "), tab_stat,
+                   ifelse(spp_table_cpue, paste0(" and ", tab_wt), ""),
+                   "; Fig. ", fig_comb, ")")                   
+                   # "; Figs. ", fig_biopop,
+                   # ifelse(spp_plot_idw, paste0(" and ", fig_dist), ""), ")")
+cite_pop <- paste0(" (Table", ifelse(spp_table_cpue, "s ", " "),
+                   tab_stat,
+                   ifelse(spp_table_cpue, paste0(" and ", tab_no), ""),# " and ", tab_no,
+                   "; Fig. ", fig_comb,")")
+                   # "; Fig. ", fig_biopop,")")
+} else if (report_title == "community") {
   cite_bio <- paste0(" (Table ", tab_stat, "; Fig. ", fig_comb, ")")
   cite_pop <- paste0(" (Table ", tab_stat, "; Fig. ", fig_comb, ")")
-# }
+}
 
 
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))

@@ -630,11 +630,11 @@ diff <- summarize_gp_updates(channel = channel_products,
                              time_start = dl_change_start,
                              time_end = dl_change_end)
 
-if (nrow(diff)) {
+if (nrow(diff) > 0) {
 
-diff <- diff|>
+diff <- diff |>
   dplyr::filter(SURVEY_DEFINITION_ID %in% c(98, 143)) |>
-  dplyr::arrange(SURVEY_DEFINITION_ID)|>
+  dplyr::arrange(SURVEY_DEFINITION_ID) |>
   dplyr::mutate(OPERATION_TYPE = dplyr::case_when(
     OPERATION_TYPE == "UPDATE" & NUMBER_RECS == 1 ~ "update",
     OPERATION_TYPE == "INSERT" & NUMBER_RECS == 1 ~ "insertion",
@@ -660,7 +660,7 @@ diff <- diff|>
     SURVEY_DEFINITION_ID == 143 ~ "northern Bering Sea"
   ))
 
-diff_maxyr <- diff|>
+diff_maxyr <- diff |>
   dplyr::filter(YEAR == maxyr)|>
   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
   dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE)) |>
@@ -686,10 +686,10 @@ diff_notmaxyr <- diff|>
 
 changes_since_string <- function(diff0, str_year, maxyr) {
   str0 <- c()
-  for (ii in unique(diff$srvy_long_DEFINITION_ID)) {
+  for (ii in unique(diff$SURVEY_DEFINITION_ID)) {
     temp1 <- diff0|>
       dplyr::filter(SURVEY_DEFINITION_ID == ii)
-    str0 <- paste0(str0, ifelse(ii == unique(diff0srvy_long_DEFINITION_ID)[1],
+    str0 <- paste0(str0, ifelse(ii == unique(diff0$SURVEY_DEFINITION_ID)[1],
                                 paste0("In ", str_year), "Similarly"),
                    ", the ", ii, " ")
 
@@ -718,8 +718,14 @@ changes_since_string <- function(diff0, str_year, maxyr) {
   return(str0)
 }
 
-str_maxyr <- changes_since_string(diff0 = diff_maxyr, str_year = maxyr, maxyr = maxyr)
-str_notmaxyr <- changes_since_string(diff0 = diff_notmaxyr, str_year = paste0("the years before ", maxyr), maxyr = maxyr)
+str_maxyr <- changes_since_string(
+  diff0 = diff_maxyr, 
+  str_year = maxyr, 
+  maxyr = maxyr)
+str_notmaxyr <- changes_since_string(
+  diff0 = diff_notmaxyr, 
+  str_year = paste0("the years before ", maxyr), 
+  maxyr = maxyr)
 
 str_data_changes <- paste0(str_maxyr, str_notmaxyr)
 writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.txt"))
@@ -728,7 +734,8 @@ writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.t
 # Date production data last updated --------------------------------------------
 
 library(rvest)
-last_production_run <- read_html("https://afsc-gap-products.github.io/gap_products/content/intro-news.html")|> 
+last_production_run <- 
+  read_html("https://afsc-gap-products.github.io/gap_products/content/intro-news.html")|> 
   html_element("p")|> 
   paste0() 
 
