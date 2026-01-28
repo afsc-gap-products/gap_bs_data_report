@@ -1912,18 +1912,13 @@ table_raw <- table_raw |>
 
 table_raw1 <- table_raw
 
-timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises) {
-  
-  # if (length(unique(table_raw$var_)) == 1) {
-  #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = "", pattern = "\n", fixed = TRUE)
-  #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = " ", pattern = "  ", fixed = TRUE)
-  # }
   
   # find mean for mean line
   table_raw_mean <- table_raw |> 
-    dplyr::group_by(srvy_long, y_long, group, var_) |> 
+    dplyr::group_by(srvy_long, srvy, y_long, group, var_) |> 
     dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) |> 
-    dplyr::filter(!is.na(y_mean)) |> 
+    dplyr::filter(!is.na(y_mean))  |> 
+    dplyr::ungroup() |> 
     dplyr::left_join(
       biomass |>
         dplyr::filter(stratum == 999 &
@@ -1936,8 +1931,16 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
                            dplyr::select(survey_definition_id, srvy_long) |> 
                            dplyr::distinct()) |> 
         dplyr::select(-survey_definition_id) |> 
-        dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long))) |> 
-    dplyr::ungroup()
+        dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long)) |> 
+    dplyr::ungroup())
+
+timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, legend_font_size = 10) {
+  
+  # if (length(unique(table_raw$var_)) == 1) {
+  #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = "", pattern = "\n", fixed = TRUE)
+  #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = " ", pattern = "  ", fixed = TRUE)
+  # }
+
   
   # anno<-NA
   # temp<-setdiff(x = unique(table_raw$srvy), 
@@ -2091,7 +2094,7 @@ height <- 3
 width <- full_page_portrait_width
 legend_font_size <- 10
 
-temp <- timeseries_plot(table_raw = table_raw1, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+temp <- timeseries_plot(table_raw = table_raw1, table_raw_mean, nickname, height, width, legend_font_size = 10)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -2103,7 +2106,7 @@ width <- full_page_portrait_width
 legend_font_size <- 8
 table_raw0 <- table_raw1 |> dplyr::filter(var == "biomass_mt")
 
-temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = legend_font_size, haul_cruises)
+temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = legend_font_size)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -2112,9 +2115,11 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 nickname <- paste0("fig-timeseries-", spp_file, "-data-alt")
 height <- 3
 legend_font_size <- 12
-table_raw0 <- table_raw1 |> dplyr::mutate(srvy_long = srvy)
 
-temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+temp <- timeseries_plot(
+  table_raw = table_raw1 |> dplyr::mutate(srvy_long = srvy), 
+  table_raw_mean = table_raw_mean |> dplyr::mutate(srvy_long = srvy), 
+  nickname, height, width, legend_font_size = 10)
 data_timeseries <- temp$figure_print + 
   ggplot2::theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
 data_timeseries_mean <- temp$table_raw_mean
@@ -2130,7 +2135,7 @@ height <- 3
 legend_font_size <- 12
 table_raw0 <- table_raw1 |> dplyr::filter(var == "biomass_mt") |> dplyr::mutate(srvy_long = srvy)
 
-temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10, haul_cruises)
+temp <- timeseries_plot(table_raw = table_raw0, table_raw_mean, nickname, height, width, legend_font_size = 10)
 pres_timeseries <- temp$figure_print + 
   ggplot2::theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
 pres_timeseries_mean <- temp$table_raw_mean
@@ -2143,7 +2148,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-combined-[spp]-data}
 
 nickname <- paste0("fig-combined-", spp_file, "-data")
-height <- 4.5 # full_page_portrait_height-2.5
+height <- 4 # full_page_portrait_height-2.5
 width <- full_page_portrait_width
 
 comm_dist1 <- comm_dist  +
@@ -2232,7 +2237,7 @@ temp1 <- cowplot::plot_grid(
   nrow = 2, 
   align = "v",   # Align vertically
   axis = "l",     # Align by the left axis
-  rel_heights = c(.6,.4)) 
+  rel_heights = c(.5,.5)) 
 
 # figure_print <- cowplot::plot_grid(
 #   temp1, 
@@ -2263,7 +2268,7 @@ figure_print <- cowplot::ggdraw(figure_print) +
                       y = 0.94, hjust = 0, vjust = 0, size = 16) +
   cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), 
                       x = ifelse(exists("comm_size"), 0.06, 0.01), 
-                      y = 0.4, hjust = 0, vjust = 0, size = 16) #+
+                      y = 0.5, hjust = 0, vjust = 0, size = 16) #+
 # cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
 
 if (exists("comm_size")) {
@@ -2292,7 +2297,7 @@ header <- paste0(
   paste0(temp$srvy_long, ": ", 
        round(temp$y_mean_Biomass, digits = 1), " ", 
        temp$unit_Biomass, 
-       " in biomass, ", 
+       " biomass, ", 
        round(temp$y_mean_Population, digits = 1), " ", 
        substr(x = temp$unit_Population, start = 1, stop = nchar(temp$unit_Population)-1), " individuals", 
        collapse = "; ")
