@@ -1912,27 +1912,28 @@ table_raw <- table_raw |>
 
 table_raw1 <- table_raw
 
-  
-  # find mean for mean line
-  table_raw_mean <- table_raw |> 
-    dplyr::group_by(srvy_long, srvy, y_long, group, var_) |> 
-    dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) |> 
-    dplyr::filter(!is.na(y_mean))  |> 
-    dplyr::ungroup() |> 
-    dplyr::left_join(
-      biomass |>
-        dplyr::filter(stratum == 999 &
-                        year >= min(table_raw$year, na.rm = TRUE) # 1987
-        ) |> 
-        dplyr::group_by(survey_definition_id) |> 
-        dplyr::summarise(minyr = min(year, na.rm = TRUE), 
-                         maxyr = max(year, na.rm = TRUE)) |> 
-        dplyr::left_join(y = haul_cruises |> 
-                           dplyr::select(survey_definition_id, srvy_long) |> 
-                           dplyr::distinct()) |> 
-        dplyr::select(-survey_definition_id) |> 
-        dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long)) |> 
-    dplyr::ungroup())
+
+# find mean for mean line
+table_raw_mean <- table_raw |> 
+  dplyr::group_by(srvy_long, srvy, y_long, group, var_) |> 
+  dplyr::summarise(y_mean = mean(y, na.rm = TRUE), 
+                   val_mean = mean(val, na.rm = TRUE)) |> 
+  dplyr::filter(!is.na(y_mean))  |> 
+  dplyr::ungroup() |> 
+  dplyr::left_join(
+    biomass |>
+      dplyr::filter(stratum == 999 &
+                      year >= min(table_raw$year, na.rm = TRUE) # 1987
+      ) |> 
+      dplyr::group_by(survey_definition_id) |> 
+      dplyr::summarise(minyr = min(year, na.rm = TRUE), 
+                       maxyr = max(year, na.rm = TRUE)) |> 
+      dplyr::left_join(y = haul_cruises |> 
+                         dplyr::select(survey_definition_id, srvy_long) |> 
+                         dplyr::distinct()) |> 
+      dplyr::select(-survey_definition_id) |> 
+      dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long)) |> 
+      dplyr::ungroup())
 
 timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, legend_font_size = 10) {
   
@@ -1940,7 +1941,7 @@ timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, 
   #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = "", pattern = "\n", fixed = TRUE)
   #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = " ", pattern = "  ", fixed = TRUE)
   # }
-
+  
   
   # anno<-NA
   # temp<-setdiff(x = unique(table_raw$srvy), 
@@ -2281,8 +2282,9 @@ fig_srvy <- paste0(paste0(tolower(pres_stats[,1]), collapse = " and "),
 fig_srvy_plural <- ifelse(nrow(pres_stats)>1, "s", "")
 
 temp <- data_timeseries_mean |> 
-  dplyr::mutate(unit = gsub(".*\\(([^)]+)\\).*", "\\1", var_)) |>
-  tidyr::pivot_wider(id_cols = srvy_long, names_from = y_long, values_from = c("y_mean", "unit"))
+  dplyr::mutate(unit = gsub(".*\\(([^)]+)\\).*", "\\1", var_), 
+                val_mean = ifelse(val_mean <= 1, ">1", val_mean)) |>
+  tidyr::pivot_wider(id_cols = srvy, names_from = y_long, values_from = c("y_mean", "val_mean", "unit"))
 
 header <- paste0(
   toupper(substr(x = spp_print, 1, 1)), substr(x = spp_print, 2, nchar(spp_print)), #ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
@@ -2294,14 +2296,24 @@ header <- paste0(
   substr(x = gsub("[^0-9]", "", data_timeseries_txt), start = 1, stop = 4),"-2025 ", 
   ifelse(exists("comm_size"), "", fig_srvy), 
   "survey",fig_srvy_plural," (points and solid lines, with estimated 95% confidence intervals error bars) and time series mean (dashed lines; ",
-  paste0(temp$srvy_long, ": ", 
-       round(temp$y_mean_Biomass, digits = 1), " ", 
-       temp$unit_Biomass, 
-       " biomass, ", 
-       round(temp$y_mean_Population, digits = 1), " ", 
-       substr(x = temp$unit_Population, start = 1, stop = nchar(temp$unit_Population)-1), " individuals", 
-       collapse = "; ")
-  ,"). ")
+  ifelse(spp_file == "tunicates", 
+         paste0(temp$srvy, " mean: ", 
+                formatC(x = temp$val_mean_Biomass, digits = 0, big.mark = ",", format = "f"), " ", 
+                "t", # temp$unit_Biomass,  
+                " biomass", 
+                collapse = "; "),  
+         paste0(temp$srvy, " mean: ", 
+                formatC(x = temp$val_mean_Biomass, digits = 0, big.mark = ",", format = "f"), " ", 
+                "t", # temp$unit_Biomass,  
+                " biomass", 
+                # ifelse(spp_file == "tunicates", "", 
+                # paste0(
+                ", ", 
+                formatC(x = temp$val_mean_Population, digits = 0, big.mark = ",", format = "f"), 
+                # " ", substr(x = temp$unit_Population, start = 1, stop = nchar(temp$unit_Population)-1), 
+                " individuals", # ), 
+                collapse = "; ")), 
+  "). ")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```

@@ -712,7 +712,8 @@ changes_since_string <- function(diff0, str_year, maxyr) {
                                       " ", temp$OPERATION_TYPE)),
                      str0_years,
                      ifelse(i == unique(diff0$TABLE_NAME)[length(unique(diff0$TABLE_NAME))-1], "; and ",
-                            ifelse(i == unique(diff0$TABLE_NAME)[length(unique(diff0$TABLE_NAME))], ". ", "; ")))
+                            ifelse(i == unique(diff0$TABLE_NAME)[length(unique(diff0$TABLE_NAME))], 
+                                   ". ", "; ")), "\n")
     }
   }
   return(str0)

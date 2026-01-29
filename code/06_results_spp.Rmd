@@ -257,9 +257,19 @@ if (nrow(temp) == 1 & length(srvy11)==2) { # temp$srvy_long %in% stringr::str_to
   str0 <- paste0(str0, 
                  "No ", spp_print, " were observed in the ", 
                  srvy11[!(stringr::str_to_title(srvy11) %in% temp$srvy_long)], 
-                 " in ", maxyr," (Fig. ", ifelse(report_title == "data", fig_dist, fig_comb),"). ")
+                 " in ", maxyr," (Fig. ", 
+                 fig_comb, "). "
+                 # ifelse(report_title == "data", fig_dist, fig_comb),"). ")
+                 )
 }
 
+
+str0 <- paste0(str0, 
+                 ifelse(
+                   (spp_file %in% c("eulachon", "pacific-capelin", "pacific-herring", "rainbow_smelt")), 
+                   paste0(spp_print, " lengths are not collected during the eastern and northern Bering Sea surveys. "), 
+                   "") )  
+  
 str0 <- paste0(str0, 
                  ifelse((spp_print == "tunicates"), "No population estimate is calculated because this organism is colonial and it is not possible to count individuals. ", "") )
 
