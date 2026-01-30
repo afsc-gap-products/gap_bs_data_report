@@ -713,7 +713,7 @@ changes_since_string <- function(diff0, str_year, maxyr) {
                      str0_years,
                      ifelse(i == unique(diff0$TABLE_NAME)[length(unique(diff0$TABLE_NAME))-1], "; and ",
                             ifelse(i == unique(diff0$TABLE_NAME)[length(unique(diff0$TABLE_NAME))], 
-                                   ". ", "; ")), "\n")
+                                   ". ", "; ")))
     }
   }
   return(str0)
@@ -728,7 +728,7 @@ str_notmaxyr <- changes_since_string(
   str_year = paste0("the years before ", maxyr), 
   maxyr = maxyr)
 
-str_data_changes <- paste0(str_maxyr, str_notmaxyr)
+str_data_changes <- paste0(str_maxyr, "\n\n", str_notmaxyr)
 writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.txt"))
 }
 
