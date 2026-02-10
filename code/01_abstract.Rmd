@@ -7,15 +7,15 @@
 str0_srvys <- gsub(pattern = " ,", replacement = ",", 
              x = text_list(paste0(haul_cruises_maxyr$yrofsurvey, 
                                   haul_cruises_maxyr$stndth, " ", haul_cruises_maxyr$srvy_long, 
-                                  " groundfish and shellfish bottom trawl survey"), 
+                                  " bottom trawl survey"), 
                            sep_last = ", as well as the "))
 
 # Survey coverage --------------------------------------------------------------
 str0_coverage <- ifelse(srvy == "NEBS", 
                    # NBS + EBS
-                   paste0("The survey covered the eastern and northern Bering Sea continental shelf (bottom depths between 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait. "), 
+                   paste0("The surveys occurred from May through August and covered the eastern and northern Bering Sea continental shelf (bottom depths between 20 and 200 m) from the Alaska mainland coast to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and the Bering Strait. "), 
                    # EBS
-                   paste0("The survey covers the eastern Bering Sea continental shelf (bottom depths between 20 and 200 m) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62°N. "))
+                   paste0("The survey occurred from May through August and covers the eastern Bering Sea continental shelf (bottom depths between 20 and 200 m) from the Alaska coastline to the U.S.-Russia Maritime Boundary between the Alaska Peninsula and roughly 62°N. "))
 
 # Station count ----------------------------------------------------------------
 vessels0 <- vessels|> 
@@ -24,7 +24,8 @@ vessels0 <- vessels|>
 str0_stations <- paste0(
   "Survey sampling was conducted aboard ", (numbers2words(nrow(vessels0))),
   " chartered, commercial stern trawlers, the ", 
-  text_list(paste0(vessels0$length_m, " m ",  vessels0$vessel_ital)), ", across ", 
+  text_list(paste0(#vessels0$length_m, " m ",  
+                   vessels0$vessel_ital)), ", across ", 
   text_list(paste0(haul_cruises_maxyr$stations_completed, 
                    ifelse(haul_cruises_maxyr$stations_completed == haul_cruises_maxyr$stations_avail, "", paste0(" (of ",  haul_cruises_maxyr$stations_avail, ")")), 
                    " stations in the ", haul_cruises_maxyr$srvy_long)), ". ")
