@@ -1477,11 +1477,11 @@ table_print <- flextable::flextable(
                       ifelse((!is.na(species_name_ital) | !is.na(species_name_noital)), ")", "")),
                props = fp_text_default(bold = FALSE, font.size = font_size0, font.family = font0)))) |> 
   flextable::compose(i = 1, j = "dummy_ebs", part = "header",
-                     as_paragraph("Encountered in EBS, not in NBS\nCommon name ",
+                     as_paragraph("Only Encountered in Eastern Bering Sea\nCommon name ",
                                   as_chunk(paste0("(scientific name)"),
                                            props = fp_text_default(italic = TRUE, bold = TRUE, font.family = font0)))) |>
   flextable::compose(i = 1, j = "dummy_nbs", part = "header",
-                     as_paragraph("Encountered in NBS, not in EBS\nCommon name ", 
+                     as_paragraph("Only Encountered in Northern Bering Sea\nCommon name ", 
                                   as_chunk(paste0("(scientific name)"),
                                            props = fp_text_default(italic = TRUE, bold = TRUE, font.family = font0)))) |>  
   theme_flextable_nmfstm(row_lines = FALSE, 
@@ -2468,7 +2468,7 @@ table_print <- table_raw |>
           theme_flextable_nmfstm(row_lines = FALSE, 
                                  pgwidth = full_page_portrait_width) |>
           flextable::width(width = 1, unit = "in") |> 
-          flextable::width(j = "length_mm", width = .52, unit = "in") |> 
+          flextable::width(j = "length_mm", width = .55, unit = "in") |> 
           flextable::hline_bottom(border = fp_border(width = 2), part = "header")
         
         list_tables0$temp <- list("table_print" = table_print, 
@@ -3030,5 +3030,55 @@ table_print <- table_raw |>
 ```
   
   
+```{r tab-data-changes}
+  nickname0 <- "tab-data-changes" 
+
+table_raw00 <- read.csv(file = paste0(dir_data, "/str_data_changes.csv")) 
+table_raw0 <- table_raw00 |> 
+  janitor::clean_names() |> 
+  dplyr::arrange(survey_definition_id, table_name_order, operation_type, table_name) |>
+  dplyr::mutate(
+    Years = ifelse(year_min == year_max, year_min, paste0(year_min, "-", year_max)), 
+    survey_definition_id = stringr::str_to_title(survey_definition_id), 
+    operation_type = stringr::str_to_title(operation_type), 
+    table_name = stringr::str_to_title(table_name), 
+    no_recs = formatC(x = no_recs, digits = 0, format = "f", big.mark = ",")
+  ) |> 
+  dplyr::select(Survey = survey_definition_id, 
+                Years,
+                Table = table_name, 
+                Action = operation_type, 
+                Records = no_recs) 
+
+for (i in 1:2) {
+
+    header <- paste0("The number of records changed in public-facing production tables ")
+    
+  if (i == 1) {
+    header <- paste0(header, "in ", maxyr,". ")    
+        table_raw <- table_raw0 |> 
+  dplyr::filter(Years == maxyr) |> 
+  dplyr::select(-Years)
+          nickname <- paste0(nickname0, "-maxyr") 
+
+  } else {
+    header <- paste0(header,"from 1982-", 
+                     max(table_raw00$year_max[table_raw00$year_max != maxyr]),". ")    
+    table_raw <- table_raw0 |> 
+  dplyr::filter(Years != maxyr)
+          nickname <- paste0(nickname0, "-notmaxyr") 
+  }
+  
+  table_print <- table_raw |>
+    flextable::flextable() |> 
+    flextable::merge_v() |> 
+    theme_flextable_nmfstm(row_lines = TRUE, 
+                           pgwidth = full_page_landscape_width) 
+
+  }
+  
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+    
   
   

@@ -12,7 +12,8 @@ a <- report_spp1[which(report_spp1$file_name == comb[jj]), ]
 
 spp_file <- a$file_name[1]
 spp_sci <- text_list(unique(a$species_name))
-spp_sci <- ifelse(spp_file == "tunicates", "Tunicata", text_list(unique(a$species_name))) # TOLEDO
+spp_sci <- ifelse(spp_file == "tunicates", "Tunicata", spp_file) # TOLEDO
+spp_sci <- ifelse(spp_file == "neptune-whelks", "*Neptune* spp.", spp_file) # TOLEDO
 
 spp_print <- a$print_name[1]
 spp_taxon <- a$taxon[1]
@@ -1230,10 +1231,10 @@ temp_env <- haul0 |>
   dplyr::mutate(
     dplyr::across(dplyr::ends_with("Temperature"), 
                   formatC, big.mark = ",", digits = 1, format = "f"), 
-    val = ifelse(Min == Max, Min, paste0(Min, " — ", Max)), 
+    val = ifelse(Min == Max, Min, paste0(Min, " - ", Max)), 
     dplyr::across(dplyr::ends_with("Depth"), 
                   formatC, big.mark = ",", digits = 0, format = "f"), 
-    val = ifelse(Min == Max, Min, paste0(Min, " — ", Max)))  |>
+    val = ifelse(Min == Max, Min, paste0(Min, " - ", Max)))  |>
   dplyr::relocate(variable, dplyr::ends_with(srvy1[1])) |> 
   dplyr::select(-Min, -Max) |> 
   tidyr::pivot_wider(id_cols = "srvy",
@@ -1309,20 +1310,11 @@ for (i in 1:nrow(temp_bio)) {
       "Population" = ifelse(is.na(temp_bio$population_count[i]),
                             "-",
                             xunits(temp_bio$population_count[i])),
-      "Biomass" = ifelse(is.na(temp_bio$biomass_mt[i]),
-                         "-",
-                         paste0(xunits(temp_bio$biomass_mt[i],
+      "Biomass" = dplyr::case_when(
+        is.na(temp_bio$biomass_mt[i]) ~ "-",
+        temp_bio$biomass_mt[i] <= 1 ~ ">1 t", 
+        TRUE ~ paste0(xunits(temp_bio$biomass_mt[i],
                                        val_under_x_words = NULL), " t")),
-      "Population; Biomass" = paste0(
-        ifelse(is.na(temp_bio$population_count[i]), 
-               "-", 
-               xunits(temp_bio$population_count[i])), 
-        "; ", 
-        ifelse(is.na(temp_bio$biomass_mt[i]), 
-               "-", 
-               paste0(xunits(temp_bio$biomass_mt[i], 
-                             val_under_x_words = NULL))), 
-        " t" ), 
       "% of Total Biomass" = dplyr::case_when(
         is.na(temp_bio$biomass_mt[i]) ~ "-", 
         paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
@@ -1342,6 +1334,8 @@ for (i in 1:nrow(temp_bio)) {
                                        "\nfrom ", compareyr0)) ) )))
   )
 }
+
+temp_bio1$`Population; Biomass` <- paste0(temp_bio1$Population, "; ", temp_bio1$Biomass) 
 
 ### Catch ----------------------------------------------------------------------
 
@@ -1392,22 +1386,19 @@ temp_catch$catch_min <- catch_min
 
 temp_catch$str <- paste0(
   ifelse(temp_catch[,paste0("yr_1111")] < temp_catch[,paste0("yr_", maxyr)],
-         # ifelse(temp_catch[,paste0("yr_", compareyr)] < temp_catch[,paste0("yr_", maxyr)],
          "Increased", "Decreased"), 
   " from ", 
-  formatC(x = unlist(temp_catch[,paste0("yr_1111")]), big.mark = ",", format = "f", digits = 0), 
+    xunits(unlist(temp_catch[,"yr_1111"])), 
   ifelse(spp_print == "tunicates", " kg", ""), " in ", 
   temp_catch$compareyr,
-  # unlist(temp_catch[,paste0("yr_", compareyr)]), 
   " to ", 
-  formatC(x = unlist(temp_catch[,paste0("yr_", maxyr)]), big.mark = ",", format = "f", digits = 0),
-  # " individuals in ", 
-  " ",ifelse(spp_print == "tunicates", "kg", "individuals")," in ",
-  
+    xunits(unlist(temp_catch[,paste0("yr_", maxyr)])), # ),
+  " ",
+  ifelse(spp_print == "tunicates", "kg", ""), 
+  ifelse(temp_catch[,paste0("yr_", maxyr)]>1 & spp_print != "tunicates", "individuals","individual"),
+  " in ",
   maxyr)
-# if (spp_print == "tunicates") { # can't be counted!
-#   temp_catch$str <- ""
-# }
+
 ### Combine temp tables --------------------------------------------------------
 
 table_raw <- temp_stat |> 
@@ -1437,8 +1428,10 @@ header <- paste0("Summary of ",maxyr," catch presence, temperature ranges, and e
                  spp_print, 
                  # ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
                  " in the ", 
-                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
-                 " survey", plural_surveys, ". ")
+                 ifelse(length(table_raw$`Bering Sea\nSurvey`) == 1, 
+                        paste0(tolower(table_raw$`Bering Sea\nSurvey`), " Bering Sea"), SURVEY), 
+                 # " survey", plural_surveys, 
+                 ". ")
 
 table_raw0 <- table_raw |> 
   dplyr::select(-srvy) |> 
@@ -1453,15 +1446,25 @@ if (ncol(table_print0) > 2) {
   table_print0[,3] <- gsub(x = table_print0[,3], pattern = "\n", replacement = " ")
 }
 
+  # if there are more than 99 individuals for one survey but not the other, 
+  # replace entries for biomass % rows with "-"
+    table_print0[table_print0$var == "% of Total Biomass", c(2:ncol(table_print0))][which(table_print0[table_print0$var == "catch_min", c(2:ncol(table_print0))]<=100)] <- "-"
+        table_print0[table_print0$var == "% Change in Biomass", c(2:ncol(table_print0))][which(table_print0[table_print0$var == "catch_min", c(2:ncol(table_print0))]<=100)] <- "-"
+
 # remove rows if there are less than 99 individuals 
-if (sum(table_raw$catch_min > 99) == length(srvy1)) {
+if (sum(table_raw$catch_min >= 100) == nrow(table_raw)) {
+  # if there are more than 99 individuals for both surveys, remove "Observed Catch Totals" row
   table_print0 <- table_print0[table_print0$var != "Observed Catch Totals",]
-} else {
+} else if (sum(table_raw$catch_min <= 100) == nrow(table_raw)) {
+  # if there are less than 99 individuals for both surveys, remove % biomass rows
   table_print0 <- table_print0[table_print0$var != "% Change in Biomass",]
   table_print0 <- table_print0[table_print0$var != "% of Total Biomass",]
+} 
+    
+    if (sum(table_raw$catch_min >= 100) != nrow(table_raw)) {
   header <- paste0(header, 
-                   "Too few organisms were observed on the survey to share meaningful percent change to percent of total biomass values, so observed values are shared instead. ")
-}
+                   "Too few organisms were observed on the survey to share meaningful percent change of total biomass values, so observed values are shared instead. ")      
+    }
 
 # # null cells if there are less than 99 individuals
 # for (i in 1:length(srvy)) {

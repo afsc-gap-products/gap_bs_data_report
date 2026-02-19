@@ -626,6 +626,7 @@ write.csv(x = crab_biomass,
 
 source("Z:/Projects/ConnectToOracle.R")
 source("https://raw.githubusercontent.com/afsc-gap-products/gap_products/refs/heads/main/functions/summarize_gp_updates.R")
+
 diff <- summarize_gp_updates(channel = channel_products,
                              time_start = dl_change_start,
                              time_end = dl_change_end)
@@ -730,6 +731,14 @@ str_notmaxyr <- changes_since_string(
 
 str_data_changes <- paste0(str_maxyr, "\n\n", str_notmaxyr)
 writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.txt"))
+
+str_data_changes <- dplyr::bind_rows(
+  diff_maxyr |> dplyr::mutate(case = "maxyr"), 
+  diff_notmaxyr |> dplyr::mutate(case = "notmaxyr")
+  )
+
+write.csv(x = str_data_changes, file = here::here("data", "str_data_changes.csv"))
+
 }
 
 # Date production data last updated --------------------------------------------
