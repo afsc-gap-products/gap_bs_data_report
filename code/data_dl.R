@@ -627,13 +627,13 @@ write.csv(x = crab_biomass,
 source("Z:/Projects/ConnectToOracle.R")
 source("https://raw.githubusercontent.com/afsc-gap-products/gap_products/refs/heads/main/functions/summarize_gp_updates.R")
 
-diff <- summarize_gp_updates(channel = channel_products,
+diff00 <- summarize_gp_updates(channel = channel_products,
                              time_start = dl_change_start,
                              time_end = dl_change_end)
 
-if (nrow(diff) > 0) {
+if (nrow(diff00) > 0) {
 
-diff <- diff |>
+diff00 <- diff00 |>
   dplyr::filter(SURVEY_DEFINITION_ID %in% c(98, 143)) |>
   dplyr::arrange(SURVEY_DEFINITION_ID) |>
   dplyr::mutate(OPERATION_TYPE = dplyr::case_when(
@@ -661,7 +661,7 @@ diff <- diff |>
     SURVEY_DEFINITION_ID == 143 ~ "northern Bering Sea"
   ))
 
-diff_maxyr <- diff |>
+diff00_maxyr <- diff00 |>
   dplyr::filter(YEAR == maxyr)|>
   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
   dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE)) |>
@@ -670,31 +670,31 @@ diff_maxyr <- diff |>
   dplyr::mutate(year_min = maxyr,
                 year_max = maxyr)
 
-diff_notmaxyr_years <- diff|>
+diff00_notmaxyr_years <- diff00|>
   dplyr::filter(YEAR != maxyr)|>
   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, SURVEY_DEFINITION_ID)|>
   dplyr::summarise(year_min = min(YEAR, na.rm = TRUE),
                    year_max = max(YEAR, na.rm = TRUE))|>
   dplyr::ungroup()
 
-diff_notmaxyr <- diff|>
+diff00_notmaxyr <- diff00|>
   dplyr::filter(YEAR != maxyr)|>
   dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
   dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE))|>
   dplyr::ungroup()|>
   dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order)|>
-  dplyr::full_join(diff_notmaxyr_years)
+  dplyr::full_join(diff00_notmaxyr_years)
 
-changes_since_string <- function(diff0, str_year, maxyr) {
+changes_since_string <- function(diff000, str_year, maxyr) {
   str0 <- c()
-  for (ii in unique(diff$SURVEY_DEFINITION_ID)) {
-    temp1 <- diff0|>
+  for (ii in unique(diff00$SURVEY_DEFINITION_ID)) {
+    temp1 <- diff000|>
       dplyr::filter(SURVEY_DEFINITION_ID == ii)
-    str0 <- paste0(str0, ifelse(ii == unique(diff0$SURVEY_DEFINITION_ID)[1],
+    str0 <- paste0(str0, ifelse(ii == unique(diff000$SURVEY_DEFINITION_ID)[1],
                                 paste0("In ", str_year), "Similarly"),
                    ", the ", ii, " ")
 
-    for (i in unique(diff0$TABLE_NAME)) {
+    for (i in unique(diff000$TABLE_NAME)) {
       temp <- temp1|>
         dplyr::filter(TABLE_NAME == i)|>
         dplyr::arrange(desc(OPERATION_TYPE))
@@ -708,12 +708,12 @@ changes_since_string <- function(diff0, str_year, maxyr) {
       }
 
       str0 <- paste0(str0,
-                     ifelse(i != unique(diff0$TABLE_NAME)[1], "the ", ""), i, " table observed ",
+                     ifelse(i != unique(diff000$TABLE_NAME)[1], "the ", ""), i, " table observed ",
                      text_list(paste0(formatC(x = temp$NO_RECS, digits = 0, big.mark = ","),
                                       " ", temp$OPERATION_TYPE)),
                      str0_years,
-                     ifelse(i == unique(diff0$TABLE_NAME)[length(unique(diff0$TABLE_NAME))-1], "; and ",
-                            ifelse(i == unique(diff0$TABLE_NAME)[length(unique(diff0$TABLE_NAME))], 
+                     ifelse(i == unique(diff000$TABLE_NAME)[length(unique(diff000$TABLE_NAME))-1], "; and ",
+                            ifelse(i == unique(diff000$TABLE_NAME)[length(unique(diff000$TABLE_NAME))], 
                                    ". ", "; ")))
     }
   }
@@ -721,11 +721,11 @@ changes_since_string <- function(diff0, str_year, maxyr) {
 }
 
 str_maxyr <- changes_since_string(
-  diff0 = diff_maxyr, 
+  diff000 = diff00_maxyr, 
   str_year = maxyr, 
   maxyr = maxyr)
 str_notmaxyr <- changes_since_string(
-  diff0 = diff_notmaxyr, 
+  diff000 = diff00_notmaxyr, 
   str_year = paste0("the years before ", maxyr), 
   maxyr = maxyr)
 
@@ -733,8 +733,8 @@ str_data_changes <- paste0(str_maxyr, "\n\n", str_notmaxyr)
 writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.txt"))
 
 str_data_changes <- dplyr::bind_rows(
-  diff_maxyr |> dplyr::mutate(case = "maxyr"), 
-  diff_notmaxyr |> dplyr::mutate(case = "notmaxyr")
+  diff00_maxyr |> dplyr::mutate(case = "maxyr"), 
+  diff00_notmaxyr |> dplyr::mutate(case = "notmaxyr")
   )
 
 write.csv(x = str_data_changes, file = here::here("data", "str_data_changes.csv"))

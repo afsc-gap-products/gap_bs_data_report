@@ -3054,6 +3054,7 @@ for (i in 1:2) {
 
     header <- paste0("The number of records changed in public-facing production tables ")
     
+    table_raw <- data.frame()
   if (i == 1) {
     header <- paste0(header, "in ", maxyr,". ")    
         table_raw <- table_raw0 |> 
@@ -3061,7 +3062,7 @@ for (i in 1:2) {
   dplyr::select(-Years)
           nickname <- paste0(nickname0, "-maxyr") 
 
-  } else {
+  } else if (i == 2) {
     header <- paste0(header,"from 1982-", 
                      max(table_raw00$year_max[table_raw00$year_max != maxyr]),". ")    
     table_raw <- table_raw0 |> 
@@ -3073,11 +3074,10 @@ for (i in 1:2) {
     flextable::flextable() |> 
     flextable::merge_v() |> 
     theme_flextable_nmfstm(row_lines = TRUE, 
-                           pgwidth = full_page_landscape_width) 
+                           pgwidth = full_page_portrait_width) 
 
-  }
-  
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  }
 ```
     
   

@@ -350,7 +350,8 @@ range_text <- function(x,
 #' xunits(value = c(12345, 123456, 1234567))
 #' xunits(value = 123456789)
 #' xunits(value = 123456789, words = FALSE)
-xunits<-function(value,
+xunits <- function(
+    value,
                  val_under_x_words = 10,
                  words = TRUE
                  #, combine=TRUE # #' @param combine Should this be combined in a single string (T) or as two seperate strings in a list (F). Default = T.
@@ -364,17 +365,21 @@ xunits<-function(value,
   
   out<-c()
   
-  for (iii in 1:length(value)){
+  for (iii in 1:length(value)) {
     
     value0<-sum(as.numeric(value[iii]))
     
     if (is.na(value0)) {
       out0 <- NA
+    } else if (value0 == 0) {
+      out0 <- "zero"
     } else {
       
       if (words == FALSE) {
         unit<-""
         x<-formatC(x = value0, big.mark = ",", digits = 0, format = "f")
+      } else if (value0 == 0) {
+        out0 <- "zero"
       } else {
         sigfig <- formatC(x = value0, digits = 3, format = "e")
         sigfig0 <- as.numeric(strsplit(x = sigfig, split = "e", fixed = TRUE)[[1]][2])
