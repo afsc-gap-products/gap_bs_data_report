@@ -3054,19 +3054,18 @@ table_raw0 <- table_raw00 |>
 
 for (i in 1:2) {
 
-    header <- paste0("The number of records changed in public-facing production tables ")
-    
     table_raw <- data.frame()
   if (i == 1) {
-    header <- paste0(header, "in ", maxyr,". ")    
+    header <- paste0("The number of records in ", maxyr," changed in public-facing production tables. ")
         table_raw <- table_raw0 |> 
   dplyr::filter(Years == maxyr) |> 
   dplyr::select(-Years)
           nickname <- paste0(nickname0, "-maxyr") 
 
   } else if (i == 2) {
-    header <- paste0(header,"from 1982-", 
-                     max(table_raw00$year_max[table_raw00$year_max != maxyr]),". ")    
+    header <- paste0("The number of records in 1982-", 
+                     max(table_raw00$year_max[table_raw00$year_max != maxyr]),
+                     " changed in public-facing production tables. ")
     table_raw <- table_raw0 |> 
   dplyr::filter(Years != maxyr)
           nickname <- paste0(nickname0, "-notmaxyr") 
