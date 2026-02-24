@@ -5,7 +5,7 @@
 a <- report_spp1[which(report_spp1$file_name == "{{jj}}"), ]
 # a <- report_spp1[which(report_spp1$file_name == jj), ]
 # a <- report_spp1[which(report_spp1$file_name == "alaska-plaice"), ]
-# a <- report_spp1[which(report_spp1$file_name == "rainbow-smelt"), ]
+# a <- report_spp1[which(report_spp1$file_name == "greenland-turbot"), ]
 
 spp_code <- a$species_code
 spp_file <- a$file_name[1]
@@ -205,8 +205,9 @@ if ("EBS" %in% temp$srvy) {
   
   str0 <- paste0(str0, 
                  case, 
-                 " from ", 
-                 compareyr[names(compareyr) == "EBS"], " to ", maxyr, 
+                 ifelse(temp0$catch_min < 100,
+                 paste0(" in ", maxyr), 
+                 paste0(" from ", compareyr[names(compareyr) == "EBS"], " to ", maxyr)), 
                  ifelse(report_title == "data", paste0(cite_bio),  ""), 
                  ifelse(spp_print == "tunicates", "", 
                         paste0(" and the population was estimated at ", 
@@ -268,7 +269,10 @@ if ("NBS" %in% temp$srvy) {
   str0 <- paste0(str0, str0_transition, 
                  ifelse(("EBS" %in% temp$srvy), "biomass estimate", ""),
                  " in the northern Bering Sea ", case,  
-                 " from ", compareyr[names(compareyr) == "NBS"], " to ", maxyr, 
+                                  ifelse(temp0$catch_min < 100,
+                 paste0(" in ", maxyr), 
+                 paste0(" from ", compareyr[names(compareyr) == "NBS"], " to ", maxyr)), 
+                 # " from ", compareyr[names(compareyr) == "NBS"], " to ", maxyr, 
                  ifelse(report_title == "data", cite_bio,  ""), 
                  ifelse(spp_print == "tunicates", "", 
                         paste0(" and the population was estimated at ", 
