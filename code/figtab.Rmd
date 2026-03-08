@@ -1388,7 +1388,7 @@ width <- full_page_portrait_width # 6.5
 header <- paste0("List of fish taxa encountered in the ",
                  text_list(paste0(haul_cruises_maxyr$srvy_long#, 
                                   # " (", paste0(haul_cruises_maxyr$srvy, ")")
-                                  )),
+                 )),
                  " survey catches. ")
 
 # Select data and make plot
@@ -1754,9 +1754,9 @@ table_print0 <- dplyr::bind_rows(
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   
   if (haul_cruises_maxyr$srvy[i] == "NBS") {
-  yrs0 <- c(maxyr, compareyr[names(compareyr) == "NBS"])
+    yrs0 <- c(maxyr, compareyr[names(compareyr) == "NBS"])
   } else {
-      yrs0 <- c(maxyr, compareyr[names(compareyr) == "EBS"])
+    yrs0 <- c(maxyr, compareyr[names(compareyr) == "EBS"])
   }
   
   table_raw  <- table_raw0 |> 
@@ -2059,25 +2059,25 @@ h_r2[grepl(pattern = "Year", x = h_r2)] <- toupper(gsub(pattern = "Year ", x = h
 
 flextable_color_range <- function(ft, dat0, var0, rnge = -9:9) {
   
-    x <- as.character(dat0[[var0]])
-
+  x <- as.character(dat0[[var0]])
+  
   # extract numeric percent (keeps sign)
   num <- suppressWarnings(
     as.numeric(sub(".*\\(([-0-9.]+)%\\).*", "\\1", x))
   )
   
-    # initialize colors
+  # initialize colors
   color0 <- rep("white", length(x))
-
+  
   # apply rules (order matters)
   color0[grepl("\\([0-9.]+%\\)", x, ignore.case = TRUE)] <- positive
   color0[grepl("\\(-", x, ignore.case = TRUE)] <- negative
   color0[num %in% rnge] <- neutral
   
   flextable::bg(
-        x  = ft,
-        bg = color0,
-        j  = var0)
+    x  = ft,
+    bg = color0,
+    j  = var0)
 }
 
 table_print <- table_raw |> 
@@ -2089,951 +2089,816 @@ table_print <- table_raw |>
   flextable::merge_h(i = 1, part = "header") |>
   flextable::align(i = 1, align = "center", part = "header") |> 
   flextable::vline(j = "population_EBS", part = "all") |> 
-    flextable::set_header_labels(
+  flextable::set_header_labels(
     values = eval(parse(
       text = paste0("list(", 
                     text_list(paste0(names(table_raw), " = '", h_r2, "'"), 
                               sep_last = ", ", sep_last2 = ", "), ") " ) ) ) ) |>
   flextable_color_range(dat0 = table_raw, var0 = "biomass_EBS")  |>
   flextable_color_range(dat0 = table_raw, var0 = "population_EBS") |>
-    flextable::valign(valign = "top", part = "body", 
-                      j = c(which(grepl(x = names(table_raw), pattern = "biomass")),
-                            which(grepl(x = names(table_raw), pattern = "population"))) ) |>
-    flextable::fontsize(size = 14, part = "header") |>
-    flextable::fontsize(size = 12, part = "body") |>
-    flextable::fontsize(size = 14, part = "body", j = 1) |>
-    flextable::hline_bottom(part = "body",
-                            border = fp_border(color = "transparent", style = "solid", width = 1))
-  
-  if (srvy == "NEBS") {
-    table_print <- table_print  |> 
-  flextable_color_range(dat0 = table_raw, var0 = "biomass_NBS")  |>
-  flextable_color_range(dat0 = table_raw, var0 = "population_NBS") 
-  }
+  flextable::valign(valign = "top", part = "body", 
+                    j = c(which(grepl(x = names(table_raw), pattern = "biomass")),
+                          which(grepl(x = names(table_raw), pattern = "population"))) ) |>
+  flextable::fontsize(size = 14, part = "header") |>
+  flextable::fontsize(size = 12, part = "body") |>
+  flextable::fontsize(size = 14, part = "body", j = 1) |>
+  flextable::hline_bottom(part = "body",
+                          border = fp_border(color = "transparent", style = "solid", width = 1))
 
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+if (srvy == "NEBS") {
+  table_print <- table_print  |> 
+    flextable_color_range(dat0 = table_raw, var0 = "biomass_NBS")  |>
+    flextable_color_range(dat0 = table_raw, var0 = "population_NBS") 
+}
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+# ESR/Plan Team Figures
+
+```{r fig-biomass-topspecies-pres-prep}
+
+temp <- function(biomass, srvy0, maxyr){
   
-  # Endmatter
+  nickname <- paste0("fig-biomass-topspecies-",tolower(srvy0),"-pres")
+  header <- paste0("NOAA bottom trawl survey-estimated biomass\n(thousand mt) top ",srvy0," species through ", maxyr,".")
   
-```{r tab-glossary}
+  pal <- c(
+    "Arrowtooth flounder" = "#54ADDB", 
+    "Pacific ocean perch" = "#A2D269", 
+    "Walleye pollock" = "#3D348A", 
+    "Pacific halibut" = "#D0D0D0", 
+    "Pacific cod" = "#FF8400", 
+    "Sablefish" = "#B3EDEF", 
+    "Flathead sole" = "#001743", 
+    "Yellowfin sole" = "#A2D269", 
+    "Alaska skate" = "#D0D0D0", 
+    "Northern rock sole" = "#B3EDEF")
   
-  nickname <- "tab-glossary"
-  header <- "Glossary of terms. "
-  
-  table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/glossary-of-terms.xlsx"), 
-                                  sheet = "Sheet1") |>
-    dplyr::mutate(include = ifelse(is.na(include), TRUE, include)) |> 
-    dplyr::filter(include) |> 
-    dplyr::select(-include) |> 
-    dplyr::arrange(term)
-  
-  names(table_raw) <- stringr::str_to_title(names(table_raw))
-  
-  table_print <- table_raw |> 
-    flextable::flextable()  |>
-    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |> 
-    flextable::width(width = c(2, full_page_portrait_width-2)) |> 
-    flextable::theme_zebra()
-  
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-  
-  # Appendix A and B
-  
-```{r tab_app_taxa_found_*_prep}
-  
-  tab_taxa_found_ <- function(temp, 
-                              nickname0, 
-                              maxyr, 
-                              catch_haul_cruises_maxyr, 
-                              spp_info) {
+    if (srvy0 == "EBS") {
+    table_raw <- biomass |> 
+      dplyr::filter(species_code %in% c(21740, 21720, 10210, 10110, 10130, 471, 10261)) 
     
-    list_tables0 <- list()
+    # } else if (srvy0 == "AI") {
+    # species not decided yet
+    
+  } else if (srvy0 == "GOA") {
+    table_raw <- biomass |> 
+      dplyr::filter(species_code %in% c(21740, 21720, 30060, 10110, 10130, 10120, 20510)) 
+  }
+  
+  table_raw <- table_raw |> 
+    dplyr::filter(srvy == srvy0) |>
+    dplyr::filter(stratum == 999) |>
+    # dplyr::filter(common_name %in% names(pal)) |> 
+    dplyr::mutate(
+      common_name = paste0(toupper(substr(common_name, 1, 1)), 
+                           substr(common_name, 2, nchar(common_name))), 
+      biomass_up = biomass_up/1000, 
+      biomass_dw = biomass_dw/1000, 
+      biomass_mt = biomass_mt/1000)
+  
+  # order of legend matches biomass of orgs in maxyr
+  table_raw0 <- table_raw |> 
+    dplyr::filter(year == maxyr) |>
+    dplyr::group_by(common_name) |> 
+    dplyr::summarise(biom = max(biomass_mt, na.rm = TRUE)) |> 
+    dplyr::ungroup() |> 
+    dplyr::arrange(-biom) |> 
+    dplyr::mutate(order = 1:n()) |> 
+    dplyr::select(-biom)
+  
+  table_raw <- table_raw  |> 
+    dplyr::left_join(table_raw0) |> 
+    dplyr::arrange(order) |> 
+    dplyr::arrange(year) |> 
+    dplyr::mutate(common_name = factor(x = common_name, 
+                                       levels = common_name, 
+                                       labels = common_name, 
+                                       ordered = TRUE))
+  
+  figure_print <-
+    ggplot2::ggplot(data = table_raw, 
+                    mapping = aes(
+                      x = year, 
+                      y = biomass_mt, 
+                      ymin = biomass_up, 
+                      ymax = biomass_dw,
+                      fill = common_name, 
+                      color = common_name)) +
+    ggplot2::geom_ribbon(alpha = 0.35, color = "transparent") +
+    ggplot2::geom_path(linewidth = rel(1.01)) +
+    ggplot2::ggtitle(label = paste0(maxyr, " ", srvy0, " NOAA Bottom Trawl Survey"), 
+                     subtitle = paste0("Survey-estimated biomass of top species")) +
+    ggplot2::scale_x_continuous(name = "Year",
+                                labels = scales::label_number(accuracy = 1, big.mark = ""))  +
+    ggplot2::scale_y_continuous(name = "Biomass (thousand mt)", 
+                                expand = c(0, 0),
+                                breaks = breaks_pretty(), 
+                                labels = scales::label_number(big.mark = ","), # accuracy = 1, 
+                                limits = c(0, NA)) +
+    ggplot2::scale_fill_manual(name = "Species", values = pal) +
+    ggplot2::scale_color_manual(name = "Species", values = pal) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      legend.position = "inside",
+      legend.position.inside = c(0.85, 0.8),
+      axis.text = element_text(size = 12),
+      axis.title = element_text(size = 16),
+      plot.title = element_text(color = "grey30"),
+      legend.background = element_blank(),
+      legend.title = element_blank())
+  
+  return(list(figure_print = figure_print,
+              table_raw = table_raw, 
+              nickname = nickname, 
+              header = header,
+              height = 6, 
+              width = 6))
+}
+
+```
+
+```{r fig-biomass-topspecies-goa-pres, eval = FALSE}
+# eval = (maxyr %% 2) == 1
+a <- temp(biomass, srvy0 = "GOA", maxyr)
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r fig-biomass-topspecies-ai-pres, eval = FALSE}
+# , eval = (maxyr %% 2) == 0
+a <- temp(biomass, srvy0 = "AI", maxyr)
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r fig-biomass-topspecies-ebs-pres}
+a <- temp(biomass, srvy0 = "EBS", maxyr)
+for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+# Endmatter and Appendix
+
+```{r tab-glossary}
+
+nickname <- "tab-glossary"
+header <- "Glossary of terms. "
+
+table_raw <- readxl::read_excel(path = paste0(dir_out_rawdata, "/glossary-of-terms.xlsx"), 
+                                sheet = "Sheet1") |>
+  dplyr::mutate(include = ifelse(is.na(include), TRUE, include)) |> 
+  dplyr::filter(include) |> 
+  dplyr::select(-include) |> 
+  dplyr::arrange(term)
+
+names(table_raw) <- stringr::str_to_title(names(table_raw))
+
+table_print <- table_raw |> 
+  flextable::flextable()  |>
+  theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |> 
+  flextable::width(width = c(2, full_page_portrait_width-2)) |> 
+  flextable::theme_zebra()
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+# Appendix A and B
+
+```{r tab_app_taxa_found_*_prep}
+
+tab_taxa_found_ <- function(temp, 
+                            nickname0, 
+                            maxyr, 
+                            catch_haul_cruises_maxyr, 
+                            spp_info) {
+  
+  list_tables0 <- list()
+  
+  cnt_tables <- 0
+  nickname0 <- "tab-app-taxa-found-" 
+  
+  for (i in 1:nrow(temp)) {
+    cnt_tables <- cnt_tables + 1
+    newobj <- TRUE
+    nickname <- paste0(nickname0, 
+                       temp$srvy[i], 
+                       "-",  
+                       temp$taxon[i])
+    
+    header <- paste0(stringr::str_to_sentence(temp$taxon[i]), 
+                     " taxa encountered during the ", 
+                     maxyr, " ", temp$srvy_long[i], 
+                     " survey listed alphabetically by ", 
+                     ifelse(temp$taxon[i] == "fish", "family", "phylum"), ".")
+    
+    table_raw <- 
+      dplyr::left_join(
+        x = catch_haul_cruises_maxyr |> 
+          dplyr::filter(year == maxyr &
+                          srvy == temp$srvy[i]) |> 
+          dplyr::select(station, latitude_dd_start, longitude_dd_start, depth_gear_m, species_code), 
+        y = spp_info |> 
+          dplyr::rename(taxon0 = ifelse(temp$taxon[i] == "fish", "family", "phylum")) |>
+          dplyr::select(species_name, common_name, taxon, species_code, taxon0), 
+        by = "species_code") |> 
+      dplyr::filter(taxon == temp$taxon0[i]) |> 
+      dplyr::mutate(taxon = taxon0) |> 
+      dplyr::group_by(taxon, species_name, common_name ) |> 
+      dplyr::summarise(stations_n = n(), 
+                       depth_min = min(depth_gear_m, na.rm = TRUE), 
+                       depth_max = max(depth_gear_m, na.rm = TRUE), 
+                       depth_mean = mean(depth_gear_m, na.rm = TRUE), 
+                       lat_min = min(latitude_dd_start, na.rm = TRUE), 
+                       lat_max = max(latitude_dd_start, na.rm = TRUE)) |> 
+      dplyr::ungroup() |> 
+      dplyr::arrange(species_name)  |>
+      dplyr::arrange(taxon)  |>
+      dplyr::mutate(stations_n = formatC(stations_n, big.mark=",", digits = 0, format = "f"))  |>
+      dplyr::mutate(across(c("lat_min", "lat_max", "depth_mean"), 
+                           formatC, big.mark=",", digits = 1, format = "f"), 
+                    taxon = ifelse(is.na(taxon), "Other", taxon), 
+                    across(c("depth_min", "depth_max"), 
+                           formatC, big.mark=",", digits = 0, format = "f"))
+    
+    table_print <- table_raw |> 
+      dplyr::mutate(species_name1 = species_name) |>
+      dplyr::mutate(spp = dplyr::case_when(
+        grepl(pattern = "sp.", x = species_name1, fixed = TRUE) ~ "sp.", 
+        grepl(pattern = "spp.", x = species_name1, fixed = TRUE) ~ "spp.", 
+        grepl(pattern = "egg case", x = species_name1, fixed = TRUE) ~ "egg case", 
+        grepl(pattern = "Naticidae egg", x = species_name1, fixed = TRUE) ~ "gastropod egg", 
+        grepl(pattern = "gastropod egg", x = species_name1, fixed = TRUE) ~ "gastropod egg", 
+        grepl(pattern = "hybrid", x = species_name1, fixed = TRUE) ~ "hybrid", 
+        grepl(pattern = "Polychaete tubes", x = species_name1, fixed = TRUE) ~ "Polychaete tubes", 
+        TRUE ~ "")) |>
+      dplyr::mutate(
+        spacer = "",
+        species_name = species_name1, 
+        species_name1 = 
+          gsub(pattern = " sp.", replacement = "", 
+               x = species_name1, fixed = TRUE), 
+        species_name1 =
+          gsub(pattern = " spp.", replacement = "",
+               x = species_name1, fixed = TRUE),
+        species_name1 =
+          gsub(pattern = " egg case", replacement = "",
+               x = species_name1, fixed = TRUE),          
+        species_name1 =
+          gsub(pattern = "Naticidae egg", replacement = "",
+               x = species_name1, fixed = TRUE),  
+        species_name1 =
+          gsub(pattern = "gastropod egg", replacement = "",
+               x = species_name1, fixed = TRUE),          
+        species_name1 =
+          gsub(pattern = " hybrid", replacement = "",
+               x = species_name1, fixed = TRUE),    
+        species_name1 =
+          gsub(pattern = "Polychaete tubes", replacement = "",
+               x = species_name1, fixed = TRUE),      
+        species_name2 = dplyr::case_when(
+          !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), 
+        species_name1 = dplyr::case_when(
+          grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1))
+    
+    std_b <- officer::fp_border(width = 2, color = "grey10")
+    
+    table_print <- table_print |>
+      flextable::flextable(
+        col_keys = c("taxon" ,
+                     "species_name",
+                     "common_name", "stations_n", 
+                     "depth_min", "depth_max", "depth_mean", 
+                     "spacer", "lat_min", "lat_max"))  |>
+      flextable::merge_v(j = ~ taxon) |>
+      flextable::merge_h_range(i = ~ is.na(taxon), j1 = "species_name", j2 = "taxon", part = "body") |>
+      flextable::compose(j = "species_name",
+                         value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) |> 
+      flextable::set_header_labels(
+        values = list(
+          taxon = "", #ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
+          species_name = "", #"Scientific name",
+          common_name = "", #"Common name",
+          stations_n = "", #"Number stations present", 
+          depth_min = "Min.", 
+          depth_max = "Max.", 
+          depth_mean = "Avg.", 
+          spacer = " ", 
+          lat_max = "S", 
+          lat_min = "N")) |>
+      flextable::add_header_row(top = TRUE,
+                                values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
+                                           "Scientific name", "Common name", "#Hauls",
+                                           "Bottom depth (m)", "", "Latitude"),
+                                colwidths = c(1,1,1,1,3,1,2)) |>
+      flextable::align(i = 1, align = "center", part = "header")  |>  
+      flextable::merge_at(j = c("taxon"), part = "header") |>
+      flextable::merge_at(j = c("species_name"), part = "header") |>
+      flextable::merge_at(j = c("common_name"), part = "header") |>
+      flextable::merge_at(j = c("spacer"), part = "header") |>
+      flextable::merge_at(j = c("stations_n"), part = "header") |>
+      theme_flextable_nmfstm(row_lines = TRUE, 
+                             pgwidth = full_page_portrait_width) |>
+      flextable::width(width = .5, unit = "in") |>
+      flextable::width(width = .5, j = c("stations_n"), unit = "in") |>
+      flextable::width(width = .05, j = c("spacer"), unit = "in") |>
+      flextable::width(width = 1.3, j = c("taxon"), unit = "in") |>
+      flextable::width(width = 1, j = c("common_name"), unit = "in") |>
+      flextable::width(width = 1.25, j = c("species_name"), unit = "in") |>
+      flextable::padding(padding = .6, part = "all") |> 
+      flextable::align(
+        j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
+        align = "right", part = "all") |>
+      flextable::align(
+        j = c("depth_max", "depth_min", "depth_mean", "lat_max", "lat_min"), 
+        align = "center", i = 1, part = "header") |> 
+      flextable::hline(border = std_b, part = "header") 
+    
+    # output from function
+    list_tables0$temp <- list("table_print" = table_print, 
+                              "table_raw" = table_raw, 
+                              "header" = header, 
+                              "nickname" = nickname)
+    names(list_tables0)[names(list_tables0) == "temp"] <- nickname
+  }
+  
+  return(list_tables0)
+}
+
+```
+
+
+## Appendix A (EBS)
+
+```{r tab-app-taxa-found-EBS}
+temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
+                                   taxon0 = c("invert", "fish")), 
+                        haul_cruises_maxyr |> 
+                          dplyr::select(srvy_long, srvy) |> 
+                          dplyr::filter(srvy == "EBS"))
+
+# cnt_pre0 <- cnt_pre0 + 1; cnt_pre1 <- LETTERS[cnt_pre0]
+list_tables0 <- tab_taxa_found_(temp = temp, 
+                                # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
+                                maxyr = maxyr, 
+                                catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
+                                spp_info = spp_info) 
+cnt_tables <- 0
+for (i in 1:length(list_tables0)) {
+  # cnt_pre <- cnt_pre1 # paste0("Appendix ", cnt_pre1)
+  a <- list_tables0[[i]]
+  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
+}
+
+```
+
+## Appendix B (NBS)
+
+```{r tab-app-taxa-found-NBS}
+if (srvy == "NEBS") {
+  temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
+                                     taxon0 = c("invert", "fish")), 
+                          haul_cruises_maxyr |> 
+                            dplyr::select(srvy_long, srvy) |> 
+                            dplyr::filter(srvy == "NBS"))
+  if (nrow(temp) != 0) {   
+    list_tables0 <- tab_taxa_found_(temp = temp, 
+                                    # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
+                                    maxyr = maxyr, 
+                                    catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
+                                    spp_info = spp_info) 
     
     cnt_tables <- 0
-    nickname0 <- "tab-app-taxa-found-" 
-    
-    for (i in 1:nrow(temp)) {
-      cnt_tables <- cnt_tables + 1
-      newobj <- TRUE
-      nickname <- paste0(nickname0, 
-                         temp$srvy[i], 
-                         "-",  
-                         temp$taxon[i])
+    for (i in 1:length(list_tables0)) {
+      # cnt_pre <- cnt_pre1 # paste0("Appendix ", cnt_pre1)
+      a <- list_tables0[[i]]
+      for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
       
-      header <- paste0(stringr::str_to_sentence(temp$taxon[i]), 
-                       " taxa encountered during the ", 
-                       maxyr, " ", temp$srvy_long[i], 
-                       " survey listed alphabetically by ", 
-                       ifelse(temp$taxon[i] == "fish", "family", "phylum"), ".")
+      # Save table
+      res <- knitr::knit_child(
+        text = knitr::knit_expand(
+          file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+        quiet = TRUE
+      )
+    }
+  }
+}
+```
+
+# Appendix C and D
+
+## tab_fish_*_prep
+
+```{r tab_app_fish_*_prep}
+
+tab_app_fish_ <- function(temp, 
+                          maxyr, 
+                          haul_cruises_maxyr, 
+                          report_spp1,
+                          spp_info) {
+  list_tables0 <- list()
+  
+  nickname0 <- "tab-app-fish-" 
+  cnt_tables <- 0
+  
+  temp0 <- report_spp1 |> 
+    dplyr::filter(taxon == "fish" & 
+                    text_spp == TRUE &
+                    file_name != "pacific_halibut") |> 
+    dplyr::select(file_name, species_code) |> 
+    dplyr::distinct() 
+  
+  for (i in 1:nrow(temp)) {
+    cnt_tables <- cnt_tables + 1
+    print(temp$file_name[i])
+    
+    nickname <- paste0(nickname0, 
+                       temp$srvy[i], 
+                       "-",  
+                       temp$file_name[i])
+    
+    spp_code <- temp0$species_code[temp0$file_name == temp$file_name[i]]
+    
+    header <- paste0("Population estimates by sex and size for ",
+                     temp$print_name[i], #" (", temp$species_name[i], ")", 
+                     " from the ", 
+                     maxyr, " ", temp$srvy_long[i], 
+                     " survey.")
+    
+    table_raw <- sizecomp_maxyr |> 
+      dplyr::filter(species_code %in% spp_code &
+                      srvy == temp$srvy[i]) |> 
+      dplyr::distinct() |>
+      dplyr::ungroup()
+    
+    if (nrow(table_raw) != 0) { 
+      
+      table_raw <- table_raw |> 
+        dplyr::select(length_mm, population_count, sex) |>
+        tidyr::pivot_wider(
+          id_cols = length_mm, 
+          names_from = sex, 
+          values_from = population_count, 
+          values_fill = 0) 
+      
+      if (!("males" %in% names(table_raw))) {
+        table_raw$males <- 0
+      }
+      if (!("females" %in% names(table_raw))) {
+        table_raw$females <- 0
+      }
+      if (!("unsexed" %in% names(table_raw))) {
+        table_raw$unsexed <- 0
+      }
+      
+      table_raw <- table_raw |>
+        dplyr::mutate(
+          total = males + females + unsexed) |>
+        dplyr::arrange(length_mm) |> 
+        dplyr::ungroup() |> 
+        dplyr::mutate(
+          prop = total/sum(total, na.rm = TRUE), 
+          cumprop = cumsum(prop))
       
       table_raw <- 
-        dplyr::left_join(
-          x = catch_haul_cruises_maxyr |> 
-            dplyr::filter(year == maxyr &
-                            srvy == temp$srvy[i]) |> 
-            dplyr::select(station, latitude_dd_start, longitude_dd_start, depth_gear_m, species_code), 
-          y = spp_info |> 
-            dplyr::rename(taxon0 = ifelse(temp$taxon[i] == "fish", "family", "phylum")) |>
-            dplyr::select(species_name, common_name, taxon, species_code, taxon0), 
-          by = "species_code") |> 
-        dplyr::filter(taxon == temp$taxon0[i]) |> 
-        dplyr::mutate(taxon = taxon0) |> 
-        dplyr::group_by(taxon, species_name, common_name ) |> 
-        dplyr::summarise(stations_n = n(), 
-                         depth_min = min(depth_gear_m, na.rm = TRUE), 
-                         depth_max = max(depth_gear_m, na.rm = TRUE), 
-                         depth_mean = mean(depth_gear_m, na.rm = TRUE), 
-                         lat_min = min(latitude_dd_start, na.rm = TRUE), 
-                         lat_max = max(latitude_dd_start, na.rm = TRUE)) |> 
-        dplyr::ungroup() |> 
-        dplyr::arrange(species_name)  |>
-        dplyr::arrange(taxon)  |>
-        dplyr::mutate(stations_n = formatC(stations_n, big.mark=",", digits = 0, format = "f"))  |>
-        dplyr::mutate(across(c("lat_min", "lat_max", "depth_mean"), 
-                             formatC, big.mark=",", digits = 1, format = "f"), 
-                      taxon = ifelse(is.na(taxon), "Other", taxon), 
-                      across(c("depth_min", "depth_max"), 
+        dplyr::bind_rows(table_raw |> 
+                           dplyr::mutate(length_mm = as.character(length_mm)), 
+                         table_raw |>
+                           dplyr::summarise(across(everything(), ~ sum(., is.na(.), 0))) |> 
+                           dplyr::mutate(length_mm = "Total", 
+                                         cumprop = 1))  |>
+        dplyr::mutate(across((ends_with("prop")), 
+                             formatC, big.mark=",", digits = 4, format = "f")) |>
+        dplyr::mutate(across(where(is.numeric), 
                              formatC, big.mark=",", digits = 0, format = "f"))
       
-      table_print <- table_raw |> 
-        dplyr::mutate(species_name1 = species_name) |>
-        dplyr::mutate(spp = dplyr::case_when(
-          grepl(pattern = "sp.", x = species_name1, fixed = TRUE) ~ "sp.", 
-          grepl(pattern = "spp.", x = species_name1, fixed = TRUE) ~ "spp.", 
-          grepl(pattern = "egg case", x = species_name1, fixed = TRUE) ~ "egg case", 
-          grepl(pattern = "Naticidae egg", x = species_name1, fixed = TRUE) ~ "gastropod egg", 
-          grepl(pattern = "gastropod egg", x = species_name1, fixed = TRUE) ~ "gastropod egg", 
-          grepl(pattern = "hybrid", x = species_name1, fixed = TRUE) ~ "hybrid", 
-          grepl(pattern = "Polychaete tubes", x = species_name1, fixed = TRUE) ~ "Polychaete tubes", 
-          TRUE ~ "")) |>
-        dplyr::mutate(
-          spacer = "",
-          species_name = species_name1, 
-          species_name1 = 
-            gsub(pattern = " sp.", replacement = "", 
-                 x = species_name1, fixed = TRUE), 
-          species_name1 =
-            gsub(pattern = " spp.", replacement = "",
-                 x = species_name1, fixed = TRUE),
-          species_name1 =
-            gsub(pattern = " egg case", replacement = "",
-                 x = species_name1, fixed = TRUE),          
-          species_name1 =
-            gsub(pattern = "Naticidae egg", replacement = "",
-                 x = species_name1, fixed = TRUE),  
-          species_name1 =
-            gsub(pattern = "gastropod egg", replacement = "",
-                 x = species_name1, fixed = TRUE),          
-          species_name1 =
-            gsub(pattern = " hybrid", replacement = "",
-                 x = species_name1, fixed = TRUE),    
-          species_name1 =
-            gsub(pattern = "Polychaete tubes", replacement = "",
-                 x = species_name1, fixed = TRUE),      
-          species_name2 = dplyr::case_when(
-            !grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1), 
-          species_name1 = dplyr::case_when(
-            grepl(pattern = " ", x = species_name, fixed = TRUE) ~ species_name1))
-      
-      std_b <- officer::fp_border(width = 2, color = "grey10")
-      
-      table_print <- table_print |>
-        flextable::flextable(
-          col_keys = c("taxon" ,
-                       "species_name",
-                       "common_name", "stations_n", 
-                       "depth_min", "depth_max", "depth_mean", 
-                       "spacer", "lat_min", "lat_max"))  |>
-        flextable::merge_v(j = ~ taxon) |>
-        flextable::merge_h_range(i = ~ is.na(taxon), j1 = "species_name", j2 = "taxon", part = "body") |>
-        flextable::compose(j = "species_name",
-                           value = as_paragraph(as_i(species_name1), species_name2, " ", spp)) |> 
+      table_print <- table_raw |>
+        flextable::flextable() |> 
         flextable::set_header_labels(
-          values = list(
-            taxon = "", #ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
-            species_name = "", #"Scientific name",
-            common_name = "", #"Common name",
-            stations_n = "", #"Number stations present", 
-            depth_min = "Min.", 
-            depth_max = "Max.", 
-            depth_mean = "Avg.", 
-            spacer = " ", 
-            lat_max = "S", 
-            lat_min = "N")) |>
-        flextable::add_header_row(top = TRUE,
-                                  values = c(ifelse(temp$taxon[i] == "fish", "Family", "Phylum"),
-                                             "Scientific name", "Common name", "#Hauls",
-                                             "Bottom depth (m)", "", "Latitude"),
-                                  colwidths = c(1,1,1,1,3,1,2)) |>
+          length_mm = "Length (cm)",
+          males = "Males",
+          females = "Females",
+          unsexed = "Unsexed", 
+          total = "Total", 
+          prop = "Proportion", 
+          cumprop = "Cumulative proportion") |>
         flextable::align(i = 1, align = "center", part = "header")  |>  
-        flextable::merge_at(j = c("taxon"), part = "header") |>
-        flextable::merge_at(j = c("species_name"), part = "header") |>
-        flextable::merge_at(j = c("common_name"), part = "header") |>
-        flextable::merge_at(j = c("spacer"), part = "header") |>
-        flextable::merge_at(j = c("stations_n"), part = "header") |>
-        theme_flextable_nmfstm(row_lines = TRUE, 
+        flextable::bold(i = nrow(table_raw), part = "body") |>
+        theme_flextable_nmfstm(row_lines = FALSE, 
                                pgwidth = full_page_portrait_width) |>
-        flextable::width(width = .5, unit = "in") |>
-        flextable::width(width = .5, j = c("stations_n"), unit = "in") |>
-        flextable::width(width = .05, j = c("spacer"), unit = "in") |>
-        flextable::width(width = 1.3, j = c("taxon"), unit = "in") |>
-        flextable::width(width = 1, j = c("common_name"), unit = "in") |>
-        flextable::width(width = 1.25, j = c("species_name"), unit = "in") |>
-        flextable::padding(padding = .6, part = "all") |> 
-        flextable::align(
-          j = c("stations_n", "depth_min", "depth_max", "depth_mean", "lat_max", "lat_min"), 
-          align = "right", part = "all") |>
-        flextable::align(
-          j = c("depth_max", "depth_min", "depth_mean", "lat_max", "lat_min"), 
-          align = "center", i = 1, part = "header") |> 
-        flextable::hline(border = std_b, part = "header") 
+        flextable::width(width = 1, unit = "in") |> 
+        flextable::width(j = "length_mm", width = .55, unit = "in") |> 
+        flextable::hline_bottom(border = fp_border(width = 2), part = "header")
       
-      # output from function
       list_tables0$temp <- list("table_print" = table_print, 
                                 "table_raw" = table_raw, 
                                 "header" = header, 
                                 "nickname" = nickname)
       names(list_tables0)[names(list_tables0) == "temp"] <- nickname
     }
-    
-    return(list_tables0)
   }
-  
+  return(list_tables0)
+}
 ```
-  
-  
-  ## Appendix A (EBS)
-  
-```{r tab-app-taxa-found-EBS}
-  temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
-                                     taxon0 = c("invert", "fish")), 
-                          haul_cruises_maxyr |> 
-                            dplyr::select(srvy_long, srvy) |> 
-                            dplyr::filter(srvy == "EBS"))
-  
-  # cnt_pre0 <- cnt_pre0 + 1; cnt_pre1 <- LETTERS[cnt_pre0]
-  list_tables0 <- tab_taxa_found_(temp = temp, 
-                                  # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
-                                  maxyr = maxyr, 
-                                  catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
-                                  spp_info = spp_info) 
-  cnt_tables <- 0
-  for (i in 1:length(list_tables0)) {
-    # cnt_pre <- cnt_pre1 # paste0("Appendix ", cnt_pre1)
-    a <- list_tables0[[i]]
-    for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-    
-    # Save table
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-      quiet = TRUE
-    )
-  }
-  
-```
-  
-  ## Appendix B (NBS)
-  
-```{r tab-app-taxa-found-NBS}
-  if (srvy == "NEBS") {
-    temp <- tidyr::crossing(data.frame(taxon = c("invertebrate", "fish"), 
-                                       taxon0 = c("invert", "fish")), 
-                            haul_cruises_maxyr |> 
-                              dplyr::select(srvy_long, srvy) |> 
-                              dplyr::filter(srvy == "NBS"))
-    if (nrow(temp) != 0) {   
-      list_tables0 <- tab_taxa_found_(temp = temp, 
-                                      # cnt_pre = cnt_pre, #paste0("Appendix ", cnt_pre), 
-                                      maxyr = maxyr, 
-                                      catch_haul_cruises_maxyr = catch_haul_cruises_maxyr, 
-                                      spp_info = spp_info) 
-      
-      cnt_tables <- 0
-      for (i in 1:length(list_tables0)) {
-        # cnt_pre <- cnt_pre1 # paste0("Appendix ", cnt_pre1)
-        a <- list_tables0[[i]]
-        for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-        
-        # Save table
-        res <- knitr::knit_child(
-          text = knitr::knit_expand(
-            file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-          quiet = TRUE
-        )
-      }
-    }
-  }
-```
-  
-  # Appendix C and D
-  
-  ## tab_fish_*_prep
-  
-```{r tab_app_fish_*_prep}
-  
-  tab_app_fish_ <- function(temp, 
-                            maxyr, 
-                            haul_cruises_maxyr, 
-                            report_spp1,
-                            spp_info) {
-    list_tables0 <- list()
-    
-    nickname0 <- "tab-app-fish-" 
-    cnt_tables <- 0
-    
-    temp0 <- report_spp1 |> 
-      dplyr::filter(taxon == "fish" & 
-                      text_spp == TRUE &
-                      file_name != "pacific_halibut") |> 
-      dplyr::select(file_name, species_code) |> 
-      dplyr::distinct() 
-    
-    for (i in 1:nrow(temp)) {
-      cnt_tables <- cnt_tables + 1
-      print(temp$file_name[i])
-      
-      nickname <- paste0(nickname0, 
-                         temp$srvy[i], 
-                         "-",  
-                         temp$file_name[i])
-      
-      spp_code <- temp0$species_code[temp0$file_name == temp$file_name[i]]
-      
-      header <- paste0("Population estimates by sex and size for ",
-                       temp$print_name[i], #" (", temp$species_name[i], ")", 
-                       " from the ", 
-                       maxyr, " ", temp$srvy_long[i], 
-                       " survey.")
-      
-      table_raw <- sizecomp_maxyr |> 
-        dplyr::filter(species_code %in% spp_code &
-                        srvy == temp$srvy[i]) |> 
-        dplyr::distinct() |>
-        dplyr::ungroup()
-      
-      if (nrow(table_raw) != 0) { 
-        
-        table_raw <- table_raw |> 
-          dplyr::select(length_mm, population_count, sex) |>
-          tidyr::pivot_wider(
-            id_cols = length_mm, 
-            names_from = sex, 
-            values_from = population_count, 
-            values_fill = 0) 
-        
-        if (!("males" %in% names(table_raw))) {
-          table_raw$males <- 0
-        }
-        if (!("females" %in% names(table_raw))) {
-          table_raw$females <- 0
-        }
-        if (!("unsexed" %in% names(table_raw))) {
-          table_raw$unsexed <- 0
-        }
-        
-        table_raw <- table_raw |>
-          dplyr::mutate(
-            total = males + females + unsexed) |>
-          dplyr::arrange(length_mm) |> 
-          dplyr::ungroup() |> 
-          dplyr::mutate(
-            prop = total/sum(total, na.rm = TRUE), 
-            cumprop = cumsum(prop))
-        
-        table_raw <- 
-          dplyr::bind_rows(table_raw |> 
-                             dplyr::mutate(length_mm = as.character(length_mm)), 
-                           table_raw |>
-                             dplyr::summarise(across(everything(), ~ sum(., is.na(.), 0))) |> 
-                             dplyr::mutate(length_mm = "Total", 
-                                           cumprop = 1))  |>
-          dplyr::mutate(across((ends_with("prop")), 
-                               formatC, big.mark=",", digits = 4, format = "f")) |>
-          dplyr::mutate(across(where(is.numeric), 
-                               formatC, big.mark=",", digits = 0, format = "f"))
-        
-        table_print <- table_raw |>
-          flextable::flextable() |> 
-          flextable::set_header_labels(
-            length_mm = "Length (cm)",
-            males = "Males",
-            females = "Females",
-            unsexed = "Unsexed", 
-            total = "Total", 
-            prop = "Proportion", 
-            cumprop = "Cumulative proportion") |>
-          flextable::align(i = 1, align = "center", part = "header")  |>  
-          flextable::bold(i = nrow(table_raw), part = "body") |>
-          theme_flextable_nmfstm(row_lines = FALSE, 
-                                 pgwidth = full_page_portrait_width) |>
-          flextable::width(width = 1, unit = "in") |> 
-          flextable::width(j = "length_mm", width = .55, unit = "in") |> 
-          flextable::hline_bottom(border = fp_border(width = 2), part = "header")
-        
-        list_tables0$temp <- list("table_print" = table_print, 
-                                  "table_raw" = table_raw, 
-                                  "header" = header, 
-                                  "nickname" = nickname)
-        names(list_tables0)[names(list_tables0) == "temp"] <- nickname
-      }
-    }
-    return(list_tables0)
-  }
-```
-  
-  
-  ## Appendix C (or B if EBS only) (EBS)
-  
+
+
+## Appendix C (or B if EBS only) (EBS)
+
 ```{r tab-app-fish-EBS}
+temp <- tidyr::crossing(haul_cruises_maxyr |> 
+                          dplyr::select(srvy_long, srvy) |> 
+                          dplyr::filter(srvy == "EBS"), 
+                        report_spp1 |> 
+                          dplyr::filter(taxon == "fish" & text_spp == TRUE) |> 
+                          dplyr::select(file_name, print_name, common_name1, species_name)  |> 
+                          dplyr::mutate(species_name = gsub(species_name, pattern = " larva", replacement = "")) |> 
+                          dplyr::distinct())
+
+list_tables0 <- tab_app_fish_(
+  temp = temp, 
+  maxyr = maxyr, 
+  haul_cruises_maxyr = haul_cruises_maxyr, 
+  report_spp1 = report_spp1,
+  spp_info = spp_info)
+
+cnt_tables <- 0
+for (i in 1:length(list_tables0)) {
+  a <- list_tables0[[i]]
+  for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  
+  # Save table
+  res <- knitr::knit_child(
+    text = knitr::knit_expand(
+      file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+    quiet = TRUE
+  )
+}
+```
+
+## Appendix D (NBS)
+
+```{r tab-app-fish-NBS}
+if (srvy == "NEBS") {
   temp <- tidyr::crossing(haul_cruises_maxyr |> 
                             dplyr::select(srvy_long, srvy) |> 
-                            dplyr::filter(srvy == "EBS"), 
+                            dplyr::filter(srvy == "NBS"), 
                           report_spp1 |> 
                             dplyr::filter(taxon == "fish" & text_spp == TRUE) |> 
-                            dplyr::select(file_name, print_name, common_name1, species_name)  |> 
+                            dplyr::select(file_name, print_name, common_name1, species_name) |> 
                             dplyr::mutate(species_name = gsub(species_name, pattern = " larva", replacement = "")) |> 
                             dplyr::distinct())
-  
-  list_tables0 <- tab_app_fish_(
-    temp = temp, 
-    maxyr = maxyr, 
-    haul_cruises_maxyr = haul_cruises_maxyr, 
-    report_spp1 = report_spp1,
-    spp_info = spp_info)
-  
-  cnt_tables <- 0
-  for (i in 1:length(list_tables0)) {
-    a <- list_tables0[[i]]
-    for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+  if (nrow(temp) != 0) {   
+    list_tables0 <- tab_app_fish_(
+      temp = temp, 
+      maxyr = maxyr, 
+      haul_cruises_maxyr = haul_cruises_maxyr, 
+      report_spp1 = report_spp1,
+      spp_info = spp_info)
     
-    # Save table
-    res <- knitr::knit_child(
-      text = knitr::knit_expand(
-        file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-      quiet = TRUE
-    )
-  }
-```
-  
-  ## Appendix D (NBS)
-  
-```{r tab-app-fish-NBS}
-  if (srvy == "NEBS") {
-    temp <- tidyr::crossing(haul_cruises_maxyr |> 
-                              dplyr::select(srvy_long, srvy) |> 
-                              dplyr::filter(srvy == "NBS"), 
-                            report_spp1 |> 
-                              dplyr::filter(taxon == "fish" & text_spp == TRUE) |> 
-                              dplyr::select(file_name, print_name, common_name1, species_name) |> 
-                              dplyr::mutate(species_name = gsub(species_name, pattern = " larva", replacement = "")) |> 
-                              dplyr::distinct())
-    if (nrow(temp) != 0) {   
-      list_tables0 <- tab_app_fish_(
-        temp = temp, 
-        maxyr = maxyr, 
-        haul_cruises_maxyr = haul_cruises_maxyr, 
-        report_spp1 = report_spp1,
-        spp_info = spp_info)
+    cnt_tables <- 0
+    for (i in 1:length(list_tables0)) {
+      a <- list_tables0[[i]]
+      for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
       
-      cnt_tables <- 0
-      for (i in 1:length(list_tables0)) {
-        a <- list_tables0[[i]]
-        for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
-        
-        # Save table
-        res <- knitr::knit_child(
-          text = knitr::knit_expand(
-            file = paste0(dir_code, "_child_save_figtab.Rmd")), 
-          quiet = TRUE
-        )
-      }
+      # Save table
+      res <- knitr::knit_child(
+        text = knitr::knit_expand(
+          file = paste0(dir_code, "_child_save_figtab.Rmd")), 
+        quiet = TRUE
+      )
     }
   }
+}
 ```
-  
-  # Data changes
-  
-```{r tab-taxon-changes, eval = FALSE}
-  nickname <- "tab-taxon-changes"
-  header <- paste0(maxyr, " changes to taxon species names and species codes (if changed), along with specific action taken and reason for update. ")
-  
-  table_raw <- gap_products_taxonomic_changes0 |>
-    dplyr::filter(year_changed == maxyr) |> 
-    dplyr::arrange(new_species_name) |> 
-    dplyr::mutate(dplyr::across(dplyr::everything(), as.character))
-  
-  # separate text to italize and not ---------------------------------------------
-  table_raw$new_species_name_noi <- table_raw$old_species_name_noi <- ""
-  table_raw$new_species_name_i <- table_raw$new_species_name
-  table_raw$old_species_name_i <- table_raw$old_species_name
-  table_raw$new_species_name <- paste0(table_raw$new_species_name, " ")
-  table_raw$old_species_name <- paste0(table_raw$old_species_name, " ")
-  cases <- c(" larvae", " n.", " sp.", " spp.", " egg case", " (", " egg") # , " n."
-  which0_old <- which0_new <- c()
-  for (ii in cases) {
-    # new names
-    which0 <- which(sapply(strsplit(x = table_raw$new_species_name, split = ii, fixed = TRUE), length) == 2)
-    which0 <- which0[!(which0 %in% which0_new)]
-    table_raw$new_species_name_i[which0] <- 
-      paste0(sapply(strsplit(x = table_raw$new_species_name[which0], split = ii, fixed = TRUE), "[[", 1))
-    table_raw$new_species_name_noi[which0] <- 
-      paste0(ii, sapply(strsplit(x = table_raw$new_species_name[which0], split = ii, fixed = TRUE), "[[", 2))
-    which0_new <- c(which0_new, which0)
-    
-    # old names
-    which0 <- which(sapply(strsplit(x = table_raw$old_species_name, split = ii, fixed = TRUE), length) == 2)
-    which0 <- which0[!(which0 %in% which0_old)]
-    table_raw$old_species_name_i[which0] <- 
-      paste0(sapply(strsplit(x = table_raw$old_species_name[which0], split = ii, fixed = TRUE), "[[", 1))
-    table_raw$old_species_name_noi[which0] <- 
-      paste0(ii, sapply(strsplit(x = table_raw$old_species_name[which0], split = ii, fixed = TRUE), "[[", 2))
-    which0_old <- c(which0_old, which0)
-  }
-  table_raw$new_species_name_noi <- trimws(paste0(trimws(table_raw$new_species_name_noi), 
-                                                  ifelse(is.na(table_raw$new_species_code), "", paste0(" (", table_raw$new_species_code, ")")) ))
-  table_raw$old_species_name_noi <- trimws(paste0(trimws(table_raw$old_species_name_noi), 
-                                                  ifelse(is.na(table_raw$old_species_code), "", paste0(" (", table_raw$old_species_code, ")")) ))
-  
-  # Prepare final table ----------------------------------------------------------
-  table_print <- table_raw |> 
-    flextable::flextable(col_keys = c("dummy_old", "dummy_new", "action", "reason")) |>
-    flextable::compose(
-      j = "dummy_new", 
-      value = flextable::as_paragraph(
-        flextable::as_i(new_species_name_i), " ", new_species_name_noi)) |> 
-    flextable::compose(
-      j = "dummy_old", 
-      value = flextable::as_paragraph(
-        flextable::as_i(old_species_name_i), " ", old_species_name_noi)) |> 
-    flextable::set_header_labels(dummy_new = "New",
-                                 dummy_old = "Previous",
-                                 action = "Action",
-                                 reason = "Reason") |> 
-    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |> 
-    flextable::width(width = c(2, 2, 1.5, 1) )
-  
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-  
-  
-```{r tab-species-year, eval = FALSE}
-  # May only be relevant in the 2023 year
-  nickname <- "tab-species-year"
-  header <- paste0("Established species time-series cutoff guidelines for when the time series of some species should begin. These cutoffs were formally established in 2023. ")
-  
-  table_raw <- gap_products_species_year0 |>
-    dplyr::left_join(spp_info |> 
-                       dplyr::select(common_name, species_name, species_code)) |> 
-    dplyr::arrange(species_code) |> 
-    dplyr::mutate(dplyr::across(dplyr::everything(), as.character)) |> 
-    dplyr::select(common_name, species_name, year_started)  |> 
-    dplyr::mutate(common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))) )
-  
-  # separate text to italize and not ---------------------------------------------
-  table_raw$species_name_noi <- ""
-  table_raw$species_name_i <- table_raw$species_name
-  table_raw$species_name <- paste0(table_raw$species_name, " ")
-  cases <- c(" larvae", " n.", " sp.", " spp.", " egg case", " (", " egg") # , " n."
-  which00 <- c()
-  for (ii in cases) {
-    which0 <- which(sapply(strsplit(x = table_raw$species_name, split = ii, fixed = TRUE), length) == 2)
-    which0 <- which0[!(which0 %in% which00)]
-    table_raw$species_name_i[which0] <- 
-      paste0(sapply(strsplit(x = table_raw$species_name[which0], split = ii, fixed = TRUE), "[[", 1))
-    table_raw$species_name_noi[which0] <- 
-      paste0(ii, sapply(strsplit(x = table_raw$species_name[which0], split = ii, fixed = TRUE), "[[", 2))
-    which00 <- c(which00, which0)
-  }
-  
-  table_raw <- table_raw[order(table_raw$common_name),]
-  table_raw$species_name <- trimws(table_raw$species_name)
-  table_raw$species_name_noi <- trimws(table_raw$species_name_noi)
-  
-  # Prepare final table ----------------------------------------------------------
-  table_print <- table_raw |> 
-    flextable::flextable(col_keys = c("common_name", "dummy", "year_started")) |>
-    flextable::compose(
-      j = "dummy", 
-      value = flextable::as_paragraph(
-        flextable::as_i(species_name_i), " ", species_name_noi)) |> 
-    flextable::set_header_labels(dummy = "Species Name",
-                                 common_name = "Common Name",
-                                 year_started = "First Year") |> 
-    theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |> 
-    flextable::width(width = c(2.5, 2.5, 1) )
-  
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-  
-```{r fig-diversity-[type]-prep}
-  dist_plot <- function(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add = 0) {
-    
-    viridis_palette_option <- "cividis"
-    yrs <- sort(yrs, decreasing = TRUE)
-    header <- paste0(key_title, " from the ",
-                     range_text(yrs), " ", 
-                     SURVEY, 
-                     " survey", 
-                     plural_surveys, ". ")
-    
-    # prepare data
-    table_raw <- diversity
-    table_raw$CPUE_KGHA <- unlist(table_raw[,col])
-    table_raw <- table_raw  |>
-      dplyr::filter(
-        srvy %in% srvy1 &
-          year %in% yrs) |> 
-      dplyr::arrange(desc(year)) |>
-      dplyr::mutate(srvy = dplyr::case_when(
-        survey_definition_id == 98 ~ "EBS",
-        survey_definition_id == 143 ~ "NBS"), 
-        YEAR = year, 
-        LATITUDE = latitude_dd_start,
-        LONGITUDE = longitude_dd_start, 
-        CPUE_KGHA <- CPUE_KGHA + set.breaks_add, 
-        # CPUE_KGHA = ifelse(is.na(CPUE_KGHA), 0, CPUE_KGHA), 
-        COMMON_NAME = "Diversity") |> 
-      dplyr::select(srvy, YEAR, LATITUDE, LONGITUDE, COMMON_NAME, CPUE_KGHA) |> 
-      dplyr::ungroup() |> 
-      data.frame()
-    
-    for (ii in 1:length(unique(table_raw$YEAR))) {
-      # Create shapefile of species IDW ----------------------------------------------
-      yr0 <- unique(table_raw$YEAR)[ii]
-      
-      idw0 <- make_idw_stack(
-        x = table_raw |> 
-          dplyr::filter(YEAR == yr0),
-        # COMMON_NAME = table_raw$COMMON_NAME,
-        #                        LATITUDE = table_raw$LATITUDE,
-        #                        LONGITUDE = table_raw$LONGITUDE,
-        #                        CPUE_KGHA = table_raw$CPUE_KGHA,
-        region = reg_dat$region, 
-        grouping.vars = "YEAR", 
-        set.breaks = set.breaks,
-        extrapolation.grid.type = "sf")
-      
-      idw0$extrapolation.stack$var1.pred <-
-        factor(x = idw0$extrapolation.stack$var1.pred, 
-               levels = levels(idw0$extrapolation.stack$var1.pred), 
-               labels = set.breaks-set.breaks_add,
-               ordered = TRUE)
-      
-      
-      gg <- ggplot() +
-        ggplot2::geom_sf(data = reg_dat$akland,
-                         color = NA,
-                         fill = "grey70")  +
-        ggplot2::geom_sf(data = reg_dat$graticule,
-                         color = "grey80",
-                         alpha = 0.2) +
-        ggplot2::scale_y_continuous(name = "", #"Latitude",
-                                    expand = c(0, 0),
-                                    limits = reg_dat$plot.boundary$y,
-                                    breaks = reg_dat$lat.breaks) +
-        ggplot2::scale_x_continuous(name = "", #"Longitude",
-                                    limits = reg_dat$plot.boundary$x,
-                                    breaks = reg_dat$lon.breaks) + 
-        ggplot2::geom_sf(data = idw0$extrapolation.stack[idw0$extrapolation.stack$YEAR == yr0,],
-                         mapping = aes(fill = var1.pred),
-                         na.rm = FALSE,
-                         show.legend = TRUE, 
-                         color = NA) +
-        # ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
-        ggplot2::geom_sf(
-          data = reg_dat$survey.area, 
-          mapping = aes(color = SURVEY, 
-                        geometry = geometry), 
-          fill = "transparent", 
-          linewidth = 1, # ifelse(row0 > 2, 1.5, 1), 
-          show.legend = FALSE) +
-        ggplot2::scale_color_manual(
-          name = " ", 
-          values = reg_dat$survey.area$color,
-          breaks = reg_dat$survey.areasrvy_long,
-          labels = reg_dat$survey.area$srvy) + 
-        ggplot2::guides(
-          fill = guide_legend(
-            order = 1,
-            title.position = "top",
-            label.position = "bottom",
-            title.hjust = 0.5,
-            override.aes = list(color = NA),
-            nrow = 1),
-          color = "none")  +
-        ggplot2::coord_sf(expand = FALSE) + # coord_sf() + 
-        ggplot2::theme( 
-          legend.text = element_text(size = 12),
-          legend.title = element_text(size = 16, face = "bold"),
-          panel.background = element_rect(fill = "white", colour = NA), 
-          panel.border = element_rect(fill = NA, colour = "grey20"), 
-          axis.text = element_text(size = 12),
-          
-          strip.background = element_blank(), 
-          # strip.text = element_text(size = 20, face = "bold"),
-          legend.background = element_rect(colour = "transparent", 
-                                           fill = "transparent"),
-          legend.key = element_rect(colour = "transparent", 
-                                    fill = "transparent"),
-          legend.position = "bottom", 
-          legend.box = "horizontal",
-          legend.box.spacing = unit(0, "pt"), # reduce space between legend & plot
-          legend.margin=margin(0, 0, 0, 0) ) # +
-      # ggtitle(#label = spp_print, 
-      #   subtitle = yr0)
-      
-      if (set.breaks[1]+set.breaks_add == 0) {
-        gg <- gg +
-          ggplot2::scale_fill_manual(
-            name = paste0(yr0, " ", key_title),
-            values =  c("gray90",
-                        viridis::viridis(
-                          option = viridis_palette_option,
-                          direction = -1,
-                          n = length(set.breaks)-1,
-                          begin = 0.20,
-                          end = 0.80)),
-            na.translate = FALSE, # Don't use NA
-            drop = FALSE) 
-      } else {
-        gg <- gg +
-          ggplot2::scale_fill_manual(
-            name = paste0(yr0, " ", key_title),
-            values =  c(#"gray90",
-              viridis::viridis(
-                option = viridis_palette_option,
-                direction = -1,
-                n = length(set.breaks), # -1,
-                begin = 0.20,
-                end = 0.80)),
-            na.translate = FALSE, # Don't use NA
-            drop = FALSE) 
-      }
-      
-      ggsave(filename = paste0(nickname, "-", yr0, '.png'), 
-             path = paste0(dir_out_figtab, "gif/"),
-             height = height, 
-             width = width,
-             plot = gg, 
-             dpi = 300,
-             bg = "white", 
-             device = "png") 
-      
-    }
-    
-    # prepare animation ----------------------------------------------------------
-    img_gif <- sort(list.files(path = paste0(dir_out_figtab, "gif/"), 
-                               pattern = paste0(nickname, "-"), 
-                               full.names = TRUE) )
-    
-    img_gif <- lapply(img_gif, 
-                      magick::image_read)
-    
-    img_gif <- lapply(img_gif, 
-                      image_resize, 
-                      geometry = "1280")
-    
-    ## join the images together
-    img_gif <- magick::image_join(img_gif)
-    
-    ## animate at 2 frames per second
-    figure_print <- magick::image_animate(img_gif, 
-                                          fps = 2)
-    
-    ## view animated image
-    # figure_print
-    
-    ## save to disk
-    magick::image_write(
-      image = figure_print, 
-      path = paste0(paste0(dir_out_figtab, "gif/"), nickname, ".gif") )
-    
-    return(list("figure_print" = figure_print, 
-                "header" = header, 
-                "height" = height, 
-                "width" = width, 
-                "nickname" = nickname))
-    # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  }
-```
-  
-```{r fig-diversity-shannon-gif, eval = FALSE}
-  yrs <- sort(unique(diversity$year))
-  
-  width <- full_page_portrait_width # 6.5  
-  height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
-  nickname <- paste0("fig-diversity-shannon-gif")
-  report_title0 <- "gif"
-  col <- "shannon"
-  key_title <- 'Shannon Diversity Index'
-  set.breaks <- c(0,1,2,3,4)
-  # set.breaks <- c(0,.5,1,1.5,2,2.5,3,3.5) # c(0,1,2,3,4)
-  
-  temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks)
-  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-  
-```{r fig-diversity-simpson-gif, eval = FALSE}
-  yrs <- sort(unique(diversity$year))
-  
-  width <- full_page_portrait_width # 6.5  
-  height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
-  nickname <- paste0("fig-diversity-simpson-gif")
-  report_title0 <- "gif"
-  col <- "simpson"
-  key_title <- "Simpson's Diversity Index"
-  set.breaks <- c(0,5,10, 15, 20)
-  # set.breaks <- c(0,2.5,5,7.5,10, 12.5, 15, 18.5)
-  
-  temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks)
-  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-  
-  
-```{r fig-diversity-shannon-z-gif, eval = FALSE}
-  yrs <- sort(unique(diversity$year))
-  
-  width <- full_page_portrait_width # 6.5  
-  height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
-  nickname <- paste0("fig-diversity-shannon-z-gif")
-  report_title0 <- "gif"
-  col <- "shannon_z"
-  key_title <- 'Shannon Diversity Index (z-score)'
-  set.breaks <- c(floor(min(diversity$shannon_z, na.rm = TRUE)):ceiling(max(diversity$shannon_z, na.rm = TRUE)))
-  set.breaks_add <- (min(set.breaks)*-1)+.1
-  set.breaks <- set.breaks + set.breaks_add
-  
-  temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add)
-  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-  
-```{r fig-diversity-simpson-z-gif, eval = FALSE}
-  yrs <- sort(unique(diversity$year))
-  
-  width <- full_page_portrait_width # 6.5  
-  height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
-  nickname <- paste0("fig-diversity-simpson-z-gif")
-  report_title0 <- "gif"
-  col <- "simpson_z"
-  key_title <- "Simpson's Diversity Index (z-score)"
-  set.breaks <- c(floor(min(diversity$simpson_z, na.rm = TRUE)):ceiling(max(diversity$simpson_z, na.rm = TRUE)))
-  set.breaks_add <- (min(set.breaks)*-1)+.1
-  set.breaks <- set.breaks + set.breaks_add
-  
-  temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add)
-  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-  
-```{r tab-participants}
-  nickname <- "tab-participants" 
-  places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
-                               sheet = "affiliations", 
-                               skip = 1)
-  
-  table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
-                                   sheet = "participants", 
-                                   skip = 1)  |> 
-    dplyr::filter(year == maxyr) |> 
-    dplyr::left_join(places |> dplyr::rename(affiliation = combined))  |>
-    dplyr::arrange(Agency) |>
-    dplyr::left_join(
-      y = data.frame(srvy = c(srvy1, "EBS & NBS"), 
-                     srvy_long = c(stringr::str_to_title(srvy11), 
-                                   "Eastern and northern Bering Sea"))) |> # " Combined"
-    dplyr::left_join(places) |> 
-    dplyr::mutate(
-      key = paste0(vessel, "-", leg), 
-      srvy = gsub(pattern = "&", x = srvy, replacement = "and"),
-      srvy = factor(x = srvy, 
-                    levels = c("EBS and NBS", "EBS", "NBS"), 
-                    labels = c("EBS and NBS", "EBS", "NBS"), 
-                    ordered = TRUE), 
-      srvy_long = factor(x = srvy_long, 
-                         levels = c("Eastern and northern Bering Sea", # " Combined"
-                                    "Eastern Bering Sea", "Northern Bering Sea"), 
-                         labels = c("Eastern and northern Bering Sea", # " Combined"
-                                    "Eastern Bering Sea", "Northern Bering Sea"), 
-                         ordered = TRUE) , 
-      order = dplyr::case_when(
-        role == "Chief Scientist" ~ 1,
-        role == "Deck Lead" ~ 2,
-        role == "Crab Lead" ~ 3,
-        role == "Crab Assist" ~ 4,
-        role == "General Biologist" ~ 5,
-        role == "IPHC Secretariat" ~ 6,
-        role == "Stomach Collector" ~ 7),
-      col_title = paste0("Leg ", leg, ": ", srvy, "\n", 
-                         date_formatter(date = date_start, date_format = "%B %d"), 
-                         " -\n", 
-                         date_formatter(date = date_end, date_format = "%B %d")), 
-      affiliation = ifelse(is.na(affiliation), "-", affiliation), 
-      footorder = as.numeric(factor(x = affiliation, 
-                                    labels = unique(affiliation),
-                                    levels = unique(affiliation),
-                                    ordered = TRUE))) |>
-    dplyr::arrange(key) |>
-    dplyr::arrange(order)
-  
-  table_raw <- table_raw0 |>
-    tidyr::pivot_wider(id_cols = role, names_from = key, values_from = name) 
-  
-  table_raw_footnotes_1 <- table_raw0 |>
-    tidyr::pivot_wider(id_cols = role, names_from = key, values_from = footorder) 
-  
-  header <- paste0("Survey participants on the ", maxyr, " ", text_list(haul_cruises_maxyr$srvy_long), 
-                   " survey. ")
-  
-  aa <- table_raw0 |> 
-    dplyr::select(key, vessel, col_title) |> 
-    unique() 
-  
-  table_print <- table_raw |>
-    flextable::flextable() |> 
-    flextable::delete_part(part = "header") |> 
-    flextable::add_header_row(top = TRUE, values = c("", aa$vessel)) |>
-    flextable::merge_h(part = "header") |>
-    flextable::add_header_row(top = FALSE, values = c("", aa$col_title)) |>
-    flextable::bold(j = 1) |>
-    theme_flextable_nmfstm(row_lines = TRUE, 
-                           pgwidth = full_page_landscape_width) |>
-    flextable::italic(i = 2, part = "header") |>
-    flextable::bold(i = 2, part = "header", bold = FALSE) |>
-    flextable::vline(j = 5, part = "all") |> 
-    flextable::width(width = rep_len(x = full_page_landscape_width/ncol(table_raw), length.out = ncol(table_raw)))
-  
-  for (i in sort(unique(table_raw0$footorder[table_raw0$affiliation != "-"]))) {
-    
-    temp1 <- table_raw0 |>
-      dplyr::filter(footorder == i) |>
-      dplyr::select(affiliation, footorder) |> 
-      dplyr::slice(1)
-    
-    temp <- which(table_raw_footnotes_1 == i, arr.ind = TRUE) |> data.frame()
-    
-    table_print <- table_print |> 
-      flextable::footnote(
-        i = temp$row,  # Rows where the footnote applies
-        j = temp$col,  # Columns where the footnote applies
-        value = as_paragraph(temp1$affiliation),
-        ref_symbols = as.character(i),
-        part = "body") |> 
-      flextable::fontsize(size = 8, part = "footer")
 
-  }
+# Data changes
+
+```{r tab-taxon-changes, eval = FALSE}
+nickname <- "tab-taxon-changes"
+header <- paste0(maxyr, " changes to taxon species names and species codes (if changed), along with specific action taken and reason for update. ")
+
+table_raw <- gap_products_taxonomic_changes0 |>
+  dplyr::filter(year_changed == maxyr) |> 
+  dplyr::arrange(new_species_name) |> 
+  dplyr::mutate(dplyr::across(dplyr::everything(), as.character))
+
+# separate text to italize and not ---------------------------------------------
+table_raw$new_species_name_noi <- table_raw$old_species_name_noi <- ""
+table_raw$new_species_name_i <- table_raw$new_species_name
+table_raw$old_species_name_i <- table_raw$old_species_name
+table_raw$new_species_name <- paste0(table_raw$new_species_name, " ")
+table_raw$old_species_name <- paste0(table_raw$old_species_name, " ")
+cases <- c(" larvae", " n.", " sp.", " spp.", " egg case", " (", " egg") # , " n."
+which0_old <- which0_new <- c()
+for (ii in cases) {
+  # new names
+  which0 <- which(sapply(strsplit(x = table_raw$new_species_name, split = ii, fixed = TRUE), length) == 2)
+  which0 <- which0[!(which0 %in% which0_new)]
+  table_raw$new_species_name_i[which0] <- 
+    paste0(sapply(strsplit(x = table_raw$new_species_name[which0], split = ii, fixed = TRUE), "[[", 1))
+  table_raw$new_species_name_noi[which0] <- 
+    paste0(ii, sapply(strsplit(x = table_raw$new_species_name[which0], split = ii, fixed = TRUE), "[[", 2))
+  which0_new <- c(which0_new, which0)
   
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  # old names
+  which0 <- which(sapply(strsplit(x = table_raw$old_species_name, split = ii, fixed = TRUE), length) == 2)
+  which0 <- which0[!(which0 %in% which0_old)]
+  table_raw$old_species_name_i[which0] <- 
+    paste0(sapply(strsplit(x = table_raw$old_species_name[which0], split = ii, fixed = TRUE), "[[", 1))
+  table_raw$old_species_name_noi[which0] <- 
+    paste0(ii, sapply(strsplit(x = table_raw$old_species_name[which0], split = ii, fixed = TRUE), "[[", 2))
+  which0_old <- c(which0_old, which0)
+}
+table_raw$new_species_name_noi <- trimws(paste0(trimws(table_raw$new_species_name_noi), 
+                                                ifelse(is.na(table_raw$new_species_code), "", paste0(" (", table_raw$new_species_code, ")")) ))
+table_raw$old_species_name_noi <- trimws(paste0(trimws(table_raw$old_species_name_noi), 
+                                                ifelse(is.na(table_raw$old_species_code), "", paste0(" (", table_raw$old_species_code, ")")) ))
+
+# Prepare final table ----------------------------------------------------------
+table_print <- table_raw |> 
+  flextable::flextable(col_keys = c("dummy_old", "dummy_new", "action", "reason")) |>
+  flextable::compose(
+    j = "dummy_new", 
+    value = flextable::as_paragraph(
+      flextable::as_i(new_species_name_i), " ", new_species_name_noi)) |> 
+  flextable::compose(
+    j = "dummy_old", 
+    value = flextable::as_paragraph(
+      flextable::as_i(old_species_name_i), " ", old_species_name_noi)) |> 
+  flextable::set_header_labels(dummy_new = "New",
+                               dummy_old = "Previous",
+                               action = "Action",
+                               reason = "Reason") |> 
+  theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |> 
+  flextable::width(width = c(2, 2, 1.5, 1) )
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+
+```{r tab-species-year, eval = FALSE}
+# May only be relevant in the 2023 year
+nickname <- "tab-species-year"
+header <- paste0("Established species time-series cutoff guidelines for when the time series of some species should begin. These cutoffs were formally established in 2023. ")
+
+table_raw <- gap_products_species_year0 |>
+  dplyr::left_join(spp_info |> 
+                     dplyr::select(common_name, species_name, species_code)) |> 
+  dplyr::arrange(species_code) |> 
+  dplyr::mutate(dplyr::across(dplyr::everything(), as.character)) |> 
+  dplyr::select(common_name, species_name, year_started)  |> 
+  dplyr::mutate(common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))) )
+
+# separate text to italize and not ---------------------------------------------
+table_raw$species_name_noi <- ""
+table_raw$species_name_i <- table_raw$species_name
+table_raw$species_name <- paste0(table_raw$species_name, " ")
+cases <- c(" larvae", " n.", " sp.", " spp.", " egg case", " (", " egg") # , " n."
+which00 <- c()
+for (ii in cases) {
+  which0 <- which(sapply(strsplit(x = table_raw$species_name, split = ii, fixed = TRUE), length) == 2)
+  which0 <- which0[!(which0 %in% which00)]
+  table_raw$species_name_i[which0] <- 
+    paste0(sapply(strsplit(x = table_raw$species_name[which0], split = ii, fixed = TRUE), "[[", 1))
+  table_raw$species_name_noi[which0] <- 
+    paste0(ii, sapply(strsplit(x = table_raw$species_name[which0], split = ii, fixed = TRUE), "[[", 2))
+  which00 <- c(which00, which0)
+}
+
+table_raw <- table_raw[order(table_raw$common_name),]
+table_raw$species_name <- trimws(table_raw$species_name)
+table_raw$species_name_noi <- trimws(table_raw$species_name_noi)
+
+# Prepare final table ----------------------------------------------------------
+table_print <- table_raw |> 
+  flextable::flextable(col_keys = c("common_name", "dummy", "year_started")) |>
+  flextable::compose(
+    j = "dummy", 
+    value = flextable::as_paragraph(
+      flextable::as_i(species_name_i), " ", species_name_noi)) |> 
+  flextable::set_header_labels(dummy = "Species Name",
+                               common_name = "Common Name",
+                               year_started = "First Year") |> 
+  theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |> 
+  flextable::width(width = c(2.5, 2.5, 1) )
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r tab-participants}
+nickname <- "tab-participants" 
+places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
+                             sheet = "affiliations", 
+                             skip = 1)
+
+table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
+                                 sheet = "participants", 
+                                 skip = 1)  |> 
+  dplyr::filter(year == maxyr) |> 
+  dplyr::left_join(places |> dplyr::rename(affiliation = combined))  |>
+  dplyr::arrange(Agency) |>
+  dplyr::left_join(
+    y = data.frame(srvy = c(srvy1, "EBS & NBS"), 
+                   srvy_long = c(stringr::str_to_title(srvy11), 
+                                 "Eastern and northern Bering Sea"))) |> # " Combined"
+  dplyr::left_join(places) |> 
+  dplyr::mutate(
+    key = paste0(vessel, "-", leg), 
+    srvy = gsub(pattern = "&", x = srvy, replacement = "and"),
+    srvy = factor(x = srvy, 
+                  levels = c("EBS and NBS", "EBS", "NBS"), 
+                  labels = c("EBS and NBS", "EBS", "NBS"), 
+                  ordered = TRUE), 
+    srvy_long = factor(x = srvy_long, 
+                       levels = c("Eastern and northern Bering Sea", # " Combined"
+                                  "Eastern Bering Sea", "Northern Bering Sea"), 
+                       labels = c("Eastern and northern Bering Sea", # " Combined"
+                                  "Eastern Bering Sea", "Northern Bering Sea"), 
+                       ordered = TRUE) , 
+    order = dplyr::case_when(
+      role == "Chief Scientist" ~ 1,
+      role == "Deck Lead" ~ 2,
+      role == "Crab Lead" ~ 3,
+      role == "Crab Assist" ~ 4,
+      role == "General Biologist" ~ 5,
+      role == "IPHC Secretariat" ~ 6,
+      role == "Stomach Collector" ~ 7),
+    col_title = paste0("Leg ", leg, ": ", srvy, "\n", 
+                       date_formatter(date = date_start, date_format = "%B %d"), 
+                       " -\n", 
+                       date_formatter(date = date_end, date_format = "%B %d")), 
+    affiliation = ifelse(is.na(affiliation), "-", affiliation), 
+    footorder = as.numeric(factor(x = affiliation, 
+                                  labels = unique(affiliation),
+                                  levels = unique(affiliation),
+                                  ordered = TRUE))) |>
+  dplyr::arrange(key) |>
+  dplyr::arrange(order)
+
+table_raw <- table_raw0 |>
+  tidyr::pivot_wider(id_cols = role, names_from = key, values_from = name) 
+
+table_raw_footnotes_1 <- table_raw0 |>
+  tidyr::pivot_wider(id_cols = role, names_from = key, values_from = footorder) 
+
+header <- paste0("Survey participants on the ", maxyr, " ", text_list(haul_cruises_maxyr$srvy_long), 
+                 " survey. ")
+
+aa <- table_raw0 |> 
+  dplyr::select(key, vessel, col_title) |> 
+  unique() 
+
+table_print <- table_raw |>
+  flextable::flextable() |> 
+  flextable::delete_part(part = "header") |> 
+  flextable::add_header_row(top = TRUE, values = c("", aa$vessel)) |>
+  flextable::merge_h(part = "header") |>
+  flextable::add_header_row(top = FALSE, values = c("", aa$col_title)) |>
+  flextable::bold(j = 1) |>
+  theme_flextable_nmfstm(row_lines = TRUE, 
+                         pgwidth = full_page_landscape_width) |>
+  flextable::italic(i = 2, part = "header") |>
+  flextable::bold(i = 2, part = "header", bold = FALSE) |>
+  flextable::vline(j = 5, part = "all") |> 
+  flextable::width(width = rep_len(x = full_page_landscape_width/ncol(table_raw), length.out = ncol(table_raw)))
+
+for (i in sort(unique(table_raw0$footorder[table_raw0$affiliation != "-"]))) {
   
+  temp1 <- table_raw0 |>
+    dplyr::filter(footorder == i) |>
+    dplyr::select(affiliation, footorder) |> 
+    dplyr::slice(1)
   
+  temp <- which(table_raw_footnotes_1 == i, arr.ind = TRUE) |> data.frame()
+  
+  table_print <- table_print |> 
+    flextable::footnote(
+      i = temp$row,  # Rows where the footnote applies
+      j = temp$col,  # Columns where the footnote applies
+      value = as_paragraph(temp1$affiliation),
+      ref_symbols = as.character(i),
+      part = "body") |> 
+    flextable::fontsize(size = 8, part = "footer")
+  
+}
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+
 ```{r tab-data-changes}
-  nickname0 <- "tab-data-changes" 
+nickname0 <- "tab-data-changes" 
 
 table_raw00 <- read.csv(file = paste0(dir_data, "/str_data_changes.csv")) 
 table_raw0 <- table_raw00 |> 
@@ -3053,22 +2918,22 @@ table_raw0 <- table_raw00 |>
                 Records = no_recs) 
 
 for (i in 1:2) {
-
-    table_raw <- data.frame()
+  
+  table_raw <- data.frame()
   if (i == 1) {
     header <- paste0("The number of records in ", maxyr," changed in public-facing production tables. ")
-        table_raw <- table_raw0 |> 
-  dplyr::filter(Years == maxyr) |> 
-  dplyr::select(-Years)
-          nickname <- paste0(nickname0, "-maxyr") 
-
+    table_raw <- table_raw0 |> 
+      dplyr::filter(Years == maxyr) |> 
+      dplyr::select(-Years)
+    nickname <- paste0(nickname0, "-maxyr") 
+    
   } else if (i == 2) {
     header <- paste0("The number of records in 1982-", 
                      max(table_raw00$year_max[table_raw00$year_max != maxyr]),
                      " changed in public-facing production tables. ")
     table_raw <- table_raw0 |> 
-  dplyr::filter(Years != maxyr)
-          nickname <- paste0(nickname0, "-notmaxyr") 
+      dplyr::filter(Years != maxyr)
+    nickname <- paste0(nickname0, "-notmaxyr") 
   }
   
   table_print <- table_raw |>
@@ -3076,10 +2941,273 @@ for (i in 1:2) {
     flextable::merge_v() |> 
     theme_flextable_nmfstm(row_lines = TRUE, 
                            pgwidth = full_page_portrait_width) 
-
+  
   res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-  }
+}
 ```
+
+# Diversity
+
+```{r fig-diversity-[type]-prep}
+dist_plot <- function(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add = 0) {
+  
+  viridis_palette_option <- "cividis"
+  yrs <- sort(yrs, decreasing = TRUE)
+  header <- paste0(key_title, " from the ",
+                   range_text(yrs), " ", 
+                   SURVEY, 
+                   " survey", 
+                   plural_surveys, ". ")
+  
+  # prepare data
+  table_raw <- diversity
+  table_raw$CPUE_KGHA <- unlist(table_raw[,col])
+  table_raw <- table_raw  |>
+    dplyr::filter(
+      srvy %in% srvy1 &
+        year %in% yrs) |> 
+    dplyr::arrange(desc(year)) |>
+    dplyr::mutate(srvy = dplyr::case_when(
+      survey_definition_id == 98 ~ "EBS",
+      survey_definition_id == 143 ~ "NBS"), 
+      YEAR = year, 
+      LATITUDE = latitude_dd_start,
+      LONGITUDE = longitude_dd_start, 
+      CPUE_KGHA <- CPUE_KGHA + set.breaks_add, 
+      # CPUE_KGHA = ifelse(is.na(CPUE_KGHA), 0, CPUE_KGHA), 
+      COMMON_NAME = "Diversity") |> 
+    dplyr::select(srvy, YEAR, LATITUDE, LONGITUDE, COMMON_NAME, CPUE_KGHA) |> 
+    dplyr::ungroup() |> 
+    data.frame()
+  
+  for (ii in 1:length(unique(table_raw$YEAR))) {
+    # Create shapefile of species IDW ----------------------------------------------
+    yr0 <- unique(table_raw$YEAR)[ii]
     
+    idw0 <- make_idw_stack(
+      x = table_raw |> 
+        dplyr::filter(YEAR == yr0),
+      # COMMON_NAME = table_raw$COMMON_NAME,
+      #                        LATITUDE = table_raw$LATITUDE,
+      #                        LONGITUDE = table_raw$LONGITUDE,
+      #                        CPUE_KGHA = table_raw$CPUE_KGHA,
+      region = reg_dat$region, 
+      grouping.vars = "YEAR", 
+      set.breaks = set.breaks,
+      extrapolation.grid.type = "sf")
+    
+    idw0$extrapolation.stack$var1.pred <-
+      factor(x = idw0$extrapolation.stack$var1.pred, 
+             levels = levels(idw0$extrapolation.stack$var1.pred), 
+             labels = set.breaks-set.breaks_add,
+             ordered = TRUE)
+    
+    
+    gg <- ggplot() +
+      ggplot2::geom_sf(data = reg_dat$akland,
+                       color = NA,
+                       fill = "grey70")  +
+      ggplot2::geom_sf(data = reg_dat$graticule,
+                       color = "grey80",
+                       alpha = 0.2) +
+      ggplot2::scale_y_continuous(name = "", #"Latitude",
+                                  expand = c(0, 0),
+                                  limits = reg_dat$plot.boundary$y,
+                                  breaks = reg_dat$lat.breaks) +
+      ggplot2::scale_x_continuous(name = "", #"Longitude",
+                                  limits = reg_dat$plot.boundary$x,
+                                  breaks = reg_dat$lon.breaks) + 
+      ggplot2::geom_sf(data = idw0$extrapolation.stack[idw0$extrapolation.stack$YEAR == yr0,],
+                       mapping = aes(fill = var1.pred),
+                       na.rm = FALSE,
+                       show.legend = TRUE, 
+                       color = NA) +
+      # ggplot2::facet_wrap( ~ YEAR, nrow = row0) + 
+      ggplot2::geom_sf(
+        data = reg_dat$survey.area, 
+        mapping = aes(color = SURVEY, 
+                      geometry = geometry), 
+        fill = "transparent", 
+        linewidth = 1, # ifelse(row0 > 2, 1.5, 1), 
+        show.legend = FALSE) +
+      ggplot2::scale_color_manual(
+        name = " ", 
+        values = reg_dat$survey.area$color,
+        breaks = reg_dat$survey.areasrvy_long,
+        labels = reg_dat$survey.area$srvy) + 
+      ggplot2::guides(
+        fill = guide_legend(
+          order = 1,
+          title.position = "top",
+          label.position = "bottom",
+          title.hjust = 0.5,
+          override.aes = list(color = NA),
+          nrow = 1),
+        color = "none")  +
+      ggplot2::coord_sf(expand = FALSE) + # coord_sf() + 
+      ggplot2::theme( 
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 16, face = "bold"),
+        panel.background = element_rect(fill = "white", colour = NA), 
+        panel.border = element_rect(fill = NA, colour = "grey20"), 
+        axis.text = element_text(size = 12),
+        
+        strip.background = element_blank(), 
+        # strip.text = element_text(size = 20, face = "bold"),
+        legend.background = element_rect(colour = "transparent", 
+                                         fill = "transparent"),
+        legend.key = element_rect(colour = "transparent", 
+                                  fill = "transparent"),
+        legend.position = "bottom", 
+        legend.box = "horizontal",
+        legend.box.spacing = unit(0, "pt"), # reduce space between legend & plot
+        legend.margin=margin(0, 0, 0, 0) ) # +
+    # ggtitle(#label = spp_print, 
+    #   subtitle = yr0)
+    
+    if (set.breaks[1]+set.breaks_add == 0) {
+      gg <- gg +
+        ggplot2::scale_fill_manual(
+          name = paste0(yr0, " ", key_title),
+          values =  c("gray90",
+                      viridis::viridis(
+                        option = viridis_palette_option,
+                        direction = -1,
+                        n = length(set.breaks)-1,
+                        begin = 0.20,
+                        end = 0.80)),
+          na.translate = FALSE, # Don't use NA
+          drop = FALSE) 
+    } else {
+      gg <- gg +
+        ggplot2::scale_fill_manual(
+          name = paste0(yr0, " ", key_title),
+          values =  c(#"gray90",
+            viridis::viridis(
+              option = viridis_palette_option,
+              direction = -1,
+              n = length(set.breaks), # -1,
+              begin = 0.20,
+              end = 0.80)),
+          na.translate = FALSE, # Don't use NA
+          drop = FALSE) 
+    }
+    
+    ggsave(filename = paste0(nickname, "-", yr0, '.png'), 
+           path = paste0(dir_out_figtab, "gif/"),
+           height = height, 
+           width = width,
+           plot = gg, 
+           dpi = 300,
+           bg = "white", 
+           device = "png") 
+    
+  }
   
+  # prepare animation ----------------------------------------------------------
+  img_gif <- sort(list.files(path = paste0(dir_out_figtab, "gif/"), 
+                             pattern = paste0(nickname, "-"), 
+                             full.names = TRUE) )
   
+  img_gif <- lapply(img_gif, 
+                    magick::image_read)
+  
+  img_gif <- lapply(img_gif, 
+                    image_resize, 
+                    geometry = "1280")
+  
+  ## join the images together
+  img_gif <- magick::image_join(img_gif)
+  
+  ## animate at 2 frames per second
+  figure_print <- magick::image_animate(img_gif, 
+                                        fps = 2)
+  
+  ## view animated image
+  # figure_print
+  
+  ## save to disk
+  magick::image_write(
+    image = figure_print, 
+    path = paste0(paste0(dir_out_figtab, "gif/"), nickname, ".gif") )
+  
+  return(list("figure_print" = figure_print, 
+              "header" = header, 
+              "height" = height, 
+              "width" = width, 
+              "nickname" = nickname))
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+}
+```
+
+```{r fig-diversity-shannon-gif, eval = FALSE}
+yrs <- sort(unique(diversity$year))
+
+width <- full_page_portrait_width # 6.5  
+height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
+nickname <- paste0("fig-diversity-shannon-gif")
+report_title0 <- "gif"
+col <- "shannon"
+key_title <- 'Shannon Diversity Index'
+set.breaks <- c(0,1,2,3,4)
+# set.breaks <- c(0,.5,1,1.5,2,2.5,3,3.5) # c(0,1,2,3,4)
+
+temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r fig-diversity-simpson-gif, eval = FALSE}
+yrs <- sort(unique(diversity$year))
+
+width <- full_page_portrait_width # 6.5  
+height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
+nickname <- paste0("fig-diversity-simpson-gif")
+report_title0 <- "gif"
+col <- "simpson"
+key_title <- "Simpson's Diversity Index"
+set.breaks <- c(0,5,10, 15, 20)
+# set.breaks <- c(0,2.5,5,7.5,10, 12.5, 15, 18.5)
+
+temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+
+```{r fig-diversity-shannon-z-gif, eval = FALSE}
+yrs <- sort(unique(diversity$year))
+
+width <- full_page_portrait_width # 6.5  
+height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
+nickname <- paste0("fig-diversity-shannon-z-gif")
+report_title0 <- "gif"
+col <- "shannon_z"
+key_title <- 'Shannon Diversity Index (z-score)'
+set.breaks <- c(floor(min(diversity$shannon_z, na.rm = TRUE)):ceiling(max(diversity$shannon_z, na.rm = TRUE)))
+set.breaks_add <- (min(set.breaks)*-1)+.1
+set.breaks <- set.breaks + set.breaks_add
+
+temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r fig-diversity-simpson-z-gif, eval = FALSE}
+yrs <- sort(unique(diversity$year))
+
+width <- full_page_portrait_width # 6.5  
+height <- full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
+nickname <- paste0("fig-diversity-simpson-z-gif")
+report_title0 <- "gif"
+col <- "simpson_z"
+key_title <- "Simpson's Diversity Index (z-score)"
+set.breaks <- c(floor(min(diversity$simpson_z, na.rm = TRUE)):ceiling(max(diversity$simpson_z, na.rm = TRUE)))
+set.breaks_add <- (min(set.breaks)*-1)+.1
+set.breaks <- set.breaks + set.breaks_add
+
+temp <- dist_plot(yrs, height, nickname, report_title0, col, key_title, set.breaks, set.breaks_add)
+for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
