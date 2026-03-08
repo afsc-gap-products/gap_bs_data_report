@@ -1230,17 +1230,16 @@ biomass <- gap_products_akfin_biomass0 |>
   dplyr::bind_rows(crab_biomass0 |>
                      dplyr::mutate(
                        area_id = dplyr::case_when(
+                         survey_definition_id == 52 ~ 99904, 
+                         survey_definition_id == 47 ~ 99903, 
                          survey_definition_id == 143 ~ 99902, 
-                         survey_definition_id == 98 ~ 99900)) ) |> 
-  dplyr::filter(
-    area_id %in% as.numeric(strat0) &
-      survey_definition_id %in% srvy00 &
-      n_weight > 0 &
-      year > 1981 & 
-      year <= maxyr) |>  
+                         survey_definition_id == 98 ~ 99900)) ) |>  
   unique() |>
   dplyr::mutate(
     srvy = dplyr::case_when(
+      survey_definition_id == 47 ~ "GOA", 
+      survey_definition_id == 52 ~ "AI", 
+      survey_definition_id == 78 ~ "BSS", 
       survey_definition_id == 143 ~ "NBS", 
       survey_definition_id == 98 ~ "EBS"),
     # stratum = ifelse(area_id %in% c(99900, 99902), 999, area_id)
@@ -1248,6 +1247,16 @@ biomass <- gap_products_akfin_biomass0 |>
     stratum = ifelse(stratum > 900, 999, stratum), 
     biomass_dw = ifelse(biomass_dw < 0, 0, biomass_dw), 
     population_dw = ifelse(population_dw < 0, 0, population_dw)  )
+
+biomass_allareas <- biomass
+
+biomass <- biomass |> 
+  dplyr::filter(
+    area_id %in% as.numeric(strat0) &
+      survey_definition_id %in% srvy00 &
+      n_weight > 0 &
+      year > 1981 & 
+      year <= maxyr)
 
 biomass_maxyr <- biomass |>
   # dplyr::filter(stratum == 999)|>
