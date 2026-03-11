@@ -1740,18 +1740,19 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
     }
     
     header <- paste0(header,
-                     # spp_print,
-                     # ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
-                     # " were encountered and weighed ",
-                     " during the ",
-                     maxyr," ", SURVEY,
-                     " survey",plural_surveys,". ",
-                     ifelse(length(setdiff(srvy1, unique(table_raw$srvy)))>0,
-                            paste0("This taxon was not encountered in the ",
+                     spp_print,
+                     ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
+                     " were encountered and weighed ",
+                     ifelse(length(setdiff(srvy1, unique(table_raw$srvy))) > 0,
+                            # If species is missing from one survey:
+                            paste0("during the ", maxyr, " ", SURVEY, " survey. ",
+                                   "This taxon was not encountered in the ",
                                    maxyr, " ",
-                                   haul_cruises_maxyr$srvy_long[haul_cruises_maxyr$srvy != unique(table_raw$srvy)],
+                                   haul_cruises_maxyr$srvy_long[!(haul_cruises_maxyr$srvy %in% unique(table_raw$srvy))],
                                    " survey. "),
-                            ""))# ifelse(!include_n_length, "No lengths were collected for this taxon. ", ""))
+                            # If species is present in both surveys:
+                            paste0("during the ", maxyr, " ", SURVEY, 
+                                   " survey", plural_surveys, ". ")))
     
     table_print <- table_print |>
       flextable::bold(i = ~ (stratum == "Total") ) |>
@@ -2311,7 +2312,7 @@ header <- paste0(
   ". (",ifelse(exists("comm_size"), "C", "B"),") Biomass and population time series estimated from the ",
   substr(x = gsub("[^0-9]", "", data_timeseries_txt), start = 1, stop = 4),"-2025 ", 
   ifelse(exists("comm_size"), "", fig_srvy), 
-  "survey",fig_srvy_plural," (points and solid lines, with estimated 95% confidence intervals error bars) and time series mean (dashed lines; ",
+  "survey",fig_srvy_plural," (points and solid lines, with estimated 95% confidence interval error bars) and time series mean (dashed lines; ",
   ifelse(spp_file == "tunicates", 
          paste0(temp$srvy, " mean: ", 
                 formatC(x = temp$val_mean_Biomass, digits = 0, big.mark = ",", format = "f"), " ", 
