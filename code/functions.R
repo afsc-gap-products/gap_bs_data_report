@@ -2116,7 +2116,7 @@ plot_survey_stations <- function(reg_dat,
                                   bg.color = "white", color = "black", group = 99) + 
       shadowtext::geom_shadowtext(
         data = subset(reg_dat$place.labels, 
-                      type %in% c("bathymetry", "islands")),
+                      type %in% c("bathymetry", "islands", "waterbody")),
         aes(x = x, y = y, label = lab), 
         bg.color = "white", color = "black", 
         size = 3, group = 99)
