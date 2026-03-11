@@ -48,7 +48,7 @@ for (i in 1:length(locations)){
     FETCH FIRST 1 ROWS ONLY;"))
   
   end0 <- c()
-  if ("SURVEY_DEFINITION_ID" %in% names(a)) {
+  if ("SURVEY_DEFINITION_ID" %in% names(a) & !(locations[i] %in% "GAP_PRODUCTS.AKFIN_BIOMASS")) {
     end0 <- c(end0, "SURVEY_DEFINITION_ID IN (143, 98)")
   }
   if ("YEAR" %in% names(a) & !(locations[i] %in% 
