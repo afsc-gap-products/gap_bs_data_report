@@ -101,7 +101,15 @@ reg_dat$place.labels <- dplyr::bind_rows(
              region = map.area, 
              lab = "Chirikov Basin", 
              x = temp$X, 
-             y = temp$Y))
+             y = temp$Y),
+  data.frame(type = "islands", 
+             region = "bs.all", 
+             lab = "Norton Sound", 
+             x = -523269.15, y = 1585082.93),
+  data.frame(type = "islands", 
+             region = "bs.all", 
+             lab = "Bristol Bay", 
+             x = -332604.81, y = 849853.22))
 
 reg_dat$survey.grid$stratum <- NULL
 

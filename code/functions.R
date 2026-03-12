@@ -2095,16 +2095,6 @@ plot_survey_stations <- function(reg_dat,
   }
   
   if (place_labels) {
-    # Add more places to the plot (SNW: this is hacky!), in Alaska Albers proj.
-    norton <- data.frame(type = "waterbody", 
-                         region = "bs.all", 
-                         lab = "Norton Sound", 
-                         x = -523269.15, y = 1585082.93)
-    bristol <- data.frame(type = "waterbody", 
-                          region = "bs.all", 
-                          lab = "Bristol Bay", 
-                          x = -332604.81, y = 849853.22)
-    reg_dat$place.labels <- bind.rows(reg_dat$place.labels, norton, bristol)
     figure <- figure +
       ggplot2::geom_text(data = subset(reg_dat$place.labels, 
                                        type == "mainland"), 
@@ -2116,7 +2106,7 @@ plot_survey_stations <- function(reg_dat,
                                   bg.color = "white", color = "black", group = 99) + 
       shadowtext::geom_shadowtext(
         data = subset(reg_dat$place.labels, 
-                      type %in% c("bathymetry", "islands", "waterbody")),
+                      type %in% c("bathymetry", "islands")),
         aes(x = x, y = y, label = lab), 
         bg.color = "white", color = "black", 
         size = 3, group = 99)
