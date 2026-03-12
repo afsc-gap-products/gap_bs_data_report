@@ -1623,7 +1623,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          ") confidence limits, and number of hauls in which ",
                          spp_print,
                          # ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
-                         " were weighed")
+                         " were encountered and weighed")
         
         table_print0 <- table_raw |>
           dplyr::mutate(
@@ -1695,7 +1695,7 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
                          ") confidence limits, and number of hauls in which ",
                          spp_print,
                          # ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
-                         " were encountered")
+                         " were encountered and weighed")
         
         table_print0 <- table_raw |>
           dplyr::mutate(
@@ -1739,13 +1739,11 @@ if (sum(temp$biomass_mt[temp$stratum == "Total"] != 0, na.rm = TRUE) > 0) {
       }
     }
     
-    header <- paste0(header,
-                     spp_print,
-                     ifelse(is.na(spp_sci), "", paste0(" (", spp_sci, ")")),
-                     " were encountered and weighed ",
+    header <- paste0(header, 
                      ifelse(length(setdiff(srvy1, unique(table_raw$srvy))) > 0,
                             # If species is missing from one survey:
-                            paste0("during the ", maxyr, " ", SURVEY, " survey. ",
+                            paste0(" during the ", maxyr, " ", 
+                                   haul_cruises_maxyr$srvy_long[(haul_cruises_maxyr$srvy %in% unique(table_raw$srvy))], " survey. ",
                                    "This taxon was not encountered in the ",
                                    maxyr, " ",
                                    haul_cruises_maxyr$srvy_long[!(haul_cruises_maxyr$srvy %in% unique(table_raw$srvy))],
