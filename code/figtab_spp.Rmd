@@ -1463,8 +1463,9 @@ if (sum(table_raw$catch_min >= 100) == nrow(table_raw)) {
     
     if (sum(table_raw$catch_min >= 100) != nrow(table_raw)) {
   header <- paste0(header, 
-                   "Too few organisms were observed on the ", text_list(tolower(table_raw$`Bering Sea\nSurvey`[table_raw$catch_min <= 100]))," Bering Sea survey to share meaningful percent change of total biomass values",ifelse(sum(table_print0 == "-")>0, "", " (note cells with '-')"),", so observed values are shared instead. ")      
+                   "Too few organisms were observed on the ", text_list(tolower(table_raw$`Bering Sea\nSurvey`[table_raw$catch_min <= 100]))," Bering Sea survey to share meaningful percent change of total biomass values",ifelse(sum(table_print0 == "-")>0, " (note cells with '-')", ""),", so observed values are shared instead. ")      
     }
+
 
 # # null cells if there are less than 99 individuals
 # for (i in 1:length(srvy)) {
@@ -1526,7 +1527,7 @@ if (ncol(table_print0) > 2) {
 }
 
 pres_stats <- table_raw
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 ```{r tab-est-[spp]-[wt or num], eval = ((report_title == "data") & spp_table_cpue)}
