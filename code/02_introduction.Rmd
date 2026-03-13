@@ -25,27 +25,16 @@ if (sum(haul_cruises_maxyr$srvy %in% "NBS")>0) {
 temp <-  haul_cruises_maxyr |> 
   dplyr::mutate(
     survey_name = srvy_long)
-    # survey_name = tolower(survey_name), 
-    #             survey_name = gsub(x = survey_name, pattern = "bering sea", replacement = "Bering Sea"), 
-    #             survey_name = gsub(x = survey_name, pattern = "shelf", replacement = ""), 
-    #             survey_name = gsub(x = survey_name, pattern = " - eastern Bering Sea survey extension", replacement = ""), 
-    #             survey_name = gsub(x = survey_name, pattern = "crab/groundfish", replacement = "")) # replacement = "groundfish and shellfish"
-    #             # survey_name = 
-    #             #   gsub(pattern = "eastern bering sea crab/groundfish", 
-    #             #        replacement = paste0("eastern Bering Sea groundfish and shellfish"), 
-    #             #        x = survey_name), 
-    #             #   gsub(pattern = "northern bering sea crab/groundfish", 
-    #             #        replacement = paste0("northern Bering Sea groundfish and shellfish"), 
-    #             #        x = survey_name))
 
-str0 <- gsub(pattern = " ,", replacement = ",", 
-             x = text_list(paste0(temp$yrofsurvey, 
+str0_srvys <- gsub(pattern = " ,", replacement = ",", 
+             x = text_list(paste0("the ", 
+                                  temp$yrofsurvey, 
                                   temp$stndth, " ", temp$survey_name, " survey from ", 
                                   temp$start_mo_long, " to ", temp$end_mo_long, " ", maxyr), 
                            sep_last = ", as well as the "))
 ```
 
-In `r maxyr`, the Groundfish and Shellfish Assessment Programs in the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service's (NMFS') Alaska Fisheries Science Center (AFSC) conducted the `r str0`. The survey`r plural_surveys` collect`r ifelse(length(srvy1)>1, "", "s")` information about fish and invertebrate populations and environmental conditions to support fisheries stock assessment and management. `r str00``r paste0(readLines(con = paste0(dir_out_rawdata, "/0-introduction.Rmd")), collapse = "") ` 
+In `r maxyr`, the Groundfish and Shellfish Assessment Programs in the Resource Assessment and Conservation Engineering (RACE) Division of the National Marine Fisheries Service's (NMFS') Alaska Fisheries Science Center (AFSC) conducted the `r str0_srvys`. The survey`r plural_surveys` collect`r ifelse(length(srvy1)>1, "", "s")` information about fish and invertebrate populations and environmental conditions to support fisheries stock assessment and management. `r str00``r paste0(readLines(con = paste0(dir_out_rawdata, "/0-introduction.Rmd")), collapse = "") ` 
 
 The data collected during these survey`r plural_surveys` are vital for fisheries management and ecosystem monitoring. Fishery-independent abundance estimates, in addition to other biological and oceanographic information collected, are used by the AFSC, the North Pacific Fishery Management Council (NPFMC), and the Alaska Department of Fish and Game (ADF&G). These organizations use the survey data products to manage groundfish and crab stocks, and to conduct ecosystem forecast modeling, which are requirements of the Bering Sea and Aleutian Island (BSAI) Fishery Management Plan (FMP) established under the Magnuson-Stevens Fishery Conservation and Management Act^[https://www.fisheries.noaa.gov/topic/laws-policies].
 

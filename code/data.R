@@ -325,6 +325,7 @@ spp_info <- spp_info |>
 
 spp_info <- spp_info|>
   dplyr::mutate(species_name_ital = species_name0, 
+                common_name = ifelse(common_name == "unsorted shab", "unsorted shelfish, hermits, and associated biomass", common_name),  
                 species_name_ital = gsub(replacement = "&&", pattern = "*", x = species_name_ital, fixed = TRUE) )|> #, 
   tidyr::separate(species_name_ital, into = c("temp1", "species_name_ital", "temp2"), sep = "&&")|> 
   dplyr::mutate(species_name_noital = paste0(ifelse(is.na(temp1), "", temp1), ifelse(is.na(temp2), "", temp2)))|> 
@@ -1311,4 +1312,92 @@ total_biomass <- biomass |>
     y = data.frame(survey_definition_id = report_types$NEBS$srvy00, 
                    srvy = report_types$NEBS$srvy1, 
                    srvy_long = report_types$NEBS$srvy11))
+
+## number_of_taxon --------------------------------------------------------------
+
+# number of taxon by survey
+temp <- dplyr::left_join(
+  x = catch_haul_cruises_maxyr|> 
+    dplyr::select(srvy, species_code)|> 
+    dplyr::distinct(), 
+  y = spp_info|> 
+    dplyr::filter(used_in_counts)|>
+    dplyr::select(species_code, taxon, phylum, family, genus, species, taxon)|>
+    dplyr::distinct(), 
+  by = "species_code") |> 
+  # dplyr::filter(taxon == "fish")|> 
+  dplyr::select(species_code, taxon, phylum, family, genus, species, taxon, srvy)|> 
+  dplyr::distinct() 
+
+taxon_count <- 
+  # by taxon groupings
+  temp |> 
+  dplyr::filter(!is.na(taxon)) |> 
+  dplyr::mutate(species_code = as.character(species_code)) |> 
+  tidyr::pivot_longer(cols = c("species_code", "phylum", "family", "genus", "species")) |> 
+  # dplyr::select(srvy, taxon, name) |> 
+  dplyr::distinct() |> 
+  dplyr::group_by(srvy, taxon, name)|> 
+  dplyr::summarise(count = n_distinct(value, na.rm = TRUE)) |> 
+  dplyr::ungroup() |> 
+  # total of all surveys
+  dplyr::bind_rows(
+    temp |> 
+      dplyr::filter(!is.na(taxon)) |> 
+      dplyr::mutate(species_code = as.character(species_code)) |> 
+      tidyr::pivot_longer(cols = c("species_code", "phylum", "family", "genus", "species")) |> 
+      # dplyr::select(srvy, taxon, name) |> 
+      dplyr::distinct() |> 
+      dplyr::group_by(taxon, name)|> 
+      dplyr::summarise(count = n_distinct(value, na.rm = TRUE)) |> 
+      dplyr::ungroup() |> 
+      dplyr::mutate(srvy = "all") ) |> 
+  # total of all surveys across all taxon
+  dplyr::bind_rows(
+    temp |> 
+      # dplyr::filter(!is.na(taxon)) |> 
+      dplyr::mutate(species_code = as.character(species_code)) |> 
+      tidyr::pivot_longer(cols = c("species_code", "phylum", "family", "genus", "species")) |> 
+      # dplyr::select(srvy, taxon, name) |> 
+      dplyr::distinct() |> 
+      dplyr::group_by(name)|> 
+      dplyr::summarise(count = n_distinct(value, na.rm = TRUE)) |> 
+      dplyr::ungroup() |> 
+      dplyr::mutate(srvy = "all", 
+                    taxon = "all") ) |>  
+  
+  # number of taxon not identified to species
+  dplyr::bind_rows(
+    temp |> 
+      dplyr::filter(is.na(species) | species == "") |> 
+      # dplyr::mutate(species_code = as.character(species_code)) |> 
+      # tidyr::pivot_longer(cols = c("species_code", "phylum", "family", "genus", "species")) |> 
+      # dplyr::select(srvy, taxon, name) |> 
+      dplyr::distinct() |> 
+      dplyr::mutate(species = "") |> 
+      dplyr::group_by(srvy, taxon) |> 
+      dplyr::summarise(count = n()) |> 
+      dplyr::ungroup() |> 
+      dplyr::mutate(name = "species_na") ) |> 
+  dplyr::bind_rows(
+    temp |> 
+      dplyr::filter(is.na(species) | species == "") |> 
+      # dplyr::mutate(species_code = as.character(species_code)) |> 
+      # tidyr::pivot_longer(cols = c("species_code", "phylum", "family", "genus", "species")) |> 
+      # dplyr::select(srvy, taxon, name) |> 
+      dplyr::distinct() |> 
+      dplyr::mutate(species = "") |> 
+      dplyr::group_by(taxon) |> 
+      dplyr::summarise(count = n()) |> 
+      dplyr::ungroup() |> 
+      dplyr::mutate(
+        srvy = "all", 
+        name = "species_na") ) |> 
+  dplyr::left_join(
+    data.frame(srvy = srvy1, 
+               srvy_long = srvy11))|> 
+  dplyr::mutate(count1 = as.character(count)) |>  
+  dplyr::mutate(dplyr::across(where(is.numeric), xunits)) |>  
+  dplyr::mutate(count1 = as.numeric(count1)) |> 
+  dplyr::filter(!is.na(srvy))
 

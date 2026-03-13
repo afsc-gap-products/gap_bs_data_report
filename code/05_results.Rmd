@@ -90,83 +90,107 @@ nickname <- "tab-specimen-samples-"
 
 ## Species Composition
 
+## Species Composition
+
 ```{r results-species-composition}
+# count taxon
 str0 <- ""
 
-# count taxon
-temp <- dplyr::left_join(
-  x = catch_haul_cruises_maxyr|> 
-    dplyr::select(srvy, species_code)|> 
-    dplyr::distinct(), 
-  y = spp_info|> 
-    dplyr::filter(used_in_counts)|>
-    dplyr::select(species_code, phylum, family, genus, species, taxon)|>
-    dplyr::distinct(), 
-  by = "species_code")|> 
-  # dplyr::filter(taxon == "fish")|>
-  dplyr::select(species_code, phylum, family, genus, species, taxon, srvy)|> 
-  dplyr::distinct()|> 
-  dplyr::filter(!is.na(taxon))
-
-temp1 <- temp|> 
-  dplyr::group_by(srvy, taxon)|> 
-  dplyr::summarise_all(dplyr::n_distinct, na.rm = TRUE)|> 
-  dplyr::left_join(
-    data.frame(srvy = srvy1, 
-               srvy_long = srvy11))|> 
-  dplyr::mutate(dplyr::across(where(is.numeric), xunits)) 
-
-for (i in 1:length(unique(temp1$srvy))) {
-  temp0 <- temp1|> 
-    dplyr::filter(srvy == unique(temp1$srvy)[i])
+for (i in 1:length(srvy1)) {
+  
+  temp1 <- taxon_count |> 
+    dplyr::filter(srvy == sort(srvy1)[i])
+  
+  str0 <- paste0(str0, ifelse(i == 1, "In", "\n\nSimilarly, in"))
+  
+  fish_sp <- temp1$count[
+    temp1$taxon == "fish" & 
+      temp1$name == "species"] 
+  fish_sp_code <- temp1$count[
+    temp1$taxon == "fish" & 
+      temp1$name == "species_code"] 
+  fish_genera <- temp1$count[
+    temp1$taxon == "fish" & 
+      temp1$name == "genus"]
+  fish_family <- temp1$count[
+    temp1$taxon == "fish" & 
+      temp1$name == "family"]
+  invert_sp <- temp1$count[
+    temp1$taxon == "invert" & 
+      temp1$name == "species"] 
+  invert_sp_code <- temp1$count[
+    temp1$taxon == "invert" & 
+      temp1$name == "species_code"] 
+  invert_phyla <- temp1$count[
+    temp1$taxon == "invert" & 
+      temp1$name == "phylum"]
   
   str0 <- paste0(
-    "A total of ",temp0$species_code[temp0$taxon == "fish"],
-    " fish taxa representing ",temp0$family[temp0$taxon == "fish"],
-    " families and ",temp0$genus[temp0$taxon == "fish"],
-    " genera were identified during the ",
-    maxyr," ",SURVEY," survey",plural_surveys," (Appendix Table", plural_surveys,
-    " A \\@ref(tab:tab-app-taxa-found-EBS-fish)", 
-    ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-fish)", ""),
+    str0, 
+    " the ", temp1$srvy_long[1],
+    ", ",fish_sp_code,
+    " fish taxa representing ", fish_family,
+    " families and ", fish_genera,
+    " genera were identified (Appendix Table", " ",
+    ifelse(sort(srvy1)[i] == "EBS", "A", "B"),
+    " \\@ref(tab:tab-app-taxa-found-", sort(srvy1)[i], "-fish)", 
     "). Of these ",
-    temp0$species_code[temp0$taxon == "fish"]," taxa, ",
-    temp0$species[temp0$taxon == "fish"]," were identified to species level, while the remaining taxa were identified to the lowest taxonomic level (most often genus) by field scientists. ",
+    fish_sp_code," taxa, ",
+    fish_sp," were identified to species level, while the remaining taxa were identified to the lowest taxonomic level (most often genus) by field scientists. ",
     
-    "Similarly, ",
-    temp0$species_code[temp0$taxon == "invert"],
+    "There were ",
+    invert_sp_code,
     " different invertebrate taxa representing ",
-    temp0$phylum[temp0$taxon == "invert"],
+    invert_phyla,
     " phyla were identified on the ",maxyr," survey",plural_surveys,"; ",
-    temp0$species[temp0$taxon == "invert"],
-    " taxa were identified to species level (Appendix Table", plural_surveys,
-    " A \\@ref(tab:tab-app-taxa-found-EBS-invertebrate)", 
-    ifelse(plural_surveys == "s", " and B \\@ref(tab:tab-app-taxa-found-NBS-invertebrate)", ""),
-    "). ")
+    invert_sp,
+    " taxa were identified to species level (Appendix Table", plural_surveys, " ",
+    ifelse(srvy1[i] == "EBS", "A", "B"),
+    " \\@ref(tab:tab-app-taxa-found-",srvy1[i],"-invertebrate)", "). ")
 }
+
 ```
 
 `r str0`The lack of species-level identifications among invertebrates was due to a variety of factors that are outlined in @RN934 and @Stevensonetal2016. 
 
 ```{r results-species-composition-encountered-in-one-survey}
 str0 <- ""
-if (srvy == "NEBS" & "NBS" %in% temp0$srvy) {
+if (srvy == "NEBS") {
   # how many species encountered in one survey area but not in the other?
   load(file = paste0(dir_out_figtab, "tab-species-composition.rdata"))
   temp3 <- obj$raw|>
-    dplyr::left_join(spp_info|>
-                       dplyr::select(species_code, order, species_name),
+    dplyr::select(-common_name) |> 
+    dplyr::left_join(spp_info |>
+                       dplyr::select(species_code, order, species_name, common_name),
                      by = c("species_code"))
   
+  
+  fish_sp_code_ebs <- taxon_count$count[
+    taxon_count$srvy == "EBS" &
+    taxon_count$taxon == "fish" &
+      taxon_count$name == "species_code"]
+  invert_sp_code_ebs <- taxon_count$count[
+    taxon_count$srvy == "EBS" &
+    taxon_count$taxon == "all" &
+      taxon_count$name == "species_code"]
+  fish_sp_code_nbs <- taxon_count$count[
+    taxon_count$srvy == "NBS" &
+    taxon_count$taxon == "fish" &
+      taxon_count$name == "species_code"]
+  invert_sp_code_nbs <- taxon_count$count[
+    taxon_count$srvy == "NBS" &
+    taxon_count$taxon == "all" &
+      taxon_count$name == "species_code"]
+  
   str0 <- paste0( 
-    "Of the ", 
-    xunits(nrow(temp[temp$srvy == "EBS",])),
+    "Of the ", fish_sp_code_ebs,
     " fish species found in the eastern Bering Sea, ",
     xunits(nrow(temp3[temp3$where == "ebs",])), 
-    " did not occur in the northern Bering Sea (Table \\@ref(tab:tab-species-composition)). In comparison, ",
+    " did not occur in the northern Bering Sea (Table \\@ref(tab:tab-species-composition)). In comparison, of the ",
+    fish_sp_code_nbs, 
+    " fish species encountered in the northern Bering Sea, ", 
     xunits(nrow(temp3[temp3$where == "nbs",])), 
-    " of the ",
-    xunits(nrow(temp[temp$srvy == "NBS",])),
-    " fish species encountered in the northern Bering Sea were not encountered in the eastern Bering Sea (Table \\@ref(tab:tab-species-composition)). ")
+    " did not encountered in the eastern Bering Sea (Table \\@ref(tab:tab-species-composition)). ")
   
   # flatfish
   temp4 <- temp3[temp3$order %in% c("Pleuronectiformes"), ]
@@ -199,9 +223,9 @@ if (srvy == "NEBS" & "NBS" %in% temp0$srvy) {
                  text_list(
                    paste0(xunits(temp5$n), 
                           " flatfish species ", ifelse(temp5$n>1, "were", "was"), " ", 
-                          temp5$where0, " (",
-                          temp5$including, ")"), 
-                   sep = "; "),
+                          temp5$where0, ": ",
+                          temp5$including), # , ")" 
+                   sep_last2 = "; and "),
                  " (Table \\@ref(tab:tab-species-composition)).")
   
   str0 <- gsub(pattern = ") (", replacement = "; ", x = str0, fixed = TRUE)

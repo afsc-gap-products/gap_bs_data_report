@@ -5,8 +5,10 @@
 
 # Surveys ----------------------------------------------------------------------
 str0_srvys <- gsub(pattern = " ,", replacement = ",", 
-             x = text_list(paste0(haul_cruises_maxyr$yrofsurvey, 
-                                  haul_cruises_maxyr$stndth, " ", haul_cruises_maxyr$srvy_long, 
+             x = text_list(paste0("the ", 
+                                  haul_cruises_maxyr$yrofsurvey, 
+                                  haul_cruises_maxyr$stndth, " ",
+                                  haul_cruises_maxyr$srvy_long, 
                                   " bottom trawl survey"), 
                            sep_last = ", as well as the "))
 
@@ -98,149 +100,13 @@ str0_temperature <- str0
 
 # Biomass ----------------------------------------------------------------------
 
-# count fish spp
-temp <- dplyr::left_join(
-  x = catch_haul_cruises_maxyr|> 
-    dplyr::select(srvy, species_code)|> 
-    dplyr::distinct(), 
-  y = spp_info|> 
-    dplyr::filter(used_in_counts)|>
-    dplyr::select(species_code, taxon, family, genus, taxon)|>
-    dplyr::distinct(), 
-  by = "species_code")|> 
-  dplyr::filter(taxon == "fish")|> 
-  dplyr::select(species_code, taxon, family, genus, taxon, srvy)|> 
-  dplyr::distinct()
+fish_sp <- taxon_count$count[taxon_count$srvy == "all" & 
+                                taxon_count$taxon == "fish" & 
+                                taxon_count$name == "species_code"] 
 
-temp0 <- dplyr::full_join(
-  x = temp|> 
-    dplyr::filter(!is.na(taxon))|> 
-    dplyr::select(srvy, taxon)|> 
-    dplyr::distinct()|> 
-    dplyr::group_by(srvy)|> 
-    dplyr::summarise(taxon = n()),
-  y = temp|> 
-    dplyr::filter(!is.na(species_code))|> 
-    dplyr::select(srvy, species_code)|> 
-    dplyr::distinct()|> 
-    dplyr::group_by(srvy)|>
-    dplyr::summarise(species_code = n()),
-  by = "srvy")|> 
-  dplyr::left_join(
-    y = temp|> 
-      dplyr::filter(!is.na(family))|> 
-      dplyr::select(srvy, family)|> 
-      dplyr::distinct()|> 
-      dplyr::group_by(srvy)|>
-      dplyr::summarise(family = n()),
-    by = "srvy") |> 
-  dplyr::left_join(
-    y = temp|> 
-      dplyr::filter(!is.na(genus))|> 
-      dplyr::select(srvy, genus)|> 
-      dplyr::distinct()|> 
-      dplyr::group_by(srvy)|>
-      dplyr::summarise(genus = n()),
-    by = "srvy") #|>
-# dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
-
-temp1 <- dplyr::bind_cols(
-  temp|> 
-    dplyr::filter(!is.na(taxon))|> 
-    dplyr::select(taxon)|> 
-    dplyr::distinct()|> 
-    dplyr::summarise(taxon = n()),
-  temp|> 
-    dplyr::filter(!is.na(species_code))|> 
-    dplyr::select(species_code)|> 
-    dplyr::distinct()|> 
-    dplyr::summarise(species_code = n()), 
-  temp|> 
-    dplyr::filter(!is.na(family))|> 
-    dplyr::select(family)|> 
-    dplyr::distinct()|> 
-    dplyr::summarise(family = n()),
-  temp|> 
-    dplyr::filter(!is.na(genus))|> 
-    dplyr::select(genus)|> 
-    dplyr::distinct()|> 
-    dplyr::summarise(genus = n())) 
-
-fish_sp <- xunits(temp1$species_code) 
-fish_genera <- xunits(temp1$genus) 
-fish_family <- xunits(temp1$family) 
-
-# count invert spp
-temp <- dplyr::left_join(
-  x = catch_haul_cruises_maxyr|> 
-    dplyr::select(srvy, species_code)|> 
-    dplyr::distinct(), 
-  y = spp_info|> 
-    dplyr::filter(used_in_counts)|>
-    dplyr::select(species_code, taxon, phylum, genus, taxon)|>
-    dplyr::distinct(), 
-  by = "species_code")|> 
-  dplyr::filter(taxon == "invert")|> 
-  dplyr::select(species_code, taxon, phylum, genus, taxon, srvy)|> 
-  dplyr::distinct()
-
-temp0 <- dplyr::full_join(
-  x = temp|> 
-    dplyr::filter(!is.na(taxon))|> 
-    dplyr::select(srvy, taxon)|> 
-    dplyr::distinct()|> 
-    dplyr::group_by(srvy)|> 
-    dplyr::summarise(taxon = n()),
-  y = temp|> 
-    dplyr::filter(!is.na(species_code))|> 
-    dplyr::select(srvy, species_code)|> 
-    dplyr::distinct()|> 
-    dplyr::group_by(srvy)|>
-    dplyr::summarise(species_code = n()),
-  by = "srvy")|> 
-  dplyr::left_join(
-    y = temp|> 
-      dplyr::filter(!is.na(phylum))|> 
-      dplyr::select(srvy, phylum)|> 
-      dplyr::distinct()|> 
-      dplyr::group_by(srvy)|>
-      dplyr::summarise(phylum = n()),
-    by = "srvy") |> 
-  dplyr::left_join(
-    y = temp|> 
-      dplyr::filter(!is.na(genus))|> 
-      dplyr::select(srvy, genus)|> 
-      dplyr::distinct()|> 
-      dplyr::group_by(srvy)|>
-      dplyr::summarise(genus = n()),
-    by = "srvy") #|>
-# dplyr::mutate(perc = round(((species_code - taxon)/species_code)*100, digits = 2))
-
-temp1 <- dplyr::bind_cols(
-  temp |> 
-    dplyr::filter(!is.na(taxon))|> 
-    dplyr::select(taxon)|> 
-    dplyr::distinct()|> 
-    dplyr::summarise(taxon = n()),
-  temp|> 
-    dplyr::filter(!is.na(species_code))|> 
-    dplyr::select(species_code)|> 
-    dplyr::distinct()|> 
-    dplyr::summarise(species_code = n()), 
-  temp|> 
-    dplyr::filter(!is.na(phylum))|> 
-    dplyr::select(phylum)|> 
-    dplyr::distinct()|> 
-    dplyr::summarise(phylum = n()),
-  temp|> 
-    dplyr::filter(!is.na(genus))|> 
-    dplyr::select(genus)|> 
-    dplyr::distinct()|> 
-    dplyr::summarise(genus = n())) 
-
-invert_spp <- xunits(temp1$species_code) 
-invert_phyla <- xunits(temp1$phylum) 
-
+invert_spp <- taxon_count$count[taxon_count$srvy == "all" & 
+                                   taxon_count$taxon == "invert" & 
+                                   taxon_count$name == "species_code"] 
 str00 <- ""
 for (i in 1:length(srvy1)){
   
@@ -292,15 +158,13 @@ str0_biomass <- paste0(
   str00, 
   "A total of ", fish_sp ," fish taxa and ", invert_spp, 
   " invertebrate taxa were identified", 
-  ifelse(plural_surveys == "", "", paste0(" on the ", SURVEY)), " survey", plural_surveys, ". ")
-
+  ifelse(plural_surveys == "", "", paste0(" on the ", SURVEY)), " survey", plural_surveys, ", combined. ") 
 # Conclusion -------------------------------------------------------------------
-# str0_conclusion <-  paste0(readLines(con = paste0(dir_out_rawdata, "/0-abstract-conclusion.Rmd"), skipNul = TRUE), collapse = "")
-# 
+
 str0_conclusion <- "Distributional shifts in the abundance of some species may reflect northward movement during recent warm years. Some species may shift south when seasonal sea ice cover becomes more extensive. This annual variation underscores the need to continue annual survey monitoring of Bering Sea fish and invertebrate populations to gauge their responses to a changing climate."
 
 ```
 
-In `r maxyr`, the Groundfish and Shellfish Assessment Programs in the Resource Assessment and Conservation Engineering Division of the National Marine Fisheries Service’s Alaska Fisheries Science Center conducted the `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` commercially or ecologically important fish species and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r maxyr` `r SURVEY` bottom trawl survey and past surveys. `r str0_conclusion`
+In `r maxyr`, the Groundfish and Shellfish Assessment Programs in the Resource Assessment and Conservation Engineering Division of the National Marine Fisheries Service’s Alaska Fisheries Science Center conducted `r str0_srvys`. `r paste0(str0_coverage, str0_stations, str0_temperature, str0_biomass)`This report compares the distribution and relative abundance of `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "fish"])))` commercially or ecologically important fish species and `r xunits(sum(!is.na(report_spp$order[report_spp$taxon == "invert"])))` invertebrate taxa with side-by-side maps from the `r maxyr` `r SURVEY` bottom trawl survey and past surveys. `r str0_conclusion`
 
 <!-- A total of 128 fish taxa and 273 invertebrate taxa were identified on the eastern and northern Bering Sea shelf. This report compares the distribution and relative abundance of 37 fish species and three invertebrate taxa with side-by-side maps from the 2025 eastern and northern Bering Sea shelves bottom trawl survey and past surveys.  -->
