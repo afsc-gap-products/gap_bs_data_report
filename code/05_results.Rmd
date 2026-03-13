@@ -90,8 +90,6 @@ nickname <- "tab-specimen-samples-"
 
 ## Species Composition
 
-## Species Composition
-
 ```{r results-species-composition}
 # count taxon
 str0 <- ""
@@ -99,9 +97,9 @@ str0 <- ""
 for (i in 1:length(srvy1)) {
   
   temp1 <- taxon_count |> 
-    dplyr::filter(srvy == sort(srvy1)[i])
+    dplyr::filter(srvy == srvy1[i])
   
-  str0 <- paste0(str0, ifelse(i == 1, "In", "\n\nSimilarly, in"))
+  str0 <- paste0(str0, ifelse(i == 1, "In", "Similarly, in"))
   
   fish_sp <- temp1$count[
     temp1$taxon == "fish" & 
@@ -132,8 +130,8 @@ for (i in 1:length(srvy1)) {
     " fish taxa representing ", fish_family,
     " families and ", fish_genera,
     " genera were identified (Appendix Table", " ",
-    ifelse(sort(srvy1)[i] == "EBS", "A", "B"),
-    " \\@ref(tab:tab-app-taxa-found-", sort(srvy1)[i], "-fish)", 
+    ifelse(srvy1[i] == "EBS", "A", "B"),
+    " \\@ref(tab:tab-app-taxa-found-", srvy1[i], "-fish)", 
     "). Of these ",
     fish_sp_code," taxa, ",
     fish_sp," were identified to species level, while the remaining taxa were identified to the lowest taxonomic level (most often genus) by field scientists. ",
@@ -142,7 +140,7 @@ for (i in 1:length(srvy1)) {
     invert_sp_code,
     " different invertebrate taxa representing ",
     invert_phyla,
-    " phyla were identified on the ",maxyr," survey",plural_surveys,"; ",
+    " phyla were identified on the ",maxyr," survey",plural_surveys," of which ",
     invert_sp,
     " taxa were identified to species level (Appendix Table", plural_surveys, " ",
     ifelse(srvy1[i] == "EBS", "A", "B"),
