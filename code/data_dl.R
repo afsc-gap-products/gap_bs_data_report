@@ -631,6 +631,46 @@ diff00 <- summarize_gp_updates(channel = channel_products,
                              time_start = dl_change_start,
                              time_end = dl_change_end)
 
+gap_archive_audit_cpue <- RODBC::sqlQuery(channel, 
+paste0("SELECT * 
+FROM GAP_ARCHIVE.AUDIT_CPUE
+WHERE OPERATION_TIMESTAMP BETWEEN '",
+dl_change_start,
+"' AND '",
+dl_change_end,
+"'; "))
+save(gap_archive_audit_cpue, here::here("data", "gap_archive_audit_cpue.rdata"))
+
+gap_archive_audit_biomass <- RODBC::sqlQuery(channel, 
+paste0("SELECT * 
+FROM GAP_ARCHIVE.AUDIT_BIOMASS
+WHERE OPERATION_TIMESTAMP BETWEEN '",
+dl_change_start,
+"' AND '",
+dl_change_end,
+"'; "))
+save(gap_archive_audit_biomass, here::here("data", "gap_archive_audit_biomass.rdata"))
+
+gap_archive_audit_sizecomp <- RODBC::sqlQuery(channel, 
+paste0("SELECT * 
+FROM GAP_ARCHIVE.AUDIT_SIZECOMP
+WHERE OPERATION_TIMESTAMP BETWEEN '",
+dl_change_start,
+"' AND '",
+dl_change_end,
+"'; "))
+save(gap_archive_audit_sizecomp, here::here("data", "gap_archive_audit_sizecomp.rdata"))
+
+gap_archive_audit_agecomp <- RODBC::sqlQuery(channel, 
+paste0("SELECT * 
+FROM GAP_ARCHIVE.AUDIT_AGECOMP
+WHERE OPERATION_TIMESTAMP BETWEEN '",
+dl_change_start,
+"' AND '",
+dl_change_end,
+"'; "))
+save(gap_archive_audit_agecomp, here::here("data", "gap_archive_audit_agecomp.rdata"))
+
 if (nrow(diff00) > 0) {
 
 diff00 <- diff00 |>
