@@ -655,8 +655,14 @@ AND YEAR < ",maxyr,";") )
 save(gap_archive_audit_cpue, file = here::here("data", "gap_archive_audit_cpue.rdata"))
 load(file = here::here("data", "gap_archive_audit_cpue.rdata"))
 a <- gap_archive_audit_cpue
-table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
-table(a[a$SURVEY_DEFINITION_ID == 143,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+# table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
+# table(a[a$SURVEY_DEFINITION_ID == 143,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
 
 a <- gap_archive_audit_biomass <- RODBC::sqlQuery(channel,
 paste0("SELECT *
@@ -669,8 +675,16 @@ AND YEAR < ",maxyr,";") )
 save(gap_archive_audit_biomass, file = here::here("data", "gap_archive_audit_biomass.rdata"))
 load(file = here::here("data", "gap_archive_audit_biomass.rdata"))
 a <- gap_archive_audit_biomass
-table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
-table(a[a$SURVEY_DEFINITION_ID == 143,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+# table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
+# table(a[a$SURVEY_DEFINITION_ID == 143,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
+
+
 
 a <- gap_archive_audit_sizecomp <- RODBC::sqlQuery(channel, 
 paste0("SELECT * 
@@ -683,8 +697,15 @@ AND YEAR < ",maxyr,";") )
 save(gap_archive_audit_sizecomp, file = here::here("data", "gap_archive_audit_sizecomp.rdata"))
 load(file = here::here("data", "gap_archive_audit_sizecomp.rdata"))
 a <- gap_archive_audit_sizecomp
-table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
-table(a[a$SURVEY_DEFINITION_ID == 143,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+# table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
+# table(a[a$SURVEY_DEFINITION_ID == 143,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
+
 
 a <- gap_archive_audit_agecomp <- RODBC::sqlQuery(channel, 
 paste0("SELECT * 
@@ -698,8 +719,15 @@ AND YEAR < ",maxyr,";") ) # |>
 save(gap_archive_audit_agecomp, file = here::here("data", "gap_archive_audit_agecomp.rdata"))
 load(file = here::here("data", "gap_archive_audit_agecomp.rdata"))
 a <- gap_archive_audit_agecomp
-table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
-table(a[a$SURVEY_DEFINITION_ID == 143,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+# table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 98 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
+# table(a[a$SURVEY_DEFINITION_ID == 143,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
+table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
+
 
 if (nrow(diff00) > 0) {
 
