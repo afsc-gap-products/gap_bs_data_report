@@ -5,7 +5,7 @@
 a <- report_spp1[which(report_spp1$file_name == "{{jj}}"), ]
 # a <- report_spp1[which(report_spp1$file_name == jj), ]
 # a <- report_spp1[which(report_spp1$file_name == "alaska-plaice"), ]
-# a <- report_spp1[which(report_spp1$file_name == "greenland-turbot"), ]
+# a <- report_spp1[which(report_spp1$file_name == "wattled-eelpout"), ]
 
 spp_code <- a$species_code
 spp_file <- a$file_name[1]
@@ -197,9 +197,11 @@ if ("EBS" %in% temp$srvy) {
       "")
     
   case_transition_ebs <- dplyr::case_when(
-    grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
-    grepl(x = temp0$`% Change\nin Biomass`, pattern = "decrease") ~ paste0("decrease"), 
-    grepl(x = temp0$`% Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ "", 
+    grepl(x = temp0$`Observed Catch Totals`, pattern = "Decreased") & temp0$catch_min < 100 ~ "decrease", 
+    grepl(x = temp0$`Observed Catch Totals`, pattern = "Increased") & temp0$catch_min < 100 ~ "increase",
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "decrease") ~ "decrease", 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "increase") ~ "increase",
     grepl(x = temp0$`% Change\nin Biomass`, pattern = "no change") ~ "no change"
   )
   
@@ -248,9 +250,11 @@ if ("NBS" %in% temp$srvy) {
   )
   
   case_transition_nbs <- dplyr::case_when(
-    grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ paste0(""), 
-    grepl(x = temp0$`% Change\nin Biomass`, pattern = "decrease") ~ paste0("decrease"), 
-    grepl(x = temp0$`% Change\nin Biomass`, pattern = "increase") ~ paste0("increase"),
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "Not caught") ~ "", 
+    grepl(x = temp0$`Observed Catch Totals`, pattern = "Decreased") & temp0$catch_min < 100 ~ "decrease", 
+    grepl(x = temp0$`Observed Catch Totals`, pattern = "Increased") & temp0$catch_min < 100 ~ "increase",
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "decrease") ~ "decrease", 
+    grepl(x = temp0$`% Change\nin Biomass`, pattern = "increase") ~ "increase",
     grepl(x = temp0$`% Change\nin Biomass`, pattern = "no change") ~ "no change"
   )
   
@@ -302,6 +306,11 @@ str0 <- paste0(str0,
                  ifelse((spp_print == "tunicates"), 
                         "No population estimate is calculated because this organism is colonial and it is not possible to count individuals. ", 
                         "") )
+
+str0 <- paste0(ifelse((spp_print == "snailfishes"), 
+                        "Snailfishes are composed of several species of *Liparis* and *Careproctus* that are difficult to distinguish in the field. ", 
+                        ""), 
+               str0)
 
 ```
 

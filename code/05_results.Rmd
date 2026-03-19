@@ -140,7 +140,7 @@ for (i in 1:length(srvy1)) {
     invert_sp_code,
     " different invertebrate taxa representing ",
     invert_phyla,
-    " phyla identified on the ",maxyr," survey",plural_surveys," of which ",
+    " phyla identified on the ",maxyr, " ",temp1$srvy_long[1], " survey",", of which ",
     invert_sp,
     " taxa were identified to species level (Appendix Table", plural_surveys, " ",
     ifelse(srvy1[i] == "EBS", "A", "B"),
@@ -309,7 +309,7 @@ for (ii in 1:length(temp2$srvy)) {
   
   str00 <- paste0(str00, 
                   # ifelse(ii==2, " and in the ", ifelse(plural_surveys == "", "", "In the ")), 
-                  paste0(ifelse(plural_surveys == "", "", paste0(temp2$srvy_long[ii], ", ")), 
+                  paste0(ifelse(plural_surveys == "", "", paste0(temp2$srvy_long[ii], ",")), 
                          " the proportion of fishes (", 
                          temp2$perc_fish[ii], 
                          "; Table \\@ref(tab:tab-biomass-est-",  temp2$srvy[ii],
@@ -501,7 +501,7 @@ for (i in 1:length(srvy1)) {
       total_biomass$year == maxyr], na.rm = TRUE), 
     compareyr = sum(total_biomass$total[
       total_biomass$srvy == srvy1[i] & 
-        total_biomass$year %in% compareyr], na.rm = TRUE))
+        total_biomass$year == compareyr[names(compareyr) == srvy1[i]]], na.rm = TRUE))
   
   str0 <- paste0(str0, 
                  "The total estimated biomass ", 
@@ -570,11 +570,21 @@ temp <- biomass |>
     data.frame(srvy = srvy1, 
                srvy_long = srvy11))
 
-str0 <- text_list(paste0(
-  "The ten most numerically abundant fish taxa in the ",temp$srvy_long,
-  " accounted for ", temp$perc_topfish, 
+# str0 <- text_list(paste0(
+#   "The ten most numerically abundant fish taxa in the ",temp$srvy_long,
+#   " accounted for ", temp$perc_topfish, 
+#   " of total mean combined fish and invertebrate CPUE and ",
+#   temp$perc_topfishoffish," of total mean fish CPUE. "), sep = "", sep_last = "", sep_last2 = "") # ; Tables \\@ref(tab:tab-est-spp-wt) and \\@ref(tab:tab-est-spp-num)
+
+str00 <- c("(from catch per unit effort by weight)")
+if (nrow(haul_cruises_maxyr)>1) {str00 <- c(str00, " ")}
+str0 <- paste0(
+  "The ten most abundant fish taxa ",
+  str00,
+  " in the ",temp$srvy_long,
+  "accounted for ", temp$perc_topfish, 
   " of total mean combined fish and invertebrate CPUE and ",
-  temp$perc_topfishoffish," of total mean fish CPUE. "), sep = "", sep_last = "", sep_last2 = "") # ; Tables \\@ref(tab:tab-est-spp-wt) and \\@ref(tab:tab-est-spp-num)
+  temp$perc_topfishoffish," of total mean fish CPUE. ", collapse = "") 
 
 str4 <- str0
 ```
