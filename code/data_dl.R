@@ -685,7 +685,6 @@ table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
 
 
-
 a <- gap_archive_audit_sizecomp <- RODBC::sqlQuery(channel, 
 paste0("SELECT * 
 FROM GAP_ARCHIVE.AUDIT_SIZECOMP a
