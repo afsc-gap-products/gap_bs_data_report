@@ -728,7 +728,6 @@ table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
 
-
 if (nrow(diff00) > 0) {
 
 diff00 <- diff00 |>
