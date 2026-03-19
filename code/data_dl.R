@@ -631,45 +631,74 @@ diff00 <- summarize_gp_updates(channel = channel_products,
                              time_start = dl_change_start,
                              time_end = dl_change_end)
 
-gap_archive_audit_cpue <- RODBC::sqlQuery(channel, 
-paste0("SELECT * 
-FROM GAP_ARCHIVE.AUDIT_CPUE
-WHERE OPERATION_TIMESTAMP BETWEEN '",
-dl_change_start,
-"' AND '",
-dl_change_end,
-"'; "))
-save(gap_archive_audit_cpue, here::here("data", "gap_archive_audit_cpue.rdata"))
+a <- gap_archive_audit_cpue <- RODBC::sqlQuery(channel, 
+paste0(
+"SELECT *
+FROM GAP_ARCHIVE.AUDIT_CPUE a
+JOIN (
+SELECT HAULJOIN, CRUISEJOIN 
+FROM GAP_PRODUCTS.AKFIN_HAUL
+) h
+USING (HAULJOIN)
+JOIN (
+SELECT CRUISEJOIN, SURVEY_DEFINITION_ID, YEAR
+FROM GAP_PRODUCTS.AKFIN_CRUISE
+) c
+USING (CRUISEJOIN)
+WHERE a.OPERATION_TIMESTAMP BETWEEN
+TO_DATE('24-APR-2002 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
+AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
+AND SURVEY_DEFINITION_ID IN (147, 98)
+AND YEAR < ",maxyr,";") )
+# TO_DATE('",as.character(dl_change_start),"', 'DD-MON-YYYY HH:MI:SS PM')
+# AND TO_DATE('",as.character(dl_change_end),"', 'DD-MON-YYYY HH:MI:SS PM')
+save(gap_archive_audit_cpue, file = here::here("data", "gap_archive_audit_cpue.rdata"))
+load(file = here::here("data", "gap_archive_audit_cpue.rdata"))
+a <- gap_archive_audit_cpue
+table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 147,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
 
-gap_archive_audit_biomass <- RODBC::sqlQuery(channel, 
-paste0("SELECT * 
-FROM GAP_ARCHIVE.AUDIT_BIOMASS
-WHERE OPERATION_TIMESTAMP BETWEEN '",
-dl_change_start,
-"' AND '",
-dl_change_end,
-"'; "))
-save(gap_archive_audit_biomass, here::here("data", "gap_archive_audit_biomass.rdata"))
+a <- gap_archive_audit_biomass <- RODBC::sqlQuery(channel,
+paste0("SELECT *
+FROM GAP_ARCHIVE.AUDIT_BIOMASS a
+WHERE a.OPERATION_TIMESTAMP BETWEEN
+TO_DATE('24-APR-2002 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
+AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
+AND SURVEY_DEFINITION_ID IN (147, 98)
+AND YEAR < ",maxyr,";") )
+save(gap_archive_audit_biomass, file = here::here("data", "gap_archive_audit_biomass.rdata"))
+load(file = here::here("data", "gap_archive_audit_biomass.rdata"))
+a <- gap_archive_audit_biomass
+table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 147,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
 
-gap_archive_audit_sizecomp <- RODBC::sqlQuery(channel, 
+a <- gap_archive_audit_sizecomp <- RODBC::sqlQuery(channel, 
 paste0("SELECT * 
-FROM GAP_ARCHIVE.AUDIT_SIZECOMP
-WHERE OPERATION_TIMESTAMP BETWEEN '",
-dl_change_start,
-"' AND '",
-dl_change_end,
-"'; "))
-save(gap_archive_audit_sizecomp, here::here("data", "gap_archive_audit_sizecomp.rdata"))
+FROM GAP_ARCHIVE.AUDIT_SIZECOMP a
+WHERE a.OPERATION_TIMESTAMP BETWEEN
+TO_DATE('24-APR-2002 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
+AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
+AND SURVEY_DEFINITION_ID IN (147, 98)
+AND YEAR < ",maxyr,";") )
+save(gap_archive_audit_sizecomp, file = here::here("data", "gap_archive_audit_sizecomp.rdata"))
+load(file = here::here("data", "gap_archive_audit_sizecomp.rdata"))
+a <- gap_archive_audit_sizecomp
+table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 147,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
 
-gap_archive_audit_agecomp <- RODBC::sqlQuery(channel, 
+a <- gap_archive_audit_agecomp <- RODBC::sqlQuery(channel, 
 paste0("SELECT * 
-FROM GAP_ARCHIVE.AUDIT_AGECOMP
-WHERE OPERATION_TIMESTAMP BETWEEN '",
-dl_change_start,
-"' AND '",
-dl_change_end,
-"'; "))
-save(gap_archive_audit_agecomp, here::here("data", "gap_archive_audit_agecomp.rdata"))
+FROM GAP_ARCHIVE.AUDIT_AGECOMP a
+WHERE a.OPERATION_TIMESTAMP BETWEEN
+TO_DATE('24-APR-2002 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
+AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
+AND SURVEY_DEFINITION_ID IN (147, 98)
+AND YEAR < ",maxyr,";") )
+save(gap_archive_audit_agecomp, file = here::here("data", "gap_archive_audit_agecomp.rdata"))
+load(file = here::here("data", "gap_archive_audit_agecomp.rdata"))
+a <- gap_archive_audit_agecomp
+table(a[a$SURVEY_DEFINITION_ID == 98,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
+table(a[a$SURVEY_DEFINITION_ID == 147,c("SPECIES_CODE", "YEAR", "OPERATION_TYPE")])
 
 if (nrow(diff00) > 0) {
 
