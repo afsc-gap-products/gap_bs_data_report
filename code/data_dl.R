@@ -629,7 +629,8 @@ source("https://raw.githubusercontent.com/afsc-gap-products/gap_products/refs/he
 
 diff00 <- summarize_gp_updates(channel = channel_products,
                              time_start = dl_change_start,
-                             time_end = dl_change_end)
+                             time_end = dl_change_end) #|> 
+  # dplyr::mutate(OPERATION_TYPE = ifelse(OPERATION_TYPE == "deletion", "deletions", OPERATION_TYPE))
 
 a <- gap_archive_audit_cpue <- RODBC::sqlQuery(channel, 
 paste0(
@@ -646,7 +647,7 @@ FROM GAP_PRODUCTS.AKFIN_CRUISE
 ) c
 USING (CRUISEJOIN)
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('24-APR-2002 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('26-MAR-2025 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
 AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
@@ -668,7 +669,7 @@ a <- gap_archive_audit_biomass <- RODBC::sqlQuery(channel,
 paste0("SELECT *
 FROM GAP_ARCHIVE.AUDIT_BIOMASS a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('24-APR-2002 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('26-MAR-2025 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
 AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
@@ -689,7 +690,7 @@ a <- gap_archive_audit_sizecomp <- RODBC::sqlQuery(channel,
 paste0("SELECT * 
 FROM GAP_ARCHIVE.AUDIT_SIZECOMP a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('24-APR-2002 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('26-MAR-2025 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
 AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
@@ -705,12 +706,11 @@ table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
 
-
 a <- gap_archive_audit_agecomp <- RODBC::sqlQuery(channel, 
 paste0("SELECT * 
 FROM GAP_ARCHIVE.AUDIT_AGECOMP a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('24-APR-2002 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('26-MAR-2025 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
 AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") ) # |> 
@@ -733,9 +733,9 @@ diff00 <- diff00 |>
   dplyr::filter(SURVEY_DEFINITION_ID %in% c(98, 143)) |>
   dplyr::arrange(SURVEY_DEFINITION_ID) |>
   dplyr::mutate(OPERATION_TYPE = dplyr::case_when(
-    OPERATION_TYPE == "UPDATE" & NUMBER_RECS == 1 ~ "update",
-    OPERATION_TYPE == "INSERT" & NUMBER_RECS == 1 ~ "insertion",
-    OPERATION_TYPE == "DELETE" & NUMBER_RECS == 1 ~ "deletion",
+    # OPERATION_TYPE == "UPDATE" & NUMBER_RECS == 1 ~ "update",
+    # OPERATION_TYPE == "INSERT" & NUMBER_RECS == 1 ~ "insertion",
+    # OPERATION_TYPE == "DELETE" & NUMBER_RECS == 1 ~ "deletion",
     OPERATION_TYPE == "UPDATE" ~ "updates",
     OPERATION_TYPE == "INSERT" ~ "insertions",
     OPERATION_TYPE == "DELETE" ~ "deletions"
