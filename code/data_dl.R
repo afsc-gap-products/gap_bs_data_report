@@ -19,19 +19,18 @@ if (file.exists("Z:/Projects/ConnectToOracle.R")) {
 
 locations <- c(
   "GAP_PRODUCTS.OLD_STATION",
-  "GAP_PRODUCTS.AKFIN_AGECOMP",
-  "GAP_PRODUCTS.AKFIN_AREA",
-  "GAP_PRODUCTS.AKFIN_BIOMASS",
-  "GAP_PRODUCTS.AKFIN_CATCH",
-  "GAP_PRODUCTS.AKFIN_CRUISE",
-  "GAP_PRODUCTS.AKFIN_HAUL",
-  "GAP_PRODUCTS.AKFIN_CPUE",
-  "GAP_PRODUCTS.AKFIN_METADATA_COLUMN",
-  "GAP_PRODUCTS.AKFIN_SIZECOMP",
-  "GAP_PRODUCTS.AKFIN_SPECIMEN",
-  "GAP_PRODUCTS.AKFIN_STRATUM_GROUPS",
-  "GAP_PRODUCTS.AKFIN_SURVEY_DESIGN",
-  "GAP_PRODUCTS.AKFIN_TAXONOMIC_CLASSIFICATION",
+  "GAP_PRODUCTS.AGECOMP",
+  "GAP_PRODUCTS.AREA",
+  "GAP_PRODUCTS.BIOMASS",
+  "GAP_PRODUCTS.CRUISE",
+  "GAP_PRODUCTS.HAUL",
+  "GAP_PRODUCTS.CPUE",
+  "GAP_PRODUCTS.METADATA_COLUMN",
+  "GAP_PRODUCTS.SIZECOMP",
+  "GAP_PRODUCTS.SPECIMEN",
+  "GAP_PRODUCTS.STRATUM_GROUPS",
+  "GAP_PRODUCTS.SURVEY_DESIGN",
+  "GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION",
   "GAP_PRODUCTS.TAXONOMIC_CHANGES",
   "GAP_PRODUCTS.SPECIES_YEAR"
 )
@@ -48,26 +47,26 @@ for (i in 1:length(locations)){
     FETCH FIRST 1 ROWS ONLY;"))
   
   end0 <- c()
-  if ("SURVEY_DEFINITION_ID" %in% names(a) & !(locations[i] %in% "GAP_PRODUCTS.AKFIN_BIOMASS")) {
+  if ("SURVEY_DEFINITION_ID" %in% names(a) & !(locations[i] %in% "GAP_PRODUCTS.BIOMASS")) {
     end0 <- c(end0, "SURVEY_DEFINITION_ID IN (143, 98)")
   }
   if ("YEAR" %in% names(a) & !(locations[i] %in% 
-                               c("GAP_PRODUCTS.AKFIN_SIZECOMP", "GAP_PRODUCTS.AKFIN_AGECOMP", 
-                                 "GAP_PRODUCTS.AKFIN_BIOMASS", 
-                                 "GAP_PRODUCTS.AKFIN_CRUISE", "GAP_PRODUCTS.AKFIN_CPUE",
-                                 "GAP_PRODUCTS.AKFIN_HAUL")) ) {
+                               c("GAP_PRODUCTS.SIZECOMP", "GAP_PRODUCTS.AGECOMP", 
+                                 "GAP_PRODUCTS.BIOMASS", 
+                                 "GAP_PRODUCTS.CRUISE", "GAP_PRODUCTS.CPUE",
+                                 "GAP_PRODUCTS.HAUL")) ) {
     end0 <- c(end0, paste0("YEAR IN (",paste0(maxyr:compareyr, collapse = ","), ")"))
   }
 
-  # if (locations[i] %in% c("GAP_PRODUCTS.AKFIN_CRUISE")) {
+  # if (locations[i] %in% c("GAP_PRODUCTS.CRUISE")) {
   #   cruises0 <- a
   # }
   # 
-  # if (locations[i] %in% c("GAP_PRODUCTS.AKFIN_HAUL")) {
+  # if (locations[i] %in% c("GAP_PRODUCTS.HAUL")) {
   #   end0 <- c(end0, paste0("YEAR IN (",text_list(x = maxyr:(maxyr-9), sep = ", ", sep_last2 = ", ", sep_last = ", "), ")"))
   # }
   # 
-  # if ("YEAR" %in% names(a) & locations[i] %in% c("GAP_PRODUCTS.AKFIN_CPUE")) {
+  # if ("YEAR" %in% names(a) & locations[i] %in% c("GAP_PRODUCTS.CPUE")) {
   #   end0 <- c(end0, paste0("YEAR IN (",text_list(x = maxyr:(maxyr-9), sep = ", ", sep_last2 = ", ", sep_last = ", "), ")"))
   # }
   
@@ -106,7 +105,7 @@ locations <- c(
   # "crab.ebscrab", # length data
   # "crab.ebscrab_nbs", # length data
   # "crab.nbs_size1mm_all_species", 
-  "RACE_DATA.LENGTHS",   # "RACE_DATA.V_EXTRACT_FINAL_LENGTHS" also works, but is ephemeral # "GAP_PRODUCTS.AKFIN_LENGTH", # has extrapolated lengths, not how many were actually counted
+  "RACE_DATA.LENGTHS",   # "RACE_DATA.V_EXTRACT_FINAL_LENGTHS" also works, but is ephemeral # "GAP_PRODUCTS.LENGTH", # has extrapolated lengths, not how many were actually counted
   "RACE_DATA.EDIT_HAULS", 
   "race_data.edit_events",
   "RACE_DATA.HAULS", # need for manipulating RACE_DATA.LENGTHS
@@ -638,12 +637,12 @@ paste0(
 FROM GAP_ARCHIVE.AUDIT_CPUE a
 JOIN (
 SELECT HAULJOIN, CRUISEJOIN 
-FROM GAP_PRODUCTS.AKFIN_HAUL
+FROM GAP_PRODUCTS.HAUL
 ) h
 USING (HAULJOIN)
 JOIN (
 SELECT CRUISEJOIN, SURVEY_DEFINITION_ID, YEAR
-FROM GAP_PRODUCTS.AKFIN_CRUISE
+FROM GAP_PRODUCTS.CRUISE
 ) c
 USING (CRUISEJOIN)
 WHERE a.OPERATION_TIMESTAMP BETWEEN

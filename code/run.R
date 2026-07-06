@@ -5,6 +5,31 @@ access_to_internet  <- TRUE # TRUE = redownload google drive tables and docs
 quarto <- FALSE
 options(scipen=999)
 
+# maxyr <- 2027
+# compareyr <- c("EBS" = 2026, "NBS" = 2025)
+# # compareyr0 <- 2023
+# strat_yr <- 2022
+# srvy <- "NEBS" # "EBS"
+# # ref_compareyr <- "@2024EBS" # CHANGE
+# ref_compareyr <- "@2025NEBS" # CHANGE
+# ref_compareyr_ebs <- "@2026EBS" # CHANGE
+# dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
+# dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
+# dl_change_start <- "26-MAR-25 11.00.00 PM" # "02-APR-24 11.00.00 PM"
+# dl_change_end <- "13-FEB-26 11.00.00 PM" # toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
+
+# maxyr <- 2026
+# compareyr <- c("EBS" = 2025)
+# # compareyr0 <- 2023
+# strat_yr <- 2022
+# srvy <- "NEBS" # "EBS"
+# # ref_compareyr <- "@2024EBS" # CHANGE
+# ref_compareyr <- "@2023NEBS" # CHANGE
+# ref_compareyr_ebs <- "@2024EBS" # CHANGE
+# dir_googledrive <- "https://drive.google.com/drive/folders/1c6QYPeSTyZWQ_V7V7DO6Fr-lnF08264H"
+# dl_change_start <- "13-FEB-26 12.00.00 PM" # "02-APR-24 11.00.00 PM"
+# dl_change_end <- "13-FEB-27 11.00.00 PM" # toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
+
 maxyr <- 2025
 compareyr <- c("EBS" = 2024, "NBS" = 2023)
 # compareyr0 <- 2023
@@ -15,8 +40,8 @@ ref_compareyr <- "@2023NEBS" # CHANGE
 ref_compareyr_ebs <- "@2024EBS" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
 dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
-dl_change_start <- "26-MAR-25 11.00.00 PM" # "02-APR-24 11.00.00 PM"
-dl_change_end <- "13-FEB-26 11.00.00 PM" # toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
+dl_change_start <- "24-APR-02 11.00.00 PM"
+dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
 
 # Data Report ------------------------------------------------------------------
 
