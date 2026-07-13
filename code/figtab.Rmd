@@ -2691,6 +2691,7 @@ places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.x
 table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                                  sheet = "participants", 
                                  skip = 1)  |> 
+  dplyr::filter(role != "Survey Coordinator") |>
   dplyr::filter(year == maxyr) |> 
   dplyr::left_join(places |> dplyr::rename(affiliation = combined))  |>
   dplyr::arrange(Agency) |>
