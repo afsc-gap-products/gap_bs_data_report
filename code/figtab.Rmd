@@ -2690,29 +2690,18 @@ places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.x
 
 table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                                  sheet = "participants", 
-                                 skip = 1)  |> 
-  dplyr::filter(role != "Survey Coordinator") |>
+                                 skip = 1) |> 
+  dplyr::filter(!(type %in% "vessel")) |> 
   dplyr::filter(year == maxyr) |> 
-  dplyr::left_join(places |> dplyr::rename(affiliation = combined))  |>
+  dplyr::left_join(places |> dplyr::rename(affiliation = combined)) |>
   dplyr::arrange(Agency) |>
-  dplyr::left_join(
-    y = data.frame(srvy = c(srvy1, "EBS & NBS"), 
-                   srvy_long = c(stringr::str_to_title(srvy11), 
-                                 "Eastern and northern Bering Sea"))) |> # " Combined"
   dplyr::left_join(places) |> 
   dplyr::mutate(
     key = paste0(vessel, "-", leg), 
-    srvy = gsub(pattern = "&", x = srvy, replacement = "and"),
     srvy = factor(x = srvy, 
-                  levels = c("EBS and NBS", "EBS", "NBS"), 
-                  labels = c("EBS and NBS", "EBS", "NBS"), 
+                  levels = c("EBS", "NBS", "Modernization"), 
+                  labels = c("EBS", "NBS", "Modernization"), 
                   ordered = TRUE), 
-    srvy_long = factor(x = srvy_long, 
-                       levels = c("Eastern and northern Bering Sea", # " Combined"
-                                  "Eastern Bering Sea", "Northern Bering Sea"), 
-                       labels = c("Eastern and northern Bering Sea", # " Combined"
-                                  "Eastern Bering Sea", "Northern Bering Sea"), 
-                       ordered = TRUE) , 
     order = dplyr::case_when(
       role == "Chief Scientist" ~ 1,
       role == "Deck Lead" ~ 2,
@@ -2733,18 +2722,40 @@ table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projec
   dplyr::arrange(key) |>
   dplyr::arrange(order)
 
-table_raw <- table_raw0 |>
-  tidyr::pivot_wider(id_cols = role, names_from = key, values_from = name) 
+# --- 1. ATTACH THE FOOTNOTES RIGHT TO THE NAMES BEFORE PIVOTING ---
+table_prepared <- table_raw0 |>
+  dplyr::mutate(
+    # Format individual names with standard markdown superscripts (e.g., "John Doe^1^")
+    name_with_foot = ifelse(affiliation != "-", 
+                            paste0(name, "^", footorder, "^"), 
+                            name)
+  )
 
-table_raw_footnotes_1 <- table_raw0 |>
-  tidyr::pivot_wider(id_cols = role, names_from = key, values_from = footorder) 
+table_collated <- table_prepared |>
+  dplyr::group_by(role, key) |>
+  dplyr::summarise(
+    combined_names = paste(unique(name_with_foot), collapse = ", "),
+    .groups = "drop"
+  )
 
-header <- paste0("Survey participants on the ", maxyr, " ", text_list(haul_cruises_maxyr$srvy_long), 
-                 " survey. ")
+role_order <- table_raw0 |>
+  dplyr::select(role, order) |>
+  dplyr::distinct()
 
+# Pivot wide cleanly into plain text representations containing markdown markers
+table_raw <- table_collated |>
+  tidyr::pivot_wider(id_cols = role, 
+                     names_from = key, 
+                     values_from = combined_names,
+                     values_fill = "-") |>
+  dplyr::left_join(role_order, by = "role") |>
+  dplyr::arrange(order) |>
+  dplyr::select(-order)
+
+# --- 2. INITIALIZE THE BASE FLEXTABLE LAYOUT ---
 aa <- table_raw0 |> 
   dplyr::select(key, vessel, col_title) |> 
-  unique() 
+  dplyr::distinct() 
 
 table_print <- table_raw |>
   flextable::flextable() |> 
@@ -2760,28 +2771,118 @@ table_print <- table_raw |>
   flextable::vline(j = 5, part = "all") |> 
   flextable::width(width = rep_len(x = full_page_landscape_width/ncol(table_raw), length.out = ncol(table_raw)))
 
-for (i in sort(unique(table_raw0$footorder[table_raw0$affiliation != "-"]))) {
-  
-  temp1 <- table_raw0 |>
-    dplyr::filter(footorder == i) |>
-    dplyr::select(affiliation, footorder) |> 
-    dplyr::slice(1)
-  
-  temp <- which(table_raw_footnotes_1 == i, arr.ind = TRUE) |> data.frame()
+# --- 3. PARSE THE MARKDOWN TO RENDER TRUE SUPERSCRIPTS ---
+# ftExtra::colformat_md automatically catches strings like "John^1^" and maps them perfectly
+table_print <- table_print |> 
+  ftExtra::colformat_md(j = 2:ncol(table_raw), part = "body")
+
+# --- 4. RENDER FOOTER LEGENDS CLEANLY ---
+people_footnotes <- table_raw0 |> 
+  dplyr::filter(affiliation != "-") |> 
+  dplyr::select(affiliation, footorder) |> 
+  dplyr::distinct() |>
+  dplyr::arrange(footorder)
+
+for (idx in seq_len(nrow(people_footnotes))) {
+  ref_num    <- as.character(people_footnotes$footorder[idx])
+  text_value <- people_footnotes$affiliation[idx]
   
   table_print <- table_print |> 
-    flextable::footnote(
-      i = temp$row,  # Rows where the footnote applies
-      j = temp$col,  # Columns where the footnote applies
-      value = as_paragraph(temp1$affiliation),
-      ref_symbols = as.character(i),
-      part = "body") |> 
-    flextable::fontsize(size = 8, part = "footer")
-  
+    flextable::add_footer_lines(
+      values = flextable::as_paragraph(
+        flextable::as_sup(ref_num), 
+        paste0(" ", text_value)
+      )
+    )
 }
+
+table_print <- table_print |> 
+  flextable::fontsize(size = 8, part = "footer")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+
+```{r tab-participants-vessel}
+nickname <- "tab-participants-vessel" 
+
+table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
+                                 sheet = "participants", 
+                                 skip = 1) |> 
+  # CHANGED: Now explicitly filtering FOR vessels instead of removing them
+  dplyr::filter(type %in% "vessel") |> 
+  dplyr::filter(year == maxyr) |> 
+  dplyr::left_join(places |> dplyr::rename(affiliation = combined)) |>
+  dplyr::arrange(Agency) |>
+  dplyr::left_join(places) |> 
+  dplyr::mutate(
+    key = paste0(vessel, "-", leg), 
+    srvy = factor(x = srvy, 
+                  levels = c("EBS", "NBS", "Modernization"), 
+                  labels = c("EBS", "NBS", "Modernization"), 
+                  ordered = TRUE), 
+    order = dplyr::case_when(
+      role == "Captain" ~ 1,
+      role == "First Mate" ~ 2,
+      role == "Chief Engineer" ~ 3,
+      role == "Deck Boss" ~ 4,
+      role == "Deck Crew" ~ 5,
+      role == "Cook" ~ 6),
+    col_title = paste0("Leg ", leg, ": ", srvy, "\n", 
+                       date_formatter(date = date_start, date_format = "%B %d"), 
+                       " -\n", 
+                       date_formatter(date = date_end, date_format = "%B %d"))) |>
+  dplyr::arrange(key) |>
+  dplyr::arrange(order)
+
+# --- 1. COLLAPSE MULTIPLE NAMES PER CELL ---
+table_collated <- table_raw0 |>
+  dplyr::group_by(role, key) |>
+  dplyr::summarise(
+    combined_names = paste(unique(name), collapse = ", "),
+    .groups = "drop"
+  )
+
+role_order <- table_raw0 |>
+  dplyr::select(role, order) |>
+  dplyr::distinct()
+
+# Pivot wide cleanly without footnotes
+table_raw <- table_collated |>
+  tidyr::pivot_wider(id_cols = role, 
+                     names_from = key, 
+                     values_from = combined_names,
+                     values_fill = "-") |>
+  dplyr::left_join(role_order, by = "role") |>
+  dplyr::arrange(order) |>
+  dplyr::select(-order)
+
+# --- 2. BUILD FLEXTABLE WITHOUT FOOTNOTE LOGIC ---
+aa <- table_raw0 |> 
+  dplyr::select(key, vessel, col_title) |> 
+  dplyr::distinct() 
+
+table_print <- table_raw |>
+  flextable::flextable() |> 
+  flextable::delete_part(part = "header") |> 
+  flextable::add_header_row(top = TRUE, values = c("", aa$vessel)) |>
+  flextable::merge_h(part = "header") |>
+  flextable::add_header_row(top = FALSE, values = c("", aa$col_title)) |>
+  flextable::bold(j = 1) |>
+  theme_flextable_nmfstm(row_lines = TRUE, 
+                         pgwidth = full_page_landscape_width) |>
+  flextable::italic(i = 2, part = "header") |>
+  flextable::bold(i = 2, part = "header", bold = FALSE) |>
+  flextable::vline(j = 5, part = "all") |> 
+  flextable::vline(part = "body", border = fp_border(width = .25)) |> 
+  flextable::width(
+    width = rep_len(x = full_page_landscape_width/ncol(table_raw), 
+                    length.out = ncol(table_raw))) |> 
+  flextable::merge_h()
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
 
 
 ```{r tab-data-changes}
