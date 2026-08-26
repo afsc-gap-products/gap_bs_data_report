@@ -125,9 +125,12 @@ print("Load google drive data")
 if (access_to_internet ) {
   
   # if (access_to_internet) {
-    googledrive::drive_deauth()
-    googledrive::drive_auth()
-    2  # Set this to 1 when first running to allow access in subsequent sessions
+  gargle::cred_funs_add(credentials_gce = NULL)
+  drive_auth(email="emily.markowitz@noaa.gov")
+  
+    # googledrive::drive_deauth()
+    # googledrive::drive_auth()
+    # 2  # Set this to 1 when first running to allow access in subsequent sessions
   # }
   
   id_googledrive <- googledrive::as_id(dir_googledrive)

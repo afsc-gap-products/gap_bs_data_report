@@ -17,8 +17,24 @@ Interannual variation in bottom temperature and cold pool area influences the di
 temp <- coldpool_ebs_bin_area |> 
   dplyr::mutate(percent = paste0(formatC(x = perc, digits = 2, big.mark = ",")), 
                 notes = "")
+
 maxyr_perc <- formatC(x = sum(temp$perc[temp$year == maxyr]), digits = 1, big.mark = ",", format = "f")
-maxyr_area <- formatC(x = sum(temp$area_km2[temp$year == maxyr]), digits = 0, big.mark = ",", format = "f")
+maxyr_area0 <- sum(temp$area_km2[temp$year == maxyr]
+maxyr_area <- formatC(x = maxyr_area0, digits = 0, big.mark = ",", format = "f")
+
+# compareyr_perc <- formatC(x = sum(temp$perc[temp$year == compareyr]), digits = 1, big.mark = ",", format = "f")
+compareyr_area0 <- sum(temp$area_km2[temp$year == compareyr])
+compareyr_area <- formatC(x = compareyr_area0, digits = 0, big.mark = ",", format = "f")
+compareyr_area_perc_diff <- pchange(start = compareyr_area0, end = maxyr_area0)
+
+mean_perc <- formatC(x = sum(temp$perc[temp$year == compareyr]), digits = 1, big.mark = ",", format = "f")
+mean_area <- formatC(x = sum(temp$area_km2[temp$year == compareyr]), digits = 0, big.mark = ",", format = "f")
+
+max_perc <- formatC(x = sum(temp$perc[temp$year == maxyr]), digits = 1, big.mark = ",", format = "f")
+max_area <- formatC(x = sum(temp$area_km2[temp$year == maxyr]), digits = 0, big.mark = ",", format = "f")
+
+min_perc <- formatC(x = sum(temp$perc[temp$perc == maxyr]), digits = 1, big.mark = ",", format = "f")
+min_area <- formatC(x = sum(temp$area_km2[temp$year == maxyr]), digits = 0, big.mark = ",", format = "f")
   
 ```
 
