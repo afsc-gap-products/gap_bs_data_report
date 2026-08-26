@@ -75,7 +75,8 @@ PKG <- c(
   # RACE-GAP Specific
   "akgfmaps", # devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
   "coldpool", # devtools::install_github("afsc-gap-products/coldpool")
-  "crabpack", # 
+  "gapindex", # devtools::install_github("afsc-gap-products/gapindex")
+  "crabpack", # devtools::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
   
   # Spatial mapping
   "sf",

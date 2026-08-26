@@ -3,7 +3,7 @@
 
 ## Ocean Temperatures
 
-Bottom (Fig. \@ref(fig:fig-temperature-bt-data)) and surface (Fig. \@ref(fig:fig-temperature-st-data)) water temperatures varied spatially and among years due to variation in atmospheric and oceanic conditions that influence temperature patterns in the eastern Bering Sea [@RN931]. The warmest bottom temperatures were typically observed in the `inner domain (< 5`0 m; Fig. \@ref(fig:fig-survey-sample-stations)) along the Alaskan mainland. The coldest bottom temperatures typically occurred in the `middle domain (50–100 m)`. Surface temperatures generally increased as the survey progressed westward from the interior of Bristol Bay to the northwestern outer shelf and northward into Norton Sound. These surface temperature patterns reflect seasonal warming that occurs over the course of the survey [@Cokelet2016; @RohanColdPool].
+Bottom (Fig. \@ref(fig:fig-temperature-bt-data)) and surface (Fig. \@ref(fig:fig-temperature-st-data)) water temperatures varied spatially and among years due to variation in atmospheric and oceanic conditions that influence temperature patterns in the eastern Bering Sea [@RN931]. The warmest bottom temperatures were typically observed in the `inner domain (< 50` m; Fig. \@ref(fig:fig-survey-sample-stations)) along the Alaskan mainland. The coldest bottom temperatures typically occurred in the `middle domain (50–100 m)`. Surface temperatures generally increased as the survey progressed westward from the interior of Bristol Bay to the northwestern outer shelf and northward into Norton Sound. These surface temperature patterns reflect seasonal warming that occurs over the course of the survey [@Cokelet2016; @RohanColdPool].
 
 The mean bottom temperature on the eastern Bering Sea was `3.0`°C in `r maxyr`, which was `0.5`°C warmer than the time series average from 1982 to `r maxyr-1` (`both 2.5`°C; Fig. \@ref(fig:fig-mean-temperature)). Although temperatures increased from `r maxyr-1` to `r maxyr`, the `r maxyr` mean bottom temperature was still classified as near-average (within one standard deviation of the time series mean).Over the history of the eastern Bering Sea survey (1982–`r maxyr-1`), annual mean summer bottom temperatures have ranged from `0.7`°C to `4.4`°C, and surface temperatures have ranged from `3.9`°C to `9.5`°C. The `r maxyr` mean eastern Bering Sea surface temperature (`6.1`°C) was colder than the times-series average surface temperature (`6.7`°C), and warmer than the mean surface temperature in `r maxyr-1` (`5.8`°C). 
 
@@ -15,31 +15,42 @@ Interannual variation in bottom temperature and cold pool area influences the di
 
 ```{r coldpool_ebs_bin_area-workup}
 temp <- coldpool_ebs_bin_area |> 
-  dplyr::mutate(percent = paste0(formatC(x = perc, digits = 2, big.mark = ",")), 
-                notes = "")
+  # dplyr::mutate(percent = paste0(formatC(x = perc, digits = 2, big.mark = ","))) |> 
+  dplyr::group_by(year) |> 
+  dplyr::summarise(perc = sum(perc, na.rm = TRUE), 
+                   area_km2 = sum(area_km2, na.rm = TRUE)) |> 
+  dplyr::ungroup()
 
 maxyr_perc <- formatC(x = sum(temp$perc[temp$year == maxyr]), digits = 1, big.mark = ",", format = "f")
-maxyr_area0 <- sum(temp$area_km2[temp$year == maxyr]
+maxyr_area0 <- temp$area_km2[temp$year == maxyr]
 maxyr_area <- formatC(x = maxyr_area0, digits = 0, big.mark = ",", format = "f")
 
-# compareyr_perc <- formatC(x = sum(temp$perc[temp$year == compareyr]), digits = 1, big.mark = ",", format = "f")
-compareyr_area0 <- sum(temp$area_km2[temp$year == compareyr])
+compareyr_area0 <- temp$area_km2[temp$year == compareyr[names(compareyr) == "EBS"]]
 compareyr_area <- formatC(x = compareyr_area0, digits = 0, big.mark = ",", format = "f")
-compareyr_area_perc_diff <- pchange(start = compareyr_area0, end = maxyr_area0)
+compareyr_maxyr_area_perc_diff <- pchange(start = compareyr_area0, end = maxyr_area0)
+compareyr_maxyr_area_diff <- (compareyr_area0 - maxyr_area0)
+compareyr_maxyr_area_diff_desc <- paste0(ifelse(compareyr_maxyr_area_diff>0, "larger", "smaller"))
+compareyr_maxyr_area_diff <- formatC(x = abs(compareyr_maxyr_area_diff), digits = 1, format = "f")
 
-mean_perc <- formatC(x = sum(temp$perc[temp$year == compareyr]), digits = 1, big.mark = ",", format = "f")
-mean_area <- formatC(x = sum(temp$area_km2[temp$year == compareyr]), digits = 0, big.mark = ",", format = "f")
+max_yr <- formatC(x = temp$year[temp$perc == max(temp$perc)], digits = 1, big.mark = ",", format = "f")
+max_area <- formatC(x = temp$area_km2[temp$perc == max(temp$perc)], digits = 0, big.mark = ",", format = "f")
 
-max_perc <- formatC(x = sum(temp$perc[temp$year == maxyr]), digits = 1, big.mark = ",", format = "f")
-max_area <- formatC(x = sum(temp$area_km2[temp$year == maxyr]), digits = 0, big.mark = ",", format = "f")
+min_yr <- formatC(x = temp$year[temp$perc == min(temp$perc)], digits = 1, big.mark = ",", format = "f")
+min_area <- formatC(x = temp$area_km2[temp$perc == min(temp$perc)], digits = 0, big.mark = ",", format = "f")
 
-min_perc <- formatC(x = sum(temp$perc[temp$perc == maxyr]), digits = 1, big.mark = ",", format = "f")
-min_area <- formatC(x = sum(temp$area_km2[temp$year == maxyr]), digits = 0, big.mark = ",", format = "f")
+mean_perc <- formatC(x = mean(temp$perc), digits = 1, big.mark = ",", format = "f")
+mean_area <- formatC(x = mean(temp$area_km2), digits = 0, big.mark = ",", format = "f")
+
+temp <- coldpool_ebs_bin_area |> 
+  dplyr::mutate(percent = paste0(formatC(x = perc, digits = 2, big.mark = ","))) |> 
+  dplyr::filter(year == maxyr)
   
 ```
 
+The cold pool is primarily found in the `middle domain (50–100 m)` and covered `r maxyr_perc`% (`maxyr_area` 
+km^2^) of the eastern Bering Sea survey area in `r maxyr` (Figs. \@ref(fig:fig-temperature-bt-data) and \@ref(fig:fig-cold-pool-area)). The cold pool was `27.7`% (`43,425` km^2^) `smaller` than in `r maxyr-1` and was `36.6`% `smaller` than the time series mean (`mean_area` km^2^). The extent of isotherms for bottom temperatures in `r maxyr` of ≤ 0°C (`30,275` km^2^) and ≤ -1°C (`8,350` km^2^) were `6.0`% and `19.8`% larger than in `r maxyr-1` During the `43`-year time series, the cold pool area has ranged from a minimum of `6,150` km^2^ in `2018` to a maximum of `385,975` km^2^ in `1999`, comprising `1.2`% to `78.2`% of the total eastern Bering Sea survey area.
 
-The cold pool is primarily found in the `middle domain (50–100 m)` and covered `r maxyr_perc`% (`maxyr_area` km^2^) of the eastern Bering Sea survey area in `r maxyr` (Figs. \@ref(fig:fig-temperature-bt-data) and \@ref(fig:fig-cold-pool-area)). The cold pool was `27.7`% (`43,425` km^2^) `smaller` than in `r maxyr-1` and was `36.6`% `smaller` than the time series mean (`179,000` km^2^). The extent of isotherms for bottom temperatures in `r maxyr` of ≤ 0°C (`30,275` km^2^) and ≤ -1°C (`8,350` km^2^) were `6.0`% and `19.8`% larger than in `r maxyr-1` During the `43`-year time series, the cold pool area has ranged from a minimum of `6,150` km^2^ in `2018` to a maximum of `385,975` km^2^ in `1999`, comprising `1.2`% to `78.2`% of the total eastern Bering Sea survey area.
+The cold pool is primarily found in the `middle domain (50–100 m)` and covered `r maxyr_perc`% (`maxyr_area` km^2^) of the eastern Bering Sea survey area in `r maxyr` (Figs. \@ref(fig:fig-temperature-bt-data) and \@ref(fig:fig-cold-pool-area)). The cold pool was `27.7`% (`43,425` km^2^) `smaller` than in `r maxyr-1` and was `36.6`% `smaller` than the time series mean (`mean_area` km^2^). The extent of isotherms for bottom temperatures in `r maxyr` of ≤ 0°C (`30,275` km^2^) and ≤ -1°C (`8,350` km^2^) were `6.0`% and `19.8`% larger than in `r maxyr-1` During the `43`-year time series, the cold pool area has ranged from a minimum of `6,150` km^2^ in `2018` to a maximum of `385,975` km^2^ in `1999`, comprising `1.2`% to `78.2`% of the total eastern Bering Sea survey area.
 
 
 ```{r results-cold-pool-insert, child=paste0(dir_out_rawdata, "/0-cold-pool.Rmd"), eval =  FALSE}
