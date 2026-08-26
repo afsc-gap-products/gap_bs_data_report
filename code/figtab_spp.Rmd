@@ -974,7 +974,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-agecomp-[spp]-prep, eval = spp_plot_agecomp}
 width <- full_page_portrait_width # 6.5  
 header <- ""
-legend_font_size <- 12
+legend_font_size <- 10
 
 age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0) {
   
@@ -985,6 +985,21 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
     table_raw <- agecomp |>
       dplyr::filter(species_code %in% spp_code)
   }
+  
+    if (grepl(x = spp_print, pattern = "crab")) { # c("Unsexed", "Males", "Females", "Immature females", "Mature females")
+    factor0 <- c("Males", "Immature females", "Mature females") # check
+  } else {
+    factor0 <- c("Unsexed", "Males", "Females")
+  }
+  
+  # srvy_ <- srvy
+  table_raw <- table_raw  |>
+    dplyr::mutate(sex = str_to_sentence(sex), 
+                  sex = factor(sex, 
+                               levels = factor0, 
+                               labels = factor0,
+                               ordered = TRUE) ) |> 
+    dplyr::arrange(sex) 
   
   # find appropriate units
   a <- find_units(unit = "", unt = " years", dat = max(table_raw$population_count, na.rm = TRUE))
@@ -1062,13 +1077,22 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
     ggplot2::coord_flip() +
     # ggplot2::ggtitle(label = "2023 EBS (Standard Area + NW) walleye pollock Age Composition")  + 
     ggplot2::guides(fill = guide_legend(title = ""))  +
-    scale_fill_viridis_d(option = "G", begin = .3, end = .7) +
-    scale_x_continuous(name = "Age bin", 
-                       breaks = function(age) unique(floor(pretty(seq(0, (max(age) + 1) * 1.1))))) +
-    scale_y_continuous(name = paste0(spp_print, " population across years", unit_word),
+    # ggplot2::scale_fill_viridis_d(option = "G", begin = .3, end = .7) +
+          ggplot2::scale_fill_viridis_d(direction = -1,
+                                    option = "mako",
+                                    begin = .2,
+                                    end = .6,
+                                    na.value = "transparent", 
+                                    drop = FALSE) +
+    ggplot2::scale_y_continuous(name = "Age bin", 
+                                label = abs, 
+                       breaks = function(age) unique(floor(pretty(seq(-(max(age) + 1) * 1.1, 
+                                                                      (max(age) + 1) * 1.1))))) +
+    ggplot2::scale_x_continuous(name = paste0(#spp_print, " ",
+      "Population", unit_word),
                        expand = c(0, 0),
                        labels = abs) + 
-    ggplot2::facet_grid(rows = vars(year), cols = vars(srvy_long)) +
+    ggplot2::facet_grid(rows = vars(year), cols = vars(srvy)) +
     ggplot2::theme(
       legend.position = "bottom",
       legend.box = "horizontal",
@@ -1104,11 +1128,25 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
                           width = .18)
   }
   
-  # } else {
-  #   header <- ""
-  #   figure_print <- ggplot(data = data.frame(x = 1, y = 1, label = "There are no data for this year and species"), mapping = aes(y=y, x=x)) +
-  #     geom_text(mapping = aes(label = label))
-  # }
+  
+      # are there any plots with no data?
+    figure <- figure + 
+      # ggplot2::labs(caption = "+ None of this species was lengthed. ") +
+      # ggplot2::theme(plot.caption = element_text(hjust=0, size = 10)) +
+      ggplot2::geom_text(data = table(year = table_raw$year, srvy_long = table_raw$srvy_long) |> 
+                           data.frame() |> 
+                           dplyr::mutate(sex  = "Males", # had to pick something and this is the most generalizable across species
+                                         sign = ifelse(Freq == 0, "*No Collection", NA), 
+                                         srvy_long = srvy_long), # stringr::str_to_title(srvy_long)), 
+                         mapping = aes(label = sign), 
+                         fontface = "italic", 
+                         size = 2.5, 
+                         color = "grey20",
+                         x = Inf, 
+                         y = -Inf, 
+                         show.legend = FALSE,
+                         hjust = 1.1,
+                         vjust = -.5)
   
   if (plural_surveys == "") {
     figure_print <- figure_print + 
@@ -1130,7 +1168,12 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
 ```
 
 ```{r fig-agecomp-[spp]-data, eval = spp_plot_agecomp}
-yrs <- analysisyrs
+agecomp0 <- agecomp |> 
+  dplyr::filter(species_code %in% spp_code)
+# take the last 3 years worth of data, whatever years they are
+yrs <- yrs_age <- head(sort((unique(agecomp0$year)), decreasing = TRUE), 3)
+srvy_age <- unique(agecomp0$srvy[agecomp0$year %in% yrs_age])
+  
 height <- full_page_portrait_height-1
 print_n <- FALSE
 srvy <- srvy1[1]
@@ -1138,10 +1181,10 @@ nickname <- paste0("fig-agecomp-", spp_file, "-data")
 legend_font_size <- 10
 report_title0 <- "data"
 
-temp <- age_plot(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0)
+temp <- age_plot(srvy, yrs, agecomp = agecomp0, height, width, nickname, legend_font_size, report_title0)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 pres_age <- temp$figure_print
-# res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
 
@@ -1211,7 +1254,7 @@ temp_env <- haul0 |>
                      values_from = "val") |> 
   dplyr::mutate(
     dplyr::across(dplyr::ends_with("Temperature"),
-                  ~paste0(.x, " °C")), 
+                  ~paste0(.x, "°C")), 
     dplyr::across(dplyr::ends_with("Depth"),
                   ~paste0(.x, " m")), 
   )
@@ -2300,44 +2343,48 @@ header <- paste0(
                 collapse = "; ")), 
   "). ")
 
+
+if (spp_plot_agecomp) {
+  
+  srvy_age <- gsub(pattern = "EBS", replacement = "eastern", x = srvy_age)
+  srvy_age <- gsub(pattern = "NBS", replacement = "northern", x = srvy_age)
+  
+header <- paste0(header, "(D) Additionally, total abundance-at-age (cm) estimates were calculated and scaled to the total estimated population from the last three years of available data (",text_list(yrs_age),") in the ",text_list(srvy_age),"  Bering Sea surveys. ")
+
+  figure_print <- cowplot::plot_grid(
+    figure_print, 
+    # NULL,
+    pres_age + 
+      theme(legend.position = "none", 
+            title = element_text(size = 8, face = "bold"),
+                   strip.text = element_text(size = 8, face = "bold"),
+                   axis.title = element_text(size = 8),
+                   axis.text = element_text(size = 8)),
+    ncol = 2, 
+    rel_widths = c(.6,#.025,
+                   .15),
+    align = "v",   # Align vertically
+    axis = "l")     # Align by the left axis  
+    
+figure_print <- cowplot::ggdraw(figure_print) +
+    cowplot::draw_label("D", x = 0.81, y = 0.94, hjust = 0, vjust = 0, size = 16)
+
+}
+
 header0 <- header
 figure_print0 <- figure_print
 
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-
-```{r fig-combined-[spp]-pres, eval = FALSE}
-
-
-nickname <- paste0("fig-combined-", spp_file, "-pres")
-height <- 4 # full_page_portrait_height-2.5
-width <- full_page_portrait_width
-
-if (spp_plot_agecomp) {
-header <- header0
-figure_print <- figure_print0
-  header <- gsub(pattern = " and (B)", replacement = ", (B)", x = header)
-  header <- gsub(pattern = "surveys. (C)", replacement = "surveys, and . (C)", x = header)
-
-pres_age
-} else {
-  header <- header0
-  figure_print <- figure_print0
-}
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-
-
 ```
 
 ```{r remove-odds-ends}
-remove("comm_dist")
-remove("comm_size")
-remove("pres_dist")
-remove("pres_size")
-remove("pres_timeseries_mean")
-remove("pres_timeseries")
-remove("pres_stats")
+# remove("comm_dist")
+# remove("comm_size")
+# remove("pres_dist")
+# remove("pres_size")
+# remove("pres_timeseries_mean")
+# remove("pres_timeseries")
+# remove("pres_stats")
 ```
 
