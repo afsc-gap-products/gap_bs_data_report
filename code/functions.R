@@ -1837,8 +1837,10 @@ plot_sizecomp <- function(sizecomp0,
                          x = Inf, 
                          y = -Inf, 
                          show.legend = FALSE,
-                         hjust = 1.1,
-                         vjust = -.5)
+                         hjust = 1.2,
+                         vjust = -.7)
+                         # hjust = 1.1,
+                         # vjust = -.5)
     
   } else {
     table_raw1 <- table_raw |> 
