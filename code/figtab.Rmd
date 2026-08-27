@@ -1011,7 +1011,7 @@ plot_mean_temperatures <- function(maxyr, srvy){
 ```
 
 ```{r fig-mean-temperature-ebs}
-nickname <- "fig-mean-temperatur-ebs"
+nickname <- "fig-mean-temperature-ebs"
 a <- plot_mean_temperatures(maxyr, srvy = "EBS")
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
@@ -2684,6 +2684,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r tab-participants}
 nickname <- "tab-participants" 
+header <- paste0("Scientific crew of the ",maxyr," ", SURVEY, " bottom trawl surveys. ")
 places <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                              sheet = "affiliations", 
                              skip = 1)
@@ -2693,6 +2694,7 @@ table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projec
                                  skip = 1) |> 
   dplyr::filter(!(type %in% "vessel")) |> 
   dplyr::filter(year == maxyr) |> 
+  dplyr::filter(role != "Survey Coordinator") |> 
   dplyr::left_join(places |> dplyr::rename(affiliation = combined)) |>
   dplyr::arrange(Agency) |>
   dplyr::left_join(places) |> 
@@ -2805,6 +2807,7 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r tab-participants-vessel}
 nickname <- "tab-participants-vessel" 
+header <- paste0("Vessel crew of the ",maxyr," ", SURVEY, " bottom trawl surveys. ")
 
 table_raw0 <- readxl::read_excel(path = paste0(dir_out_rawdata, "/special-projects.xlsx"), 
                                  sheet = "participants", 
