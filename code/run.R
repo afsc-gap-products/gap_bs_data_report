@@ -49,7 +49,7 @@ dl_change_end <- "24-APR-02 11.00.00 PM"
 
 report_title <- "data" 
 # pak::pak("afsc-gap-products/akgfmaps")
-# pak::pak"afsc-gap-products/coldpool")
+# pak::pak("afsc-gap-products/coldpool")
 # pak::pak("afsc-gap-products/gapindex")
 # pak::pak("AFSC-Shellfish-Assessment-Program/crabpack")
 source(here::here("code","functions.R"))
@@ -64,23 +64,23 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_dir = dir_out_rawdata,
                   output_file = paste0("figtab.docx"))
 
-# Species figures
-comb <- report_spp0 |> 
-  dplyr::filter(!is.na(community_order) |	!is.na(datar_order)) |> 
-  dplyr::select(file_name, species_code) |> 
-  # were these species caught this year?
-  dplyr::left_join(
-    biomass |> 
-      dplyr::filter(year == maxyr) |> 
-      dplyr::mutate(species_code = as.character(species_code)) |>
-      dplyr::select(species_code, biomass_mt) |> 
-      dplyr::distinct(),
-    by = "species_code" ) |> 
-  # 3. Add logical check column to confirm catches
-  # (Assuming positive biomass/cpue indicates caught)
-  dplyr::filter(!is.na(biomass_mt) & biomass_mt > 0) |> 
-  dplyr::select(species_code, file_name) |> 
-  dplyr::distinct()
+# # Species figures
+comb <- report_spp0 |>
+  dplyr::filter(!is.na(community_order) |	!is.na(datar_order)) |>
+  dplyr::select(file_name, species_code) #|>
+#   # were these species caught this year?
+#   dplyr::left_join(
+#     biomass |> 
+#       dplyr::filter(year == maxyr) |> 
+#       dplyr::mutate(species_code = as.character(species_code)) |>
+#       dplyr::select(species_code, biomass_mt) |> 
+#       dplyr::distinct(),
+#     by = "species_code" ) |> 
+#   # 3. Add logical check column to confirm catches
+#   # (Assuming positive biomass/cpue indicates caught)
+#   dplyr::filter(!is.na(biomass_mt) & biomass_mt > 0) |> 
+#   dplyr::select(species_code, file_name) |> 
+#   dplyr::distinct()
 
 report_spp3 <- data.frame()
 for (i in 1:nrow(comb)){
@@ -93,13 +93,13 @@ for (i in 1:nrow(comb)){
 comb <- unique(sort(comb$file_name))
 # comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
 # comb <- comb[!grepl(pattern = "antlered-sculpin", x = comb)] # temporary
-# comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary
+comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary
 # comb <- comb[!grepl(pattern = "octopuses", x = comb)] # temporary
 for (jj in 1:length(comb)) {
   print(paste0(jj, " of ", length(comb), ": ", comb[jj]))
   a <- report_spp3[which(report_spp3$file_name == comb[jj]), ]
   spp_code <- a$species_code1
-  aa <- catch_haul_cruises |> 
+  aa <- biomass |> # catch_haul_cruises |> 
     dplyr::filter(species_code %in% spp_code & year == maxyr)
   if (nrow(aa)>0) {
     rmarkdown::render(paste0(dir_code, "/figtab_spp.Rmd"),
