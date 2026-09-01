@@ -517,23 +517,6 @@ dist_plot <- function(yrs, height, row0, nickname, report_title0, spp_print, spp
 
 ```
 
-```{r fig-dist-[spp]-data, eval = FALSE}
-yrs <- c(maxyr, compareyr) # analysisyrs
-
-# if (spp_file == "greenland-turbot") {
-#   yrs <- c(2022, 2023, 2024)
-# }
-width <- full_page_portrait_width # 6.5  
-height <- 3.5 # full_page_portrait_height # + ifelse(srvy == "EBS", 0, - 1)
-row0 <- 1 # 3
-nickname <- paste0("fig-dist-", spp_file, "-data")
-report_title0 <- "data"
-
-temp <- dist_plot(yrs, height, row0, nickname, report_title0, spp_print, spp_code)
-for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
 ```{r fig-dist-[spp]-comm}
 nickname <- paste0("fig-dist-", spp_file, "-comm")
 yrs <- c(compareyr, maxyr)
@@ -921,6 +904,7 @@ width <- 5
 report_title0 <- "community"
 legend_font_size <- 8
 yrs <- c(maxyr, compareyr) # [names(compareyr) == "NBS"]
+srvy_len <- unique(sizecomp$srvy[sizecomp$year %in% yrs])
 
 temp <- size_plot(srvy, yrs, lengths, sizecomp, # |> dplyr::filter(srvy == "NBS"), 
                   print_n, height, width, nickname, legend_font_size, report_title0) 
@@ -1159,7 +1143,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
       # ggplot2::ggtitle("") + 
       # ggplot2::guides(fill=guide_legend(title=""))  +
       ggplot2::theme(legend.title=element_blank(), 
-                     strip.text.x = element_blank(),
+                     # strip.text.x = element_blank(),
                      strip.background = element_blank())
   }
   
@@ -1290,7 +1274,7 @@ temp_bio <- dplyr::right_join(
     dplyr::filter((biomass_mt !=0)), 
   by = c("year", "srvy")) |> 
   dplyr::right_join(data.frame(srvy = c(names(compareyr), names(compareyr)), 
-                               year = c(compareyr, maxyr, maxyr))) |>     # dplyr::filter(year %in% yrs) |> 
+                               year = c(compareyr, rep_len(x = maxyr, length.out = length(compareyr)) ))) |>     # dplyr::filter(year %in% yrs) |> 
   dplyr::group_by(srvy, year, total) |> 
   dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE),  
                    population_count = sum(population_count, na.rm = TRUE),  
@@ -1361,7 +1345,7 @@ temp_bio1$`Population; Biomass` <- paste0(temp_bio1$Population, "; ", temp_bio1$
 temp_catch <- catch_haul_cruises |> 
   dplyr::filter(species_code %in% spp_code) |> 
   dplyr::right_join(data.frame(srvy = c(names(compareyr), names(compareyr)), 
-                               year = c(compareyr, maxyr, maxyr))) |> 
+                               year = c(compareyr, rep_len(x = maxyr, length.out = length(compareyr)) ))) |>     # dplyr::filter(year %in% y  
   dplyr::select(species_code, srvy, year, weight_kg, count) 
 
 if (spp_print == "tunicates") {
@@ -2287,8 +2271,10 @@ temp1 <- cowplot::plot_grid(
 
   if (spp_plot_agecomp & spp_plot_sizecomp) {
 
-    if (length(srvy_age) == 1) {
+    if (length(srvy_age) == 1 & length(srvy_len) != 1) {
        spacing0 <- c(.6, .025, .25, .15)
+    } else if (length(srvy_age) != 1 & length(srvy_len) == 1) {
+       spacing0 <- c(.6, .025, .15, .25)
     } else {
        spacing0 <- c(.6, .025, .2, .2)
     }
@@ -2313,8 +2299,22 @@ temp1 <- cowplot::plot_grid(
     align = "v",   # Align vertically
     axis = "l")     # Align by the left axis  
   
+  # figure_print <- cowplot::ggdraw(figure_print) +
+  #   cowplot::draw_label("D", x = ifelse((length(srvy_age) == 1), 0.85, .8), y = 0.94, hjust = 0, vjust = 0, size = 16)
+  
   figure_print <- cowplot::ggdraw(figure_print) +
-    cowplot::draw_label("D", x = ifelse((length(srvy_age) == 1), 0.85, .8), y = 0.94, hjust = 0, vjust = 0, size = 16)
+  cowplot::draw_label(
+    label = "D", 
+    x = dplyr::case_when(
+      length(srvy_age) == 1 & length(srvy_len) == 1 ~ 0.8,
+      length(srvy_age) == 1 & length(srvy_len) == 2 ~ 0.85,
+      length(srvy_age) == 2 ~ 0.8
+    ), 
+    y = 0.94, 
+    hjust = 0, 
+    vjust = 0, 
+    size = 16
+  )
   
   } else if (!spp_plot_agecomp & spp_plot_sizecomp) {
   figure_print <- cowplot::plot_grid(

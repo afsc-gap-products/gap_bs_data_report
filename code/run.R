@@ -18,40 +18,40 @@ options(scipen=999)
 # dl_change_start <- "26-MAR-25 11.00.00 PM" # "02-APR-24 11.00.00 PM"
 # dl_change_end <- "13-FEB-26 11.00.00 PM" # toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
 
-# maxyr <- 2026
-# compareyr <- c("EBS" = 2025)
+maxyr <- 2026
+compareyr <- c("EBS" = 2025)
+# compareyr0 <- 2023
+strat_yr <- 2022
+srvy <- "EBS" # "EBS"
+# ref_compareyr <- "@2024EBS" # CHANGE
+ref_compareyr <- "@2025NEBS" # CHANGE
+ref_compareyr_ebs <- "@2025NEBS" # CHANGE
+dir_googledrive <- "https://drive.google.com/drive/folders/1c6QYPeSTyZWQ_V7V7DO6Fr-lnF08264H"
+dl_change_start <- "31-AUG-26 12.00.00 PM" # "02-APR-24 11.00.00 PM"
+dl_change_end <- "24-APR-02 11.00.00 PM"
+
+# maxyr <- 2025
+# compareyr <- c("EBS" = 2024, "NBS" = 2023)
 # # compareyr0 <- 2023
 # strat_yr <- 2022
 # srvy <- "NEBS" # "EBS"
 # # ref_compareyr <- "@2024EBS" # CHANGE
 # ref_compareyr <- "@2023NEBS" # CHANGE
 # ref_compareyr_ebs <- "@2024EBS" # CHANGE
-# dir_googledrive <- "https://drive.google.com/drive/folders/1c6QYPeSTyZWQ_V7V7DO6Fr-lnF08264H"
-# dl_change_start <- "13-FEB-26 12.00.00 PM" # "02-APR-24 11.00.00 PM"
-# dl_change_end <- "13-FEB-27 11.00.00 PM" # toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
-
-maxyr <- 2025
-compareyr <- c("EBS" = 2024, "NBS" = 2023)
-# compareyr0 <- 2023
-strat_yr <- 2022
-srvy <- "NEBS" # "EBS"
-# ref_compareyr <- "@2024EBS" # CHANGE
-ref_compareyr <- "@2023NEBS" # CHANGE
-ref_compareyr_ebs <- "@2024EBS" # CHANGE
-dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
-dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
-dl_change_start <- "24-APR-02 11.00.00 PM"
-dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
+# dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
+# dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
+# dl_change_start <- "24-APR-02 11.00.00 PM"
+# dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
 
 # Data Report ------------------------------------------------------------------
 
 ## Source Scripts --------------------------------------------------------------
 
 report_title <- "data" 
-# devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
-# devtools::install_github("afsc-gap-products/coldpool")
-# devtools::install_github("afsc-gap-products/gapindex")
-# devtools::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
+# pak::pak("afsc-gap-products/akgfmaps")
+# pak::pak"afsc-gap-products/coldpool")
+# pak::pak("afsc-gap-products/gapindex")
+# pak::pak("AFSC-Shellfish-Assessment-Program/crabpack")
 source(here::here("code","functions.R"))
 # source(here::here("code","data_dl.R"))  # Run when there is new data!
 source(here::here("code","data.R"))
@@ -67,7 +67,20 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
 # Species figures
 comb <- report_spp0 |> 
   dplyr::filter(!is.na(community_order) |	!is.na(datar_order)) |> 
-  dplyr::select(file_name, species_code) 
+  dplyr::select(file_name, species_code) |> 
+  # were these species caught this year?
+  dplyr::left_join(
+    biomass |> 
+      dplyr::filter(year == maxyr) |> 
+      dplyr::mutate(species_code = as.character(species_code)) |>
+      dplyr::select(species_code, biomass_mt) |> 
+      dplyr::distinct(),
+    by = "species_code" ) |> 
+  # 3. Add logical check column to confirm catches
+  # (Assuming positive biomass/cpue indicates caught)
+  dplyr::filter(!is.na(biomass_mt) & biomass_mt > 0) |> 
+  dplyr::select(species_code, file_name) |> 
+  dplyr::distinct()
 
 report_spp3 <- data.frame()
 for (i in 1:nrow(comb)){
@@ -79,6 +92,7 @@ for (i in 1:nrow(comb)){
 
 comb <- unique(sort(comb$file_name))
 # comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
+# comb <- comb[!grepl(pattern = "antlered-sculpin", x = comb)] # temporary
 # comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary
 # comb <- comb[!grepl(pattern = "octopuses", x = comb)] # temporary
 for (jj in 1:length(comb)) {

@@ -7,7 +7,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
-```{r fig-surveyphoto}
+```{r fig-surveyphoto, eval = FALSE}
 # for community highlights
 
 nickname <- "fig-surveyphoto"
@@ -1584,11 +1584,13 @@ table_raw0 <-
 
 table_raw0 <- table_raw0 |>   
   dplyr::mutate(
-    maxyr = !!sym(paste0(maxyr)), 
-    compareyr = dplyr::case_when(
-      srvy == "EBS" ~ !!sym(paste0(compareyr[names(compareyr) == "EBS"])),
-      srvy == "NBS" ~ !!sym(paste0(compareyr[names(compareyr) == "NBS"]))
-    ), 
+    maxyr = maxyr,
+    compareyr = unname(compareyr[srvy]),
+    # maxyr = !!sym(paste0(maxyr)), 
+    # compareyr = dplyr::case_when(
+    #   srvy == "EBS" ~ !!sym(paste0(compareyr[names(compareyr) == "EBS"])),
+    #   srvy == "NBS" ~ !!sym(paste0(compareyr[names(compareyr) == "NBS"]))
+    # ), 
     # dplyr::across(where(dplyr::starts_with("compareyr")), pchange, end = maxyr, value_only = TRUE),
     change = pchange(start = compareyr, end = maxyr, value_only = TRUE),
     change0 = change,
@@ -1896,6 +1898,8 @@ table_raw <- dplyr::bind_rows(biomass_maxyr, biomass_compareyr) |>
                                  value_only = TRUE), 
     population_maxyr = population_maxyr/1000, 
     population_compareyr = population_compareyr/1000, 
+    maxyr = as.character(maxyr),
+    compareyr = as.character(compareyr),
     dplyr::across(dplyr::where(is.numeric), formatC, format = "f", big.mark = ",", digits = 0), 
     dplyr::across(dplyr::ends_with("_pchange"), gsub, pattern = "-0", replacement = "0"), 
     dplyr::across(dplyr::ends_with("yr"), gsub, pattern = "NA", replacement = ""), 

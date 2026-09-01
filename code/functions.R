@@ -73,10 +73,10 @@ PKG <- c(
   "readtext",
   
   # RACE-GAP Specific
-  "akgfmaps", # devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
-  "coldpool", # devtools::install_github("afsc-gap-products/coldpool")
-  "gapindex", # devtools::install_github("afsc-gap-products/gapindex")
-  "crabpack", # devtools::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
+  "akgfmaps", # pak::pak("afsc-gap-products/akgfmaps")
+  "coldpool", # pak::pak("afsc-gap-products/coldpool")
+  "gapindex", # pak::pak("afsc-gap-products/gapindex")
+  "crabpack", # pak::pak("AFSC-Shellfish-Assessment-Program/crabpack")
   
   # Spatial mapping
   "sf",
@@ -88,7 +88,7 @@ PKG <- c(
   "raster",
   "stars",
   
-  "scales", # nicer lables in ggplot2
+  "scales", # nicer labels in ggplot2
   "pingr", # check website links
   "httr", # check website links
   "flextable", # making pretty tables
@@ -100,15 +100,15 @@ PKG <- unique(PKG)
 for (p in PKG) {
   if(!require(p, character.only = TRUE)) {
     if (p == 'coldpool') {
-      devtools::install_github("afsc-gap-products/coldpool")
+      pak::pak("afsc-gap-products/coldpool")
     } else if (p == "akgfmapas") {
-      devtools::install_github("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
+      pak::pak("afsc-gap-products/akgfmaps", build_vignettes = TRUE)
     } else if (p == 'crabpack') {
       remotes::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
     } else if (p == 'nwfscSurvey') {
       remotes::install_github("pfmc-assessments/nwfscSurvey")
     } else if (p == "gapctd") {
-      devtools::install_github("afsc-gap-products/gapctd")
+      pak::pak("afsc-gap-products/gapctd")
     } else if (p == 'gapindex') {
       remotes::install_github("afsc-gap-products/gapindex")
     } else if (p == "FishStatsUtils") {
