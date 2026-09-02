@@ -1223,6 +1223,25 @@ for (case in c("bottom", "surface")) {
 ```{r tab-specimen-samples-}
 nickname0 <- paste0("tab-specimen-samples-") 
 
+# m maturity - add this! #TOLEDO
+# SELECT 
+#     s.SPECIES_CODE,
+#     COUNT(s.MATURITY) AS MATURITY_COUNT
+# FROM GAP_PRODUCTS.SPECIMEN s
+# JOIN GAP_PRODUCTS.HAUL h 
+#     ON s.HAULJOIN = h.HAULJOIN
+# JOIN GAP_PRODUCTS.CRUISE c
+#     ON h.CRUISEJOIN = c.CRUISEJOIN
+# WHERE h.DATE_TIME_START >= DATE '2026-01-01'
+#   AND h.DATE_TIME_START < DATE '2027-01-01'
+#   AND s.MATURITY IS NOT NULL
+#   AND c.SURVEY_DEFINITION_ID = 98
+#  -- AND TRIM(s.MATURITY) <> ''
+# GROUP BY s.SPECIES_CODE
+# ORDER BY s.SPECIES_CODE;
+
+
+
 # length data - from oracle
 l <- lengths_maxyr |> 
   dplyr::filter(!(species_code %in% c(68580, 68590, 68560))) |>
