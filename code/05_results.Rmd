@@ -618,8 +618,7 @@ str0 <- c()
 for (i in 1:length(srvy1)) {
   load(file = paste0(dir_out_figtab, "tab-majortaxa-pchange-", haul_cruises_maxyr$srvy[i], ".rdata"))
   temp0 <- obj$raw
-  temp <- 
-    temp0|> 
+  temp <- temp0 |> 
     dplyr::filter(!is.na(change0) &
                     (count_min > 100) &
                     srvy == srvy1[i])|>
@@ -628,7 +627,8 @@ for (i in 1:length(srvy1)) {
       change0 < 0 ~ "decreased"), 
       print_name = print_name1 )|> 
     dplyr::arrange(-change0)|>
-    dplyr::select(print_name, maxyr, compareyr, change, case) 
+    dplyr::select(print_name, #"maxyr", dplyr::starts_with("compareyr"), 
+                  change, case) 
   
   temp <-  
     dplyr::bind_rows(

@@ -64,23 +64,10 @@ rmarkdown::render(paste0(dir_code, "/figtab.Rmd"),
                   output_dir = dir_out_rawdata,
                   output_file = paste0("figtab.docx"))
 
-# # Species figures
+# Species figures
 comb <- report_spp0 |>
   dplyr::filter(!is.na(community_order) |	!is.na(datar_order)) |>
-  dplyr::select(file_name, species_code) #|>
-#   # were these species caught this year?
-#   dplyr::left_join(
-#     biomass |> 
-#       dplyr::filter(year == maxyr) |> 
-#       dplyr::mutate(species_code = as.character(species_code)) |>
-#       dplyr::select(species_code, biomass_mt) |> 
-#       dplyr::distinct(),
-#     by = "species_code" ) |> 
-#   # 3. Add logical check column to confirm catches
-#   # (Assuming positive biomass/cpue indicates caught)
-#   dplyr::filter(!is.na(biomass_mt) & biomass_mt > 0) |> 
-#   dplyr::select(species_code, file_name) |> 
-#   dplyr::distinct()
+  dplyr::select(file_name, species_code)
 
 report_spp3 <- data.frame()
 for (i in 1:nrow(comb)){
@@ -116,6 +103,11 @@ rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"),
                   output_dir = dir_out_todaysrun, 
                   output_file = paste0("00_data_report_", maxyr, ".docx"))
 
+rmarkdown::render(input = paste0(dir_code, "00_presentation_figures.Rmd"), 
+                  output_format = "officedown::rdocx_document", 
+                  output_dir = dir_out_todaysrun, 
+                  output_file = paste0("00_presentation_", maxyr, ".docx"))
+
 # Community Highlights ---------------------------------------------------------
 
 report_title <- "community"
@@ -130,17 +122,6 @@ rmarkdown::render(input = paste0(dir_code, "c0_community_report.Rmd"),
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_todaysrun, 
                   output_file = paste0("00_community_report_", maxyr, ".docx"))
-
-# Presentation slides ----------------------------------------------------------
-
-source(here::here("code","functions.R"))
-source(here::here("code","data.R"))
-
-# Build Presentation
-rmarkdown::render(input = paste0(dir_code, "00_presentation.Rmd"), 
-                  output_dir = dir_out_todaysrun, 
-                  output_file = paste0("00_presentation_", maxyr, ".pptx"))
-
 
 # Write README -----------------------------------------------------------------
 

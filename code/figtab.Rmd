@@ -659,7 +659,7 @@ table_print <- table_print |>
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
 
-```{r tab-special-projects-pres, eval = FALSE}
+```{r tab-special-projects-pres}
 nickname <- "tab-special-projects-pres" 
 
 header <- paste0("Special projects and collections undertaken during the ",
@@ -1293,7 +1293,7 @@ table_raw0 <-
   dplyr::ungroup() |> 
   dplyr::full_join(y = temp, 
                    by = c("srvy", "common_name" = "print_name")) |> 
-  dplyr::mutate(dplyr::across(where(is.numeric), ~replace(., is.na(.), 0)), 
+  dplyr::mutate(dplyr::across(where(is.numeric), \(x) replace(x, is.na(x), 0)), 
                 common_name0 = common_name, 
                 common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name)))
   ) |>
@@ -1561,6 +1561,11 @@ table_raw0 <-
       dplyr::filter(stratum == 999 & 
                       srvy %in% srvy1 &
                       year %in% yrs) |> 
+                      dplyr::mutate(year = dplyr::case_when(
+                        year == maxyr ~ "maxyr",
+                        year == (compareyr["EBS"]) ~ "compareyr_EBS",
+                        year == (compareyr["NBS"]) ~ "compareyr_NBS"
+                      )) |>
       dplyr::select(species_code, year, srvy, biomass_mt), 
     x = report_spp1 |> 
       dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_spp), 
@@ -1582,19 +1587,18 @@ table_raw0 <-
     print_name1 = print_name, 
     print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))
 
+if ("compareyr_NBS" %in% names(table_raw0)) {
 table_raw0 <- table_raw0 |>   
   dplyr::mutate(
-    maxyr = maxyr,
-    compareyr = unname(compareyr[srvy]),
-    # maxyr = !!sym(paste0(maxyr)), 
-    # compareyr = dplyr::case_when(
-    #   srvy == "EBS" ~ !!sym(paste0(compareyr[names(compareyr) == "EBS"])),
-    #   srvy == "NBS" ~ !!sym(paste0(compareyr[names(compareyr) == "NBS"]))
-    # ), 
-    # dplyr::across(where(dplyr::starts_with("compareyr")), pchange, end = maxyr, value_only = TRUE),
-    change = pchange(start = compareyr, end = maxyr, value_only = TRUE),
-    change0 = change,
-    change = paste0(formatC(x = change, big.mark=",", digits = 1, format = "f"), "%"),
+    change_NBS = pchange(start = compareyr_NBS, end = maxyr, value_only = TRUE) )
+}
+
+table_raw0 <- table_raw0 |>   
+  dplyr::mutate(
+    change_EBS = pchange(start = compareyr_EBS, end = maxyr, value_only = TRUE),
+    # change = pchange(start = compareyr, end = maxyr, value_only = TRUE),
+    change0 = change_EBS, # change,
+    change = paste0(formatC(x = change0, big.mark=",", digits = 1, format = "f"), "%"),
     dplyr::across(dplyr::starts_with("change"), # where(is.character), 
                   ~ifelse(grepl(x = .x, pattern = "NA"), "", .x))
     # dplyr::across(where(is.character), gsub, pattern = "NA", replacement = "") 
@@ -1609,7 +1613,7 @@ temp <- dplyr::right_join(
   catch_haul_cruises |> 
     dplyr::select(srvy, year, species_code, count) |> 
     dplyr::filter(srvy %in% srvy1) |> 
-    dplyr::filter(year %in% c(maxyr, compareyr))) |> 
+    dplyr::filter(year %in% yrs)) |> 
   dplyr::group_by(print_name, srvy, year) |> 
   dplyr::summarise(count = sum(count, na.rm = TRUE)) |> 
   dplyr::group_by(print_name, srvy) |> 
@@ -1623,13 +1627,13 @@ table_raw0 <- dplyr::left_join(table_raw0, temp)
 table_print0 <- table_raw0 |> 
   dplyr::select(-print_name1) |> 
   dplyr::mutate(
-    dplyr::across(dplyr::starts_with("20"), formatC, big.mark=",", digits = 0, format = "f"), 
-    dplyr::across(dplyr::starts_with("20"), gsub, pattern = "NA%", replacement = ""), 
+    dplyr::across(dplyr::starts_with("change"), formatC, big.mark=",", digits = 0, format = "f"), 
+    dplyr::across(dplyr::starts_with("change"), gsub, pattern = "NA%", replacement = ""), 
     dplyr::across(dplyr::ends_with("yr"), formatC, big.mark=",", digits = 0, format = "f"), 
     dplyr::across(dplyr::ends_with("yr"), gsub, pattern = "NA%", replacement = "") , 
     dplyr::across(dplyr::everything(), gsub, pattern = "NA", replacement = "-") )  |>
   dplyr::filter(!is.na(`change0`)) |>
-  dplyr::relocate(print_name, as.character(yrs)) |> 
+  dplyr::relocate(print_name, maxyr, dplyr::starts_with("compareyr")) |> 
   dplyr::mutate(change = ifelse(as.numeric(count_min) < 100, "-", change))
 
 # reorder table to accommodate "-" %'s
@@ -1638,6 +1642,13 @@ table_print0 <- dplyr::bind_rows(
   table_print0 |> dplyr::filter(change0 <= 0 & change != "-"), 
   table_print0 |> dplyr::filter(change == "-"),
 )
+
+  
+  names(table_print0)[ names(table_print0) == "maxyr"] <- maxyr
+  names(table_print0)[ names(table_print0) == "compareyr_EBS"] <- compareyr["EBS"]
+  if ("compareyr_NBS" %in% names(table_print0)) {
+    names(table_print0)[ names(table_print0) == "compareyr_NBS"] <- compareyr["NBS"]
+  }
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   
@@ -1651,7 +1662,7 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select_if(~ !all(is.na(.)))
   
-  whoismissing <- setdiff(yrs, as.numeric(names(table_raw)[grepl(pattern = "2", x = names(table_raw))]))
+  whoismissing <- setdiff(as.numeric(names(table_print0)[grepl(pattern = "2", x = names(table_print0))]), yrs)
   
   nickname <- paste0(nickname0, haul_cruises_maxyr$srvy[i]) 
   header <- paste0(
@@ -1659,12 +1670,18 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]]," and ",maxyr," ", 
     haul_cruises_maxyr$srvy_long[i], 
     ' surveys for predominant fish and invertebrate taxa', 
-    ifelse(whoismissing == "", "", paste0(" (note that the ",haul_cruises_maxyr$srvy_long[i]," was not surveyed in ", whoismissing, ")")),
+    ifelse(length(whoismissing) == 0, "", paste0(" (note that the ", haul_cruises_maxyr$srvy_long[i]," was not surveyed in ", whoismissing, ")")),
     '. Taxa are listed in descending order of percent change from ', compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]],' to ',maxyr,'. ', 
     ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught. ", "")))
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
+  # 
+  # names(table_raw)[ names(table_raw) == "maxyr"] <- maxyr
+  # names(table_raw)[ names(table_raw) == "compareyr_EBS"] <- compareyr["EBS"]
+  # if ("compareyr_NBS" %in% names(table_raw)) {
+  #   names(table_raw)[ names(table_raw) == "compareyr_NBS"] <- compareyr["NBS"]
+  # }
   
-  table_print <- table_print0  |> 
+  table_print <- table_print0 |> 
     dplyr::filter(srvy == haul_cruises_maxyr$srvy[i]) |> 
     dplyr::select(-srvy, -change0) |>  
     dplyr::select_if(~ !all(. == "-")) |>
@@ -1857,7 +1874,7 @@ for (i in 1:length(type)) {
                      align = "left", 
                      part = "all") 
   
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -2465,7 +2482,7 @@ tab_app_fish_ <- function(temp,
         dplyr::bind_rows(table_raw |> 
                            dplyr::mutate(length_mm = as.character(length_mm)), 
                          table_raw |>
-                           dplyr::summarise(across(everything(), ~ sum(., is.na(.), 0))) |> 
+                           dplyr::summarise(across(everything(), \(x) sum(x, na.rm = TRUE))) |> 
                            dplyr::mutate(length_mm = "Total", 
                                          cumprop = 1))  |>
         dplyr::mutate(across((ends_with("prop")), 

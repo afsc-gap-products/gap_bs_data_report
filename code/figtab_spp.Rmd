@@ -2203,18 +2203,24 @@ pres_timeseries1 <- data_timeseries +
     legend.position = c(0.25, 0.98))
 
 if (spp_plot_sizecomp) {
+  
+  comm_size_legend <- cowplot::get_legend(comm_size)
+  
   comm_size1 <- comm_size + 
     ggplot2::theme(
       plot.title = element_blank(), 
       legend.text = element_text(size = 8), 
       axis.text = element_text(size = 8),
       axis.title.y = element_text(size = 8),
-      axis.title.x = element_blank(),
+      axis.title.x = element_text(size = 8),
       strip.text = element_text(size = 8, face = "bold"), 
       plot.margin = grid::unit(c(0,0,0,0), "mm"), 
       legend.box.background = element_rect(color = "white", fill = "white", linewidth = 1), # Box border and fill
       legend.key.height = unit(0.15, "cm"),
-      legend.key.width = unit(0.4, "cm") )
+      legend.key.width = unit(0.4, "cm"), 
+      legend.background = element_blank(),
+  legend.key = element_blank(), 
+  legend.position = "none")
   
       if (grepl(x = comm_size_txt, pattern = "eastern and northern") & 
           grepl(x = comm_size_txt, pattern = range_text(c(maxyr, compareyr))) ) {
@@ -2272,18 +2278,14 @@ temp1 <- cowplot::plot_grid(
   if (spp_plot_agecomp & spp_plot_sizecomp) {
 
     if (length(srvy_age) == 1 & length(srvy_len) != 1) {
-       spacing0 <- c(.6, .025, .25, .15)
+       spacing0 <- c(.25, .15)
     } else if (length(srvy_age) != 1 & length(srvy_len) == 1) {
-       spacing0 <- c(.6, .025, .15, .25)
+       spacing0 <- c(.15, .25)
     } else {
-       spacing0 <- c(.6, .025, .2, .2)
+       spacing0 <- c(.2, .2)
     }
     
-  figure_print <- cowplot::plot_grid(
-        temp1, 
-    NULL,
-    comm_size1, 
-    pres_age + 
+    pres_age1 <- pres_age + 
       theme(legend.position = "none", 
             title = element_text(size = 8, face = "bold"),
                    strip.text = element_text(size = 8, face = "bold"),
@@ -2293,9 +2295,31 @@ temp1 <- cowplot::plot_grid(
       # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
       legend.box.spacing = unit(.2, "cm"), # Increase the space to 1 cm
       legend.key.height = unit(0.15, "cm"),
-      legend.key.width = unit(0.6, "cm") ),
-    ncol = 4, 
+      legend.key.width = unit(0.6, "cm") )
+    
+    
+      figure_len_age <- cowplot::plot_grid(
+    comm_size1, 
+    pres_age1,
+    ncol = 2, 
     rel_widths = spacing0,
+    align = "v",   # Align vertically
+    axis = "l")     # Align by the left axis  
+      
+            figure_len_age <- cowplot::plot_grid(
+    figure_len_age, 
+    comm_size_legend,
+    nrow = 2, 
+    rel_heights = c(.95, .05),
+    align = "v",   # Align vertically
+    axis = "c")     # Align by the left axis  
+    
+  figure_print <- cowplot::plot_grid(
+        temp1, 
+    NULL,
+    figure_len_age,
+    ncol = 3, 
+    rel_widths = c(.6, .025, .4),
     align = "v",   # Align vertically
     axis = "l")     # Align by the left axis  
   
@@ -2332,10 +2356,10 @@ temp1 <- cowplot::plot_grid(
 # Then use ggdraw() to add a custom label on top of the combined plot
 figure_print <- cowplot::ggdraw(figure_print) +
   cowplot::draw_label("A", 
-                      x = ifelse(exists("comm_size"), 0.06, 0.01), 
+                      x = ifelse(exists("comm_size"), 0.04, 0.01), 
                       y = 0.94, hjust = 0, vjust = 0, size = 16) +
   cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), 
-                      x = ifelse(exists("comm_size"), 0.06, 0.01), 
+                      x = ifelse(exists("comm_size"), 0.04, 0.01), 
                       y = 0.5, hjust = 0, vjust = 0, size = 16) #+
 # cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
 
@@ -2390,24 +2414,6 @@ if (spp_plot_agecomp) {
   
 header <- paste0(header, "(D) Additionally, total abundance-at-age (cm) estimates were calculated and scaled to the total estimated population from the last three years of available data (",text_list(yrs_age),") in the ",text_list(srvy_age),"  Bering Sea surveys. ")
 
-  # figure_print <- cowplot::plot_grid(
-  #   figure_print, 
-  #   # NULL,
-  #   pres_age + 
-  #     theme(legend.position = "none", 
-  #           title = element_text(size = 8, face = "bold"),
-  #                  strip.text = element_text(size = 8, face = "bold"),
-  #                  axis.title = element_text(size = 8),
-  #                  axis.text = element_text(size = 8)),
-  #   ncol = 2, 
-  #   rel_widths = c(.6,#.025,
-  #                  ifelse(length(srvy_age)==1, .15, .2)),
-  #   align = "v",   # Align vertically
-  #   axis = "l")     # Align by the left axis  
-    
-# figure_print <- cowplot::ggdraw(figure_print) +
-#     cowplot::draw_label("D", x = 0.75, y = 0.94, hjust = 0, vjust = 0, size = 16)
-
 }
 
 header0 <- header
@@ -2416,6 +2422,35 @@ figure_print0 <- figure_print
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+```{r fig-combined-[spp]-pres}
+
+temp <- dplyr::left_join(
+  pres_timeseries_mean |> 
+    dplyr::filter(y_long == "Biomass"), 
+  pres_stats |> 
+    dplyr::select(-srvy_long))
+
+figure_print <- ggdraw(add_sub(
+  plot = figure_print0, 
+  size = 10, 
+  label = paste0(spp_print, "\n", 
+                 paste0(temp$srvy, " Bio Mean: ", 
+                 round(x = temp$y_mean, digits = 1),
+                 " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
+                        temp$`Biomass`," (",
+                        gsub(pattern = "\n", replace = " ", 
+                             x = temp$`% Change\nin Biomass`, fixed = TRUE), ")", 
+                        ". ", temp$`Observed Catch Totals`, ". ", 
+                        collapse = "\n") )
+  ))
+
+header <- header0
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+
 
 ```{r remove-odds-ends}
 remove("comm_dist")
