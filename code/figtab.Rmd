@@ -1240,7 +1240,13 @@ nickname0 <- paste0("tab-specimen-samples-")
 # GROUP BY s.SPECIES_CODE
 # ORDER BY s.SPECIES_CODE;
 
-
+# length data - from oracle
+m <- specimen_maxyr |> 
+  dplyr::filter(!is.na(species_code) & !is.na(maturity)) |>
+  dplyr::select("srvy", species_code) |> 
+  dplyr::group_by("srvy" = srvy, species_code) |> 
+  dplyr::summarise(maturity = as.numeric(n())) |> 
+  dplyr::ungroup()
 
 # length data - from oracle
 l <- lengths_maxyr |> 
@@ -1288,13 +1294,16 @@ temp <- readxl::read_excel(path = paste0(dir_out_rawdata, "/other-field-collecti
                            sheet = "Sheet1", 
                            skip = 1) |>
   dplyr::filter(year == maxyr) |> 
+  dplyr::select(-count_fecundity_and_maturity_ovary_samples) |> 
   dplyr::select(srvy, print_name, dplyr::starts_with("count_")) |> 
-  dplyr::select(where(~sum(!is.na(.x)) > 0)) 
+  dplyr::select(where(~sum(!is.na(.x)) > 0))
 names(temp) <- gsub(pattern = "count_", replacement = "", x = names(temp))
 
 # Combine
 table_raw0 <- 
   dplyr::full_join(x = l, y = a, 
+                   by = c("srvy", "species_code")) |> 
+  dplyr::full_join(y = m, 
                    by = c("srvy", "species_code")) |> 
   dplyr::left_join(y = spp_info |> 
                      dplyr::mutate(
@@ -1305,7 +1314,8 @@ table_raw0 <-
                          is.na(common_name) ~ species_name, 
                          common_name == "shorthorn (=warty) sculpin" ~ "shorthorn sculpin", 
                          TRUE ~ common_name)) |> 
-                     dplyr::select(species_code, common_name), 
+                     dplyr::select(species_code, common_name) |> 
+                     dplyr::dist, 
                    by = "species_code") |> 
   dplyr::group_by(srvy, common_name) |> 
   dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) |> 
@@ -2038,6 +2048,107 @@ if (srvy == "NEBS") {
 }
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+```{r tab-biomass-pchange-alt-pres-[srvy]}
+
+nickname0 <- "tab-biomass-pchange-alt-pres-"
+header <- paste0("Biomass and abundance change for species in ", 
+                 maxyr, " and ", compareyr," ", SURVEY, 
+                 " survey.")
+
+table_raw <- dplyr::bind_rows(biomass_maxyr, biomass_compareyr) |>
+  dplyr::left_join(
+    #   x = biomass, 
+    y = report_spp1 |>
+      dplyr::filter(!is.na(order) & table_bio_portion ) |>
+      dplyr::select(species_code, order) |>
+      dplyr::distinct(),
+    by = "species_code") |>
+  dplyr::filter(year %in% c(maxyr, compareyr) &
+                  stratum == 999 & 
+                  !is.na(order) &
+                  !is.na(common_name)
+  ) |> 
+  dplyr::group_by(common_name, year, srvy, order) |> 
+  dplyr::summarise(biomass = sum(biomass_mt, na.rm = TRUE), 
+                   population = sum(population_count, na.rm = TRUE)) |> 
+  # calculate pchange
+  dplyr::mutate(year0 = ifelse(year == maxyr, "maxyr", "compareyr")) |> 
+  tidyr::pivot_longer(cols = c("biomass", "population"), names_to = "x1000", values_to = "val") |> 
+  dplyr::select(-year) |> 
+  tidyr::pivot_wider(id_cols = c("common_name", "x1000", "srvy"), names_from = year0, values_from = val) |> 
+  dplyr::mutate(x1000 = stringr::str_to_sentence(x1000), 
+                `% Change` = pchange(start = compareyr, end = maxyr, value_only = TRUE), 
+                maxyr = maxyr/1000, 
+                compareyr = compareyr/1000, 
+    dplyr::across(dplyr::where(is.numeric), formatC, format = "f", big.mark = ",", digits = 0) 
+    ) # |>
+  # dplyr::filter( # remove all rows where there are cells with less than 5 characters (e.g., for  organisms with small catches that really shouldnt be in this table like snailfish uid)
+  #   if_all(
+  #     everything(),
+  #     ~ is.na(.) | nchar(as.character(.)) >= 5
+  #   )
+  # ) 
+
+names(table_raw)[names(table_raw) == "maxyr"] <- maxyr
+names(table_raw)[names(table_raw) == "compareyr"] <- compareyr
+
+flextable_color_range <- function(ft, dat0, var0, rnge = -9:9) {
+  
+  x <- as.character(dat0[[var0]])
+  
+  # extract numeric percent (keeps sign)
+  num <- suppressWarnings(
+    as.numeric(sub(".*\\(([-0-9.]+)%\\).*", "\\1", x))
+  )
+  
+  # initialize colors
+  color0 <- rep("white", length(x))
+  
+  # apply rules (order matters)
+  color0[grepl("\\([0-9.]+%\\)", x, ignore.case = TRUE)] <- positive
+  color0[grepl("\\(-", x, ignore.case = TRUE)] <- negative
+  color0[num %in% rnge] <- neutral
+  
+  flextable::bg(
+    x  = ft,
+    bg = color0,
+    j  = var0)
+}
+
+ for (ii in 1:unique(table_raw$srvy)) {
+   
+   nickname <- paste0(nickname0, unique(table_raw$srvy)[ii])
+   
+table_print <- table_raw |> 
+  dplyr::filter(srvy == unique(table_raw$srvy)[ii]) |> 
+  dplyr::select(-srvy) |> 
+  flextable::flextable()  |>  
+  theme_flextable_nmfstm(row_lines = TRUE, 
+                         pgwidth = full_page_landscape_width) |> 
+  flextable::merge_v(j = "common_name", part = "body") |>
+  flextable::bold(j = 1, i = ~ !is.na(common_name) ) |> 
+  flextable::merge_h(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |> 
+  flextable_color_range(dat0 = table_raw, var0 = "% Change") |>
+  flextable::valign(valign = "top", part = "body", 
+                    j = c(which(grepl(x = names(table_raw), pattern = "biomass")),
+                          which(grepl(x = names(table_raw), pattern = "population"))) ) |>
+  flextable::fontsize(size = 14, part = "header") |>
+  flextable::fontsize(size = 12, part = "body") |>
+  flextable::fontsize(size = 14, part = "body", j = 1) |>
+  flextable::hline_bottom(part = "body",
+                          border = fp_border(color = "transparent", style = "solid", width = 1))
+
+if (srvy == "NEBS") {
+  table_print <- table_print  |> 
+    flextable_color_range(dat0 = table_raw, var0 = "biomass_NBS")  |>
+    flextable_color_range(dat0 = table_raw, var0 = "population_NBS") 
+}
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+}
 ```
 
 # ESR/Plan Team Figures

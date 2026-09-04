@@ -1883,15 +1883,15 @@ plot_sizecomp <- function(sizecomp0,
                                    fill = length_mm, 
                                    height = population_count/mean(population_count, na.rm = TRUE))) +
       ggridges::geom_ridgeline_gradient() +
-      gplot2::scale_fill_viridis_c(option = "G") +
-      gplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
+      ggplot2::scale_fill_viridis_c(option = "G") +
+      ggplot2::scale_x_continuous(name = stringr::str_to_sentence(paste0(type," (", len_unit_word0, ")")), 
                                  breaks = function(length_mm) unique(floor(pretty(seq(0, (max(length_mm) + 1) * 1.1))))) +
-      gplot2::scale_y_discrete(name = paste0(spp_print, " population across years"), 
+      ggplot2::scale_y_discrete(name = paste0(spp_print, " population across years"), 
                                breaks = every_nth(n = 2, true1 = ((max(table1$year, na.rm = TRUE) %% 2) == 1))) + 
-      gplot2::theme(
+      ggplot2::theme(
         legend.position = "none", 
         panel.grid.major.x = element_line(colour = "grey80")) +
-        gplot2::facet_wrap(vars(srvy_long))      
+        ggplot2::facet_wrap(vars(srvy_long))      
     
   }
   

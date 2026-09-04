@@ -1029,8 +1029,8 @@ lengths_maxyr <- lengths|>
 
 print("specimen")
 
-specimen <- gap_products_specimen0|> 
-  dplyr::select(hauljoin, species_code, length_mm, sex, age, 
+specimen <- gap_products_specimen0 |> 
+  dplyr::select(hauljoin, species_code, length_mm, sex, age, maturity, 
                 specimen_subsample_method, specimen_sample_type)|> 
   dplyr::left_join(
     y = haul|> 
