@@ -702,36 +702,59 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r tab-length-samples-pres, eval = FALSE}
 
-nickname <- paste0("tab-length-samples-pres") 
+nickname0 <- paste0("tab-length-samples-pres-") 
 header <- paste0("Lengths collected during the ", maxyr, " ",
                  SURVEY, 
                  " survey.")
 
+for (i in 1:length(srvy)) {
+  
+  nickname <- paste0(nickname0, srvy[i]) 
+
+# length data - from oracle
 table_raw <- lengths |> 
+  dplyr::filter(year %in% c(maxyr, compareyr[srvy[i]])) |>
+  dplyr::filter(!(species_code %in% c(68580, 68590, 68560))) |>
+  dplyr::mutate(year = ifelse(year == maxyr, "maxyr", "compareyr")) |> 
+  dplyr::select(srvy, species_code, frequency, year) |> 
+      dplyr::distinct() |> 
+  dplyr::group_by(srvy, species_code, year) |> 
+  dplyr::summarise(length = sum(frequency, na.rm = TRUE)) |> 
+  dplyr::ungroup() |> 
   dplyr::left_join(
     spp_info |> 
-      dplyr::select(species_code, common_name), 
+      dplyr::select(species_code, common_name) |> 
+      dplyr::distinct(), 
     by = "species_code") |>
-  dplyr::filter(year %in% c(maxyr) &
-                  !(species_code %in% c(68560, 68580, 68590, 69322, 
+  dplyr::filter(!(species_code %in% c(68560, 68580, 68590, 69322, 
                                         69323, 69400, 69310, 68577, 68781) ))  |>  # no crab!
-  dplyr::group_by(srvy, common_name) |>  
-  dplyr::summarise(frequency = sum(frequency, na.rm = TRUE)) |>
+  dplyr::group_by(srvy, common_name, year) |>  
+  dplyr::summarise(frequency = sum(length, na.rm = TRUE)) |>
   tidyr::pivot_wider(
     id_cols = c("common_name"), 
-    names_from = c("srvy"),
+    names_from = c("year"),
     values_from = "frequency") |> 
   dplyr::ungroup() |> 
-  dplyr::arrange(common_name) |>
-  dplyr::mutate(NBS = ifelse(is.na(NBS), 0, NBS),
-                EBS = ifelse(is.na(EBS), 0, EBS),
-                keep = ifelse((EBS>=1000 | NBS >=1000), T, F) )
+  dplyr::arrange(common_name) 
+
+table_raw <- table_raw |> 
+  dplyr::mutate(keep = ifelse(maxyr>=1000, T, F))
 
 table_raw0 <- table_raw |>
   dplyr::filter(keep == F) |>
-  dplyr::select(-keep) |>
-  dplyr::summarise(EBS = sum(EBS != 0, is.na = TRUE),
-                   NBS = sum(NBS != 0, is.na = TRUE))
+  dplyr::select(-keep) 
+
+  table_raw_other <- table_raw |>
+    dplyr::filter(keep == FALSE) |>
+    dplyr::select(-keep) |>
+    dplyr::summarise(maxyr_count = sum(maxyr, na.rm = TRUE), 
+                     compareyr_n = sum(compareyr>0, na.rm = TRUE),
+                     maxyr_n = sum(maxyr>0, na.rm = TRUE),
+                     compareyr_count = sum(compareyr, na.rm = TRUE)) |>
+    dplyr::ungroup() |> 
+    dplyr::mutate(common_name = paste0("Other taxa (",maxyr,": ",maxyr_n,"; ",compareyr,": ", compareyr_n, ")")) |> 
+    dplyr::rename(maxyr = maxyr_count, compareyr = compareyr_count) |> 
+    dplyr::select(-maxyr_n, -compareyr_n)
 
 table_print0 <- dplyr::bind_rows(
   table_raw |>
@@ -739,12 +762,7 @@ table_print0 <- dplyr::bind_rows(
     dplyr::select(-keep) |>
     dplyr::mutate(common_name = stringr::str_to_sentence(common_name)) |> 
     dplyr::arrange(common_name),
-  table_raw |>
-    dplyr::filter(keep == FALSE) |>
-    dplyr::select(-keep) |>
-    dplyr::summarise(EBS = sum(EBS, na.rm = TRUE),
-                     NBS = sum(NBS, na.rm = TRUE)) |>
-    dplyr::mutate(common_name = paste0("Other taxa (EBS: ", table_raw0$EBS, ", NBS: ", table_raw0$NBS, ")")),
+table_raw_other,
   table_raw |>    # total
     dplyr::mutate(common_name = "TOTAL") |>
     dplyr::group_by(common_name) |> 
@@ -754,9 +772,9 @@ table_print0 <- dplyr::bind_rows(
                 common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
 
 table_print0[table_print0==0]<- "-"
+names(table_print0)[names(table_print0) == "maxyr"] <- maxyr
+names(table_print0)[names(table_print0) == "compareyr"] <- compareyr
 
-# h_r1 <- c("Common name", sapply(strsplit(x = names(table_print0)[-1], split = "_"), "[[", 1))
-# h_r2 <- c("Common name", sapply(strsplit(x = names(table_print0)[-1], split = "_"), "[[", 2))
 std_b <- officer::fp_border(width = 2, color = "grey10")
 
 table_print <- table_print0 |> 
@@ -768,10 +786,13 @@ table_print <- table_print0 |>
   flextable::merge_v(j = "common_name", part = "header") |>
   flextable::valign(valign = "top") |>
   flextable::bold(i = ~(common_name == "TOTAL") ) |>
-  flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") |> 
+  # flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") |> 
+  flextable::align(j = 2:3, align = "right", part = "all") |> 
+  flextable::align(j = 1, align = "left", part = "all") |> 
   flextable::hline(border = std_b, part = "header")  
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+}
 ```
 
 ```{r tab-age-samples-pres}
@@ -786,7 +807,8 @@ a <- report_spp1 |>
   dplyr::distinct() |> 
   dplyr::mutate(include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
                                   FALSE, TRUE)) |> 
-  dplyr::filter(include == TRUE) 
+  dplyr::filter(include == TRUE)  |> 
+      dplyr::distinct()
 
 table_raw <- specimen |> 
   dplyr::filter(year %in% c(maxyr, compareyr) &
@@ -798,13 +820,15 @@ table_raw <- specimen |>
     specimen_subsample_method == 6 ~ "length/region-stratified (cm/sex/southeast and northwest regions)" )) |>
   dplyr::left_join(
     y = spp_info |> 
-      dplyr::select(species_code, common_name), 
+      dplyr::select(species_code, common_name) |> 
+      dplyr::distinct(), 
     by = "species_code") |> 
   dplyr::left_join(
     y = a |>
       dplyr::select(order, species_code) |>
       distinct(),
     by = "species_code") |>
+  # dplyr::distinct() |>
   dplyr::group_by(common_name, srvy, order, year, specimen_subsample_method) |> 
   dplyr::summarise(ages = n()) |> 
   dplyr::ungroup() |> 
@@ -1223,23 +1247,6 @@ for (case in c("bottom", "surface")) {
 ```{r tab-specimen-samples-}
 nickname0 <- paste0("tab-specimen-samples-") 
 
-# m maturity - add this! #TOLEDO
-# SELECT 
-#     s.SPECIES_CODE,
-#     COUNT(s.MATURITY) AS MATURITY_COUNT
-# FROM GAP_PRODUCTS.SPECIMEN s
-# JOIN GAP_PRODUCTS.HAUL h 
-#     ON s.HAULJOIN = h.HAULJOIN
-# JOIN GAP_PRODUCTS.CRUISE c
-#     ON h.CRUISEJOIN = c.CRUISEJOIN
-# WHERE h.DATE_TIME_START >= DATE '2026-01-01'
-#   AND h.DATE_TIME_START < DATE '2027-01-01'
-#   AND s.MATURITY IS NOT NULL
-#   AND c.SURVEY_DEFINITION_ID = 98
-#  -- AND TRIM(s.MATURITY) <> ''
-# GROUP BY s.SPECIES_CODE
-# ORDER BY s.SPECIES_CODE;
-
 # length data - from oracle
 m <- specimen_maxyr |> 
   dplyr::filter(!is.na(species_code) & !is.na(maturity)) |>
@@ -1315,7 +1322,7 @@ table_raw0 <-
                          common_name == "shorthorn (=warty) sculpin" ~ "shorthorn sculpin", 
                          TRUE ~ common_name)) |> 
                      dplyr::select(species_code, common_name) |> 
-                     dplyr::dist, 
+                     dplyr::distinct(), 
                    by = "species_code") |> 
   dplyr::group_by(srvy, common_name) |> 
   dplyr::summarise_if(is.numeric, sum, na.rm = TRUE) |> 
@@ -2083,7 +2090,8 @@ table_raw <- dplyr::bind_rows(biomass_maxyr, biomass_compareyr) |>
                 maxyr = maxyr/1000, 
                 compareyr = compareyr/1000, 
     dplyr::across(dplyr::where(is.numeric), formatC, format = "f", big.mark = ",", digits = 0) 
-    ) # |>
+    ) |>
+  dplyr::ungroup()
   # dplyr::filter( # remove all rows where there are cells with less than 5 characters (e.g., for  organisms with small catches that really shouldnt be in this table like snailfish uid)
   #   if_all(
   #     everything(),
@@ -2096,7 +2104,8 @@ names(table_raw)[names(table_raw) == "compareyr"] <- compareyr
 
 flextable_color_range <- function(ft, dat0, var0, rnge = -9:9) {
   
-  x <- as.character(dat0[[var0]])
+  # x <- as.character(dat0[[var0]])
+  x <- as.numeric(dat0[[var0]])
   
   # extract numeric percent (keeps sign)
   num <- suppressWarnings(
@@ -2107,9 +2116,9 @@ flextable_color_range <- function(ft, dat0, var0, rnge = -9:9) {
   color0 <- rep("white", length(x))
   
   # apply rules (order matters)
-  color0[grepl("\\([0-9.]+%\\)", x, ignore.case = TRUE)] <- positive
-  color0[grepl("\\(-", x, ignore.case = TRUE)] <- negative
-  color0[num %in% rnge] <- neutral
+  color0[x>max(rnge)] <- positive
+  color0[x<min(rnge)] <- negative
+  color0[x %in% rnge] <- neutral
   
   flextable::bg(
     x  = ft,
@@ -2117,7 +2126,7 @@ flextable_color_range <- function(ft, dat0, var0, rnge = -9:9) {
     j  = var0)
 }
 
- for (ii in 1:unique(table_raw$srvy)) {
+ for (ii in 1:length(unique(table_raw$srvy))) {
    
    nickname <- paste0(nickname0, unique(table_raw$srvy)[ii])
    
@@ -2130,22 +2139,15 @@ table_print <- table_raw |>
   flextable::merge_v(j = "common_name", part = "body") |>
   flextable::bold(j = 1, i = ~ !is.na(common_name) ) |> 
   flextable::merge_h(i = 1, part = "header") |>
-  flextable::align(i = 1, align = "center", part = "header") |> 
-  flextable_color_range(dat0 = table_raw, var0 = "% Change") |>
-  flextable::valign(valign = "top", part = "body", 
-                    j = c(which(grepl(x = names(table_raw), pattern = "biomass")),
-                          which(grepl(x = names(table_raw), pattern = "population"))) ) |>
+  flextable::align(i = 1, align = "center", part = "header") |>
   flextable::fontsize(size = 14, part = "header") |>
   flextable::fontsize(size = 12, part = "body") |>
   flextable::fontsize(size = 14, part = "body", j = 1) |>
   flextable::hline_bottom(part = "body",
                           border = fp_border(color = "transparent", style = "solid", width = 1))
 
-if (srvy == "NEBS") {
-  table_print <- table_print  |> 
-    flextable_color_range(dat0 = table_raw, var0 = "biomass_NBS")  |>
-    flextable_color_range(dat0 = table_raw, var0 = "population_NBS") 
-}
+ table_print <- table_print |> 
+  flextable_color_range(dat0 = table_raw, var0 = "% Change")
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
