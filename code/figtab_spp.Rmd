@@ -26,6 +26,8 @@ spp_plot_sizecomp <- (nrow(sizecomp |>
 spp_plot_agecomp <- (nrow(agecomp |>
                             dplyr::filter(species_code %in% spp_code) |>
                             dplyr::filter(year %in% analysisyrs) ) >0)
+age_cutoff <- ifelse(spp_plot_agecomp, a$age_cutoff[1], NA)
+
 spp_plot_idw <- a$plot_idw[1]
 spp_table_cpue <- a$table_cpue[1]
 
@@ -960,17 +962,17 @@ width <- full_page_portrait_width # 6.5
 header <- ""
 legend_font_size <- 10
 
-age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_size, report_title0) {
+age_plot <- function(srvy, yrs, agecomp0, height, width, nickname, legend_font_size, report_title0, age_cutoff) {
   
   if (length(spp_code) > 1) {
-    table_raw <- agecomp |>
+    table_raw <- agecomp0 |>
       dplyr::filter(group %in% spp_print)
   } else {
-    table_raw <- agecomp |>
+    table_raw <- agecomp0 |>
       dplyr::filter(species_code %in% spp_code)
   }
   
-    if (grepl(x = spp_print, pattern = "crab")) { # c("Unsexed", "Males", "Females", "Immature females", "Mature females")
+  if (grepl(x = spp_print, pattern = "crab")) { # c("Unsexed", "Males", "Females", "Immature females", "Mature females")
     factor0 <- c("Males", "Immature females", "Mature females") # check
   } else {
     factor0 <- c("Unsexed", "Males", "Females")
@@ -1007,8 +1009,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
                     srvy == "NBS" ~ "northern Bering Sea"), 
                   population_count = population_count/pop_unit
     ) |> 
-    dplyr::arrange(sex) |> 
-    dplyr::filter(sex != "Unsexed")
+    dplyr::arrange(sex) 
   
   if (srvy == "NEBS" & length(unique(table_raw$srvy))>1) {
     table_raw <- dplyr::bind_rows(
@@ -1045,74 +1046,91 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
                                  " trawl survey",ifelse(length(yrs)>1, "s", ""),". "), 
                           ""),
                    
-                   "Age distributions are scaled up to the total estimated population size. Note that unexed otoliths were removed for figure legibility and that otoliths are not collected for each species each year and require years to process after collection. ")
+                   "Age distributions are scaled up to the total estimated population size. ")
   ridgeline <- TRUE
   
   if (ridgeline) {
     
+    header <- paste0(header, "For figure legibility, specimens over ", age_cutoff, " have been removed. ")
+    
     table_raw0 <- table_raw |> 
       dplyr::group_by(srvy, year, age) |> 
       dplyr::summarise(population_count = sum(population_count, na.rm = TRUE)) |> 
-      dplyr::ungroup()
+      dplyr::ungroup() |> 
+      dplyr::filter(age <= age_cutoff)
     
     figure_print <- ggplot2::ggplot(
-    data = table_raw0,
-    mapping = 
-      aes(x = age,
-          y = year, 
-          group = year,
-          height = population_count/mean(population_count, na.rm = TRUE)
-          ) 
+      data = table_raw0,
+      mapping = 
+        aes(x = age,
+            y = year,
+            height = population_count/mean(population_count, na.rm = TRUE),
+            group = year
+        )
     ) +
-    ggplot2::facet_grid(cols = vars(srvy)) +
-       ggridges::geom_ridgeline(
-         fill = "#3B528B",     # Solid fill color
-  alpha = 0.5,
-  color = "#3B528B", # NA      # Single clean outline around each year
-  linewidth = 0.1) + 
-  ggplot2::theme(legend.position = 'none') +
-    ggplot2::scale_y_continuous(
-    # expand = c(0, 0),
-    name = paste0("Population", unit_word)) +
-  ggplot2::scale_x_continuous(name = "Age bin") + 
-  # ggridges::theme_ridges() +
-  ggplot2::theme(legend.position = "none", 
-                 panel.border = element_blank(), 
-                 axis.text.y = element_text(angle = 90, hjust = 0.5))
+      ggridges::geom_ridgeline(
+        scale = .25, 
+        alpha = 0.5, 
+        color = "#3B528B", 
+        fill = "#3B528B", 
+        # rel_min_height = 0.01, 
+        linewidth = 0.1) +
+      #   ggplot2::facet_grid(cols = vars(srvy)) +
+      #      ggridges::geom_ridgeline(
+      #        fill = "#3B528B",     # Solid fill color
+      # alpha = 0.5,
+      # color = "#3B528B", # NA      # Single clean outline around each year
+      # linewidth = 0.1) + 
+      ggplot2::theme(legend.position = 'none') +
+      ggplot2::scale_y_reverse( # scale_y_continuous
+        breaks = breaks_width(2),
+        labels = scales::label_number(accuracy = 1, big.mark = ""), 
+        name = paste0("Population", unit_word)) +
+      ggplot2::scale_x_continuous(
+        name = "Age bin", 
+        breaks = breaks_width(5),
+        labels = label_number(accuracy = 1)) + 
+      ggplot2::theme(legend.position = "none", 
+                     panel.border = element_blank(), 
+                     axis.text.y = element_text(angle = 90, hjust = 0.5))
     
   } else {
+    
+    header <- paste0(header, "Note that unexed otoliths were removed for figure legibility and that otoliths are not collected for each species each year and require years to process after collection. ")
+    
     figure_print <- ggplot2::ggplot(
-    data = table_raw, # |> 
-    mapping = 
-      aes(x = age,
-          y = population_count, 
-          fill = sex) ) +
+      data = table_raw|> 
+        dplyr::filter(sex != "Unsexed"), # |> 
+      mapping = 
+        aes(x = age,
+            y = population_count, 
+            fill = sex) ) +
       ggplot2::geom_bar(position="stack", stat="identity", na.rm = TRUE) + 
-    ggplot2::facet_grid(rows = vars(year), cols = vars(srvy)) +
-                ggplot2::scale_fill_viridis_d(direction = -1,
+      ggplot2::facet_grid(rows = vars(year), cols = vars(srvy)) +
+      ggplot2::scale_fill_viridis_d(direction = -1,
                                     option = "mako",
                                     begin = .2,
                                     end = .6,
                                     na.value = "transparent", 
                                     drop = FALSE) +
-    ggplot2::guides(fill = guide_legend(title = ""))  +
-          # ggplot2::scale_fill_viridis_d(direction = -1,
-          #                           option = "mako",
-          #                           begin = .2,
-          #                           end = .6,
-          #                           na.value = "transparent", 
-          #                           drop = FALSE) +
-    ggplot2::scale_x_continuous(name = "Age bin"#, 
-                                # label = abs, 
-                       # breaks = function(age) unique(floor(pretty(seq(-(max(age) + 1) * 1.1, 
-                       #                                                (max(age) + 1) * 1.1))))
-                       ) +
-    ggplot2::scale_y_continuous(name = paste0(#spp_print, " ",
-      "Population", unit_word),
-                       # labels = abs,
-                       expand = c(0, 0)) +
-  ggplot2::theme(panel.border = element_rect(fill = NA,
-                                  colour = "grey20"))
+      ggplot2::guides(fill = guide_legend(title = ""))  +
+      # ggplot2::scale_fill_viridis_d(direction = -1,
+      #                           option = "mako",
+      #                           begin = .2,
+      #                           end = .6,
+      #                           na.value = "transparent", 
+      #                           drop = FALSE) +
+      ggplot2::scale_x_continuous(name = "Age bin"#, 
+                                  # label = abs,
+                                  # breaks = function(age) unique(floor(pretty(seq(-(max(age) + 1) * 1.1, 
+                                  #                                                (max(age) + 1) * 1.1))))
+      ) +
+      ggplot2::scale_y_continuous(name = paste0(#spp_print, " ",
+        "Population", unit_word),
+        # labels = abs,
+        expand = c(0, 0)) +
+      ggplot2::theme(panel.border = element_rect(fill = NA,
+                                                 colour = "grey20"))
   }
   
   figure_print <- figure_print +
@@ -1150,7 +1168,7 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
   }
   
   if (!ridgeline) {
-      # are there any plots with no data?
+    # are there any plots with no data?
     figure_print <- figure_print + 
       # ggplot2::labs(caption = "+ None of this species was lengthed. ") +
       # ggplot2::theme(plot.caption = element_text(hjust=0, size = 10)) +
@@ -1194,11 +1212,16 @@ age_plot <- function(srvy, yrs, agecomp, height, width, nickname, legend_font_si
 ```{r fig-agecomp-[spp]-data, eval = spp_plot_agecomp}
 agecomp0 <- agecomp |> 
   dplyr::filter(species_code %in% spp_code)
-# take the last 3 years worth of data, whatever years they are
-yrs <- yrs_age <- sort(unique(agecomp0$year)) #head(sort((unique(agecomp0$year)), decreasing = TRUE), 3)
-# yrs <- yrs_age <- yrs[yrs > maxyr-10]
+
+yrs <- sort(unique(agecomp0$year)) 
+
+agecomp0 <- agecomp0 |> 
+  dplyr::filter(year >= max(yrs)-10)
+
+yrs <- yrs_age <- sort(unique(agecomp0$year)) 
+
 srvy_age <- unique(agecomp0$srvy[agecomp0$year %in% yrs_age])
-  
+
 height <- full_page_portrait_height-1
 print_n <- FALSE
 srvy <- srvy1[1]
@@ -1206,7 +1229,7 @@ nickname <- paste0("fig-agecomp-", spp_file, "-data")
 legend_font_size <- 10
 report_title0 <- "data"
 
-temp <- age_plot(srvy, yrs, agecomp = agecomp0, height, width, nickname, legend_font_size, report_title0)
+temp <- age_plot(srvy, yrs, agecomp0 = agecomp0, height, width, nickname, legend_font_size, report_title0, age_cutoff)
 for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
 pres_age <- temp$figure_print
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
@@ -1351,7 +1374,7 @@ for (i in 1:nrow(temp_bio)) {
         is.na(temp_bio$biomass_mt[i]) ~ "-",
         temp_bio$biomass_mt[i] <= 1 ~ ">1 t", 
         TRUE ~ paste0(xunits(temp_bio$biomass_mt[i],
-                                       val_under_x_words = NULL), " t")),
+                             val_under_x_words = NULL), " t")),
       "% of Total Biomass" = dplyr::case_when(
         is.na(temp_bio$biomass_mt[i]) ~ "-", 
         paste0(formatC(x = (temp_bio$biomass_mt[i]/temp_bio$total[i])*100, 
@@ -1425,11 +1448,11 @@ temp_catch$str <- paste0(
   ifelse(temp_catch[,paste0("yr_1111")] < temp_catch[,paste0("yr_", maxyr)],
          "Increased", "Decreased"), 
   " from ", 
-    xunits(unlist(temp_catch[,"yr_1111"])), 
+  xunits(unlist(temp_catch[,"yr_1111"])), 
   ifelse(spp_print == "tunicates", " kg", ""), " in ", 
   temp_catch$compareyr,
   " to ", 
-    xunits(unlist(temp_catch[,paste0("yr_", maxyr)])), # ),
+  xunits(unlist(temp_catch[,paste0("yr_", maxyr)])), # ),
   " ",
   ifelse(spp_print == "tunicates", "kg", ""), 
   ifelse(temp_catch[,paste0("yr_", maxyr)]>1 & spp_print != "tunicates", "individuals","individual"),
@@ -1483,10 +1506,10 @@ if (ncol(table_print0) > 2) {
   table_print0[,3] <- gsub(x = table_print0[,3], pattern = "\n", replacement = " ")
 }
 
-  # if there are more than 99 individuals for one survey but not the other, 
-  # replace entries for biomass % rows with "-"
-    table_print0[table_print0$var == "% of Total Biomass", -1][which(as.numeric(table_print0[table_print0$var == "catch_min", -1])<=100)] <- "-"
-    table_print0[table_print0$var == "% Change in Biomass", -1][which(as.numeric(table_print0[table_print0$var == "catch_min", -1])<=100)] <- "-"
+# if there are more than 99 individuals for one survey but not the other, 
+# replace entries for biomass % rows with "-"
+table_print0[table_print0$var == "% of Total Biomass", -1][which(as.numeric(table_print0[table_print0$var == "catch_min", -1])<=100)] <- "-"
+table_print0[table_print0$var == "% Change in Biomass", -1][which(as.numeric(table_print0[table_print0$var == "catch_min", -1])<=100)] <- "-"
 
 # remove rows if there are less than 99 individuals 
 if (sum(table_raw$catch_min >= 100) == nrow(table_raw)) {
@@ -1497,11 +1520,11 @@ if (sum(table_raw$catch_min >= 100) == nrow(table_raw)) {
   table_print0 <- table_print0[table_print0$var != "% Change in Biomass",]
   table_print0 <- table_print0[table_print0$var != "% of Total Biomass",]
 } 
-    
-    if (sum(table_raw$catch_min >= 100) != nrow(table_raw)) {
+
+if (sum(table_raw$catch_min >= 100) != nrow(table_raw)) {
   header <- paste0(header, 
                    "Too few organisms were observed on the ", text_list(tolower(table_raw$`Bering Sea\nSurvey`[table_raw$catch_min <= 100]))," Bering Sea survey to share meaningful percent change of total biomass values",ifelse(sum(table_print0 == "-")>0, " (note cells with '-')", ""),", so observed values are shared instead. ")      
-    }
+}
 
 
 # # null cells if there are less than 99 individuals
@@ -2253,15 +2276,15 @@ if (spp_plot_sizecomp) {
       legend.key.height = unit(0.15, "cm"),
       legend.key.width = unit(0.4, "cm"), 
       legend.background = element_blank(), 
-  # legend.position = "none",
-  legend.key = element_blank()
-  )
+      # legend.position = "none",
+      legend.key = element_blank()
+    )
   
-      if (grepl(x = comm_size_txt, pattern = "eastern and northern") & 
-          grepl(x = comm_size_txt, pattern = range_text(c(maxyr, compareyr))) ) {
-      comm_size1 <- comm_size1 + 
-        ggplot2::theme(
-      legend.position = c(.77, 0.5)) # Make them shorter
+  if (grepl(x = comm_size_txt, pattern = "eastern and northern") & 
+      grepl(x = comm_size_txt, pattern = range_text(c(maxyr, compareyr))) ) {
+    comm_size1 <- comm_size1 + 
+      ggplot2::theme(
+        legend.position = c(.77, 0.5)) # Make them shorter
   }
 } else {
   pres_size_txt <- "There are no sizecomps for this species. "
@@ -2310,47 +2333,47 @@ temp1 <- cowplot::plot_grid(
 #   axis = "l")     # Align by the left axis
 #   
 
-  if (spp_plot_agecomp & spp_plot_sizecomp) {
-
-    if (length(srvy_age) == 1 & length(srvy_len) != 1) {
-       spacing0 <- c(.25, .15)
-    } else if (length(srvy_age) != 1 & length(srvy_len) == 1) {
-       spacing0 <- c(.15, .25)
-    } else {
-       spacing0 <- c(.2, .2)
-    }
-    
-    pres_age1 <- pres_age + 
-      theme(legend.position = "none", 
-            title = element_text(size = 8, face = "bold"),
-                   strip.text = element_text(size = 8, face = "bold"),
-                   axis.title = element_text(size = 8),
-                   axis.text = element_text(size = 8),
-      plot.margin = grid::unit(c(0,0,0,0), "mm"),
-      # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
-      legend.box.spacing = unit(.2, "cm"), # Increase the space to 1 cm
-      legend.key.height = unit(0.15, "cm"),
-      legend.key.width = unit(0.6, "cm") )
-    
-    
-      figure_len_age <- cowplot::plot_grid(
+if (spp_plot_agecomp & spp_plot_sizecomp) {
+  
+  if (length(srvy_age) == 1 & length(srvy_len) != 1) {
+    spacing0 <- c(.25, .15)
+  } else if (length(srvy_age) != 1 & length(srvy_len) == 1) {
+    spacing0 <- c(.15, .25)
+  } else {
+    spacing0 <- c(.2, .2)
+  }
+  
+  pres_age1 <- pres_age + 
+    theme(legend.position = "none", 
+          title = element_text(size = 8, face = "bold"),
+          strip.text = element_text(size = 8, face = "bold"),
+          axis.title = element_text(size = 8),
+          axis.text = element_text(size = 8),
+          plot.margin = grid::unit(c(0,0,0,0), "mm"),
+          # axis.text.x = element_text(angle = 45, hjust = .8),  #, vjust = 0.05, hjust = 1),
+          legend.box.spacing = unit(.2, "cm"), # Increase the space to 1 cm
+          legend.key.height = unit(0.15, "cm"),
+          legend.key.width = unit(0.6, "cm") )
+  
+  
+  figure_len_age <- cowplot::plot_grid(
     comm_size1, 
     pres_age1,
     ncol = 2, 
     rel_widths = spacing0,
     align = "v",   # Align vertically
     axis = "l")     # Align by the left axis  
-      
-    #         figure_len_age <- cowplot::plot_grid(
-    # figure_len_age, 
-    # comm_size_legend,
-    # nrow = 2, 
-    # rel_heights = c(.95, .05),
-    # align = "v",   # Align vertically
-    # axis = "c")     # Align by the left axis  
-    
+  
+  #         figure_len_age <- cowplot::plot_grid(
+  # figure_len_age, 
+  # comm_size_legend,
+  # nrow = 2, 
+  # rel_heights = c(.95, .05),
+  # align = "v",   # Align vertically
+  # axis = "c")     # Align by the left axis  
+  
   figure_print <- cowplot::plot_grid(
-        temp1, 
+    temp1, 
     NULL,
     figure_len_age,
     ncol = 3, 
@@ -2360,23 +2383,23 @@ temp1 <- cowplot::plot_grid(
   
   # figure_print <- cowplot::ggdraw(figure_print) +
   #   cowplot::draw_label("D", x = ifelse((length(srvy_age) == 1), 0.85, .8), y = 0.94, hjust = 0, vjust = 0, size = 16)
-
+  
   if (FALSE){  
-  figure_print <- cowplot::ggdraw(figure_print) +
-  cowplot::draw_label(
-    label = "D", 
-    x = dplyr::case_when(
-      length(srvy_age) == 1 & length(srvy_len) == 1 ~ 0.8,
-      length(srvy_age) == 1 & length(srvy_len) == 2 ~ 0.85,
-      length(srvy_age) == 2 ~ 0.8
-    ), 
-    y = 0.94, 
-    hjust = 0, 
-    vjust = 0, 
-    size = 16
-  )
+    figure_print <- cowplot::ggdraw(figure_print) +
+      cowplot::draw_label(
+        label = "D", 
+        x = dplyr::case_when(
+          length(srvy_age) == 1 & length(srvy_len) == 1 ~ 0.8,
+          length(srvy_age) == 1 & length(srvy_len) == 2 ~ 0.85,
+          length(srvy_age) == 2 ~ 0.8
+        ), 
+        y = 0.94, 
+        hjust = 0, 
+        vjust = 0, 
+        size = 16
+      )
   }
-  } else if (!spp_plot_agecomp & spp_plot_sizecomp) {
+} else if (!spp_plot_agecomp & spp_plot_sizecomp) {
   figure_print <- cowplot::plot_grid(
     temp1, 
     NULL,
@@ -2390,20 +2413,20 @@ temp1 <- cowplot::plot_grid(
 }
 
 if (FALSE) { # TOLEDO
-# Then use ggdraw() to add a custom label on top of the combined plot
-figure_print <- cowplot::ggdraw(figure_print) +
-  cowplot::draw_label("A", 
-                      x = ifelse(exists("comm_size"), 0.04, 0.01), 
-                      y = 0.94, hjust = 0, vjust = 0, size = 16) +
-  cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), 
-                      x = ifelse(exists("comm_size"), 0.04, 0.01), 
-                      y = 0.5, hjust = 0, vjust = 0, size = 16) #+
-# cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
-
-if (spp_plot_sizecomp) {
+  # Then use ggdraw() to add a custom label on top of the combined plot
   figure_print <- cowplot::ggdraw(figure_print) +
-    cowplot::draw_label("B", x = 0.6, y = 0.94, hjust = 0, vjust = 0, size = 16)
-}
+    cowplot::draw_label("A", 
+                        x = ifelse(exists("comm_size"), 0.04, 0.01), 
+                        y = 0.94, hjust = 0, vjust = 0, size = 16) +
+    cowplot::draw_label(ifelse((exists("comm_size")), "C", "B"), 
+                        x = ifelse(exists("comm_size"), 0.04, 0.01), 
+                        y = 0.5, hjust = 0, vjust = 0, size = 16) #+
+  # cowplot::draw_label(ifelse((exists("comm_size")), "D", "C"), x = 0.77, y = 0.32, hjust = 0, vjust = 0, size = 16)
+  
+  if (spp_plot_sizecomp) {
+    figure_print <- cowplot::ggdraw(figure_print) +
+      cowplot::draw_label("B", x = 0.6, y = 0.94, hjust = 0, vjust = 0, size = 16)
+  }
 }
 
 fig_srvy <- paste0(paste0(tolower(pres_stats[,1]), collapse = " and "), 
@@ -2450,8 +2473,8 @@ if (spp_plot_agecomp) {
   srvy_age <- gsub(pattern = "EBS", replacement = "eastern", x = srvy_age)
   srvy_age <- gsub(pattern = "NBS", replacement = "northern", x = srvy_age)
   
-header <- paste0(header, "(D) Additionally, total abundance-at-age (cm) estimates were calculated and scaled to the total estimated population from the last three years of available data (",text_list(yrs_age),") in the ",text_list(srvy_age),"  Bering Sea surveys. ")
-
+  header <- paste0(header, "(D) Additionally, total abundance-at-age (cm) estimates were calculated and scaled to the total estimated population from the last three years of available data (",text_list(yrs_age),") in the ",text_list(srvy_age),"  Bering Sea surveys. ")
+  
 }
 
 header0 <- header
@@ -2475,16 +2498,16 @@ temp <- dplyr::left_join(
 figure_print <- ggdraw(add_sub(
   plot = figure_print0, 
   size = 10, 
-  label = paste0(spp_print, "\n", 
+  label = paste0(spp_print, ifelse(spp_plot_agecomp, paste0("; age cutoff: ", age_cutoff), ""), "\n", 
                  paste0(temp$srvy, " Bio Mean: ", 
-                 round(x = temp$y_mean, digits = 1),
-                 " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
+                        round(x = temp$y_mean, digits = 1),
+                        " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
                         temp$`Biomass`," (",
                         gsub(pattern = "\n", replace = " ", 
                              x = temp$`% Change\nin Biomass`, fixed = TRUE), ")", 
                         ". ", temp$`Observed Catch Totals`, ". ", 
                         collapse = "\n") )
-  ))
+))
 
 header <- header0
 
