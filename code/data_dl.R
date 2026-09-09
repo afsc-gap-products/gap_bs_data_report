@@ -631,6 +631,9 @@ diff00 <- summarize_gp_updates(channel = channel_products,
                              time_end = dl_change_end) #|> 
   # dplyr::mutate(OPERATION_TYPE = ifelse(OPERATION_TYPE == "deletion", "deletions", OPERATION_TYPE))
 
+dl_change_start <- "24-APR-2026 12.00.00 PM" # "02-APR-24 11.00.00 PM"
+dl_change_end <- "24-APR-2027 11.00.00 PM"
+
 a <- gap_archive_audit_cpue <- RODBC::sqlQuery(channel, 
 paste0(
 "SELECT *
@@ -646,8 +649,8 @@ FROM GAP_PRODUCTS.CRUISE
 ) c
 USING (CRUISEJOIN)
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('26-MAR-2025 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
-AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('",dl_change_start,"', 'DD-MON-YYYY HH:MI:SS PM')
+AND TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
 # TO_DATE('",as.character(dl_change_start),"', 'DD-MON-YYYY HH:MI:SS PM')
@@ -668,8 +671,8 @@ a <- gap_archive_audit_biomass <- RODBC::sqlQuery(channel,
 paste0("SELECT *
 FROM GAP_ARCHIVE.AUDIT_BIOMASS a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('26-MAR-2025 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
-AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('",dl_change_start,"', 'DD-MON-YYYY HH:MI:SS PM')
+AND TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
 save(gap_archive_audit_biomass, file = here::here("data", "gap_archive_audit_biomass.rdata"))
@@ -689,8 +692,8 @@ a <- gap_archive_audit_sizecomp <- RODBC::sqlQuery(channel,
 paste0("SELECT * 
 FROM GAP_ARCHIVE.AUDIT_SIZECOMP a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('26-MAR-2025 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
-AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
+AND TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
 save(gap_archive_audit_sizecomp, file = here::here("data", "gap_archive_audit_sizecomp.rdata"))
@@ -709,8 +712,8 @@ a <- gap_archive_audit_agecomp <- RODBC::sqlQuery(channel,
 paste0("SELECT * 
 FROM GAP_ARCHIVE.AUDIT_AGECOMP a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('26-MAR-2025 11:00:00 PM', 'DD-MON-YYYY HH:MI:SS PM')
-AND TO_DATE('16-MAR-2026 09:56:50 PM', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
+AND TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") ) # |> 
   # dplyr::filter(AREA_ID_FOOTPRINT == 'EBS STANDARD PLUS NW')

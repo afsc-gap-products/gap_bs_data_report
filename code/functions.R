@@ -514,8 +514,13 @@ numbers2words <- function(x){
       suffixes <- c("thousand", "million", "billion", "trillion")
       if (length(x) > 1) return(trim(sapply(x, helper)))
       
+      xx <- helper(x)
+      xx <- ifelse(substr(x = xx, start = nchar(xx), stop = nchar(xx)) == "-", 
+                   substr(x = xx, start = 1, stop = nchar(xx)-1), 
+                   xx)
       
-      out <- c(out, gsub(pattern = "- ", replacement = "-", x = helper(x)))
+      
+      out <- c(out, gsub(pattern = "- ", replacement = "-", x = xx))
     }
   }
   return(out)
