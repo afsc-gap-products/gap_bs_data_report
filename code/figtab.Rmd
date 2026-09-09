@@ -2277,9 +2277,110 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 ```{r fig-biomass-topspecies-ebs-pres}
 a <- temp(biomass = biomass_allareas, srvy0 = "EBS", maxyr)
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
+topten_fig <- figure_print
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
+
+
+```{r fig-biomass-topspecies-ebs-pres-alt}
+
+nickname <- paste0("fig-biomass-topspecies-",tolower(srvy0),"-pres-alt")
+height <- 6 # full_page_portrait_height-2.5
+width <- full_page_landscape_width
+
+figure_print <- topten_fig   +
+  ggtitle(label = "", subtitle = "") +
+    ggplot2::theme( 
+      panel.background = element_rect(fill = "white"),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey95"),
+      panel.border = element_rect(fill = NA, colour = "grey20"),
+      legend.text = element_text(size = legend_font_size-2),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent",
+                                fill = "transparent"),
+      axis.title = element_text(size = legend_font_size, face = "bold"),
+      axis.text = element_text(size = legend_font_size),
+      # legend.position = "bottom", 
+      # legend.box = "horizontal",
+      legend.box.spacing = unit(0, "pt"),
+      legend.margin=margin(0, 0, 0, 0)) 
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+```
+
+
+```{r  fig-biomass-stackedbar-pres, eval = FALSE}
+
+table_raw <- biomass |> 
+  dplyr::select(species_code, year, biomass_mt)
+
+
+figure_print <- ggplot(table_raw0, aes(x = year, y = biomass_millions, fill = species)) +
+  geom_col(width = 0.8) +
+  scale_y_continuous(
+    name = "Total estimated biomass (millions of tons)",
+    expand = expansion(mult = c(0, 0.05)),
+    limits = c(0, 3.2)
+  ) +
+  scale_x_continuous(
+    name = "Year",
+    breaks = seq(1990, 2020, by = 10)
+  ) +
+  # Custom color palette matching the graphic spectrum
+  scale_fill_manual(
+    values = c(
+      "Pacific ocean perch"   = "#5C82A6",
+      "Atka mackerel"         = "#A69279",
+      "northern rockfish"     = "#E6A83C",
+      "walleye pollock"       = "#FF9E3B",
+      "Pacific cod"           = "#F0714E",
+      "arrowtooth flounder"   = "#ED6A5A",
+      "northern rock sole"    = "#CD8C8C",
+      "Pacific halibut"       = "#9BB2C0",
+      "Kamchatka flounder"    = "#68BBBA",
+      "shortraker rockfish"   = "#58B09C",
+      "shortspine thornyhead" = "#65B88A",
+      "yellow Irish lord"     = "#A1CA6A",
+      "rex sole"              = "#C0C93B",
+      "blackspotted rockfish" = "#CBB261",
+      "flathead sole"         = "#B88673",
+      "sablefish"             = "#A37A8E",
+      "Greenland turbot"      = "#BA9BB2",
+      "Alaska skate"          = "#BCA08D",
+      "giant octopus"         = "#A8A39D",
+      "dusky rockfish"        = "#A5B5AF",
+      "Dover sole"            = "#A0B3A6",
+      "rougheye rockfish"     = "#88998C",
+      "Other species"         = "#666666"
+    )
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    # Move legend to bottom and organize into 5 columns
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.key.size = unit(0.4, "cm"),
+    legend.text = element_text(size = 10),
+    legend.margin = margin(t = 10),
+    
+    # Axis typography & styling
+    axis.title = element_text(size = 12, color = "black"),
+    axis.text = element_text(size = 11, color = "black"),
+    axis.line = element_line(color = "black", linewidth = 0.6),
+    axis.ticks = element_line(color = "black", linewidth = 0.6)
+  ) +
+  # Controls legend column layout to match the original image
+  guides(fill = guide_legend(ncol = 5, byrow = FALSE))
+
+
+```
+
+
 
 # Endmatter and Appendix
 
