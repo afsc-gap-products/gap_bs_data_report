@@ -97,7 +97,6 @@ for (jj in 1:length(comb)) {
 
 ## Write report ----------------------------------------------------------------
 
-# Main Body
 rmarkdown::render(input = paste0(dir_code, "00_data_report.Rmd"), 
                   output_format = "officedown::rdocx_document", 
                   output_dir = dir_out_todaysrun, 
