@@ -57,7 +57,7 @@ for (i in 1:length(locations)){
                                  "GAP_PRODUCTS.HAUL")) ) {
     end0 <- c(end0, paste0("YEAR IN (",paste0(maxyr:compareyr, collapse = ","), ")"))
   }
-
+  
   # if (locations[i] %in% c("GAP_PRODUCTS.CRUISE")) {
   #   cruises0 <- a
   # }
@@ -161,14 +161,14 @@ for (i in 1:nrow(report_spp)){
 }
 
 if (FALSE) {
-temp1 <- temp1 |>
-  dplyr::bind_rows(
-    data.frame(
-      GROUP_CODE = c(69322, 69323, 68560, 68580, 68590, 69400),
-      SPECIES_CODE = c(69322, 69323, 68560, 68580, 68590, 69400),
-      TAXON = "invert",
-      SPECIES_NAME = c("Paralithodes camtschaticus", "Paralithodes platypus", "Chionoecetes bairdi", "Chionoecetes opilio", "Chionoecetes hybrid", "Erimacrus isenbeckii"),
-      GROUP_NAME = c("red king crab", "blue king crab", "Tanner crab", "snow crab", "hybrid Tanner crab", "horsehair crab") ))
+  temp1 <- temp1 |>
+    dplyr::bind_rows(
+      data.frame(
+        GROUP_CODE = c(69322, 69323, 68560, 68580, 68590, 69400),
+        SPECIES_CODE = c(69322, 69323, 68560, 68580, 68590, 69400),
+        TAXON = "invert",
+        SPECIES_NAME = c("Paralithodes camtschaticus", "Paralithodes platypus", "Chionoecetes bairdi", "Chionoecetes opilio", "Chionoecetes hybrid", "Erimacrus isenbeckii"),
+        GROUP_NAME = c("red king crab", "blue king crab", "Tanner crab", "snow crab", "hybrid Tanner crab", "horsehair crab") ))
 }
 
 # filter temp1 for exisiting species codes in GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION
@@ -199,106 +199,106 @@ complex_data <- complex_data0 <- gapindex::get_data(
   channel = channel)
 
 if (FALSE) {
-## Pull crab data --------------------------------------------------------------
-
-# List of species and survey regions to add to GAP data
-
-# https://github.com/AFSC-Shellfish-Assessment-Program/crabpack
-# devtools::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
-library(crabpack)
-
-# crabpack data pull does a funny thing where the channel *needs* to be called 'channel' even though it says it can accept other names
-source("Z:/Projects/ConnectToOracle.R")
-channel <- channel_akfin
-
-spp_list <- tidyr::crossing(
-  spp = c("RKC", "BKC", "TANNER", "SNOW", "HYBRID", "HAIR"), 
-  reg = c("EBS", "NBS"))
-
-# Pull crab data from `crabpack`
-crabpack_specimen <- c()
-for (i in 1:nrow(spp_list)) {
+  ## Pull crab data --------------------------------------------------------------
+  
+  # List of species and survey regions to add to GAP data
+  
+  # https://github.com/AFSC-Shellfish-Assessment-Program/crabpack
+  # devtools::install_github("AFSC-Shellfish-Assessment-Program/crabpack")
+  library(crabpack)
+  
+  # crabpack data pull does a funny thing where the channel *needs* to be called 'channel' even though it says it can accept other names
   source("Z:/Projects/ConnectToOracle.R")
   channel <- channel_akfin
   
-  spp <- spp_list$spp[i]
-  reg <- spp_list$reg[i]
-  print(paste0(reg, " ", spp))
+  spp_list <- tidyr::crossing(
+    spp = c("RKC", "BKC", "TANNER", "SNOW", "HYBRID", "HAIR"), 
+    reg = c("EBS", "NBS"))
   
-  specimen_data <- crabpack::get_specimen_data(species = spp,
-                                               region = reg,
-                                               years = c(1982:2024)) 
+  # Pull crab data from `crabpack`
+  crabpack_specimen <- c()
+  for (i in 1:nrow(spp_list)) {
+    source("Z:/Projects/ConnectToOracle.R")
+    channel <- channel_akfin
+    
+    spp <- spp_list$spp[i]
+    reg <- spp_list$reg[i]
+    print(paste0(reg, " ", spp))
+    
+    specimen_data <- crabpack::get_specimen_data(species = spp,
+                                                 region = reg,
+                                                 years = c(1982:2024)) 
+    
+    crabpack_specimen <- crabpack_specimen |> 
+      dplyr::bind_rows(specimen_data$specimen |> 
+                         dplyr::mutate(spp = spp, 
+                                       reg = reg))
+  }
   
-  crabpack_specimen <- crabpack_specimen |> 
-    dplyr::bind_rows(specimen_data$specimen |> 
-                       dplyr::mutate(spp = spp, 
-                                     reg = reg))
-}
-
-crabpack_specimen0 <- crabpack_specimen
-
-write.csv(x = crabpack_specimen0, 
-          file = here::here("data/crabpack_specimen.csv"))
-
-# NOTES
-# sex = dplyr::case_when(
-#   sex == 1 ~ "males",
-#   sex == 0 ~ "unsexed",
-#   (clutch_size == 0 & sex == 2) ~ "immature females", 
-#   (clutch_size >= 1 & sex == 2) ~ "mature females"), 
-
-# find which hauls need to be replaced with retow data
-crabpack_specimen <- crabpack_specimen0
-crabpack_specimen <- dplyr::bind_rows(
-  # data from retow stations - female RKC
-  crabpack_specimen |> 
-    dplyr::filter(HAUL_TYPE == 17) |> 
-    dplyr::filter(SEX == 2 & SPECIES_CODE == 69322), 
-  # data from not retow stations - male and unsexed RKC, and everything else
-  crabpack_specimen |> 
-    dplyr::filter(HAUL_TYPE == 3) |> 
-    dplyr::filter(!(SEX == 2 & SPECIES_CODE == 69322))  )  |> 
-  dplyr::mutate(SEX = ifelse(SEX == 2 & CLUTCH_SIZE == 0, 5, SEX), # "immature females" 
-                SEX = ifelse(SEX == 2 & CLUTCH_SIZE != 0, 6, SEX)) |> # "mature females" 
-  dplyr::filter(SEX != 4) |> # unisex
-  dplyr::select(HAULJOIN, YEAR, STATION = STATION_ID, HAUL_TYPE, STRATUM, 
-                SPECIES_CODE, SEX, 
-                SIZE, SIZE_1MM, WEIGHT, CALCULATED_WEIGHT_1MM, SAMPLING_FACTOR) |> 
-  dplyr::distinct()
-
-complex_data$catch <- crabpack_specimen |> 
-  dplyr::mutate(WEIGHT = (CALCULATED_WEIGHT_1MM * SAMPLING_FACTOR)/1000) |>  # convert from grams to kg
-  dplyr::group_by(HAULJOIN, SPECIES_CODE) |> 
-  dplyr::summarise(WEIGHT = sum(WEIGHT, na.rm = TRUE), 
-                   NUMBER_FISH = sum(SAMPLING_FACTOR, na.rm = TRUE)) |> 
-  dplyr::ungroup() |> 
-  data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE")) |> 
-  dplyr::bind_rows(complex_data$catch)
-
-complex_data$specimen <- crabpack_specimen |> 
-  dplyr::select(WEIGHT, SEX, SPECIES_CODE, HAULJOIN, LENGTH = SIZE_1MM)  |>  
-  dplyr::mutate(WEIGHT = WEIGHT / 1000) |>   # convert from grams to kg
-  dplyr::group_by(HAULJOIN, SPECIES_CODE, SEX, LENGTH) |> 
-  dplyr::summarise(WEIGHT = sum(WEIGHT, na.rm = TRUE)) |> 
-  dplyr::ungroup() |>
-  dplyr::mutate(AGE = NA)  |> 
-  dplyr::left_join(complex_data$haul |> 
-                     dplyr::select(CRUISEJOIN, HAULJOIN) |> 
-                     dplyr::distinct() ) |> 
-  data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE", "SEX", "AGE", "LENGTH")) |> # "CRUISEJOIN", 
-  dplyr::bind_rows(complex_data$specimen)
-
-complex_data$size <- crabpack_specimen |> 
-  dplyr::select(SEX, SPECIES_CODE, HAULJOIN, LENGTH = SIZE_1MM, FREQUENCY = SAMPLING_FACTOR)  |>  
-  dplyr::group_by(HAULJOIN, SPECIES_CODE, SEX, LENGTH) |> 
-  dplyr::summarise(#LENGTH = sum(LENGTH, na.rm = TRUE), 
-                   FREQUENCY = sum(FREQUENCY, na.rm = TRUE)) |> 
-  dplyr::ungroup()|> 
-  dplyr::left_join(complex_data$haul |> 
-                     dplyr::select(CRUISEJOIN, HAULJOIN) |> 
-                     dplyr::distinct() ) |> 
-  data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE", "SEX", "LENGTH")) |> 
-  dplyr::bind_rows(complex_data$size)
+  crabpack_specimen0 <- crabpack_specimen
+  
+  write.csv(x = crabpack_specimen0, 
+            file = here::here("data/crabpack_specimen.csv"))
+  
+  # NOTES
+  # sex = dplyr::case_when(
+  #   sex == 1 ~ "males",
+  #   sex == 0 ~ "unsexed",
+  #   (clutch_size == 0 & sex == 2) ~ "immature females", 
+  #   (clutch_size >= 1 & sex == 2) ~ "mature females"), 
+  
+  # find which hauls need to be replaced with retow data
+  crabpack_specimen <- crabpack_specimen0
+  crabpack_specimen <- dplyr::bind_rows(
+    # data from retow stations - female RKC
+    crabpack_specimen |> 
+      dplyr::filter(HAUL_TYPE == 17) |> 
+      dplyr::filter(SEX == 2 & SPECIES_CODE == 69322), 
+    # data from not retow stations - male and unsexed RKC, and everything else
+    crabpack_specimen |> 
+      dplyr::filter(HAUL_TYPE == 3) |> 
+      dplyr::filter(!(SEX == 2 & SPECIES_CODE == 69322))  )  |> 
+    dplyr::mutate(SEX = ifelse(SEX == 2 & CLUTCH_SIZE == 0, 5, SEX), # "immature females" 
+                  SEX = ifelse(SEX == 2 & CLUTCH_SIZE != 0, 6, SEX)) |> # "mature females" 
+    dplyr::filter(SEX != 4) |> # unisex
+    dplyr::select(HAULJOIN, YEAR, STATION = STATION_ID, HAUL_TYPE, STRATUM, 
+                  SPECIES_CODE, SEX, 
+                  SIZE, SIZE_1MM, WEIGHT, CALCULATED_WEIGHT_1MM, SAMPLING_FACTOR) |> 
+    dplyr::distinct()
+  
+  complex_data$catch <- crabpack_specimen |> 
+    dplyr::mutate(WEIGHT = (CALCULATED_WEIGHT_1MM * SAMPLING_FACTOR)/1000) |>  # convert from grams to kg
+    dplyr::group_by(HAULJOIN, SPECIES_CODE) |> 
+    dplyr::summarise(WEIGHT = sum(WEIGHT, na.rm = TRUE), 
+                     NUMBER_FISH = sum(SAMPLING_FACTOR, na.rm = TRUE)) |> 
+    dplyr::ungroup() |> 
+    data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE")) |> 
+    dplyr::bind_rows(complex_data$catch)
+  
+  complex_data$specimen <- crabpack_specimen |> 
+    dplyr::select(WEIGHT, SEX, SPECIES_CODE, HAULJOIN, LENGTH = SIZE_1MM)  |>  
+    dplyr::mutate(WEIGHT = WEIGHT / 1000) |>   # convert from grams to kg
+    dplyr::group_by(HAULJOIN, SPECIES_CODE, SEX, LENGTH) |> 
+    dplyr::summarise(WEIGHT = sum(WEIGHT, na.rm = TRUE)) |> 
+    dplyr::ungroup() |>
+    dplyr::mutate(AGE = NA)  |> 
+    dplyr::left_join(complex_data$haul |> 
+                       dplyr::select(CRUISEJOIN, HAULJOIN) |> 
+                       dplyr::distinct() ) |> 
+    data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE", "SEX", "AGE", "LENGTH")) |> # "CRUISEJOIN", 
+    dplyr::bind_rows(complex_data$specimen)
+  
+  complex_data$size <- crabpack_specimen |> 
+    dplyr::select(SEX, SPECIES_CODE, HAULJOIN, LENGTH = SIZE_1MM, FREQUENCY = SAMPLING_FACTOR)  |>  
+    dplyr::group_by(HAULJOIN, SPECIES_CODE, SEX, LENGTH) |> 
+    dplyr::summarise(#LENGTH = sum(LENGTH, na.rm = TRUE), 
+      FREQUENCY = sum(FREQUENCY, na.rm = TRUE)) |> 
+    dplyr::ungroup()|> 
+    dplyr::left_join(complex_data$haul |> 
+                       dplyr::select(CRUISEJOIN, HAULJOIN) |> 
+                       dplyr::distinct() ) |> 
+    data.table::data.table(key = c("HAULJOIN", "SPECIES_CODE", "SEX", "LENGTH")) |> 
+    dplyr::bind_rows(complex_data$size)
 }
 ## Calculate Zero-fill CPUE ----------------------------------------------------
 
@@ -329,12 +329,12 @@ complex_biomass_subarea <-
 complex_biomass <- complex_biomass_stratum |>
   dplyr::rename(AREA_ID = STRATUM) |>
   dplyr::bind_rows(complex_biomass_subarea) |>
-dplyr::left_join(temp1 |> 
-                   dplyr::select(SPECIES_CODE = GROUP_CODE, 
-                                 COMMON_NAME = GROUP_NAME, 
-                                 TAXON, 
-                                 SPECIES_NAME) |> 
-                   dplyr::distinct())
+  dplyr::left_join(temp1 |> 
+                     dplyr::select(SPECIES_CODE = GROUP_CODE, 
+                                   COMMON_NAME = GROUP_NAME, 
+                                   TAXON, 
+                                   SPECIES_NAME) |> 
+                     dplyr::distinct())
 
 write.csv(x = complex_biomass, 
           file = here::here("data/complex_biomass.csv"), 
@@ -343,61 +343,61 @@ write.csv(x = complex_biomass,
 
 ## Calculate Size composition by stratum FOR JUST CRAB---------------------------------------
 if (FALSE) {
-crab_data <- complex_data
-
-crab_data$catch <- crab_data$catch |> 
-  dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
-
-crab_data$size <- crab_data$size |> 
-  dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
-
-write.csv(x = crab_data$size, 
-          file = here::here("data/sap_lengths.csv"), 
-          row.names = FALSE)
-
-crab_data$specimen <- crab_data$specimen |> 
-  dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
-
-# Calculate size composition by stratum. See ?gapindex::calc_sizecomp_stratum
-# for details on arguments
-# Calculate aggregated size composition across subareas, management areas, and
-# regions
-
-# Note fill_NA_method == "BS" because
-# our region is EBS, NBS, or BSS. If the survey region of interest is AI or
-# GOA, use "AIGOA". See ?gapindex::gapindex::calc_sizecomp_stratum for more
-# details.
-
-# Aggregate size composition to stratum
-crab_sizecomp_stratum <- gapindex::calc_sizecomp_stratum(
-  gapdata = crab_data,
-  cpue = complex_cpue  |> 
-    dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400)),
-  abundance_stratum = complex_biomass_stratum |> 
-    dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400)),
-  spatial_level = "stratum",
-  fill_NA_method = "BS")
-
-# Error in vecseq(f__, len__, limit) : 
-#   Join results in 1518038 rows; more than 893685 = nrow(x)+nrow(i). Check for duplicate key values in i each of which join to the same group in x over and over again. If that's ok, try by=.EACHI to run j for each group to avoid the large allocation. If you are sure you wish to proceed, rerun with allow.cartesian=TRUE. Otherwise, please search for this error message in the FAQ, Wiki, Stack Overflow and data.table issue tracker for advice.
-
-# Aggregate size composition to subareas/region
-crab_sizecomp_subarea <- gapindex::calc_sizecomp_subarea(
-  gapdata = crab_data,
-  sizecomp_stratum = crab_sizecomp_stratum)
-
-# rbind stratum and subarea/region biomass estimates into one dataframe
-crab_sizecomp <- crab_sizecomp_stratum |>
-  dplyr::rename(AREA_ID = STRATUM) |>
-  dplyr::bind_rows(crab_sizecomp_subarea) |> 
-  dplyr::left_join(temp1 |> 
-                     dplyr::select(SPECIES_CODE = GROUP_CODE, 
-                                   COMMON_NAME = GROUP_NAME, 
-                                   TAXON, SPECIES_NAME) |> 
-                     dplyr::distinct()) |> 
-  dplyr::select(-SURVEY)
-
-write.csv(x = crab_sizecomp, file = here::here("data/crab_sizecomp.csv"), row.names = FALSE)
+  crab_data <- complex_data
+  
+  crab_data$catch <- crab_data$catch |> 
+    dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
+  
+  crab_data$size <- crab_data$size |> 
+    dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
+  
+  write.csv(x = crab_data$size, 
+            file = here::here("data/sap_lengths.csv"), 
+            row.names = FALSE)
+  
+  crab_data$specimen <- crab_data$specimen |> 
+    dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400))
+  
+  # Calculate size composition by stratum. See ?gapindex::calc_sizecomp_stratum
+  # for details on arguments
+  # Calculate aggregated size composition across subareas, management areas, and
+  # regions
+  
+  # Note fill_NA_method == "BS" because
+  # our region is EBS, NBS, or BSS. If the survey region of interest is AI or
+  # GOA, use "AIGOA". See ?gapindex::gapindex::calc_sizecomp_stratum for more
+  # details.
+  
+  # Aggregate size composition to stratum
+  crab_sizecomp_stratum <- gapindex::calc_sizecomp_stratum(
+    gapdata = crab_data,
+    cpue = complex_cpue  |> 
+      dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400)),
+    abundance_stratum = complex_biomass_stratum |> 
+      dplyr::filter(SPECIES_CODE %in% c(69322, 69323, 68560, 68580, 68590, 69400)),
+    spatial_level = "stratum",
+    fill_NA_method = "BS")
+  
+  # Error in vecseq(f__, len__, limit) : 
+  #   Join results in 1518038 rows; more than 893685 = nrow(x)+nrow(i). Check for duplicate key values in i each of which join to the same group in x over and over again. If that's ok, try by=.EACHI to run j for each group to avoid the large allocation. If you are sure you wish to proceed, rerun with allow.cartesian=TRUE. Otherwise, please search for this error message in the FAQ, Wiki, Stack Overflow and data.table issue tracker for advice.
+  
+  # Aggregate size composition to subareas/region
+  crab_sizecomp_subarea <- gapindex::calc_sizecomp_subarea(
+    gapdata = crab_data,
+    sizecomp_stratum = crab_sizecomp_stratum)
+  
+  # rbind stratum and subarea/region biomass estimates into one dataframe
+  crab_sizecomp <- crab_sizecomp_stratum |>
+    dplyr::rename(AREA_ID = STRATUM) |>
+    dplyr::bind_rows(crab_sizecomp_subarea) |> 
+    dplyr::left_join(temp1 |> 
+                       dplyr::select(SPECIES_CODE = GROUP_CODE, 
+                                     COMMON_NAME = GROUP_NAME, 
+                                     TAXON, SPECIES_NAME) |> 
+                       dplyr::distinct()) |> 
+    dplyr::select(-SURVEY)
+  
+  write.csv(x = crab_sizecomp, file = here::here("data/crab_sizecomp.csv"), row.names = FALSE)
 }
 
 # Crabpack data ----------------------------------------------------------------
@@ -602,7 +602,7 @@ crab_biomass <- bioabund_out |>
     population_up = abundance + abundance_ci,
     population_dw = abundance - abundance_ci,
     srvy = region, 
-   survey_definition_id = dplyr::case_when(
+    survey_definition_id = dplyr::case_when(
       region == "NBS" ~ 143, 
       region == "EBS" ~ 98)) |> 
   dplyr::left_join(crab_spp) |> 
@@ -626,17 +626,9 @@ write.csv(x = crab_biomass,
 source("Z:/Projects/ConnectToOracle.R")
 source("https://raw.githubusercontent.com/afsc-gap-products/gap_products/refs/heads/main/functions/summarize_gp_updates.R")
 
-diff00 <- summarize_gp_updates(channel = channel_products,
-                             time_start = dl_change_start,
-                             time_end = dl_change_end) #|> 
-  # dplyr::mutate(OPERATION_TYPE = ifelse(OPERATION_TYPE == "deletion", "deletions", OPERATION_TYPE))
-
-dl_change_start <- "24-APR-2026 12.00.00 PM" # "02-APR-24 11.00.00 PM"
-dl_change_end <- "24-APR-2027 11.00.00 PM"
-
 a <- gap_archive_audit_cpue <- RODBC::sqlQuery(channel, 
-paste0(
-"SELECT *
+                                               paste0(
+                                                 "SELECT *
 FROM GAP_ARCHIVE.AUDIT_CPUE a
 JOIN (
 SELECT HAULJOIN, CRUISEJOIN 
@@ -649,8 +641,8 @@ FROM GAP_PRODUCTS.CRUISE
 ) c
 USING (CRUISEJOIN)
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('",dl_change_start,"', 'DD-MON-YYYY HH:MI:SS PM')
-AND TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('",dl_change_start,"', 'DD-MON-YY HH:MI:SS PM')
+AND TO_DATE('",dl_change_end,"', 'DD-MON-YY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
 # TO_DATE('",as.character(dl_change_start),"', 'DD-MON-YYYY HH:MI:SS PM')
@@ -668,11 +660,11 @@ table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
 
 a <- gap_archive_audit_biomass <- RODBC::sqlQuery(channel,
-paste0("SELECT *
+                                                  paste0("SELECT *
 FROM GAP_ARCHIVE.AUDIT_BIOMASS a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('",dl_change_start,"', 'DD-MON-YYYY HH:MI:SS PM')
-AND TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('",dl_change_start,"', 'DD-MON-YY HH:MI:SS PM')
+AND TO_DATE('",dl_change_end,"', 'DD-MON-YY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
 save(gap_archive_audit_biomass, file = here::here("data", "gap_archive_audit_biomass.rdata"))
@@ -689,11 +681,11 @@ table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_
 
 
 a <- gap_archive_audit_sizecomp <- RODBC::sqlQuery(channel, 
-paste0("SELECT * 
+                                                   paste0("SELECT * 
 FROM GAP_ARCHIVE.AUDIT_SIZECOMP a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
-AND TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('",dl_change_end,"', 'DD-MON-YY HH:MI:SS PM')
+AND TO_DATE('",dl_change_end,"', 'DD-MON-YY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") )
 save(gap_archive_audit_sizecomp, file = here::here("data", "gap_archive_audit_sizecomp.rdata"))
@@ -709,14 +701,14 @@ table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
 
 a <- gap_archive_audit_agecomp <- RODBC::sqlQuery(channel, 
-paste0("SELECT * 
+                                                  paste0("SELECT * 
 FROM GAP_ARCHIVE.AUDIT_AGECOMP a
 WHERE a.OPERATION_TIMESTAMP BETWEEN
-TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
-AND TO_DATE('",dl_change_end,"', 'DD-MON-YYYY HH:MI:SS PM')
+TO_DATE('",dl_change_end,"', 'DD-MON-YY HH:MI:SS PM')
+AND TO_DATE('",dl_change_end,"', 'DD-MON-YY HH:MI:SS PM')
 AND SURVEY_DEFINITION_ID IN (143, 98)
 AND YEAR < ",maxyr,";") ) # |> 
-  # dplyr::filter(AREA_ID_FOOTPRINT == 'EBS STANDARD PLUS NW')
+# dplyr::filter(AREA_ID_FOOTPRINT == 'EBS STANDARD PLUS NW')
 save(gap_archive_audit_agecomp, file = here::here("data", "gap_archive_audit_agecomp.rdata"))
 load(file = here::here("data", "gap_archive_audit_agecomp.rdata"))
 a <- gap_archive_audit_agecomp
@@ -729,114 +721,121 @@ table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "UPDATE",c("SPECIES_
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "DELETE",c("SPECIES_CODE", "YEAR")])
 table(a[a$SURVEY_DEFINITION_ID == 143 & a$OPERATION_TYPE == "INSERT",c("SPECIES_CODE", "YEAR")])
 
+
+diff00 <- summarize_gp_updates(channel = channel_products,
+                               time_start = dl_change_start,
+                               time_end = dl_change_end) 
+
 if (nrow(diff00) > 0) {
-
-diff00 <- diff00 |>
-  dplyr::filter(SURVEY_DEFINITION_ID %in% c(98, 143)) |>
-  dplyr::arrange(SURVEY_DEFINITION_ID) |>
-  dplyr::mutate(OPERATION_TYPE = dplyr::case_when(
-    # OPERATION_TYPE == "UPDATE" & NUMBER_RECS == 1 ~ "update",
-    # OPERATION_TYPE == "INSERT" & NUMBER_RECS == 1 ~ "insertion",
-    # OPERATION_TYPE == "DELETE" & NUMBER_RECS == 1 ~ "deletion",
-    OPERATION_TYPE == "UPDATE" ~ "updates",
-    OPERATION_TYPE == "INSERT" ~ "insertions",
-    OPERATION_TYPE == "DELETE" ~ "deletions"
-  ),
-  TABLE_NAME_order = dplyr::case_when(
-    TABLE_NAME == "AGECOMP" ~ 4,
-    TABLE_NAME == "SIZECOMP" ~ 3,
-    TABLE_NAME == "BIOMASS" ~ 2,
-    TABLE_NAME == "CPUE" ~ 1
-  ),
-  TABLE_NAME = dplyr::case_when(
-    TABLE_NAME == "AGECOMP" ~ "age composition",
-    TABLE_NAME == "SIZECOMP" ~ "size composition",
-    TABLE_NAME == "BIOMASS" ~ "biomass",
-    TABLE_NAME == "CPUE" ~ "catch per unit effort"
-  ),
-  SURVEY_DEFINITION_ID = dplyr::case_when(
-    SURVEY_DEFINITION_ID == 98 ~ "eastern Bering Sea",
-    SURVEY_DEFINITION_ID == 143 ~ "northern Bering Sea"
-  ))
-
-diff00_maxyr <- diff00 |>
-  dplyr::filter(YEAR == maxyr)|>
-  dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
-  dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE)) |>
-  dplyr::ungroup()|>
-  dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order) |>
-  dplyr::mutate(year_min = maxyr,
-                year_max = maxyr)
-
-diff00_notmaxyr_years <- diff00|>
-  dplyr::filter(YEAR != maxyr)|>
-  dplyr::group_by(TABLE_NAME, TABLE_NAME_order, SURVEY_DEFINITION_ID)|>
-  dplyr::summarise(year_min = min(YEAR, na.rm = TRUE),
-                   year_max = max(YEAR, na.rm = TRUE))|>
-  dplyr::ungroup()
-
-diff00_notmaxyr <- diff00|>
-  dplyr::filter(YEAR != maxyr)|>
-  dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
-  dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE))|>
-  dplyr::ungroup()|>
-  dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order)|>
-  dplyr::full_join(diff00_notmaxyr_years)
-
-changes_since_string <- function(diff000, str_year, maxyr) {
-  str0 <- c()
-  for (ii in unique(diff00$SURVEY_DEFINITION_ID)) {
-    temp1 <- diff000|>
-      dplyr::filter(SURVEY_DEFINITION_ID == ii)
-    str0 <- paste0(str0, ifelse(ii == unique(diff000$SURVEY_DEFINITION_ID)[1],
-                                paste0("In ", str_year), "Similarly"),
-                   ", the ", ii, " ")
-
-    for (i in unique(diff000$TABLE_NAME)) {
-      temp <- temp1|>
-        dplyr::filter(TABLE_NAME == i)|>
-        dplyr::arrange(desc(OPERATION_TYPE))
-
-      if (temp$year_max[1] == maxyr){
-        str0_years <- c()
-      } else if (temp$year_min[1]==temp$year_max[1]) {
-        str0_years <- paste0(" (", temp$year_min[1], ")")
-      } else {
-        str0_years <- paste0(" (", temp$year_min[1], "-", temp$year_max[1],")")
+  
+  diff00 <- diff00 |>
+    dplyr::filter(SURVEY_DEFINITION_ID %in% c(98, 143)) |>
+    dplyr::arrange(SURVEY_DEFINITION_ID) |>
+    dplyr::mutate(OPERATION_TYPE = dplyr::case_when(
+      # OPERATION_TYPE == "UPDATE" & NUMBER_RECS == 1 ~ "update",
+      # OPERATION_TYPE == "INSERT" & NUMBER_RECS == 1 ~ "insertion",
+      # OPERATION_TYPE == "DELETE" & NUMBER_RECS == 1 ~ "deletion",
+      OPERATION_TYPE == "UPDATE" ~ "updates",
+      OPERATION_TYPE == "INSERT" ~ "insertions",
+      OPERATION_TYPE == "DELETE" ~ "deletions"
+    ),
+    TABLE_NAME_order = dplyr::case_when(
+      TABLE_NAME == "AGECOMP" ~ 4,
+      TABLE_NAME == "SIZECOMP" ~ 3,
+      TABLE_NAME == "BIOMASS" ~ 2,
+      TABLE_NAME == "CPUE" ~ 1
+    ),
+    TABLE_NAME = dplyr::case_when(
+      TABLE_NAME == "AGECOMP" ~ "age composition",
+      TABLE_NAME == "SIZECOMP" ~ "size composition",
+      TABLE_NAME == "BIOMASS" ~ "biomass",
+      TABLE_NAME == "CPUE" ~ "catch per unit effort"
+    ),
+    SURVEY_DEFINITION_ID = dplyr::case_when(
+      SURVEY_DEFINITION_ID == 98 ~ "eastern Bering Sea",
+      SURVEY_DEFINITION_ID == 143 ~ "northern Bering Sea"
+    ))
+  
+  diff00_maxyr <- diff00 |>
+    dplyr::filter(YEAR == maxyr)|>
+    dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
+    dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE)) |>
+    dplyr::ungroup()|>
+    dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order) |>
+    dplyr::mutate(year_min = maxyr,
+                  year_max = maxyr)
+  
+  diff00_notmaxyr_years <- diff00|>
+    dplyr::filter(YEAR != maxyr)|>
+    dplyr::group_by(TABLE_NAME, TABLE_NAME_order, SURVEY_DEFINITION_ID)|>
+    dplyr::summarise(year_min = min(YEAR, na.rm = TRUE),
+                     year_max = max(YEAR, na.rm = TRUE))|>
+    dplyr::ungroup()
+  
+  diff00_notmaxyr <- diff00|>
+    dplyr::filter(YEAR != maxyr)|>
+    dplyr::group_by(TABLE_NAME, TABLE_NAME_order, OPERATION_TYPE, SURVEY_DEFINITION_ID)|>
+    dplyr::summarise(NO_RECS = sum(NUMBER_RECS, na.rm = TRUE))|>
+    dplyr::ungroup()|>
+    dplyr::arrange(SURVEY_DEFINITION_ID, TABLE_NAME_order)|>
+    dplyr::full_join(diff00_notmaxyr_years)
+  
+  changes_since_string <- function(diff000, str_year, maxyr) {
+    str0 <- c()
+    for (ii in unique(diff00$SURVEY_DEFINITION_ID)) {
+      temp1 <- diff000|>
+        dplyr::filter(SURVEY_DEFINITION_ID == ii)
+      str0 <- paste0(str0, ifelse(ii == unique(diff000$SURVEY_DEFINITION_ID)[1],
+                                  paste0("In ", str_year), "Similarly"),
+                     ", the ", ii, " ")
+      if (nrow(temp1)>0) {
+        for (i in unique(diff000$TABLE_NAME)) {
+          temp <- temp1 |>
+            dplyr::filter(TABLE_NAME == i)|>
+            dplyr::arrange(desc(OPERATION_TYPE))
+          
+          if (temp$year_max[1] == maxyr){
+            str0_years <- c()
+          } else if (temp$year_min[1]==temp$year_max[1]) {
+            str0_years <- paste0(" (", temp$year_min[1], ")")
+          } else {
+            str0_years <- paste0(" (", temp$year_min[1], "-", temp$year_max[1],")")
+          }
+          
+          str0 <- paste0(str0,
+                         ifelse(i != unique(diff000$TABLE_NAME)[1], "the ", ""), i, " table observed ",
+                         text_list(paste0(formatC(x = temp$NO_RECS, digits = 0, big.mark = ","),
+                                          " ", temp$OPERATION_TYPE)),
+                         str0_years,
+                         ifelse(i == unique(diff000$TABLE_NAME)[length(unique(diff000$TABLE_NAME))-1], "; and ",
+                                ifelse(i == unique(diff000$TABLE_NAME)[length(unique(diff000$TABLE_NAME))], 
+                                       ". ", "; ")))
+        }
       }
-
-      str0 <- paste0(str0,
-                     ifelse(i != unique(diff000$TABLE_NAME)[1], "the ", ""), i, " table observed ",
-                     text_list(paste0(formatC(x = temp$NO_RECS, digits = 0, big.mark = ","),
-                                      " ", temp$OPERATION_TYPE)),
-                     str0_years,
-                     ifelse(i == unique(diff000$TABLE_NAME)[length(unique(diff000$TABLE_NAME))-1], "; and ",
-                            ifelse(i == unique(diff000$TABLE_NAME)[length(unique(diff000$TABLE_NAME))], 
-                                   ". ", "; ")))
     }
+    return(str0)
   }
-  return(str0)
-}
-
-str_maxyr <- changes_since_string(
-  diff000 = diff00_maxyr, 
-  str_year = maxyr, 
-  maxyr = maxyr)
-str_notmaxyr <- changes_since_string(
-  diff000 = diff00_notmaxyr, 
-  str_year = paste0("the years before ", maxyr), 
-  maxyr = maxyr)
-
-str_data_changes <- paste0(str_maxyr, "\n\n", str_notmaxyr)
-writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.txt"))
-
-str_data_changes <- dplyr::bind_rows(
-  diff00_maxyr |> dplyr::mutate(case = "maxyr"), 
-  diff00_notmaxyr |> dplyr::mutate(case = "notmaxyr")
+  
+  str_maxyr <- changes_since_string(
+    diff000 = diff00_maxyr, 
+    str_year = maxyr, 
+    maxyr = maxyr)
+  
+  str_notmaxyr <- changes_since_string(
+    diff000 = diff00_notmaxyr, 
+    str_year = paste0("the years before ", maxyr), 
+    maxyr = maxyr)
+  
+  str_data_changes <- paste0(str_maxyr, "\n\n", str_notmaxyr)
+  writeLines(text = str_data_changes, con = here::here("data", "str_data_changes.txt"))
+  
+  str_data_changes <- dplyr::bind_rows(
+    diff00_maxyr |> dplyr::mutate(case = "maxyr"), 
+    diff00_notmaxyr |> dplyr::mutate(case = "notmaxyr")
   )
-
-write.csv(x = str_data_changes, file = here::here("data", "str_data_changes.csv"))
-
+  
+  write.csv(x = str_data_changes, file = here::here("data", "str_data_changes.csv"))
+  
 }
 
 # Date production data last updated --------------------------------------------
