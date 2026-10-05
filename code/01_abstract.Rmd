@@ -38,15 +38,16 @@ temp0 <- temps_avg_yr|>
   dplyr::mutate(
     bt = formatC(bt, digits = 1, format = "f"), 
     st = formatC(st, digits = 1, format = "f"), 
-    dplyr::across(where(is.numeric), round, digits = 1), 
-    bt_case = dplyr::case_when( 
-      bt_case == "average" ~ "near", 
-      bt_case == "warmer" ~ "above", 
-      bt_case == "colder" ~ "below"), 
-    st_case = dplyr::case_when(
-      st_case == "average" ~ "near", 
-      st_case == "warmer" ~ "above", 
-      st_case == "colder" ~ "below"))
+    dplyr::across(where(is.numeric), round, digits = 1) #, 
+    # bt_case = dplyr::case_when( 
+    #   bt_case == "average" ~ "near", 
+    #   bt_case == "warmer" ~ "above", 
+    #   bt_case == "colder" ~ "below"), 
+    # st_case = dplyr::case_when(
+    #   st_case == "average" ~ "near", 
+    #   st_case == "warmer" ~ "above", 
+    #   st_case == "colder" ~ "below")
+    )
 
 if (temp0$bt_case == temp0$st_case) {
 
@@ -160,11 +161,11 @@ for (i in 1:length(srvy1)){
 str0_biomass <- paste0(
   str00, 
   "A total of ", fish_sp ," fish taxa and ", invert_spp, 
-  " invertebrate taxa were identified", 
-  ifelse(plural_surveys == "", "", paste0(" on the ", SURVEY)), " survey", plural_surveys, ", combined. ") 
+  " invertebrate taxa were identified in the survey", plural_surveys, ifelse(plural_surveys == "s",", combined", ""),". ") 
 # Conclusion -------------------------------------------------------------------
 
-str0_conclusion <- "Distributional shifts in the abundance of some species may reflect northward movement during recent warm years. Some species may shift south when seasonal sea ice cover becomes more extensive. This annual variation underscores the need to continue annual survey monitoring of Bering Sea fish and invertebrate populations to gauge their responses to a changing climate."
+str0_conclusion <- paste0(ifelse(srvy == "NEBS", "Distributional shifts in the abundance of some species may reflect northward movement during recent warm years. Some species may shift south when seasonal sea ice cover becomes more extensive. ", paste0("The northern Bering Sea survey was not completed in ",maxyr,".")), 
+                          "This annual variation underscores the need to continue annual survey monitoring of Bering Sea fish and invertebrate populations to gauge their responses to a changing climate.")
 
 ```
 

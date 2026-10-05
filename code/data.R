@@ -591,7 +591,8 @@ report_spp1 <- report_spp1|>
   dplyr::select(-type, -temp, -species_name0, -genus, -species)|> 
   dplyr::mutate(dplyr::across(dplyr::starts_with('species_name_'), ~replace(., is.na(.), "")), 
                 species_name_ital = trimws(species_name_ital), 
-                species_name_noital = trimws(species_name_noital))
+                species_name_noital = trimws(species_name_noital)) |>
+  dplyr::distinct()
 
 ## other var (survey additions, *yrs, etc. -------------------------------------
 
@@ -1072,13 +1073,21 @@ temps_avg_yr <- coldpool::cold_pool_index |>
                 bt_above_mean = bt>bt_mean, 
                 st_above_mean = st>st_mean, 
                 bt_case = dplyr::case_when(
-                  bt_notsig ~ "average", 
+                  # bt_notsig ~ "average", 
+                  (bt_notsig & bt_above_mean) ~ "slightly warmer", 
+                  (bt_notsig & !bt_above_mean) ~ "slightly colder",
                   (!bt_notsig & bt_above_mean) ~ "warmer", 
-                  (!bt_notsig & !bt_above_mean) ~ "colder"), 
+                  (!bt_notsig & !bt_above_mean) ~ "colder", 
+                  TRUE ~ "the same as"), 
                 st_case = dplyr::case_when(
-                  st_notsig ~ "average", 
+                  (st_notsig & st_above_mean) ~ "slightly warmer", 
+                  (st_notsig & !st_above_mean) ~ "slightly colder",
                   (!st_notsig & st_above_mean) ~ "warmer", 
-                  (!st_notsig & !st_above_mean) ~ "colder"),                   
+                  (!st_notsig & !st_above_mean) ~ "colder", 
+                  TRUE ~ "the same as"), 
+                  # st_notsig ~ "average", 
+                  # (!st_notsig & st_above_mean) ~ "warmer", 
+                  # (!st_notsig & !st_above_mean) ~ "colder"),                   
                 case = ifelse(bt_case == st_case, 
                               paste0("both ", bt_case), 
                               paste0("bt ", bt_case, ", st ", st_case)) ) |> 
