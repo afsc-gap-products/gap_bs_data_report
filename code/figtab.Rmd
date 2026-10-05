@@ -703,11 +703,6 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r fig-mean-temperature-prep}
 # code orig from sean rohan's coldpool package! Jan 23 2021 
-nickname <- "fig-mean-temperature"
-header <- "Average surface and bottom temperatures (°C) and time series average (dashed lines) on the eastern Bering Sea shelf (left) and northern Bering Sea (right), based on data collected during standardized summer surveys."
-
-height <- 3.25
-width <- full_page_portrait_width # 6.5
 
 plot_mean_temperatures <- function(maxyr, srvy){
   
@@ -835,10 +830,10 @@ plot_mean_temperatures <- function(maxyr, srvy){
       legend.position = "bottom",
       legend.box = "horizontal")
   
-  header <- paste0("Average summer surface and bottom (points and solid lines), and time series average (dashed lines) surface and bottom temperatures (°C) for the eastern Bering Sea shelf",
+  header <- paste0("Average summer surface (light blue) and bottom (dark blue) temperatures (°C; points and solid lines) and time series average (dashed lines) for the eastern Bering Sea shelf",
                    ifelse(srvy == "NEBS", 
-                          paste0(" and northern Bering Sea, based on data collected during standardized summer surveys (right)"), ""), 
-                   ". ")
+                          paste0(" (left) and northern Bering Sea (right) "), ""), 
+                   " based on data collected during the bottom trawl surveys. ")
   
   return(list("figure_print" = figure, 
               "table_raw" = all_temperatures, 
@@ -848,6 +843,8 @@ plot_mean_temperatures <- function(maxyr, srvy){
 
 ```{r fig-mean-temperature-ebs}
 nickname <- "fig-mean-temperature-ebs"
+height <- 3.25
+width <- full_page_portrait_width # 6.5
 a <- plot_mean_temperatures(maxyr, srvy = "EBS")
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
@@ -856,6 +853,8 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 ```{r fig-mean-temperature-nebs}
 nickname <- "fig-mean-temperature-nebs"
+height <- 3.25
+width <- full_page_portrait_width # 6.5
 a <- plot_mean_temperatures(maxyr, srvy = c("NEBS"))
 for (jjj in 1:length(a)) { assign(names(a)[jjj], a[[jjj]]) }
 
@@ -1033,7 +1032,7 @@ temp <- function(yrs,
 ```
 
 ```{r fig-temperature-[st/bt]}
-height <- 3 # full_page_portrait_height
+height <- 4.25 # full_page_portrait_height
 width <- full_page_portrait_width
 yrs <- c(maxyr-2):maxyr
 row0 <- 1
@@ -1160,7 +1159,7 @@ table_raw0 <-
                                    common_name0 = "ZZZTotal") ) |> 
   dplyr::relocate(srvy, common_name, length, age) |> 
   dplyr::rename("length_measurements" = length,
-                "otolith_age_structure_samples" = age) |> 
+                "otolith_samples" = age) |> 
   dplyr::ungroup() |>
   dplyr::arrange(common_name)
 
@@ -1191,8 +1190,8 @@ for (i in 1:nrow(haul_cruises_maxyr)) {
           fixed = TRUE))
   names(table_raw)[names(table_raw) == "Length\nmeasurements"] <- 
     "Lengths"
-  names(table_raw)[names(table_raw) == "Otolith\nage\nstructure\nsamples"] <- 
-    "Otolith age structures"
+  names(table_raw)[names(table_raw) == "Otolith\nsamples"] <- 
+    "Otolith samples"
   names(table_raw)[names(table_raw) == "Pathobiology\nblood\nsamples"] <- 
     "Pathobiology blood samples"
   names(table_raw)[names(table_raw) == "Genetic\nfin\nclip\nsamples"] <- 
