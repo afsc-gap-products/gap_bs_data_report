@@ -55,7 +55,6 @@ report_title <- "data"
 source(here::here("code","functions.R"))
 # source(here::here("code","data_dl.R"))  # Run when there is new data!
 source(here::here("code","data.R"))
-2 # no touchy! - Needed for Google Drive authentication
 
 ## Figures and Tables ----------------------------------------------------------
 

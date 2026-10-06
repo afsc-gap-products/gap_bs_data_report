@@ -803,7 +803,8 @@ catch_haul_cruises <-
   dplyr::left_join(
     y = cpue |> 
       dplyr::select(cruisejoin, hauljoin, species_code, weight_kg, count), 
-    by = c("hauljoin", "cruisejoin"))
+    by = c("hauljoin", "cruisejoin")) |> 
+  dplyr::filter(weight_kg > 0)
 
 catch_haul_cruises_maxyr <- catch_haul_cruises |> 
   dplyr::filter(year == maxyr)
@@ -811,7 +812,6 @@ catch_haul_cruises_maxyr <- catch_haul_cruises |>
 catch_haul_cruises_compareyr <- catch_haul_cruises |> 
   dplyr::right_join(data.frame(srvy = names(compareyr), 
                                year = compareyr))
-
 
 ## vessels ----------------------------------------------------------------------
 

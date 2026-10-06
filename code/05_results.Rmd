@@ -251,7 +251,11 @@ for (i in 1:length(srvy1)) {
   temp1 <- taxon_count |> 
     dplyr::filter(srvy == srvy1[i])
   
-  str0 <- paste0(str0, ifelse(i == 1, "In", "Similarly, in"))
+  str0 <- paste0(str0, 
+                 dplyr::case_when(
+    length(srvy1) == 1 ~ "The survey found ", 
+    i == 1 ~ "In", 
+    i == 2 ~ "Similarly, in"))
   
   fish_sp <- temp1$count[
     temp1$taxon == "fish" & 
@@ -277,8 +281,9 @@ for (i in 1:length(srvy1)) {
   
   str0 <- paste0(
     str0, 
-    " the ", temp1$srvy_long[1],
-    ", ",fish_sp_code,
+    ifelse(length(srvy1) == 1, 
+           paste0(fish_sp_code), 
+           paste0(fish_sp_code, " the ", temp1$srvy_long[1], ", ")),
     " fish taxa representing ", fish_family,
     " families and ", fish_genera,
     " genera were identified (Appendix Table", " ",
@@ -292,7 +297,9 @@ for (i in 1:length(srvy1)) {
     invert_sp_code,
     " different invertebrate taxa representing ",
     invert_phyla,
-    " phyla identified on the ",maxyr, " ",temp1$srvy_long[1], " survey",", of which ",
+    " phyla identified",
+    ifelse(length(srvy1) == 1, "", paste0(" in the ", maxyr, " ",temp1$srvy_long[1], " survey")),
+    ", of which ",
     invert_sp,
     " taxa were identified to species level (Appendix Table", plural_surveys, " ",
     ifelse(srvy1[i] == "EBS", "A", "B"),
@@ -439,30 +446,32 @@ temp1 <- left_join(
                 taxon = gsub(pattern = "Total ", replacement = "", x = taxon))|> 
   dplyr::filter(taxon == "fish")
 
+str0 <- ""
+if (length(srvy1)>1) {
 str0 <- paste0("The ", 
                text_list(paste0(
                  "total biomass of demersal organisms in the ", total_biomass0$srvy_long, 
-                 " was estimated at ", xunits(total_biomass0$total), " t")), 
-               ifelse(plural_surveys == "", "", ". ") )
-
+                 " was estimated at ", xunits(total_biomass0$total), " t")), ". ")
+               # ifelse(plural_surveys == "", "", ". ") )
+}
 str00 <- ""
 for (ii in 1:length(temp2$srvy)) {
   
-  str000 <- ifelse(ii != 1 & temp2$prop_fish[ii]>temp2$prop_invert[ii], "also ","")
-  
-  # sentence transitions
-  if (ii == 2) { # second of 2 surveys being assessed
-    str00 <- paste0(str00, " and in the ")
-  } else if (plural_surveys == "") { # only one survey being assessed
-    str00 <- paste0(str00, " and")
-  } else { # first of 2 surveys being assessed
-    str00 <- paste0(str00, "In the ")
-  }
+  # str000 <- ifelse(ii != 1 & temp2$prop_fish[ii]>temp2$prop_invert[ii], "also ","")
+  # 
+  # # sentence transitions
+  # if (ii == 2) { # second of 2 surveys being assessed
+  #   str00 <- paste0(str00, " and in the ")
+  # } else if (plural_surveys == "") { # only one survey being assessed
+  #   str00 <- paste0(str00, " and")
+  # } else { # first of 2 surveys being assessed
+  #   str00 <- paste0(str00, "In the ")
+  # }
   
   str00 <- paste0(str00, 
                   # ifelse(ii==2, " and in the ", ifelse(plural_surveys == "", "", "In the ")), 
-                  paste0(ifelse(plural_surveys == "", "", paste0(temp2$srvy_long[ii], ",")), 
-                         " the proportion of fishes (", 
+                  # paste0(ifelse(plural_surveys == "", "", paste0(temp2$srvy_long[ii], ",")), 
+                         "The proportion of fishes (", 
                          temp2$perc_fish[ii], 
                          "; Table \\@ref(tab:tab-biomass-est-",  temp2$srvy[ii],
                          "-fish)) was ", str000,  
@@ -470,7 +479,7 @@ for (ii in 1:length(temp2$srvy)) {
                          " invertebrates (", 
                          temp2$perc_invert[ii], 
                          "; Table \\@ref(tab:tab-biomass-est-", temp2$srvy[ii], 
-                         "-invert))"))
+                         "-invert))")#)
 }
 str0 <- paste0(str0, str00, ". ")
 
@@ -662,7 +671,7 @@ for (i in 1:length(srvy1)) {
                  " from ",
                  xunits(temp1$compareyr)," t in ", compareyr[names(compareyr) == srvy1[i]]," to ",
                  xunits(temp1$maxyr)," t in ", maxyr, ". ", 
-                 
+                 str1,
                  # taxa increased
                  "Large increases in ",
                  ifelse(plural_surveys == "", "", paste0(srvy11[i], " ")),
@@ -741,7 +750,8 @@ str0 <- paste0(
 str4 <- str0
 ```
 
-`r str1``r str2`
+<!-- `r str1` -->
+`r str2`
 
 `r str3`While exhaustive efforts are made to standardize catch processing and data collection, variation in catchability may contribute to some of the differences in biomass between years [@KotwickiOno2019].
 
@@ -792,7 +802,7 @@ temp2 <- report_spp1|>
   dplyr::distinct()
 ```
 
-Summary results for `r xunits(sum(!is.na(report_spp$order)))` abundant and/or ecologically important taxa caught during the `r SURVEY` surveys are presented below. Plots of biomass and abundance time series, spatial distribution, abundance-at-length estimates, and stratum-level CPUE (kg/km^2^ and no/km^2^) tables are provided for each taxon. The spatial distribution maps are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^), which uses a weighted average of nearby measured stations to estimate values at unmeasured locations between stations. Similar interactive maps of these highlighted taxa and others are available through the NOAA Distribution Mapping and Analysis Portal^[https://apps-st.fisheries.noaa.gov/dismap]. More information on how to find, download, and interact with the data used to produce this report is available in the [Data Sources](#data-sources) section. Taxa are presented in alphabetical order by common name.
+Summary results for `r xunits(sum(!is.na(report_spp$order)))` abundant and/or ecologically important taxa caught during the `r maxyr` `r SURVEY` survey`r plural_surveys` are presented below. Plots of biomass and abundance time series, spatial distribution, abundance-at-length estimates, abundance-at-age estimates, and stratum-level CPUE (kg/km^2^ and no/km^2^) tables are provided for each taxon. The spatial distribution maps are presented as inverse-distance-weighted interpolations of CPUE (kg/km^2^), which uses a weighted average of nearby measured stations to estimate values at unmeasured locations between stations. Similar interactive maps of these highlighted taxa and others are available through the NOAA Distribution Mapping and Analysis Portal^[https://apps-st.fisheries.noaa.gov/dismap]. More information on how to find, download, and interact with the data used to produce this report is available in the [Data Sources](#data-sources) section. Taxa are presented in alphabetical order by common name.
 
 ```{r fig-surveyphoto0, eval = FALSE}
 nickname <- "fig-surveyphoto"
