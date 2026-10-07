@@ -77,7 +77,7 @@ for (i in 1:nrow(comb)){
 }
 
 comb <- unique(sort(comb$file_name))
-# comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
+comb <- comb[!grepl(pattern = "-crab", x = comb)] # temporary
 # comb <- comb[!grepl(pattern = "antlered-sculpin", x = comb)] # temporary
 comb <- comb[!grepl(pattern = "butterfly", x = comb)] # temporary
 # comb <- comb[!grepl(pattern = "octopuses", x = comb)] # temporary

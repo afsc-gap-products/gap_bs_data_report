@@ -121,7 +121,7 @@ for (p in PKG) {
     require(p, character.only = TRUE)}
 }
 
-pandoc::pandoc_install("latest")
+pandoc::pandoc_install("latest", force = TRUE)
 pandoc::pandoc_activate("latest")
 
 # extrafont::loadfonts(device = "win")

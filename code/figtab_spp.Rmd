@@ -2159,22 +2159,21 @@ if (ncol(table_print0) > 2) {
 
 # if there are more than 99 individuals for one survey but not the other, 
 # replace entries for biomass % rows with "-"
-table_print0[table_print0$var == "% of Total Biomass", -1][which(as.numeric(table_print0[table_print0$var == "catch_min", -1])<=100)] <- "-"
-table_print0[table_print0$var == "% Change in Biomass", -1][which(as.numeric(table_print0[table_print0$var == "catch_min", -1])<=100)] <- "-"
-table_print0[table_print0$var == "% Difference in Biomass Time Series Mean", -1][which(as.numeric(table_print0[table_print0$var == "catch_min", -1])<=100)] <- "-"
 
-# remove rows if there are less than 99 individuals 
-if (sum(table_raw$catch_min >= 100) == nrow(table_raw)) {
-  # if there are more than 99 individuals for both surveys, remove "Observed Catch Totals" row
+# remove rows if there are less than 500 individuals 
+if (sum(table_raw$catch_min > 250) == nrow(table_raw)) {
+  # if there are more than 250 individuals for both surveys, remove "Observed Catch Totals" row
   table_print0 <- table_print0[table_print0$var != "Observed Catch Totals",]
-} else if (sum(table_raw$catch_min <= 100) == nrow(table_raw)) {
-  # if there are less than 99 individuals for both surveys, remove % biomass rows
+} 
+
+if (sum(table_raw$catch_min <= 250) == nrow(table_raw)) {
+  # if there are less than 250 individuals for both surveys, remove % biomass rows
   table_print0 <- table_print0[!grepl(x = table_print0$var, pattern = "%"),] 
 } 
 
-if (sum(table_raw$catch_min >= 100) != nrow(table_raw)) {
+if (sum(table_raw$catch_min >= 250) != nrow(table_raw)) {
   header <- paste0(header, 
-                   "Too few organisms were observed on the ", text_list(tolower(table_raw$`Bering Sea\nSurvey`[table_raw$catch_min <= 100]))," Bering Sea survey to share meaningful percent change of total biomass values",ifelse(sum(table_print0 == "-")>0, " (note cells with '-')", ""),", so observed values are shared instead. ")      
+                   "Too few organisms were observed on the ", text_list(tolower(table_raw$`Bering Sea\nSurvey`[table_raw$catch_min <= 250]))," Bering Sea survey to share meaningful percent change of total biomass values",ifelse(sum(table_print0 == "-")>0, " (note cells with '-')", ""),", so observed values are shared instead. ")      
 }
 
 
@@ -2455,7 +2454,7 @@ if (spp_plot_agecomp) {
   srvy_age <- gsub(pattern = "EBS", replacement = "eastern", x = srvy_age)
   srvy_age <- gsub(pattern = "NBS", replacement = "northern", x = srvy_age)
   
-  header <- paste0(header, "(D) The total abundance-at-age estimates were calculated and scaled to the total estimated population from the last ten years of available data (",min(yrs_age),"-", max(yrs_age),") in the ",text_list(srvy_age)," Bering Sea surveys. Ages were cut off at ", age_cutoff, " years old for legibility. ")
+  header <- paste0(header, "(D) The total abundance-at-age estimates were calculated and scaled to the total estimated population from the last ten years of available data (",min(yrs_age),"-", max(yrs_age),") in the ",text_list(srvy_age)," Bering Sea surveys. The x-axis is cut off at ", age_cutoff, " years old for legibility. ")
   
 }
 
@@ -2480,7 +2479,10 @@ figure_print <- ggdraw(add_sub(
   plot = figure_print0, 
   size = 10, 
   label = paste0(spp_print, ifelse(spp_plot_agecomp, paste0("; age cutoff: ", age_cutoff), ""), "\n", 
-                 paste0(temp$srvy, " Bio Mean: ", 
+                 paste0(temp$srvy, 
+                        " Bio Long Mean: ", gsub(pattern = "\n", replace = " ", 
+                             x = temp$`% Difference\nin Biomass\nTime Series Mean`, fixed = TRUE), ")",
+                        " Bio Mean: ", 
                         round(x = temp$y_mean, digits = 1),
                         " ", pres_timeseries_unit_wrd, " ", maxyr, ": ",
                         temp$`Biomass`," (",
@@ -2498,12 +2500,12 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 
 ```{r remove-odds-ends}
-# remove("comm_dist")
-# remove("comm_size")
-# remove("pres_dist")
-# remove("pres_size")
-# remove("pres_timeseries_mean")
-# remove("pres_timeseries")
-# remove("pres_stats")
+remove("comm_dist")
+remove("comm_size")
+remove("pres_dist")
+remove("pres_size")
+remove("pres_timeseries_mean")
+remove("pres_timeseries")
+remove("pres_stats")
 ```
 
