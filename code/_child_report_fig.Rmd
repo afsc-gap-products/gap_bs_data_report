@@ -1,12 +1,18 @@
 
 
-```{r {{nickname00}}-child-fig, fig.id = "{{nickname00}}", fig.alt = "{{caption}}", fig.cap = "{{caption}}", fig.asp = {{img.asp}}, fig.width = {{fig.width}}}
+```{r {{nickname00}}-child-fig-1, fig.id = "{{nickname00}}", fig.alt = "{{caption}}", fig.cap = "{{caption}}", fig.asp = {{img.asp}}, fig.width = {{fig.width}}}
 
-if (grepl(pattern = ".png", x = path)) {
-  knitr::include_graphics(path = "{{path}}")
+chunk_path <- "{{path}}"
+
+if (grepl(pattern = "\\.png$", x = chunk_path, ignore.case = TRUE)) {
+  
+  # THIS IS THE CRITICAL FIX RIGHT HERE:
+  knitr::include_graphics(path = chunk_path, rel_path = FALSE)
+
 } else {
-  load("{{path}}") 
+  load(chunk_path) 
   obj$figure
 }
+
 ```
 
