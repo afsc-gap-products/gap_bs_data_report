@@ -55,6 +55,7 @@ PKG <- c(
   # "extrafont",
   "ggpubr",
   "ggridges",
+  "padoc", 
   
   # other tidyverse
   "plyr",

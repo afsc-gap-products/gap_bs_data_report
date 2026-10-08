@@ -1409,11 +1409,11 @@ table_raw0 <-
       dplyr::filter(stratum == 999 & 
                       srvy %in% srvy1 &
                       year %in% yrs) |> 
-                      dplyr::mutate(year = dplyr::case_when(
-                        year == maxyr ~ "maxyr",
-                        year == (compareyr["EBS"]) ~ "EBS_compareyr",
-                        year == (compareyr["NBS"]) ~ "NBS_compareyr"
-                      )) |>
+      dplyr::mutate(year = dplyr::case_when(
+        year == maxyr ~ "maxyr",
+        year == (compareyr["EBS"]) ~ "EBS_compareyr",
+        year == (compareyr["NBS"]) ~ "NBS_compareyr"
+      )) |>
       dplyr::select(species_code, year, srvy, biomass_mt), 
     x = report_spp1 |> 
       dplyr::select(print_name, species_name = species_name1, species_code, taxon, table_bio_spp), 
@@ -1436,9 +1436,9 @@ table_raw0 <-
     print_name = paste0(toupper(substr(print_name, start = 1, stop = 1)), substr(print_name, start = 2, stop = nchar(print_name))))
 
 if ("NBS_compareyr" %in% names(table_raw0)) {
-table_raw0 <- table_raw0 |>   
-  dplyr::mutate(
-    change_NBS = pchange(start = NBS_compareyr, end = maxyr, value_only = TRUE) )
+  table_raw0 <- table_raw0 |>   
+    dplyr::mutate(
+      change_NBS = pchange(start = NBS_compareyr, end = maxyr, value_only = TRUE) )
 }
 
 table_raw0 <- table_raw0 |>   
@@ -1491,12 +1491,12 @@ table_print0 <- dplyr::bind_rows(
   table_print0 |> dplyr::filter(change == "-"),
 )
 
-  
-  names(table_print0)[ names(table_print0) == "maxyr"] <- maxyr
-  names(table_print0)[ names(table_print0) == "EBS_compareyr"] <- compareyr["EBS"]
-  if ("NBS_compareyr" %in% names(table_print0)) {
-    names(table_print0)[ names(table_print0) == "NBS_compareyr"] <- compareyr["NBS"]
-  }
+
+names(table_print0)[ names(table_print0) == "maxyr"] <- maxyr
+names(table_print0)[ names(table_print0) == "EBS_compareyr"] <- compareyr["EBS"]
+if ("NBS_compareyr" %in% names(table_print0)) {
+  names(table_print0)[ names(table_print0) == "NBS_compareyr"] <- compareyr["NBS"]
+}
 
 for (i in 1:c(nrow(haul_cruises_maxyr))) {
   
@@ -1728,15 +1728,15 @@ table_raw <- dplyr::bind_rows(biomass_maxyr, biomass_compareyr) |>
                 `% Change` = pchange(start = compareyr, end = maxyr, value_only = TRUE), 
                 maxyr = maxyr/1000, 
                 compareyr = compareyr/1000, 
-    dplyr::across(dplyr::where(is.numeric), formatC, format = "f", big.mark = ",", digits = 0) 
-    ) |>
+                dplyr::across(dplyr::where(is.numeric), formatC, format = "f", big.mark = ",", digits = 0) 
+  ) |>
   dplyr::ungroup()
-  # dplyr::filter( # remove all rows where there are cells with less than 5 characters (e.g., for  organisms with small catches that really shouldnt be in this table like snailfish uid)
-  #   if_all(
-  #     everything(),
-  #     ~ is.na(.) | nchar(as.character(.)) >= 5
-  #   )
-  # ) 
+# dplyr::filter( # remove all rows where there are cells with less than 5 characters (e.g., for  organisms with small catches that really shouldnt be in this table like snailfish uid)
+#   if_all(
+#     everything(),
+#     ~ is.na(.) | nchar(as.character(.)) >= 5
+#   )
+# ) 
 
 names(table_raw)[names(table_raw) == "maxyr"] <- maxyr
 names(table_raw)[names(table_raw) == "compareyr"] <- compareyr
@@ -1765,30 +1765,30 @@ flextable_color_range <- function(ft, dat0, var0, rnge = -9:9) {
     j  = var0)
 }
 
- for (ii in 1:length(unique(table_raw$srvy))) {
-   
-   nickname <- paste0(nickname0, unique(table_raw$srvy)[ii])
-   
-table_print <- table_raw |> 
-  dplyr::filter(srvy == unique(table_raw$srvy)[ii]) |> 
-  dplyr::select(-srvy) |> 
-  flextable::flextable()  |>  
-  theme_flextable_nmfstm(row_lines = TRUE, 
-                         pgwidth = full_page_landscape_width) |> 
-  flextable::merge_v(j = "common_name", part = "body") |>
-  flextable::bold(j = 1, i = ~ !is.na(common_name) ) |> 
-  flextable::merge_h(i = 1, part = "header") |>
-  flextable::align(i = 1, align = "center", part = "header") |>
-  flextable::fontsize(size = 14, part = "header") |>
-  flextable::fontsize(size = 12, part = "body") |>
-  flextable::fontsize(size = 14, part = "body", j = 1) |>
-  flextable::hline_bottom(part = "body",
-                          border = fp_border(color = "transparent", style = "solid", width = 1))
-
- table_print <- table_print |> 
-  flextable_color_range(dat0 = table_raw, var0 = "% Change")
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+for (ii in 1:length(unique(table_raw$srvy))) {
+  
+  nickname <- paste0(nickname0, unique(table_raw$srvy)[ii])
+  
+  table_print <- table_raw |> 
+    dplyr::filter(srvy == unique(table_raw$srvy)[ii]) |> 
+    dplyr::select(-srvy) |> 
+    flextable::flextable()  |>  
+    theme_flextable_nmfstm(row_lines = TRUE, 
+                           pgwidth = full_page_landscape_width) |> 
+    flextable::merge_v(j = "common_name", part = "body") |>
+    flextable::bold(j = 1, i = ~ !is.na(common_name) ) |> 
+    flextable::merge_h(i = 1, part = "header") |>
+    flextable::align(i = 1, align = "center", part = "header") |>
+    flextable::fontsize(size = 14, part = "header") |>
+    flextable::fontsize(size = 12, part = "body") |>
+    flextable::fontsize(size = 14, part = "body", j = 1) |>
+    flextable::hline_bottom(part = "body",
+                            border = fp_border(color = "transparent", style = "solid", width = 1))
+  
+  table_print <- table_print |> 
+    flextable_color_range(dat0 = table_raw, var0 = "% Change")
+  
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -1978,40 +1978,40 @@ header <- paste0("Lengths collected during the ", maxyr, " ",
 for (i in 1:length(srvy)) {
   
   nickname <- paste0(nickname0, srvy[i]) 
-
-# length data - from oracle
-table_raw <- lengths |> 
-  dplyr::filter(year %in% c(maxyr, compareyr[srvy[i]])) |>
-  dplyr::filter(!(species_code %in% c(68580, 68590, 68560))) |>
-  dplyr::mutate(year = ifelse(year == maxyr, "maxyr", "compareyr")) |> 
-  dplyr::select(srvy, species_code, frequency, year) |> 
-      dplyr::distinct() |> 
-  dplyr::group_by(srvy, species_code, year) |> 
-  dplyr::summarise(length = sum(frequency, na.rm = TRUE)) |> 
-  dplyr::ungroup() |> 
-  dplyr::left_join(
-    spp_info |> 
-      dplyr::select(species_code, common_name) |> 
-      dplyr::distinct(), 
-    by = "species_code") |>
-  dplyr::filter(!(species_code %in% c(68560, 68580, 68590, 69322, 
+  
+  # length data - from oracle
+  table_raw <- lengths |> 
+    dplyr::filter(year %in% c(maxyr, compareyr[srvy[i]])) |>
+    dplyr::filter(!(species_code %in% c(68580, 68590, 68560))) |>
+    dplyr::mutate(year = ifelse(year == maxyr, "maxyr", "compareyr")) |> 
+    dplyr::select(srvy, species_code, frequency, year) |> 
+    dplyr::distinct() |> 
+    dplyr::group_by(srvy, species_code, year) |> 
+    dplyr::summarise(length = sum(frequency, na.rm = TRUE)) |> 
+    dplyr::ungroup() |> 
+    dplyr::left_join(
+      spp_info |> 
+        dplyr::select(species_code, common_name) |> 
+        dplyr::distinct(), 
+      by = "species_code") |>
+    dplyr::filter(!(species_code %in% c(68560, 68580, 68590, 69322, 
                                         69323, 69400, 69310, 68577, 68781) ))  |>  # no crab!
-  dplyr::group_by(srvy, common_name, year) |>  
-  dplyr::summarise(frequency = sum(length, na.rm = TRUE)) |>
-  tidyr::pivot_wider(
-    id_cols = c("common_name"), 
-    names_from = c("year"),
-    values_from = "frequency") |> 
-  dplyr::ungroup() |> 
-  dplyr::arrange(common_name) 
-
-table_raw <- table_raw |> 
-  dplyr::mutate(keep = ifelse(maxyr>=1000, T, F))
-
-table_raw0 <- table_raw |>
-  dplyr::filter(keep == F) |>
-  dplyr::select(-keep) 
-
+    dplyr::group_by(srvy, common_name, year) |>  
+    dplyr::summarise(frequency = sum(length, na.rm = TRUE)) |>
+    tidyr::pivot_wider(
+      id_cols = c("common_name"), 
+      names_from = c("year"),
+      values_from = "frequency") |> 
+    dplyr::ungroup() |> 
+    dplyr::arrange(common_name) 
+  
+  table_raw <- table_raw |> 
+    dplyr::mutate(keep = ifelse(maxyr>=1000, T, F))
+  
+  table_raw0 <- table_raw |>
+    dplyr::filter(keep == F) |>
+    dplyr::select(-keep) 
+  
   table_raw_other <- table_raw |>
     dplyr::filter(keep == FALSE) |>
     dplyr::select(-keep) |>
@@ -2023,43 +2023,43 @@ table_raw0 <- table_raw |>
     dplyr::mutate(common_name = paste0("Other taxa (",maxyr,": ",maxyr_n,"; ",compareyr,": ", compareyr_n, ")")) |> 
     dplyr::rename(maxyr = maxyr_count, compareyr = compareyr_count) |> 
     dplyr::select(-maxyr_n, -compareyr_n)
-
-table_print0 <- dplyr::bind_rows(
-  table_raw |>
-    dplyr::filter(keep == TRUE) |>
-    dplyr::select(-keep) |>
-    dplyr::mutate(common_name = stringr::str_to_sentence(common_name)) |> 
-    dplyr::arrange(common_name),
-table_raw_other,
-  table_raw |>    # total
-    dplyr::mutate(common_name = "TOTAL") |>
-    dplyr::group_by(common_name) |> 
-    dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE)) |>
-    dplyr::ungroup())  |> 
-  dplyr::mutate(dplyr::across(dplyr::where(is.numeric), xunits, val_under_x_words = -1), 
-                common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
-
-table_print0[table_print0==0]<- "-"
-names(table_print0)[names(table_print0) == "maxyr"] <- maxyr
-names(table_print0)[names(table_print0) == "compareyr"] <- compareyr
-
-std_b <- officer::fp_border(width = 2, color = "grey10")
-
-table_print <- table_print0 |> 
-  flextable::flextable() |>
-  flextable::set_header_labels(
-    values = c("Common name", names(table_print0)[-1]) ) |>
-  theme_flextable_nmfstm() |>
-  flextable::merge_h(i = 1, part = "header") |> 
-  flextable::merge_v(j = "common_name", part = "header") |>
-  flextable::valign(valign = "top") |>
-  flextable::bold(i = ~(common_name == "TOTAL") ) |>
-  # flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") |> 
-  flextable::align(j = 2:3, align = "right", part = "all") |> 
-  flextable::align(j = 1, align = "left", part = "all") |> 
-  flextable::hline(border = std_b, part = "header")  
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+  
+  table_print0 <- dplyr::bind_rows(
+    table_raw |>
+      dplyr::filter(keep == TRUE) |>
+      dplyr::select(-keep) |>
+      dplyr::mutate(common_name = stringr::str_to_sentence(common_name)) |> 
+      dplyr::arrange(common_name),
+    table_raw_other,
+    table_raw |>    # total
+      dplyr::mutate(common_name = "TOTAL") |>
+      dplyr::group_by(common_name) |> 
+      dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum, na.rm = TRUE)) |>
+      dplyr::ungroup())  |> 
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), xunits, val_under_x_words = -1), 
+                  common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))))
+  
+  table_print0[table_print0==0]<- "-"
+  names(table_print0)[names(table_print0) == "maxyr"] <- maxyr
+  names(table_print0)[names(table_print0) == "compareyr"] <- compareyr
+  
+  std_b <- officer::fp_border(width = 2, color = "grey10")
+  
+  table_print <- table_print0 |> 
+    flextable::flextable() |>
+    flextable::set_header_labels(
+      values = c("Common name", names(table_print0)[-1]) ) |>
+    theme_flextable_nmfstm() |>
+    flextable::merge_h(i = 1, part = "header") |> 
+    flextable::merge_v(j = "common_name", part = "header") |>
+    flextable::valign(valign = "top") |>
+    flextable::bold(i = ~(common_name == "TOTAL") ) |>
+    # flextable::align(i = 1, j = 2:ncol(table_print0), align = "center", part = "header") |> 
+    flextable::align(j = 2:3, align = "right", part = "all") |> 
+    flextable::align(j = 1, align = "left", part = "all") |> 
+    flextable::hline(border = std_b, part = "header")  
+  
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 }
 ```
 
@@ -2076,7 +2076,7 @@ a <- report_spp1 |>
   dplyr::mutate(include  = ifelse(is.na(plot_sizecomp ) | isFALSE(plot_sizecomp ), 
                                   FALSE, TRUE)) |> 
   dplyr::filter(include == TRUE)  |> 
-      dplyr::distinct()
+  dplyr::distinct()
 
 table_raw <- specimen |> 
   dplyr::filter(year %in% c(maxyr, compareyr) &
@@ -2176,7 +2176,7 @@ temp <- function(biomass, srvy0, maxyr){
     "Alaska skate" = "#D0D0D0", 
     "Northern rock sole" = "#B3EDEF")
   
-    if (srvy0 == "EBS") {
+  if (srvy0 == "EBS") {
     table_raw <- biomass |> 
       dplyr::filter(species_code %in% c(21740, 21720, 10210, 10110, 10130, 471, 10261)) 
     
@@ -2295,24 +2295,24 @@ header <- topten_header
 
 figure_print <- topten_fig   +
   ggtitle(label = "", subtitle = "") +
-    ggplot2::theme( 
-      panel.background = element_rect(fill = "white"),
-      panel.grid.major.y = element_blank(),
-      panel.grid.minor.y = element_blank(),
-      panel.grid.minor.x = element_blank(),
-      panel.grid.major.x = element_line(colour = "grey95"),
-      panel.border = element_rect(fill = NA, colour = "grey20"),
-      legend.text = element_text(size = legend_font_size-2),
-      legend.background = element_rect(colour = "transparent", 
-                                       fill = "transparent"),
-      legend.key = element_rect(colour = "transparent",
-                                fill = "transparent"),
-      axis.title = element_text(size = legend_font_size, face = "bold"),
-      axis.text = element_text(size = legend_font_size),
-      # legend.position = "bottom", 
-      # legend.box = "horizontal",
-      legend.box.spacing = unit(0, "pt"),
-      legend.margin=margin(0, 0, 0, 0)) 
+  ggplot2::theme( 
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_line(colour = "grey95"),
+    panel.border = element_rect(fill = NA, colour = "grey20"),
+    legend.text = element_text(size = legend_font_size-2),
+    legend.background = element_rect(colour = "transparent", 
+                                     fill = "transparent"),
+    legend.key = element_rect(colour = "transparent",
+                              fill = "transparent"),
+    axis.title = element_text(size = legend_font_size, face = "bold"),
+    axis.text = element_text(size = legend_font_size),
+    # legend.position = "bottom", 
+    # legend.box = "horizontal",
+    legend.box.spacing = unit(0, "pt"),
+    legend.margin=margin(0, 0, 0, 0)) 
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```
@@ -2384,7 +2384,342 @@ figure_print <- ggplot(table_raw0, aes(x = year, y = biomass_millions, fill = sp
 
 ```
 
+```{r fig-timeseries-total-prep, eval = TRUE}
+timeseries_plot <- function(table_raw, table_raw_mean, nickname, height, width, legend_font_size = 10) {
+  
+  # if (length(unique(table_raw$var_)) == 1) {
+  #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = "", pattern = "\n", fixed = TRUE)
+  #   table_raw$var_ <- gsub(x = table_raw$var_, replacement = " ", pattern = "  ", fixed = TRUE)
+  # }
+  
+  
+  # anno<-NA
+  # temp<-setdiff(x = unique(table_raw$srvy), 
+  #               y = unique(table_raw_mean$srvy))
+  # if (length(temp) != 0) {
+  #   anno <- paste0("Data for this species in the\n", 
+  #                  temp, 
+  #                  " is too limited to plot.")
+  #   
+  #   col_anno <- table_raw$col[which(unique(table_raw$srvy)==temp)]
+  #   col <- table_raw$col[which(unique(table_raw$srvy)!=temp)]
+  # }
+  
+  figure_print <-
+    # general plotting aesthetics
+    ggplot2::ggplot(data = table_raw,
+                    mapping = aes(x = year, 
+                                  y = y, 
+                                  group = group,
+                                  color = srvy_long)) +
+    # plot mean line 
+    ggplot2::geom_segment(
+      data = table_raw_mean,
+      mapping = aes(x = minyr, 
+                    xend = maxyr, 
+                    y = y_mean, 
+                    yend = y_mean),
+      alpha = .5,
+      linetype = "dashed", 
+      linewidth = 1.5) +
+    # plot points and lines
+    ggplot2::geom_line(linewidth = .5) +
+    ggplot2::geom_point(size = 1.5, mapping = aes(shape = srvy_long)) + 
+    # axis aesthetics 
+    # ggplot2::ggtitle(spp_print) +  # No title
+    ggplot2::scale_x_continuous(
+      name = "", # "Year", 
+      # limits = range(yrs_plotted, na.rm = TRUE), 
+      labels = scales::label_number(accuracy = 1, big.mark = ""))  +
+    ggplot2::scale_y_continuous(
+      name = "", # spp_print, 
+      expand = c(0, 0),
+      breaks = breaks_pretty(), 
+      labels = scales::label_number(big.mark = ","), # accuracy = 1, 
+      limits = c(0, NA)) +
+    # survey area color aesthetics
+    ggplot2::scale_color_manual(values = pcol) +
+    # plot error bars
+    ggplot2::geom_errorbar(mapping = aes(ymin = y_ci_dw, ymax = y_ci_up), 
+                           width = .2,
+                           alpha = 0.5) + 
+    # Set y axis minimum to always be 0 & remove resulting "y" label
+    # ylim(0, NA) +
+    # ylab(" ") +
+    
+    # aesthetics
+    # Create & position legend title
+    ggplot2::labs(color = stringr::str_to_title(spp_print)) +  # force title case
+    ggplot2::labs(shape = stringr::str_to_title(spp_print)) +
+    ggplot2::guides(color = guide_legend(title.position = "top",
+                                         title.hjust = 0.5,
+                                         title.vjust = -0.5),
+                    shape = guide_legend(title.position = "top",
+                                         title.hjust = 0.5,
+                                         title.vjust = -0.5)) +
+    ggplot2::theme( 
+      strip.placement = "outside",
+      strip.background = element_blank(), 
+      strip.text = element_text(size = 10, face = "bold"), 
+      panel.background = element_rect(fill = "white"),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey95"),
+      panel.border = element_rect(fill = NA, colour = "grey20"),
+      legend.text = element_text(size = legend_font_size),
+      legend.background = element_rect(colour = "transparent", 
+                                       fill = "transparent"),
+      legend.key = element_rect(colour = "transparent",
+                                fill = "transparent"),
+      axis.title = element_text(size = legend_font_size, face = "bold"),
+      axis.text = element_text(size = legend_font_size),
+      legend.position = "bottom", 
+      legend.box = "horizontal",
+      legend.box.spacing = unit(0, "pt"),
+      legend.margin=margin(0, 0, 0, 0)) + 
+    ggplot2::facet_grid(rows = vars(var_), 
+                        scales = "free", 
+                        switch = "both") 
+  # if (!is.na(anno[1])) {
+  #   figure_print <- figure_print +
+  #     ggplot2::geom_text(x = Inf, 
+  #                        y = -Inf, 
+  #                        hjust = 1.2, 
+  #                        vjust = -.3, 
+  #                        label = anno, 
+  #                        show.legend = FALSE, 
+  #                        size = 4, 
+  #                        fontface = "italic",
+  #                        color = col_anno)
+  # }
+  # If there's only one survey, remove legend with color guide.
+  if (length(unique(table_raw$srvy_long)) == 1) {
+    figure_print <- figure_print + ggplot2::theme(legend.position = "none")
+  }
+  
+  temp <- table_raw |> 
+    dplyr::select(y_long, unit_word, unit_wrd) |> 
+    unique() |> 
+    dplyr::mutate(str0 = paste0(
+      tolower(y_long),
+      paste0(ifelse(unit_wrd == "", "", unit_word))))
+  
+  header <- paste0("Time series of ", 
+                   spp_print,
+                   # ifelse(is.na(spp_sci), "", paste0(" (",spp_sci,")")), 
+                   " ",
+                   text_list(temp$str0), 
+                   " from the ", 
+                   min(table_raw$year, na.rm = TRUE),"-", 
+                   max(table_raw$year, na.rm = TRUE), " ", 
+                   # range_text(range(table_raw$year)), " ", 
+                   ifelse(length(unique(table_raw$srvy_long0)) > 1, 
+                          SURVEY, 
+                          unique(table_raw$srvy_long0)), 
+                   " survey", 
+                   ifelse(length(unique(table_raw$srvy_long0)) > 1, plural_surveys, "")," (points and solid lines). Dashed lines represent time-series average and error bars represent estimated 95% confidence intervals. ")
+  
+  temp <- lengths |>
+    dplyr::filter(species_code %in% spp_code &
+                    srvy %in% srvy)
+  # if (min(table_raw$year) > 1987) {
+  # header <- paste0(header, "The survey program adopted methods to reliably distinguish ",spp_print," in ", min(table_raw$year),", truncating the displayed time series. ")
+  # }
+  return(list("figure_print" = figure_print, 
+              "table_raw" = table_raw, 
+              "header" = header, 
+              "height" = height, 
+              "width" = width, 
+              "nickname" = nickname, 
+              "table_raw_mean" = table_raw_mean, 
+              "unit_wrd" = unique(table_raw$unit_wrd[table_raw$var == "biomass_mt"])))
+  # res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+}
 
+```
+
+```{r fig-timeseries-totals}
+height <- 3
+width <- full_page_portrait_width
+legend_font_size <- 10
+pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
+
+table_raw00 <- dplyr::bind_rows(
+  total_biomass |> 
+    dplyr::select(srvy, year, common_name = taxon, 
+                  biomass_mt = total, biomass_up, biomass_dw, population_count, population_up, population_dw)  |> 
+    dplyr::mutate(common_name = ifelse(common_name == "fish", "total fish", "total invertebrates")), 
+  # biomass |> 
+  #   dplyr::filter(stratum %in% 999) |> 
+  #   dplyr::select(srvy, year, common_name, stratum, 
+  #                 biomass_mt, biomass_up, biomass_dw, population_count, population_up, population_dw) |> 
+  #   dplyr::filter(common_name %in% c("Total fish", "Total invertebrates")) ,
+  total_biomass |> 
+    dplyr::select(srvy, year, 
+                  biomass_mt = total, biomass_up, biomass_dw, population_count, population_up, population_dw)  |> 
+      dplyr::group_by(srvy, year)|> 
+  dplyr::summarise(biomass_mt = sum(biomass_mt, na.rm = TRUE), 
+                   biomass_up = sum(biomass_up, na.rm = TRUE),
+                   biomass_dw = sum(biomass_dw, na.rm = TRUE), 
+                   population_count = sum(population_count, na.rm = TRUE), 
+                   population_up = sum(population_up, na.rm = TRUE),
+                   population_dw = sum(population_dw, na.rm = TRUE))|> 
+  dplyr::ungroup() |> 
+    dplyr::mutate(common_name = "total")) 
+
+for (spp_print in unique(table_raw00$common_name)) {
+  spp_code <- spp_print
+  nickname <- paste0("fig-timeseries-", gsub(pattern = " ", replacement = "-", x = spp_print))
+  
+  table_raw <- table_raw00 |>
+    dplyr::filter(common_name %in% spp_print) |>
+    # dplyr::filter(stratum == 999) |> 
+    dplyr::select(srvy, year, 
+                  biomass_mt, population_count, 
+                  biomass_up, population_up, 
+                  biomass_dw, population_dw) |> 
+    tidyr::pivot_longer(cols = c(biomass_mt, population_count, 
+                                 biomass_up, population_up, 
+                                 biomass_dw, population_dw), 
+                        names_to = "var", 
+                        values_to = "val") |> 
+    dplyr::mutate(coll = dplyr::case_when(
+      var == "biomass_mt" ~ "val", 
+      var == "population_count" ~ "val", 
+      var == "biomass_up" ~ "ci_up", 
+      var == "population_up" ~ "ci_up", 
+      var == "biomass_dw" ~ "ci_dw", 
+      var == "population_dw" ~ "ci_dw"
+    ), 
+    var = dplyr::case_when(
+      grepl(x = var, pattern = "biomass") ~ "biomass_mt", 
+      grepl(x = var, pattern = "population") ~ "population_count")) |> 
+    tidyr::pivot_wider(id_cols = c(srvy, year, var), 
+                       names_from = coll, 
+                       values_from = val) |>   
+    dplyr::left_join(y = haul_cruises |> 
+                       dplyr::select(srvy, srvy_long) |> 
+                       dplyr::distinct(),
+                     by = "srvy") |>
+    dplyr::mutate(
+      print_name = spp_print, 
+      srvy_long0 = srvy_long, 
+      srvy_long = stringr::str_to_title(srvy_long), 
+      y_long = dplyr::case_when(
+        grepl(x = var, pattern = "biomass") ~ "Biomass", 
+        grepl(x = var, pattern = "population") ~ "Population"
+      ) ) |> 
+    dplyr::ungroup() 
+  
+  # find missing years in timeseries and re-enter them so plot breaks for missing years
+  yr_missing <- data.frame()
+  for (i in 1:length(unique(table_raw$srvy_long))){
+    temp <- table_raw[table_raw$srvy_long %in% unique(table_raw$srvy_long)[i], ]
+    
+    yr_missing <- yr_missing |> 
+      dplyr::bind_rows(tidyr::crossing(year = setdiff((min(temp$year):max(temp$year)),
+                                                      unique(temp$year)),
+                                       y_long = unique(table_raw$y_long), 
+                                       # var = unique(table_raw$var), 
+                                       srvy_long = unique(table_raw$srvy_long)[i]) ) # |> 
+    # dplyr::mutate(var = dplyr::case_when(
+    #   y_long == "Biomass" ~ "biomass_mt",
+    #   y_long == "Population" ~ "population_count"
+    # ))
+    
+  }
+  
+  yr_missing <- yr_missing |>
+    dplyr::left_join(y = haul_cruises |> 
+                       dplyr::select(srvy, srvy_long) |> 
+                       dplyr::distinct() |> 
+                       dplyr::mutate(srvy_long0 = srvy_long, 
+                                     srvy_long = stringr::str_to_title(srvy_long)),
+                     by = "srvy_long")
+  
+  a_bio <- find_units(unit = "t", 
+                      unt = "t", 
+                      dat = max(table_raw$val[table_raw$y_long == "Biomass"])) 
+  
+  a_pop <- find_units(unit = "", 
+                      unt = "", 
+                      dat = max(table_raw$val[table_raw$y_long == "Population"])) 
+  
+  table_raw <- table_raw |> 
+    dplyr::bind_rows(yr_missing) |> 
+    # dplyr::bind_rows(yr_missing |> dplyr::mutate(var = "population_count")) |> 
+    dplyr::mutate(
+      species_name = spp_print, 
+      common_name = spp_print, 
+      print_name = spp_print, 
+      taxon = "Total", 
+      col = dplyr::case_when(
+        srvy_long == "Eastern Bering Sea" ~ pcol[1],
+        srvy_long == "Northern Bering Sea" ~ pcol[2]), 
+      var_ = dplyr::case_when(
+        y_long == "Biomass" ~ 
+          paste0("Biomass", 
+                 # if no bio divby or pop divby (bc then would stay on same line)
+                 ifelse(a_bio$unit_word == " (t)" & a_pop$unit_word == "", 
+                        "", "\n"), a_bio$unit_word), 
+        y_long == "Population" ~ 
+          paste0("Population", ifelse(a_pop$unit_word == "", "", "\n"), a_pop$unit_word)        
+      ), 
+      divby = dplyr::case_when(
+        y_long == "Biomass" ~ a_bio$divby, 
+        y_long == "Population" ~ a_pop$divby        
+      ),
+      unit_wrd = dplyr::case_when(
+        y_long == "Biomass" ~ a_bio$unit_wrd, 
+        y_long == "Population" ~ a_pop$unit_wrd        
+      ),
+      unit_word = dplyr::case_when(
+        y_long == "Biomass" ~ a_bio$unit_word, 
+        y_long == "Population" ~ a_pop$unit_word        
+      ),
+      y = val/divby, 
+      y_ci_dw = ci_dw/divby, 
+      y_ci_up = ci_up/divby, 
+      group = paste0(srvy, "_", y_long)) |> 
+    dplyr::relocate(srvy, year, var, val, y) |>
+    dplyr::arrange(desc(year))  |> 
+    dplyr::ungroup() |> 
+    dplyr::mutate(var = dplyr::case_when(
+      y_long == "Biomass" ~ "biomass_mt",
+      y_long == "Population" ~ "population_count", 
+    ))
+  
+  table_raw1 <- table_print <- table_raw
+  
+  # find mean for mean line
+  table_raw_mean <- table_raw |> 
+    dplyr::group_by(srvy_long, srvy, y_long, group, var_) |> 
+    dplyr::summarise(y_mean = mean(y, na.rm = TRUE), 
+                     val_mean = mean(val, na.rm = TRUE)) |> 
+    dplyr::filter(!is.na(y_mean))  |> 
+    dplyr::ungroup() |> 
+    dplyr::left_join(
+      biomass |>
+        dplyr::filter(stratum == 999 &
+                        year >= min(table_raw$year, na.rm = TRUE) # 1987
+        ) |> 
+        dplyr::group_by(survey_definition_id) |> 
+        dplyr::summarise(minyr = min(year, na.rm = TRUE), 
+                         maxyr = max(year, na.rm = TRUE)) |> 
+        dplyr::left_join(y = haul_cruises |> 
+                           dplyr::select(survey_definition_id, srvy_long) |> 
+                           dplyr::distinct()) |> 
+        dplyr::select(-survey_definition_id) |> 
+        dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long)) |> 
+        dplyr::ungroup())
+  
+  temp <- timeseries_plot(table_raw = table_raw1, table_raw_mean, nickname, height, width, legend_font_size = 10)
+  for (jjj in 1:length(temp)) { assign(names(temp)[jjj], temp[[jjj]]) }
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+}
+
+```
 
 # Endmatter and Appendix
 

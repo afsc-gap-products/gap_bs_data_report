@@ -1285,7 +1285,7 @@ biomass <- gap_products_biomass0 |>
     biomass_dw = ifelse(biomass_dw < 0, 0, biomass_dw), 
     population_dw = ifelse(population_dw < 0, 0, population_dw)  )
 
-biomass_allareas <- biomass
+# biomass_allareas <- biomass
 
 biomass <- biomass |> 
   dplyr::filter(
@@ -1333,7 +1333,12 @@ total_biomass <- biomass |>
                   area_id %in% c(99900, 99902) ) |>
   dplyr::mutate(taxon = ifelse(grepl(x = common_name, pattern = "invertebrates"), "invert", "fish")) |> 
   dplyr::group_by(survey_definition_id, year, taxon)|> 
-  dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE))|> 
+  dplyr::summarise(total = sum(biomass_mt, na.rm = TRUE), 
+                   biomass_up = sum(biomass_up, na.rm = TRUE),
+                   biomass_dw = sum(biomass_dw, na.rm = TRUE), 
+                   population_count = sum(population_count, na.rm = TRUE), 
+                   population_up = sum(population_up, na.rm = TRUE),
+                   population_dw = sum(population_dw, na.rm = TRUE))|> 
   dplyr::ungroup()|> 
   dplyr::arrange(desc(year), desc(taxon))|> 
   dplyr::left_join(
