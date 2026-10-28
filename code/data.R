@@ -453,18 +453,19 @@ reg_dat$survey.grid <- reg_dat$survey.grid |>
 print("CPUE Design Based Estimates")
 
 cpue <- 
-  gap_products_cpue0 |> 
-  # dplyr::select(species_code, hauljoin, cpue_kgkm2, cpue_nokm2)  |> 
+  dplyr::bind_rows(gap_products_cpue0, crab_cpue0) |> 
+  dplyr::select(hauljoin, species_code, weight_kg, count, area_swept_km2, cpue_kgkm2, cpue_nokm2)  |>
   dplyr::filter() |>
   dplyr::left_join(y = spp_info |> 
                      dplyr::select(species_code, common_name, species_name, taxon), 
                    by = "species_code") |> 
   dplyr::bind_rows(complex_cpue0 |> 
-                     dplyr::select(species_code, hauljoin, cpue_kgkm2, 
+                     dplyr::select(species_code, hauljoin, weight_kg, count, cpue_kgkm2, 
                                    cpue_nokm2, common_name, species_name, taxon) ) |>
   dplyr::bind_rows(crab_cpue0 |> 
-                     dplyr::select(species_code, hauljoin, cpue_kgkm2, 
-                                   cpue_nokm2, common_name, species_name, taxon) ) |>
+                     dplyr::select(species_code, count, hauljoin, cpue_kgkm2, 
+                                   cpue_nokm2, common_name, species_name, taxon) |> 
+                     dplyr::mutate(weight_kg = ifelse(count == 0, 0, .01))) |> # TOLEDO
   dplyr::left_join(haul) |> 
   dplyr::filter(
     survey_definition_id %in% srvy00 &
