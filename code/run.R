@@ -24,8 +24,8 @@ compareyr <- c("EBS" = 2025)
 strat_yr <- 2022
 srvy <- "EBS" # "EBS"
 # ref_compareyr <- "@2024EBS" # CHANGE
-ref_compareyr <- "@2025NEBS" # CHANGE
-ref_compareyr_ebs <- "@2025NEBS" # CHANGE
+ref_compareyr <- "@EBS2025" # CHANGE
+ref_compareyr_ebs <- "@EBS2025" # CHANGE
 dir_googledrive <- "https://drive.google.com/drive/folders/1c6QYPeSTyZWQ_V7V7DO6Fr-lnF08264H"
 dl_change_start <- "24-APR-26 12.00.00 PM" 
 dl_change_end <- "24-APR-27 11.00.00 PM"
