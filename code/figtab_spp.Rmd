@@ -2031,10 +2031,14 @@ for (i in 1:length(srvy1)) {
                             x = paste0(pchange(end = temp$biomass_mt[temp$year == compareyr0], 
                                                start = temp$biomass_mt[temp$year == maxyr]), 
                                        "\nfrom ", compareyr0)) ) )), 
-            "% Relation to\nBiomass Long-Term Mean" = paste0(pchange(start = temp$biomass_mt[temp$year == max(temp$year)], 
+            "% Relation to\nBiomass Long-Term Mean" = ifelse(paste0(round(pchange(start = temp$biomass_mt[temp$year == max(temp$year)], 
                                                end = temp$biomass_mt[temp$year == maxyr], 
-                                               value_only = TRUE), "%")
-        )
+                                               value_only = TRUE), digits = 1), "%") == "0.0%",
+                                               "<0.01%", 
+                                               paste0(round(pchange(start = temp$biomass_mt[temp$year == max(temp$year)], 
+                                               end = temp$biomass_mt[temp$year == maxyr], 
+                                               value_only = TRUE), digits = 1), "%")
+        ) )
       # "% Relation to\nBiomass Long-Term Mean" = unique(dplyr::case_when(
       #   # temp_bio$year[i] == max(temp$year) ~ "-",
       #   is.na(temp$biomass_mt[temp$year == max(temp$year)]) ~ "-", #paste0("none caught in ", temp_bio$year[i]), 
@@ -2050,7 +2054,7 @@ for (i in 1:length(srvy1)) {
       #                                          end = temp$biomass_mt[temp$year == maxyr]) )) ) ))
       #   )
         )
-    ))
+    # ))
   
 }
 
