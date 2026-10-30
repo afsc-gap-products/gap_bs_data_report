@@ -30,19 +30,6 @@ dir_googledrive <- "https://drive.google.com/drive/folders/1c6QYPeSTyZWQ_V7V7DO6
 dl_change_start <- "24-APR-26 12.00.00 PM" 
 dl_change_end <- "24-APR-27 11.00.00 PM"
 
-# maxyr <- 2025
-# compareyr <- c("EBS" = 2024, "NBS" = 2023)
-# # compareyr0 <- 2023
-# strat_yr <- 2022
-# srvy <- "NEBS" # "EBS"
-# # ref_compareyr <- "@2024EBS" # CHANGE
-# ref_compareyr <- "@2023NEBS" # CHANGE
-# ref_compareyr_ebs <- "@2024EBS" # CHANGE
-# dir_googledrive <- "https://drive.google.com/drive/folders/15FM6WQ7Uqb1AbsQLsWQ3O-P5WnPYlPJx"
-# dir_googledrive_comm <- "https://drive.google.com/drive/folders/1T2Vv4soro2z-jGDlxXlQUfWiyEB4ehy6"
-# dl_change_start <- "24-APR-02 11.00.00 PM"
-# dl_change_end <- toupper(format(x = Sys.time(), format = "%d-%b-%y %I.%M.%S %p")) # "22-OCT-24 11.59.00 PM"
-
 # Data Report ------------------------------------------------------------------
 
 ## Source Scripts --------------------------------------------------------------
