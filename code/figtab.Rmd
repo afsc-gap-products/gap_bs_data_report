@@ -791,29 +791,29 @@ plot_mean_temperatures <- function(maxyr, srvy){
                                           color = variable,
                                           shape = variable, 
                                           group = paste0(variable))) +
-    facet_wrap(~region, scales = "free") +
-    geom_point(size = rel(2)) +
-    geom_line() +
-    geom_hline(data = mean_temp,
+    ggplot2::facet_wrap(~region, scales = "free") +
+    ggplot2::geom_point(size = rel(2)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_hline(data = mean_temp,
                aes(yintercept = value,
                    color = variable),
                linetype = 2) +
-    scale_color_manual(values = c(color_bt, color_sst)) +
-    scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
+    ggplot2::scale_color_manual(values = c(color_bt, color_sst)) +
+    ggplot2::scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
                        expand = c(0, 0),
                        limits = c(0,11.2),
                        breaks = seq(0,12,2)#,
                        # expand = c(0,0)
     )  + 
-    scale_x_continuous(breaks = scales::pretty_breaks(), 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(), 
                        name = "Year") +
-    guides(
+    ggplot2::guides(
       fill = guide_legend(title.position = "top", 
                           label.position = "bottom",
                           title.hjust = 0.25,
                           nrow = 1)) +
-    theme_bw() +
-    theme(
+    ggplot2::theme_bw() +
+    ggplot2::theme(
       panel.background = element_rect(fill = "white", 
                                       colour = NA), 
       panel.border = element_rect(fill = NA, 
@@ -1061,6 +1061,7 @@ nickname0 <- paste0("tab-specimen-samples-")
 # length data - from oracle
 m <- specimen_maxyr |> 
   dplyr::filter(!is.na(species_code) & !is.na(maturity)) |>
+  dplyr::filter(sex == 2) |> 
   dplyr::select("srvy", species_code) |> 
   dplyr::group_by("srvy" = srvy, species_code) |> 
   dplyr::summarise(maturity_samples = as.numeric(n())) |> 
@@ -2720,6 +2721,114 @@ for (spp_print in unique(table_raw00$common_name)) {
 }
 
 ```
+
+```{r fig-timeseries-totals}
+height <- 3
+width <- full_page_portrait_width
+legend_font_size <- 10
+nickname <- "fig-timeseries-total-biomass"
+pcol <- viridis::mako(n = 2, begin = .2, end = .6, direction = -1)
+
+# 1. Filter raw data to JUST fish and invertebrates and select biomass columns
+table_raw <- total_biomass |> 
+  dplyr::select(srvy, year, taxon, biomass_mt = total, biomass_up, biomass_dw) |> 
+  dplyr::filter(taxon %in% c("fish", "invert")) |> 
+  dplyr::mutate(common_name = ifelse(taxon == "fish", "Total Fish", "Total Invertebrates")) |> 
+  
+  # Join full survey names
+  dplyr::left_join(
+    haul_cruises |> 
+      dplyr::select(srvy, srvy_long) |> 
+      dplyr::distinct(),
+    by = "srvy"
+  ) |> 
+  dplyr::mutate(srvy_long = stringr::str_to_title(srvy_long))
+
+# 2. Fill in missing years so the x-axis doesn't skip/break
+table_raw <- table_raw |> 
+  dplyr::group_by(srvy_long, common_name) |> 
+  tidyr::complete(year = min(year, na.rm = TRUE):max(year, na.rm = TRUE)) |> 
+  dplyr::ungroup()
+
+# 3. Scale units using find_units() based on the max total stacked biomass
+max_biomass <- table_raw |> 
+  dplyr::group_by(year, srvy_long) |> 
+  dplyr::summarise(tot = sum(biomass_mt, na.rm = TRUE)) |> 
+  dplyr::pull(tot) |> 
+  max(na.rm = TRUE)
+
+a_bio <- find_units(unit = "t", unt = "t", dat = max_biomass)
+
+table_raw <- table_raw |> 
+  dplyr::mutate(
+    y = biomass_mt / a_bio$divby,
+    y_up = biomass_up / a_bio$divby,
+    y_dw = biomass_dw / a_bio$divby
+  )
+
+# 4. Calculate the mean line data for each survey and category
+table_mean <- table_raw |> 
+  dplyr::group_by(srvy_long, common_name) |> 
+  dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) |> 
+  dplyr::ungroup()
+
+figure_print <- ggplot2::ggplot(table_raw, aes(x = year, fill = common_name)) +
+  
+  # Grouped bar plot (side-by-side)
+  ggplot2::geom_col(
+    aes(y = y), 
+    position = ggplot2::position_dodge(width = 0.9), 
+    alpha = 0.8
+  ) +
+  
+  # Error bars (dodged by the exact same width so they align perfectly over the bars)
+  ggplot2::geom_errorbar(
+    aes(ymin = y_dw, ymax = y_up), 
+    position = ggplot2::position_dodge(width = 0.9), 
+    width = 0.4, 
+    color = "grey30"
+  ) +
+  
+  # Mean lines (dashed lines for each category across the facets)
+  ggplot2::geom_hline(
+    data = table_mean, 
+    aes(yintercept = y_mean, 
+        color = common_name), 
+    linetype = "dashed", 
+    linewidth = 1
+  ) +
+  
+  # Facet by survey
+  ggplot2::facet_wrap(~srvy_long, scales = "free_y", ncol = 1) +
+  
+  # Aesthetics and labels
+  ggplot2::scale_fill_manual(values = pcol) +
+  ggplot2::scale_color_manual(values = pcol) +
+  ggplot2::scale_y_continuous(name = paste0("Biomass", a_bio$unit_word), 
+                              expand = c(0.01, 0)) +
+  ggplot2::scale_x_continuous(name = "Year", 
+                              expand = c(0.01, 0)) +
+  # ggplot2::labs(
+  #   x = "Year", 
+  #   y = paste0("Biomass", a_bio$unit_word),
+  #   fill = "Taxon", 
+  #   color = "Taxon"
+  # ) +
+  ggplot2::theme_bw() +
+  # ggplot2::theme(legend.position = "bottom") +
+  ggplot2::theme(
+    legend.position = "inside",
+    legend.position.inside = c(0.85, 0.8),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 16),
+    plot.title = element_text(color = "grey30"),
+    legend.background = element_blank(),
+    legend.title = element_blank())
+  
+  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+
+```
+
 
 # Endmatter and Appendix
 
