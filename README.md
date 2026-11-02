@@ -107,35 +107,42 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ##  [1] RODBC_1.3-26.2     XML_3.99-0.24      flextable_0.10.0   httr_1.4.8         pingr_2.0.5        scales_1.4.0       raster_3.6-32     
-    ##  [8] sp_2.2-3           ps_1.9.3           digest_0.6.39      ggspatial_1.1.10   shadowtext_0.1.6   rlist_0.4.6.2      crabpack_1.0.0    
-    ## [15] gapindex_3.1.0     coldpool_3.5-3     reshape2_1.4.5     lubridate_1.9.5    fields_17.3        RColorBrewer_1.1-3 spam_2.11-4       
-    ## [22] gstat_2.1-6        ggthemes_6.0.0     akgfmaps_4.2.1     terra_1.9-46       stars_0.7-3        abind_1.4-8        sf_1.1-2          
-    ## [29] readtext_0.92.1    stringr_1.6.0      janitor_2.2.1      viridis_0.6.5      viridisLite_0.4.3  here_1.0.2         readxl_1.5.0      
-    ## [36] tidyr_1.3.2        readr_2.2.0        googledrive_2.1.2  dplyr_1.2.1        plyr_1.8.9         ggridges_0.5.7     ggpubr_1.0.0      
-    ## [43] magick_2.9.1       png_0.1-9          cowplot_1.2.0      ggplot2_4.0.3      officedown_0.4.1   officer_0.7.6      rmarkdown_2.31    
-    ## [50] knitr_1.51        
+    ##  [1] RODBC_1.3-26.3     XML_3.99-0.25      flextable_0.10.1   httr_1.4.9         pingr_2.0.5        scales_1.4.0      
+    ##  [7] raster_3.6-32      sp_2.2-3           ps_1.9.3           digest_0.6.39      ggspatial_1.1.11   shadowtext_0.1.6  
+    ## [13] rlist_0.4.6.2      crabpack_1.0.0     gapindex_3.1.0     coldpool_3.6-1     reshape2_1.4.5     lubridate_1.9.5   
+    ## [19] fields_17.3        RColorBrewer_1.1-3 spam_2.11-4        gstat_2.1-6        ggthemes_7.0.0     akgfmaps_4.2.2    
+    ## [25] terra_1.9-50       stars_0.7-3        abind_1.4-8        sf_1.1-3           readtext_0.92.1    stringr_1.6.0     
+    ## [31] janitor_2.2.1      viridis_0.6.5      viridisLite_0.4.3  here_1.0.2         readxl_1.5.0.1     tidyr_1.3.2       
+    ## [37] readr_2.2.0        googledrive_2.1.2  dplyr_1.2.1        plyr_1.8.9         ggridges_0.5.7     ggpubr_1.0.0      
+    ## [43] magick_2.9.1       png_0.1-9          cowplot_1.2.0      ggplot2_4.0.3      officedown_0.4.1   officer_0.7.6     
+    ## [49] rmarkdown_2.32     knitr_1.52        
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] jsonlite_2.0.0          rstudioapi_0.19.0       magrittr_2.0.5          farver_2.1.2            fs_2.1.0               
-    ##  [6] ragg_1.5.2              vctrs_0.7.3             memoise_2.0.1           sampling_2.11           askpass_1.2.1          
-    ## [11] rstatix_1.1.0           htmltools_0.5.9         curl_8.0.0              broom_1.0.13            cellranger_1.1.0       
-    ## [16] Formula_1.2-6           KernSmooth_2.23-27      htmlwidgets_1.6.4       keyring_1.4.1           zoo_1.9-0              
-    ## [21] cachem_1.1.0            uuid_1.2-2              lifecycle_1.0.5         pkgconfig_2.0.3         R6_2.6.1               
-    ## [26] fastmap_1.2.0           snakecase_0.11.1        rprojroot_2.1.1         textshaping_1.0.5       timechange_0.4.0       
-    ## [31] compiler_4.6.1          gargle_1.6.1            proxy_0.4-29            intervals_0.15.5        bit64_4.8.4            
-    ## [36] fontquiver_0.2.1        withr_3.0.3             S7_0.2.2                backports_1.5.1         carData_3.0-6          
-    ## [41] DBI_1.3.0               maps_3.4.3              ggsignif_0.6.4          MASS_7.3-66             openssl_2.4.2          
-    ## [46] rappdirs_0.3.4          classInt_0.4-11         tools_4.6.1             units_1.0-1             otel_0.2.0             
-    ## [51] odbc_1.7.0              zip_3.0.2               glue_1.8.1              grid_4.6.1              getPass_0.2-4          
-    ## [56] lpSolve_5.6.23          generics_0.1.4          gtable_0.3.6            tzdb_0.5.0              class_7.3-24           
-    ## [61] data.table_1.18.6.1     hms_1.1.4               xml2_1.6.0              car_3.1-5               pillar_1.11.1          
-    ## [66] vroom_1.7.1             lattice_0.23-1          FNN_1.1.4.1             bit_4.6.0               tidyselect_1.2.1       
-    ## [71] rvg_0.4.2               fontLiberation_0.1.0    fontBitstreamVera_0.1.1 gridExtra_2.3.1         xfun_0.60              
-    ## [76] stringi_1.8.9           yaml_2.3.12             evaluate_1.0.5          codetools_0.2-20        gdtools_0.5.1          
-    ## [81] tibble_3.3.1            cli_3.6.6               systemfonts_1.3.2       processx_3.9.0          spacetime_1.3-4        
-    ## [86] Rcpp_1.1.2              parallel_4.6.1          blob_1.3.0              dotCall64_1.2           ggiraph_0.9.6          
-    ## [91] xts_0.14.2              e1071_1.7-17            crayon_1.5.3            purrr_1.2.2             rlang_1.3.0
+    ##  [1] jsonlite_2.0.0          rstudioapi_0.19.0       magrittr_2.0.5          farver_2.1.2           
+    ##  [5] fs_2.1.0                ragg_1.5.2              vctrs_0.7.3             memoise_2.0.1          
+    ##  [9] sampling_2.11           askpass_1.2.1           gh_1.6.1                rstatix_1.1.0          
+    ## [13] htmltools_0.5.9         curl_8.0.0              broom_1.0.13            cellranger_1.1.0       
+    ## [17] Formula_1.2-6           KernSmooth_2.23-27      htmlwidgets_1.6.4       keyring_1.4.1          
+    ## [21] httr2_1.3.0             zoo_1.9-1               cachem_1.1.0            uuid_1.2-2             
+    ## [25] lifecycle_1.0.5         pkgconfig_2.0.3         R6_2.6.1                fastmap_1.2.0          
+    ## [29] snakecase_0.11.1        rprojroot_2.1.1         textshaping_1.0.5       timechange_0.4.0       
+    ## [33] compiler_4.6.1          gargle_1.6.1            proxy_0.4-29            intervals_0.15.5       
+    ## [37] bit64_4.8.6             fontquiver_0.2.1        withr_3.0.3             S7_0.2.2               
+    ## [41] backports_1.5.1         carData_3.0-6           DBI_1.3.0               maps_3.4.3             
+    ## [45] ggsignif_0.6.4          MASS_7.3-66             openssl_2.4.2           rappdirs_0.3.4         
+    ## [49] pandoc_0.2.0            classInt_0.4-11         tools_4.6.1             units_1.0-1            
+    ## [53] otel_0.2.0              odbc_1.7.0              zip_3.0.2               glue_1.8.1             
+    ## [57] grid_4.6.1              getPass_0.2-4           lpSolve_5.6.23          generics_0.1.4         
+    ## [61] gtable_0.3.6            tzdb_0.5.0              class_7.3-24            data.table_1.18.6.1    
+    ## [65] hms_1.1.4               xml2_1.6.0              car_3.1-5               pillar_1.11.1          
+    ## [69] vroom_1.7.1             lattice_0.23-1          FNN_1.1.4.1             bit_4.6.0              
+    ## [73] tidyselect_1.2.1        rvg_0.4.2               fontLiberation_0.1.0    gitcreds_0.1.2         
+    ## [77] fontBitstreamVera_0.1.1 gridExtra_2.3.1         xfun_0.61               stringi_1.8.9          
+    ## [81] yaml_2.3.12             evaluate_1.0.5          codetools_0.2-20        gdtools_0.5.1          
+    ## [85] tibble_3.3.1            cli_3.6.6               systemfonts_1.3.2       processx_3.9.0         
+    ## [89] spacetime_1.3-4         Rcpp_1.1.2              parallel_4.6.1          blob_1.3.0             
+    ## [93] dotCall64_1.2           ggiraph_0.9.6           xts_0.14.3              e1071_1.7-17           
+    ## [97] crayon_1.5.3            purrr_1.2.2             rlang_1.3.0
 
 ## NOAA README
 

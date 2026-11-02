@@ -56,7 +56,7 @@ PKG <- c(
   "ggpubr",
   "ggridges",
   "padoc", 
-  
+  "RefManageR",
   # other tidyverse
   "plyr",
   "dplyr",

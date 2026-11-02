@@ -101,6 +101,63 @@ nickname <- "tab-participants-sci"
 ```{r social-media-insert-text, child=paste0(dir_out_rawdata, "/0-social-media.Rmd"), eval = (report_title == "community")}
 ```
 
+**Data Access**
+* Fisheries One Stop Shop public data portal^[https://www.fisheries.noaa.gov/foss]
+* Distribution Mapping and Analysis Portal^[https://apps-st.fisheries.noaa.gov/dismap/]
+* Alaska Fisheries Information Network^[https://apps-st.fisheries.noaa.gov/dismap/]
+
+**General Resources**
+* Groundfish Assessment Program Bottom Trawl Surveys^[https://www.fisheries.noaa.gov/alaska/science-data/groundfish-assessment-program-bottom-trawl-surveys]
+* AFSC’s Resource Assessment and Conservation Engineering Division^[https://www.fisheries.noaa.gov/about/resource-assessment-and-conservation-engineering-division]
+* Research Surveys conducted at AFSC^[https://www.fisheries.noaa.gov/alaska/ecosystems/alaska-fish-research-surveys]
+
+**Latest Data Reports and Documents**
+Data reports are also available for each of our historical surveys in the Gulf of Alaska, Aleutian Islands, eastern Bering Sea, northern Bering Sea, and Bering Sea slope through the publicly available NOAA Library^[https://repository.library.noaa.gov/]. The latest data reports are listed on our landing page^[https://www.fisheries.noaa.gov/alaska/science-data/groundfish-assessment-program-bottom-trawl-surveys]. 
+
+```{r latest-data-reports}
+#| results: 'asis'
+#| echo: false
+#| warning: false
+#| message: false
+
+source("https://raw.githubusercontent.com/afsc-gap-products/gap_products/refs/heads/main/content/references_current_tm.R") # srvy_cite 
+
+# 1. Download the bib file to the code/ folder
+bib_url <- "https://raw.githubusercontent.com/afsc-gap-products/gap_products/refs/heads/main/content/references.bib"
+dest_file <- "code/references.bib"
+
+# Create the code/ directory if it doesn't already exist
+if (!dir.exists("code")) {
+  dir.create("code", recursive = TRUE)
+}
+
+# Download the file
+download.file(url = bib_url, destfile = dest_file, mode = "wb")
+
+# 2. Read the local bib file
+bib <- RefManageR::ReadBib(dest_file)
+
+# 3. Extract unique citation keys from srvy_cite
+cite_keys <- unique(srvy_cite$CITE)
+
+# 4. Keep only keys that actually exist in the .bib file to prevent subsetting errors
+valid_keys <- intersect(cite_keys, names(bib))
+
+# 5. Subset the bibliography object
+cite_subset <- bib[valid_keys]
+
+# 6. Print directly with APA options, with no headers or separators
+print(cite_subset, .opts = list(style = "markdown", 
+                                bib.style = "authoryear", 
+                                sorting = "none",
+                                max.names = 99, 
+                                dashed = FALSE))
+```
+
+Thank you to everyone who contributed your time, stories, photos, and expertise to make this season’s outreach possible. Your participation not only strengthens the Groundfish Assessment Program’s mission but also builds public understanding and appreciation of fisheries science.
+We encourage you to explore, share, and continue contributing to these products.
+
+
 <!-- \pagebreak -->
 
 `r ifelse((report_title == "community"), "## Glossary of Terms", "") `
