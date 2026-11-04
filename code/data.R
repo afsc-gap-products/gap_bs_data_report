@@ -271,8 +271,8 @@ spp_info0 <- gap_products_taxonomic_classification0
 
 names(spp_info0) <- gsub(pattern = "_taxon", replacement = "", x = names(spp_info0))
 
-spp_info <- spp_info0 |> 
-  # dplyr::filter(survey_species == 1)|> 
+spp_info <- spp_info0  |> 
+  dplyr::filter(survey_species == 1) |> 
   dplyr::mutate(
     taxon = dplyr::case_when(
       species_code <= 31550 ~ "fish", 
