@@ -35,10 +35,6 @@ dl_change_end <- "24-APR-27 11.00.00 PM"
 ## Source Scripts --------------------------------------------------------------
 
 report_title <- "data" 
-# pak::pak("afsc-gap-products/akgfmaps")
-# pak::pak("afsc-gap-products/coldpool")
-# pak::pak("afsc-gap-products/gapindex")
-# pak::pak("AFSC-Shellfish-Assessment-Program/crabpack")
 source(here::here("code","functions.R"))
 # source(here::here("code","data_dl.R"))  # Run when there is new data!
 source(here::here("code","data.R"))

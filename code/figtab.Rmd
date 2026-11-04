@@ -795,18 +795,18 @@ plot_mean_temperatures <- function(maxyr, srvy){
     ggplot2::geom_point(size = rel(2)) +
     ggplot2::geom_line() +
     ggplot2::geom_hline(data = mean_temp,
-               aes(yintercept = value,
-                   color = variable),
-               linetype = 2) +
+                        aes(yintercept = value,
+                            color = variable),
+                        linetype = 2) +
     ggplot2::scale_color_manual(values = c(color_bt, color_sst)) +
     ggplot2::scale_y_continuous(name = "Average temperature (°C)", #expression(bold("Average temperature "~(degree*C))), 
-                       expand = c(0, 0),
-                       limits = c(0,11.2),
-                       breaks = seq(0,12,2)#,
-                       # expand = c(0,0)
+                                expand = c(0, 0),
+                                limits = c(0,11.2),
+                                breaks = seq(0,12,2)#,
+                                # expand = c(0,0)
     )  + 
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(), 
-                       name = "Year") +
+                                name = "Year") +
     ggplot2::guides(
       fill = guide_legend(title.position = "top", 
                           label.position = "bottom",
@@ -2387,7 +2387,7 @@ figure_print <- ggplot(table_raw0, aes(x = year, y = biomass_millions, fill = sp
 
 ```{r fig-timeseries-totals}
 
-height <- 3
+height <- 4
 width <- full_page_portrait_width
 legend_font_size <- 10
 nickname <- "fig-timeseries-total-biomass"
@@ -2436,9 +2436,9 @@ table_mean <- table_raw |>
   dplyr::summarise(y_mean = mean(y, na.rm = TRUE)) |> 
   dplyr::ungroup()
 
-  header <- paste0("Annual estimated biomass of total fish and invertebrates in the ", 
-                   SURVEY, " survey", plural_surveys, ". Bar heights represent total biomass in ",
-                   strsplit(x = trimws(gsub("[^a-zA-Z ]", "", " (million t)")), split = " ")[[1]][1],"s of metric tons. Dashed lines represent time-series average and error bars represent estimated 95% confidence intervals.")
+header <- paste0("Annual estimated biomass of total fish and invertebrates in the ", 
+                 SURVEY, " survey", plural_surveys, ". Bar heights represent total biomass in ",
+                 strsplit(x = trimws(gsub("[^a-zA-Z ]", "", " (million t)")), split = " ")[[1]][1],"s of metric tons. Dashed lines represent time-series average and error bars represent estimated 95% confidence intervals.")
 
 
 figure_print <- ggplot2::ggplot(table_raw, aes(x = year, fill = common_name)) +
@@ -2485,16 +2485,37 @@ figure_print <- ggplot2::ggplot(table_raw, aes(x = year, fill = common_name)) +
   # ) +
   ggplot2::theme_bw() +
   # ggplot2::theme(legend.position = "bottom") +
-  ggplot2::theme(
+  # ggplot2::theme(
+  #   legend.position = "inside",
+  #   axis.text = element_text(size = 12),
+  #   axis.title = element_text(size = 16),
+  #   plot.title = element_text(color = "grey30"),
+  #   legend.background = element_blank())
+  ggplot2::theme( 
+    strip.placement = "outside",
+    strip.background = element_blank(), 
+    strip.text = element_text(size = 10, face = "bold"), 
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_line(colour = "grey95"),
+    panel.border = element_rect(fill = NA, colour = "grey20"),
+    axis.title = element_text(size = legend_font_size, face = "bold"),
+    axis.text = element_text(size = legend_font_size),
+    legend.box = "horizontal",
+    legend.text = element_text(size = legend_font_size),
+    legend.title = element_blank(),
     legend.position = "inside",
-    legend.position.inside = c(0.85, 0.8),
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 16),
-    plot.title = element_text(color = "grey30"),
-    legend.background = element_blank(),
-    legend.title = element_blank())
-  
-  res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
+    legend.background = element_rect(colour = "transparent", 
+                                     fill = "transparent"),
+    legend.key = element_rect(colour = "transparent",
+                              fill = "transparent"),
+    legend.box.spacing = unit(0, "pt"),
+    legend.margin=margin(0, 0, 0, 0),
+    legend.position.inside = c(0.85, 0.9)) 
+
+res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 
 ```
 
@@ -2560,6 +2581,7 @@ tab_taxa_found_ <- function(temp,
                           srvy == temp$srvy[i]) |> 
           dplyr::select(station, latitude_dd_start, longitude_dd_start, depth_gear_m, species_code), 
         y = spp_info |> 
+          dplyr::filter(survey_species == 1) |> 
           dplyr::rename(taxon0 = ifelse(temp$taxon[i] == "fish", "family", "phylum")) |>
           dplyr::select(species_name, common_name, taxon, species_code, taxon0), 
         by = "species_code") |> 
