@@ -3,7 +3,7 @@
 
 ## Ocean Temperatures
 
-Bottom (Fig. \@ref(fig:fig-temperature-bt-data)) and surface (Fig. \@ref(fig:fig-temperature-st-data)) water temperatures varied spatially and among years due to variation in atmospheric and oceanic conditions that influence temperature patterns in the eastern Bering Sea [@RN931]. The warmest bottom temperatures were typically observed in the inner domain (< 50 m; Fig. \@ref(fig:fig-survey-sample-stations)) along the Alaskan mainland. The coldest bottom temperatures typically occurred in the middle domain (50–100 m). Surface temperatures generally increased as the survey progressed westward from the interior of Bristol Bay to the northwestern outer shelf and northward into Norton Sound. These surface temperature patterns reflect seasonal warming that occurs over the course of the survey [@Cokelet2016; @RohanColdPool].
+Bottom (Fig. \@ref(fig:fig-temperature-bt-data)) and surface (Fig. \@ref(fig:fig-temperature-st-data)) water temperatures have varied spatially and among years due to variation in atmospheric and oceanic conditions that have influenced temperature patterns in the eastern Bering Sea [@RN931]. The warmest bottom temperatures have typically been observed in the inner domain (< 50 m; Fig. \@ref(fig:fig-survey-sample-stations)) along the Alaskan mainland. The coldest bottom temperatures typically have occurred in the middle domain (50–100 m). Surface temperatures have generally increased as the survey has progressed westward from the interior of Bristol Bay to the northwestern outer shelf and northward into Norton Sound. These surface have temperature patterns reflected seasonal warming that has occurred over the course of the survey [@Cokelet2016; @RohanColdPool].
 
 ```{r temps_avg_yr-workup}
 temp <- temps_avg_yr |> 
@@ -87,7 +87,7 @@ st_min_yr <- temp$year[temp$st == min(temp$st)]
 
 The cold pool area is defined as the extent of the eastern Bering Sea survey area with bottom temperatures less than or equal to 2°C and is strongly correlated with mean bottom temperature on the shelf [@RohanColdPool]. The size and location of the cold pool is primarily influenced by the extent of seasonal sea ice cover during the preceding winter and spring and the timing of sea ice retreat during spring [@Stabeno2019a], such that years with extensive sea ice that persists into spring have a larger cold pool that can extend into Bristol Bay and as far south as the Alaska Peninsula.  When the sea ice extent is smaller, the cold pool is limited to the northern edge of the eastern Bering Sea survey area. 
 
-Interannual variation in bottom temperature and cold pool area influences the distribution [@RN905; @RN977; @Throsonetal2020; @Stevensonetal2022], migration [@RN913], recruitment [@Cooperetal2020], and biological productivity [@Gruss2021] of fishes and crabs in the Bering Sea. The size of the cold pool also affects the availability of demersal species to the bottom trawl surveys by mediating migration between the eastern Bering Sea shelf, northern Bering Sea, western Bering Sea, and the deeper waters of the continental slope [@Zandoretal2011; @OLearyetal2022]. Subarctic fish species tend to avoid areas with bottom temperatures below 0°C or 1°C, depending on the species [@Eisneretal2020; @Baker2021], and cold temperatures may provide a habitat refuge for cold-adapted species [@Fedewaetal2020].
+Interannual variation in bottom temperature and cold pool area influences the distribution [@RN905; @Throsonetal2020; @Stevensonetal2022; @RN977], migration [@RN913], recruitment [@Cooperetal2020], and biological productivity [@Gruss2021] of fishes and crabs in the Bering Sea. The size of the cold pool also affects the availability of demersal species to the bottom trawl surveys by mediating migration between the eastern Bering Sea shelf, northern Bering Sea, western Bering Sea, and the deeper waters of the continental slope [@Zandoretal2011; @OLearyetal2022]. Subarctic fish species tend to avoid areas with bottom temperatures below 0°C or 1°C, depending on the species [@Eisneretal2020; @Baker2021], and cold temperatures may provide a habitat refuge for cold-adapted species [@Fedewaetal2020].
 
 ```{r coldpool_ebs_bin_area-workup}
 temp <- coldpool_ebs_bin_area |> 
@@ -107,6 +107,7 @@ compareyr_maxyr_area_perc_diff <- pchange(start = compareyr_area0, end = maxyr_a
 compareyr_maxyr_area_diff <- formatC(x = (compareyr_area0 - maxyr_area0), digits = 0, big.mark = ",", format = "f")
 compareyr_maxyr_area_diff_desc <- paste0(ifelse(compareyr_maxyr_area_perc_diff>0, "larger", "smaller"))
 compareyr_maxyr_area_perc_diff <- formatC(x = abs(compareyr_maxyr_area_perc_diff), digits = 1, big.mark = ",", format = "f")
+compareyr_maxyr_area_diff <- abs(compareyr_maxyr_area_diff)
 
 mean_area0 <- mean(temp$area_km2)
 mean_area <- formatC(x = mean_area0, digits = 0, big.mark = ",", format = "f")
@@ -122,24 +123,9 @@ max_perc <- formatC(x = temp$perc[temp$perc == max(temp$perc)], digits = 1, big.
 min_yr <- formatC(x = temp$year[temp$perc == min(temp$perc)], digits = 0, format = "f")
 min_area <- formatC(x = temp$area_km2[temp$perc == min(temp$perc)], digits = 0, big.mark = ",", format = "f")
 min_perc <- formatC(x = temp$perc[temp$perc == min(temp$perc)], digits = 1, big.mark = ",", format = "f")
-
-temp <- coldpool_ebs_bin_area |> 
-  dplyr::filter(year %in% c(maxyr, compareyr[names(compareyr) == "EBS"])) |> 
-  dplyr::mutate(year = ifelse(year == maxyr, "m", "c")) |> 
-  dplyr::select(year, variable, area_km2, perc) |> 
-  tidyr::pivot_wider(id_cols = "variable", 
-                     values_from = c("area_km2", "perc"), 
-                     names_from = c("year"),
-                     names_prefix = "year") |> 
-  dplyr::mutate(
-    area_km2_yearc = formatC(x = area_km2_yearc,digits = 0, big.mark = ",", format = "f"), 
-    perc_diff = (perc_yearc - perc_yearm), 
-    perc_diff = paste0(formatC(x = abs(perc_diff), digits = 2, big.mark = ","), "% ", ifelse(perc_diff>0, "larger", "smaller")))
-  
-str0 <- text_list(paste0(temp$variable, " (", temp$area_km2_yearc, " km^2^) was ", temp$perc_diff," than ", compareyr[names(compareyr) == "EBS"]))
 ```
 
-The cold pool covered `r maxyr_perc`% (`r maxyr_area` km^2^) of the eastern Bering Sea survey area in `r maxyr` (Figs. \@ref(fig:fig-temperature-bt-data) and \@ref(fig:fig-cold-pool-area)). The cold pool was `r compareyr_maxyr_area_perc_diff`% (`r compareyr_maxyr_area_diff` km^2^) `r compareyr_maxyr_area_diff_desc` than in `r compareyr[names(compareyr) == "EBS"]` and was `r mean_maxyr_area_perc_diff`% `r mean_maxyr_area_diff_desc` than the time series mean (`r mean_area` km^2^). The extent of isotherms for bottom temperatures in `r maxyr` of `r str0`. During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$year == maxyr & haul_cruises_maxyr$srvy == "EBS"]`-year time series, the cold pool area has ranged from a minimum of `r min_area` km^2^ in `r min_yr` to a maximum of `r max_area` km^2^ in `r max_yr`, comprising `r min_perc`% to `r max_perc`% of the total eastern Bering Sea survey area.
+The cold pool covered `r maxyr_perc`% (`r maxyr_area` km^2^) of the eastern Bering Sea survey area in `r maxyr` (Figs. \@ref(fig:fig-temperature-bt-data) and \@ref(fig:fig-cold-pool-area)). The cold pool was `r compareyr_maxyr_area_perc_diff`% `r compareyr_maxyr_area_diff_desc` than in `r compareyr[names(compareyr) == "EBS"]` (`r compareyr_area` km^2^) and was `r mean_maxyr_area_perc_diff`% `r mean_maxyr_area_diff_desc` than the time series mean (`r mean_area` km^2^). During the `r haul_cruises_maxyr$yrofsurvey[haul_cruises_maxyr$year == maxyr & haul_cruises_maxyr$srvy == "EBS"]`-year time series, the cold pool area has ranged from a minimum of `r min_area` km^2^ in `r min_yr` to a maximum of `r max_area` km^2^ in `r max_yr`, comprising `r min_perc`% to `r max_perc`% of the total eastern Bering Sea survey area.
 
 <!-- ## Ocean Temperatures and the Cold Pool -->
 
@@ -253,7 +239,7 @@ for (i in 1:length(srvy1)) {
   
   str0 <- paste0(str0, 
                  dplyr::case_when(
-    length(srvy1) == 1 ~ "The survey found ", 
+    length(srvy1) == 1 ~ "The survey identified ", 
     i == 1 ~ "In", 
     i == 2 ~ "Similarly, in"))
   
@@ -286,7 +272,7 @@ for (i in 1:length(srvy1)) {
            paste0(fish_sp_code, " the ", temp1$srvy_long[1], ", ")),
     " fish taxa representing ", fish_family,
     " families and ", fish_genera,
-    " genera were identified (Appendix Table", " ",
+    " genera (Appendix Table", " ",
     ifelse(srvy1[i] == "EBS", "A", "B"),
     " \\@ref(tab:tab-app-taxa-found-", srvy1[i], "-fish)", 
     "). Of these ",
@@ -471,10 +457,10 @@ for (ii in 1:length(temp2$srvy)) {
   str00 <- paste0(str00, 
                   # ifelse(ii==2, " and in the ", ifelse(plural_surveys == "", "", "In the ")), 
                   # paste0(ifelse(plural_surveys == "", "", paste0(temp2$srvy_long[ii], ",")), 
-                         "The proportion of fishes were ", 
+                         "Fishes comprised ", 
                          temp2$perc_fish[ii], 
                          " (Table \\@ref(tab:tab-biomass-est-",  temp2$srvy[ii],
-                         "-fish)) and invertebrates were ", 
+                         "-fish)) and invertebrates comprised ", 
                          temp2$perc_invert[ii], 
                          " (Table \\@ref(tab:tab-biomass-est-", temp2$srvy[ii], 
                          "-invert)) of the total biomass caught on the ", 
@@ -672,12 +658,12 @@ for (i in 1:length(srvy1)) {
                  xunits(temp1$maxyr)," t in ", maxyr, ". ", 
                  str1,
                  # taxa increased
-                 "Large increases in ",
+                 "Compared to ", compareyr[names(compareyr) == "EBS"]," estimates, large increases in ",
                  ifelse(plural_surveys == "", "", paste0(srvy11[i], " ")),
                  "biomass were observed for ", 
                  text_list(paste0(temp$print_name[temp$case == "increased"],
                                   " (", temp$change[temp$case == "increased"], ")")), 
-                 " (Table \\@ref(tab:tab-majortaxa-pchange-", srvy1[i], " and Fig.  \\@ref(fig:fig-timeseries-total-biomass)). ",
+                 " (Table \\@ref(tab:tab-majortaxa-pchange-", srvy1[i], ") and Fig.  \\@ref(fig:fig-timeseries-total-biomass)). ",
                  # taxa decreased
                  "Large decreases in ", 
                  ifelse(plural_surveys == "", "", paste0(srvy11[i], " ")),
@@ -760,7 +746,7 @@ str4 <- str0
 nickname <- "fig-timeseries-total-biomass"
 ```
 
-```{r fig-timeseries-total-biomass-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = FALSE}
+```{r fig-timeseries-total-biomass-child, child = paste0(dir_code, "_child_report_figtab.Rmd")}
 ```
 
 

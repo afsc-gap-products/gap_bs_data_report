@@ -2023,8 +2023,8 @@ for (i in 1:length(srvy1)) {
         is.na(temp$biomass_mt[temp$year == maxyr]) ~ "-", 
         is.na(temp$biomass_mt[temp$year == compareyr0]) ~ "-", 
         temp$biomass_mt[temp$year == maxyr] == 0 ~ paste0("Not caught in ", compareyr0),
-        abs(pchange(start = temp$biomass_mt[temp$year == maxyr], 
-                    end = temp$biomass_mt[temp$year == compareyr0], 
+        abs(pchange(end = temp$biomass_mt[temp$year == maxyr], 
+                    start = temp$biomass_mt[temp$year == compareyr0], 
                     value_only = TRUE)) < 1 ~ "no change",
         TRUE ~ sub(replacement = "", pattern = "an ", 
                    x = gsub(pattern = "a ", replacement = "", 
@@ -2055,6 +2055,9 @@ for (i in 1:length(srvy1)) {
       #   )
         )
     # ))
+  if(!grepl(pattern = "-", x = temp_bio1$`% Relation to\nBiomass Long-Term Mean`)){
+    paste0("+", temp_bio1$`% Relation to\nBiomass Long-Term Mean`)
+  }
   
 }
 
