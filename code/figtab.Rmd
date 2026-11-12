@@ -703,7 +703,6 @@ res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_ch
 
 # Results
 
-
 ```{r fig-mean-temperature-prep}
 # code orig from sean rohan's coldpool package! Jan 23 2021 
 
@@ -1497,8 +1496,8 @@ table_print0 <- table_raw0 |>
 # reorder table to accommodate "-" %'s
 table_print0 <- dplyr::bind_rows(
   table_print0 |> dplyr::filter(change0 > 0 & change != "-"),
-  table_print0 |> dplyr::filter(change0 <= 0 & change != "-"), 
-  table_print0 |> dplyr::filter(change == "-"),
+  table_print0 |> dplyr::filter(change0 <= 0 & change != "-")#, 
+  # table_print0 |> dplyr::filter(change == "-")
 )
 
 
@@ -1529,8 +1528,9 @@ for (i in 1:c(nrow(haul_cruises_maxyr))) {
     haul_cruises_maxyr$srvy_long[i], 
     ' surveys for predominant fish and invertebrate taxa', 
     ifelse(length(whoismissing) == 0, "", paste0(" (note that the ", haul_cruises_maxyr$srvy_long[i]," was not surveyed in ", whoismissing, ")")),
-    '. Taxa are listed in descending order of percent change from ', compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]],' to ',maxyr,'. ', 
-    ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught. ", "")))
+    '. Taxa are listed in descending order of percent change from ', compareyr[names(compareyr) == haul_cruises_maxyr$srvy[i]],' to ',maxyr,'. '#, 
+    # ifelse("-" %in% table_print0$change, paste0("Percent changes denoted with '-' indicate that fewer than 100 individuals were caught. ", ""))
+    )
   # Crab data are summarized under other crabs and discussed in detail in the annual crab Technical Memorandum produced by the Shellfish Assessment Program. 
   # 
   # names(table_raw)[ names(table_raw) == "maxyr"] <- maxyr
