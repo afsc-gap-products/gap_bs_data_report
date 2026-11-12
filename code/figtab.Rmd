@@ -2593,7 +2593,7 @@ tab_taxa_found_ <- function(temp,
                           srvy == temp$srvy[i]) |> 
           dplyr::select(station, latitude_dd_start, longitude_dd_start, depth_gear_m, species_code), 
         y = spp_info |> 
-          # dplyr::filter(survey_species == 1) |> 
+          # dplyr::filter(active == 1) |> 
           dplyr::rename(taxon0 = ifelse(temp$taxon[i] == "fish", "family", "phylum")) |>
           dplyr::select(species_name, common_name, taxon, species_code, taxon0), 
         by = "species_code") |> 
@@ -3033,56 +3033,6 @@ table_print <- table_raw |>
                                reason = "Reason") |> 
   theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |> 
   flextable::width(width = c(2, 2, 1.5, 1) )
-
-res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
-```
-
-
-```{r tab-species-year, eval = FALSE}
-# May only be relevant in the 2023 year
-nickname <- "tab-species-year"
-header <- paste0("Established species time-series cutoff guidelines for when the time series of some species should begin. These cutoffs were formally established in 2023. ")
-
-table_raw <- gap_products_species_year0 |>
-  dplyr::left_join(spp_info |> 
-                     dplyr::select(common_name, species_name, species_code)) |> 
-  dplyr::arrange(species_code) |> 
-  dplyr::mutate(dplyr::across(dplyr::everything(), as.character)) |> 
-  dplyr::select(common_name, species_name, year_started)  |> 
-  dplyr::mutate(common_name = paste0(toupper(substr(common_name, start = 1, stop = 1)), substr(common_name, start = 2, stop = nchar(common_name))) )
-
-# separate text to italize and not ---------------------------------------------
-table_raw$species_name_noi <- ""
-table_raw$species_name_i <- table_raw$species_name
-table_raw$species_name <- paste0(table_raw$species_name, " ")
-cases <- c(" larvae", " n.", " sp.", " spp.", " egg case", " (", " egg") # , " n."
-which00 <- c()
-for (ii in cases) {
-  which0 <- which(sapply(strsplit(x = table_raw$species_name, split = ii, fixed = TRUE), length) == 2)
-  which0 <- which0[!(which0 %in% which00)]
-  table_raw$species_name_i[which0] <- 
-    paste0(sapply(strsplit(x = table_raw$species_name[which0], split = ii, fixed = TRUE), "[[", 1))
-  table_raw$species_name_noi[which0] <- 
-    paste0(ii, sapply(strsplit(x = table_raw$species_name[which0], split = ii, fixed = TRUE), "[[", 2))
-  which00 <- c(which00, which0)
-}
-
-table_raw <- table_raw[order(table_raw$common_name),]
-table_raw$species_name <- trimws(table_raw$species_name)
-table_raw$species_name_noi <- trimws(table_raw$species_name_noi)
-
-# Prepare final table ----------------------------------------------------------
-table_print <- table_raw |> 
-  flextable::flextable(col_keys = c("common_name", "dummy", "year_started")) |>
-  flextable::compose(
-    j = "dummy", 
-    value = flextable::as_paragraph(
-      flextable::as_i(species_name_i), " ", species_name_noi)) |> 
-  flextable::set_header_labels(dummy = "Species Name",
-                               common_name = "Common Name",
-                               year_started = "First Year") |> 
-  theme_flextable_nmfstm(pgwidth = full_page_portrait_width) |> 
-  flextable::width(width = c(2.5, 2.5, 1) )
 
 res <- knitr::knit_child(text = knitr::knit_expand( file = paste0(dir_code, "_child_save_figtab.Rmd")), quiet = TRUE)
 ```

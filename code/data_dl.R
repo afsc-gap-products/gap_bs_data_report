@@ -30,9 +30,8 @@ locations <- c(
   "GAP_PRODUCTS.SPECIMEN",
   "GAP_PRODUCTS.STRATUM_GROUPS",
   "GAP_PRODUCTS.SURVEY_DESIGN",
-  "GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION",
-  "GAP_PRODUCTS.TAXONOMIC_CHANGES",
-  "GAP_PRODUCTS.SPECIES_YEAR"
+  "GAP_TAXONOMY.TAXONOMIC_CLASSIFICATION",
+  "GAP_PRODUCTS.TAXONOMIC_CHANGES"
 )
 
 print(Sys.Date())
@@ -171,13 +170,13 @@ if (FALSE) {
         GROUP_NAME = c("red king crab", "blue king crab", "Tanner crab", "snow crab", "hybrid Tanner crab", "horsehair crab") ))
 }
 
-# filter temp1 for exisiting species codes in GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION
+# filter temp1 for exisiting species codes in GAP_TAXONOMY.TAXONOMIC_CLASSIFICATION
 # note. maybe gp_taxa is already called somewhere but directly pulling here.
 # following advice from Z Oyafuso in https://github.com/afsc-gap-products/gapindex/issues/63#issuecomment-2499660803
 gp_taxa <- 
   RODBC::sqlQuery(channel = channel, 
-                  query = "SELECT * FROM GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION 
-                           WHERE SURVEY_SPECIES = 1 ORDER BY SPECIES_CODE")
+                  query = "SELECT * FROM GAP_TAXONOMY.TAXONOMIC_CLASSIFICATION 
+                           WHERE ACTIVE = 1 ORDER BY SPECIES_CODE")
 temp1 <- subset(x = temp1,
                 subset = SPECIES_CODE %in% gp_taxa$SPECIES_CODE)
 
@@ -195,7 +194,7 @@ complex_data <- complex_data0 <- gapindex::get_data(
   pull_lengths = FALSE, 
   haul_type = 3, 
   abundance_haul = "Y", 
-  taxonomic_source = "GAP_PRODUCTS.TAXONOMIC_CLASSIFICATION", # "RACEBASE.SPECIES", 
+  taxonomic_source = "GAP_TAXONOMY.TAXONOMIC_CLASSIFICATION", # "RACEBASE.SPECIES", 
   channel = channel)
 
 if (FALSE) {
