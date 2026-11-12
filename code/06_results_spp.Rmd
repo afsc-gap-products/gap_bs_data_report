@@ -122,8 +122,25 @@ str0 <- ""
 ```
 
 ```{r bio-pop-txt-{{jj}}}
-cite_bio <- paste0(" (Table ", tab_stat, "; Fig. ", fig_comb, ")")
-cite_pop <- paste0(" (Table ", tab_stat, "; Fig. ", fig_comb,")")
+if (spp_table_cpue) {
+  tab_wt <- paste0("\\@ref(tab:tab-est-", spp_file, "-wt)")
+  tab_no <- paste0("\\@ref(tab:tab-est-", spp_file, "-num)")
+}
+
+# cite_bio <- paste0(" (Table ", tab_stat, "; Fig. ", fig_comb, ")")
+# cite_pop <- paste0(" (Table ", tab_stat, "; Fig. ", fig_comb,")")
+
+cite_bio <- paste0(" (Table", ifelse(spp_table_cpue, "s ", " "), tab_stat,
+                   ifelse(spp_table_cpue, paste0(" and ", tab_wt), ""),
+                   "; Fig. ", fig_comb, ")")                   
+                   # "; Figs. ", fig_biopop,
+                   # ifelse(spp_plot_idw, paste0(" and ", fig_dist), ""), ")")
+cite_pop <- paste0(" (Table", ifelse(spp_table_cpue, "s ", " "),
+                   tab_stat,
+                   ifelse(spp_table_cpue, paste0(" and ", tab_no), ""),# " and ", tab_no,
+                   "; Fig. ", fig_comb,")")
+                   # "; Fig. ", fig_biopop,")")
+
 
 load(file = paste0(dir_out_figtab, "tab-stats-", spp_file, ".rdata"))
 temp <- obj$raw
@@ -297,5 +314,23 @@ nickname <- paste0("fig-combined-", spp_file, "-data")
 ```
 
 ```{r fig-combined-{{jj}}-child, child = paste0(dir_code, "_child_report_figtab.Rmd") }
+```
+
+`r ifelse(spp_table_cpue, "\\pagebreak", "")`
+
+```{r tab-est-{{jj}}-wt}
+nickname <- paste0("tab-est-", spp_file, "-wt")
+```
+
+```{r tab-est-{{jj}}-wt-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_table_cpue}
+```
+
+`r ifelse(spp_table_cpue, "<br>", "")`
+
+```{r tab-est-{{jj}}-num}
+nickname <- paste0("tab-est-",spp_file, "-num")
+```
+
+```{r tab-est-{{jj}}-num-child, child = paste0(dir_code, "_child_report_figtab.Rmd"), eval = spp_table_cpue}
 ```
 
